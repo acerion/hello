@@ -1,0 +1,9 @@
+Stats about line counts in hello project, without sh and perl, for entire
+project (src, dpid, dpic dirs etc.)
+
+Line counts generated using David A. Wheeler's 'SLOCCount'.
+
+
+date             cpp         c   haskell
+2021.01.05     33629     19428         0
+
