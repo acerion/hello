@@ -47,6 +47,7 @@
 
 #include "url.h"
 #include "msg.h"
+#include "haskell/hello.h"
 
 static const char *HEX = "0123456789ABCDEF";
 
@@ -635,30 +636,6 @@ char *a_Url_string_strip_delimiters(const char *str)
    return new_str;
 }
 
-/*
- * Is the provided hostname an IP address?
- */
-static bool_t Url_host_is_ip(const char *host)
-{
-   uint_t len;
-
-   if (!host || !*host)
-      return FALSE;
-
-   len = strlen(host);
-
-   if (len == strspn(host, "0123456789.")) {
-      _MSG("an IPv4 address\n");
-      return TRUE;
-   }
-   if (strchr(host, ':') &&
-       (len == strspn(host, "0123456789abcdefABCDEF:."))) {
-      /* The precise format is shown in section 3.2.2 of rfc 3986 */
-      MSG("an IPv6 address\n");
-      return TRUE;
-   }
-   return FALSE;
-}
 
 /*
  * How many internal dots are in the public portion of this hostname?
@@ -724,8 +701,17 @@ static const char *Url_host_find_public_suffix(const char *host)
    const char *s;
    uint_t dots;
 
-   if (!host || !*host || Url_host_is_ip(host))
+   if (!host || !*host)
       return host;
+
+   if (hll_hostIsIP(host)) {
+      /* TODO: it looks like this function is never called for an actual
+         IP. why then do we check if function is an IP here? */
+      fprintf(stderr, "hello: '%s' is IP\n", host);
+      return host;
+   } else {
+      fprintf(stderr, "hello: '%s' is not IP\n", host);
+   }
 
    s = host;
 
