@@ -6715,10 +6715,6 @@ $as_echo "$as_me: WARNING: found a way to link threads, but it may not work..." 
 esac
 fi
 
-if test "x$enable_cookies" = "xno" ; then
-  CFLAGS="$CFLAGS -DDISABLE_COOKIES"
-  CXXFLAGS="$CXXFLAGS -DDISABLE_COOKIES"
-fi
 if test "x$enable_ipv6" = "xyes" ; then
   CFLAGS="$CFLAGS -DENABLE_IPV6"
 fi

@@ -21,16 +21,6 @@
  *  http://www.ietf.org/mail-archive/web/http-state/current/msg00128.html
  */
 
-#ifdef DISABLE_COOKIES
-
-int main(void)
-{
-   return 0; /* never called */
-}
-
-#else
-
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -1593,4 +1583,3 @@ int main(void) {
    return 0;
 }
 
-#endif /* !DISABLE_COOKIES */

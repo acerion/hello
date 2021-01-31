@@ -653,9 +653,7 @@ static void Cache_parse_header(CacheEntry_t *entry)
 {
    char *header = entry->Header->str;
    char *Length, *Type, *location_str, *encoding;
-#ifndef DISABLE_COOKIES
    Dlist *Cookies;
-#endif
    Dlist *warnings;
    void *data;
    int i;
@@ -734,7 +732,6 @@ static void Cache_parse_header(CacheEntry_t *entry)
 
    dFree(encoding); /* free Transfer-Encoding */
 
-#ifndef DISABLE_COOKIES
    if ((Cookies = Cache_parse_multiple_fields(header, "Set-Cookie"))) {
       CacheClient_t *client;
 
@@ -757,7 +754,6 @@ static void Cache_parse_header(CacheEntry_t *entry)
          dFree(data);
       dList_free(Cookies);
    }
-#endif /* !DISABLE_COOKIES */
 
    /*
     * Get Content-Encoding and initialize decoder

@@ -422,10 +422,6 @@ dnl --------------------
 dnl Command line options
 dnl --------------------
 dnl
-if test "x$enable_cookies" = "xno" ; then
-  CFLAGS="$CFLAGS -DDISABLE_COOKIES"
-  CXXFLAGS="$CXXFLAGS -DDISABLE_COOKIES"
-fi
 if test "x$enable_ipv6" = "xyes" ; then
   CFLAGS="$CFLAGS -DENABLE_IPV6"
 fi
