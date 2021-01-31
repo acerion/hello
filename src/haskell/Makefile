@@ -3,7 +3,7 @@
 
 all:
 	ghc -O2 -fPIC -c wrapper.c
-	ghc -O2 -dynamic -shared -fPIC -o libhello.so URL.hs wrapper.o -lHSrts-ghc8.0.1
+	ghc -O2 -dynamic -shared -fPIC -o libhello.so URL.hs cookies.hs wrapper.o -lHSrts-ghc8.0.1
 
 clean:
 	rm -rf *.o *.a *.so

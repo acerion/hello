@@ -6,5 +6,8 @@
 /* URL */
 bool hll_hostIsIP(const char * hostname);
 
+/* cookies */
+int hll_lookupActionForDomain(const char * domain);
+
 
 #endif
