@@ -34,7 +34,7 @@ Jorge.-
    Dw.txt              The New Dillo Widget (Overview)      Current
    Imgbuf.txt          Image buffers                        Pending
    Selection.txt       Selections, and link activation      Current (?)
-   Cookies.txt         Explains how to enable cookies       Current
+   cookies.md          Explains how to enable cookies       Current
    Dpid.txt            Dillo plugin daemon                  Current
  --------------------------------------------------------------------------
 

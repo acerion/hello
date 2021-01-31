@@ -305,7 +305,7 @@ EXTRA_DIST = \
 	dw-textblock-collapsing-spaces-2-2.png \
 	not-so-simple-container.png \
 	Cache.txt \
-	Cookies.txt \
+	cookies.txt \
 	Dillo.txt \
 	Dw.txt \
 	HtmlParser.txt \

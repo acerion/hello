@@ -1,6 +1,6 @@
 Jan 2002, Jörgen Viksell - jorgen.viksell@telia.com,
           Jorge Arellano Cid --
-Last update: March 2010
+Last update: Jan 2021, Kamil Ignacak
 
 
 ==================
@@ -29,7 +29,7 @@ Out of the box, dillo rejects all cookies.
 
 
 If you want to accept certain cookies, you can specify rules for different
-domains in the file ~/.dillo/cookiesrc. The syntax looks like:
+domains in the file ~/.config/.hello/cookiesrc. The syntax looks like:
 
 #host         action
 DEFAULT       DENY
@@ -43,10 +43,32 @@ Line 2: Accept all cookies from fltk.org, and save them to
 Line 3: Accept all cookies from all subdomains of host.com, but
         do not save them when the dpi exits.
 
+If the file does not exist, it is created by the program with this contents:
+DEFAULT DENY
 
-If you are positive that you will never want any cookies, you can
-configure/compile Dillo without cookie support. The option is:
-./configure --disable-cookies
+The program does not care about case of strings in this file, but for
+historical reasons ("this is how dillo did it") the action strings and the
+"DEFAULT" string are upper-case.
+
+Config file lines with two tokens are accepted for further parsing.
+
+Config file lines with one, three or more tokens are discarded. If such line
+contained a valid domain, the domain is discarded, and default global action
+will be used for that domain.
+
+Domains, for which action is malformed in the config file (e.g. "DEN",
+"ACC_EPT", "OK"), are added to config, and the DENY action is
+assigned. Mixed-case action string (e.g. "Deny" or "AccePT") is not
+considered to be malformed.
+
+The program stores the rules in a container. The rules must be stored as
+ordered by domain length, with longest first, so the first match is the most
+specific.
+
+Domains stored in the container are always lower-case.
+
+Domains passed to module's "lookup" function are always forced to lower-case
+before action lookup takes place.
 
 
 ===================
