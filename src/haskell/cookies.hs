@@ -156,7 +156,7 @@ specific place (at place that ensures being sorted by domain length).
 -}
 sortRules :: [CookieRule] -> [CookieRule]
 sortRules rules = sortBy domainLengths rules
-  where domainLengths a b = compare (domain b) (domain a)
+  where domainLengths a b = compare (T.length (domain b)) (T.length (domain a))
 
 
 
