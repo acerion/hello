@@ -45,24 +45,24 @@ hll_lookupActionForDomain dom = do
   let action = lookupActionForDomain domain (rules cookiesConfig) (defaultAction cookiesConfig)
   T.IO.putStr (T.concat ["hello: cookies: ", domain, " = ", T.pack (show action), "\n"])
   case action of
-    -- Convert to values of CookieControlAction enum in C file.
-    CookieControlActionAccept        -> return 0
-    CookieControlActionAcceptSession -> return 1
-    CookieControlActionDeny          -> return 2
+    -- Convert to values of CookieAction enum in C file.
+    CookieActionAccept        -> return 0
+    CookieActionAcceptSession -> return 1
+    CookieActionDeny          -> return 2
 
 
 
-data CookieControlAction = CookieControlActionAccept
-                         | CookieControlActionAcceptSession
-                         | CookieControlActionDeny
-                         deriving (Show, Eq)
+data CookieAction = CookieActionAccept
+                  | CookieActionAcceptSession
+                  | CookieActionDeny
+                  deriving (Show, Eq)
 
 
 
 data CookieRule = CookieRule {
     domain :: T.Text -- always lower-case
-  , action :: CookieControlAction
-  }
+  , action :: CookieAction
+  } deriving (Eq)
 
 instance Show CookieRule where
   show rule = show (domain rule) ++ "\t" ++ show (action rule) ++ "\n"
@@ -71,7 +71,7 @@ instance Show CookieRule where
 
 data CookiesConfig = CookiesConfig {
   rules :: [CookieRule],
-  defaultAction :: CookieControlAction, -- default action for domains not explicitly listed
+  defaultAction :: CookieAction, -- default action for domains not explicitly listed
   cookiesEnabled :: Bool -- is any action Accept or AcceptSession?
   }
 
@@ -124,13 +124,13 @@ parseLine line =
 {-
 Convert string representation of action into action enum.
 -}
-stringToAction :: T.Text -> CookieControlAction
+stringToAction :: T.Text -> CookieAction
 stringToAction str =
   case T.toLower str of
-    "accept"         -> CookieControlActionAccept
-    "accept_session" -> CookieControlActionAcceptSession
-    "deny"           -> CookieControlActionDeny
-    _                -> CookieControlActionDeny -- Malformed action string
+    "accept"         -> CookieActionAccept
+    "accept_session" -> CookieActionAcceptSession
+    "deny"           -> CookieActionDeny
+    _                -> CookieActionDeny -- Malformed action string
 
 
 
@@ -164,8 +164,8 @@ sortRules rules = sortBy domainLengths rules
 Find "default" rule on list of rules, return action for that rule. If not
 found, return program's hardcoded global default action.
 -}
-findDefaultAction :: [CookieRule] -> CookieControlAction
-findDefaultAction []     = CookieControlActionDeny -- hardcoded default action
+findDefaultAction :: [CookieRule] -> CookieAction
+findDefaultAction []     = CookieActionDeny -- hardcoded default action
 findDefaultAction (x:xs) = if isDefaultRule x
                            then (action x)
                            else findDefaultAction xs
@@ -179,7 +179,7 @@ isNotDefaultRule :: CookieRule -> Bool
 isNotDefaultRule x = not (isDefaultRule x)
 
 isNotDenyRule :: CookieRule -> Bool
-isNotDenyRule rule = action rule /= CookieControlActionDeny
+isNotDenyRule rule = action rule /= CookieActionDeny
 
 
 
@@ -197,7 +197,7 @@ dot. Right now this code does not support such domain names. Look at original
 code (Cookies_control_check_domain()) to see how it was done, and implement
 it here.
 -}
-lookupActionForDomain :: T.Text -> [CookieRule] -> CookieControlAction -> CookieControlAction
+lookupActionForDomain :: T.Text -> [CookieRule] -> CookieAction -> CookieAction
 lookupActionForDomain dom rules def = lookupCS (T.toLower dom) rules def
   where lookupCS _ [] defaultAction            = defaultAction
         lookupCS domainLC (x:xs) defaultAction = if (domainLC == (domain x))
