@@ -97,7 +97,7 @@ TEST: parseLines (lines "en.wikipedia.org ACCEPT\npolandl.wikipedia.org DENY\ndi
 parseLines :: [T.Text] -> [CookieRule]
 parseLines []     = []
 parseLines (x:xs) =
-  case (parseLine x) of
+  case (lineToRule x) of
     Just rule -> rule : (parseLines xs)
     Nothing   -> (parseLines xs)
 
@@ -105,19 +105,20 @@ parseLines (x:xs) =
 
 {-
 Convert single line from config line into single rule.
-
-TEST: parseLine "# commented line"
 -}
-parseLine :: T.Text -> Maybe CookieRule
-parseLine line =
-  if (Data.List.length tokens /= 2) || ((T.head line) == '#') -- TODO: ensure that line is non-empty, otherwise head will fail
-  then Nothing -- If there is a valid domain, but overall the line is
-               -- malformed, global default action will be used for that
-               -- domain.
-  else Just CookieRule { domain = T.toLower (tokens !! 0),
-                         action = stringToAction (tokens !! 1)
-                       }
+lineToRule :: T.Text -> Maybe CookieRule
+lineToRule line
+  | T.null line                  = Nothing
+  | ((T.head line) == '#')       = Nothing
+  | Data.List.length tokens /= 2 = Nothing
+  | not (actionStringIsValid actionString) = Nothing
+  | otherwise                    = Just CookieRule { domain = domainString,
+                                                     action = stringToAction actionString }
   where tokens = (T.words line)
+        domainString = T.toLower (tokens !! 0)
+        actionString = T.toLower (tokens !! 1)
+        actionStringIsValid :: T.Text -> Bool
+        actionStringIsValid str = any (\action -> str == action) [ "accept", "accept_session", "deny" ]
 
 
 
