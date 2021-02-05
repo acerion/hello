@@ -1,7 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module Cookies(lookupActionForDomain,
+module Cookies(lookupActionForDomain
+              , lookupActionTop
+
+              --these are for tests.
+              , CookieRule (..)
+              , CookieAction (..)
+              , lineToRule
+              , sortRules
               ) where
 
 import Prelude

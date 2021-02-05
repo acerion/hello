@@ -1,1 +1,1 @@
-ghci -fobject-code ./URL.hs
+ghci -fobject-code  -XOverloadedStrings ./cookies.hs ./TestsCookies.hs
