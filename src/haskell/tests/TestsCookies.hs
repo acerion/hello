@@ -102,10 +102,28 @@ sortRulesCases = [
   ]
 
 
+matchDomainCases = [
+    TestCase(assertEqual "simple match"             True  (domainMatchesRule "abc.com"  "abc.com"))
+  , TestCase(assertEqual "simple mismatch"          False (domainMatchesRule "xyz.com"  "abc.com"))
+
+  -- Domain in rule does not start with dot, so the input domain must be
+  -- exactly equal, otherwise there is no match.
+  , TestCase(assertEqual "in with dot mismatch (A)" False (domainMatchesRule ".abc.com"    "abc.com"))
+  , TestCase(assertEqual "in with dot mismatch (B)" False (domainMatchesRule "sub.abc.com" "abc.com"))
+
+  -- Domain in rule starts with dot, so sub-domains (and only sub-domains)
+  -- can produce a match.
+  , TestCase(assertEqual "rule with dot match (A)"  False (domainMatchesRule "abc.com"     ".abc.com"))
+  , TestCase(assertEqual "rule with dot match (B)"  True  (domainMatchesRule "sub.abc.com" ".abc.com"))
+
+  -- Producing False since input domain with leading dot is invalid.
+  , TestCase(assertEqual "both with dot match"      False (domainMatchesRule ".abc.com"    ".abc.com"))
+  ]
+
 
 main :: IO ()
 main = do
-  counts <- runTestTT (TestList (lineToRuleCases ++ sortRulesCases))
+  counts <- runTestTT (TestList (lineToRuleCases ++ sortRulesCases ++ matchDomainCases))
   if (errors counts + failures counts == 0)
     then exitSuccess
     else exitFailure

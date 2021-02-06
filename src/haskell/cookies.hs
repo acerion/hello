@@ -9,6 +9,7 @@ module Cookies(lookupActionForDomain
               , CookieAction (..)
               , lineToRule
               , sortRules
+              , domainMatchesRule
               ) where
 
 import Prelude
@@ -199,19 +200,34 @@ default action if domain is not found.
 TODO: original code used dStrAsciiCasecmp() function that was commented with
 "ASCII functions to avoid the case difficulties introduced by I/i in Turkic
 locales.". Test behaviour of the code for this case.
-
-TODO: Check example host ".host.com" in doc/cookies.md: it starts with a
-dot. Right now this code does not support such domain names. Look at original
-code (Cookies_control_check_domain()) to see how it was done, and implement
-it here.
 -}
 lookupActionForDomain :: T.Text -> [CookieRule] -> CookieAction -> CookieAction
-lookupActionForDomain dom rules def = lookupCS (T.toLower dom) rules def
+lookupActionForDomain inDomain rules def = lookupCS (T.toLower inDomain) rules def
   where lookupCS _ [] defaultAction            = defaultAction
-        lookupCS domainLC (x:xs) defaultAction = if (domainLC == (domain x))
+        lookupCS domainLC (x:xs) defaultAction = if domainMatchesRule domainLC (domain x)
                                                  then (action x)
-                                                 else lookupCS dom xs defaultAction
+                                                 else lookupCS domainLC xs defaultAction
 
+
+{-
+Check if given input domain (first arg) matches a domain from rule (second
+domain).  This could have been a simple "==" operation, but the special case
+for domain rules starting with a dot ("dot rules") compilcates matching
+operation.
+
+From original dillo program:
+checking input domain 'cnn.com' against rule domain '.cnn.com' - NO MATCH, string length
+checking input domain 'cnn.com' against rule domain '.cnn.com' - NO MATCH, string length
+checking input domain 'www.cnn.com' against rule domain '.cnn.com' - MATCHED, string comparison
+
+Notice that in case of dot rules, when a match is found, the rule domain
+string is shorter than input domain string, so make sure to pass args to
+isSuffixOf in proper order.
+-}
+domainMatchesRule :: T.Text -> T.Text -> Bool
+domainMatchesRule inDomain ruleDomain = if (T.head ruleDomain == '.')
+                                        then T.length inDomain > T.length ruleDomain && T.isSuffixOf ruleDomain inDomain -- "dot rule"
+                                        else inDomain == ruleDomain
 
 
 {-

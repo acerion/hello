@@ -25,41 +25,48 @@ exit with the command "dpidc stop".
  Controlling cookies
 =====================
 
-Out of the box, dillo rejects all cookies.
-
+Out of the box, hello rejects all cookies.
 
 If you want to accept certain cookies, you can specify rules for different
 domains in the file ~/.config/.hello/cookiesrc. The syntax looks like:
 
-#host         action
-DEFAULT       DENY
-fltk.org      ACCEPT
-.host.com     ACCEPT_SESSION
+#host (domain)     action
+DEFAULT            DENY
+fltk.org           ACCEPT
+.host.com          ACCEPT_SESSION
 
 Line 0: Comment line begins with '#'.
 Line 1: Deny all cookies from all domains not otherwise specified.
 Line 2: Accept all cookies from fltk.org, and save them to
         ~/.dillo/cookies.txt when the cookies dpi exits.
-Line 3: Accept all cookies from all subdomains of host.com, but
-        do not save them when the dpi exits.
+Line 3: So called "dot rule", where domain starts with a dot. Accept all
+        cookies from all subdomains of host.com, but do not save them when
+        the dpi exits.
+        Only subdomains of "host.com" (e.g. "www.host.com") are a match for
+        this rule, but the main domain ("host.com") is not. If you want to
+        have a rule for "host.com" domain itself, you have to add explicit
+        rule for this domain to the config file.
 
-If the file does not exist, it is created by the program with this contents:
+If the file does not exist, it is created by the program with single rule:
 DEFAULT DENY
 
-The program does not care about case of strings in this file, but for
-historical reasons ("this is how dillo did it") the action strings and the
-"DEFAULT" string are upper-case.
+Rules for the config file:
 
-Config file lines with two tokens are accepted for further parsing.
-
-Config file lines with one, three or more tokens are discarded. If such line
-contained a valid domain, the domain is discarded, and default global action
-will be used for that domain.
-
-Domains, for which action is malformed in the config file (e.g. "DEN",
-"ACC_EPT", "OK"), are added to config, and the DENY action is
-assigned. Mixed-case action string (e.g. "Deny" or "AccePT") is not
-considered to be malformed.
+1. The program does not care about case of strings in this file, but for
+   historical reasons ("this is how dillo did it") the default rule is
+   upper-case.
+2. Config file lines with two tokens are accepted for further parsing. Token
+   separators are either space or tab characters or mix of these characters.
+3. Empty lines are discarded.
+4. Comment lines are discarded.
+5. Comments can occur only in their own lines. Adding comments afer
+   domain/action string results in discarding of entire line.
+6. Lines with one, three or more tokens are discarded. If such line contained
+   a valid domain, the domain is discarded, and default global action will be
+   used for that domain.
+7. Lines with malformed action strings (e.g. "DEN", "ACC_EPT", "OK",
+   "ALLOW"), are discarded. Mixed-case action string (e.g. "Deny" or
+   "AccePT") is not considered to be malformed.
 
 The program stores the rules in a container. The rules must be stored as
 ordered by domain length, with longest first, so the first match is the most
