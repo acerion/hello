@@ -57,44 +57,47 @@ lineToRuleCases = [
 
 
 
+-- Rules are sorted by length of domain (from longest to shortest). To detect
+-- error where in production code we would compare by string contents, make
+-- sure that all domains start with the same letter. This doesn't prevent all
+-- errors because even bad code that compares "aaa.com" with "aaaaaa.com"
+-- will recognize that '.' /= 'a', but maybe it will at least help somewhat.
 sortRulesCases = [
 
   -- Empty list of rules.
-  TestCase(assertEqual ""
+  TestCase(assertEqual "sort empty"
            (          [])
            (sortRules [])
           )
 
   -- Single rule.
-  , TestCase(assertEqual ""
-             (          [ Cookies.CookieRule { domain = "url.com", action = CookieActionDeny }])
-             (sortRules [ Cookies.CookieRule { domain = "url.com", action = CookieActionDeny }])
+  , TestCase(assertEqual "sort single rule"
+             (          [ Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
+             (sortRules [ Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
             )
 
   -- Two sorted rules.
   , TestCase(assertEqual "two sorted rules"
-             (          [ Cookies.CookieRule { domain = "longer.com", action = CookieActionDeny },
-                          Cookies.CookieRule { domain = "url.com", action = CookieActionDeny }])
-             (sortRules [ Cookies.CookieRule { domain = "longer.com", action = CookieActionDeny },
-                          Cookies.CookieRule { domain = "url.com", action = CookieActionDeny }])
+             (          [ Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny },
+                          Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
+             (sortRules [ Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny },
+                          Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
             )
 
-  -- Two unsorted rules.
   , TestCase(assertEqual "two unsorted rules"
-             (          [ Cookies.CookieRule { domain = "longer.com", action = CookieActionDeny },
-                          Cookies.CookieRule { domain = "url.com", action = CookieActionDeny }])
-             (sortRules [ Cookies.CookieRule { domain = "url.com", action = CookieActionDeny },
-                          Cookies.CookieRule { domain = "longer.com", action = CookieActionDeny }])
+             (          [ Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny },
+                          Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
+             (sortRules [ Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny },
+                          Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny }])
             )
 
-  -- Three rules.
   , TestCase(assertEqual "three rules"
-             (          [ Cookies.CookieRule { domain = "thelongest.com", action = CookieActionDeny },
-                          Cookies.CookieRule { domain = "longer.com", action = CookieActionDeny },
-                          Cookies.CookieRule { domain = "url.com", action = CookieActionDeny }])
-             (sortRules [ Cookies.CookieRule { domain = "url.com", action = CookieActionDeny },
-                          Cookies.CookieRule { domain = "thelongest.com", action = CookieActionDeny },
-                          Cookies.CookieRule { domain = "longer.com", action = CookieActionDeny }])
+             (          [ Cookies.CookieRule { domain = "aaaaaaaaa.com", action = CookieActionDeny },
+                          Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny },
+                          Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
+             (sortRules [ Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny },
+                          Cookies.CookieRule { domain = "aaaaaaaaa.com", action = CookieActionDeny },
+                          Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny }])
             )
   ]
 
