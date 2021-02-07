@@ -27,16 +27,16 @@ static uchar_t *linebuf = NULL;
  * Decode 'buf' (an image line) into RGB format.
  */
 static uchar_t *Imgbuf_rgb_line(const uchar_t *buf,
-                                DilloImgType type, uchar_t *cmap,
-                                uint_t width, uint_t y)
+                                DilloImgType type, uchar_t *color_map,
+                                uint_t width, uint_t row_number)
 {
    uint_t x;
 
    switch (type) {
    case DILLO_IMG_TYPE_INDEXED:
-      if (cmap) {
+      if (color_map) {
          for (x = 0; x < width; x++)
-            memcpy(linebuf + x * 3, cmap + buf[x] * 3, 3);
+            memcpy(linebuf + x * 3, color_map + buf[x] * 3, 3);
       } else {
          MSG_WARN("Gif:: image lacks a color map\n");
       }
@@ -119,14 +119,14 @@ int a_Imgbuf_last_reference(void *v_imgbuf)
  * Update the root buffer of an imgbuf.
  */
 void a_Imgbuf_update(void *v_imgbuf, const uchar_t *buf, DilloImgType type,
-                     uchar_t *cmap, uint_t width, uint_t height, uint_t y)
+                     uchar_t *color_map, uint_t width, uint_t height, uint_t row_number)
 
 {
-   dReturn_if_fail ( y < height );
+   dReturn_if_fail ( row_number < height );
 
    /* Decode 'buf' and copy it into the imgbuf */
-   uchar_t *newbuf = Imgbuf_rgb_line(buf, type, cmap, width, y);
-   ((Imgbuf*)v_imgbuf)->copyRow(y, (byte *)newbuf);
+   uchar_t *newbuf = Imgbuf_rgb_line(buf, type, color_map, width, row_number);
+   ((Imgbuf*)v_imgbuf)->copyRow(row_number, (byte *)newbuf);
 }
 
 /*

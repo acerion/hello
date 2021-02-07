@@ -12,9 +12,9 @@ extern "C" {
 /*
  * Cache Op codes
  */
-#define CA_Send    (0)  /* Normal update */
-#define CA_Close   (1)  /* Successful operation close */
-#define CA_Abort   (2)  /* Operation abort */
+#define CacheOperationAddData    (0)  /* CA_Send, Normal update */
+#define CacheOperationClose      (1)  /* CA_Close, Successful operation close */
+#define CacheOperationAbort      (2)  /* CA_Abort, Operation abort */
 
 /*
  * Flag Defines

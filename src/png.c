@@ -26,9 +26,11 @@
 #include "cache.h"
 #include "dicache.h"
 
-enum prog_state {
-   IS_finished, IS_init, IS_nextdata
-};
+typedef enum {
+   IS_finished,
+   IS_init,
+   IS_nextdata
+} ParserState;
 
 #if 0
 static char *prog_state_name[] =
@@ -36,6 +38,31 @@ static char *prog_state_name[] =
    "IS_finished", "IS_init", "IS_nextdata"
 };
 #endif
+
+
+typedef struct {
+/*
+ * 0                                              last byte
+ * +-----------+-+-----------------------------------+-+
+ * |           | |     -- data to be processed --    | |
+ * +-----------+-+-----------------------------------+-+
+ * ^            ^                                     ^
+ * all_data     start_offset                          all_size
+ */
+
+
+   ParserState state;
+
+   /* Beginning of all image data received so far. Part of it has already
+      been parsed and sent to cache. */
+   uchar_t * all_data;
+   /* Total size of all of the image data received so far. */
+   int all_size;
+
+   /* Where the next unprocessed part of data starts. */
+   size_t start_offset;
+
+} png_parser;
 
 /*
  * This holds the data that must be saved between calls to this module.
@@ -59,6 +86,8 @@ static char *prog_state_name[] =
  */
 
 typedef struct {
+   png_parser parser;
+
    DilloImage *Image;           /* Image meta data */
    DilloUrl *url;               /* Primary Key for the dicache */
    int version;                 /* Secondary Key for the dicache */
@@ -73,30 +102,15 @@ typedef struct {
    jmp_buf jmpbuf;              /* png error processing */
    int error;                   /* error flag */
    png_uint_32 previous_row;
-   int rowbytes;                /* No. bytes in image row */
+   int bytes_per_row;           /* No. bytes in image row */
    short channels;              /* No. image channels */
 
-/*
- * 0                                              last byte
- * +-------+-+-----------------------------------+-+
- * |       | |     -- data to be processed --    | |
- * +-------+-+-----------------------------------+-+
- * ^        ^                                     ^
- * ipbuf    ipbufstart                            ipbufsize
- */
-
-   uchar_t *ipbuf;              /* image data in buffer */
-   int ipbufstart;              /* first valid image byte */
-   int ipbufsize;               /* size of valid data in */
-
-   enum prog_state state;       /* FSM current state  */
-
-   uchar_t *linebuf;            /* o/p raster data */
+   uchar_t * row_data;          /* o/p raster data */
 
 } DilloPng;
 
-#define DATASIZE  (png->ipbufsize - png->ipbufstart)
 
+static int initialize_png_lib(DilloPng * png);
 
 static
 void Png_error_handling(png_structp png_ptr, png_const_charp msg)
@@ -107,26 +121,25 @@ void Png_error_handling(png_structp png_ptr, png_const_charp msg)
    png = png_get_error_ptr(png_ptr);
 
    png->error = 1;
-   png->state = IS_finished;
+   png->parser.state = IS_finished;
 
    longjmp(png->jmpbuf, 1);
 }
 
+/* performs local init functions */
 static void
 Png_datainfo_callback(png_structp png_ptr, png_infop info_ptr)
 {
-   DilloPng *png;
+   _MSG("Png_datainfo_callback:\n");
+
+   DilloPng * png = png_get_progressive_ptr(png_ptr);
+   if (NULL == png) {
+      return;
+   }
+
    int color_type;
    int bit_depth;
    int interlace_type;
-   uint_t i;
-   double file_gamma = 1 / 2.2;
-
-   _MSG("Png_datainfo_callback:\n");
-
-   png = png_get_progressive_ptr(png_ptr);
-   dReturn_if_fail (png != NULL);
-
    png_get_IHDR(png_ptr, info_ptr, &png->width, &png->height,
                 &bit_depth, &color_type, &interlace_type, NULL, NULL);
 
@@ -164,6 +177,7 @@ Png_datainfo_callback(png_structp png_ptr, png_infop info_ptr)
    /* Get and set gamma information. Beware: gamma correction 2.2 will
       only work on PC's. TODO: select screen gamma correction for other
       platforms. */
+   double file_gamma = 1 / 2.2;
    if (png_get_gAMA(png_ptr, info_ptr, &file_gamma))
       png_set_gamma(png_ptr, 2.2, file_gamma);
 
@@ -184,22 +198,23 @@ Png_datainfo_callback(png_structp png_ptr, png_infop info_ptr)
    png_get_IHDR(png_ptr, info_ptr, &png->width, &png->height,
                 &bit_depth, &color_type, &interlace_type, NULL, NULL);
 
-   png->rowbytes = png_get_rowbytes(png_ptr, info_ptr);
+   png->bytes_per_row = png_get_rowbytes(png_ptr, info_ptr);
    png->channels = png_get_channels(png_ptr, info_ptr);
 
    /* init Dillo specifics */
-   _MSG("Png_datainfo_callback: rowbytes = %d\n"
-        "Png_datainfo_callback: width    = %lu\n"
-        "Png_datainfo_callback: height   = %lu\n",
-        png->rowbytes, (ulong_t) png->width, (ulong_t) png->height);
+   _MSG("Png_datainfo_callback: bytes per row = %d\n"
+        "Png_datainfo_callback: width         = %lu\n"
+        "Png_datainfo_callback: height        = %lu\n",
+        png->bytes_per_row, (ulong_t) png->width, (ulong_t) png->height);
 
-   png->image_data = (uchar_t *) dMalloc(png->rowbytes * png->height);
+   png->image_data = (uchar_t *) dMalloc(png->bytes_per_row * png->height);
    png->row_pointers = (uchar_t **) dMalloc(png->height * sizeof(uchar_t *));
 
-   for (i = 0; i < png->height; i++)
-      png->row_pointers[i] = png->image_data + (i * png->rowbytes);
+   for (uint_t row = 0; row < png->height; row++) {
+      png->row_pointers[row] = png->image_data + (row * png->bytes_per_row);
+   }
 
-   png->linebuf = dMalloc(3 * png->width);
+   png->row_data = dMalloc(3 * png->width);
 
    /* Initialize the dicache-entry here */
    a_Dicache_set_parms(png->url, png->version, png->Image,
@@ -208,19 +223,17 @@ Png_datainfo_callback(png_structp png_ptr, png_infop info_ptr)
    png->Image = NULL; /* safeguard: hereafter it may be freed by its owner */
 }
 
+/* performs per row action */
 static void
- Png_datarow_callback(png_structp png_ptr, png_bytep new_row,
-                      png_uint_32 row_num, int pass)
+Png_datarow_callback(png_structp png_ptr, png_bytep new_row,
+                     png_uint_32 row_num, int pass)
 {
-   DilloPng *png;
-   uint_t i;
-
    if (!new_row)                /* work to do? */
       return;
 
    _MSG("Png_datarow_callback: row_num = %ld\n", row_num);
 
-   png = png_get_progressive_ptr(png_ptr);
+   DilloPng * png = png_get_progressive_ptr(png_ptr);
 
    png_progressive_combine_row(png_ptr, png->row_pointers[row_num], new_row);
 
@@ -230,66 +243,63 @@ static void
    }
    png->previous_row = row_num;
 
-   switch (png->channels) {
-   case 3:
-      a_Dicache_write(png->url, png->version,
-                      png->image_data + (row_num * png->rowbytes),
-                      (uint_t)row_num);
-      break;
-   case 4:
-     {
-        /* TODO: get the backgound color from the parent
-         * of the image widget -- Livio.                 */
-        int a, bg_red, bg_green, bg_blue;
-        uchar_t *pl = png->linebuf;
-        uchar_t *data = png->image_data + (row_num * png->rowbytes);
-
-        /* TODO: maybe change prefs.bg_color to `a_Dw_widget_get_bg_color`,
-         * when background colors are correctly implementated */
-        bg_blue  = (png->bgcolor) & 0xFF;
-        bg_green = (png->bgcolor>>8) & 0xFF;
-        bg_red   = (png->bgcolor>>16) & 0xFF;
-
-        for (i = 0; i < png->width; i++) {
-           a = *(data+3);
-
-           if (a == 255) {
-              *(pl++) = *(data++);
-              *(pl++) = *(data++);
-              *(pl++) = *(data++);
-              data++;
-           } else if (a == 0) {
-              *(pl++) = bg_red;
-              *(pl++) = bg_green;
-              *(pl++) = bg_blue;
-              data += 4;
-           } else {
-              png_composite(*(pl++), *(data++), a, bg_red);
-              png_composite(*(pl++), *(data++), a, bg_green);
-              png_composite(*(pl++), *(data++), a, bg_blue);
-              data++;
-           }
-        }
-        a_Dicache_write(png->url, png->version, png->linebuf, (uint_t)row_num);
-        break;
-     }
-   default:
+   if (3 != png->channels && 4 != png->channels) {
       MSG("Png_datarow_callback: unexpected number of channels=%d pass=%d\n",
           png->channels, pass);
-      abort();
+      return;
    }
+
+   uint8_t * row_data = NULL;
+   if (3 == png->channels) {
+      /* Without alpha channel. */
+      row_data = png->image_data + (row_num * png->bytes_per_row);
+   } else {
+      /* With alpha channel */
+      /* TODO: get the backgound color from the parent
+       * of the image widget -- Livio.                 */
+      uchar_t * out_ptr = png->row_data;
+      const uchar_t *in_ptr = png->image_data + (row_num * png->bytes_per_row);
+
+      /* TODO: maybe change prefs.bg_color to `a_Dw_widget_get_bg_color`,
+       * when background colors are correctly implementated */
+      const int bg_blue  = (png->bgcolor) & 0xFF;
+      const int bg_green = (png->bgcolor>>8) & 0xFF;
+      const int bg_red   = (png->bgcolor>>16) & 0xFF;
+
+      for (uint_t i = 0; i < png->width; i++) {
+         const int alpha = *(in_ptr+3);
+
+         if (alpha == 255) {
+            *(out_ptr++) = *(in_ptr++);
+            *(out_ptr++) = *(in_ptr++);
+            *(out_ptr++) = *(in_ptr++);
+            in_ptr++; /* Skip remaining alpha byte. */
+         } else if (alpha == 0) {
+            *(out_ptr++) = bg_red;
+            *(out_ptr++) = bg_green;
+            *(out_ptr++) = bg_blue;
+            in_ptr += (3 + 1); /* Skip 3 bytes of colors and one byte of alpha. */
+         } else {
+            png_composite(*(out_ptr++), *(in_ptr++), alpha, bg_red);
+            png_composite(*(out_ptr++), *(in_ptr++), alpha, bg_green);
+            png_composite(*(out_ptr++), *(in_ptr++), alpha, bg_blue);
+            in_ptr++; /* Skip remaining alpha byte. */
+         }
+      }
+      row_data = png->row_data;
+   }
+   a_image_cache_add_row(png->url, png->version, row_data, (uint_t)row_num);
 }
 
+/* performs cleanup actions */
 static void Png_dataend_callback(png_structp png_ptr, png_infop info_ptr)
 {
-   DilloPng *png;
-
    _MSG("Png_dataend_callback:\n");
    if (!info_ptr)
       MSG("Png_dataend_callback: info_ptr = NULL\n");
 
-   png = png_get_progressive_ptr(png_ptr);
-   png->state = IS_finished;
+   DilloPng * png = png_get_progressive_ptr(png_ptr);
+   png->parser.state = IS_finished;
 }
 
 /*
@@ -301,7 +311,7 @@ static void Png_free(DilloPng *png)
 
    dFree(png->image_data);
    dFree(png->row_pointers);
-   dFree(png->linebuf);
+   dFree(png->row_data);
    if (setjmp(png->jmpbuf))
       MSG_WARN("PNG: can't destroy read structure\n");
    else if (png->png_ptr)
@@ -323,70 +333,82 @@ static void Png_close(DilloPng *png, CacheClient_t *Client)
 /*
  * Receive and process new chunks of PNG image data
  */
-static void Png_write(DilloPng *png, void *Buf, uint_t BufSize)
+static void Png_write(DilloPng *png, png_parser * parser)
 {
-   dReturn_if_fail ( Buf != NULL && BufSize > 0 );
-
    /* Keep local copies so we don't have to pass multiple args to
     * a number of functions. */
-   png->ipbuf = Buf;
-   png->ipbufsize = BufSize;
 
    /* start/resume the FSM here */
-   while (png->state != IS_finished && DATASIZE) {
+   while (png->parser.state != IS_finished && (png->parser.all_size - png->parser.start_offset)) {
       _MSG("State = %s\n", prog_state_name[png->state]);
 
-      switch (png->state) {
+      switch (png->parser.state) {
       case IS_init:
-         if (DATASIZE < 8) {
-            return;            /* need MORE data */
-         }
-         /* check the image signature - DON'T update ipbufstart! */
-         if (png_sig_cmp(png->ipbuf, 0, DATASIZE)) {
-            MSG_WARN("\"%s\" is not a PNG file.\n", URL_STR(png->url));
-            png->state = IS_finished;
-            break;
-         }
-         /* OK, it looks like a PNG image, lets do some set up stuff */
-         png->png_ptr = png_create_read_struct(
-                           PNG_LIBPNG_VER_STRING,
-                           png,
-                           (png_error_ptr)Png_error_handling,
-                           (png_error_ptr)Png_error_handling);
-         dReturn_if_fail (png->png_ptr != NULL);
-         png->info_ptr = png_create_info_struct(png->png_ptr);
-         dReturn_if_fail (png->info_ptr != NULL);
-
-         setjmp(png->jmpbuf);
-         if (!png->error) {
-            png_set_progressive_read_fn(
-               png->png_ptr,
-               png,
-               Png_datainfo_callback,   /* performs local init functions */
-               Png_datarow_callback,    /* performs per row action */
-               Png_dataend_callback);   /* performs cleanup actions */
-            png->state = IS_nextdata;
+         if (-1 == initialize_png_lib(png)) {
+            return;
          }
          break;
 
       case IS_nextdata:
          if (setjmp(png->jmpbuf)) {
-            png->state = IS_finished;
+            png->parser.state = IS_finished;
          } else if (!png->error) {
+            const uint_t data_size = png->parser.all_size - png->parser.start_offset;
             png_process_data( png->png_ptr,
                               png->info_ptr,
-                              png->ipbuf + png->ipbufstart,
-                              (png_size_t)DATASIZE);
+                              png->parser.all_data + png->parser.start_offset,
+                              (png_size_t) data_size);
 
-            png->ipbufstart += DATASIZE;
+            png->parser.start_offset += data_size;
          }
          break;
 
       default:
-         MSG_WARN("PNG decoder: bad state = %d\n", png->state);
+         MSG_WARN("PNG decoder: bad state = %d\n", png->parser.state);
          abort();
       }
    }
+}
+
+/*
+  Initialize png library's structure
+*/
+static int initialize_png_lib(DilloPng * png)
+{
+   const uint_t data_size = png->parser.all_size - png->parser.start_offset;
+   if (data_size < 8) {
+      return -1;            /* need MORE data */
+   }
+   /* check the image signature - DON'T update parser->start_offset! */
+   if (png_sig_cmp(png->parser.all_data, 0, data_size)) {
+      MSG_WARN("\"%s\" is not a PNG file.\n", URL_STR(png->url));
+      png->parser.state = IS_finished;
+      return 0;
+   }
+   /* OK, it looks like a PNG image, lets do some set up stuff */
+   png->png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
+                                         png,
+                                         (png_error_ptr)Png_error_handling,
+                                         (png_error_ptr)Png_error_handling);
+   if (NULL == png->png_ptr) {
+      return -1;
+   }
+   png->info_ptr = png_create_info_struct(png->png_ptr);
+   if (NULL == png->info_ptr) {
+      return -1;
+   }
+
+   setjmp(png->jmpbuf);
+   if (!png->error) {
+      png_set_progressive_read_fn(png->png_ptr,
+                                  png,
+                                  Png_datainfo_callback,   /* performs local init functions */
+                                  Png_datarow_callback,    /* performs per row action */
+                                  Png_dataend_callback);   /* performs cleanup actions */
+      png->parser.state = IS_nextdata;
+   }
+
+   return 0;
 }
 
 /*
@@ -413,13 +435,22 @@ static void Png_write(DilloPng *png, void *Buf, uint_t BufSize)
  */
 void a_Png_callback(int Op, void *data)
 {
-   if (Op == CA_Send) {
+   if (Op == CacheOperationAddData) {
       CacheClient_t *Client = data;
-      Png_write(Client->CbData, Client->Buf, Client->BufSize);
-   } else if (Op == CA_Close) {
+
+      if (NULL == Client->Buf || 0 == Client->BufSize) {
+         return;
+      }
+
+      DilloPng * png = Client->CbData;
+      png->parser.all_data = Client->Buf;
+      png->parser.all_size = Client->BufSize;
+
+      Png_write(png, &png->parser);
+   } else if (Op == CacheOperationClose) {
       CacheClient_t *Client = data;
       Png_close(Client->CbData, Client);
-   } else if (Op == CA_Abort) {
+   } else if (Op == CacheOperationAbort) {
       Png_free(data);
    }
 }
@@ -432,16 +463,15 @@ void *a_Png_new(DilloImage *Image, DilloUrl *url, int version)
    DilloPng *png = dNew0(DilloPng, 1);
    _MSG("a_Png_new: png=%p\n", png);
 
+   memset(&png->parser, 0, sizeof (png->parser));
+   png->parser.state = IS_init;
+
    png->Image = Image;
    png->url = url;
    png->version = version;
    png->bgcolor = Image->bg_color;
    png->error = 0;
-   png->ipbuf = NULL;
-   png->ipbufstart = 0;
-   png->ipbufsize = 0;
-   png->state = IS_init;
-   png->linebuf = NULL;
+   png->row_data = NULL;
    png->image_data = NULL;
    png->row_pointers = NULL;
    png->previous_row = 0;

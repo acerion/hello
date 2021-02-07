@@ -33,7 +33,7 @@ typedef struct DICacheEntry {
    uint_t width, height;   /* As taken from image data */
    short Flags;            /* See Flags */
    short SurvCleanup;      /* Cleanup-pass survival for unused images */
-   uchar_t *cmap;          /* Color map */
+   uchar_t * color_map;
    void *v_imgbuf;         /* Void pointer to an Imgbuf object */
    uint_t TotalSize;       /* Amount of memory the image takes up */
    uint_t ScanNumber;      /* Current decoding scan */
@@ -64,11 +64,11 @@ void a_Dicache_callback(int Op, CacheClient_t *Client);
 void a_Dicache_set_parms(DilloUrl *url, int version, DilloImage *Image,
                          uint_t width, uint_t height, DilloImgType type,
                          double gamma);
-void a_Dicache_set_cmap(DilloUrl *url, int version, int bg_color,
-                        const uchar_t *cmap, uint_t num_colors,
-                        int num_colors_max, int bg_index);
+void a_Dicache_set_color_map(DilloUrl *url, int version, int bg_color,
+                             const uchar_t *color_map, uint_t num_colors,
+                             int num_colors_max, int bg_index);
 void a_Dicache_new_scan(const DilloUrl *url, int version);
-void a_Dicache_write(DilloUrl *url, int version, const uchar_t *buf, uint_t Y);
+void a_image_cache_add_row(DilloUrl *url, int version, const uchar_t * row_data, uint_t row_number);
 void a_Dicache_close(DilloUrl *url, int version, CacheClient_t *Client);
 
 void a_Dicache_invalidate_entry(const DilloUrl *Url);

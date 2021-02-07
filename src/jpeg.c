@@ -61,18 +61,31 @@ struct my_error_mgr {
 };
 typedef struct my_error_mgr *my_error_ptr;
 
+typedef struct {
+   /* Beginning of all image data received so far. Part of it has already
+      been parsed and sent to cache. */
+   uchar_t * all_data;
+   /* Total size of all of the image data received so far. */
+   int all_size;
+
+   /* Where the next unprocessed part of data starts. */
+   size_t start_offset;
+
+   DilloJpegState state;
+} jpeg_parser;
+
 struct DilloJpeg {
+   jpeg_parser parser;
+
    DilloImage *Image;
    DilloUrl *url;
    int version;
 
    my_source_mgr Src;
 
-   DilloJpegState state;
-   size_t Start_Ofs, Skip, NewStart;
-   char *Data;
+   size_t Skip;
 
-   uint_t y;
+   uint_t row_number; /* Row number of decoded image. */
 
    struct jpeg_decompress_struct cinfo;
    struct my_error_mgr jerr;
@@ -81,7 +94,7 @@ struct DilloJpeg {
 /*
  * Forward declarations
  */
-static void Jpeg_write(DilloJpeg *jpeg, void *Buf, uint_t BufSize);
+static void Jpeg_write(DilloJpeg *jpeg, jpeg_parser * parser);
 
 
 /* this is the routine called by libjpeg when it detects an error. */
@@ -118,12 +131,7 @@ static void Jpeg_close(DilloJpeg *jpeg, CacheClient_t *Client)
    Jpeg_free(jpeg);
 }
 
-/*
- * The proper signature is:
- *    static void init_source(j_decompress_ptr cinfo)
- * (declaring it with no parameter avoids a compiler warning)
- */
-static void init_source()
+static void init_source(j_decompress_ptr cinfo)
 {
 }
 
@@ -137,15 +145,15 @@ static boolean fill_input_buffer(j_decompress_ptr cinfo)
       _MSG("fill_input_buffer: %ld bytes in buffer\n",
            (long)cinfo->src->bytes_in_buffer);
 
-      jpeg->Start_Ofs = (ulong_t) jpeg->cinfo.src->next_input_byte -
-         (ulong_t) jpeg->Data;
+      jpeg->parser.start_offset = (ulong_t) jpeg->cinfo.src->next_input_byte -
+         (ulong_t) jpeg->parser.all_data;
 #endif
       if (jpeg->Skip) {
-         jpeg->Start_Ofs = jpeg->NewStart + jpeg->Skip - 1;
+         jpeg->parser.start_offset = jpeg->parser.all_size + jpeg->Skip - 1;
          jpeg->Skip = 0;
       } else {
-         jpeg->Start_Ofs = (ulong_t) jpeg->cinfo.src->next_input_byte -
-            (ulong_t) jpeg->Data;
+         jpeg->parser.start_offset = (ulong_t) jpeg->cinfo.src->next_input_byte -
+            (ulong_t) jpeg->parser.all_data;
       }
       return FALSE;
 #if 0
@@ -156,15 +164,14 @@ static boolean fill_input_buffer(j_decompress_ptr cinfo)
 
 static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 {
-   DilloJpeg *jpeg;
-
    if (num_bytes < 1)
       return;
-   jpeg = ((my_source_mgr *) cinfo->src)->jpeg;
 
-   _MSG("skip_input_data: Start_Ofs = %lu, num_bytes = %ld,"
+   DilloJpeg * jpeg = ((my_source_mgr *) cinfo->src)->jpeg;
+
+   _MSG("skip_input_data: start_offset = %zd, num_bytes = %ld,"
         " %ld bytes in buffer\n",
-        (ulong_t)jpeg->Start_Ofs, num_bytes,(long)cinfo->src->bytes_in_buffer);
+        jpeg->parser.start_offset, num_bytes,(long)cinfo->src->bytes_in_buffer);
 
    cinfo->src->next_input_byte += num_bytes;
    if (num_bytes < (long)cinfo->src->bytes_in_buffer) {
@@ -175,12 +182,7 @@ static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
    }
 }
 
-/*
- * The proper signature is:
- *    static void term_source(j_decompress_ptr cinfo)
- * (declaring it with no parameter avoids a compiler warning)
- */
-static void term_source()
+static void term_source(j_decompress_ptr cinfo)
 {
 }
 
@@ -190,28 +192,29 @@ void *a_Jpeg_new(DilloImage *Image, DilloUrl *url, int version)
    DilloJpeg *jpeg = dMalloc(sizeof(*jpeg));
    _MSG("a_Jpeg_new: jpeg=%p\n", jpeg);
 
+   memset(&jpeg->parser, 0, sizeof (jpeg->parser));
+   jpeg->parser.state = DILLO_JPEG_INIT;
+
    jpeg->Image = Image;
    jpeg->url = url;
    jpeg->version = version;
 
-   jpeg->state = DILLO_JPEG_INIT;
-   jpeg->Start_Ofs = 0;
    jpeg->Skip = 0;
 
    /* decompression step 1 (see libjpeg.doc) */
-   jpeg->cinfo.err = jpeg_std_error(&(jpeg->jerr.pub));
+   jpeg->cinfo.err = jpeg_std_error(&jpeg->jerr.pub);
    jpeg->jerr.pub.error_exit = Jpeg_errorexit;
 
-   jpeg_create_decompress(&(jpeg->cinfo));
+   jpeg_create_decompress(&jpeg->cinfo);
 
    /* decompression step 2 (see libjpeg.doc) */
    jpeg->cinfo.src = &jpeg->Src.pub;
    src = &jpeg->Src;
-   src->pub.init_source = init_source;
+   src->pub.init_source = init_source; /* Empty function. */
    src->pub.fill_input_buffer = fill_input_buffer;
    src->pub.skip_input_data = skip_input_data;
    src->pub.resync_to_restart = jpeg_resync_to_restart;/* use default method */
-   src->pub.term_source = term_source;
+   src->pub.term_source = term_source;  /* Empty function */
    src->pub.bytes_in_buffer = 0;   /* forces fill_input_buffer on first read */
    src->pub.next_input_byte = NULL;/* until buffer loaded */
 
@@ -223,13 +226,18 @@ void *a_Jpeg_new(DilloImage *Image, DilloUrl *url, int version)
 
 void a_Jpeg_callback(int Op, void *data)
 {
-   if (Op == CA_Send) {
+   if (Op == CacheOperationAddData) {
       CacheClient_t *Client = data;
-      Jpeg_write(Client->CbData, Client->Buf, Client->BufSize);
-   } else if (Op == CA_Close) {
+
+      DilloJpeg * jpeg = Client->CbData;
+      jpeg->parser.all_data = Client->Buf;
+      jpeg->parser.all_size = Client->BufSize;
+
+      Jpeg_write(jpeg, &jpeg->parser);
+   } else if (Op == CacheOperationClose) {
       CacheClient_t *Client = data;
       Jpeg_close(Client->CbData, Client);
-   } else if (Op == CA_Abort) {
+   } else if (Op == CacheOperationAbort) {
       Jpeg_free(data);
    }
 }
@@ -237,33 +245,28 @@ void a_Jpeg_callback(int Op, void *data)
 /*
  * Receive and process new chunks of JPEG image data
  */
-static void Jpeg_write(DilloJpeg *jpeg, void *Buf, uint_t BufSize)
+static void Jpeg_write(DilloJpeg *jpeg, jpeg_parser * parser)
 {
    DilloImgType type;
-   uchar_t *linebuf;
-   JSAMPLE *array[1];
-   int num_read;
 
-   _MSG("Jpeg_write: (%p) Bytes in buff: %ld Ofs: %lu\n", jpeg,
-        (long) BufSize, (ulong_t)jpeg->Start_Ofs);
+   _MSG("Jpeg_write: (%p) Bytes in buff: %d Ofs: %zd\n", jpeg,
+        parser->all_size, jpeg->parser.start_offset);
 
    /* See if we are supposed to skip ahead. */
-   if (BufSize <= jpeg->Start_Ofs)
+   if (parser->all_size <= parser->start_offset)
       return;
 
    /* Concatenate with the partial input, if any. */
-   jpeg->cinfo.src->next_input_byte = (uchar_t *)Buf + jpeg->Start_Ofs;
-   jpeg->cinfo.src->bytes_in_buffer = BufSize - jpeg->Start_Ofs;
-   jpeg->NewStart = BufSize;
-   jpeg->Data = Buf;
+   jpeg->cinfo.src->next_input_byte = parser->all_data + jpeg->parser.start_offset;
+   jpeg->cinfo.src->bytes_in_buffer = parser->all_size - jpeg->parser.start_offset;
 
    if (setjmp(jpeg->jerr.setjmp_buffer)) {
       /* If we get here, the JPEG code has signaled an error. */
-      jpeg->state = DILLO_JPEG_ERROR;
+      parser->state = DILLO_JPEG_ERROR;
    }
 
    /* Process the bytes in the input buffer. */
-   if (jpeg->state == DILLO_JPEG_INIT) {
+   if (parser->state == DILLO_JPEG_INIT) {
 
       /* decompression step 3 (see libjpeg.doc) */
       if (jpeg_read_header(&(jpeg->cinfo), TRUE) != JPEG_SUSPENDED) {
@@ -294,7 +297,7 @@ static void Jpeg_write(DilloJpeg *jpeg, void *Buf, uint_t BufSize)
             MSG("Jpeg_write: suspicious image size request %u x %u\n",
                 (uint_t)jpeg->cinfo.image_width,
                 (uint_t)jpeg->cinfo.image_height);
-            jpeg->state = DILLO_JPEG_ERROR;
+            parser->state = DILLO_JPEG_ERROR;
             return;
          }
 
@@ -306,14 +309,14 @@ static void Jpeg_write(DilloJpeg *jpeg, void *Buf, uint_t BufSize)
          jpeg->Image = NULL; /* safeguard: may be freed by its owner later */
 
          /* decompression step 4 (see libjpeg.doc) */
-         jpeg->state = DILLO_JPEG_STARTING;
+         parser->state = DILLO_JPEG_STARTING;
       }
    }
-   if (jpeg->state == DILLO_JPEG_STARTING) {
+   if (parser->state == DILLO_JPEG_STARTING) {
       /* decompression step 5 (see libjpeg.doc) */
       if (jpeg_start_decompress(&(jpeg->cinfo))) {
-         jpeg->y = 0;
-         jpeg->state = jpeg->cinfo.buffered_image ?
+         jpeg->row_number = 0;
+         parser->state = jpeg->cinfo.buffered_image ?
                           DILLO_JPEG_READ_BEGIN_SCAN : DILLO_JPEG_READ_IN_SCAN;
       }
    }
@@ -324,50 +327,50 @@ static void Jpeg_write(DilloJpeg *jpeg, void *Buf, uint_t BufSize)
     * scan must be surrounded by jpeg_start_output()/jpeg_finish_output().
     */
 
-   if (jpeg->state == DILLO_JPEG_READ_END_SCAN) {
+   if (parser->state == DILLO_JPEG_READ_END_SCAN) {
       if (jpeg_finish_output(&jpeg->cinfo)) {
          if (jpeg_input_complete(&jpeg->cinfo)) {
-            jpeg->state = DILLO_JPEG_DONE;
+            parser->state = DILLO_JPEG_DONE;
          } else {
-            jpeg->state = DILLO_JPEG_READ_BEGIN_SCAN;
+            parser->state = DILLO_JPEG_READ_BEGIN_SCAN;
          }
       }
    }
 
-   if (jpeg->state == DILLO_JPEG_READ_BEGIN_SCAN) {
+   if (parser->state == DILLO_JPEG_READ_BEGIN_SCAN) {
       if (jpeg_start_output(&jpeg->cinfo, jpeg->cinfo.input_scan_number)) {
          a_Dicache_new_scan(jpeg->url, jpeg->version);
-         jpeg->state = DILLO_JPEG_READ_IN_SCAN;
+         parser->state = DILLO_JPEG_READ_IN_SCAN;
       }
    }
 
-   if (jpeg->state == DILLO_JPEG_READ_IN_SCAN) {
-      linebuf = dMalloc(jpeg->cinfo.image_width *
-                         jpeg->cinfo.num_components);
-      array[0] = linebuf;
+   if (parser->state == DILLO_JPEG_READ_IN_SCAN) {
+      uchar_t * row_data = dMalloc(jpeg->cinfo.image_width *
+                                    jpeg->cinfo.num_components);
+      JSAMPLE *array[1] = { row_data };
 
       while (1) {
-         num_read = jpeg_read_scanlines(&(jpeg->cinfo), array, 1);
+         const int num_read = jpeg_read_scanlines(&jpeg->cinfo, array, 1); /* Read at most one row of image. */
          if (num_read == 0) {
             /* out of input */
             break;
          }
-         a_Dicache_write(jpeg->url, jpeg->version, linebuf, jpeg->y);
+         a_image_cache_add_row(jpeg->url, jpeg->version, row_data, jpeg->row_number); /* Add that row to cache. */
 
-         jpeg->y++;
+         jpeg->row_number++;
 
-         if (jpeg->y == jpeg->cinfo.image_height) {
+         if (jpeg->row_number == jpeg->cinfo.image_height) {
             /* end of scan */
             if (!jpeg->cinfo.buffered_image) {
                /* single scan */
-               jpeg->state = DILLO_JPEG_DONE;
+               parser->state = DILLO_JPEG_DONE;
                break;
             } else {
-               jpeg->y = 0;
+               jpeg->row_number = 0;
                if (jpeg_input_complete(&jpeg->cinfo)) {
                   if (jpeg->cinfo.input_scan_number ==
                       jpeg->cinfo.output_scan_number) {
-                     jpeg->state = DILLO_JPEG_DONE;
+                     parser->state = DILLO_JPEG_DONE;
                      break;
                   } else {
                        /* one final loop through the scanlines */
@@ -377,16 +380,16 @@ static void Jpeg_write(DilloJpeg *jpeg, void *Buf, uint_t BufSize)
                        continue;
                   }
                }
-               jpeg->state = DILLO_JPEG_READ_END_SCAN;
+               parser->state = DILLO_JPEG_READ_END_SCAN;
                if (!jpeg_finish_output(&jpeg->cinfo)) {
                   /* out of input */
                   break;
                } else {
                   if (jpeg_input_complete(&jpeg->cinfo)) {
-                     jpeg->state = DILLO_JPEG_DONE;
+                     parser->state = DILLO_JPEG_DONE;
                      break;
                   } else {
-                     jpeg->state = DILLO_JPEG_READ_BEGIN_SCAN;
+                     parser->state = DILLO_JPEG_READ_BEGIN_SCAN;
                   }
                }
                if (!jpeg_start_output(&jpeg->cinfo,
@@ -395,11 +398,11 @@ static void Jpeg_write(DilloJpeg *jpeg, void *Buf, uint_t BufSize)
                   break;
                }
                a_Dicache_new_scan(jpeg->url, jpeg->version);
-               jpeg->state = DILLO_JPEG_READ_IN_SCAN;
+               parser->state = DILLO_JPEG_READ_IN_SCAN;
             }
          }
       }
-      dFree(linebuf);
+      dFree(row_data);
    }
 }
 

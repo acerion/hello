@@ -77,7 +77,7 @@ static DICacheEntry *Dicache_entry_new(void)
    entry->Flags = DIF_Valid;
    entry->SurvCleanup = 0;
    entry->type = DILLO_IMG_TYPE_NOTSET;
-   entry->cmap = NULL;
+   entry->color_map = NULL;
    entry->v_imgbuf = NULL;
    entry->RefCount = 1;
    entry->TotalSize = 0;
@@ -159,11 +159,11 @@ static void Dicache_remove(const DilloUrl *Url, int version)
 
    /* entry cleanup */
    a_Url_free(entry->url);
-   dFree(entry->cmap);
+   dFree(entry->color_map);
    a_Bitvec_free(entry->BitVec);
    a_Imgbuf_unref(entry->v_imgbuf);
    if (entry->Decoder) {
-      entry->Decoder(CA_Abort, entry->DecoderData);
+      entry->Decoder(CacheOperationAbort, entry->DecoderData);
    }
    dFree(entry);
 }
@@ -254,24 +254,24 @@ void a_Dicache_set_parms(DilloUrl *url, int version, DilloImage *Image,
 }
 
 /*
- * Implement the set_cmap method for the Image
+ * Implement the set_color_map method for the Image
  */
-void a_Dicache_set_cmap(DilloUrl *url, int version, int bg_color,
-                        const uchar_t *cmap, uint_t num_colors,
-                        int num_colors_max, int bg_index)
+void a_Dicache_set_color_map(DilloUrl *url, int version, int bg_color,
+                             const uchar_t * color_map, uint_t num_colors,
+                             int num_colors_max, int bg_index)
 {
    DICacheEntry *DicEntry = a_Dicache_get_entry(url, version);
 
-   _MSG("a_Dicache_set_cmap\n");
+   _MSG("a_Dicache_set_color_map\n");
    dReturn_if_fail ( DicEntry != NULL );
 
-   dFree(DicEntry->cmap);
-   DicEntry->cmap = dNew0(uchar_t, 3 * num_colors_max);
-   memcpy(DicEntry->cmap, cmap, 3 * num_colors);
+   dFree(DicEntry->color_map);
+   DicEntry->color_map = dNew0(uchar_t, 3 * num_colors_max);
+   memcpy(DicEntry->color_map, color_map, 3 * num_colors);
    if (bg_index >= 0 && (uint_t)bg_index < num_colors) {
-      DicEntry->cmap[bg_index * 3]     = (bg_color >> 16) & 0xff;
-      DicEntry->cmap[bg_index * 3 + 1] = (bg_color >> 8) & 0xff;
-      DicEntry->cmap[bg_index * 3 + 2] = (bg_color) & 0xff;
+      DicEntry->color_map[bg_index * 3]     = (bg_color >> 16) & 0xff;
+      DicEntry->color_map[bg_index * 3 + 1] = (bg_color >> 8) & 0xff;
+      DicEntry->color_map[bg_index * 3 + 2] = (bg_color) & 0xff;
    }
 
    DicEntry->State = DIC_SetCmap;
@@ -300,23 +300,23 @@ void a_Dicache_new_scan(const DilloUrl *url, int version)
 /*
  * Implement the write method
  * (Write a scan line into the Dicache entry)
- * buf: row buffer
- * Y  : row number
+ * row_data buffer with bytes of image's row
+ * row_number row number
  */
-void a_Dicache_write(DilloUrl *url, int version, const uchar_t *buf, uint_t Y)
+void a_image_cache_add_row(DilloUrl *url, int version, const uchar_t * row_data, uint_t row_number)
 {
    DICacheEntry *DicEntry;
 
-   _MSG("a_Dicache_write\n");
+   _MSG("a_image_cache_add_row\n");
    DicEntry = a_Dicache_get_entry(url, version);
    dReturn_if_fail ( DicEntry != NULL );
    dReturn_if_fail ( DicEntry->width > 0 && DicEntry->height > 0 );
 
    /* update the common buffer in the imgbuf */
-   a_Imgbuf_update(DicEntry->v_imgbuf, buf, DicEntry->type,
-                   DicEntry->cmap, DicEntry->width, DicEntry->height, Y);
+   a_Imgbuf_update(DicEntry->v_imgbuf, row_data, DicEntry->type,
+                   DicEntry->color_map, DicEntry->width, DicEntry->height, row_number);
 
-   a_Bitvec_set_bit(DicEntry->BitVec, (int)Y);
+   a_Bitvec_set_bit(DicEntry->BitVec, (int)row_number);
    DicEntry->State = DIC_Write;
 }
 
@@ -338,8 +338,8 @@ void a_Dicache_close(DilloUrl *url, int version, CacheClient_t *Client)
 
    if (DicEntry->State < DIC_Close) {
       DicEntry->State = DIC_Close;
-      dFree(DicEntry->cmap);
-      DicEntry->cmap = NULL;
+      dFree(DicEntry->color_map);
+      DicEntry->color_map = NULL;
       DicEntry->Decoder = NULL;
       DicEntry->DecoderData = NULL;
    }
@@ -450,11 +450,11 @@ void a_Dicache_callback(int Op, CacheClient_t *Client)
       Client->Version = DicEntry->version;
 
    /* Only call the decoder when necessary */
-   if (Op == CA_Send && DicEntry->State < DIC_Close &&
+   if (Op == CacheOperationAddData && DicEntry->State < DIC_Close &&
        DicEntry->DecodedSize < Client->BufSize) {
       DicEntry->Decoder(Op, Client);
       DicEntry->DecodedSize = Client->BufSize;
-   } else if (Op == CA_Close || Op == CA_Abort) {
+   } else if (Op == CacheOperationClose || Op == CacheOperationAbort) {
       if (DicEntry->State < DIC_Close) {
          DicEntry->Decoder(Op, Client);
       } else {
@@ -463,7 +463,7 @@ void a_Dicache_callback(int Op, CacheClient_t *Client)
    }
 
    /* when the data stream is not an image 'v_imgbuf' remains NULL */
-   if (Op == CA_Send && DicEntry->v_imgbuf) {
+   if (Op == CacheOperationAddData && DicEntry->v_imgbuf) {
       if (Image->height == 0 && DicEntry->State >= DIC_SetParms) {
          /* Set parms */
          a_Image_set_parms(
@@ -490,10 +490,10 @@ void a_Dicache_callback(int Op, CacheClient_t *Client)
             Image->ScanNumber = DicEntry->ScanNumber;
          }
       }
-   } else if (Op == CA_Close) {
+   } else if (Op == CacheOperationClose) {
       a_Image_close(Image);
       a_Bw_close_client(Web->bw, Client->Key);
-   } else if (Op == CA_Abort) {
+   } else if (Op == CacheOperationAbort) {
       a_Image_abort(Image);
       a_Bw_close_client(Web->bw, Client->Key);
    }
@@ -538,7 +538,7 @@ void a_Dicache_freeall(void)
    while ((entry = dList_nth_data(CachedIMGs, dList_length(CachedIMGs)-1))) {
       dList_remove_fast(CachedIMGs, entry);
       a_Url_free(entry->url);
-      dFree(entry->cmap);
+      dFree(entry->color_map);
       a_Bitvec_free(entry->BitVec);
       a_Imgbuf_unref(entry->v_imgbuf);
       dicache_size_total -= entry->TotalSize;

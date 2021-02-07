@@ -1049,7 +1049,7 @@ static void Cache_null_client(int Op, CacheClient_t *Client)
    DilloWeb *Web = Client->Web;
 
    /* make the stop button insensitive when done */
-   if (Op == CA_Close) {
+   if (Op == CacheOperationClose) {
       if (Web->flags & WEB_RootUrl) {
          /* Remove this client from our active list */
          a_Bw_close_client(Web->bw, Client->Key);
@@ -1096,7 +1096,7 @@ static void Cache_provide_redirection_blocked_page(CacheEntry_t *entry,
                     URL_STR(entry->Location), "</a> based on your domainrc "
                     "settings.</body></html>", NULL);
    client->BufSize = strlen(client->Buf);
-   (client->Callback)(CA_Send, client);
+   (client->Callback)(CacheOperationAddData, client);
    dFree(client->Buf);
 }
 
@@ -1110,7 +1110,7 @@ static void Cache_provide_redirection_blocked_page(CacheEntry_t *entry,
  *
  * Return: Cache entry, which may be NULL if it has been removed.
  *
- * TODO: Implement CA_Abort Op in client callback
+ * TODO: Implement CacheOperationAbort Op in client callback
  */
 static CacheEntry_t *Cache_process_queue(CacheEntry_t *entry)
 {
@@ -1231,7 +1231,7 @@ static CacheEntry_t *Cache_process_queue(CacheEntry_t *entry)
          }
          if ((Client->BufSize = data->len) > 0) {
             Client->Buf = data->str;
-            (Client->Callback)(CA_Send, Client);
+            (Client->Callback)(CacheOperationAddData, Client);
             if (ClientWeb->flags & WEB_RootUrl) {
                /* show size of page received */
                a_UIcmd_set_page_prog(Client_bw, entry->Data->len, 1);
@@ -1248,7 +1248,7 @@ static CacheEntry_t *Cache_process_queue(CacheEntry_t *entry)
                Cache_provide_redirection_blocked_page(entry, Client);
             }
             /* We finished sending data, let the client know */
-            (Client->Callback)(CA_Close, Client);
+            (Client->Callback)(CacheOperationClose, Client);
             if (ClientWeb->flags & WEB_RootUrl)
                a_UIcmd_set_page_prog(Client_bw, 0, 0);
             Cache_client_dequeue(Client);
