@@ -5,6 +5,8 @@ all:
 	ghc -O2 -fPIC -c wrapper.c
 	ghc -O2 -dynamic -shared -fPIC -o libhello.so URL.hs cookies.hs wrapper.o -lHSrts-ghc8.0.1
 
+distclean: clean
+
 clean:
 	rm -rf *.o *.a *.so *.hi *_stub.h *.out
 

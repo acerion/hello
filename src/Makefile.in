@@ -391,7 +391,7 @@ AM_CPPFLAGS = \
 
 AM_CFLAGS = @LIBPNG_CFLAGS@
 AM_CXXFLAGS = @LIBPNG_CFLAGS@ @LIBFLTK_CXXFLAGS@
-SUBDIRS = IO
+SUBDIRS = IO haskell
 dillo_LDADD = \
 	$(top_builddir)/dlib/libDlib.a \
 	$(top_builddir)/dpip/libDpip.a \
