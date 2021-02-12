@@ -61,8 +61,7 @@
  */
 
 #include <config.h>
-#ifdef ENABLE_GIF
-
+#include <stdbool.h>
 #include <stdio.h>              /* for sprintf */
 #include <string.h>             /* for memcpy and memmove */
 
@@ -71,13 +70,20 @@
 #include "cache.h"
 #include "dicache.h"
 
-#define INTERLACE      0x40
-#define LOCALCOLORMAP  0x80
+
+
 
 #define LM_to_uint(a,b)   ((((uchar_t)b)<<8)|((uchar_t)a))
 
-#define        MAXCOLORMAPSIZE         256
-#define        MAX_LWZ_BITS            12
+#define MAX_COLORMAP_SIZE     256
+#define MAX_LWZ_BITS           12
+#define INTERLACE            0x40
+
+#define ImageSeparator        (0x2c)
+#define Trailer               (0x3B)
+#define ExtensionIntroducer   (0x21) /* First byte of Extension. "23. Graphic Control Extension." */
+
+
 
 
 typedef enum {
@@ -88,33 +94,24 @@ typedef enum {
    InvalidState    = 999,
 } ParserState;
 
+
+typedef struct img_chunk {
+   uchar_t * buf;   /* New data received, but not processed yet. */
+   int size;        /* Size of the new data. */
+} img_chunk;
+
+
 typedef struct {
-   ParserState state;
-
-   /* Beginning of all image data received so far. Part of it has already
-      been parsed and sent to cache. */
-   uchar_t * all_data;
-   /* Total size of all of the image data received so far. */
-   int all_size;
-
    /* Where the next unprocessed part of data starts. */
-   size_t start_offset;
-
-   /* New data received, but not processed yet. */
-   uchar_t * chunk_start;
-   /* Size of the new data. */
-   int chunk_size;
-} gif_parser;
-
-
-typedef struct {
-   gif_parser parser;
+   int start_offset;
+   ParserState parser_state;
 
    DilloImage *Image;
    DilloUrl *url;
    int version;
 
    uint_t Flags;
+   bool interlace;
 
    uchar_t input_code_size;
    uchar_t *row_data;
@@ -128,23 +125,33 @@ typedef struct {
    /* The original GifScreen from giftopnm */
    uint_t Width;
    uint_t Height;
-   size_t color_map_offset;
-   uint_t ColorResolution;
-   uint_t color_map_size; /* Number of colors in color map */
+
+   bool global_color_map_present;
+   uchar_t global_color_map[3 * MAX_COLORMAP_SIZE]; /* "sequence of bytes representing red-green-blue color triplets. */
+   uint_t global_color_map_triplets_count; /* Number of color triplets in color map. */
+
+   bool local_color_map_present;
+   uchar_t local_color_map[3 * MAX_COLORMAP_SIZE]; /* "sequence of bytes representing red-green-blue color triplets. */
+   uint_t local_color_map_triplets_count; /* Number of color triplets in color map. */
+
+
+   uint_t color_resolution; /* "18. Logical Screen Descriptor." -> "<Packed Fields>" -> "Color Resolution" */
+
    int    Background;
    uint_t spill_line_index;
 #if 0
    uint_t AspectRatio;    /* AspectRatio (not used) */
 #endif
 
-   /* Gif89 extensions */
-   int transparent;
-#if 0
-   /* None are used: */
-   int delayTime;
-   int inputFlag;
-   int disposal;
+
+   /* [1] "23. Graphic Control Extension.", Required version: Gif89. */
+   int transparent_color_index;
+#if 1
+   int delay_time;
+   int user_input_flag;
+   int disposal_method;
 #endif
+
 
    /* state for the new push-oriented decoder */
    int packet_size;       /* The amount of the data block left to process */
@@ -166,12 +173,52 @@ typedef struct {
  */
 
 
+typedef bool (* extension_sub_block_handler_t)(DilloGif *gif, img_chunk chunk);
 /*
  * Forward declarations
  */
-static void Gif_write(DilloGif *gif, gif_parser * parser);
-static void Gif_close(DilloGif *gif, CacheClient_t *Client);
-static size_t Gif_process_bytes(DilloGif *gif, gif_parser * parser);
+static int gif_write(DilloGif *gif, img_chunk chunk);
+static void gif_close(DilloGif *gif, CacheClient_t *Client);
+static void gif_free(DilloGif *gif);
+
+static int do_image_descriptor2(DilloGif * gif, img_chunk chunk);
+static int gif_do_extension(DilloGif * gif, img_chunk chunk);
+
+static int gif_try_consume_extension_generic(DilloGif *gif, img_chunk chunk, extension_sub_block_handler_t sub_block_data_handler);
+static bool handle_extension_sub_block_graphic_control(DilloGif * gif, img_chunk chunk);
+static bool handle_extension_sub_block_comment(DilloGif * gif, img_chunk chunk);
+
+static int peek_lzw(DilloGif * gif, img_chunk img_descriptor);
+
+
+static bool color_table_is_present(uchar_t flags)
+{
+   const uchar_t mask = 0x80; /* Mask for 'Color Table Flag' bit (both Global and Local color table). */
+   return flags & mask;
+}
+
+
+static int get_color_table_triplets_count(uchar_t flags)
+{
+   /* "To determine that actual size of the color table, raise 2 to [the
+      value of the field + 1]". */
+   return 1 << ((flags & 0x07) + 1);
+}
+
+
+static void img_chunk_forward(img_chunk * chunk, int n)
+{
+   chunk->buf += n;
+   chunk->size -= n;
+}
+
+
+static void img_chunk_dump_at(img_chunk chunk, const char * where)
+{
+   for (int i = -6; i < 6; i++) {
+      fprintf(stderr, "        dump at '%s': '%02x'%s\n", where, chunk.buf[i], i == 0 ? " @0" : "");
+   }
+}
 
 
 /*
@@ -179,24 +226,15 @@ static size_t Gif_process_bytes(DilloGif *gif, gif_parser * parser);
  */
 void *a_Gif_new(DilloImage *Image, DilloUrl *url, int version)
 {
-   DilloGif *gif = dMalloc(sizeof(DilloGif));
-   _MSG("a_Gif_new: gif=%p\n", gif);
+   DilloGif * gif = malloc(sizeof(DilloGif));
+   memset(gif, 0, sizeof (DilloGif));
 
-   memset(&gif->parser, 0, sizeof (gif->parser));
-   gif->parser.state = InitialState;
-
+   gif->parser_state = InitialState;
    gif->Image = Image;
    gif->url = url;
    gif->version = version;
-   gif->Flags = 0;
-   gif->row_data = NULL;
    gif->Background = Image->bg_color;
-   gif->transparent = -1;
-   gif->num_spill_lines_max = 0;
-   gif->spill_lines = NULL;
-   gif->window = 0;
-   gif->packet_size = 0;
-   gif->color_map_offset = 0;
+   gif->transparent_color_index = -1;
 
    return gif;
 }
@@ -204,11 +242,11 @@ void *a_Gif_new(DilloImage *Image, DilloUrl *url, int version)
 /*
  * Free the gif-decoding data structure.
  */
-static void Gif_free(DilloGif *gif)
+static void gif_free(DilloGif *gif)
 {
    int i;
 
-   _MSG("Gif_free: gif=%p\n", gif);
+   _MSG("gif_free: gif=%p\n", gif);
 
    dFree(gif->row_data);
    if (gif->spill_lines != NULL) {
@@ -233,158 +271,243 @@ void a_Gif_callback(int Op, void *data)
          return;
 
       DilloGif * gif = Client->CbData;
-      gif->parser.all_data = (uchar_t *) Client->Buf;
-      gif->parser.all_size = Client->BufSize;
-      gif->parser.chunk_start = gif->parser.all_data + gif->parser.start_offset;
-      gif->parser.chunk_size = gif->parser.all_size - gif->parser.start_offset;
+      /* Beginning of all image data received so far. Part of it has already
+         been parsed and sent to cache. */
+      const uchar_t * all_data = (uchar_t *) Client->Buf;
+      /* Total size of all of the image data received so far. */
+      const int all_size = Client->BufSize;
+      img_chunk chunk = {
+         .buf  = all_data + gif->start_offset,
+         .size = all_size - gif->start_offset
+      };
 
-      Gif_write(gif, &gif->parser);
+      MSG("GIF: %d bytes in new chunk\n", chunk.size);
+      /* Process the bytes in the input buffer. */
+      const int consumed_size = gif_write(gif, chunk);
+      if (consumed_size > 0) {
+         gif->start_offset += consumed_size;
+         MSG("GIF: consumed %d bytes\n", consumed_size);
+      }
+
    } else if (Op == CacheOperationClose) {
       CacheClient_t *Client = data;
-      Gif_close(Client->CbData, Client);
+      gif_close(Client->CbData, Client);
    } else if (Op == CacheOperationAbort) {
-      Gif_free(data);
+      gif_free(data);
    }
-}
-
-/*
- * Receive and process new chunks of GIF image data
- */
-static void Gif_write(DilloGif *gif, gif_parser * parser)
-{
-   _MSG("Gif_write: %d bytes\n", parser->chunk_size);
-
-   /* Process the bytes in the input buffer. */
-   const int bytes_consumed = Gif_process_bytes(gif, parser);
-
-   if (bytes_consumed < 1)
-      return;
-   gif->parser.start_offset += bytes_consumed;
-
-   _MSG("exit Gif_write, parser.chunk_size = %d\n", parser->chunk_size);
 }
 
 /*
  * Finish the decoding process (and free the memory)
  */
-static void Gif_close(DilloGif *gif, CacheClient_t *Client)
+static void gif_close(DilloGif *gif, CacheClient_t *Client)
 {
-   _MSG("Gif_close: destroy gif %p\n", gif);
+   _MSG("gif_close: destroy gif %p\n", gif);
    a_Dicache_close(gif->url, gif->version, Client);
-   Gif_free(gif);
+   gif_free(gif);
 }
 
 
 /* --- GIF Extensions ----------------------------------------------------- */
 
-/*
- * This reads a sequence of GIF data blocks.. and ignores them!
- * Buf points to the first data block.
- *
- * Return Value
- * 0 = There wasn't enough bytes read yet to read the whole datablock
- * otherwise the size of the data blocks
- */
-static inline size_t Gif_data_blocks(const uchar_t *Buf, size_t BSize)
-{
-   size_t Size = 0;
 
-   if (BSize < 1)
-      return 0;
-   while (Buf[0]) {
-      if (BSize <= (size_t)(Buf[0] + 1))
-         return 0;
-      Size += Buf[0] + 1;
-      BSize -= Buf[0] + 1;
-      Buf += Buf[0] + 1;
+
+static inline int gif_data_sub_block_get_available_bytes(img_chunk chunk)
+{
+   if (0 == chunk.size) {
+      /* There is not enough data for any kind of parsing. */
+      fprintf(stderr, "Available data 0 = %u\n", 0);
+      return -1;
    }
-   return Size + 1;
+
+   const uchar_t sub_block_size = chunk.buf[0];
+   if (0x00 == sub_block_size) {
+      /* [1] "16. Block Terminator." */
+      fprintf(stderr, "Available data 1 = %u\n", 0);
+      return 0;
+   }
+
+   if (sub_block_size <= chunk.size) {
+      fprintf(stderr, "Available data 2 = %u\n", sub_block_size);
+      return sub_block_size;
+   } else {
+      fprintf(stderr, "Available data 3 = %u, chunk size = %u\n", sub_block_size, chunk.size);
+      return -1;
+   }
 }
 
-/*
- * This is a GIF extension.  We ignore it with this routine.
- * Buffer points to just after the extension label.
- *
- * Return Value
- * 0 -- block not processed
- * otherwise the size of the extension label.
- */
-static inline size_t Gif_do_generic_ext(const uchar_t *Buf, size_t BSize)
+
+
+static bool handle_extension_sub_block_graphic_control(DilloGif * gif, img_chunk sub_block)
 {
+   const int sub_block_size = sub_block.buf[0];
+   /* TODO: we can/should peek behind the end of this block and verify that
+      there is a Block Terminator right after this sub-block. The GIF spec
+      tells us clearly that there is only one non-empty sub-block, followed
+      by Block Terminator. */
 
-   size_t Size = Buf[0] + 1,  /* (uchar_t + 1) can't overflow size_t */
-          DSize;
+   const uchar_t flags = sub_block.buf[1];
 
-   /* The Block size (the first byte) is supposed to be a specific size
-    * for each extension... we don't check.
-    */
-
-   if (Size > BSize)
-      return 0;
-   DSize = Gif_data_blocks(Buf + Size, BSize - Size);
-   if (!DSize)
-      return 0;
-   Size += DSize;
-   return Size <= BSize ? Size : 0;
-}
-
-/*
- * ?
- */
-static inline size_t
- Gif_do_gc_ext(DilloGif *gif, const uchar_t *Buf, size_t BSize)
-{
-   /* Graphic Control Extension */
-   size_t Size = Buf[0] + 2;
-   uint_t Flags;
-
-   if (BSize < 6 || Size > BSize)
-      return 0;
-   Buf++;
-   Flags = Buf[0];
-
-   /* The packed fields */
-#if 0
-   gif->disposal = (Buf[0] >> 2) & 0x7;
-   gif->inputFlag = (Buf[0] >> 1) & 0x1;
-
-   /* Delay time */
-   gif->delayTime = LM_to_uint(Buf[1], Buf[2]);
+#if 1
+   gif->disposal_method = (flags >> 2) & 0x7;
+   gif->user_input_flag = (flags >> 1) & 0x1;
+   gif->delay_time = LM_to_uint(sub_block.buf[2], sub_block.buf[3]);
 #endif
 
-   /* Transparent color index, may not be valid  (unless flag is set) */
-   if ((Flags & 0x1)) {
-      gif->transparent = Buf[3];
+   /* Transparent color index, may not be valid (unless flag is set) */
+   const bool transparent_color_flag = flags & 0x01;
+   if (transparent_color_flag) {
+      gif->transparent_color_index = sub_block.buf[4];
    }
-   return Size;
+
+   fprintf(stderr,
+           "disposal_method         = %02x\n"
+           "user_input_flag         = %02x\n"
+           "delay_time              = %02x\n"
+           "transparent_color_index = %02x\n",
+           gif->disposal_method,
+           gif->user_input_flag,
+           gif->delay_time,
+           gif->transparent_color_index);
+
+
+   return true;
 }
 
-#define App_Ext  (0xff)
-#define Cmt_Ext  (0xfe)
-#define GC_Ext   (0xf9)
-#define Txt_Ext  (0x01)
+
+static bool handle_extension_sub_block_comment(DilloGif * gif, img_chunk sub_block)
+{
+   // return true; /* Enable this statement if you don't want to process and print comment. */
+
+   const int sub_block_size = sub_block.buf[0];
+
+   /* Since this is a comment extension, we can try to print the comment as text. */
+   const uchar_t * string_start = sub_block.buf + 1; /* Skip size byte. */
+   char buf[256] = { 0 }; /* Sub-block has no more than 256 bytes (not including sub-block size byte). */
+   memcpy(buf, string_start, sub_block_size);
+   fprintf(stderr, "Comment Extension:  sub-block size = %d, comment = '%s'\n", sub_block_size, buf);
+
+   return true;
+}
+
+
 
 /*
- * ?
- * Return value:
- *    TRUE when the extension is over
- */
-static size_t Gif_do_extension(DilloGif *gif, uint_t Label,
-                               const uchar_t *buf,
-                               size_t BSize)
+  Try to parse all bytes from any Extension, from Extension Introducer to
+  Block Terminator, inclusive.
+*/
+static int gif_try_consume_extension_generic(DilloGif * gif, img_chunk extension_chunk, extension_sub_block_handler_t sub_block_data_handler)
 {
-   switch (Label) {
-   case GC_Ext:         /* Graphics extension */
-      return Gif_do_gc_ext(gif, buf, BSize);
-
-   case Cmt_Ext:                /* Comment extension */
-      return Gif_data_blocks(buf, BSize);
-
-   case Txt_Ext:                /* Plain text Extension */
-   case App_Ext:                /* Application Extension */
-   default:
-      return Gif_do_generic_ext(buf, BSize);    /*Ignore Extension */
+   int consumed_size = 0;
+   if (extension_chunk.size < 3) {
+      /* Not enough data for Extension Introducer, Extension Label and at
+         least Block Terminator. */
+      return consumed_size;
    }
+
+   img_chunk sub_block = extension_chunk;
+   img_chunk_forward(&sub_block, 2); /* Skip Extension Introducer and Extension Label. */
+   consumed_size += 2;
+
+#if 0
+   for (int i = 0; i < 20; i++) {
+      fprintf(stderr, "sub-block pointer: 0x%02x, %c\n", sub_block.buf[i], sub_block.buf[i]);
+   }
+#endif
+
+   int sub_block_size = 0;
+   const int block_terminator_size = 0x00; /* Size of sub-block indicated by Block Terminator is zero. */
+   int sub_blocks_counter = 0;
+   while ((sub_block_size = gif_data_sub_block_get_available_bytes(sub_block)) != -1) {
+
+      if (sub_block_size > 1 && sub_block_data_handler) {
+         sub_block_data_handler(gif, sub_block);
+      }
+
+      /* Skip byte size in this sub-block. */
+      img_chunk_forward(&sub_block, 1);
+      consumed_size += 1;
+
+      /* Skip sub-block data (perhaps zero bytes of value in Block
+         Terminator). */
+      img_chunk_forward(&sub_block, sub_block_size);
+      consumed_size += sub_block_size;
+
+      if (block_terminator_size == sub_block_size) {
+         fprintf(stderr, "sub-block #%d is Block Terminator, stopping processing of this extension\n", sub_blocks_counter);
+         break;
+      } else {
+         fprintf(stderr, "sub-block #%d is not Block Terminator, continuing with parsing of this extension\n", sub_blocks_counter);
+      }
+      sub_blocks_counter++;
+   }
+
+   if (block_terminator_size == sub_block_size) {
+      /* Encountered Block Terminator, so this extension was parsed
+         correctly, from beginning to end. */
+      fprintf(stderr, "returning consumed size = %d\n", consumed_size);
+      return consumed_size;
+   } else {
+      /* There was not enough data to parse this extension. */
+      fprintf(stderr, "returing consumed size = %d\n", 0);
+      return 0;
+   }
+}
+
+
+
+#define ExtensionTypeGraphicControl   (0xf9) /* "23. Graphic Control Extension." */
+#define ExtensionTypeComment          (0xfe) /* "24. Comment Extension." */
+#define ExtensionTypePlainText        (0x01) /* "25. Plain Text Extension." */
+#define ExtensionTypeApplication      (0xff) /* "26. Application Extension." */
+
+
+/*
+ */
+static int gif_do_extension_sub(DilloGif * gif, img_chunk extension_chunk)
+{
+   /* Get extension label. */
+   const uchar_t extension_introducer = extension_chunk.buf[0];
+   const uchar_t extension_label      = extension_chunk.buf[1];
+
+   int extension_size = 0;
+
+   switch (extension_label) {
+   case ExtensionTypeGraphicControl:
+      fprintf(stderr, "Extension Type Graphic Control\n");
+      /*
+        Try to parse all bytes shown in [1] "23. Graphic Control Extension.",
+        from Extension Introducer to Block Terminator, inclusive.
+      */
+      extension_size = gif_try_consume_extension_generic(gif, extension_chunk, handle_extension_sub_block_graphic_control);
+      break;
+
+   case ExtensionTypeComment:
+      fprintf(stderr, "Extension Type Comment\n");
+      /*
+        Try to parse all bytes shown in [1] "24. Comment Extension.", from
+        Extension Introducer to Block Terminator, inclusive.
+      */
+      extension_size = gif_try_consume_extension_generic(gif, extension_chunk, handle_extension_sub_block_comment);
+      break;
+
+   case ExtensionTypePlainText:
+      fprintf(stderr, "Extension Type Plain Text\n");
+      extension_size = gif_try_consume_extension_generic(gif, extension_chunk, NULL);    /*Ignore Extension */
+      break;
+
+   case ExtensionTypeApplication:
+      fprintf(stderr, "Extension Type Application\n");
+      extension_size = gif_try_consume_extension_generic(gif, extension_chunk, NULL);    /*Ignore Extension */
+      break;
+
+   default:
+      fprintf(stderr, "Extension Type unhandled\n");
+      extension_size = gif_try_consume_extension_generic(gif, extension_chunk, NULL);    /*Ignore Extension */
+      break;
+   }
+
+   return extension_size;
 }
 
 /* --- General Image Decoder ----------------------------------------------- */
@@ -396,9 +519,9 @@ static size_t Gif_do_extension(DilloGif *gif, uint_t Label,
 static void Gif_lwz_init(DilloGif *gif)
 {
    gif->num_spill_lines_max = 1;
-   gif->spill_lines = dMalloc(sizeof(uchar_t *) * gif->num_spill_lines_max);
+   gif->spill_lines = malloc(sizeof(uchar_t *) * gif->num_spill_lines_max);
 
-   gif->spill_lines[0] = dMalloc(gif->Width);
+   gif->spill_lines[0] = malloc(gif->Width);
    gif->bits_in_window = 0;
 
    /* First code in table = clear_code +1
@@ -418,7 +541,7 @@ static void Gif_lwz_init(DilloGif *gif)
 static void Gif_emit_line(DilloGif *gif, const uchar_t *row_data)
 {
    a_image_cache_add_row(gif->url, gif->version, row_data, gif->row_number);
-   if (gif->Flags & INTERLACE) {
+   if (gif->interlace) {
       switch (gif->pass) {
       case 0:
       case 1:
@@ -509,7 +632,7 @@ static void Gif_sequence(DilloGif *gif, uint_t code)
          for (; spill_line_index < gif->num_spill_lines_max;
               spill_line_index++)
             gif->spill_lines[spill_line_index] =
-                dMalloc(gif->Width);
+                malloc(gif->Width);
       }
       spill_line_index = num_spill_lines - 1;
       obuf = gif->spill_lines[spill_line_index];
@@ -630,30 +753,27 @@ static int Gif_process_code(DilloGif *gif, uint_t code, uint_t clear_code)
 /*
  * ?
  */
-static int Gif_decode(DilloGif *gif, const uchar_t *buf, size_t bsize)
+static int Gif_decode(DilloGif *gif, img_chunk chunk)
 {
+   img_chunk_forward(&chunk, 1); /* First byte was already inspected by peek_lzw(). */
+
+   const uchar_t *buf = chunk.buf;
+   int bsize = chunk.size;
    /*
     * Data block processing.  The image stuff is a series of data blocks.
     * Each data block is 1 to 256 bytes long.  The first byte is the length
     * of the data block.  0 == the last data block.
     */
-   size_t bufsize, packet_size;
-   uint_t clear_code;
-   uint_t window;
-   int bits_in_window;
-   uint_t code;
-   int code_size;
-   uint_t code_mask;
 
-   bufsize = bsize;
+   int bufsize = bsize;
 
    /* Want to get all inner loop state into local variables. */
-   packet_size = gif->packet_size;
-   window = gif->window;
-   bits_in_window = gif->bits_in_window;
-   code_size = gif->code_size;
-   code_mask = (1 << code_size) - 1;
-   clear_code = 1 << gif->input_code_size;
+   int packet_size = gif->packet_size;
+   uint_t window = gif->window;
+   int bits_in_window = gif->bits_in_window;
+   int code_size = gif->code_size;
+   uint_t code_mask = (1 << code_size) - 1;
+   uint_t clear_code = 1 << gif->input_code_size;
 
    /* If packet size == 0, we are at the start of a data block.
     * The first byte of the data block indicates how big it is (0 == last
@@ -678,7 +798,7 @@ static int Gif_decode(DilloGif *gif, const uchar_t *buf, size_t bsize)
          while (bits_in_window >= code_size) {
             /* Extract the code.  The code is code_size (3 to 12) bits long,
              * at the start of the window */
-            code = (window >> (32 - bits_in_window)) & code_mask;
+            uint_t code = (window >> (32 - bits_in_window)) & code_mask;
 
             _MSG("code = %d, ", code);
 
@@ -724,7 +844,7 @@ static int Gif_decode(DilloGif *gif, const uchar_t *buf, size_t bsize)
       bufsize--;
       if (!(packet_size = *buf++)) {
          /* This is the "block terminator" -- the last data block */
-         gif->parser.state = InvalidState;     /* BUG: should Go back to getting GIF blocks. */
+         gif->parser_state = InvalidState;     /* BUG: should Go back to getting GIF blocks. */
          break;
       }
    }
@@ -736,77 +856,135 @@ static int Gif_decode(DilloGif *gif, const uchar_t *buf, size_t bsize)
    return bsize - bufsize;
 
  error:
-   gif->parser.state = InvalidState;
+   gif->parser_state = InvalidState;
    return bsize - bufsize;
 }
 
 /*
  * ?
  */
-static int Gif_check_sig(DilloGif *gif, const uchar_t *ibuf, int ibsize)
+static int gif_parse_header(img_chunk chunk)
 {
-   /* at beginning of file - read magic number */
-   if (ibsize < 6)
+   const int header_size = 6;
+   if (chunk.size < header_size) {
       return 0;
-   if (memcmp(ibuf, "GIF87a", 6) != 0 &&
-       memcmp(ibuf, "GIF89a", 6) != 0) {
-      MSG_WARN("\"%s\" is not a GIF file.\n", URL_STR(gif->url));
-      gif->parser.state = InvalidState;
-      return 6;
    }
-   gif->parser.state = State1;
-   return 6;
+
+   if (memcmp(chunk.buf, "GIF87a", header_size) != 0 &&
+       memcmp(chunk.buf, "GIF89a", header_size) != 0) {
+      return -1;
+   } else {
+      return header_size;
+   }
 }
 
-/* Read the color map
- *
- * Implements, from the spec:
- * Global Color Table
- * Local Color Table
- */
-static inline size_t
-Gif_do_color_table(DilloGif *gif, gif_parser * parser,
-                   const uchar_t *buf, size_t bsize, size_t CT_Size)
+static inline int gif_get_color_table(DilloGif * gif, bool global, img_chunk chunk, int color_table_triplets_count)
 {
-   size_t Size = 3 * (1 << (1 + CT_Size));
+   if (global) {
+      gif->global_color_map_present = false;
+   } else {
+      gif->local_color_map_present = false;
+   }
 
-   if (Size > bsize)
+   const int color_table_bytes_count = 3 * color_table_triplets_count;
+   if (color_table_bytes_count > chunk.size) {
       return 0;
+   }
 
-   gif->color_map_offset = (ulong_t) buf - (ulong_t) parser->all_data;
-   gif->color_map_size = (1 << (1 + CT_Size));
-   return Size;
+   if (global) {
+      gif->global_color_map_triplets_count = color_table_triplets_count;
+      memcpy(gif->global_color_map, chunk.buf, color_table_bytes_count);
+      gif->global_color_map_present = true;
+   } else {
+      gif->local_color_map_triplets_count = color_table_triplets_count;
+      memcpy(gif->local_color_map, chunk.buf, color_table_bytes_count);
+      gif->local_color_map_present = true;
+   }
+   return color_table_bytes_count;
 }
 
 /**
    This implements, from the spec:
    <Logical Screen> ::= Logical Screen Descriptor [Global Color Table]
 
+   This block is required by GIF spec.
+
    @return count of bytes consumed from input data part
 */
-static size_t Gif_get_descriptor(DilloGif *gif, gif_parser * parser, int bsize)
+static int gif_parse_logical_screen_descriptor(DilloGif *gif, img_chunk descriptor)
 {
+   int consumed_size = 0;
+
    /* screen descriptor */
-   size_t Size = 7;
-
-   if (bsize < 7)
+   int block_size = 7;
+   if (descriptor.size < block_size)
       return 0;
-   const uchar_t Flags = parser->chunk_start[4];
 
-   if (Flags & LOCALCOLORMAP) {
-      /* consumed_size is size of color table. */
-      const size_t consumed_size = Gif_do_color_table(gif, parser, parser->chunk_start + 7, (size_t)bsize - 7, Flags & (size_t)0x7);
-      if (0 == consumed_size)
-         return 0;
-      Size += consumed_size;           /* Size of the color table that follows */
-   /*   gif->Background = parser->chunk_start[5]; */
+   const uchar_t flags = descriptor.buf[4]; /* "<Packed Fields>" from "18. Logical Screen Descriptor." */
+   const bool global_color_table_is_present = color_table_is_present(flags);
+   if (global_color_table_is_present) {
+#if 0
+      gif->Background = descriptor.buf[5];
+#endif
    }
-   /*   gif->Width = LM_to_uint(parser->chunk_start[0], parser->chunk_start[1]);
-        gif->Height = LM_to_uint(parser->chunk_start[2], parser->chunk_start[3]); */
-   gif->ColorResolution = (((parser->chunk_start[4] & 0x70) >> 3) + 1);
-   /*   gif->AspectRatio     = parser->chunk_start[6]; */
 
-   return Size;
+#if 0
+   gif->color_resolution = (((descriptor.buf[4] & 0x70) >> 3) + 1);
+   gif->Width    = LM_to_uint(descriptor.buf[0], descriptor.buf[1]);
+   gif->Height   = LM_to_uint(descriptor.buf[2], descriptor.buf[3]);
+   gif->AspectRatio         = descriptor.buf[6];
+#endif
+   img_chunk_forward(&descriptor, block_size);
+   consumed_size += block_size;
+
+
+   if (global_color_table_is_present) {
+      fprintf(stderr, "Detected Global Color Table\n");
+      const int color_table_triplets_count = get_color_table_triplets_count(flags);
+      const int color_table_size = gif_get_color_table(gif, true, descriptor, color_table_triplets_count);
+      if (0 == color_table_size) {
+         return 0;
+      }
+
+      img_chunk_forward(&descriptor, color_table_size);
+      consumed_size += color_table_size;
+   }
+
+   gif->parser_state = State2;
+   return consumed_size;
+}
+
+
+
+static int gif_do_image_descriptor_header(DilloGif * gif, const img_chunk image_descriptor)
+{
+   const uchar_t image_separator = image_descriptor.buf[0];
+   if (image_separator != ImageSeparator) {
+      fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+      return 0;
+   }
+
+#if 0
+   if (bsize < 10)
+      return 0;
+#endif
+
+   gif->Width  = LM_to_uint(image_descriptor.buf[5], image_descriptor.buf[6]);
+   gif->Height = LM_to_uint(image_descriptor.buf[7], image_descriptor.buf[8]);
+
+   /* check max image size */
+   if (gif->Width <= 0 || gif->Height <= 0 ||
+       gif->Width > IMAGE_MAX_AREA / gif->Height) {
+      MSG("gif_do_image_descriptor: suspicious image size request %u x %u\n",
+          gif->Width, gif->Height);
+      gif->parser_state = InvalidState;
+      return 0;
+   }
+
+   gif->Flags = image_descriptor.buf[9];
+   gif->interlace = gif->Flags & INTERLACE;
+
+   return 10;
 }
 
 /*
@@ -817,74 +995,47 @@ static size_t Gif_get_descriptor(DilloGif *gif, gif_parser * parser, int bsize)
  * we should probably just check that the local stuff is consistent
  * with the stuff at the header. For now, we punt...
  */
-static size_t Gif_do_img_desc(DilloGif *gif, gif_parser * parser,
-                              const uchar_t *buf, size_t bsize)
+static int gif_do_image_descriptor(DilloGif *gif, img_chunk img_descriptor)
 {
-   size_t Size = 9 + 1; /* image descriptor size + first byte of image data */
+   int total_size = 0;
 
-   if (bsize < 10)
-      return 0;
-
-   gif->Width   = LM_to_uint(buf[4], buf[5]);
-   gif->Height  = LM_to_uint(buf[6], buf[7]);
-
-   /* check max image size */
-   if (gif->Width <= 0 || gif->Height <= 0 ||
-       gif->Width > IMAGE_MAX_AREA / gif->Height) {
-      MSG("Gif_do_img_desc: suspicious image size request %u x %u\n",
-          gif->Width, gif->Height);
-      gif->parser.state = InvalidState;
+   const int image_descriptor_size = gif_do_image_descriptor_header(gif, img_descriptor);
+   if (0 == image_descriptor_size) {
       return 0;
    }
+   img_chunk_forward(&img_descriptor, image_descriptor_size);
+   total_size += image_descriptor_size;
 
    /** \todo Gamma for GIF? */
    a_Dicache_set_parms(gif->url, gif->version, gif->Image,
                        gif->Width, gif->Height, DILLO_IMG_TYPE_INDEXED,
                        1 / 2.2);
    gif->Image = NULL; /* safeguard: hereafter it may be freed by its owner */
-
-   const uchar_t Flags = buf[8];
-
-   gif->Flags |= Flags & INTERLACE;
    gif->pass = 0;
-   bsize -= 9;
-   buf += 9;
-   if (Flags & LOCALCOLORMAP) {
-      size_t LSize = Gif_do_color_table(gif, parser, buf, bsize, Flags & (size_t)0x7);
 
-      if (!LSize)
+   if (color_table_is_present(gif->Flags)) {
+      fprintf(stderr, "Detected Local Color Table\n");
+      const int color_table_triplets_count = get_color_table_triplets_count(gif->Flags);
+      const int consumed_size = gif_get_color_table(gif, false, img_descriptor, color_table_triplets_count);
+      if (0 == consumed_size) {
          return 0;
-      Size += LSize;
-      buf += LSize;
-      bsize -= LSize;
+      }
+      img_chunk_forward(&img_descriptor, consumed_size);
+      total_size += consumed_size;
    }
-   /* Finally, get the first byte of the LZW image data */
-   if (bsize < 1)
-      return 0;
-   gif->input_code_size = *buf++;
-   if (gif->input_code_size > 8) {
-      gif->parser.state = InvalidState;
-      return Size;
-   }
-   gif->row_number = 0;
-   Gif_lwz_init(gif);
-   gif->spill_line_index = 0;
-   gif->row_data = dMalloc(gif->Width);
-   gif->parser.state = StatePixelsData;              /*Process the lzw data next */
-   if (gif->color_map_offset) {
-      const uchar_t * color_map = (uchar_t *) parser->all_data + gif->color_map_offset;
+
+   if (gif->local_color_map_present) {
+      /* TODO: use local color map. */
+   } else {
       a_Dicache_set_color_map(gif->url, gif->version, gif->Background,
-                              color_map,
-                              gif->color_map_size, 256, gif->transparent);
+                              gif->global_color_map,
+                              gif->global_color_map_triplets_count, MAX_COLORMAP_SIZE, gif->transparent_color_index);
    }
-   return Size;
+
+   return total_size;
 }
 
 /* --- Top level data block processors ------------------------------------ */
-#define Img_Desc (0x2c)
-#define Trailer  (0x3B)
-#define Ext_Id   (0x21)
-
 /*
  * This identifies which kind of GIF blocks are next, and processes them.
  * It returns if there isn't enough data to process the next blocks, or if
@@ -898,77 +1049,135 @@ static size_t Gif_do_img_desc(DilloGif *gif, gif_parser * parser,
  *
  * <Data>* --> GIF_Block
  * <Data>  --> while (...)
- * <Special-Purpose Block> --> Gif_do_extension
- * Graphic Control Extension --> Gif_do_extension
- * Plain Text Extension --> Gif_do_extension
- * <Table-Based Image> --> Gif_do_img_desc
+ * <Special-Purpose Block>   --> gif_do_extension
+ * Graphic Control Extension --> gif_do_extension
+ * Plain Text Extension      --> gif_do_extension
+ * <Table-Based Image>       --> gif_do_image_descriptor
  *
  * Return Value
  * 0 if not enough data is present, otherwise the number of bytes
  * "consumed"
  */
-static size_t GIF_Block(DilloGif * gif, gif_parser * parser,
-                        const uchar_t *buf, size_t bsize)
+static int GIF_Block(DilloGif * gif, img_chunk chunk)
 {
-   size_t Size = 0, mysize;
-   uchar_t C;
+   int total_consumed_size = 0;
 
-   if (bsize < 1)
+   if (chunk.size < 1) {
       return 0;
-   while (gif->parser.state == State2) {
-      if (bsize < 1)
-         return Size;
-      bsize--;
-      switch (*buf++) {
-      case Ext_Id:
-         /* get the extension type */
-         if (bsize < 2)
-            return Size;
+   }
 
-         /* Have the extension block intepreted. */
-         C = *buf++;
-         bsize--;
-         mysize = Gif_do_extension(gif, C, buf, bsize);
+   while (gif->parser_state == State2) {
+      if (chunk.size < 1) {
+         return 0;
+      }
 
-         if (!mysize)
-            /* Not all of the extension is there.. quit until more data
-             * arrives */
-            return Size;
+      const uchar_t block_id = chunk.buf[0];;
+      switch (block_id) {
+      case ExtensionIntroducer:
+         {
+            fprintf(stderr, "Extension Introducer\n");
+            int consumed_size = gif_do_extension(gif, chunk);
+            if (0 != consumed_size) {
+               img_chunk_forward(&chunk, consumed_size);
+               total_consumed_size += consumed_size;
+            }
+         }
 
-         bsize -= mysize;
-         buf += mysize;
-
-         /* Increment the amount consumed by the extension introducer
-          * and id, and extension block size */
-         Size += mysize + 2;
          /* Do more GIF Blocks */
          continue;
 
-      case Img_Desc:            /* Image descriptor */
-         mysize = Gif_do_img_desc(gif, parser, buf, bsize);
-         if (!mysize)
-            return Size;
+      case ImageSeparator:
+         {
+            /* Image descriptor */
+            fprintf(stderr, "Image Descriptor\n");
+            int consumed_size = do_image_descriptor2(gif, chunk);
+            if (0 != consumed_size) {
+               img_chunk_forward(&chunk, consumed_size);
+               total_consumed_size += consumed_size;
 
-         /* Increment the amount consumed by the Image Separator and the
-          * Resultant blocks */
-         Size += 1 + mysize;
-         return Size;
+               if (0 == peek_lzw(gif, chunk)) {
+                  return 0;
+               }
+            }
+         }
+         goto L_fin;
 
-      case Trailer:
-         gif->parser.state = InvalidState;      /* BUG: should close the rest of the file */
-         return Size + 1;
-         break;                 /* GIF terminator */
+      case Trailer: /* GIF terminator */
+         gif->parser_state = InvalidState;      /* BUG: should close the rest of the file */
+         goto L_fin;
 
       default:                  /* Unknown */
          /* gripe and complain */
-         MSG ("gif.c::GIF_Block: Error, 0x%x found\n", *(buf-1));
-         gif->parser.state = InvalidState;
-         return Size + 1;
+         MSG ("gif.c::GIF_Block: Error, 0x%x found\n", *(chunk.buf-1));
+         gif->parser_state = InvalidState;
+         goto L_fin;
       }
    }
-   return Size;
+   goto L_fin;
+
+ L_fin:
+   return total_consumed_size;
 }
 
+
+int do_image_descriptor2(DilloGif * gif, img_chunk img_descriptor)
+{
+   const int consumed_size = gif_do_image_descriptor(gif, img_descriptor);
+   if (0 == consumed_size) {
+      return 0;
+   }
+   img_chunk_forward(&img_descriptor, consumed_size);
+
+   return consumed_size;
+}
+
+
+int peek_lzw(DilloGif * gif, img_chunk img_descriptor)
+{
+   /* Finally, get the first byte of the LZW image data */
+   if (img_descriptor.size < 1) {
+      fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+      return 0;
+   }
+
+   gif->input_code_size = img_descriptor.buf[0]; /* Just peek. */
+   if (gif->input_code_size > 8) {
+      gif->parser_state = InvalidState;
+      fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+      return 0;
+   }
+   gif->row_number = 0;
+   Gif_lwz_init(gif);
+   gif->spill_line_index = 0;
+   gif->row_data = malloc(gif->Width);
+   gif->parser_state = StatePixelsData;              /*Process the lzw data next */
+
+   return 1;
+}
+
+int gif_do_extension(DilloGif * gif, img_chunk extension_chunk)
+{
+   if (extension_chunk.size < 2) {
+      return 0;
+   }
+
+   fprintf(stderr, "======== DO EXTENSION: introducer = %02x, label = %02x\n", extension_chunk.buf[0], extension_chunk.buf[1]);
+
+   const int consumed_size = gif_do_extension_sub(gif, extension_chunk);
+   if (0 == consumed_size) {
+      /* Not all of the extension is there.. quit until more data
+       * arrives */
+      return 0;
+   }
+
+   /* Increment the amount consumed by the extension introducer
+    * and id, and extension block size */
+   img_chunk_forward(&extension_chunk, consumed_size);
+
+   img_chunk_dump_at(extension_chunk, "end of do_extension");
+
+   return consumed_size;
+}
 
 /*
  * Process some bytes from the input gif stream. It's a state machine.
@@ -976,75 +1185,83 @@ static size_t GIF_Block(DilloGif * gif, gif_parser * parser,
  * From the GIF spec:
  * <GIF Data Stream> ::= Header <Logical Screen> <Data>* Trailer
  *
- * <GIF Data Stream> --> Gif_process_bytes
- * Header            --> State 0
- * <Logical Screen>  --> State 1
- * <Data>*           --> State 2
- * Trailer           --> State > 3
+ * <GIF Data Stream> --> gif_write
+ * Header            --> ParserState::InitialState
+ * <Logical Screen>  --> ParserState::State1
+ * <Data>*           --> ParserState::State2
+ * Trailer           --> ParserState::InvalidState ?
  *
- * State == 3 is special... this is inside of <Data> but all of the stuff in
- * there has been gotten and set up.  So we stream it outside.
+ * ParserState::StatePixelsData is special... this is inside of <Data> but
+ * all of the stuff in there has been gotten and set up.  So we stream it
+ * outside.
  */
-static size_t Gif_process_bytes(DilloGif *gif, gif_parser * parser)
+static int gif_write(DilloGif *gif, img_chunk main_chunk)
 {
-   int initial_chunk_size = parser->chunk_size;
-   size_t consumed_size = 0;
+   int initial_chunk_size = main_chunk.size;
+   int total_consumed_size = 0;
 
-   switch (gif->parser.state) {
-   case InitialState:
-      consumed_size = Gif_check_sig(gif, parser->chunk_start, initial_chunk_size);
-      if (0 == consumed_size)
-         break;
-      initial_chunk_size -= consumed_size;
-      parser->chunk_start += consumed_size;
-      if (gif->parser.state != State1)
-         break;
+   switch (gif->parser_state) {
+   case InitialState: {
 
-   case State1:
-      consumed_size = Gif_get_descriptor(gif, parser, initial_chunk_size);
-      if (0 == consumed_size)
+      int consumed_size = gif_parse_header(main_chunk);
+      if (InitialState == consumed_size) {
+         /* Not enough information was read to go past a header into next
+            section of image. */
          break;
-      initial_chunk_size -= consumed_size;
-      parser->chunk_start += consumed_size;
-      gif->parser.state = State2;
+      } else if (-1 == consumed_size) {
+         gif->parser_state = InvalidState;
+         /* Attempt to recognize GIF has failed: this is not a GIF file. */
+         MSG_WARN("\"%s\" is not a GIF file.\n", URL_STR(gif->url));
+         break;
+      } else {
+         /* Header recognized. Fall through to parsing next part of image. */
+         gif->parser_state = State1;
+         img_chunk_forward(&main_chunk, consumed_size);
+         total_consumed_size += consumed_size;
+      }
+   }
 
-   case State2:
+   case State1: {
+      int consumed_size = gif_parse_logical_screen_descriptor(gif, main_chunk);
+      if (0 == consumed_size || State1 == gif->parser_state) {
+         /* Logical Screen Descriptor was not parsed. Break now, try next time. */
+         break;
+      }
+      img_chunk_forward(&main_chunk, consumed_size);
+      total_consumed_size += consumed_size;
+   }
+
+   case State2: {
       /* Ok, this loop construction looks weird.  It implements the <Data>* of
        * the GIF grammar.  All sorts of stuff is allocated to set up for the
        * decode part (state ==2) and then there is the actual decode part (3)
        */
-      consumed_size = GIF_Block(gif, parser, parser->chunk_start, (size_t) initial_chunk_size);
+      int consumed_size = GIF_Block(gif, main_chunk);
       if (0 == consumed_size)
          break;
-      initial_chunk_size -= consumed_size;
-      parser->chunk_start += consumed_size;
-      if (gif->parser.state != StatePixelsData)
+      img_chunk_forward(&main_chunk, consumed_size);
+      total_consumed_size += consumed_size;
+      if (gif->parser_state != StatePixelsData)
          break;
+   }
 
    case StatePixelsData:
-      /* get an image byte */
-      /* The users sees all of this stuff */
-      consumed_size = Gif_decode(gif, parser->chunk_start, (size_t) initial_chunk_size);
-      if (0 == consumed_size)
-         break;
-      parser->chunk_start += consumed_size;
-      initial_chunk_size -= consumed_size;
-
+      {
+         /* get an image byte */
+         /* The users sees all of this stuff */
+         int consumed_size = Gif_decode(gif, main_chunk);
+         if (0 == consumed_size)
+            break;
+         img_chunk_forward(&main_chunk, consumed_size);
+         total_consumed_size += consumed_size;
+      }
    default:
       /* error - just consume all input */
-      initial_chunk_size = 0;
+      total_consumed_size = initial_chunk_size;
       break;
    }
 
-   const size_t bytes_consumed = parser->chunk_size - initial_chunk_size
-   _MSG("Gif_process_bytes: final state %d, %zd bytes consumed\n",
-        gif->state, bytes_consumed);
-   return bytes_consumed;
+   _MSG("gif_write: final state %d, %d bytes consumed\n", gif->parser_state, total_consumed_size);
+   return total_consumed_size;
 }
 
-#else /* ENABLE_GIF */
-
-void *a_Gif_new() { return 0; }
-void a_Gif_callback() { return; }
-
-#endif /* ENABLE_GIF */
