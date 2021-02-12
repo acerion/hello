@@ -1,8 +1,5 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Enable GIF images */
-#undef ENABLE_GIF
-
 /* Enable JPEG images */
 #undef ENABLE_JPEG
 

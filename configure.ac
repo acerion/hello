@@ -272,10 +272,6 @@ if test "x$png_ok" = "xyes"; then
   AC_DEFINE([ENABLE_PNG], [1], [Enable PNG images])
 fi
 
-dnl Check if support for GIF images should be compiled in
-if test "x$enable_gif" = "xyes"; then
-  AC_DEFINE([ENABLE_GIF], [1], [Enable GIF images])
-fi
 
 dnl --------------------------
 dnl  Test for support for SSL

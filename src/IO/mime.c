@@ -95,9 +95,7 @@ static Viewer_t Mime_major_type_fetch(const char *Key, uint_t Size)
  */
 void a_Mime_init()
 {
-#ifdef ENABLE_GIF
    Mime_add_minor_type("image/gif", a_Dicache_gif_image);
-#endif
 #ifdef ENABLE_JPEG
    Mime_add_minor_type("image/jpeg", a_Dicache_jpeg_image);
    Mime_add_minor_type("image/pjpeg", a_Dicache_jpeg_image);
