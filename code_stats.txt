@@ -1,8 +1,15 @@
 Stats about line counts in hello project, without sh and perl, for almost
 entire project (src, dpid, dpic dirs etc.)
+
 Haskell stats don't include code in src/haskell/tests.
 
+For .hsc files, the tool is counting lines of code in .hs files generated
+from the .hsc files. The .hsc files are not included in the stats.
+
+
+
 Line counts generated using David A. Wheeler's 'SLOCCount'.
+
 
 
 date             cpp         c   haskell
@@ -12,3 +19,4 @@ date             cpp         c   haskell
 2021.02.06     33629     19283       168
 2021.02.07     33629     19304       168
 2021.02.12     33629     19464       168
+2021.02.14     33629     19347       333
