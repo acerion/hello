@@ -64,11 +64,14 @@
 #include <stdbool.h>
 #include <stdio.h>              /* for sprintf */
 #include <string.h>             /* for memcpy and memmove */
+#include <stdlib.h>
 
+#include "gif.h"
 #include "msg.h"
 #include "image.hh"
 #include "cache.h"
 #include "dicache.h"
+#include "haskell/hello.h"
 
 
 
@@ -144,13 +147,7 @@ typedef struct {
 #endif
 
 
-   /* [1] "23. Graphic Control Extension.", Required version: Gif89. */
-   int transparent_color_index;
-#if 1
-   int delay_time;
-   int user_input_flag;
-   int disposal_method;
-#endif
+   hll_Gif hll_gif;
 
 
    /* state for the new push-oriented decoder */
@@ -173,7 +170,7 @@ typedef struct {
  */
 
 
-typedef bool (* extension_sub_block_handler_t)(DilloGif *gif, img_chunk chunk);
+typedef bool (* extension_sub_block_handler_t)(hll_Gif * gif, const uchar_t * buf, int size);
 /*
  * Forward declarations
  */
@@ -183,10 +180,6 @@ static void gif_free(DilloGif *gif);
 
 static int do_image_descriptor2(DilloGif * gif, img_chunk chunk);
 static int gif_do_extension(DilloGif * gif, img_chunk chunk);
-
-static int gif_try_consume_extension_generic(DilloGif *gif, img_chunk chunk, extension_sub_block_handler_t sub_block_data_handler);
-static bool handle_extension_sub_block_graphic_control(DilloGif * gif, img_chunk chunk);
-static bool handle_extension_sub_block_comment(DilloGif * gif, img_chunk chunk);
 
 static int peek_lzw(DilloGif * gif, img_chunk img_descriptor);
 
@@ -234,7 +227,7 @@ void *a_Gif_new(DilloImage *Image, DilloUrl *url, int version)
    gif->url = url;
    gif->version = version;
    gif->Background = Image->bg_color;
-   gif->transparent_color_index = -1;
+   gif->hll_gif.transparentColorIndexC = -1;
 
    return gif;
 }
@@ -308,207 +301,6 @@ static void gif_close(DilloGif *gif, CacheClient_t *Client)
 }
 
 
-/* --- GIF Extensions ----------------------------------------------------- */
-
-
-
-static inline int gif_data_sub_block_get_available_bytes(img_chunk chunk)
-{
-   if (0 == chunk.size) {
-      /* There is not enough data for any kind of parsing. */
-      fprintf(stderr, "Available data 0 = %u\n", 0);
-      return -1;
-   }
-
-   const uchar_t sub_block_size = chunk.buf[0];
-   if (0x00 == sub_block_size) {
-      /* [1] "16. Block Terminator." */
-      fprintf(stderr, "Available data 1 = %u\n", 0);
-      return 0;
-   }
-
-   if (sub_block_size <= chunk.size) {
-      fprintf(stderr, "Available data 2 = %u\n", sub_block_size);
-      return sub_block_size;
-   } else {
-      fprintf(stderr, "Available data 3 = %u, chunk size = %u\n", sub_block_size, chunk.size);
-      return -1;
-   }
-}
-
-
-
-static bool handle_extension_sub_block_graphic_control(DilloGif * gif, img_chunk sub_block)
-{
-   const int sub_block_size = sub_block.buf[0];
-   /* TODO: we can/should peek behind the end of this block and verify that
-      there is a Block Terminator right after this sub-block. The GIF spec
-      tells us clearly that there is only one non-empty sub-block, followed
-      by Block Terminator. */
-
-   const uchar_t flags = sub_block.buf[1];
-
-#if 1
-   gif->disposal_method = (flags >> 2) & 0x7;
-   gif->user_input_flag = (flags >> 1) & 0x1;
-   gif->delay_time = LM_to_uint(sub_block.buf[2], sub_block.buf[3]);
-#endif
-
-   /* Transparent color index, may not be valid (unless flag is set) */
-   const bool transparent_color_flag = flags & 0x01;
-   if (transparent_color_flag) {
-      gif->transparent_color_index = sub_block.buf[4];
-   }
-
-   fprintf(stderr,
-           "disposal_method         = %02x\n"
-           "user_input_flag         = %02x\n"
-           "delay_time              = %02x\n"
-           "transparent_color_index = %02x\n",
-           gif->disposal_method,
-           gif->user_input_flag,
-           gif->delay_time,
-           gif->transparent_color_index);
-
-
-   return true;
-}
-
-
-static bool handle_extension_sub_block_comment(DilloGif * gif, img_chunk sub_block)
-{
-   // return true; /* Enable this statement if you don't want to process and print comment. */
-
-   const int sub_block_size = sub_block.buf[0];
-
-   /* Since this is a comment extension, we can try to print the comment as text. */
-   const uchar_t * string_start = sub_block.buf + 1; /* Skip size byte. */
-   char buf[256] = { 0 }; /* Sub-block has no more than 256 bytes (not including sub-block size byte). */
-   memcpy(buf, string_start, sub_block_size);
-   fprintf(stderr, "Comment Extension:  sub-block size = %d, comment = '%s'\n", sub_block_size, buf);
-
-   return true;
-}
-
-
-
-/*
-  Try to parse all bytes from any Extension, from Extension Introducer to
-  Block Terminator, inclusive.
-*/
-static int gif_try_consume_extension_generic(DilloGif * gif, img_chunk extension_chunk, extension_sub_block_handler_t sub_block_data_handler)
-{
-   int consumed_size = 0;
-   if (extension_chunk.size < 3) {
-      /* Not enough data for Extension Introducer, Extension Label and at
-         least Block Terminator. */
-      return consumed_size;
-   }
-
-   img_chunk sub_block = extension_chunk;
-   img_chunk_forward(&sub_block, 2); /* Skip Extension Introducer and Extension Label. */
-   consumed_size += 2;
-
-#if 0
-   for (int i = 0; i < 20; i++) {
-      fprintf(stderr, "sub-block pointer: 0x%02x, %c\n", sub_block.buf[i], sub_block.buf[i]);
-   }
-#endif
-
-   int sub_block_size = 0;
-   const int block_terminator_size = 0x00; /* Size of sub-block indicated by Block Terminator is zero. */
-   int sub_blocks_counter = 0;
-   while ((sub_block_size = gif_data_sub_block_get_available_bytes(sub_block)) != -1) {
-
-      if (sub_block_size > 1 && sub_block_data_handler) {
-         sub_block_data_handler(gif, sub_block);
-      }
-
-      /* Skip byte size in this sub-block. */
-      img_chunk_forward(&sub_block, 1);
-      consumed_size += 1;
-
-      /* Skip sub-block data (perhaps zero bytes of value in Block
-         Terminator). */
-      img_chunk_forward(&sub_block, sub_block_size);
-      consumed_size += sub_block_size;
-
-      if (block_terminator_size == sub_block_size) {
-         fprintf(stderr, "sub-block #%d is Block Terminator, stopping processing of this extension\n", sub_blocks_counter);
-         break;
-      } else {
-         fprintf(stderr, "sub-block #%d is not Block Terminator, continuing with parsing of this extension\n", sub_blocks_counter);
-      }
-      sub_blocks_counter++;
-   }
-
-   if (block_terminator_size == sub_block_size) {
-      /* Encountered Block Terminator, so this extension was parsed
-         correctly, from beginning to end. */
-      fprintf(stderr, "returning consumed size = %d\n", consumed_size);
-      return consumed_size;
-   } else {
-      /* There was not enough data to parse this extension. */
-      fprintf(stderr, "returing consumed size = %d\n", 0);
-      return 0;
-   }
-}
-
-
-
-#define ExtensionTypeGraphicControl   (0xf9) /* "23. Graphic Control Extension." */
-#define ExtensionTypeComment          (0xfe) /* "24. Comment Extension." */
-#define ExtensionTypePlainText        (0x01) /* "25. Plain Text Extension." */
-#define ExtensionTypeApplication      (0xff) /* "26. Application Extension." */
-
-
-/*
- */
-static int gif_do_extension_sub(DilloGif * gif, img_chunk extension_chunk)
-{
-   /* Get extension label. */
-   const uchar_t extension_introducer = extension_chunk.buf[0];
-   const uchar_t extension_label      = extension_chunk.buf[1];
-
-   int extension_size = 0;
-
-   switch (extension_label) {
-   case ExtensionTypeGraphicControl:
-      fprintf(stderr, "Extension Type Graphic Control\n");
-      /*
-        Try to parse all bytes shown in [1] "23. Graphic Control Extension.",
-        from Extension Introducer to Block Terminator, inclusive.
-      */
-      extension_size = gif_try_consume_extension_generic(gif, extension_chunk, handle_extension_sub_block_graphic_control);
-      break;
-
-   case ExtensionTypeComment:
-      fprintf(stderr, "Extension Type Comment\n");
-      /*
-        Try to parse all bytes shown in [1] "24. Comment Extension.", from
-        Extension Introducer to Block Terminator, inclusive.
-      */
-      extension_size = gif_try_consume_extension_generic(gif, extension_chunk, handle_extension_sub_block_comment);
-      break;
-
-   case ExtensionTypePlainText:
-      fprintf(stderr, "Extension Type Plain Text\n");
-      extension_size = gif_try_consume_extension_generic(gif, extension_chunk, NULL);    /*Ignore Extension */
-      break;
-
-   case ExtensionTypeApplication:
-      fprintf(stderr, "Extension Type Application\n");
-      extension_size = gif_try_consume_extension_generic(gif, extension_chunk, NULL);    /*Ignore Extension */
-      break;
-
-   default:
-      fprintf(stderr, "Extension Type unhandled\n");
-      extension_size = gif_try_consume_extension_generic(gif, extension_chunk, NULL);    /*Ignore Extension */
-      break;
-   }
-
-   return extension_size;
-}
 
 /* --- General Image Decoder ----------------------------------------------- */
 /* Here begins the new push-oriented decoder. */
@@ -1029,7 +821,7 @@ static int gif_do_image_descriptor(DilloGif *gif, img_chunk img_descriptor)
    } else {
       a_Dicache_set_color_map(gif->url, gif->version, gif->Background,
                               gif->global_color_map,
-                              gif->global_color_map_triplets_count, MAX_COLORMAP_SIZE, gif->transparent_color_index);
+                              gif->global_color_map_triplets_count, MAX_COLORMAP_SIZE, gif->hll_gif.transparentColorIndexC);
    }
 
    return total_size;
@@ -1163,7 +955,7 @@ int gif_do_extension(DilloGif * gif, img_chunk extension_chunk)
 
    fprintf(stderr, "======== DO EXTENSION: introducer = %02x, label = %02x\n", extension_chunk.buf[0], extension_chunk.buf[1]);
 
-   const int consumed_size = gif_do_extension_sub(gif, extension_chunk);
+   const int consumed_size = hll_parseExtension(&gif->hll_gif, extension_chunk.buf, extension_chunk.size);
    if (0 == consumed_size) {
       /* Not all of the extension is there.. quit until more data
        * arrives */
@@ -1220,6 +1012,7 @@ static int gif_write(DilloGif *gif, img_chunk main_chunk)
          total_consumed_size += consumed_size;
       }
    }
+      /* Fall through. */
 
    case State1: {
       int consumed_size = gif_parse_logical_screen_descriptor(gif, main_chunk);
@@ -1230,6 +1023,7 @@ static int gif_write(DilloGif *gif, img_chunk main_chunk)
       img_chunk_forward(&main_chunk, consumed_size);
       total_consumed_size += consumed_size;
    }
+      /* Fall through. */
 
    case State2: {
       /* Ok, this loop construction looks weird.  It implements the <Data>* of
@@ -1245,6 +1039,8 @@ static int gif_write(DilloGif *gif, img_chunk main_chunk)
          break;
    }
 
+      /* Fall through. */
+
    case StatePixelsData:
       {
          /* get an image byte */
@@ -1255,6 +1051,7 @@ static int gif_write(DilloGif *gif, img_chunk main_chunk)
          img_chunk_forward(&main_chunk, consumed_size);
          total_consumed_size += consumed_size;
       }
+      /* Fall through. */
    default:
       /* error - just consume all input */
       total_consumed_size = initial_chunk_size;
