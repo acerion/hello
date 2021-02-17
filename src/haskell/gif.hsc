@@ -34,6 +34,8 @@ module GIF( hll_parseExtension
             --these are for tests.
           , parseExtension
           , gifDefault
+          , gifIncreasedSize
+          , gifForward
           , GIF (..)
           ) where
 
@@ -135,7 +137,7 @@ data GIF = GIF {
   , delayTime             :: Int
   , userInputFlag         :: Int
   , disposalMethod        :: Int
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 
 
@@ -149,10 +151,15 @@ clearly that there is only one non-empty sub-block, followed by Block
 Terminator.
 -}
 handleExtensionSubBlockComment :: GIF -> BS.ByteString -> Maybe GIF
-handleExtensionSubBlockComment gif buf =
-  if 0 == subBlockSize
-  then Nothing
-  else Just gif { comment = commentText, parsed = True, consumed = oldConsumed + subBlockSize + 1 } -- +1 for sub-block size byte
+handleExtensionSubBlockComment gif buf
+  | BS.length buf == 0           = Just gif -- Check length of the buf first, before trying to get from it a subBlockSize.
+  | subBlockSize == 0            = Nothing -- By mistake a Block Terminator has been passed to the
+                                           -- function. Block Terminator should be handled by caller of
+                                           -- this function, not by a function dedicated to parse a
+                                           -- comment.
+  | subBlockSize > BS.length buf = Just gif -- Not enough input data.
+  | otherwise                    = Just gif { comment = commentText, consumed = gifIncreasedSize gif (oldConsumed + subBlockSize + 1) } -- +1 for sub-block size byte
+    -- TODO: the new comment must be appended to existing comment for multi-sub-block comments.
   where
     commentBytes = BS.take subBlockSize (BS.drop 1 buf)
     commentText = T.E.decodeUtf8 commentBytes
@@ -213,12 +220,14 @@ For Graphic Control Extension the traversal is shorted because there is only
 one sub-block followed by Block Terminator.
 -}
 parseSubBlocks :: GIF -> BS.ByteString -> (GIF -> BS.ByteString -> Maybe GIF) -> Maybe GIF
-parseSubBlocks gif buf subBlockParser =
-  if isBlockTerminator buf
-  then Just gif { parsed = True, consumed = (gifIncreasedSize gif 1) } -- +1 for Terminator that we have just detected.
-  else case subBlockParser gif buf of
-         Just gif2 -> parseSubBlocks gif2 (BS.drop (1 + subBlockSize) buf) subBlockParser -- +1 for sub-block size byte.
-         Nothing   -> Nothing
+parseSubBlocks gif buf subBlockParser
+  | BS.length buf == 0           = Just gif -- Not enough space even for block terminator
+  | BS.length buf < subBlockSize = Just gif -- Not enough data to parse sub-block in full
+  | isBlockTerminator buf        = Just (gifForward gif 1) -- +1 for Terminator that we have just detected.
+  | otherwise =
+      case subBlockParser gif buf of
+        Just gif2 -> parseSubBlocks gif2 (BS.drop (1 + subBlockSize) buf) subBlockParser -- +1 for sub-block size byte.
+        Nothing   -> Nothing
   where subBlockSize = getSubBlockSize buf
 
 
@@ -235,7 +244,10 @@ parseExtension :: GIF -> BS.ByteString -> Maybe GIF
 parseExtension gif buf
   | BS.length buf < 3                 = Just (gifNotEnoughData gif) -- 3: Extension Introducer, Extension Label and at least one byte of some data, perhaps Block Terminator
   | introducer /= extensionIntroducer = Nothing
-  | otherwise                         = dispatchSubBlocks (gifForward gif 2) (BS.drop 2 buf) label -- 2: Drop Extension Introducer and Extension Label
+  | otherwise                         =
+    case dispatchSubBlocks gif (BS.drop 2 buf) label of -- 2: Drop Extension Introducer and Extension Label
+      Just result -> Just (if (consumed result > consumed gif) then (gifForward result 2) else result)
+      Nothing -> Nothing
   where
     introducer = BS.index buf 0
     label = BS.index buf 1
