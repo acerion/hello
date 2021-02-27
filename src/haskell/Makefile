@@ -1,4 +1,4 @@
-# https://www.vex.net/~trebla/haskell/so.xhtml
+# Calls to ghc: https://www.vex.net/~trebla/haskell/so.xhtml
 
 
 all:
@@ -11,4 +11,4 @@ distclean: clean
 clean:
 	rm -rf *.o *.a *.so *.hi *_stub.h *.out
 	rm tests/*.o tests/*.hi
-
+	rm tools/*.o tools/*.hi

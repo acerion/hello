@@ -34,7 +34,6 @@ module GIF( hll_parseExtension
             --these are for tests.
           , parseExtension
           , gifDefault
-          , gifIncreasedSize
           , gifForward
           , GIF (..)
           ) where
@@ -44,6 +43,7 @@ import Foreign.C.String
 import Foreign
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
+import qualified Data.Text.Encoding.Error as T.E.E
 import qualified Data.Text.IO as T.IO
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
@@ -126,8 +126,8 @@ extensionTypeApplication      = 0xff -- "26. Application Extension."
 
 
 data GIF = GIF {
-    parsed   :: Bool
-  , consumed :: Int -- Count of bytes consumed from byte string.
+
+    consumed :: Int -- Count of bytes consumed from byte string.
 
   -- [1] "24. Comment Extension."
   , comment  :: T.Text
@@ -144,25 +144,23 @@ data GIF = GIF {
 {-
 Try to parse all bytes shown in [1] "24. Comment Extension.", from Extension
 Introducer to Block Terminator, inclusive.
-
-TODO: we can/should peek behind the end of this block and verify that there
-is a Block Terminator right after this sub-block. The GIF spec tells us
-clearly that there is only one non-empty sub-block, followed by Block
-Terminator.
 -}
 handleExtensionSubBlockComment :: GIF -> BS.ByteString -> Maybe GIF
 handleExtensionSubBlockComment gif buf
-  | BS.length buf == 0           = Just gif -- Check length of the buf first, before trying to get from it a subBlockSize.
-  | subBlockSize == 0            = Nothing -- By mistake a Block Terminator has been passed to the
-                                           -- function. Block Terminator should be handled by caller of
-                                           -- this function, not by a function dedicated to parse a
-                                           -- comment.
-  | subBlockSize > BS.length buf = Just gif -- Not enough input data.
-  | otherwise                    = Just gif { comment = commentText, consumed = gifIncreasedSize gif (oldConsumed + subBlockSize + 1) } -- +1 for sub-block size byte
-    -- TODO: the new comment must be appended to existing comment for multi-sub-block comments.
+  | BS.length buf == 0            = Just (gifNotEnoughData gif) -- Check length of the buf first, before trying to get from it a subBlockSize.
+  | subBlockSize == 0             = Nothing -- By mistake a Block Terminator has been passed to the
+                                            -- function. Block Terminator should be handled by caller of
+                                            -- this function, not by a function dedicated to parse a
+                                            -- comment.
+  | subBlockSize >= BS.length buf = Just (gifNotEnoughData gif) -- Not enough input data.
+  | otherwise                     = Just gif { comment  = gifIncreasedComment gif commentText
+                                            , consumed = gifIncreasedConsumed gif (1 + subBlockSize) -- 1 for sub-block size byte
+                                            }
   where
     commentBytes = BS.take subBlockSize (BS.drop 1 buf)
-    commentText = T.E.decodeUtf8 commentBytes
+    -- Use lenientDecode to not throw exception on invalid byte
+    -- sequences. GIF spec only "recommends" using ASCII character set.
+    commentText = T.E.decodeUtf8With T.E.E.lenientDecode commentBytes
     subBlockSize = fromIntegral (BS.index buf 0)
     oldConsumed = consumed gif
 
@@ -178,7 +176,7 @@ values in GC should be bytes?
 handleExtensionSubBlockGraphicControl :: GIF -> BS.ByteString -> Maybe GIF
 handleExtensionSubBlockGraphicControl gif buf =
   -- Default value of transparentColorIndex field, set in Dillo's a_Gif_new(), was -1.
-  Just gif {   consumed              = gifIncreasedSize gif (subBlockSize + 1)
+  Just gif {   consumed              = gifIncreasedConsumed gif (1 + subBlockSize)
              , transparentColorIndex = if tcf then (fromIntegral (BS.index buf 4)) else -1 -- Transparent color index, may not be valid (unless flag is set).
              , delayTime             = pairToUint (BS.index buf 2) (BS.index buf 3)
              , userInputFlag         = fromIntegral ((flags `shiftR` 1) .&. 0x01)
@@ -221,9 +219,9 @@ one sub-block followed by Block Terminator.
 -}
 parseSubBlocks :: GIF -> BS.ByteString -> (GIF -> BS.ByteString -> Maybe GIF) -> Maybe GIF
 parseSubBlocks gif buf subBlockParser
-  | BS.length buf == 0           = Just gif -- Not enough space even for block terminator
-  | BS.length buf < subBlockSize = Just gif -- Not enough data to parse sub-block in full
-  | isBlockTerminator buf        = Just (gifForward gif 1) -- +1 for Terminator that we have just detected.
+  | BS.length buf == 0            = Just (gifNotEnoughData gif) -- Not enough space even for block terminator
+  | BS.length buf <= subBlockSize = Just (gifNotEnoughData gif) -- Not enough data to parse sub-block in full
+  | isBlockTerminator buf         = Just (gifForward gif 1)     -- +1 for Terminator that we have just detected.
   | otherwise =
       case subBlockParser gif buf of
         Just gif2 -> parseSubBlocks gif2 (BS.drop (1 + subBlockSize) buf) subBlockParser -- +1 for sub-block size byte.
@@ -246,7 +244,7 @@ parseExtension gif buf
   | introducer /= extensionIntroducer = Nothing
   | otherwise                         =
     case dispatchSubBlocks gif (BS.drop 2 buf) label of -- 2: Drop Extension Introducer and Extension Label
-      Just result -> Just (if (consumed result > consumed gif) then (gifForward result 2) else result)
+      Just gifUpdated -> Just (if (gifParseSuccess gif gifUpdated) then (gifForward gifUpdated 2) else gif)
       Nothing -> Nothing
   where
     introducer = BS.index buf 0
@@ -265,8 +263,21 @@ gifForward gif n = gif { consumed = (consumed gif) + n }
 
 
 
-gifIncreasedSize :: GIF -> Int -> Int
-gifIncreasedSize gif n = (consumed gif) + n
+-- Increase 'consumed' field of gif by given amount
+--
+-- As the parser is successfully parsing more and more of byte stream, the
+-- count of consumed bytes must be increased.
+gifIncreasedConsumed :: GIF -> Int -> Int
+gifIncreasedConsumed gif n = (consumed gif) + n
+
+
+
+-- Append given text to gif's 'comment' field
+--
+-- Since specification allows multiple sub-blocks in Comment Extension, a
+-- text from given sub-block must be *added* to text from parsed sub-blocks.
+gifIncreasedComment :: GIF -> T.Text -> T.Text
+gifIncreasedComment gif text = T.concat [comment gif, text]
 
 
 
@@ -274,9 +285,15 @@ gifNotEnoughData :: GIF -> GIF
 gifNotEnoughData gif = gif { consumed = 0 }
 
 
+
+-- If parser has correctly parsed and consumed a chunk of data in full,
+-- return True.
+gifParseSuccess gifPre gifPost = consumed gifPost > consumed gifPre
+
+
+
 gifDefault = GIF {
-    parsed = False
-  , consumed = 0
+    consumed = 0
 
   , comment = ""
 

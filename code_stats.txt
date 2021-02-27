@@ -1,7 +1,8 @@
 Stats about line counts in hello project, without sh and perl, for almost
 entire project (src, dpid, dpic dirs etc.)
 
-Haskell stats don't include code in src/haskell/tests.
+Haskell stats don't include code in src/haskell/tests and
+src/haskell/tests_tools.
 
 For .hsc files, the tool is counting lines of code in .hs files generated
 from the .hsc files. The .hsc files are not included in the stats.
