@@ -16,7 +16,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
-This file is derived from dillo-3.0.5/src/gif.c
+This file is derived from dillo-3.0.5/src/gif.c.
+Copyright assignments from that file:
+Copyright (C) 1997 Raph Levien <raph@acm.org>
+Copyright (C) 2000-2007 Jorge Arellano Cid <jcid@dillo.org>
 -}
 
 
