@@ -25,7 +25,6 @@
 #include "bw.h"         /* for BrowserWindow */
 #include "msg.h"
 #include "binaryconst.h"
-#include "colors.h"
 #include "utf8.hh"
 
 #include "misc.h"
@@ -38,6 +37,7 @@
 #include "html_common.hh"
 #include "form.hh"
 #include "table.hh"
+#include "haskell/hello.h"
 
 #include "dw/textblock.hh"
 #include "dw/bullet.hh"
@@ -1498,10 +1498,10 @@ CssLength a_Html_parse_length (DilloHtml *html, const char *attr)
 int32_t a_Html_color_parse(DilloHtml *html, const char *str,
                            int32_t default_color)
 {
-   int err = 1;
-   int32_t color = a_Color_parse(str, default_color, &err);
+   int colorError = 1;
+   int32_t color = hll_colorsStringToColor(str, default_color); colorError = 0; /* TODO: set correct value of error flag colorError. */
 
-   if (err) {
+   if (colorError) {
       BUG_MSG("Color '%s' is not in \"#RRGGBB\" format.", str);
    }
    return color;
@@ -1906,7 +1906,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    if (prefs.contrast_visited_color) {
       /* get a color that has a "safe distance" from text, link and bg */
       html->visited_color =
-         a_Color_vc(html->visited_color,
+         hll_colorsVisitedColor(html->visited_color,
             html->style ()->color->getColor(),
             html->non_css_link_color,
             html->backgroundStyle()->backgroundColor->getColor());

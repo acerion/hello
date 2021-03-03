@@ -443,8 +443,6 @@ dillo_SOURCES = \
 	md5.h \
 	digest.c \
 	digest.h \
-	colors.c \
-	colors.h \
 	binaryconst.h \
 	misc.c \
 	misc.h \

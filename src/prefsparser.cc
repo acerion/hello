@@ -18,7 +18,7 @@
 #include "prefs.h"
 #include "misc.h"
 #include "msg.h"
-#include "colors.h"
+#include "haskell/hello.h"
 
 #include "prefsparser.hh"
 
@@ -71,7 +71,7 @@ static int parseOption(char *name, char *value,
                                !dStrAsciiCasecmp(value, "true"));
       break;
    case PREFS_COLOR:
-      *(int32_t *)node->pref = a_Color_parse(value, *(int32_t*)node->pref,&st);
+      *(int32_t *)node->pref = hll_colorsStringToColor(value, *(int32_t*)node->pref); st = 0; /* TODO: set correct value of error flag st. */
       if (st == 1)
          MSG("prefs: Color '%s' not recognized.\n", value);
       break;

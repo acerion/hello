@@ -21,10 +21,10 @@
 
 #include "lout/debug.hh"
 #include "msg.h"
-#include "colors.h"
 #include "html_common.hh"
 #include "css.hh"
 #include "cssparser.hh"
+#include "haskell/hello.h"
 
 using namespace dw::core::style;
 
@@ -741,7 +741,7 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssValueType *type)
          if ((ttype == CSS_TK_COLOR ||
               ttype == CSS_TK_SYMBOL) &&
             (dStrAsciiCasecmp(tval, "rgb") == 0 ||
-             a_Color_parse(tval, -1, &err) != -1))
+             hll_colorsStringToColor(tval, -1) != -1))  /* TODO: set correct value of error flag err. */
             return true;
          break;
 
@@ -867,7 +867,8 @@ bool CssParser::parseValue(CssPropertyName prop,
    CssLengthType lentype;
    bool found, ret = false;
    float fval;
-   int i, ival, err = 1;
+   int i;
+   int ival;
    Dstr *dstr;
 
    switch (type) {
@@ -975,8 +976,9 @@ bool CssParser::parseValue(CssPropertyName prop,
 
    case CSS_TYPE_COLOR:
       if (ttype == CSS_TK_COLOR) {
-         val->intVal = a_Color_parse(tval, -1, &err);
-         if (err)
+         int colorError = 1;
+         val->intVal = hll_colorsStringToColor(tval, -1); colorError = 0;  /* TODO: set correct value of error flag colorError. */
+         if (colorError)
             MSG_CSS("color is not in \"%s\" format\n", "#RRGGBB");
          else
             ret = true;
@@ -989,8 +991,9 @@ bool CssParser::parseValue(CssPropertyName prop,
             else
                MSG_CSS("Failed to parse %s color\n", "rgb(r,g,b)");
          } else {
-            val->intVal = a_Color_parse(tval, -1, &err);
-            if (err)
+            int colorError = 1;
+            val->intVal = hll_colorsStringToColor(tval, -1); colorError = 0; /* TODO: set correct value of error flag colorError. */
+            if (colorError)
                MSG_CSS("color is not in \"%s\" format\n", "#RRGGBB");
             else
                ret = true;
