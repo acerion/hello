@@ -33,9 +33,8 @@ module Colors( hll_colorsStringToColor
              , colorsVisitedColor
              , colorsDistance2
              , colorsDistance3
-             , colorsTable
-             , colorsTableSearchName
-             , colorsParseHexWithDefault
+             , colorsStringToColor
+             , colorsStringToColorWithDefault
              ) where
 
 import Prelude
@@ -229,7 +228,7 @@ hll_colorsVisitedColor candidate txt lnk bg = do
 
 
 {-
-Parse a color string.
+Parse a color string. Case insensitive.
 
   - If the string begins with # or with 0x, return the color number
     (with 'RGB' expanded to 'RRGGBB').
@@ -256,15 +255,14 @@ colorsStringToColorWithDefault text defaultColor =
 
 
 
-colorsParseHexWithDefault :: T.Text -> Int -> Int
-colorsParseHexWithDefault text defaultColor =
-  case colorsParseHex text of
-    Just val -> val
-    Nothing  -> defaultColor
+{--
+Try converting string with hexadecimal value into integer.
+Supported formats: "RRGGBB" or "RGB".
 
-
-
-
+Don't pass strings with prefixes ("#RRGGBB" or "0xRGB"). Even tough
+T.R.hexadecimal can handle "0x" prefix, for simlicity's sake this function
+doesn't support it.
+--}
 colorsParseHex :: T.Text -> Maybe Int
 colorsParseHex text =
   case T.R.hexadecimal text of
@@ -283,9 +281,9 @@ colorsParseHex text =
 
 
 
--- Naive re-implementation of binary search in C code
+-- Naive re-implementation of binary search in C code.
 colorsTableSearchName :: V.Vector (T.Text, Int) -> T.Text -> Maybe Int
-colorsTableSearchName vec name = binarySearch vec name 0 ((V.length vec) - 1)
+colorsTableSearchName vec name = binarySearch vec (T.toLower name) 0 ((V.length vec) - 1)
   where
     binarySearch :: V.Vector (T.Text, Int) -> T.Text -> Int -> Int -> Maybe Int
     binarySearch vec name low high =
@@ -301,11 +299,19 @@ colorsTableSearchName vec name = binarySearch vec name 0 ((V.length vec) - 1)
 
 
 
+{-
+Parse a color string. Case insensitive.
+
+Just like colorsStringToColorWithDefault, but without "default color"
+argument.
+
+TODO: add returning of "err" flag
+-}
 colorsStringToColor :: T.Text -> Maybe Int
 colorsStringToColor text
   | T.length colorName < T.length "red"                        = Nothing -- Shortest bare string with just color name
   | T.index colorName 0 == '#'                                 = colorsParseHex (T.drop 1 colorName)
-  | T.isPrefixOf "0x" colorName || T.isPrefixOf "0X" colorName = colorsParseHex colorName
+  | T.isPrefixOf "0x" colorName || T.isPrefixOf "0X" colorName = colorsParseHex (T.drop 2 colorName)
   | otherwise = case colorsTableSearchName colorsTable colorName of
       Just val -> Just val
       Nothing  -> colorsParseHex colorName -- Try for RRGGBB lacking the leading '#'.
