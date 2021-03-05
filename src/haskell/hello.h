@@ -26,6 +26,9 @@ int hll_parseExtension(hll_Gif * hll_gif, const unsigned char * buf, int size);
 int hll_colorsStringToColor(const char * str, int default_color);
 int hll_colorsVisitedColor(int candidate, int txt, int lnk, int bg);
 
+/* HtmlEntity */
+int hll_htmlEntityNameToIsoCode(const char * name);
+
 
 
 

@@ -45,6 +45,8 @@
 #include "dw/image.hh"
 #include "dw/ruler.hh"
 
+#include "haskell/hello.h"
+
 /*-----------------------------------------------------------------------------
  * Defines
  *---------------------------------------------------------------------------*/
@@ -788,102 +790,6 @@ void a_Html_stash_init(DilloHtml *html)
    dStr_truncate(html->Stash, 0);
 }
 
-/* Entities list from the HTML 4.01 DTD */
-typedef struct {
-   const char *entity;
-   int isocode;
-} Ent_t;
-
-#define NumEnt 252
-static const Ent_t Entities[NumEnt] = {
-   {"AElig",0306}, {"Aacute",0301}, {"Acirc",0302},  {"Agrave",0300},
-   {"Alpha",01621},{"Aring",0305},  {"Atilde",0303}, {"Auml",0304},
-   {"Beta",01622}, {"Ccedil",0307}, {"Chi",01647},   {"Dagger",020041},
-   {"Delta",01624},{"ETH",0320},    {"Eacute",0311}, {"Ecirc",0312},
-   {"Egrave",0310},{"Epsilon",01625},{"Eta",01627},  {"Euml",0313},
-   {"Gamma",01623},{"Iacute",0315}, {"Icirc",0316},  {"Igrave",0314},
-   {"Iota",01631}, {"Iuml",0317},   {"Kappa",01632}, {"Lambda",01633},
-   {"Mu",01634},   {"Ntilde",0321}, {"Nu",01635},    {"OElig",0522},
-   {"Oacute",0323},{"Ocirc",0324},  {"Ograve",0322}, {"Omega",01651},
-   {"Omicron",01637},{"Oslash",0330},{"Otilde",0325},{"Ouml",0326},
-   {"Phi",01646},  {"Pi",01640},    {"Prime",020063},{"Psi",01650},
-   {"Rho",01641},  {"Scaron",0540}, {"Sigma",01643}, {"THORN",0336},
-   {"Tau",01644},  {"Theta",01630}, {"Uacute",0332}, {"Ucirc",0333},
-   {"Ugrave",0331},{"Upsilon",01645},{"Uuml",0334},  {"Xi",01636},
-   {"Yacute",0335},{"Yuml",0570},   {"Zeta",01626},  {"aacute",0341},
-   {"acirc",0342}, {"acute",0264},  {"aelig",0346},  {"agrave",0340},
-   {"alefsym",020465},{"alpha",01661},{"amp",38},    {"and",021047},
-   {"ang",021040}, {"aring",0345},  {"asymp",021110},{"atilde",0343},
-   {"auml",0344},  {"bdquo",020036},{"beta",01662},  {"brvbar",0246},
-   {"bull",020042},{"cap",021051},  {"ccedil",0347}, {"cedil",0270},
-   {"cent",0242},  {"chi",01707},   {"circ",01306},  {"clubs",023143},
-   {"cong",021105},{"copy",0251},   {"crarr",020665},{"cup",021052},
-   {"curren",0244},{"dArr",020723}, {"dagger",020040},{"darr",020623},
-   {"deg",0260},   {"delta",01664}, {"diams",023146},{"divide",0367},
-   {"eacute",0351},{"ecirc",0352},  {"egrave",0350}, {"empty",021005},
-   {"emsp",020003},{"ensp",020002}, {"epsilon",01665},{"equiv",021141},
-   {"eta",01667},  {"eth",0360},    {"euml",0353},   {"euro",020254},
-   {"exist",021003},{"fnof",0622},  {"forall",021000},{"frac12",0275},
-   {"frac14",0274},{"frac34",0276}, {"frasl",020104},{"gamma",01663},
-   {"ge",021145},  {"gt",62},       {"hArr",020724}, {"harr",020624},
-   {"hearts",023145},{"hellip",020046},{"iacute",0355},{"icirc",0356},
-   {"iexcl",0241}, {"igrave",0354}, {"image",020421},{"infin",021036},
-   {"int",021053}, {"iota",01671},  {"iquest",0277}, {"isin",021010},
-   {"iuml",0357},  {"kappa",01672}, {"lArr",020720}, {"lambda",01673},
-   {"lang",021451},{"laquo",0253},  {"larr",020620}, {"lceil",021410},
-   {"ldquo",020034},{"le",021144},  {"lfloor",021412},{"lowast",021027},
-   {"loz",022712}, {"lrm",020016},  {"lsaquo",020071},{"lsquo",020030},
-   {"lt",60},      {"macr",0257},   {"mdash",020024},{"micro",0265},
-   {"middot",0267},{"minus",021022},{"mu",01674},    {"nabla",021007},
-   {"nbsp",0240},  {"ndash",020023},{"ne",021140},   {"ni",021013},
-   {"not",0254},   {"notin",021011},{"nsub",021204}, {"ntilde",0361},
-   {"nu",01675},   {"oacute",0363}, {"ocirc",0364},  {"oelig",0523},
-   {"ograve",0362},{"oline",020076},{"omega",01711}, {"omicron",01677},
-   {"oplus",021225},{"or",021050},  {"ordf",0252},   {"ordm",0272},
-   {"oslash",0370},{"otilde",0365}, {"otimes",021227},{"ouml",0366},
-   {"para",0266},  {"part",021002}, {"permil",020060},{"perp",021245},
-   {"phi",01706},  {"pi",01700},    {"piv",01726},   {"plusmn",0261},
-   {"pound",0243}, {"prime",020062},{"prod",021017}, {"prop",021035},
-   {"psi",01710},  {"quot",34},     {"rArr",020722}, {"radic",021032},
-   {"rang",021452},{"raquo",0273},  {"rarr",020622}, {"rceil",021411},
-   {"rdquo",020035},{"real",020434},{"reg",0256},    {"rfloor",021413},
-   {"rho",01701},  {"rlm",020017},  {"rsaquo",020072},{"rsquo",020031},
-   {"sbquo",020032},{"scaron",0541},{"sdot",021305}, {"sect",0247},
-   {"shy",0255},   {"sigma",01703}, {"sigmaf",01702},{"sim",021074},
-   {"spades",023140},{"sub",021202},{"sube",021206}, {"sum",021021},
-   {"sup",021203}, {"sup1",0271},   {"sup2",0262},   {"sup3",0263},
-   {"supe",021207},{"szlig",0337},  {"tau",01704},   {"there4",021064},
-   {"theta",01670},{"thetasym",01721},{"thinsp",020011},{"thorn",0376},
-   {"tilde",01334},{"times",0327},  {"trade",020442},{"uArr",020721},
-   {"uacute",0372},{"uarr",020621}, {"ucirc",0373},  {"ugrave",0371},
-   {"uml",0250},   {"upsih",01722}, {"upsilon",01705},{"uuml",0374},
-   {"weierp",020430},{"xi",01676},  {"yacute",0375}, {"yen",0245},
-   {"yuml",0377},  {"zeta",01666},  {"zwj",020015},  {"zwnj",020014}
-};
-
-
-/*
- * Comparison function for binary search
- */
-static int Html_entity_comp(const void *a, const void *b)
-{
-   return strcmp(((Ent_t *)a)->entity, ((Ent_t *)b)->entity);
-}
-
-/*
- * Binary search of 'key' in entity list
- */
-static int Html_entity_search(char *key)
-{
-   Ent_t *res, EntKey;
-
-   EntKey.entity = key;
-   res = (Ent_t*) bsearch(&EntKey, Entities, NumEnt,
-                          sizeof(Ent_t), Html_entity_comp);
-   if (res)
-     return (res - Entities);
-   return -1;
-}
 
 /*
  * This is M$ non-standard "smart quotes" (w1252). Now even deprecated by them!
@@ -918,11 +824,12 @@ static int Html_ms_stupid_quotes_2ucs(int isocode)
 static int Html_parse_entity(DilloHtml *html, const char *token,
                              int toksize, int *entsize)
 {
-   int isocode, i;
-   char *tok, *s, c;
+   int isocode;
+   char c;
 
    token++;
-   tok = s = toksize ? dStrndup(token, (uint_t)toksize) : dStrdup(token);
+   char * tok = toksize ? dStrndup(token, (uint_t)toksize) : dStrdup(token);
+   char * s = tok;
 
    isocode = -1;
 
@@ -962,9 +869,8 @@ static int Html_parse_entity(DilloHtml *html, const char *token,
       c = *s;
       *s = 0;
 
-      if ((i = Html_entity_search(tok)) >= 0) {
-         isocode = Entities[i].isocode;
-      } else {
+      isocode = hll_htmlEntityNameToIsoCode(tok);
+      if (isocode < 0) {
          if (html->DocType == DT_XHTML && !strcmp(tok, "apos")) {
             isocode = 0x27;
          } else {
