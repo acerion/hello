@@ -2,6 +2,7 @@
 #define _HELLO_H_
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "../gif.h"
 
 
@@ -27,7 +28,7 @@ int hll_colorsStringToColor(const char * str, int default_color);
 int hll_colorsVisitedColor(int candidate, int txt, int lnk, int bg);
 
 /* HtmlEntity */
-int hll_htmlEntityNameToIsoCode(const char * name);
+int64_t hll_htmlEntityToIsoCode(const char * token, int tokenLen);
 
 
 

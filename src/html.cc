@@ -792,28 +792,6 @@ void a_Html_stash_init(DilloHtml *html)
 
 
 /*
- * This is M$ non-standard "smart quotes" (w1252). Now even deprecated by them!
- *
- * SGML for HTML4.01 defines c >= 128 and c <= 159 as UNUSED.
- * TODO: Probably I should remove this hack, and add a HTML warning. --Jcid
- */
-static int Html_ms_stupid_quotes_2ucs(int isocode)
-{
-   int ret;
-   switch (isocode) {
-   case 145:
-   case 146: ret = '\''; break;
-   case 147:
-   case 148: ret = '"'; break;
-   case 149: ret = 176; break;
-   case 150:
-   case 151: ret = '-'; break;
-   default:  ret = isocode; break;
-   }
-   return ret;
-}
-
-/*
  * Given an entity, return the UCS character code.
  * Returns a negative value (error code) if not a valid entity.
  *
@@ -824,78 +802,34 @@ static int Html_ms_stupid_quotes_2ucs(int isocode)
 static int Html_parse_entity(DilloHtml *html, const char *token,
                              int toksize, int *entsize)
 {
-   int isocode;
-   char c;
+   const int64_t ret = hll_htmlEntityToIsoCode(token, toksize);
+   const int isoCode = ret & 0xffffffff;
+   *entsize = (ret & 0xffffffff00000000) >> 32;
 
-   token++;
-   char * tok = toksize ? dStrndup(token, (uint_t)toksize) : dStrdup(token);
-   char * s = tok;
-
-   isocode = -1;
-
-   if (*s == '#') {
-      /* numeric character reference */
-      errno = 0;
-      if (*++s == 'x' || *s == 'X') {
-         if (isxdigit(*++s)) {
-            /* strtol with base 16 accepts leading "0x" - we don't */
-            if (*s == '0' && s[1] == 'x') {
-               s++;
-               isocode = 0;
-            } else {
-               isocode = strtol(s, &s, 16);
-            }
-         }
-      } else if (isdigit(*s)) {
-         isocode = strtol(s, &s, 10);
-      }
-
-      if (!isocode || errno || isocode > 0xffff) {
-         /* this catches null bytes, errors and codes >= 0xFFFF */
-         BUG_MSG("Numeric character reference \"%s\" out of range.", tok);
-         isocode = -2;
-      }
-
-      if (isocode != -1) {
-         if (*s == ';')
-            s++;
-         else if (prefs.show_extra_warnings)
-            BUG_MSG("Numeric character reference without trailing ';'.");
-      }
-
-   } else if (isalpha(*s)) {
-      /* character entity reference */
-      while (*++s && (isalnum(*s) || strchr(":_.-", *s))) ;
-      c = *s;
-      *s = 0;
-
-      isocode = hll_htmlEntityNameToIsoCode(tok);
-      if (isocode < 0) {
-         if (html->DocType == DT_XHTML && !strcmp(tok, "apos")) {
-            isocode = 0x27;
-         } else {
-            if ((html->DocType == DT_HTML && html->DocTypeVersion == 4.01f) ||
+#if 0 // TODO: move this to htmlEntityNameToIsoCode
+   if (isoCode < 0) {
+      if (html->DocType == DT_XHTML && !strcmp(tok, "apos")) {
+         isoCode = 0x27;
+      } else {
+         if ((html->DocType == DT_HTML && html->DocTypeVersion == 4.01f) ||
                 html->DocType == DT_XHTML)
-               BUG_MSG("Undefined character entity '%s'.", tok);
+            BUG_MSG("Undefined character entity '%s'.", tok);
             isocode = -3;
          }
       }
-      if (c == ';')
-         s++;
-      else if (prefs.show_extra_warnings)
-         BUG_MSG("Character entity reference without trailing ';'.");
    }
+#endif
 
-   *entsize = s-tok+1;
-   dFree(tok);
-
-   if (isocode >= 145 && isocode <= 151) {
-      /* TODO: remove this hack. */
-      isocode = Html_ms_stupid_quotes_2ucs(isocode);
-   } else if (isocode == -1 && prefs.show_extra_warnings)
+#if 0 // TODO: implement error detection and logging
+   if (prefs.show_extra_warnings) {
+      BUG_MSG("Character entity reference without trailing ';'.");
       BUG_MSG("Literal '&'.");
+      BUG_MSG("Numeric character reference without trailing ';'.");
+      BUG_MSG("Numeric character reference \"%s\" out of range.", tok);
+   }
+#endif
 
-   return isocode;
+   return isoCode;
 }
 
 /*

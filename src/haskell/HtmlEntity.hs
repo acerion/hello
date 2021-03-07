@@ -27,8 +27,10 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module HtmlEntity( hll_htmlEntityNameToIsoCode
-                 ) where
+module HtmlEntity(
+  -- Only for tests
+  htmlEntityToIsoCode
+  ) where
 
 
 
@@ -36,6 +38,7 @@ module HtmlEntity( hll_htmlEntityNameToIsoCode
 import Prelude
 import Foreign.C.String
 import Foreign
+import Data.Char
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 import qualified Data.Text.Read as T.R
@@ -45,8 +48,28 @@ import qualified Data.Map as M
 
 
 
+data EntityParser = EntityParser {
+    entityIsoCode :: Maybe Int
+  , remainder :: T.Text
+  } deriving (Eq, Show)
+
+
+
+
+parserDefault = EntityParser { entityIsoCode = Nothing, remainder = "" }
+
+
+
+
 -- Entities list from the HTML 4.01 DTD.
 -- (String, octal) pairs.
+--
+-- TODO: why this table is using octals?
+--
+-- TODO: newer standards of HTML have more entities. Update the table.
+--
+-- TODO: some entities allow not adding terminating ";". Don't report error
+-- for such cases.
 gEntities = M.fromList [
   ("AElig",   0o306),     ("Aacute",   0o301),     ("Acirc",   0o302),     ("Agrave",  0o300),
   ("Alpha",   0o1621),    ("Aring",    0o305),     ("Atilde",  0o303),     ("Auml",    0o304),
@@ -116,22 +139,140 @@ gEntities = M.fromList [
 
 
 
-foreign export ccall "hll_htmlEntityNameToIsoCode" hll_htmlEntityNameToIsoCode :: CString -> IO Int
+foreign export ccall "hll_htmlEntityToIsoCode" hll_htmlEntityToIsoCode :: CString -> Int -> IO Int64
 
 
 
 
-hll_htmlEntityNameToIsoCode :: CString -> IO Int
-hll_htmlEntityNameToIsoCode cBuf = do
-  buf <- BSU.unsafePackCString cBuf
-  case htmlEntityNameToIsoCode . T.E.decodeUtf8 $ buf of
-    Just a -> return a
-    Nothing -> return (-1)
+-- Caller has a big buffer with remainder of html document (which can be
+-- huge), and also has a length of sub-area/prefix in this big buffer (the
+-- sub-area is at the beginning of the buffer), from which a html entity
+-- should be parsed.
+--
+-- Pass the pointer to the big buffer, and a size of this prefix to this
+-- function.
+--
+-- This function encodes iso code value, length of entity and (in future)
+-- error code in one single returned integer. In original code the length and
+-- error code were returned by function arugments (pointers). I don't want to
+-- put too much work in doing this in similar way in FFI code, because sooner
+-- or later the FFI code will be removed (replaced with "pure" Haskell code).
+hll_htmlEntityToIsoCode :: CString -> Int -> IO Int64
+hll_htmlEntityToIsoCode cBuf len = do
+  buf <- if len > 0
+         then BSU.unsafePackCStringLen (cBuf, len)
+         else BSU.unsafePackCString cBuf
+  case htmlEntityToIsoCode . T.E.decodeUtf8 $ buf of
+    Just parser ->
+      case entityIsoCode parser of
+        Just code -> return (fromIntegral ((consumed `shiftL` 32) .|. code))
+          where consumed = (T.length . T.E.decodeUtf8 $ buf) - T.length (remainder parser)
+        Nothing -> return (-1)
+    Nothing     -> return (-1)
 
 
 
 
-htmlEntityNameToIsoCode :: T.Text -> Maybe Int
-htmlEntityNameToIsoCode name = M.lookup name gEntities
+-- TODO: make sure that this function is receiving only a small string of
+-- characters from which an entity should be parsed. The entity should be at
+-- the very beginning of input string.
+--
+-- The big parser of whole HTML document will have a big buffer with whole
+-- HTML document. You probably don't want to pass this whole document here -
+-- you want to pass only a small token that starts with entity to parse. Or
+-- maybe you want to pass the whole document. Who knows how the final HTML
+-- parser will work.
+--
+-- TODO: this function looks exactly like a first example of parser from Real
+-- World Haskell. This is a good place to learn more from that chapter of
+-- RWH.
+htmlEntityToIsoCode :: T.Text -> Maybe EntityParser
+htmlEntityToIsoCode text =
+  case takeAmpersand parserDefault text of
+    Nothing -> Nothing
+    Just parser ->
+      case takeBody parser (remainder parser) of
+        Nothing -> Nothing
+        Just parser ->
+          case takeSemicolon parser (remainder parser) of
+            Nothing -> Nothing
+            Just parser -> Just parser
 
 
+
+
+takeAmpersand :: EntityParser -> T.Text -> Maybe EntityParser
+takeAmpersand parser text = if T.isPrefixOf "&" text
+                            then Just parser { remainder = T.tail text }
+                            else Just parser
+
+
+
+
+takeBody :: EntityParser -> T.Text -> Maybe EntityParser
+takeBody parser text = if T.isPrefixOf "#" text
+                       then Just (htmlEntityNumberToIsoCode parser (T.tail text))
+                       else Just (htmlEntityNameToIsoCode parser text)
+
+
+
+
+takeSemicolon :: EntityParser -> T.Text -> Maybe EntityParser
+takeSemicolon parser text = if T.isPrefixOf ";" text
+                            then Just (parser { remainder = T.tail text })
+                            else Just (parser)
+
+
+
+
+-- TODO: original code returned error if iso code was >= 0xFFFF. Verify if
+-- this needs to be introduced into this code.
+htmlEntityNumberToIsoCode :: EntityParser -> T.Text -> EntityParser
+htmlEntityNumberToIsoCode parser text
+  | T.isPrefixOf "x" text'             = if (T.isPrefixOf "x0x" text')  -- T.R.hexadecimal supports leading 0x, but leading 0x is not valid in numeric entity.
+                                         then parser { entityIsoCode = Nothing, remainder = T.drop 3 text }
+                                         else numReader T.R.hexadecimal parser (T.tail text)
+  | Data.Char.isDigit (T.index text 0) = numReader T.R.decimal parser text
+  | otherwise = parser { entityIsoCode = Nothing, remainder = text }
+  where
+    text' = T.toLower text
+    numReader :: T.R.Reader Int -> EntityParser -> T.Text -> EntityParser
+    numReader reader parser text =
+      case reader text of
+        Right pair -> parser { entityIsoCode = Just (fst pair), remainder = snd pair }
+        Left pair  -> parser { entityIsoCode = Nothing,         remainder = text }
+
+
+
+
+-- TODO: original C code probably allowed also for non-standard entities
+-- defined with "<!ENTITY name "value">".
+-- This was the code that was getting "name" of enity:
+--       while (*++s && (isalnum(*s) || strchr(":_.-", *s))) ;
+-- The pred function should take this into consideration.
+htmlEntityNameToIsoCode :: EntityParser -> T.Text -> EntityParser
+htmlEntityNameToIsoCode parser name = parser { entityIsoCode = (M.lookup name' gEntities),
+                                               remainder = T.drop (T.length name') name }
+  where name' = T.takeWhile pred name
+        pred :: Char -> Bool
+        pred c = Data.Char.isDigit c || Data.Char.isAsciiUpper c || Data.Char.isAsciiLower c
+
+
+
+
+-- This is MS non-standard "smart quotes" (w1252). Now even deprecated by them!
+--
+-- SGML for HTML4.01 defines c >= 128 and c <= 159 as UNUSED.
+-- TODO: Probably I should remove this hack, and add a HTML warning. --Jcid
+--
+-- TODO: use this function in htmlEntityNumberToIsoCode
+replaceQuotes :: Int -> Int
+replaceQuotes entityIsoCode = case entityIsoCode of
+                                145 -> Data.Char.ord '\''
+                                146 -> Data.Char.ord '\''
+                                147 -> Data.Char.ord '"'
+                                148 -> Data.Char.ord '"'
+                                149 -> 176
+                                150 -> Data.Char.ord '-'
+                                151 -> Data.Char.ord '-'
+                                otherwise -> entityIsoCode
