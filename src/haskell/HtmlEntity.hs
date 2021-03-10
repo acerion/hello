@@ -29,7 +29,8 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 module HtmlEntity(
   -- Only for tests
-  htmlEntityToIsoCode
+    htmlEntityToIsoCode
+  , EntityParser (..)
   ) where
 
 
