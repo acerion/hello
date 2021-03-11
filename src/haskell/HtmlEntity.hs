@@ -226,22 +226,30 @@ takeSemicolon parser text = if T.isPrefixOf ";" text
 
 
 
+-- Parse a number into entity code.
+--
+-- Pass the string without initial "&#" to the function. It should be either
+-- "nnnn;" or "xhhhh;" string.
+--
 -- TODO: original code returned error if iso code was >= 0xFFFF. Verify if
 -- this needs to be introduced into this code.
 htmlEntityNumberToIsoCode :: EntityParser -> T.Text -> EntityParser
-htmlEntityNumberToIsoCode parser text
-  | T.isPrefixOf "x" text'             = if (T.isPrefixOf "x0x" text')  -- T.R.hexadecimal supports leading 0x, but leading 0x is not valid in numeric entity.
-                                         then parser { entityIsoCode = Nothing, remainder = T.drop 3 text }
-                                         else numReader T.R.hexadecimal parser (T.tail text)
-  | Data.Char.isDigit (T.index text 0) = numReader T.R.decimal parser text
-  | otherwise = parser { entityIsoCode = Nothing, remainder = text }
+htmlEntityNumberToIsoCode parser text =
+  if T.isPrefixOf "x" text'
+  then if (T.isPrefixOf "x0x" text')  -- T.R.hexadecimal supports leading 0x, but leading 0x is not valid in numeric entity.
+       then parser { entityIsoCode = Nothing, remainder = T.drop 3 text }
+       else numReader T.R.hexadecimal parser (T.tail text)
+  else numReader T.R.decimal parser text
   where
     text' = T.toLower text
     numReader :: T.R.Reader Int -> EntityParser -> T.Text -> EntityParser
     numReader reader parser text =
       case reader text of
-        Right pair -> parser { entityIsoCode = Just (fst pair), remainder = snd pair }
-        Left pair  -> parser { entityIsoCode = Nothing,         remainder = text }
+        Right pair -> parser { entityIsoCode = Just (if code >= 145 && code <= 151 then replaceQuotes code else code),
+                               remainder = snd pair }
+          where code = fst pair
+        Left pair  -> parser { entityIsoCode = Nothing,
+                               remainder = text }
 
 
 
@@ -265,15 +273,13 @@ htmlEntityNameToIsoCode parser name = parser { entityIsoCode = (M.lookup name' g
 --
 -- SGML for HTML4.01 defines c >= 128 and c <= 159 as UNUSED.
 -- TODO: Probably I should remove this hack, and add a HTML warning. --Jcid
---
--- TODO: use this function in htmlEntityNumberToIsoCode
 replaceQuotes :: Int -> Int
 replaceQuotes entityIsoCode = case entityIsoCode of
-                                145 -> Data.Char.ord '\''
-                                146 -> Data.Char.ord '\''
-                                147 -> Data.Char.ord '"'
-                                148 -> Data.Char.ord '"'
-                                149 -> 176
-                                150 -> Data.Char.ord '-'
-                                151 -> Data.Char.ord '-'
+                                145 -> Data.Char.ord '\''  -- 0x27
+                                146 -> Data.Char.ord '\''  -- 0x27
+                                147 -> Data.Char.ord '"'   -- 0x22
+                                148 -> Data.Char.ord '"'   -- 0x22
+                                149 -> 176                 -- 0xb0 ('degrees' sign)
+                                150 -> Data.Char.ord '-'   -- 0x2d
+                                151 -> Data.Char.ord '-'   -- 0x2d
                                 otherwise -> entityIsoCode

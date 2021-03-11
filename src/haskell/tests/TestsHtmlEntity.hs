@@ -48,7 +48,6 @@ validEntityData =
   , ("&#x7",                         Just 0x7,         "")
   , ("&#x7d left",                   Just 0x7d,        " left")
   , ("&#x7d1 right ",                Just 0x7d1,       " right ")
-
   ]
 
 
@@ -63,7 +62,34 @@ wellFormedEntityData =
     ("&monday; semispace",           Nothing,          " semispace")   -- Semicolon and space used as separator.
   , ("&tuesday;nospace",             Nothing,          "nospace")      -- Only semicolon used to separate name from following text.
   , ("&wednesday justspace ",        Nothing,          " justspace ")  -- Only space used to separeate name from following text.
+  ]
 
+
+
+
+-- Verify that we are reaching the special case for w1252 codes.
+w1252EntityData =
+  --  token                          code              remainder
+  [
+  -- Values before special range.
+    ("&#141; 241",                   Just 141,         " 241")
+  , ("&#142;242",                    Just 142,         "242")
+  , ("&#143;243",                    Just 143,         "243")
+  , ("&#144; 244 ",                  Just 144,         " 244 ")
+
+  -- Special range.
+  , ("&#145; 245",                   Just 0x27,        " 245")
+  , ("&#146;246",                    Just 0x27,        "246")
+  , ("&#147; 247 ",                  Just 0x22,        " 247 ")
+  , ("&#148;248 ",                   Just 0x22,        "248 ")
+  , ("&#149; 249",                   Just 0xb0,        " 249")
+  , ("&#150;",                       Just 0x2d,        "")
+  , ("&#151; 251",                   Just 0x2d,        " 251")
+
+  -- Values after special range.
+  , ("&#152; 252",                   Just 152,         " 252")
+  , ("&#153; 253",                   Just 153,         " 253")
+  , ("&#154; 254",                   Just 154,         " 254")
   ]
 
 
@@ -81,7 +107,6 @@ invalidEntityData =
   -- Inorrect hex values.
   , ("&xa34e;",                      Nothing,          "")             -- No leading '#'
   , ("&#xff123later",                Just 0xff123,     "later")        -- Kind-of incorrect, reader should read initial part as valid hex.
-
   ]
 
 
@@ -110,6 +135,7 @@ testCases = [
     TestCase(assertEqual "valid entity tests"           "" (validEntityTest validEntityData))
   , TestCase(assertEqual "well-formed entity tests"     "" (validEntityTest wellFormedEntityData))
   , TestCase(assertEqual "invalid entity tests"         "" (validEntityTest invalidEntityData))
+  , TestCase(assertEqual "w1252 entity tests"           "" (validEntityTest w1252EntityData))
   ]
 
 
