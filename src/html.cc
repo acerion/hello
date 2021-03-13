@@ -3987,6 +3987,14 @@ static const char *Html_get_attr2(DilloHtml *html,
          break;
       }
    }
+#if 0
+   if (Found) {
+      fprintf(stderr, "HELLO attr %s:%d tag = '%s', attrname = '%s', value = '%s'\n\n",
+              __func__, __LINE__, tag, attrname, Buf->str);
+      fprintf(stderr, "HELLO attr\n");
+      fprintf(stderr, "HELLO attr\n");
+   }
+#endif
 
    if (tag_parsing_flags & HTML_LeftTrim)
       while (isspace(Buf->str[0]))
@@ -3998,6 +4006,105 @@ static const char *Html_get_attr2(DilloHtml *html,
    return (Found) ? Buf->str : NULL;
 }
 
+void test_attr2(DilloHtml * html)
+{
+   struct {
+      const char * tag;
+      const char * attrname;
+      const char * expected_value;
+   } test_data[] = {
+                    { "<a name1=\"value1\">",          "name1", "value1" }, // " as value delimiter
+                    { "<a name1='value1'>",            "name1", "value1" }, // ' as value delimiter
+                    { "<a name1=value1>",              "name1", "value1" }, // " as value delimiter
+                    { "<a name1=value1 name2=value2>", "name2", "value2" }, // neither ' nor " as value delimiter
+
+                    { "<a name1 = \"value1\" >",           "name1", "value1" }, // " as value delimiter, with more spaces
+                    { "<a name1 = 'value1' >",             "name1", "value1" }, // ' as value delimiter, with more spaces
+                    { "<a name1= value1>",                 "name1", "value1" }, // " as value delimiter, with more spaces
+                    { "<a name1= value1 name2 = value2>",  "name2", "value2" }, // space as value delimiter, with more spaces
+                    { "<a name1 = value1 name2 = value2>", "name2", "value2" }, // space as value delimiter, with more spaces
+                    { "<a name1= value1 name2= value2>",   "name2", "value2" }, // space as value delimiter, with more spaces
+                    { "<a name1 = value1 name2 =value2>",  "name2", "value2" }, // space as value delimiter, with more spaces
+                    { "<a name1= value1 name2= value2 >",  "name2", "value2" }, // space as value delimiter, with more spaces
+                    { "<a name1 = value1 name2 =value2 >", "name2", "value2" }, // space as value delimiter, with more spaces
+
+
+                    { "<a name1=\" value1 \">", "name1", "value1" }, // Spaces in value are stripped
+                    { "<a name1=' value1 '>",   "name1", "value1" }, // Spaces in value are stripped
+
+                    { "<a name1=\"\"",                   "name1", "" }, // empty value, " as value delimiter
+                    { "<a name1=''",                     "name1", "" }, // empty value, ' as value delimiter
+                    { "<a name1=\"\" name2=\"value2\">", "name1", "" }, // empty value, " as value delimiter
+                    { "<a name1='' name2=\"value2\">",   "name1", "" }, // empty value, ' as value delimiter
+
+                    { "<a name1= name2=\"value2\">",  "name1", "name2=\"value2\"" }, // no ' or " delimiters around empty value, remainder returned as value
+                    { "<a name1= name2=\"value2\">",  "name1", "name2=\"value2\"" }, // no ' or " delimiters around empty value, remainder returned as value
+                    { "<a name1= name2 =\"value2\">", "name1", "name2" }, // no ' or " delimiters around value, next space-separated token returned as value
+                    { "<a name1= name2 =\"value2\">", "name1", "name2" }, // no ' or " delimiters around value, next space-separated token returned as value
+
+                    /* Inconsistent value delimiter leads to returning
+                       remainder in search of matching opening delimiter. */
+                    { "<a name1='value1\" name2='value2'>",   "name1", "value1\" name2=" },
+                    { "<a name1=\"value1' name2=\"value2\">", "name1", "value1' name2=" },
+
+                    /* Missing separator between name and previous value is handled correctly. */
+                    { "<a name1=\"value1\" name2='value2'name3='value3'>",   "name3", "value3" },
+                    { "<a name1=\"value1\" name2=\"value2\"name3='value3'>", "name3", "value3" },
+
+                    /* Newline placed between tokens doesn't break search algorithm. */
+                    { "<a\n name1\n=\"value1\n\" \n name2\n=\n\"\nvalue2\n\"\nname3='value3'>", "name1", "value1" },
+                    { "<a \nname1\n=\"value1\n\" \n name2\n=\n\"\nvalue2\n\"\nname3='value3'>", "name1", "value1" },
+                    { "<a\nname1\n=\"value1\n\" \n name2\n=\n\"\nvalue2\n\"\nname3='value3'>",  "name1", "value1" },
+                    { "<a\n name1\n=\"value1\n\" \n name2\n=\n\"\nvalue2\n\"\nname3='value3'>", "name2", "value2" },
+                    { "<a \nname1\n=\"value1\n\" \n name2\n=\n\"\nvalue2\n\"\nname3='value3'>", "name2", "value2" },
+                    { "<a\nname1\n=\"value1\n\" \n name2\n=\n\"\nvalue2\n\"\nname3='value3'>",  "name2", "value2" },
+                    { "<a\n name1\n=\"value1\n\" \n name2\n=\n\"\nvalue2\n\"\nname3='value3'>", "name3", "value3" },
+                    { "<a \nname1\n=\"value1\n\" \n name2\n=\n\"\nvalue2\n\"\nname3='value3'>", "name3", "value3" },
+                    { "<a\nname1\n=\"value1\n\" \n name2\n=\n\"\nvalue2\n\"\nname3='value3'>",  "name3", "value3" },
+
+                    { "<a name1=\"value1\" \n name2=\"value2\"name3='val\nue3'>", "name3", "value3" }, // Newline inside of value is recognized and removed
+                    { "<a name1=\"value1\" \n name2=\"value2\"name3='val\tue3'>", "name3", "val ue3" }, // TAB inside of value is replaced with space
+                    //{ "<a name1=\"value1\" \n na\nme2=\"value2\"name3='val\tue3'>", "name2", NULL }, // Newline inside of name is recognized and removed
+
+                    /* Attribute name does not exit. */
+                    { "<a name1=\"value1\">", "name",   NULL },
+                    { "<a name1=\"value1\">", "name11", NULL },
+                    { "<a name=\"value1\">",  "name1",  NULL },
+
+                    { NULL, NULL, NULL }
+   };
+
+   int i = 0;
+   while (test_data[i].tag) {
+
+      //fprintf(stderr, "test %d\n", i);
+      const char * ret = Html_get_attr2(html,
+                                        test_data[i].tag,
+                                        strlen(test_data[i].tag),
+                                        test_data[i].attrname,
+                                        HTML_LeftTrim | HTML_RightTrim | HTML_ParseEntities);
+
+      //fprintf(stderr, "after test %d, ret = %s\n", i, ret);
+
+      if (NULL == test_data[i].expected_value && NULL == ret) {
+         ;
+      } else if (NULL == test_data[i].expected_value && NULL != ret) {
+         fprintf(stderr, "HELLO attr error in test %d: unexpected match for in = '%s', attrname = '%s', ret = '%s'\n",
+                 i,
+                 test_data[i].tag, test_data[i].attrname, ret);
+      } else {
+         if (0 != strcmp(test_data[i].expected_value, ret)) {
+            fprintf(stderr, "HELLO attr error in test %d: in = '%s', attrname = '%s', ret = '%s'\n",
+                    i,
+                    test_data[i].tag, test_data[i].attrname, ret);
+         }
+      }
+      i++;
+   }
+}
+
+
+
 /*
  * Call Html_get_attr2 telling it to parse entities and strip the result
  */
@@ -4006,6 +4113,8 @@ const char *a_Html_get_attr(DilloHtml *html,
                             int tagsize,
                             const char *attrname)
 {
+   test_attr2(html);
+ 
    return Html_get_attr2(html, tag, tagsize, attrname,
                          HTML_LeftTrim | HTML_RightTrim | HTML_ParseEntities);
 }

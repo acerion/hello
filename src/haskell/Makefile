@@ -7,6 +7,7 @@ all:
 	ghc -O2 -dynamic -shared -fPIC -o libhello.so \
 		URL.hs cookies.hs gif.hs Colors.hs \
 		HtmlEntity.hs \
+		HtmlTag.hs \
 		wrapper.o -lHSrts-ghc8.4.4
 
 distclean: clean
