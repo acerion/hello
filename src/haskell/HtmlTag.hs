@@ -87,6 +87,9 @@ contain HTML entities.
 decided if whitespaces were stripped from beginning and/or end of the value
 string. Current Haskell implementation does not have this argument. Attribute
 values are always stripped.
+
+TODO: handling of escaped delimiter inside of attribute value
+(e.g. alt='this won\'t be handled well') to be investigated.
 -}
 
 
@@ -185,7 +188,7 @@ takeAttrValue parser = parser { currentAttrValue = T.strip . fixWhiteSpaces $ va
                  then T.drop (T.length value) valueBegin
                  else T.drop ((T.length value) + 1) valueBegin
 
-    pred = (\c -> c /= delimiter && c /= '>' && c /= '/')
+    pred = (\c -> c /= delimiter && c /= '>') -- '>' indicates end of tag. TODO: Notice that "/>" is not recognized correctly here as end of tag.
 
 
 

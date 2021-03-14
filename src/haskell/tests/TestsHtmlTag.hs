@@ -83,6 +83,24 @@ testAttributeValueData =
   , ( "470", "<a name1=\"value1\">", "name",   Nothing )
   , ( "480", "<a name1=\"value1\">", "name11", Nothing )
   , ( "490", "<a name=\"value1\">",  "name1",  Nothing )
+
+  -- Some real-world scenarios. Adding '/' to a predicate led to returning
+  -- attribute value with just a leading dot.
+  , ( "500", "<a src=\"./path/to/some_img.png\">",       "src", Just "./path/to/some_img.png" )
+  , ( "510", "<a src='./path/to/some_img.png'>",         "src", Just "./path/to/some_img.png" )
+  , ( "520", "<a src=./path/to/some_img.png>",           "src", Just "./path/to/some_img.png" )
+  , ( "530", "<a src=\"./path/to/some_img.png\" >",      "src", Just "./path/to/some_img.png" )
+  -- '/' appears as part of value, and as part of remainder. I know that <a>
+  -- tag should not have '/' at the end, but I can't come up right now with
+  -- other tag that would be useful as example here.
+  --
+  -- TODO: current implementation of parser ("stateless parser") can't
+  -- recognize when a character is inside of value, or when it's outside of
+  -- value.
+  , ( "540", "<a src=\"./path/to/some_img.png\"/>",      "src", Just "./path/to/some_img.png" )
+  , ( "550", "<a src=\"./path/to/some_img.png\" />",     "src", Just "./path/to/some_img.png" )
+  , ( "560", "<a src=\"./path/to/some_img.png\" / >",    "src", Just "./path/to/some_img.png" )
+
   ]
 
 
