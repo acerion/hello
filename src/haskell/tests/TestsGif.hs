@@ -20,7 +20,7 @@ import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString as BS
 import Data.String (fromString)
 
-import GIF
+import Gif
 import Gifted
 
 

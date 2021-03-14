@@ -13,7 +13,7 @@ import System.Exit
 import Test.QuickCheck
 import Test.QuickCheck.Instances.Text
 
-import GIF
+import Gif
 import Gifted
 
 

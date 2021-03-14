@@ -20,7 +20,7 @@ bool hll_hostIsIP(const char * hostname);
 /* cookies */
 int hll_lookupActionForDomain(const char * domain);
 
-/* GIF */
+/* Gif */
 int hll_parseExtension(hll_Gif * hll_gif, const unsigned char * buf, int size);
 
 /* Colors */

@@ -30,19 +30,15 @@ References:
 
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
 
-module GIF( hll_parseExtension
-
-            --these are for tests.
-          , parseExtension
+module Gif( parseExtension
           , gifDefault
           , gifForward
-          , GIF (..)
+          , Gif (..)
+          , extensionTypeGraphicControl
           ) where
 
 import Prelude
-import Foreign.C.String
 import Foreign
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
@@ -55,70 +51,6 @@ import Control.Monad -- when
 
 
 
-foreign export ccall "hll_parseExtension" hll_parseExtension :: Ptr HelloGifGC -> CString -> Int -> IO Int
-
-#include "../gif.h"
-
--- [1] "23. Graphic Control Extension.", Required version: Gif89.
-data HelloGifGC = HelloGifGC {
-    transparentColorIndexC :: Int
-  , delayTimeC             :: Int
-  , userInputFlagC         :: Int
-  , disposalMethodC        :: Int
-  }
-
-instance Storable HelloGifGC where
-  sizeOf    _ = #{size hll_Gif}
-  alignment _ = alignment (undefined :: Int)
-
-  poke ptr hll_Gif = do
-    #{poke hll_Gif, transparentColorIndexC} ptr $ transparentColorIndexC hll_Gif
-    #{poke hll_Gif, delayTimeC} ptr             $ delayTimeC hll_Gif
-    #{poke hll_Gif, userInputFlagC} ptr         $ userInputFlagC hll_Gif
-    #{poke hll_Gif, disposalMethodC} ptr        $ disposalMethodC hll_Gif
-
-  peek ptr = return HelloGifGC
-    `ap` (#{peek hll_Gif, transparentColorIndexC} ptr)
-    `ap` (#{peek hll_Gif, delayTimeC} ptr)
-    `ap` (#{peek hll_Gif, userInputFlagC} ptr)
-    `ap` (#{peek hll_Gif, disposalMethodC} ptr)
-
-
-
--- TODO: make use of this function
-hll_dataSubBlockGetAvailableBytes :: CString -> Int -> IO Int
-hll_dataSubBlockGetAvailableBytes cBuf size = do
-  buf <- BSU.unsafePackCStringLen (cBuf, size)
-  let subBlockSize = fromIntegral (BS.index buf 0)
-  if 0 == size
-    then return (-1) -- There is not enough data for any kind of parsing.
-    else
-    if 0x00 == subBlockSize
-    then return 0 -- [1] "16. Block Terminator."
-    else
-      if subBlockSize < size
-      then return subBlockSize
-      else return (-1)
-
-
-
-hll_parseExtension :: Ptr HelloGifGC -> CString -> Int -> IO Int
-hll_parseExtension hll_gif cBuf size = do
-  buf <- BSU.unsafePackCStringLen (cBuf, size)
-  case parseExtension gifDefault buf of
-    Just gif -> do
-      -- A hack needed because pointer to C struct is not member of GIF
-      -- struct and extension handlers update only fields of GIF, but not
-      -- fields of HelloGifGC.
-      when (BS.index buf 1 == extensionTypeGraphicControl) $ manipulatePtrGC hll_gif gif
-      return (consumed gif)
-    Nothing  -> return (-1)
-    where
-      manipulatePtrGC hll_gif gif =
-        -- Set Graphic Control Extension fields in pointer passed from C code.
-        poke hll_gif $ HelloGifGC (transparentColorIndex gif) (delayTime gif) (userInputFlag gif) (disposalMethod gif)
-
-
 
 extensionIntroducer           = 0x21 -- First byte of Extension. "23. Graphic Control Extension."
 extensionTypeGraphicControl   = 0xf9 -- "23. Graphic Control Extension."
@@ -128,7 +60,7 @@ extensionTypeApplication      = 0xff -- "26. Application Extension."
 
 
 
-data GIF = GIF {
+data Gif = Gif {
 
     consumed :: Int -- Count of bytes consumed from byte string.
 
@@ -148,7 +80,7 @@ data GIF = GIF {
 Try to parse all bytes shown in [1] "24. Comment Extension.", from Extension
 Introducer to Block Terminator, inclusive.
 -}
-handleExtensionSubBlockComment :: GIF -> BS.ByteString -> Maybe GIF
+handleExtensionSubBlockComment :: Gif -> BS.ByteString -> Maybe Gif
 handleExtensionSubBlockComment gif buf
   | BS.length buf == 0            = Just (gifNotEnoughData gif) -- Check length of the buf first, before trying to get from it a subBlockSize.
   | subBlockSize == 0             = Nothing -- By mistake a Block Terminator has been passed to the
@@ -176,7 +108,7 @@ from Extension Introducer to Block Terminator, inclusive.
 TODO: review these conversions from Word8 to integer. Maybe some of these
 values in GC should be bytes?
 -}
-handleExtensionSubBlockGraphicControl :: GIF -> BS.ByteString -> Maybe GIF
+handleExtensionSubBlockGraphicControl :: Gif -> BS.ByteString -> Maybe Gif
 handleExtensionSubBlockGraphicControl gif buf =
   -- Default value of transparentColorIndex field, set in Dillo's a_Gif_new(), was -1.
   Just gif {   consumed              = gifIncreasedConsumed gif (1 + subBlockSize)
@@ -220,7 +152,7 @@ over all these sub-blocks.
 For Graphic Control Extension the traversal is shorted because there is only
 one sub-block followed by Block Terminator.
 -}
-parseSubBlocks :: GIF -> BS.ByteString -> (GIF -> BS.ByteString -> Maybe GIF) -> Maybe GIF
+parseSubBlocks :: Gif -> BS.ByteString -> (Gif -> BS.ByteString -> Maybe Gif) -> Maybe Gif
 parseSubBlocks gif buf subBlockParser
   | BS.length buf == 0            = Just (gifNotEnoughData gif) -- Not enough space even for block terminator
   | BS.length buf <= subBlockSize = Just (gifNotEnoughData gif) -- Not enough data to parse sub-block in full
@@ -241,7 +173,7 @@ with Extension Introducer byte (0x21) and should end with Block Terminator.
 On succcess, all bytes of the extension (from introducer to the terminator
 inclusive) are consumed.
 -}
-parseExtension :: GIF -> BS.ByteString -> Maybe GIF
+parseExtension :: Gif -> BS.ByteString -> Maybe Gif
 parseExtension gif buf
   | BS.length buf < 3                 = Just (gifNotEnoughData gif) -- 3: Extension Introducer, Extension Label and at least one byte of some data, perhaps Block Terminator
   | introducer /= extensionIntroducer = Nothing
@@ -261,7 +193,7 @@ parseExtension gif buf
 
 
 
-gifForward :: GIF -> Int -> GIF
+gifForward :: Gif -> Int -> Gif
 gifForward gif n = gif { consumed = (consumed gif) + n }
 
 
@@ -270,7 +202,7 @@ gifForward gif n = gif { consumed = (consumed gif) + n }
 --
 -- As the parser is successfully parsing more and more of byte stream, the
 -- count of consumed bytes must be increased.
-gifIncreasedConsumed :: GIF -> Int -> Int
+gifIncreasedConsumed :: Gif -> Int -> Int
 gifIncreasedConsumed gif n = (consumed gif) + n
 
 
@@ -279,12 +211,12 @@ gifIncreasedConsumed gif n = (consumed gif) + n
 --
 -- Since specification allows multiple sub-blocks in Comment Extension, a
 -- text from given sub-block must be *added* to text from parsed sub-blocks.
-gifIncreasedComment :: GIF -> T.Text -> T.Text
+gifIncreasedComment :: Gif -> T.Text -> T.Text
 gifIncreasedComment gif text = T.concat [comment gif, text]
 
 
 
-gifNotEnoughData :: GIF -> GIF
+gifNotEnoughData :: Gif -> Gif
 gifNotEnoughData gif = gif { consumed = 0 }
 
 
@@ -295,7 +227,7 @@ gifParseSuccess gifPre gifPost = consumed gifPost > consumed gifPre
 
 
 
-gifDefault = GIF {
+gifDefault = Gif {
     consumed = 0
 
   , comment = ""
