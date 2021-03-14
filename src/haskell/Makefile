@@ -2,7 +2,6 @@
 
 
 all:
-	hsc2hs gif.hsc
 	hsc2hs ffi/Gif.hsc
 	hsc2hs ffi/HtmlTag.hsc
 
