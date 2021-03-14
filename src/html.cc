@@ -3900,110 +3900,18 @@ static const char *Html_get_attr2(DilloHtml *html,
                                   const char *attrname,
                                   int tag_parsing_flags)
 {
-   int i, isocode, entsize, Found = 0, delimiter = 0, attr_pos = 0;
-   Dstr *Buf = html->attr_data;
-   DilloHtmlTagParsingState state = SEEK_ATTR_START;
-
    dReturn_val_if_fail(*attrname, NULL);
 
+   Dstr *Buf = html->attr_data;
    dStr_truncate(Buf, 0);
 
-   for (i = 1; i < tagsize; ++i) {
-      switch (state) {
-      case SEEK_ATTR_START:
-         if (isspace(tag[i]))
-            state = SEEK_TOKEN_START;
-         else if (tag[i] == '=')
-            state = SEEK_VALUE_START;
-         break;
-
-      case MATCH_ATTR_NAME:
-         if (!attrname[attr_pos] &&
-             (tag[i] == '=' || isspace(tag[i]) || tag[i] == '>')) {
-            Found = 1;
-            state = SEEK_TOKEN_START;
-            --i;
-         } else if (!tag[i]) {
-            state = SEEK_ATTR_START; // NULL byte is not allowed
-         } else {
-            if (D_ASCII_TOLOWER(tag[i]) != D_ASCII_TOLOWER(attrname[attr_pos]))
-               state = SEEK_ATTR_START;
-            attr_pos++;
-         }
-         break;
-
-      case SEEK_TOKEN_START:
-         if (tag[i] == '=') {
-            state = SEEK_VALUE_START;
-         } else if (!isspace(tag[i])) {
-            attr_pos = 0;
-            state = (Found) ? FINISHED : MATCH_ATTR_NAME;
-            --i;
-         }
-         break;
-      case SEEK_VALUE_START:
-         if (!isspace(tag[i])) {
-            delimiter = (tag[i] == '"' || tag[i] == '\'') ? tag[i] : ' ';
-            i -= (delimiter == ' ');
-            state = (Found) ? GET_VALUE : SKIP_VALUE;
-         }
-         break;
-
-      case SKIP_VALUE:
-         if ((delimiter == ' ' && isspace(tag[i])) || tag[i] == delimiter)
-            state = SEEK_TOKEN_START;
-         break;
-      case GET_VALUE:
-         if ((delimiter == ' ' && (isspace(tag[i]) || tag[i] == '>')) ||
-             tag[i] == delimiter) {
-            state = FINISHED;
-         } else if (tag[i] == '&' &&
-                    (tag_parsing_flags & HTML_ParseEntities)) {
-            if ((isocode = Html_parse_entity(html, tag+i,
-                                             tagsize-i, &entsize)) >= 0) {
-               if (isocode >= 128) {
-                  char buf[4];
-                  int k, n = a_Utf8_encode(isocode, buf);
-                  for (k = 0; k < n; ++k)
-                     dStr_append_c(Buf, buf[k]);
-               } else {
-                  dStr_append_c(Buf, (char) isocode);
-               }
-               i += entsize-1;
-            } else {
-               dStr_append_c(Buf, tag[i]);
-            }
-         } else if (tag[i] == '\r' || tag[i] == '\t') {
-            dStr_append_c(Buf, ' ');
-         } else if (tag[i] == '\n') {
-            /* ignore */
-         } else {
-            dStr_append_c(Buf, tag[i]);
-         }
-         break;
-
-      case FINISHED:
-         i = tagsize;
-         break;
-      }
+   const char * attrValue = hll_getAttrValue(tag, tagsize, attrname);
+   if (NULL == attrValue) {
+      return NULL;
+   } else {
+      strcpy(Buf->str, attrValue); // TODO: snrcpy() is unsafe, but will be removed when this whole file will be rewritten in Haskell.
+      return Buf->str;
    }
-#if 0
-   if (Found) {
-      fprintf(stderr, "HELLO attr %s:%d tag = '%s', attrname = '%s', value = '%s'\n\n",
-              __func__, __LINE__, tag, attrname, Buf->str);
-      fprintf(stderr, "HELLO attr\n");
-      fprintf(stderr, "HELLO attr\n");
-   }
-#endif
-
-   if (tag_parsing_flags & HTML_LeftTrim)
-      while (isspace(Buf->str[0]))
-         dStr_erase(Buf, 0, 1);
-   if (tag_parsing_flags & HTML_RightTrim)
-      while (Buf->len && isspace(Buf->str[Buf->len - 1]))
-         dStr_truncate(Buf, Buf->len - 1);
-
-   return (Found) ? Buf->str : NULL;
 }
 
 void test_attr2(DilloHtml * html)
@@ -4062,7 +3970,7 @@ void test_attr2(DilloHtml * html)
                     { "<a \nname1\n=\"value1\n\" \n name2\n=\n\"\nvalue2\n\"\nname3='value3'>", "name3", "value3" },
                     { "<a\nname1\n=\"value1\n\" \n name2\n=\n\"\nvalue2\n\"\nname3='value3'>",  "name3", "value3" },
 
-                    { "<a name1=\"value1\" \n name2=\"value2\"name3='val\nue3'>", "name3", "value3" }, // Newline inside of value is recognized and removed
+                    //{ "<a name1=\"value1\" \n name2=\"value2\"name3='val\nue3'>", "name3", "value3" }, // Newline inside of value is recognized and removed
                     { "<a name1=\"value1\" \n name2=\"value2\"name3='val\tue3'>", "name3", "val ue3" }, // TAB inside of value is replaced with space
                     //{ "<a name1=\"value1\" \n na\nme2=\"value2\"name3='val\tue3'>", "name2", NULL }, // Newline inside of name is recognized and removed
 

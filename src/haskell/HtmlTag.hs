@@ -72,6 +72,26 @@ parserDefault = TagParser {
 
 
 
+{-
+TODO: the following features of C implementation are missing in Haskell
+implementation:
+
+1. HTML entities in attribute values were evaluated and replaced with Unicode
+codepoint. It seems reasonable to have it back, but not for all attributes.
+The original implementation also evaluated strings in URLs that contained
+'&something=val' string - it looks like HTML entity, but it's not. So
+additional care must be taken when deciding which attribute values can
+contain HTML entities.
+
+2. Function getting value of attribute received additional argument that
+decided if whitespaces were stripped from beginning and/or end of the value
+string. Current Haskell implementation does not have this argument. Attribute
+values are always stripped.
+-}
+
+
+
+
 htmlTagGetAttributeValue :: T.Text -> T.Text -> Maybe T.Text
 htmlTagGetAttributeValue text needle = case htmlTagParseWholeTag text of
                                          Nothing -> Nothing

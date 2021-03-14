@@ -30,6 +30,9 @@ int hll_colorsVisitedColor(int candidate, int txt, int lnk, int bg);
 /* HtmlEntity */
 int64_t hll_htmlEntityToIsoCode(const char * token, int tokenLen);
 
+/* HtmlTag */
+char * hll_getAttrValue(const char * tag, int tagSize, const char * attrName);
+
 
 
 
