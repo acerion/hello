@@ -25,17 +25,21 @@ Copyright (C) 2000-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
 
-module Colors( hll_colorsStringToColor
 
-             -- Only for tests
+
+
+module Colors( colorsStringToColor
+             , colorsStringToColorWithDefault
+
+               -- Only for tests
              , colorsVisitedColor
              , colorsDistance2
              , colorsDistance3
-             , colorsStringToColor
-             , colorsStringToColorWithDefault
              ) where
+
+
+
 
 import Prelude
 import Foreign.C.String
@@ -43,7 +47,6 @@ import Foreign
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 import qualified Data.Text.Read as T.R
-import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Vector as V
 
 
@@ -202,27 +205,6 @@ colorsTable = V.fromList [
   , ( "yellow",               0xffff00 )
   , ( "yellowgreen",          0x9acd32 )
   ] :: V.Vector (T.Text, Int)
-
-
-
-
-foreign export ccall "hll_colorsStringToColor" hll_colorsStringToColor ::  CString -> Int -> IO Int
-foreign export ccall "hll_colorsVisitedColor"  hll_colorsVisitedColor :: Int -> Int -> Int -> Int -> IO Int
-
-
-
-
-hll_colorsStringToColor :: CString -> Int -> IO Int
-hll_colorsStringToColor cBuf defaultColor = do
-  buf <- BSU.unsafePackCString cBuf
-  return (colorsStringToColorWithDefault (T.E.decodeUtf8 buf) defaultColor)
-
-
-
-
-hll_colorsVisitedColor :: Int -> Int -> Int -> Int -> IO Int
-hll_colorsVisitedColor candidate txt lnk bg = do
-  return (colorsVisitedColor candidate txt lnk bg)
 
 
 
