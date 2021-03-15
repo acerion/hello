@@ -137,7 +137,7 @@ void StyleEngine::stackPop () {
  * \brief tell the styleEngine that a new html element has started.
  */
 void StyleEngine::startElement (int element, BrowserWindow *bw) {
-   style (bw); // ensure that style of current node is computed
+   getStyle (bw); // ensure that style of current node is computed
 
    stackPush ();
    Node *n = stack->getLastRef ();
@@ -242,7 +242,7 @@ void StyleEngine::inheritBackgroundColor () {
    stack->getRef (stack->size () - 1)->inheritBackgroundColor = true;
 }
 
-dw::core::style::Color *StyleEngine::backgroundColor () {
+dw::core::style::Color *StyleEngine::getBackgroundColor () {
    for (int i = 1; i < stack->size (); i++) {
       Node *n = stack->getRef (i);
 
@@ -253,7 +253,7 @@ dw::core::style::Color *StyleEngine::backgroundColor () {
    return NULL;
 }
 
-dw::core::style::StyleImage *StyleEngine::backgroundImage
+dw::core::style::StyleImage *StyleEngine::getBackgroundImage
    (dw::core::style::BackgroundRepeat *bgRepeat,
     dw::core::style::BackgroundAttachment *bgAttachment,
     dw::core::style::Length *bgPositionX,
@@ -828,9 +828,9 @@ void StyleEngine::computeBorderWidth (int *dest, CssProperty *p,
  * A normal style might have backgroundColor == NULL to indicate a transparent
  * background. This method ensures that backgroundColor is set.
  */
-Style * StyleEngine::backgroundStyle (BrowserWindow *bw) {
+Style * StyleEngine::getBackgroundStyle (BrowserWindow *bw) {
    if (!stack->getRef (stack->size () - 1)->backgroundStyle) {
-      StyleAttrs attrs = *style (bw);
+      StyleAttrs attrs = *getStyle (bw);
 
       for (int i = stack->size () - 1; i >= 0 && ! attrs.backgroundColor; i--)
          attrs.backgroundColor = stack->getRef (i)->style->backgroundColor;
@@ -847,7 +847,7 @@ Style * StyleEngine::backgroundStyle (BrowserWindow *bw) {
  * HTML elements and the nonCssProperties that have been set.
  * This method is private. Call style() to get a current style object.
  */
-Style * StyleEngine::style0 (int i, BrowserWindow *bw) {
+Style * StyleEngine::getStyle0 (int i, BrowserWindow *bw) {
    CssPropertyList props, *styleAttrProperties, *styleAttrPropertiesImportant;
    CssPropertyList *nonCssProperties;
    // get previous style from the stack
@@ -884,20 +884,20 @@ Style * StyleEngine::style0 (int i, BrowserWindow *bw) {
    return stack->getRef (i)->style;
 }
 
-Style * StyleEngine::wordStyle0 (BrowserWindow *bw) {
-   StyleAttrs attrs = *style (bw);
+Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
+   StyleAttrs attrs = *getStyle (bw);
    attrs.resetValues ();
 
    if (stack->getRef (stack->size() - 1)->inheritBackgroundColor) {
-      attrs.backgroundColor = style (bw)->backgroundColor;
-      attrs.backgroundImage = style (bw)->backgroundImage;
-      attrs.backgroundRepeat = style (bw)->backgroundRepeat;
-      attrs.backgroundAttachment = style (bw)->backgroundAttachment;
-      attrs.backgroundPositionX = style (bw)->backgroundPositionX;
-      attrs.backgroundPositionY = style (bw)->backgroundPositionY;
+      attrs.backgroundColor = getStyle (bw)->backgroundColor;
+      attrs.backgroundImage = getStyle (bw)->backgroundImage;
+      attrs.backgroundRepeat = getStyle (bw)->backgroundRepeat;
+      attrs.backgroundAttachment = getStyle (bw)->backgroundAttachment;
+      attrs.backgroundPositionX = getStyle (bw)->backgroundPositionX;
+      attrs.backgroundPositionY = getStyle (bw)->backgroundPositionY;
    }
 
-   attrs.valign = style (bw)->valign;
+   attrs.valign = getStyle (bw)->valign;
 
    stack->getRef(stack->size() - 1)->wordStyle = Style::create(&attrs);
    return stack->getRef (stack->size () - 1)->wordStyle;
@@ -926,7 +926,7 @@ void StyleEngine::restyle (BrowserWindow *bw) {
          n->backgroundStyle = NULL;
       }
 
-      style0 (i, bw);
+      getStyle0 (i, bw);
    }
 }
 

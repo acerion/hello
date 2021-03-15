@@ -100,7 +100,7 @@ DilloPlain::DilloPlain(BrowserWindow *p_bw)
 
    styleEngine.startElement ("body", bw);
    styleEngine.startElement ("pre", bw);
-   widgetStyle = styleEngine.wordStyle (bw);
+   widgetStyle = styleEngine.getWordStyle (bw);
    widgetStyle->ref ();
 
    /* The context menu */

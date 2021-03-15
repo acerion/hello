@@ -364,11 +364,11 @@ static void Html_add_textblock(DilloHtml *html, int space)
 {
    Textblock *textblock = new Textblock (prefs.limit_text_width);
 
-   HT2TB(html)->addParbreak (space, html->wordStyle ());
-   HT2TB(html)->addWidget (textblock, html->style ());
-   HT2TB(html)->addParbreak (space, html->wordStyle ());
-   S_TOP(html)->textblock = html->dw = textblock;
-   S_TOP(html)->hand_over_break = true;
+   Html2TextBlock(html)->addParbreak (space, html->styleEngine->getWordStyle (html->bw));
+   Html2TextBlock(html)->addWidget (textblock, html->styleEngine->getStyle (html->bw));
+   Html2TextBlock(html)->addParbreak (space, html->styleEngine->getWordStyle (html->bw));
+   TopOfParsingStack(html)->textblock = html->dw = textblock;
+   TopOfParsingStack(html)->hand_over_break = true;
 }
 
 /*
@@ -385,7 +385,7 @@ DilloHtml::DilloHtml(BrowserWindow *p_bw, const DilloUrl *url,
 
    /* Init event receiver */
    linkReceiver.html = this;
-   HT2LT(this)->connectLink (&linkReceiver);
+   Html2Layout(this)->connectLink (&linkReceiver);
 
    a_Bw_add_doc(p_bw, this);
 
@@ -407,7 +407,7 @@ DilloHtml::DilloHtml(BrowserWindow *p_bw, const DilloUrl *url,
    DocType = DT_NONE;    /* assume Tag Soup 0.0!   :-) */
    DocTypeVersion = 0.0f;
 
-   styleEngine = new StyleEngine (HT2LT (this), page_url, base_url);
+   styleEngine = new StyleEngine (Html2Layout (this), page_url, base_url);
 
    cssUrls = new misc::SimpleVector <DilloUrl*> (1);
 
@@ -785,7 +785,7 @@ bool DilloHtml::HtmlLinkReceiver::click (Widget *widget, int link, int img,
  */
 void a_Html_stash_init(DilloHtml *html)
 {
-   S_TOP(html)->parse_mode = DILLO_HTML_PARSE_MODE_STASH;
+   TopOfParsingStack(html)->parse_mode = DILLO_HTML_PARSE_MODE_STASH;
    html->StashSpace = false;
    dStr_truncate(html->Stash, 0);
 }
@@ -883,11 +883,11 @@ static void Html_process_space_pre_line(DilloHtml *html, const char *space,
          breakCnt++;
          html->PrevWasCR = (space[i] == '\r');
 
-         HT2TB(html)->addLinebreak (html->wordStyle ());
+         Html2TextBlock(html)->addLinebreak (html->styleEngine->getWordStyle (html->bw));
       }
    }
    if (breakCnt == 0) {
-      HT2TB(html)->addSpace(html->wordStyle ());
+      Html2TextBlock(html)->addSpace(html->styleEngine->getWordStyle (html->bw));
    }
 }
 
@@ -899,9 +899,9 @@ static void Html_process_space(DilloHtml *html, const char *space,
 {
    char *spc;
    int i, offset;
-   DilloHtmlParseMode parse_mode = S_TOP(html)->parse_mode;
+   DilloHtmlParseMode parse_mode = TopOfParsingStack(html)->parse_mode;
 
-   if (S_TOP(html)->display_none) {
+   if (TopOfParsingStack(html)->display_none) {
       /* do nothing */
    } else if (parse_mode == DILLO_HTML_PARSE_MODE_STASH) {
       html->StashSpace = (html->Stash->len > 0);
@@ -920,11 +920,11 @@ static void Html_process_space(DilloHtml *html, const char *space,
 
             if (spaceCnt) {
                spc = dStrnfill(spaceCnt, ' ');
-               HT2TB(html)->addText (spc, spaceCnt, html->wordStyle ());
+               Html2TextBlock(html)->addText (spc, spaceCnt, html->styleEngine->getWordStyle (html->bw));
                dFree(spc);
                spaceCnt = 0;
             }
-            HT2TB(html)->addLinebreak (html->wordStyle ());
+            Html2TextBlock(html)->addLinebreak (html->styleEngine->getWordStyle (html->bw));
             html->pre_column = 0;
          }
          html->PreFirstChar = false;
@@ -952,19 +952,19 @@ static void Html_process_space(DilloHtml *html, const char *space,
 
       if (spaceCnt) {
          // add break possibility for the white-space:pre-wrap case
-         HT2TB(html)->addBreakOption (html->wordStyle (), false);
+         Html2TextBlock(html)->addBreakOption (html->styleEngine->getWordStyle (html->bw), false);
          spc = dStrnfill(spaceCnt, ' ');
-         HT2TB(html)->addText (spc, spaceCnt, html->wordStyle ());
+         Html2TextBlock(html)->addText (spc, spaceCnt, html->styleEngine->getWordStyle (html->bw));
          dFree(spc);
       }
 
    } else {
       if (SGML_SPCDEL) {
          /* SGML_SPCDEL ignores white space immediately after an open tag */
-      } else if (html->wordStyle ()->whiteSpace == WHITE_SPACE_PRE_LINE) {
+      } else if (html->styleEngine->getWordStyle (html->bw)->whiteSpace == WHITE_SPACE_PRE_LINE) {
          Html_process_space_pre_line(html, space, spacesize);
       } else {
-         HT2TB(html)->addSpace(html->wordStyle ());
+         Html2TextBlock(html)->addSpace(html->styleEngine->getWordStyle (html->bw));
       }
 
       if (parse_mode == DILLO_HTML_PARSE_MODE_STASH_AND_BODY)
@@ -984,9 +984,9 @@ static void Html_process_word(DilloHtml *html, const char *word, int size)
 {
    int i, j, start;
    char *Pword;
-   DilloHtmlParseMode parse_mode = S_TOP(html)->parse_mode;
+   DilloHtmlParseMode parse_mode = TopOfParsingStack(html)->parse_mode;
 
-   if (S_TOP(html)->display_none)
+   if (TopOfParsingStack(html)->display_none)
       return;
 
    if (parse_mode == DILLO_HTML_PARSE_MODE_STASH ||
@@ -1017,7 +1017,7 @@ static void Html_process_word(DilloHtml *html, const char *word, int size)
             Html_process_space(html, Pword + start, i - start);
          } else {
             while (Pword[++i] && !isspace(Pword[i])) ;
-            HT2TB(html)->addText(Pword + start, i - start, html->wordStyle ());
+            Html2TextBlock(html)->addText(Pword + start, i - start, html->styleEngine->getWordStyle (html->bw));
             html->pre_column += i - start;
             html->PreFirstChar = false;
          }
@@ -1055,18 +1055,18 @@ static void Html_process_word(DilloHtml *html, const char *word, int size)
             Html_process_space(html, word2 + start, i - start);
          } else if (!strncmp(word2+i, utf8_zero_width_space, 3)) {
             i += 3;
-            HT2TB(html)->addBreakOption(html->wordStyle (), false);
+            Html2TextBlock(html)->addBreakOption(html->styleEngine->getWordStyle (html->bw), false);
          } else if (a_Utf8_ideographic(word2+i, beyond_word2, &len)) {
             i += len;
-            HT2TB(html)->addText(word2 + start, i - start, html->wordStyle ());
-            HT2TB(html)->addBreakOption(html->wordStyle (), false);
+            Html2TextBlock(html)->addText(word2 + start, i - start, html->styleEngine->getWordStyle (html->bw));
+            Html2TextBlock(html)->addBreakOption(html->styleEngine->getWordStyle (html->bw), false);
          } else {
             do {
                i += len;
             } while (word2[i] && !isspace(word2[i]) &&
                      strncmp(word2+i, utf8_zero_width_space, 3) &&
                      (!a_Utf8_ideographic(word2+i, beyond_word2, &len)));
-            HT2TB(html)->addText(word2 + start, i - start, html->wordStyle ());
+            Html2TextBlock(html)->addText(word2 + start, i - start, html->styleEngine->getWordStyle (html->bw));
          }
       }
       if (Pword == word2)
@@ -1098,11 +1098,11 @@ static bool Html_match_tag(const char *tagstr, char *tag, int tagsize)
  */
 static void Html_eventually_pop_dw(DilloHtml *html, bool hand_over_break)
 {
-   if (html->dw != S_TOP(html)->textblock) {
+   if (html->dw != TopOfParsingStack(html)->textblock) {
       if (hand_over_break)
-         HT2TB(html)->handOverBreak (html->style ());
-      HT2TB(html)->flush ();
-      html->dw = S_TOP(html)->textblock;
+         Html2TextBlock(html)->handOverBreak (html->styleEngine->getStyle (html->bw));
+      Html2TextBlock(html)->flush ();
+      html->dw = TopOfParsingStack(html)->textblock;
    }
 }
 
@@ -1119,7 +1119,7 @@ static void Html_push_tag(DilloHtml *html, int tag_idx)
     * instead of copying all fields except for tag.  --Jcid */
    *html->stack->getRef(n_items) = *html->stack->getRef(n_items - 1);
    html->stack->getRef(n_items)->tag_idx = tag_idx;
-   html->dw = S_TOP(html)->textblock;
+   html->dw = TopOfParsingStack(html)->textblock;
 }
 
 /*
@@ -1128,7 +1128,7 @@ static void Html_push_tag(DilloHtml *html, int tag_idx)
  */
 static void Html_force_push_tag(DilloHtml *html, int tag_idx)
 {
-   html->startElement (tag_idx);
+   html->styleEngine->startElement (tag_idx, html->bw);
    Html_push_tag(html, tag_idx);
 }
 
@@ -1139,8 +1139,8 @@ static void Html_real_pop_tag(DilloHtml *html)
 {
    bool hand_over_break;
 
-   html->styleEngine->endElement (S_TOP(html)->tag_idx);
-   hand_over_break = S_TOP(html)->hand_over_break;
+   html->styleEngine->endElement (TopOfParsingStack(html)->tag_idx);
+   hand_over_break = TopOfParsingStack(html)->hand_over_break;
    html->stack->setSize (html->stack->size() - 1);
    Html_eventually_pop_dw(html, hand_over_break);
 }
@@ -1152,7 +1152,7 @@ static void Html_tag_cleanup_to_idx(DilloHtml *html, int idx)
 {
    int s_sz;
    while ((s_sz = html->stack->size()) > idx) {
-      int toptag_idx = S_TOP(html)->tag_idx;
+      int toptag_idx = TopOfParsingStack(html)->tag_idx;
       TagInfo toptag = Tags[toptag_idx];
       if (s_sz > idx + 1 && toptag.EndTag != 'O')
          BUG_MSG("  - forcing close of open tag: <%s>.", toptag.name);
@@ -1598,7 +1598,7 @@ static void Html_tag_close_title(DilloHtml *html)
 static void Html_tag_open_script(DilloHtml *html, const char *tag, int tagsize)
 {
    a_Html_stash_init(html);
-   S_TOP(html)->parse_mode = DILLO_HTML_PARSE_MODE_VERBATIM;
+   TopOfParsingStack(html)->parse_mode = DILLO_HTML_PARSE_MODE_VERBATIM;
 }
 
 /*
@@ -1636,7 +1636,7 @@ static void Html_tag_open_style(DilloHtml *html, const char *tag, int tagsize)
    }
 
    a_Html_stash_init(html);
-   S_TOP(html)->parse_mode = DILLO_HTML_PARSE_MODE_VERBATIM;
+   TopOfParsingStack(html)->parse_mode = DILLO_HTML_PARSE_MODE_VERBATIM;
 }
 
 /*
@@ -1702,7 +1702,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
                                            CSS_TYPE_COLOR, color);
    }
 
-   html->restyle ();
+   html->styleEngine->restyle (html->bw);
 
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "link"))) {
       html->non_css_link_color = a_Html_color_parse(html, attrbuf, -1);
@@ -1716,16 +1716,16 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
          BUG_MSG("<body> vlink attribute is obsolete.");
    }
 
-   html->dw->setStyle (html->style ());
+   html->dw->setStyle (html->styleEngine->getStyle (html->bw));
 
-   bgColor = html->styleEngine->backgroundColor ();
+   bgColor = html->styleEngine->getBackgroundColor ();
    if (bgColor)
-      HT2LT(html)->setBgColor(bgColor);
+      Html2Layout(html)->setBgColor(bgColor);
 
-   bgImage = html->styleEngine->backgroundImage (&bgRepeat, &bgAttachment,
+   bgImage = html->styleEngine->getBackgroundImage (&bgRepeat, &bgAttachment,
                                                  &bgPositionX, &bgPositionY);
    if (bgImage)
-      HT2LT(html)->setBgImage(bgImage, bgRepeat, bgAttachment, bgPositionX,
+      Html2Layout(html)->setBgImage(bgImage, bgRepeat, bgAttachment, bgPositionX,
                               bgPositionY);
 
    /* Determine a color for visited links.
@@ -1734,26 +1734,26 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
     * On reload style including color for visited links is computed properly
     * according to CSS.
     */
-   html->startElement (tag_index_a);
+   html->styleEngine->startElement (tag_index_a, html->bw);
    html->styleEngine->setPseudoVisited ();
    if (html->non_css_visited_color != -1) {
       html->styleEngine->setNonCssHint (CSS_PROPERTY_COLOR, CSS_TYPE_COLOR,
                                         html->non_css_visited_color);
    }
-   html->visited_color = html->style ()->color->getColor ();
+   html->visited_color = html->styleEngine->getStyle (html->bw)->color->getColor ();
    html->styleEngine->endElement (tag_index_a);
 
    if (prefs.contrast_visited_color) {
       /* get a color that has a "safe distance" from text, link and bg */
       html->visited_color =
          hll_colorsVisitedColor(html->visited_color,
-            html->style ()->color->getColor(),
+            html->styleEngine->getStyle (html->bw)->color->getColor(),
             html->non_css_link_color,
-            html->backgroundStyle()->backgroundColor->getColor());
+            html->styleEngine->getBackgroundStyle(html->bw)->backgroundColor->getColor());
    }
 
 
-   S_TOP(html)->parse_mode = DILLO_HTML_PARSE_MODE_BODY;
+   TopOfParsingStack(html)->parse_mode = DILLO_HTML_PARSE_MODE_BODY;
 }
 
 /*
@@ -1814,35 +1814,35 @@ static void
    Textblock *textblock;
    Widget *bullet;
 
-   textblock = HT2TB(html);
+   textblock = Html2TextBlock(html);
 
    if (!(attrbuf = a_Html_get_attr(html, tag, tagsize, "src")))
       return;
 
    src = dStrdup(attrbuf);
 
-   textblock->addParbreak (5, html->wordStyle ());
+   textblock->addParbreak (5, html->styleEngine->getWordStyle (html->bw));
 
    bullet = new Bullet();
-   textblock->addWidget(bullet, html->wordStyle ());
-   textblock->addSpace(html->wordStyle ());
+   textblock->addWidget(bullet, html->styleEngine->getWordStyle (html->bw));
+   textblock->addSpace(html->styleEngine->getWordStyle (html->bw));
 
    if (D_ASCII_TOLOWER(tag[1]) == 'i') {
       /* IFRAME usually comes with very long advertising/spying URLS,
        * to not break rendering we will force name="IFRAME" */
-      textblock->addText ("IFRAME", html->wordStyle ());
+      textblock->addText ("IFRAME", html->styleEngine->getWordStyle (html->bw));
 
    } else {
       /* FRAME:
        * If 'name' tag is present use it, if not use 'src' value */
       if (!(attrbuf = a_Html_get_attr(html, tag, tagsize, "name"))) {
-         textblock->addText (src, html->wordStyle ());
+         textblock->addText (src, html->styleEngine->getWordStyle (html->bw));
       } else {
-         textblock->addText (attrbuf, html->wordStyle ());
+         textblock->addText (attrbuf, html->styleEngine->getWordStyle (html->bw));
       }
    }
 
-   textblock->addParbreak (5, html->wordStyle ());
+   textblock->addParbreak (5, html->styleEngine->getWordStyle (html->bw));
 
    dFree(src);
 }
@@ -1855,8 +1855,8 @@ static void
 static void Html_tag_content_frameset (DilloHtml *html,
                                     const char *tag, int tagsize)
 {
-   HT2TB(html)->addParbreak (9, html->wordStyle ());
-   HT2TB(html)->addText("--FRAME--", html->wordStyle ());
+   Html2TextBlock(html)->addParbreak (9, html->styleEngine->getWordStyle (html->bw));
+   Html2TextBlock(html)->addText("--FRAME--", html->styleEngine->getWordStyle (html->bw));
    Html_add_textblock(html, 5);
 }
 
@@ -1868,7 +1868,7 @@ static void Html_tag_open_h(DilloHtml *html, const char *tag, int tagsize)
    a_Html_tag_set_align_attr (html, tag, tagsize);
 
    a_Html_stash_init(html);
-   S_TOP(html)->parse_mode =
+   TopOfParsingStack(html)->parse_mode =
       DILLO_HTML_PARSE_MODE_STASH_AND_BODY;
 }
 
@@ -1877,7 +1877,7 @@ static void Html_tag_open_h(DilloHtml *html, const char *tag, int tagsize)
  */
 static void Html_tag_content_br(DilloHtml *html, const char *tag, int tagsize)
 {
-   HT2TB(html)->addLinebreak (html->wordStyle ());
+   Html2TextBlock(html)->addLinebreak (html->styleEngine->getWordStyle (html->bw));
 }
 
 /*
@@ -2022,8 +2022,8 @@ DilloImage *a_Html_image_new(DilloHtml *html, const char *tag, int tagsize)
    image =
       a_Image_new(html->dw->getLayout(), (void*)(dw::core::ImgRenderer*)dw, 0);
 
-   if (HT2TB(html)->getBgColor())
-      image->bg_color = HT2TB(html)->getBgColor()->getColor();
+   if (Html2TextBlock(html)->getBgColor())
+      image->bg_color = Html2TextBlock(html)->getBgColor()->getColor();
 
    DilloHtmlImage *hi = dNew(DilloHtmlImage, 1);
    hi->url = url;
@@ -2154,17 +2154,17 @@ static void Html_tag_content_img(DilloHtml *html, const char *tag, int tagsize)
    // widget. Notice that the order of the casts matters, because of
    // multiple inheritance.
    dw::Image *dwi = (dw::Image*)(dw::core::ImgRenderer*)Image->img_rndr;
-   HT2TB(html)->addWidget(dwi, html->style());
+   Html2TextBlock(html)->addWidget(dwi, html->styleEngine->getStyle(html->bw));
 
    /* Image maps */
    if (a_Html_get_attr(html, tag, tagsize, "ismap")) {
       dwi->setIsMap();
       _MSG("  Html_tag_open_img: server-side map (ISMAP)\n");
-   } else if (html->style ()->x_link != -1 &&
+   } else if (html->styleEngine->getStyle (html->bw)->x_link != -1 &&
               usemap_url == NULL) {
       /* For simple links, we have to suppress the "image_pressed" signal.
        * This is overridden for USEMAP images. */
-//    a_Dw_widget_set_button_sensitive (IM2DW(Image->dw), FALSE);
+//    a_Dw_widget_set_button_sensitive (Image2DwWidget(Image->dw), FALSE);
    }
 
    if (usemap_url) {
@@ -2368,7 +2368,7 @@ static void Html_tag_content_object(DilloHtml *html, const char *tag,
                                     int tagsize)
 {
    if (a_Html_get_attr(html, tag, tagsize, "data"))
-      HT2TB(html)->addText("[OBJECT]", html->wordStyle ());
+      Html2TextBlock(html)->addText("[OBJECT]", html->styleEngine->getWordStyle (html->bw));
 }
 
 /*
@@ -2399,7 +2399,7 @@ static void Html_tag_open_video(DilloHtml *html, const char *tag, int tagsize)
       html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CSS_TYPE_INTEGER,
                                        Html_set_new_link(html, &url));
 
-      HT2TB(html)->addText("[VIDEO]", html->wordStyle ());
+      Html2TextBlock(html)->addText("[VIDEO]", html->styleEngine->getWordStyle (html->bw));
    }
    html->InFlags |= IN_MEDIA;
 }
@@ -2431,7 +2431,7 @@ static void Html_tag_open_audio(DilloHtml *html, const char *tag, int tagsize)
       html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CSS_TYPE_INTEGER,
                                        Html_set_new_link(html, &url));
 
-      HT2TB(html)->addText("[AUDIO]", html->wordStyle ());
+      Html2TextBlock(html)->addText("[AUDIO]", html->styleEngine->getWordStyle (html->bw));
    }
    html->InFlags |= IN_MEDIA;
 }
@@ -2471,7 +2471,7 @@ static void Html_tag_content_source(DilloHtml *html, const char *tag,
                                     int tagsize)
 {
    if ((html->InFlags & IN_MEDIA) && a_Html_get_attr(html, tag, tagsize,"src"))
-      HT2TB(html)->addText("[MEDIA SOURCE]", html->wordStyle ());
+      Html2TextBlock(html)->addText("[MEDIA SOURCE]", html->styleEngine->getWordStyle (html->bw));
 }
 
 /*
@@ -2509,7 +2509,7 @@ static void Html_tag_open_embed(DilloHtml *html, const char *tag, int tagsize)
 static void Html_tag_content_embed(DilloHtml *html,const char *tag,int tagsize)
 {
    if (a_Html_get_attr(html, tag, tagsize, "src"))
-      HT2TB(html)->addText("[EMBED]", html->wordStyle ());
+      Html2TextBlock(html)->addText("[EMBED]", html->styleEngine->getWordStyle (html->bw));
 }
 
 /*
@@ -2541,7 +2541,7 @@ static const char* Html_get_javascript_link(DilloHtml *html)
 static void Html_add_anchor(DilloHtml *html, const char *name)
 {
    _MSG("Registering ANCHOR: %s\n", name);
-   if (!HT2TB(html)->addAnchor (name, html->style ()))
+   if (!Html2TextBlock(html)->addAnchor (name, html->styleEngine->getStyle (html->bw)))
       BUG_MSG("Anchor names must be unique within the document (\"%s\").",
               name);
    /*
@@ -2652,7 +2652,7 @@ static void Html_tag_open_q(DilloHtml *html, const char *tag, int tagsize)
    const char *U201C = "\xe2\x80\x9c";
 
    html->styleEngine->inheritBackgroundColor ();
-   HT2TB(html)->addText (U201C, html->wordStyle ());
+   Html2TextBlock(html)->addText (U201C, html->styleEngine->getWordStyle (html->bw));
 }
 
 /*
@@ -2663,7 +2663,7 @@ static void Html_tag_close_q(DilloHtml *html)
    /* Right Double Quotation Mark */
    const char *U201D = "\xe2\x80\x9d";
 
-   HT2TB(html)->addText (U201D, html->wordStyle ());
+   Html2TextBlock(html)->addText (U201D, html->styleEngine->getWordStyle (html->bw));
 }
 
 /*
@@ -2693,9 +2693,9 @@ static void Html_tag_open_ul(DilloHtml *html, const char *tag, int tagsize)
          BUG_MSG("<ul> type attribute is obsolete.");
    }
 
-   S_TOP(html)->list_type = HTML_LIST_UNORDERED;
-   S_TOP(html)->list_number = 0;
-   S_TOP(html)->ref_list_item = NULL;
+   TopOfParsingStack(html)->list_type = HTML_LIST_UNORDERED;
+   TopOfParsingStack(html)->list_number = 0;
+   TopOfParsingStack(html)->ref_list_item = NULL;
 }
 
 /*
@@ -2705,11 +2705,11 @@ static void Html_tag_open_ul(DilloHtml *html, const char *tag, int tagsize)
 static void Html_tag_open_dir(DilloHtml *html, const char *tag, int tagsize)
 {
    html->styleEngine->inheritBackgroundColor ();
-   HT2TB(html)->addParbreak (9, html->wordStyle ());
+   Html2TextBlock(html)->addParbreak (9, html->styleEngine->getWordStyle (html->bw));
 
-   S_TOP(html)->list_type = HTML_LIST_UNORDERED;
-   S_TOP(html)->list_number = 0;
-   S_TOP(html)->ref_list_item = NULL;
+   TopOfParsingStack(html)->list_type = HTML_LIST_UNORDERED;
+   TopOfParsingStack(html)->list_number = 0;
+   TopOfParsingStack(html)->ref_list_item = NULL;
 
    if (prefs.show_extra_warnings)
       BUG_MSG("Obsolete list type; use <ul> instead.");
@@ -2758,15 +2758,15 @@ static void Html_tag_open_ol(DilloHtml *html, const char *tag, int tagsize)
                                         CSS_TYPE_ENUM, listStyleType);
    }
 
-   S_TOP(html)->list_type = HTML_LIST_ORDERED;
+   TopOfParsingStack(html)->list_type = HTML_LIST_ORDERED;
 
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "start")) &&
        (n = (int) strtol(attrbuf, NULL, 10)) < 0) {
       BUG_MSG("Illegal '-' character in START attribute; Starting from 0.");
       n = 0;
    }
-   S_TOP(html)->list_number = n;
-   S_TOP(html)->ref_list_item = NULL;
+   TopOfParsingStack(html)->list_number = n;
+   TopOfParsingStack(html)->ref_list_item = NULL;
 }
 
 /*
@@ -2774,11 +2774,11 @@ static void Html_tag_open_ol(DilloHtml *html, const char *tag, int tagsize)
  */
 static void Html_tag_open_li(DilloHtml *html, const char *tag, int tagsize)
 {
-   Style *style = html->style ();
+   Style *style = html->styleEngine->getStyle (html->bw);
    int *list_number;
    const char *attrbuf;
 
-   if (S_TOP(html)->list_type == HTML_LIST_NONE)
+   if (TopOfParsingStack(html)->list_type == HTML_LIST_NONE)
       BUG_MSG("<li> outside <ul> or <ol>.");
 
    html->InFlags |= IN_LI;
@@ -2869,12 +2869,12 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
 static void Html_tag_content_hr(DilloHtml *html, const char *tag, int tagsize)
 {
    Widget *hruler;
-   HT2TB(html)->addParbreak (5, html->wordStyle ());
+   Html2TextBlock(html)->addParbreak (5, html->styleEngine->getWordStyle (html->bw));
 
    hruler = new Ruler();
-   hruler->setStyle (html->style ());
-   HT2TB(html)->addWidget (hruler, html->style ());
-   HT2TB(html)->addParbreak (5, html->wordStyle ());
+   hruler->setStyle (html->styleEngine->getStyle (html->bw));
+   Html2TextBlock(html)->addWidget (hruler, html->styleEngine->getStyle (html->bw));
+   Html2TextBlock(html)->addParbreak (5, html->styleEngine->getWordStyle (html->bw));
 }
 
 /*
@@ -2884,7 +2884,7 @@ static void Html_tag_open_dl(DilloHtml *html, const char *tag, int tagsize)
 {
    /* may want to actually do some stuff here. */
    html->styleEngine->inheritBackgroundColor ();
-   HT2TB(html)->addParbreak (9, html->wordStyle ());
+   Html2TextBlock(html)->addParbreak (9, html->styleEngine->getWordStyle (html->bw));
 }
 
 /*
@@ -2893,7 +2893,7 @@ static void Html_tag_open_dl(DilloHtml *html, const char *tag, int tagsize)
 static void Html_tag_open_dt(DilloHtml *html, const char *tag, int tagsize)
 {
    html->styleEngine->inheritBackgroundColor ();
-   HT2TB(html)->addParbreak (9, html->wordStyle ());
+   Html2TextBlock(html)->addParbreak (9, html->styleEngine->getWordStyle (html->bw));
 }
 
 /*
@@ -2910,7 +2910,7 @@ static void Html_tag_open_dd(DilloHtml *html, const char *tag, int tagsize)
 static void Html_tag_open_pre(DilloHtml *html, const char *tag, int tagsize)
 {
    html->styleEngine->inheritBackgroundColor ();
-   HT2TB(html)->addParbreak (9, html->wordStyle ());
+   Html2TextBlock(html)->addParbreak (9, html->styleEngine->getWordStyle (html->bw));
 
    html->InFlags |= IN_PRE;
 }
@@ -3273,7 +3273,7 @@ static void Html_tag_open_div(DilloHtml *html, const char *tag, int tagsize)
  */
 static void Html_tag_close_par(DilloHtml *html)
 {
-   HT2TB(html)->addParbreak (9, html->wordStyle ());
+   Html2TextBlock(html)->addParbreak (9, html->styleEngine->getWordStyle (html->bw));
 }
 
 /*
@@ -3281,7 +3281,7 @@ static void Html_tag_close_par(DilloHtml *html)
  */
 static void Html_tag_content_wbr(DilloHtml *html, const char *tag, int tagsize)
 {
-   HT2TB(html)->addBreakOption(html->wordStyle (), true);
+   Html2TextBlock(html)->addBreakOption(html->styleEngine->getWordStyle (html->bw), true);
 }
 
 
@@ -3552,7 +3552,7 @@ static void Html_stack_cleanup_at_open(DilloHtml *html, int new_idx)
       return;
 
    while (html->stack->size() > 1) {
-      int oldtag_idx = S_TOP(html)->tag_idx;
+      int oldtag_idx = TopOfParsingStack(html)->tag_idx;
 
       if (Tags[oldtag_idx].EndTag == 'O') {    // Element with optional close
          if (!Html_needs_optional_close(oldtag_idx, new_idx))
@@ -3719,14 +3719,14 @@ static void Html_check_html5_obsolete(DilloHtml *html, int ni)
 
 static void Html_display_block(DilloHtml *html)
 {
-   //HT2TB(html)->addParbreak (5, html->styleEngine->wordStyle ());
+   //Html2TextBlock(html)->addParbreak (5, html->styleEngine->getWordStyle (html->bw));
    Html_add_textblock(html, 0);
 }
 
 static void Html_display_listitem(DilloHtml *html)
 {
-   Style *style = html->style ();
-   Style *wordStyle = html->wordStyle ();
+   Style *style = html->styleEngine->getStyle (html->bw);
+   Style *wordStyle = html->styleEngine->getWordStyle (html->bw);
    Widget **ref_list_item;
    ListItem *list_item;
    int *list_number;
@@ -3736,13 +3736,13 @@ static void Html_display_listitem(DilloHtml *html)
    list_number = &html->stack->getRef(html->stack->size()-2)->list_number;
    ref_list_item = &html->stack->getRef(html->stack->size()-2)->ref_list_item;
 
-   HT2TB(html)->addParbreak (0, wordStyle);
+   Html2TextBlock(html)->addParbreak (0, wordStyle);
 
    list_item = new ListItem ((ListItem*)*ref_list_item,prefs.limit_text_width);
-   HT2TB(html)->addWidget (list_item, style);
-   HT2TB(html)->addParbreak (0, wordStyle);
+   Html2TextBlock(html)->addWidget (list_item, style);
+   Html2TextBlock(html)->addParbreak (0, wordStyle);
    *ref_list_item = list_item;
-   S_TOP(html)->textblock = html->dw = list_item;
+   TopOfParsingStack(html)->textblock = html->dw = list_item;
 
    if (style->listStyleType == LIST_STYLE_TYPE_NONE) {
       // none
@@ -3788,7 +3788,7 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       Html_test_section(html, ni, IsCloseTag);
 
    /* Tag processing */
-   ci = S_TOP(html)->tag_idx;
+   ci = TopOfParsingStack(html)->tag_idx;
    switch (IsCloseTag) {
    case 0:
       /* Open function */
@@ -3810,7 +3810,7 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       /* Push the tag into the stack */
       Html_push_tag(html, ni);
 
-      html->startElement (ni);
+      html->styleEngine->startElement (ni, html->bw);
       _MSG("Open : %*s%s\n", html->stack->size(), " ", Tags[ni].name);
 
       /* Parse attributes that can appear on any tag */
@@ -3820,8 +3820,8 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       _MSG("Html_process_tag Open : %s\n", Tags[ni].name);
       Tags[ni].open (html, tag, tagsize);
 
-      if (! S_TOP(html)->display_none) {
-         switch (html->style ()->display) {
+      if (! TopOfParsingStack(html)->display_none) {
+         switch (html->styleEngine->getStyle (html->bw)->display) {
             case DISPLAY_BLOCK:
                Html_display_block(html);
                break;
@@ -3829,7 +3829,7 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
                Html_display_listitem(html);
                break;
             case DISPLAY_NONE:
-               S_TOP(html)->display_none = true;
+               TopOfParsingStack(html)->display_none = true;
                break;
             case DISPLAY_INLINE:
             case DISPLAY_INLINE_BLOCK: // TODO: implement inline-block
@@ -3837,7 +3837,7 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
                break;
          }
 
-         if (Tags[ni].content && ! S_TOP(html)->display_none) {
+         if (Tags[ni].content && ! TopOfParsingStack(html)->display_none) {
             Tags[ni].content (html, tag, tagsize);
          }
       }
@@ -3845,12 +3845,12 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       if (html->stop_parser)
          break;
 
-      if (S_TOP(html)->parse_mode == DILLO_HTML_PARSE_MODE_VERBATIM) {
+      if (TopOfParsingStack(html)->parse_mode == DILLO_HTML_PARSE_MODE_VERBATIM) {
          /* don't change anything */
-      } else if (S_TOP(html)->parse_mode != DILLO_HTML_PARSE_MODE_PRE &&
-          (html->style ()->whiteSpace == WHITE_SPACE_PRE ||
-           html->style ()->whiteSpace == WHITE_SPACE_PRE_WRAP)) {
-         S_TOP(html)->parse_mode = DILLO_HTML_PARSE_MODE_PRE;
+      } else if (TopOfParsingStack(html)->parse_mode != DILLO_HTML_PARSE_MODE_PRE &&
+          (html->styleEngine->getStyle (html->bw)->whiteSpace == WHITE_SPACE_PRE ||
+           html->styleEngine->getStyle (html->bw)->whiteSpace == WHITE_SPACE_PRE_WRAP)) {
+         TopOfParsingStack(html)->parse_mode = DILLO_HTML_PARSE_MODE_PRE;
          html->pre_column = 0;
          html->PreFirstChar = true;
       }
@@ -3978,11 +3978,11 @@ static int Html_write_raw(DilloHtml *html, char *buf, int bufsize, int Eof)
    while ((buf_index < bufsize) && !html->stop_parser) {
       /* invariant: buf_index == bufsize || token_start == buf_index */
 
-      if (S_TOP(html)->parse_mode ==
+      if (TopOfParsingStack(html)->parse_mode ==
           DILLO_HTML_PARSE_MODE_VERBATIM) {
          /* Non HTML code here, let's skip until closing tag */
          do {
-            const char *tag = Tags[S_TOP(html)->tag_idx].name;
+            const char *tag = Tags[TopOfParsingStack(html)->tag_idx].name;
             buf_index += strcspn(buf + buf_index, "<");
             if (buf_index + (int)strlen(tag) + 3 > bufsize) {
                buf_index = bufsize;
@@ -4091,7 +4091,7 @@ static int Html_write_raw(DilloHtml *html, char *buf, int bufsize, int Eof)
       }
    }/*while*/
 
-   HT2TB(html)->flush ();
+   Html2TextBlock(html)->flush ();
 
    return token_start;
 }

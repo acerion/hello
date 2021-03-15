@@ -19,14 +19,10 @@
  * Macros
  */
 
-// "html struct" to Textblock
-#define HT2TB(html)  ((Textblock*)(html->dw))
-// "html struct" to "Layout"
-#define HT2LT(html)  ((Layout*)html->bw->render_layout)
-// "Image" to "Dw Widget"
-#define IM2DW(Image)  ((Widget*)Image->dw)
-// Top of the parsing stack
-#define S_TOP(html)  (html->stack->getRef(html->stack->size()-1))
+#define Html2TextBlock(html)     ((Textblock*)(html->dw))
+#define Html2Layout(html)        ((Layout*)html->bw->render_layout)
+#define Image2DwWidget(Image)    ((Widget*)Image->dw)
+#define TopOfParsingStack(html)  (html->stack->getRef(html->stack->size()-1))
 
 // Add a bug-meter message.
 #define BUG_MSG(...)                               \
@@ -218,22 +214,6 @@ public:
    bool_t unloadedImages();
    void loadImages (const DilloUrl *pattern);
    void addCssUrl(const DilloUrl *url);
-
-   // useful shortcuts
-   inline void startElement (int tag)
-   { styleEngine->startElement (tag, bw); }
-   inline void startElement (const char *tagname)
-   { styleEngine->startElement (tagname, bw); }
-
-   inline dw::core::style::Style *backgroundStyle ()
-   { return styleEngine->backgroundStyle (bw); }
-   inline dw::core::style::Style *style ()
-   { return styleEngine->style (bw); }
-   inline dw::core::style::Style *wordStyle ()
-   { return styleEngine->wordStyle (bw); }
-
-   inline void restyle () { styleEngine->restyle (bw); }
-
 };
 
 /*

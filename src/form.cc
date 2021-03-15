@@ -340,7 +340,7 @@ void Html_tag_open_form(DilloHtml *html, const char *tag, int tagsize)
    char *charset, *first;
    const char *attrbuf;
 
-   HT2TB(html)->addParbreak (9, html->wordStyle ());
+   Html2TextBlock(html)->addParbreak (9, html->styleEngine->getWordStyle (html->bw));
 
    if (html->InFlags & IN_FORM) {
       BUG_MSG("Nested <form>.");
@@ -445,7 +445,7 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
       return;
    }
 
-   factory = HT2LT(html)->getResourceFactory();
+   factory = Html2Layout(html)->getResourceFactory();
 
    /* Get 'value', 'name' and 'type' */
    value = a_Html_get_attr_wdef(html, tag, tagsize, "value", NULL);
@@ -569,7 +569,7 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CSS_TYPE_STRING,
                                            attrbuf);
       }
-      HT2TB(html)->addWidget (embed, html->backgroundStyle());
+      Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle(html->bw));
    }
    dFree(type);
    dFree(name);
@@ -603,18 +603,18 @@ void Html_tag_open_isindex(DilloHtml *html, const char *tag, int tagsize)
                  html->charset);
    html->InFlags |= IN_FORM;
 
-   HT2TB(html)->addParbreak (9, html->wordStyle ());
+   Html2TextBlock(html)->addParbreak (9, html->styleEngine->getWordStyle (html->bw));
 
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "prompt")))
-      HT2TB(html)->addText(attrbuf, html->wordStyle ());
+      Html2TextBlock(html)->addText(attrbuf, html->styleEngine->getWordStyle (html->bw));
 
-   ResourceFactory *factory = HT2LT(html)->getResourceFactory();
+   ResourceFactory *factory = Html2Layout(html)->getResourceFactory();
    EntryResource *entryResource = factory->createEntryResource (20, false,
                                                                 NULL, NULL);
    embed = new Embed (entryResource);
    Html_add_input(html, DILLO_HTML_INPUT_INDEX, embed, NULL, NULL, FALSE);
 
-   HT2TB(html)->addWidget (embed, html->backgroundStyle ());
+   Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle (html->bw));
 
    a_Url_free(action);
    html->InFlags &= ~IN_FORM;
@@ -639,7 +639,7 @@ void Html_tag_content_textarea(DilloHtml *html, const char *tag, int tagsize)
    int cols, rows;
 
    a_Html_stash_init(html);
-   S_TOP(html)->parse_mode = DILLO_HTML_PARSE_MODE_VERBATIM;
+   TopOfParsingStack(html)->parse_mode = DILLO_HTML_PARSE_MODE_VERBATIM;
 
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "cols"))) {
       cols = strtol(attrbuf, NULL, 10);
@@ -671,7 +671,7 @@ void Html_tag_content_textarea(DilloHtml *html, const char *tag, int tagsize)
 
    attrbuf = a_Html_get_attr(html, tag, tagsize, "placeholder");
 
-   ResourceFactory *factory = HT2LT(html)->getResourceFactory();
+   ResourceFactory *factory = Html2Layout(html)->getResourceFactory();
    MultiLineTextResource *textres =
       factory->createMultiLineTextResource (cols, rows, attrbuf);
 
@@ -681,7 +681,7 @@ void Html_tag_content_textarea(DilloHtml *html, const char *tag, int tagsize)
       textres->setEditable(false);
    Html_add_input(html, DILLO_HTML_INPUT_TEXTAREA, embed, name, NULL, false);
 
-   HT2TB(html)->addWidget (embed, html->backgroundStyle ());
+   Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle (html->bw));
    dFree(name);
 }
 
@@ -695,7 +695,7 @@ void Html_tag_close_textarea(DilloHtml *html)
    DilloHtmlInput *input;
    int i;
 
-   if (html->InFlags & IN_TEXTAREA && !S_TOP(html)->display_none) {
+   if (html->InFlags & IN_TEXTAREA && !TopOfParsingStack(html)->display_none) {
       /* Remove the line ending that follows the opening tag */
       if (html->Stash->str[0] == '\r')
          dStr_erase(html->Stash, 0, 1);
@@ -740,7 +740,7 @@ void Html_tag_open_select(DilloHtml *html, const char *tag, int tagsize)
    html->InFlags &= ~IN_OPTION;
 
    char *name = a_Html_get_attr_wdef(html, tag, tagsize, "name", NULL);
-   ResourceFactory *factory = HT2LT(html)->getResourceFactory ();
+   ResourceFactory *factory = Html2Layout(html)->getResourceFactory ();
    DilloHtmlInputType type;
    SelectionResource *res;
    bool multi = a_Html_get_attr(html, tag, tagsize, "multiple") != NULL;
@@ -772,7 +772,7 @@ void Html_tag_open_select(DilloHtml *html, const char *tag, int tagsize)
       html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CSS_TYPE_STRING,
                                         attrbuf);
    }
-   HT2TB(html)->addWidget (embed, html->backgroundStyle ());
+   Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle (html->bw));
 
    Html_add_input(html, type, embed, name, NULL, false);
    a_Html_stash_init(html);
@@ -944,18 +944,18 @@ void Html_tag_open_button(DilloHtml *html, const char *tag, int tagsize)
        * but it caused 100% CPU usage.
        */
       page = new Textblock (false);
-      page->setStyle (html->backgroundStyle ());
+      page->setStyle (html->styleEngine->getBackgroundStyle (html->bw));
 
-      ResourceFactory *factory = HT2LT(html)->getResourceFactory();
+      ResourceFactory *factory = Html2Layout(html)->getResourceFactory();
       Resource *resource = factory->createComplexButtonResource(page, true);
       embed = new Embed(resource);
 // a_Dw_button_set_sensitive (DW_BUTTON (button), FALSE);
 
-      HT2TB(html)->addParbreak (5, html->wordStyle ());
-      HT2TB(html)->addWidget (embed, html->backgroundStyle ());
-      HT2TB(html)->addParbreak (5, html->wordStyle ());
+      Html2TextBlock(html)->addParbreak (5, html->styleEngine->getWordStyle (html->bw));
+      Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle (html->bw));
+      Html2TextBlock(html)->addParbreak (5, html->styleEngine->getWordStyle (html->bw));
 
-      S_TOP(html)->textblock = html->dw = page;
+      TopOfParsingStack(html)->textblock = html->dw = page;
 
       value = a_Html_get_attr_wdef(html, tag, tagsize, "value", NULL);
       name = a_Html_get_attr_wdef(html, tag, tagsize, "name", NULL);
@@ -2015,12 +2015,12 @@ static Embed *Html_input_image(DilloHtml *html, const char *tag, int tagsize)
       // widget. Notice that the order of the casts matters, because
       // of multiple inheritance.
       dw::Image *dwi = (dw::Image*)(dw::core::ImgRenderer*)Image->img_rndr;
-      dwi->setStyle (html->backgroundStyle ());
-      ResourceFactory *factory = HT2LT(html)->getResourceFactory();
+      dwi->setStyle (html->styleEngine->getBackgroundStyle (html->bw));
+      ResourceFactory *factory = Html2Layout(html)->getResourceFactory();
       ComplexButtonResource *complex_b_r =
          factory->createComplexButtonResource(dwi, false);
       button = new Embed(complex_b_r);
-      HT2TB(html)->addWidget (button, html->style ());
+      Html2TextBlock(html)->addWidget (button, html->styleEngine->getStyle (html->bw));
    }
    if (!button)
       MSG("Html_input_image: unable to create image submit.\n");

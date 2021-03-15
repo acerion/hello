@@ -17,7 +17,7 @@
 
 using namespace dw::core::style;
 
-void CssProperty::print () {
+void CssProperty::printCssProperty () {
    fprintf (stderr, "%s - %d\n",
             CssParser::propertyNameString((CssPropertyName)name),
             (int)value.intVal);
@@ -99,9 +99,9 @@ void CssPropertyList::apply (CssPropertyList *props) {
    }
 }
 
-void CssPropertyList::print () {
+void CssPropertyList::printCssPropertyList () {
    for (int i = 0; i < size (); i++)
-      getRef (i)->print ();
+      getRef (i)->printCssProperty ();
 }
 
 CssSelector::CssSelector () {
@@ -203,9 +203,9 @@ int CssSelector::specificity () {
    return spec;
 }
 
-void CssSelector::print () {
+void CssSelector::printCssSelector () {
    for (int i = 0; i < selectorList.size (); i++) {
-      selectorList.getRef (i)->selector->print ();
+      selectorList.getRef (i)->selector->printCssSimpleSelector ();
 
       if (i < selectorList.size () - 1) {
          switch (selectorList.getRef (i + 1)->combinator) {
@@ -309,7 +309,7 @@ int CssSimpleSelector::specificity () {
    return spec;
 }
 
-void CssSimpleSelector::print () {
+void CssSimpleSelector::printCssSimpleSelector () {
    fprintf (stderr, "Element %d, pseudo %s, id %s ",
       element, pseudo, id);
    fprintf (stderr, "class ");
@@ -322,26 +322,26 @@ CssRule::CssRule (CssSelector *selector, CssPropertyList *props, int pos) {
 
    this->selector = selector;
    this->selector->ref ();
-   this->props = props;
-   this->props->ref ();
+   this->css_properties = props;
+   this->css_properties->ref ();
    this->pos = pos;
    spec = selector->specificity ();
 }
 
 CssRule::~CssRule () {
    selector->unref ();
-   props->unref ();
+   css_properties->unref ();
 }
 
 void CssRule::apply (CssPropertyList *props, Doctree *docTree,
                      const DoctreeNode *node, MatchCache *matchCache) const {
    if (selector->match (docTree, node, matchCache))
-      this->props->apply (props);
+      this->css_properties->apply (props);
 }
 
-void CssRule::print () {
-   selector->print ();
-   props->print ();
+void CssRule::printCssRule () {
+   selector->printCssSelector ();
+   css_properties->printCssPropertyList ();
 }
 
 /*

@@ -41,8 +41,8 @@ class StyleEngine {
       void stackPush ();
       void stackPop ();
       void buildUserStyle ();
-      dw::core::style::Style *style0 (int i, BrowserWindow *bw);
-      dw::core::style::Style *wordStyle0 (BrowserWindow *bw);
+      dw::core::style::Style *getStyle0 (int i, BrowserWindow *bw);
+      dw::core::style::Style *getWordStyle0 (BrowserWindow *bw);
       inline void setNonCssHint(CssPropertyName name, CssValueType type,
                                 CssPropertyValue value) {
          Node *n = stack->getRef (stack->size () - 1);
@@ -98,28 +98,28 @@ class StyleEngine {
       void clearNonCssHints ();
       void restyle (BrowserWindow *bw);
       void inheritBackgroundColor (); /* \todo get rid of this somehow */
-      dw::core::style::Style *backgroundStyle (BrowserWindow *bw);
-      dw::core::style::Color *backgroundColor ();
-      dw::core::style::StyleImage *backgroundImage
+      dw::core::style::Style *getBackgroundStyle (BrowserWindow *bw);
+      dw::core::style::Color *getBackgroundColor ();
+      dw::core::style::StyleImage *getBackgroundImage
          (dw::core::style::BackgroundRepeat *bgRepeat,
           dw::core::style::BackgroundAttachment *bgAttachment,
           dw::core::style::Length *bgPositionX,
           dw::core::style::Length *bgPositionY);
 
-      inline dw::core::style::Style *style (BrowserWindow *bw) {
+      inline dw::core::style::Style *getStyle (BrowserWindow *bw) {
          dw::core::style::Style *s = stack->getRef (stack->size () - 1)->style;
          if (s)
             return s;
          else
-            return style0 (stack->size () - 1, bw);
+            return getStyle0 (stack->size () - 1, bw);
       };
 
-      inline dw::core::style::Style *wordStyle (BrowserWindow *bw) {
+      inline dw::core::style::Style *getWordStyle (BrowserWindow *bw) {
          dw::core::style::Style *s = stack->getRef(stack->size()-1)->wordStyle;
          if (s)
             return s;
          else
-            return wordStyle0 (bw);
+            return getWordStyle0 (bw);
       };
 };
 

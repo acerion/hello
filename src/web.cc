@@ -80,7 +80,7 @@ int a_Web_dispatch_by_type (const char *Type, DilloWeb *Web,
       if (dw == NULL)
          return -1;
 
-      dw->setStyle (styleEngine.style (Web->bw));
+      dw->setStyle (styleEngine.getStyle (Web->bw));
 
       /* This method frees the old dw if any */
       layout->setWidget(dw);

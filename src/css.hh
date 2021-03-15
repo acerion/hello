@@ -303,7 +303,7 @@ class CssProperty {
                break;
          }
       }
-      void print ();
+      void printCssProperty ();
 };
 
 /**
@@ -328,7 +328,7 @@ class CssPropertyList : public lout::misc::SimpleVector <CssProperty> {
                 CssPropertyValue value);
       void apply (CssPropertyList *props);
       bool isSafe () { return safe; };
-      void print ();
+      void printCssPropertyList ();
       inline void ref () { refCount++; }
       inline void unref () { if (--refCount == 0) delete this; }
 };
@@ -362,7 +362,7 @@ class CssSimpleSelector {
       inline int getElement () { return element; };
       bool match (const DoctreeNode *node);
       int specificity ();
-      void print ();
+      void printCssSimpleSelector ();
 };
 
 class MatchCache : public lout::misc::SimpleVector <int> {
@@ -418,7 +418,7 @@ class CssSelector {
       }
       int specificity ();
       bool checksPseudoClass ();
-      void print ();
+      void printCssSelector ();
       inline void ref () { refCount++; }
       inline void unref () { if (--refCount == 0) delete this; }
 };
@@ -430,7 +430,7 @@ class CssSelector {
  */
 class CssRule {
    private:
-      CssPropertyList *props;
+      CssPropertyList *css_properties;
       int spec, pos;
 
    public:
@@ -442,11 +442,11 @@ class CssRule {
       void apply (CssPropertyList *props, Doctree *docTree,
                   const DoctreeNode *node, MatchCache *matchCache) const;
       inline bool isSafe () {
-         return !selector->checksPseudoClass () || props->isSafe ();
+         return !selector->checksPseudoClass () || css_properties->isSafe ();
       };
       inline int specificity () { return spec; };
       inline int position () { return pos; };
-      void print ();
+      void printCssRule ();
 };
 
 /**

@@ -114,7 +114,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
          BUG_MSG("<table> bgcolor attribute is obsolete.");
    }
 
-   html->style (); // evaluate now, so we can build non-css hints for the cells
+   html->styleEngine->getStyle (html->bw); // evaluate now, so we can build non-css hints for the cells
 
    /* The style for the cells */
    html->styleEngine->clearNonCssHints ();
@@ -155,15 +155,15 @@ void Html_tag_content_table(DilloHtml *html, const char *tag, int tagsize)
 {
    dw::core::Widget *table;
 
-   HT2TB(html)->addParbreak (0, html->wordStyle ());
+   Html2TextBlock(html)->addParbreak (0, html->styleEngine->getWordStyle (html->bw));
    table = new dw::Table(prefs.limit_text_width);
-   HT2TB(html)->addWidget (table, html->style ());
-   HT2TB(html)->addParbreak (0, html->wordStyle ());
+   Html2TextBlock(html)->addWidget (table, html->styleEngine->getStyle (html->bw));
+   Html2TextBlock(html)->addParbreak (0, html->styleEngine->getWordStyle (html->bw));
 
-   S_TOP(html)->table_mode = DILLO_HTML_TABLE_MODE_TOP;
-   S_TOP(html)->table_border_mode = DILLO_HTML_TABLE_BORDER_SEPARATE;
-   S_TOP(html)->cell_text_align_set = FALSE;
-   S_TOP(html)->table = table;
+   TopOfParsingStack(html)->table_mode = DILLO_HTML_TABLE_MODE_TOP;
+   TopOfParsingStack(html)->table_border_mode = DILLO_HTML_TABLE_BORDER_SEPARATE;
+   TopOfParsingStack(html)->cell_text_align_set = FALSE;
+   TopOfParsingStack(html)->table = table;
 
 }
 
@@ -177,7 +177,7 @@ void Html_tag_open_tr(DilloHtml *html, const char *tag, int tagsize)
 
    html->styleEngine->inheritNonCssHints ();
 
-   switch (S_TOP(html)->table_mode) {
+   switch (TopOfParsingStack(html)->table_mode) {
    case DILLO_HTML_TABLE_MODE_NONE:
       _MSG("Invalid HTML syntax: <tr> outside <table>\n");
       return;
@@ -196,7 +196,7 @@ void Html_tag_open_tr(DilloHtml *html, const char *tag, int tagsize)
       }
 
       if (a_Html_get_attr (html, tag, tagsize, "align")) {
-         S_TOP(html)->cell_text_align_set = TRUE;
+         TopOfParsingStack(html)->cell_text_align_set = TRUE;
          a_Html_tag_set_align_attr (html, tag, tagsize);
       }
 
@@ -215,18 +215,18 @@ void Html_tag_open_tr(DilloHtml *html, const char *tag, int tagsize)
 
 void Html_tag_content_tr(DilloHtml *html, const char *tag, int tagsize)
 {
-   switch (S_TOP(html)->table_mode) {
+   switch (TopOfParsingStack(html)->table_mode) {
    case DILLO_HTML_TABLE_MODE_NONE:
       return;
    case DILLO_HTML_TABLE_MODE_TOP:
    case DILLO_HTML_TABLE_MODE_TR:
    case DILLO_HTML_TABLE_MODE_TD:
-      ((dw::Table*)S_TOP(html)->table)->addRow (html->style ());
+      ((dw::Table*)TopOfParsingStack(html)->table)->addRow (html->styleEngine->getStyle (html->bw));
    default:
       break;
    }
 
-   S_TOP(html)->table_mode = DILLO_HTML_TABLE_MODE_TR;
+   TopOfParsingStack(html)->table_mode = DILLO_HTML_TABLE_MODE_TR;
 }
 
 /*
@@ -301,11 +301,11 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
    dw::core::style::StyleAttrs collapseCellAttrs, collapseTableAttrs;
    int borderWidth, marginWidth;
 
-   tableStyle = ((dw::Table*)S_TOP(html)->table)->getStyle ();
-   borderWidth = html->style ()->borderWidth.top;
+   tableStyle = ((dw::Table*)TopOfParsingStack(html)->table)->getStyle ();
+   borderWidth = html->styleEngine->getStyle (html->bw)->borderWidth.top;
    marginWidth = tableStyle->margin.top;
 
-   collapseCellAttrs = *(html->style ());
+   collapseCellAttrs = *(html->styleEngine->getStyle (html->bw));
    collapseCellAttrs.margin.setVal (0);
    collapseCellAttrs.borderWidth.left = 0;
    collapseCellAttrs.borderWidth.top = 0;
@@ -331,7 +331,7 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
       /* CSS2 17.6.2: table does not have padding (in collapsing mode) */
       collapseTableAttrs.padding.setVal (0);
       collapseStyle = Style::create(&collapseTableAttrs);
-      ((dw::Table*)S_TOP(html)->table)->setStyle (collapseStyle);
+      ((dw::Table*)TopOfParsingStack(html)->table)->setStyle (collapseStyle);
    }
 }
 
@@ -344,7 +344,7 @@ static void Html_set_separate_border_model(DilloHtml *html, Widget *col_tb)
    dw::core::style::Style *separateStyle;
    dw::core::style::StyleAttrs separateCellAttrs;
 
-   separateCellAttrs = *(html->style ());
+   separateCellAttrs = *(html->styleEngine->getStyle (html->bw));
    /* CSS2 17.5: Internal table elements do not have margins */
    separateCellAttrs.margin.setVal (0);
    separateStyle = Style::create(&separateCellAttrs);
@@ -363,7 +363,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
 
    html->styleEngine->inheritNonCssHints ();
 
-   switch (S_TOP(html)->table_mode) {
+   switch (TopOfParsingStack(html)->table_mode) {
    case DILLO_HTML_TABLE_MODE_NONE:
       return;
 
@@ -373,7 +373,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
    case DILLO_HTML_TABLE_MODE_TR:
    case DILLO_HTML_TABLE_MODE_TD:
       /* text style */
-      if (!S_TOP(html)->cell_text_align_set) {
+      if (!TopOfParsingStack(html)->cell_text_align_set) {
          html->styleEngine->setNonCssHint (CSS_PROPERTY_TEXT_ALIGN,
                                            CSS_TYPE_ENUM, text_align);
       }
@@ -421,7 +421,7 @@ static void Html_tag_content_table_cell(DilloHtml *html,
    const char *attrbuf;
    Widget *col_tb;
 
-   switch (S_TOP(html)->table_mode) {
+   switch (TopOfParsingStack(html)->table_mode) {
    case DILLO_HTML_TABLE_MODE_NONE:
       BUG_MSG("<t%c> outside <table>.",
               (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');
@@ -443,22 +443,22 @@ static void Html_tag_content_table_cell(DilloHtml *html,
       /* TODO: check errors? */
       if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "rowspan")))
          rowspan = MAX(1, strtol (attrbuf, NULL, 10));
-      if (html->style ()->textAlign
+      if (html->styleEngine->getStyle (html->bw)->textAlign
           == TEXT_ALIGN_STRING)
          col_tb = new dw::TableCell (
-                     ((dw::Table*)S_TOP(html)->table)->getCellRef (),
+                     ((dw::Table*)TopOfParsingStack(html)->table)->getCellRef (),
                      prefs.limit_text_width);
       else
          col_tb = new Textblock (prefs.limit_text_width);
 
-      if (html->style()->borderCollapse == BORDER_MODEL_COLLAPSE){
+      if (html->styleEngine->getStyle(html->bw)->borderCollapse == BORDER_MODEL_COLLAPSE){
          Html_set_collapsing_border_model(html, col_tb);
       } else {
          Html_set_separate_border_model(html, col_tb);
       }
 
-      ((dw::Table*)S_TOP(html)->table)->addCell (col_tb, colspan, rowspan);
-      S_TOP(html)->textblock = html->dw = col_tb;
+      ((dw::Table*)TopOfParsingStack(html)->table)->addCell (col_tb, colspan, rowspan);
+      TopOfParsingStack(html)->textblock = html->dw = col_tb;
       break;
 
    default:
@@ -466,5 +466,5 @@ static void Html_tag_content_table_cell(DilloHtml *html,
       break;
    }
 
-   S_TOP(html)->table_mode = DILLO_HTML_TABLE_MODE_TD;
+   TopOfParsingStack(html)->table_mode = DILLO_HTML_TABLE_MODE_TD;
 }
