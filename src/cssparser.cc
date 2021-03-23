@@ -43,7 +43,7 @@ using namespace dw::core::style;
 
 typedef struct {
    const char *symbol;
-   const CssValueType type[3];
+   const CssPropertyValueDataType type[3];
    const char *const *enum_symbols;
 } CssPropertyInfo;
 
@@ -146,124 +146,125 @@ static const char *const Css_word_spacing_enum_vals[] = {
    "normal", NULL
 };
 
-const CssPropertyInfo Css_property_info[CSS_PROPERTY_LAST] = {
-   {"background-attachment", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED},
+const CssPropertyInfo Css_property_info[CSS_PROPERTY_LAST] =
+   {
+    {"background-attachment", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
     Css_background_attachment_enum_vals},
-   {"background-color", {CSS_TYPE_COLOR, CSS_TYPE_UNUSED}, NULL},
-   {"background-image", {CSS_TYPE_URI, CSS_TYPE_UNUSED}, NULL},
-   {"background-position", {CSS_TYPE_BACKGROUND_POSITION, CSS_TYPE_UNUSED},
+   {"background-color", {CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED}, NULL},
+   {"background-image", {CssPropertyValueDataType::URI, CssPropertyValueDataType::UNUSED}, NULL},
+   {"background-position", {CssPropertyValueDataType::BACKGROUND_POSITION, CssPropertyValueDataType::UNUSED},
     NULL},
-   {"background-repeat", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED},
+   {"background-repeat", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
     Css_background_repeat_enum_vals},
-   {"border-bottom-color", {CSS_TYPE_ENUM, CSS_TYPE_COLOR, CSS_TYPE_UNUSED},
+   {"border-bottom-color", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},
     Css_border_color_enum_vals},
-   {"border-bottom-style", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED},
+   {"border-bottom-style", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
     Css_border_style_enum_vals},
-   {"border-bottom-width", {CSS_TYPE_ENUM, CSS_TYPE_LENGTH, CSS_TYPE_UNUSED},
+   {"border-bottom-width", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},
     Css_border_width_enum_vals},
-   {"border-collapse", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED},
+   {"border-collapse", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
     Css_border_collapse_enum_vals},
-   {"border-left-color", {CSS_TYPE_ENUM, CSS_TYPE_COLOR, CSS_TYPE_UNUSED},
+   {"border-left-color", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},
     Css_border_color_enum_vals},
-   {"border-left-style", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED},
+   {"border-left-style", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
     Css_border_style_enum_vals},
-   {"border-left-width", {CSS_TYPE_ENUM, CSS_TYPE_LENGTH, CSS_TYPE_UNUSED},
+   {"border-left-width", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},
     Css_border_width_enum_vals},
-   {"border-right-color", {CSS_TYPE_ENUM, CSS_TYPE_COLOR, CSS_TYPE_UNUSED},
+   {"border-right-color", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},
     Css_border_color_enum_vals},
-   {"border-right-style", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED},
+   {"border-right-style", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
     Css_border_style_enum_vals},
-   {"border-rigth-width", {CSS_TYPE_ENUM, CSS_TYPE_LENGTH, CSS_TYPE_UNUSED},
+   {"border-rigth-width", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},
     Css_border_width_enum_vals},
-   {"border-spacing", {CSS_TYPE_LENGTH, CSS_TYPE_UNUSED}, NULL},
-   {"border-top-color", {CSS_TYPE_ENUM, CSS_TYPE_COLOR, CSS_TYPE_UNUSED},
+   {"border-spacing", {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
+   {"border-top-color", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},
     Css_border_color_enum_vals},
-   {"border-top-style", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED},
+   {"border-top-style", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
     Css_border_style_enum_vals},
-   {"border-top-width", {CSS_TYPE_ENUM, CSS_TYPE_LENGTH, CSS_TYPE_UNUSED},
+   {"border-top-width", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},
     Css_border_width_enum_vals},
-   {"bottom", {CSS_TYPE_UNUSED}, NULL},
-   {"caption-side", {CSS_TYPE_UNUSED}, NULL},
-   {"clear", {CSS_TYPE_UNUSED}, NULL},
-   {"clip", {CSS_TYPE_UNUSED}, NULL},
-   {"color", {CSS_TYPE_COLOR, CSS_TYPE_UNUSED}, NULL},
-   {"content", {CSS_TYPE_STRING, CSS_TYPE_UNUSED}, NULL},
-   {"counter-increment", {CSS_TYPE_UNUSED}, NULL},
-   {"counter-reset", {CSS_TYPE_UNUSED}, NULL},
-   {"cursor", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED}, Css_cursor_enum_vals},
-   {"direction", {CSS_TYPE_UNUSED}, NULL},
-   {"display", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED}, Css_display_enum_vals},
-   {"empty-cells", {CSS_TYPE_UNUSED}, NULL},
-   {"float", {CSS_TYPE_UNUSED}, NULL},
-   {"font-family", {CSS_TYPE_SYMBOL, CSS_TYPE_UNUSED}, NULL},
-   {"font-size", {CSS_TYPE_ENUM, CSS_TYPE_LENGTH_PERCENTAGE, CSS_TYPE_UNUSED},
+   {"bottom", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"caption-side", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"clear", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"clip", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"color", {CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED}, NULL},
+   {"content", {CssPropertyValueDataType::STRING, CssPropertyValueDataType::UNUSED}, NULL},
+   {"counter-increment", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"counter-reset", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"cursor", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_cursor_enum_vals},
+   {"direction", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"display", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_display_enum_vals},
+   {"empty-cells", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"float", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"font-family", {CssPropertyValueDataType::SYMBOL, CssPropertyValueDataType::UNUSED}, NULL},
+   {"font-size", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::UNUSED},
     Css_font_size_enum_vals},
-   {"font-size-adjust", {CSS_TYPE_UNUSED}, NULL},
-   {"font-stretch", {CSS_TYPE_UNUSED}, NULL},
-   {"font-style", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED}, Css_font_style_enum_vals},
-   {"font-variant", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED},
+   {"font-size-adjust", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"font-stretch", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"font-style", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_font_style_enum_vals},
+   {"font-variant", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
     Css_font_variant_enum_vals},
-   {"font-weight", {CSS_TYPE_ENUM, CSS_TYPE_FONT_WEIGHT, CSS_TYPE_UNUSED},
+   {"font-weight", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::FONT_WEIGHT, CssPropertyValueDataType::UNUSED},
     Css_font_weight_enum_vals},
-   {"height", {CSS_TYPE_LENGTH_PERCENTAGE, CSS_TYPE_AUTO, CSS_TYPE_UNUSED}, NULL},
-   {"left", {CSS_TYPE_UNUSED}, NULL},
-   {"letter-spacing", {CSS_TYPE_ENUM, CSS_TYPE_SIGNED_LENGTH, CSS_TYPE_UNUSED},
+   {"height", {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
+   {"left", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"letter-spacing", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::UNUSED},
     Css_letter_spacing_enum_vals},
    {"line-height",
-    {CSS_TYPE_ENUM, CSS_TYPE_LENGTH_PERCENTAGE_NUMBER, CSS_TYPE_UNUSED},
+    {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER, CssPropertyValueDataType::UNUSED},
     Css_line_height_enum_vals},
-   {"list-style-image", {CSS_TYPE_UNUSED}, NULL},
-   {"list-style-position", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED},
+   {"list-style-image", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"list-style-position", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
     Css_list_style_position_enum_vals},
-   {"list-style-type", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED},
+   {"list-style-type", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
     Css_list_style_type_enum_vals},
    {"margin-bottom",
-    {CSS_TYPE_SIGNED_LENGTH, CSS_TYPE_AUTO, CSS_TYPE_UNUSED}, NULL},
+    {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
    {"margin-left",
-    {CSS_TYPE_SIGNED_LENGTH, CSS_TYPE_AUTO, CSS_TYPE_UNUSED}, NULL},
+    {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
    {"margin-right",
-    {CSS_TYPE_SIGNED_LENGTH, CSS_TYPE_AUTO, CSS_TYPE_UNUSED}, NULL},
+    {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
    {"margin-top",
-    {CSS_TYPE_SIGNED_LENGTH, CSS_TYPE_AUTO, CSS_TYPE_UNUSED}, NULL},
-   {"marker-offset", {CSS_TYPE_UNUSED}, NULL},
-   {"marks", {CSS_TYPE_UNUSED}, NULL},
-   {"max-height", {CSS_TYPE_UNUSED}, NULL},
-   {"max-width", {CSS_TYPE_UNUSED}, NULL},
-   {"min-height", {CSS_TYPE_UNUSED}, NULL},
-   {"min-width", {CSS_TYPE_UNUSED}, NULL},
-   {"outline-color", {CSS_TYPE_UNUSED}, NULL},
-   {"outline-style", {CSS_TYPE_UNUSED}, NULL},
-   {"outline-width", {CSS_TYPE_UNUSED}, NULL},
-   {"overflow", {CSS_TYPE_UNUSED}, NULL},
-   {"padding-bottom", {CSS_TYPE_LENGTH, CSS_TYPE_UNUSED}, NULL},
-   {"padding-left", {CSS_TYPE_LENGTH, CSS_TYPE_UNUSED}, NULL},
-   {"padding-right", {CSS_TYPE_LENGTH, CSS_TYPE_UNUSED}, NULL},
-   {"padding-top", {CSS_TYPE_LENGTH, CSS_TYPE_UNUSED}, NULL},
-   {"position", {CSS_TYPE_UNUSED}, NULL},
-   {"quotes", {CSS_TYPE_UNUSED}, NULL},
-   {"right", {CSS_TYPE_UNUSED}, NULL},
-   {"text-align", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED}, Css_text_align_enum_vals},
-   {"text-decoration", {CSS_TYPE_MULTI_ENUM, CSS_TYPE_UNUSED},
+    {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
+   {"marker-offset", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"marks", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"max-height", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"max-width", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"min-height", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"min-width", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"outline-color", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"outline-style", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"outline-width", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"overflow", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"padding-bottom", {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
+   {"padding-left", {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
+   {"padding-right", {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
+   {"padding-top", {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
+   {"position", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"quotes", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"right", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"text-align", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_text_align_enum_vals},
+   {"text-decoration", {CssPropertyValueDataType::MULTI_ENUM, CssPropertyValueDataType::UNUSED},
     Css_text_decoration_enum_vals},
-   {"text-indent", {CSS_TYPE_LENGTH_PERCENTAGE, CSS_TYPE_UNUSED}, NULL},
-   {"text-shadow", {CSS_TYPE_UNUSED}, NULL},
-   {"text-transform", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED},
+   {"text-indent", {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::UNUSED}, NULL},
+   {"text-shadow", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"text-transform", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
     Css_text_transform_enum_vals},
-   {"top", {CSS_TYPE_UNUSED}, NULL},
-   {"unicode-bidi", {CSS_TYPE_UNUSED}, NULL},
-   {"vertical-align",{CSS_TYPE_ENUM, CSS_TYPE_UNUSED},Css_vertical_align_vals},
-   {"visibility", {CSS_TYPE_UNUSED}, NULL},
-   {"white-space", {CSS_TYPE_ENUM, CSS_TYPE_UNUSED}, Css_white_space_vals},
-   {"width", {CSS_TYPE_LENGTH_PERCENTAGE, CSS_TYPE_AUTO, CSS_TYPE_UNUSED}, NULL},
-   {"word-spacing", {CSS_TYPE_ENUM, CSS_TYPE_SIGNED_LENGTH, CSS_TYPE_UNUSED},
+   {"top", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"unicode-bidi", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"vertical-align",{CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},Css_vertical_align_vals},
+   {"visibility", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"white-space", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_white_space_vals},
+   {"width", {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
+   {"word-spacing", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::UNUSED},
     Css_word_spacing_enum_vals},
-   {"z-index", {CSS_TYPE_UNUSED}, NULL},
+   {"z-index", {CssPropertyValueDataType::UNUSED}, NULL},
 
    /* These are extensions, for internal used, and never parsed. */
-   {"x-link", {CSS_TYPE_INTEGER, CSS_TYPE_UNUSED}, NULL},
-   {"x-colspan", {CSS_TYPE_INTEGER, CSS_TYPE_UNUSED}, NULL},
-   {"x-rowspan", {CSS_TYPE_INTEGER, CSS_TYPE_UNUSED}, NULL},
-   {"last", {CSS_TYPE_UNUSED}, NULL},
+   {"x-link", {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
+   {"x-colspan", {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
+   {"x-rowspan", {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
+   {"last", {CssPropertyValueDataType::UNUSED}, NULL},
 };
 
 typedef struct {
@@ -679,17 +680,17 @@ void CssParser::nextToken()
 }
 
 
-bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssValueType *type)
+bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataType *type)
 {
    int i, err = 1;
-   CssValueType savedType = *type;
+   CssPropertyValueDataType savedType = *type;
 
-   for (int j = 0; Css_property_info[prop].type[j] != CSS_TYPE_UNUSED; j++) {
+   for (int j = 0; Css_property_info[prop].type[j] != CssPropertyValueDataType::UNUSED; j++) {
       *type = Css_property_info[prop].type[j];
 
       switch (Css_property_info[prop].type[j]) {
 
-      case CSS_TYPE_ENUM:
+      case CssPropertyValueDataType::ENUM:
          if (ttype == CSS_TK_SYMBOL) {
             for (i = 0; Css_property_info[prop].enum_symbols[i]; i++)
                if (dStrAsciiCasecmp(tval,
@@ -698,7 +699,7 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssValueType *type)
          }
          break;
 
-      case CSS_TYPE_MULTI_ENUM:
+      case CssPropertyValueDataType::MULTI_ENUM:
          if (ttype == CSS_TK_SYMBOL) {
             if (dStrAsciiCasecmp(tval, "none") == 0) {
                return true;
@@ -712,7 +713,7 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssValueType *type)
          }
          break;
 
-      case CSS_TYPE_BACKGROUND_POSITION:
+      case CssPropertyValueDataType::BACKGROUND_POSITION:
          if (ttype == CSS_TK_SYMBOL &&
              (dStrAsciiCasecmp(tval, "center") == 0 ||
               dStrAsciiCasecmp(tval, "left") == 0 ||
@@ -721,23 +722,23 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssValueType *type)
               dStrAsciiCasecmp(tval, "bottom") == 0))
             return true;
          // Fall Through (lenght and percentage)
-      case CSS_TYPE_LENGTH_PERCENTAGE:
-      case CSS_TYPE_LENGTH_PERCENTAGE_NUMBER:
-      case CSS_TYPE_LENGTH:
+      case CssPropertyValueDataType::LENGTH_PERCENTAGE:
+      case CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER:
+      case CssPropertyValueDataType::LENGTH:
          if (tval[0] == '-')
             return false;
          // Fall Through
-      case CSS_TYPE_SIGNED_LENGTH:
+      case CssPropertyValueDataType::SIGNED_LENGTH:
          if (ttype == CSS_TK_DECINT || ttype == CSS_TK_FLOAT)
             return true;
          break;
 
-      case CSS_TYPE_AUTO:
+      case CssPropertyValueDataType::AUTO:
          if (ttype == CSS_TK_SYMBOL && dStrAsciiCasecmp(tval, "auto") == 0)
             return true;
          break;
 
-      case CSS_TYPE_COLOR:
+      case CssPropertyValueDataType::COLOR:
          if ((ttype == CSS_TK_COLOR ||
               ttype == CSS_TK_SYMBOL) &&
             (dStrAsciiCasecmp(tval, "rgb") == 0 ||
@@ -745,18 +746,18 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssValueType *type)
             return true;
          break;
 
-      case CSS_TYPE_STRING:
+      case CssPropertyValueDataType::STRING:
          if (ttype == CSS_TK_STRING)
             return true;
          break;
 
-      case CSS_TYPE_SYMBOL:
+      case CssPropertyValueDataType::SYMBOL:
          if (ttype == CSS_TK_SYMBOL ||
              ttype == CSS_TK_STRING)
             return true;
          break;
 
-      case CSS_TYPE_FONT_WEIGHT:
+      case CssPropertyValueDataType::FONT_WEIGHT:
          if (ttype == CSS_TK_DECINT) {
             i = strtol(tval, NULL, 10);
             if (i >= 100 && i <= 900)
@@ -764,14 +765,14 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssValueType *type)
          }
          break;
 
-      case CSS_TYPE_URI:
+      case CssPropertyValueDataType::URI:
          if (ttype == CSS_TK_SYMBOL &&
              dStrAsciiCasecmp(tval, "url") == 0)
             return true;
          break;
 
-      case CSS_TYPE_UNUSED:
-      case CSS_TYPE_INTEGER:
+      case CssPropertyValueDataType::UNUSED:
+      case CssPropertyValueDataType::INTEGER:
          /* Not used for parser values. */
       default:
          assert(false);
@@ -861,7 +862,7 @@ bool CssParser::parseRgbColor(int32_t *c) {
 }
 
 bool CssParser::parseValue(CssPropertyName prop,
-                           CssValueType type,
+                           CssPropertyValueDataType type,
                            CssPropertyValue *val)
 {
    CssLengthType lentype;
@@ -872,7 +873,7 @@ bool CssParser::parseValue(CssPropertyName prop,
    Dstr *dstr;
 
    switch (type) {
-   case CSS_TYPE_ENUM:
+   case CssPropertyValueDataType::ENUM:
       if (ttype == CSS_TK_SYMBOL) {
          for (i = 0; Css_property_info[prop].enum_symbols[i]; i++)
             if (dStrAsciiCasecmp(tval,
@@ -885,7 +886,7 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
       break;
 
-   case CSS_TYPE_MULTI_ENUM:
+   case CssPropertyValueDataType::MULTI_ENUM:
       val->intVal = 0;
       ret = true;
 
@@ -902,10 +903,10 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
       break;
 
-   case CSS_TYPE_LENGTH_PERCENTAGE:
-   case CSS_TYPE_LENGTH_PERCENTAGE_NUMBER:
-   case CSS_TYPE_LENGTH:
-   case CSS_TYPE_SIGNED_LENGTH:
+   case CssPropertyValueDataType::LENGTH_PERCENTAGE:
+   case CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER:
+   case CssPropertyValueDataType::LENGTH:
+   case CssPropertyValueDataType::SIGNED_LENGTH:
       if (ttype == CSS_TK_DECINT || ttype == CSS_TK_FLOAT) {
          fval = atof(tval);
          lentype = CSS_LENGTH_TYPE_NONE;
@@ -946,8 +947,8 @@ bool CssParser::parseValue(CssPropertyName prop,
                ret = false;
             }
          } else if (!spaceSeparated &&
-                    (type == CSS_TYPE_LENGTH_PERCENTAGE ||
-                     type == CSS_TYPE_LENGTH_PERCENTAGE_NUMBER) &&
+                    (type == CssPropertyValueDataType::LENGTH_PERCENTAGE ||
+                     type == CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER) &&
                     ttype == CSS_TK_CHAR &&
                     tval[0] == '%') {
             fval /= 100;
@@ -957,24 +958,24 @@ bool CssParser::parseValue(CssPropertyName prop,
          }
 
          /* Allow numbers without unit only for 0 or
-          * CSS_TYPE_LENGTH_PERCENTAGE_NUMBER
+          * CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER
           */
          if (lentype == CSS_LENGTH_TYPE_NONE &&
-            (type == CSS_TYPE_LENGTH_PERCENTAGE_NUMBER || fval == 0.0))
+            (type == CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER || fval == 0.0))
             ret = true;
 
          val->intVal = CSS_CREATE_LENGTH(fval, lentype);
       }
       break;
 
-   case CSS_TYPE_AUTO:
+   case CssPropertyValueDataType::AUTO:
       assert (ttype == CSS_TK_SYMBOL && !dStrAsciiCasecmp(tval, "auto"));
       ret = true;
       val->intVal = CSS_LENGTH_TYPE_AUTO;
       nextToken();
       break;
 
-   case CSS_TYPE_COLOR:
+   case CssPropertyValueDataType::COLOR:
       if (ttype == CSS_TK_COLOR) {
          int colorError = 1;
          val->intVal = hll_colorsStringToColor(tval, -1); colorError = 0;  /* TODO: set correct value of error flag colorError. */
@@ -1002,7 +1003,7 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
       break;
 
-   case CSS_TYPE_STRING:
+   case CssPropertyValueDataType::STRING:
       if (ttype == CSS_TK_STRING) {
          val->strVal = dStrdup(tval);
          ret = true;
@@ -1010,7 +1011,7 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
       break;
 
-   case CSS_TYPE_SYMBOL:
+   case CssPropertyValueDataType::SYMBOL:
       /* Read comma separated list of font family names */
       dstr = dStr_new("");
       while (ttype == CSS_TK_SYMBOL || ttype == CSS_TK_STRING ||
@@ -1030,7 +1031,7 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
       break;
 
-   case CSS_TYPE_FONT_WEIGHT:
+   case CssPropertyValueDataType::FONT_WEIGHT:
       ival = 0;
       if (ttype == CSS_TK_DECINT) {
          ival = strtol(tval, NULL, 10);
@@ -1046,7 +1047,7 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
       break;
 
-   case CSS_TYPE_URI:
+   case CssPropertyValueDataType::URI:
       if (ttype == CSS_TK_SYMBOL &&
           dStrAsciiCasecmp(tval, "url") == 0) {
          val->strVal = parseUrl();
@@ -1056,7 +1057,7 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
       break;
 
-   case CSS_TYPE_BACKGROUND_POSITION:
+   case CssPropertyValueDataType::BACKGROUND_POSITION:
       // 'background-position' consists of one or two values: vertical and
       // horizontal position; in most cases in this order. However, as long it
       // is unambigous, the order can be switched: "10px left" and "left 10px"
@@ -1071,7 +1072,7 @@ bool CssParser::parseValue(CssPropertyName prop,
       // they can be used for a horizontal (h[i]) or vertical (v[i]) position
       // (or both). When neither h[i] or v[i] is set, pos[i] is undefined.
       for (i = 0; i < 2; i++) {
-         CssValueType typeTmp;
+         CssPropertyValueDataType typeTmp;
          // tokenMatchesProperty will, for CSS_PROPERTY_BACKGROUND_POSITION,
          // work on both parts, since they are exchangable.
          if (tokenMatchesProperty (CSS_PROPERTY_BACKGROUND_POSITION,
@@ -1106,7 +1107,7 @@ bool CssParser::parseValue(CssPropertyName prop,
             } else {
                // We can assume <length> or <percentage> here ...
                CssPropertyValue valTmp;
-               if (parseValue(prop, CSS_TYPE_LENGTH_PERCENTAGE, &valTmp)) {
+               if (parseValue(prop, CssPropertyValueDataType::LENGTH_PERCENTAGE, &valTmp)) {
                   pos[i] = valTmp.intVal;
                   ret = true;
                } else
@@ -1147,11 +1148,11 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
       break;
 
-   case CSS_TYPE_UNUSED:
+   case CssPropertyValueDataType::UNUSED:
       /* nothing */
       break;
 
-   case CSS_TYPE_INTEGER:
+   case CssPropertyValueDataType::INTEGER:
       /* Not used for parser values. */
    default:
       assert(false);            /* not reached */
@@ -1196,13 +1197,13 @@ static int Css_shorthand_info_cmp(const void *a, const void *b)
 void CssParser::parseDeclaration(CssPropertyList *props,
                                  CssPropertyList *importantProps)
 {
-   CssPropertyInfo pi = {NULL, {CSS_TYPE_UNUSED}, NULL}, *pip;
+   CssPropertyInfo pi = {NULL, {CssPropertyValueDataType::UNUSED}, NULL}, *pip;
    CssShorthandInfo *sip;
-   CssValueType type = CSS_TYPE_UNUSED;
+   CssPropertyValueDataType type = CssPropertyValueDataType::UNUSED;
 
    CssPropertyName prop;
    CssPropertyValue val, dir_vals[4];
-   CssValueType dir_types[4];
+   CssPropertyValueDataType dir_types[4];
    bool found, weight;
    int sh_index, i, j, n;
    int dir_set[4][4] = {
@@ -1354,15 +1355,15 @@ void CssParser::parseDeclaration(CssPropertyList *props,
 
 bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
 {
-   CssSimpleSelector::SelectType selectType;
+   CssSelectorType selectorType;
 
    if (ttype == CSS_TK_SYMBOL) {
-      selector->setElement (a_Html_tag_index(tval));
+      selector->setSelectorElement(a_Html_tag_index(tval));
       nextToken();
       if (spaceSeparated)
          return true;
    } else if (ttype == CSS_TK_CHAR && tval[0] == '*') {
-      selector->setElement (CssSimpleSelector::ELEMENT_ANY);
+      selector->setSelectorElement(CssSimpleSelector::ELEMENT_ANY);
       nextToken();
       if (spaceSeparated)
          return true;
@@ -1376,18 +1377,18 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
    }
 
    do {
-      selectType = CssSimpleSelector::SELECT_NONE;
+      selectorType = CssSelectorType::NONE;
       if (ttype == CSS_TK_CHAR) {
          switch (tval[0]) {
          case '#':
-            selectType = CssSimpleSelector::SELECT_ID;
+            selectorType = CssSelectorType::ID;
             break;
          case '.':
-            selectType = CssSimpleSelector::SELECT_CLASS;
+            selectorType = CssSelectorType::CLASS;
             break;
          case ':':
-            selectType = CssSimpleSelector::SELECT_PSEUDO_CLASS;
-            if (selector->getPseudoClass ())
+            selectorType = CssSelectorType::PSEUDO_CLASS;
+            if (selector->getSelectorPseudoClass ())
                // pseudo class has been set already.
                // As dillo currently only supports :link and :visisted, a
                // selector with more than one pseudo class will never match.
@@ -1398,13 +1399,13 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
          }
       }
 
-      if (selectType != CssSimpleSelector::SELECT_NONE) {
+      if (selectorType != CssSelectorType::NONE) {
          nextToken();
          if (spaceSeparated)
             return false;
 
          if (ttype == CSS_TK_SYMBOL) {
-            selector->setSelect (selectType, tval);
+            selector->setSelector(selectorType, tval);
             nextToken();
          } else {
             return false; // don't accept classes or id's starting with integer
@@ -1412,7 +1413,7 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
          if (spaceSeparated)
             return true;
       }
-   } while (selectType != CssSimpleSelector::SELECT_NONE);
+   } while (selectorType != CssSelectorType::NONE);
 
    DEBUG_MSG(DEBUG_PARSE_LEVEL, "end of simple selector (%s, %s, %s, %d)\n",
       selector->id, selector->klass,

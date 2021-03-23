@@ -9,7 +9,7 @@ class DoctreeNode {
       DoctreeNode *sibling;
       DoctreeNode *lastChild;
       int num; // unique ascending id
-      int element;
+      int html_element_idx; /* Index to html.cc::Tags */
       lout::misc::SimpleVector<char*> *klass;
       const char *pseudo;
       const char *id;
@@ -21,7 +21,7 @@ class DoctreeNode {
          klass = NULL;
          pseudo = NULL;
          id = NULL;
-         element = 0;
+         html_element_idx = 0;
       };
 
       ~DoctreeNode () {

@@ -322,7 +322,7 @@ void a_Html_tag_set_align_attr(DilloHtml *html, const char *tag, int tagsize)
             style_attrs.textAlignChar = '.';
       }
 #endif
-      html->styleEngine->setNonCssHint(CSS_PROPERTY_TEXT_ALIGN, CSS_TYPE_ENUM,
+      html->styleEngine->setNonCssHint(CSS_PROPERTY_TEXT_ALIGN, CssPropertyValueDataType::ENUM,
                                        textAlignType);
    }
 }
@@ -350,7 +350,7 @@ bool a_Html_tag_set_valign_attr(DilloHtml *html, const char *tag, int tagsize)
          valign = VALIGN_MIDDLE;
 
       html->styleEngine->setNonCssHint (CSS_PROPERTY_VERTICAL_ALIGN,
-                                        CSS_TYPE_ENUM, valign);
+                                        CssPropertyValueDataType::ENUM, valign);
       return true;
    } else
       return false;
@@ -1688,7 +1688,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 
       if (color != -1)
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BACKGROUND_COLOR,
-                                           CSS_TYPE_COLOR, color);
+                                           CssPropertyValueDataType::COLOR, color);
    }
 
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "text"))) {
@@ -1699,7 +1699,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 
       if (color != -1)
          html->styleEngine->setNonCssHint (CSS_PROPERTY_COLOR,
-                                           CSS_TYPE_COLOR, color);
+                                           CssPropertyValueDataType::COLOR, color);
    }
 
    html->styleEngine->restyle (html->bw);
@@ -1737,7 +1737,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    html->styleEngine->startElement (tag_index_a, html->bw);
    html->styleEngine->setPseudoVisited ();
    if (html->non_css_visited_color != -1) {
-      html->styleEngine->setNonCssHint (CSS_PROPERTY_COLOR, CSS_TYPE_COLOR,
+      html->styleEngine->setNonCssHint (CSS_PROPERTY_COLOR, CssPropertyValueDataType::COLOR,
                                         html->non_css_visited_color);
    }
    html->visited_color = html->styleEngine->getStyle (html->bw)->color->getColor ();
@@ -1802,7 +1802,7 @@ static void Html_tag_open_frame (DilloHtml *html, const char *tag, int tagsize)
       html->styleEngine->setPseudoLink ();
    }
 
-   html->styleEngine->setNonCssHint (PROPERTY_X_LINK, CSS_TYPE_INTEGER,
+   html->styleEngine->setNonCssHint (PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
                                      Html_set_new_link(html,&url));
 }
 
@@ -1898,13 +1898,13 @@ static void Html_tag_open_font(DilloHtml *html, const char *tag, int tagsize)
       }
       if (color != -1)
          html->styleEngine->setNonCssHint (CSS_PROPERTY_COLOR,
-                                           CSS_TYPE_COLOR, color);
+                                           CssPropertyValueDataType::COLOR, color);
    }
 
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "face"))) {
       fontFamily = dStrdup(attrbuf);
        html->styleEngine->setNonCssHint (CSS_PROPERTY_FONT_FAMILY,
-                                         CSS_TYPE_SYMBOL, fontFamily);
+                                         CssPropertyValueDataType::SYMBOL, fontFamily);
    }
 
    dFree(fontFamily);
@@ -1922,7 +1922,7 @@ static void Html_tag_open_abbr(DilloHtml *html, const char *tag, int tagsize)
    if (prefs.show_tooltip &&
        (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
 
-      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CSS_TYPE_STRING,
+      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
                                         attrbuf);
    }
 }
@@ -1940,7 +1940,7 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
 
    if (prefs.show_tooltip &&
        (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
-      html->styleEngine->setNonCssHint(PROPERTY_X_TOOLTIP, CSS_TYPE_STRING,
+      html->styleEngine->setNonCssHint(PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
                                        attrbuf);
    }
    width_ptr = a_Html_get_attr_wdef(html, tag, tagsize, "width", NULL);
@@ -1977,10 +1977,10 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
    } else {
       if (CSS_LENGTH_TYPE(l_w) != CSS_LENGTH_TYPE_AUTO)
          html->styleEngine->setNonCssHint (CSS_PROPERTY_WIDTH,
-                                           CSS_TYPE_LENGTH_PERCENTAGE, l_w);
+                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, l_w);
       if (CSS_LENGTH_TYPE(l_h) != CSS_LENGTH_TYPE_AUTO)
          html->styleEngine->setNonCssHint (CSS_PROPERTY_HEIGHT,
-                                           CSS_TYPE_LENGTH_PERCENTAGE, l_h);
+                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, l_h);
    }
 
    /* TODO: we should scale the image respecting its ratio.
@@ -1992,7 +1992,7 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
 
    /* x_img is an index to a list of {url,image} pairs.
     * We know a_Html_image_new() will use size() as its next index */
-   html->styleEngine->setNonCssHint (PROPERTY_X_IMG, CSS_TYPE_INTEGER,
+   html->styleEngine->setNonCssHint (PROPERTY_X_IMG, CssPropertyValueDataType::INTEGER,
                                      html->images->size());
 
 
@@ -2081,9 +2081,9 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
       if (space > 0) {
          space = CSS_CREATE_LENGTH(space, CSS_LENGTH_TYPE_PX);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_MARGIN_LEFT,
-                                           CSS_TYPE_LENGTH_PERCENTAGE, space);
+                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, space);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_MARGIN_RIGHT,
-                                           CSS_TYPE_LENGTH_PERCENTAGE, space);
+                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, space);
       }
    }
 
@@ -2093,9 +2093,9 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
       if (space > 0) {
          space = CSS_CREATE_LENGTH(space, CSS_LENGTH_TYPE_PX);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_MARGIN_TOP,
-                                           CSS_TYPE_LENGTH_PERCENTAGE, space);
+                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, space);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_MARGIN_BOTTOM,
-                                           CSS_TYPE_LENGTH_PERCENTAGE, space);
+                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, space);
       }
    }
 
@@ -2105,22 +2105,22 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
       if (border >= 0) {
          border = CSS_CREATE_LENGTH(border, CSS_LENGTH_TYPE_PX);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_TOP_WIDTH,
-                                           CSS_TYPE_LENGTH_PERCENTAGE, border);
+                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, border);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_BOTTOM_WIDTH,
-                                           CSS_TYPE_LENGTH_PERCENTAGE, border);
+                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, border);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_LEFT_WIDTH,
-                                           CSS_TYPE_LENGTH_PERCENTAGE, border);
+                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, border);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_RIGHT_WIDTH,
-                                           CSS_TYPE_LENGTH_PERCENTAGE, border);
+                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, border);
 
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_TOP_STYLE,
-                                           CSS_TYPE_ENUM, BORDER_SOLID);
+                                           CssPropertyValueDataType::ENUM, BORDER_SOLID);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_BOTTOM_STYLE,
-                                           CSS_TYPE_ENUM, BORDER_SOLID);
+                                           CssPropertyValueDataType::ENUM, BORDER_SOLID);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_LEFT_STYLE,
-                                           CSS_TYPE_ENUM, BORDER_SOLID);
+                                           CssPropertyValueDataType::ENUM, BORDER_SOLID);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_RIGHT_STYLE,
-                                           CSS_TYPE_ENUM, BORDER_SOLID);
+                                           CssPropertyValueDataType::ENUM, BORDER_SOLID);
       }
    }
 
@@ -2358,7 +2358,7 @@ static void Html_tag_open_object(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CSS_TYPE_INTEGER,
+      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
                                        Html_set_new_link(html, &url));
    }
    a_Url_free(base_url);
@@ -2396,7 +2396,7 @@ static void Html_tag_open_video(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CSS_TYPE_INTEGER,
+      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
                                        Html_set_new_link(html, &url));
 
       Html2TextBlock(html)->addText("[VIDEO]", html->styleEngine->getWordStyle (html->bw));
@@ -2428,7 +2428,7 @@ static void Html_tag_open_audio(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CSS_TYPE_INTEGER,
+      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
                                        Html_set_new_link(html, &url));
 
       Html2TextBlock(html)->addText("[AUDIO]", html->styleEngine->getWordStyle (html->bw));
@@ -2462,7 +2462,7 @@ static void Html_tag_open_source(DilloHtml *html, const char *tag,
       } else {
          html->styleEngine->setPseudoLink ();
       }
-      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CSS_TYPE_INTEGER,
+      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
                                        Html_set_new_link(html, &url));
    }
 }
@@ -2501,7 +2501,7 @@ static void Html_tag_open_embed(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CSS_TYPE_INTEGER,
+      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
                                        Html_set_new_link(html, &url));
    }
 }
@@ -2579,22 +2579,22 @@ static void Html_tag_open_a(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoVisited ();
          if (html->non_css_visited_color != -1)
             html->styleEngine->setNonCssHint(CSS_PROPERTY_COLOR,
-                                             CSS_TYPE_COLOR,
+                                             CssPropertyValueDataType::COLOR,
                                              html->non_css_visited_color);
       } else {
          html->styleEngine->setPseudoLink ();
          if (html->non_css_link_color != -1)
             html->styleEngine->setNonCssHint(CSS_PROPERTY_COLOR,
-                                             CSS_TYPE_COLOR,
+                                             CssPropertyValueDataType::COLOR,
                                              html->non_css_link_color);
       }
 
-      html->styleEngine->setNonCssHint (PROPERTY_X_LINK, CSS_TYPE_INTEGER,
+      html->styleEngine->setNonCssHint (PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
                                         Html_set_new_link(html, &url));
    }
    if (prefs.show_tooltip &&
        (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
-      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CSS_TYPE_STRING,
+      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
                                         attrbuf);
    }
 
@@ -2688,7 +2688,7 @@ static void Html_tag_open_ul(DilloHtml *html, const char *tag, int tagsize)
          list_style_type = LIST_STYLE_TYPE_DISC;
 
       html->styleEngine->setNonCssHint (CSS_PROPERTY_LIST_STYLE_TYPE,
-                                        CSS_TYPE_ENUM, list_style_type);
+                                        CssPropertyValueDataType::ENUM, list_style_type);
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<ul> type attribute is obsolete.");
    }
@@ -2755,7 +2755,7 @@ static void Html_tag_open_ol(DilloHtml *html, const char *tag, int tagsize)
          listStyleType = LIST_STYLE_TYPE_UPPER_ROMAN;
 
       html->styleEngine->setNonCssHint (CSS_PROPERTY_LIST_STYLE_TYPE,
-                                        CSS_TYPE_ENUM, listStyleType);
+                                        CssPropertyValueDataType::ENUM, listStyleType);
    }
 
    TopOfParsingStack(html)->list_type = HTML_LIST_ORDERED;
@@ -2819,7 +2819,7 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<hr> width attribute is obsolete.");
       html->styleEngine->setNonCssHint (CSS_PROPERTY_WIDTH,
-                                        CSS_TYPE_LENGTH_PERCENTAGE,
+                                        CssPropertyValueDataType::LENGTH_PERCENTAGE,
                                         a_Html_parse_length (html, width_ptr));
       dFree(width_ptr);
    }
@@ -2837,13 +2837,13 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<hr> noshade attribute is obsolete.");
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_TOP_STYLE,
-                                        CSS_TYPE_ENUM, BORDER_SOLID);
+                                        CssPropertyValueDataType::ENUM, BORDER_SOLID);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_BOTTOM_STYLE,
-                                        CSS_TYPE_ENUM, BORDER_SOLID);
+                                        CssPropertyValueDataType::ENUM, BORDER_SOLID);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_LEFT_STYLE,
-                                        CSS_TYPE_ENUM, BORDER_SOLID);
+                                        CssPropertyValueDataType::ENUM, BORDER_SOLID);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_RIGHT_STYLE,
-                                        CSS_TYPE_ENUM, BORDER_SOLID);
+                                        CssPropertyValueDataType::ENUM, BORDER_SOLID);
 
       if (size <= 0)
          size = 1;
@@ -2853,14 +2853,14 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
       CssLength size_top = CSS_CREATE_LENGTH ((size+1)/2, CSS_LENGTH_TYPE_PX);
       CssLength size_bottom = CSS_CREATE_LENGTH (size / 2, CSS_LENGTH_TYPE_PX);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_TOP_WIDTH,
-                                        CSS_TYPE_LENGTH_PERCENTAGE, size_top);
+                                        CssPropertyValueDataType::LENGTH_PERCENTAGE, size_top);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_LEFT_WIDTH,
-                                        CSS_TYPE_LENGTH_PERCENTAGE, size_top);
+                                        CssPropertyValueDataType::LENGTH_PERCENTAGE, size_top);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_BOTTOM_WIDTH,
-                                        CSS_TYPE_LENGTH_PERCENTAGE,
+                                        CssPropertyValueDataType::LENGTH_PERCENTAGE,
                                         size_bottom);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_RIGHT_WIDTH,
-                                        CSS_TYPE_LENGTH_PERCENTAGE,
+                                        CssPropertyValueDataType::LENGTH_PERCENTAGE,
                                         size_bottom);
    }
 
@@ -3238,7 +3238,7 @@ static void Html_tag_open_span(DilloHtml *html, const char *tag, int tagsize)
    if (prefs.show_tooltip &&
        (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
 
-      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CSS_TYPE_STRING,
+      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
                                         attrbuf);
    }
 }
@@ -3254,7 +3254,7 @@ static void Html_tag_open_sectioning(DilloHtml *html, const char *tag,
    if (prefs.show_tooltip &&
        (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
 
-      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CSS_TYPE_STRING,
+      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
                                         attrbuf);
    }
 }
@@ -3311,129 +3311,112 @@ static void Html_tag_content_wbr(DilloHtml *html, const char *tag, int tagsize)
  */
 
 const TagInfo Tags[] = {
- {"a", B8(011101),'R',2, Html_tag_open_a, NULL, Html_tag_close_a},
- {"abbr", B8(010101),'R',2, Html_tag_open_abbr, NULL, NULL},
+ {"a",                B8(011101), 'R', 2, Html_tag_open_a,           NULL,                        Html_tag_close_a},
+ {"abbr",             B8(010101), 'R', 2, Html_tag_open_abbr,        NULL,                        NULL},
  /* acronym 010101 -- obsolete in HTML5 */
- {"address", B8(010110),'R',2,Html_tag_open_default, NULL, Html_tag_close_par},
- {"area", B8(010001),'F',0, Html_tag_open_default, Html_tag_content_area,
-                            NULL},
- {"article", B8(011110),'R',2, Html_tag_open_sectioning, NULL, NULL},
- {"aside", B8(011110),'R',2, Html_tag_open_sectioning, NULL, NULL},
- {"audio", B8(011101),'R',2, Html_tag_open_audio, NULL, Html_tag_close_media},
- {"b", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"base", B8(100001),'F',0, Html_tag_open_base, NULL, NULL},
+ {"address",          B8(010110), 'R', 2, Html_tag_open_default,     NULL,                        Html_tag_close_par},
+ {"area",             B8(010001), 'F', 0, Html_tag_open_default,     Html_tag_content_area,       NULL},
+ {"article",          B8(011110), 'R', 2, Html_tag_open_sectioning,  NULL,                        NULL},
+ {"aside",            B8(011110), 'R', 2, Html_tag_open_sectioning,  NULL,                        NULL},
+ {"audio",            B8(011101), 'R', 2, Html_tag_open_audio,       NULL,                        Html_tag_close_media},
+ {"b",                B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"base",             B8(100001), 'F', 0, Html_tag_open_base,        NULL,                        NULL},
  /* basefont 010001 -- obsolete in HTML5 */
  /* bdo 010101 */
- {"big", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"blockquote", B8(011110),'R',2, Html_tag_open_blockquote, NULL,
-                                  NULL},
- {"body", B8(011110),'O',1, Html_tag_open_body, NULL, Html_tag_close_body},
- {"br", B8(010001),'F',0, Html_tag_open_default, Html_tag_content_br,
-                          NULL},
- {"button", B8(011101),'R',2, Html_tag_open_button,NULL,Html_tag_close_button},
+ {"big",              B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"blockquote",       B8(011110), 'R', 2, Html_tag_open_blockquote,  NULL,                        NULL},
+ {"body",             B8(011110), 'O', 1, Html_tag_open_body,        NULL,                        Html_tag_close_body},
+ {"br",               B8(010001), 'F', 0, Html_tag_open_default,     Html_tag_content_br,         NULL},
+ {"button",           B8(011101), 'R', 2, Html_tag_open_button,      NULL,                        Html_tag_close_button},
  /* caption */
- {"center", B8(011110),'R',2, Html_tag_open_default, NULL, NULL},
- {"cite", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"code", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
+ {"center",           B8(011110), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"cite",             B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"code",             B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
  /* col 010010 'F' */
  /* colgroup */
- {"dd", B8(011110),'O',1, Html_tag_open_dd, NULL, NULL},
- {"del", B8(011101),'R',2, Html_tag_open_default, NULL, NULL},
- {"dfn", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"dir", B8(011010),'R',2, Html_tag_open_dir, NULL, Html_tag_close_par},
+ {"dd",               B8(011110), 'O', 1, Html_tag_open_dd,          NULL,                        NULL},
+ {"del",              B8(011101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"dfn",              B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"dir",              B8(011010), 'R', 2, Html_tag_open_dir,         NULL,                        Html_tag_close_par},
  /* TODO: complete <div> support! */
- {"div", B8(011110),'R',2, Html_tag_open_div, NULL, NULL},
- {"dl", B8(011010),'R',2, Html_tag_open_dl, NULL, Html_tag_close_par},
- {"dt", B8(010110),'O',1, Html_tag_open_dt, NULL, Html_tag_close_par},
- {"em", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"embed", B8(010001),'F',0, Html_tag_open_embed, Html_tag_content_embed,NULL},
+ {"div",              B8(011110), 'R', 2, Html_tag_open_div,         NULL,                        NULL},
+ {"dl",               B8(011010), 'R', 2, Html_tag_open_dl,          NULL,                        Html_tag_close_par},
+ {"dt",               B8(010110), 'O', 1, Html_tag_open_dt,          NULL,                        Html_tag_close_par},
+ {"em",               B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"embed",            B8(010001), 'F', 0, Html_tag_open_embed,       Html_tag_content_embed,      NULL},
  /* fieldset */
- {"figcaption", B8(011110),'R',2, Html_tag_open_default, NULL, NULL},
- {"figure", B8(011110),'R',2, Html_tag_open_default, NULL, NULL},
- {"font", B8(010101),'R',2, Html_tag_open_font, NULL, NULL},
- {"footer", B8(011110),'R',2, Html_tag_open_sectioning, NULL, NULL},
- {"form", B8(011110),'R',2, Html_tag_open_form, NULL, Html_tag_close_form},
- {"frame", B8(010010),'F',0, Html_tag_open_frame, Html_tag_content_frame,
-                             NULL},
- {"frameset", B8(011110),'R',2, Html_tag_open_default,
-                                Html_tag_content_frameset, NULL},
- {"h1", B8(010110),'R',2, Html_tag_open_h, NULL, NULL},
- {"h2", B8(010110),'R',2, Html_tag_open_h, NULL, NULL},
- {"h3", B8(010110),'R',2, Html_tag_open_h, NULL, NULL},
- {"h4", B8(010110),'R',2, Html_tag_open_h, NULL, NULL},
- {"h5", B8(010110),'R',2, Html_tag_open_h, NULL, NULL},
- {"h6", B8(010110),'R',2, Html_tag_open_h, NULL, NULL},
- {"head", B8(101101),'O',1, Html_tag_open_head, NULL, Html_tag_close_head},
- {"header", B8(011110),'R',2, Html_tag_open_sectioning, NULL, NULL},
- {"hr", B8(010010),'F',0, Html_tag_open_hr, Html_tag_content_hr,
-                          NULL},
- {"html", B8(001110),'O',1, Html_tag_open_html, NULL, Html_tag_close_html},
- {"i", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"iframe", B8(011110),'R',2, Html_tag_open_frame, Html_tag_content_frame,
-                              NULL},
- {"img", B8(010001),'F',0, Html_tag_open_img, Html_tag_content_img,
-                           NULL},
- {"input", B8(010001),'F',0, Html_tag_open_input, NULL, NULL},
- {"ins", B8(011101),'R',2, Html_tag_open_default, NULL, NULL},
- {"isindex", B8(110001),'F',0, Html_tag_open_isindex, NULL, NULL},
- {"kbd", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
+ {"figcaption",       B8(011110), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"figure",           B8(011110), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"font",             B8(010101), 'R', 2, Html_tag_open_font,        NULL,                        NULL},
+ {"footer",           B8(011110), 'R', 2, Html_tag_open_sectioning,  NULL,                        NULL},
+ {"form",             B8(011110), 'R', 2, Html_tag_open_form,        NULL,                        Html_tag_close_form},
+ {"frame",            B8(010010), 'F', 0, Html_tag_open_frame,       Html_tag_content_frame,      NULL},
+ {"frameset",         B8(011110), 'R', 2, Html_tag_open_default,     Html_tag_content_frameset,   NULL},
+ {"h1",               B8(010110), 'R', 2, Html_tag_open_h,           NULL,                        NULL},
+ {"h2",               B8(010110), 'R', 2, Html_tag_open_h,           NULL,                        NULL},
+ {"h3",               B8(010110), 'R', 2, Html_tag_open_h,           NULL,                        NULL},
+ {"h4",               B8(010110), 'R', 2, Html_tag_open_h,           NULL,                        NULL},
+ {"h5",               B8(010110), 'R', 2, Html_tag_open_h,           NULL,                        NULL},
+ {"h6",               B8(010110), 'R', 2, Html_tag_open_h,           NULL,                        NULL},
+ {"head",             B8(101101), 'O', 1, Html_tag_open_head,        NULL,                        Html_tag_close_head},
+ {"header",           B8(011110), 'R', 2, Html_tag_open_sectioning,  NULL,                        NULL},
+ {"hr",               B8(010010), 'F', 0, Html_tag_open_hr,          Html_tag_content_hr,         NULL},
+ {"html",             B8(001110), 'O', 1, Html_tag_open_html,        NULL,                        Html_tag_close_html},
+ {"i",                B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"iframe",           B8(011110), 'R', 2, Html_tag_open_frame,       Html_tag_content_frame,      NULL},
+ {"img",              B8(010001), 'F', 0, Html_tag_open_img,         Html_tag_content_img,        NULL},
+ {"input",            B8(010001), 'F', 0, Html_tag_open_input,       NULL,                        NULL},
+ {"ins",              B8(011101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"isindex",          B8(110001), 'F', 0, Html_tag_open_isindex,     NULL,                        NULL},
+ {"kbd",              B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
  /* label 010101 */
  /* legend 01?? */
- {"li", B8(011110),'O',1, Html_tag_open_li, NULL, Html_tag_close_li},
- {"link", B8(100001),'F',0, Html_tag_open_link, NULL, NULL},
- {"map", B8(011001),'R',2, Html_tag_open_default, Html_tag_content_map,
-                           Html_tag_close_map},
- {"mark", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
+ {"li",               B8(011110), 'O', 1, Html_tag_open_li,          NULL,                        Html_tag_close_li},
+ {"link",             B8(100001), 'F', 0, Html_tag_open_link,        NULL,                        NULL},
+ {"map",              B8(011001), 'R', 2, Html_tag_open_default,     Html_tag_content_map,        Html_tag_close_map},
+ {"mark",             B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
  /* menu 1010 -- TODO: not exactly 1010, it can contain LI and inline */
- {"menu", B8(011010),'R',2, Html_tag_open_menu, NULL, Html_tag_close_par},
- {"meta", B8(110001),'F',0, Html_tag_open_meta, NULL, NULL},
- {"nav", B8(011110),'R',2, Html_tag_open_sectioning, NULL, NULL},
+ {"menu",             B8(011010), 'R', 2, Html_tag_open_menu,        NULL,                        Html_tag_close_par},
+ {"meta",             B8(110001), 'F', 0, Html_tag_open_meta,        NULL,                        NULL},
+ {"nav",              B8(011110), 'R', 2, Html_tag_open_sectioning,  NULL,                        NULL},
  /* noframes 1011 -- obsolete in HTML5 */
  /* noscript 1011 */
- {"object", B8(111101),'R',2, Html_tag_open_object, Html_tag_content_object,
-                              NULL},
- {"ol", B8(011010),'R',2, Html_tag_open_ol, NULL, NULL},
- {"optgroup", B8(010101),'O',1, Html_tag_open_optgroup, NULL,
-                                Html_tag_close_optgroup},
- {"option", B8(010001),'O',0, Html_tag_open_option,NULL,Html_tag_close_option},
- {"p", B8(010110),'O',1, Html_tag_open_p, NULL, NULL},
+ {"object",           B8(111101), 'R', 2, Html_tag_open_object,      Html_tag_content_object,     NULL},
+ {"ol",               B8(011010), 'R', 2, Html_tag_open_ol,          NULL,                        NULL},
+ {"optgroup",         B8(010101), 'O', 1, Html_tag_open_optgroup,    NULL,                        Html_tag_close_optgroup},
+ {"option",           B8(010001), 'O', 0, Html_tag_open_option,      NULL,                        Html_tag_close_option},
+ {"p",                B8(010110), 'O', 1, Html_tag_open_p,           NULL,                        NULL},
  /* param 010001 'F' */
- {"pre", B8(010110),'R',2, Html_tag_open_pre, NULL, Html_tag_close_pre},
- {"q", B8(010101),'R',2, Html_tag_open_q, NULL, Html_tag_close_q},
- {"s", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"samp", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"script", B8(111001),'R',2, Html_tag_open_script,NULL,Html_tag_close_script},
- {"section", B8(011110),'R',2, Html_tag_open_sectioning, NULL, NULL},
- {"select", B8(010101),'R',2, Html_tag_open_select,NULL,Html_tag_close_select},
- {"small", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"source", B8(010001),'F',0, Html_tag_open_source, Html_tag_content_source,
-                              NULL},
- {"span", B8(010101),'R',2, Html_tag_open_span, NULL, NULL},
- {"strike", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"strong", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"style", B8(100101),'R',2, Html_tag_open_style, NULL, Html_tag_close_style},
- {"sub", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"sup", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"table", B8(011010),'R',5, Html_tag_open_table, Html_tag_content_table,
-                             NULL},
+ {"pre",              B8(010110), 'R', 2, Html_tag_open_pre,         NULL,                        Html_tag_close_pre},
+ {"q",                B8(010101), 'R', 2, Html_tag_open_q,           NULL,                        Html_tag_close_q},
+ {"s",                B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"samp",             B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"script",           B8(111001), 'R', 2, Html_tag_open_script,      NULL,                        Html_tag_close_script},
+ {"section",          B8(011110), 'R', 2, Html_tag_open_sectioning,  NULL,                        NULL},
+ {"select",           B8(010101), 'R', 2, Html_tag_open_select,      NULL,                        Html_tag_close_select},
+ {"small",            B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"source",           B8(010001), 'F', 0, Html_tag_open_source,      Html_tag_content_source,     NULL},
+ {"span",             B8(010101), 'R', 2, Html_tag_open_span,        NULL,                        NULL},
+ {"strike",           B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"strong",           B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"style",            B8(100101), 'R', 2, Html_tag_open_style,       NULL,                        Html_tag_close_style},
+ {"sub",              B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"sup",              B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"table",            B8(011010), 'R', 5, Html_tag_open_table,       Html_tag_content_table,      NULL},
  /* tbody */
- {"td", B8(011110),'O',3, Html_tag_open_td, Html_tag_content_td,
-                          NULL},
- {"textarea", B8(010101),'R', 2, Html_tag_open_textarea,
-                          Html_tag_content_textarea, Html_tag_close_textarea},
+ {"td",               B8(011110), 'O', 3, Html_tag_open_td,          Html_tag_content_td,         NULL},
+ {"textarea",         B8(010101), 'R', 2, Html_tag_open_textarea,    Html_tag_content_textarea,   Html_tag_close_textarea},
  /* tfoot */
- {"th", B8(011110),'O',1, Html_tag_open_th, Html_tag_content_th,
-                          NULL},
+ {"th",               B8(011110), 'O', 1, Html_tag_open_th,          Html_tag_content_th,         NULL},
  /* thead */
- {"title", B8(100101),'R',2, Html_tag_open_title, NULL, Html_tag_close_title},
- {"tr", B8(011010),'O',4, Html_tag_open_tr, Html_tag_content_tr,
-                          NULL},
- {"tt", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"u", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"ul", B8(011010),'R',2, Html_tag_open_ul, NULL, NULL},
- {"var", B8(010101),'R',2, Html_tag_open_default, NULL, NULL},
- {"video", B8(011101),'R',2, Html_tag_open_video, NULL, Html_tag_close_media},
- {"wbr", B8(010101),'F',0, Html_tag_open_default, Html_tag_content_wbr, NULL}
+ {"title",            B8(100101), 'R', 2, Html_tag_open_title,       NULL,                        Html_tag_close_title},
+ {"tr",               B8(011010), 'O', 4, Html_tag_open_tr,          Html_tag_content_tr,         NULL},
+ {"tt",               B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"u",                B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"ul",               B8(011010), 'R', 2, Html_tag_open_ul,          NULL,                        NULL},
+ {"var",              B8(010101), 'R', 2, Html_tag_open_default,     NULL,                        NULL},
+ {"video",            B8(011101), 'R', 2, Html_tag_open_video,       NULL,                        Html_tag_close_media},
+ {"wbr",              B8(010101), 'F', 0, Html_tag_open_default,     Html_tag_content_wbr,        NULL}
 };
 #define NTAGS (sizeof(Tags)/sizeof(Tags[0]))
 
@@ -3475,6 +3458,15 @@ int a_Html_tag_index(const char *tag)
          return mid;
    }
    return -1;
+}
+
+/*
+ * Get 'tag' index
+ * return -1 if tag is not handled yet
+ */
+const char * a_Html_tag_name(int tag_idx)
+{
+   return Tags[tag_idx].name;
 }
 
 /*
@@ -3687,7 +3679,7 @@ static void Html_parse_common_attrs(DilloHtml *html, char *tag, int tagsize)
          strncpy(lang, attrbuf, 2);
    }
    if (lang[0])
-      html->styleEngine->setNonCssHint(PROPERTY_X_LANG, CSS_TYPE_STRING, lang);
+      html->styleEngine->setNonCssHint(PROPERTY_X_LANG, CssPropertyValueDataType::STRING, lang);
 }
 
 /*

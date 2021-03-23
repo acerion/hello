@@ -31,8 +31,8 @@ class CssParser {
       void ungetChar();
       void nextToken();
       bool skipString(int c, const char *string);
-      bool tokenMatchesProperty(CssPropertyName prop, CssValueType * type);
-      bool parseValue(CssPropertyName prop, CssValueType type,
+      bool tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataType * type);
+      bool parseValue(CssPropertyName prop, CssPropertyValueDataType type,
                       CssPropertyValue * val);
       bool parseWeight();
       bool parseRgbColorComponent(int32_t *cc, int *percentage);

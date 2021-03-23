@@ -20,38 +20,38 @@ typedef enum {
    CSS_ORIGIN_AUTHOR,
 } CssOrigin;
 
-typedef enum {
-   CSS_TYPE_INTEGER,            /* This type is only used internally, for x-*
+enum class CssPropertyValueDataType {
+   INTEGER,            /* This type is only used internally, for x-*
                                    properties. */
-   CSS_TYPE_ENUM,               /* Value is i, if represented by
+   ENUM,               /* Value is i, if represented by
                                    enum_symbols[i]. */
-   CSS_TYPE_MULTI_ENUM,         /* For all enum_symbols[i], 1 << i are
+   MULTI_ENUM,         /* For all enum_symbols[i], 1 << i are
                                    combined. */
-   CSS_TYPE_LENGTH_PERCENTAGE,  /* <length> or <percentage>. Represented by
+   LENGTH_PERCENTAGE,  /* <length> or <percentage>. Represented by
                                    CssLength. */
-   CSS_TYPE_LENGTH,             /* <length>, represented as CssLength.
+   LENGTH,             /* <length>, represented as CssLength.
                                    Note: In some cases, CSS_TYPE_LENGTH is used
                                    instead of CSS_TYPE_LENGTH_PERCENTAGE,
                                    only because Dw cannot handle percentages
                                    in this particular case (e.g.
                                    'margin-*-width'). */
-   CSS_TYPE_SIGNED_LENGTH,      /* As CSS_TYPE_LENGTH but may be negative. */
-   CSS_TYPE_LENGTH_PERCENTAGE_NUMBER,  /* <length> or <percentage>, or <number> */
-   CSS_TYPE_AUTO,               /* Represented as CssLength of type
+   SIGNED_LENGTH,      /* As CSS_TYPE_LENGTH but may be negative. */
+   LENGTH_PERCENTAGE_NUMBER,  /* <length> or <percentage>, or <number> */
+   AUTO,               /* Represented as CssLength of type
                                    CSS_LENGTH_TYPE_AUTO */
-   CSS_TYPE_COLOR,              /* Represented as integer. */
-   CSS_TYPE_FONT_WEIGHT,        /* this very special and only used by
+   COLOR,              /* Represented as integer. */
+   FONT_WEIGHT,        /* this very special and only used by
                                    'font-weight' */
-   CSS_TYPE_STRING,             /* <string> */
-   CSS_TYPE_SYMBOL,             /* Symbols, which are directly copied (as
-                                   opposed to CSS_TYPE_ENUM and
-                                   CSS_TYPE_MULTI_ENUM). Used for
+   STRING,             /* <string> */
+   SYMBOL,             /* Symbols, which are directly copied (as
+                                   opposed to CSS_PROPERTY_DATA_TYPE_ENUM and
+                                   CSS_PROPERTY_DATA_TYPE_MULTI_ENUM). Used for
                                    'font-family'. */
-   CSS_TYPE_URI,                /* <uri> */
-   CSS_TYPE_BACKGROUND_POSITION,
-   CSS_TYPE_UNUSED              /* Not yet used. Will itself get unused some
+   URI,                /* <uri> */
+   BACKGROUND_POSITION,
+   UNUSED              /* Not yet used. Will itself get unused some
                                    day. */
-} CssValueType;
+} ;
 
 /*
  * Lengths are represented as int in the following way:
@@ -286,19 +286,19 @@ typedef enum {
 class CssProperty {
    public:
 
-      short name;
-      short type;
-      CssPropertyValue value;
+      CssPropertyName property_name;
+      CssPropertyValueDataType property_data_type;
+      CssPropertyValue property_value;
 
       inline void free () {
-         switch (type) {
-            case CSS_TYPE_STRING:
-            case CSS_TYPE_SYMBOL:
-            case CSS_TYPE_URI:
-               dFree (value.strVal);
+         switch (this->property_data_type) {
+         case CssPropertyValueDataType::STRING:
+         case CssPropertyValueDataType::SYMBOL:
+         case CssPropertyValueDataType::URI:
+               dFree (this->property_value.strVal);
                break;
-            case CSS_TYPE_BACKGROUND_POSITION:
-               dFree (value.posVal);
+         case CssPropertyValueDataType::BACKGROUND_POSITION:
+               dFree (this->property_value.posVal);
             default:
                break;
          }
@@ -324,43 +324,49 @@ class CssPropertyList : public lout::misc::SimpleVector <CssProperty> {
       CssPropertyList(const CssPropertyList &p, bool deep = false);
       ~CssPropertyList ();
 
-      void set (CssPropertyName name, CssValueType type,
+      void set (CssPropertyName name, CssPropertyValueDataType type,
                 CssPropertyValue value);
-      void apply (CssPropertyList *props);
+      void apply_css_properties(CssPropertyList *props);
       bool isSafe () { return safe; };
       void printCssPropertyList ();
       inline void ref () { refCount++; }
       inline void unref () { if (--refCount == 0) delete this; }
 };
 
-class CssSimpleSelector {
-   private:
-      int element;
-      char *pseudo, *id;
-      lout::misc::SimpleVector <char *> klass;
+enum class CssSelectorType {
+   NONE,
+   CLASS,
+   PSEUDO_CLASS,
+   ID,
+};
 
-   public:
-      enum {
+
+class CssSimpleSelector {
+private:
+   int selector_element = ELEMENT_ANY; /* Index corresponding to html.cc::Tags[]. */
+   char * selector_pseudo_class = nullptr;
+   char * selector_id = nullptr;
+   lout::misc::SimpleVector <char *> selector_class;
+
+public:
+   enum {
          ELEMENT_NONE = -1,
          ELEMENT_ANY = -2,
       };
 
-      typedef enum {
-         SELECT_NONE,
-         SELECT_CLASS,
-         SELECT_PSEUDO_CLASS,
-         SELECT_ID,
-      } SelectType;
 
       CssSimpleSelector ();
       ~CssSimpleSelector ();
-      inline void setElement (int e) { element = e; };
-      void setSelect (SelectType t, const char *v);
-      inline lout::misc::SimpleVector <char *> *getClass () { return &klass; };
-      inline const char *getPseudoClass () { return pseudo; };
-      inline const char *getId () { return id; };
-      inline int getElement () { return element; };
-      bool match (const DoctreeNode *node);
+
+      inline void setSelectorElement(int e) { selector_element = e; };
+      void setSelector(CssSelectorType type, const char *value);
+
+      inline lout::misc::SimpleVector <char *> *getSelectorClass () { return &selector_class; };
+      inline const char *getSelectorPseudoClass () { return selector_pseudo_class; };
+      inline const char *getSelectorId () { return selector_id; };
+      inline int getSelectorElement() { return selector_element; };
+
+      bool simple_selector_matches(const DoctreeNode *node);
       int specificity ();
       void printCssSimpleSelector ();
 };
@@ -393,8 +399,8 @@ class CssSelector {
       int refCount, matchCacheOffset;
       lout::misc::SimpleVector <struct CombinatorAndSelector> selectorList;
 
-      bool match (Doctree *dt, const DoctreeNode *node, int i, Combinator comb,
-                  MatchCache *matchCache);
+      bool full_selector_matches(Doctree *dt, const DoctreeNode *node, int i, Combinator comb,
+                                 MatchCache *matchCache);
 
    public:
       CssSelector ();
@@ -404,10 +410,10 @@ class CssSelector {
          return selectorList.getRef (selectorList.size () - 1)->selector;
       }
       inline int size () { return selectorList.size (); };
-      inline bool match (Doctree *dt, const DoctreeNode *node,
+      inline bool full_selector_submatches(Doctree *dt, const DoctreeNode *node,
                          MatchCache *matchCache) {
-         return match (dt, node, selectorList.size () - 1, COMB_NONE,
-                       matchCache);
+         return full_selector_matches(dt, node, selectorList.size () - 1, COMB_NONE,
+                                      matchCache);
       }
       inline void setMatchCacheOffset (int mo) {
          if (matchCacheOffset == -1)
@@ -430,7 +436,7 @@ class CssSelector {
  */
 class CssRule {
    private:
-      CssPropertyList *css_properties;
+      CssPropertyList *css_properties = nullptr;
       int spec, pos;
 
    public:
@@ -439,20 +445,20 @@ class CssRule {
       CssRule (CssSelector *selector, CssPropertyList *props, int pos);
       ~CssRule ();
 
-      void apply (CssPropertyList *props, Doctree *docTree,
+      void apply_css_rule (CssPropertyList *props, Doctree *docTree,
                   const DoctreeNode *node, MatchCache *matchCache) const;
       inline bool isSafe () {
          return !selector->checksPseudoClass () || css_properties->isSafe ();
       };
       inline int specificity () { return spec; };
       inline int position () { return pos; };
-      void printCssRule ();
+      void printCssRule () const;
 };
 
 /**
  * \brief A list of CssRules.
  *
- * In apply () all matching rules are applied.
+ * In apply_style_sheet() all matching rules are applied.
  */
 class CssStyleSheet {
    private:
@@ -486,14 +492,15 @@ class CssStyleSheet {
        * embed.
        */
 
-      RuleList elementTable[ntags], anyTable;
+      RuleList elementTable[ntags];
+      RuleList anyTable;
       RuleMap idTable, classTable;
       int requiredMatchCache;
 
    public:
       CssStyleSheet () { requiredMatchCache = 0; }
       void addRule (CssRule *rule);
-      void apply (CssPropertyList *props, Doctree *docTree,
+      void apply_style_sheet(CssPropertyList *props, Doctree *docTree,
                   const DoctreeNode *node, MatchCache *matchCache) const;
       int getRequiredMatchCache () { return requiredMatchCache; }
 };
@@ -513,7 +520,7 @@ class CssContext {
 
       void addRule (CssSelector *sel, CssPropertyList *props,
                     CssPrimaryOrder order);
-      void apply (CssPropertyList *props,
+      void apply_css_context(CssPropertyList *props,
          Doctree *docTree, DoctreeNode *node,
          CssPropertyList *tagStyle, CssPropertyList *tagStyleImportant,
          CssPropertyList *nonCssHints);

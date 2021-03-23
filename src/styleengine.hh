@@ -43,7 +43,7 @@ class StyleEngine {
       void buildUserStyle ();
       dw::core::style::Style *getStyle0 (int i, BrowserWindow *bw);
       dw::core::style::Style *getWordStyle0 (BrowserWindow *bw);
-      inline void setNonCssHint(CssPropertyName name, CssValueType type,
+      inline void setNonCssHint(CssPropertyName name, CssPropertyValueDataType type,
                                 CssPropertyValue value) {
          Node *n = stack->getRef (stack->size () - 1);
 
@@ -82,13 +82,13 @@ class StyleEngine {
       void endElement (int tag);
       void setPseudoLink ();
       void setPseudoVisited ();
-      inline void setNonCssHint(CssPropertyName name, CssValueType type,
+      inline void setNonCssHint(CssPropertyName name, CssPropertyValueDataType type,
                                 int value) {
          CssPropertyValue v;
          v.intVal = value;
          setNonCssHint (name, type, v);
       }
-      inline void setNonCssHint(CssPropertyName name, CssValueType type,
+      inline void setNonCssHint(CssPropertyName name, CssPropertyValueDataType type,
                                 const char *value) {
          CssPropertyValue v;
          v.strVal = dStrdup(value);
