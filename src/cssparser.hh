@@ -5,32 +5,48 @@
 
 class DilloHtml;
 
+#define maxStrLen 256
+
+typedef enum {
+              CSS_TOKEN_TYPE_DECINT,   // [-1em]   -> [-1]       [60%;]  -> [60]      [1;]       -> [1]          [0,0,0,.8)] -> [0]
+              CSS_TOKEN_TYPE_FLOAT,    // [-0.4em] -> [-0.4]     [-.5em] -> [-.5]     [4.1667%;] -> [4.1667]
+              CSS_TOKEN_TYPE_COLOR,    // [#999;border] -> [#999]    [#E6E6E6;] -> [#E6E6E6]    [#000\9}] -> [#000]      [rgba(0,0,0,.8)] is split into sub-tokens
+              CSS_TOKEN_TYPE_SYMBOL,   //
+              CSS_TOKEN_TYPE_STRING,   // ['#00000000',] -> [#00000000] (quoted (') text)     ["\25B8";] -> [¸] (quoted (") text)       [ "";}DIV] -> [] (empty)
+              CSS_TOKEN_TYPE_CHAR,
+              CSS_TOKEN_TYPE_END       // End of input, no new tokens.
+} CssTokenType;
+
+struct CssToken {
+   CssTokenType type;
+   char value[maxStrLen];
+
+   const char *buf;
+   int buflen;
+   int buf_offset;
+};
+
+void nextToken(CssToken * tok, bool * spaceSeparated, bool withinBlock);
+int getChar(CssToken * tok);
+void ungetChar(CssToken * tok);
+bool skipString(CssToken * tok, int c, const char *string);
+
 class CssParser {
    private:
-      typedef enum {
-         CSS_TK_DECINT, CSS_TK_FLOAT, CSS_TK_COLOR, CSS_TK_SYMBOL,
-         CSS_TK_STRING, CSS_TK_CHAR, CSS_TK_END
-      } CssTokenType;
 
-      static const int maxStrLen = 256;
       CssContext *context;
       CssOrigin origin;
       const DilloUrl *baseUrl;
 
-      const char *buf;
-      int buflen, bufptr;
 
-      CssTokenType ttype;
-      char tval[maxStrLen];
+      CssToken token;
+
       bool withinBlock;
       bool spaceSeparated; /* used when parsing CSS selectors */
 
       CssParser(CssContext *context, CssOrigin origin, const DilloUrl *baseUrl,
                 const char *buf, int buflen);
-      int getChar();
-      void ungetChar();
-      void nextToken();
-      bool skipString(int c, const char *string);
+
       bool tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataType * type);
       bool parseValue(CssPropertyName prop, CssPropertyValueDataType type,
                       CssPropertyValue * val);

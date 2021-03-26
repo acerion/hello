@@ -146,125 +146,93 @@ static const char *const Css_word_spacing_enum_vals[] = {
    "normal", NULL
 };
 
-const CssPropertyInfo Css_property_info[CSS_PROPERTY_LAST] =
-   {
-    {"background-attachment", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
-    Css_background_attachment_enum_vals},
-   {"background-color", {CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED}, NULL},
-   {"background-image", {CssPropertyValueDataType::URI, CssPropertyValueDataType::UNUSED}, NULL},
-   {"background-position", {CssPropertyValueDataType::BACKGROUND_POSITION, CssPropertyValueDataType::UNUSED},
-    NULL},
-   {"background-repeat", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
-    Css_background_repeat_enum_vals},
-   {"border-bottom-color", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},
-    Css_border_color_enum_vals},
-   {"border-bottom-style", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
-    Css_border_style_enum_vals},
-   {"border-bottom-width", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},
-    Css_border_width_enum_vals},
-   {"border-collapse", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
-    Css_border_collapse_enum_vals},
-   {"border-left-color", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},
-    Css_border_color_enum_vals},
-   {"border-left-style", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
-    Css_border_style_enum_vals},
-   {"border-left-width", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},
-    Css_border_width_enum_vals},
-   {"border-right-color", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},
-    Css_border_color_enum_vals},
-   {"border-right-style", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
-    Css_border_style_enum_vals},
-   {"border-rigth-width", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},
-    Css_border_width_enum_vals},
-   {"border-spacing", {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
-   {"border-top-color", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},
-    Css_border_color_enum_vals},
-   {"border-top-style", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
-    Css_border_style_enum_vals},
-   {"border-top-width", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},
-    Css_border_width_enum_vals},
-   {"bottom", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"caption-side", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"clear", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"clip", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"color", {CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED}, NULL},
-   {"content", {CssPropertyValueDataType::STRING, CssPropertyValueDataType::UNUSED}, NULL},
-   {"counter-increment", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"counter-reset", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"cursor", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_cursor_enum_vals},
-   {"direction", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"display", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_display_enum_vals},
-   {"empty-cells", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"float", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"font-family", {CssPropertyValueDataType::SYMBOL, CssPropertyValueDataType::UNUSED}, NULL},
-   {"font-size", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::UNUSED},
-    Css_font_size_enum_vals},
-   {"font-size-adjust", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"font-stretch", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"font-style", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_font_style_enum_vals},
-   {"font-variant", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
-    Css_font_variant_enum_vals},
-   {"font-weight", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::FONT_WEIGHT, CssPropertyValueDataType::UNUSED},
-    Css_font_weight_enum_vals},
-   {"height", {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"left", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"letter-spacing", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::UNUSED},
-    Css_letter_spacing_enum_vals},
-   {"line-height",
-    {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER, CssPropertyValueDataType::UNUSED},
-    Css_line_height_enum_vals},
-   {"list-style-image", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"list-style-position", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
-    Css_list_style_position_enum_vals},
-   {"list-style-type", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
-    Css_list_style_type_enum_vals},
-   {"margin-bottom",
-    {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"margin-left",
-    {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"margin-right",
-    {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"margin-top",
-    {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"marker-offset", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"marks", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"max-height", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"max-width", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"min-height", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"min-width", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"outline-color", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"outline-style", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"outline-width", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"overflow", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"padding-bottom", {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
-   {"padding-left", {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
-   {"padding-right", {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
-   {"padding-top", {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
-   {"position", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"quotes", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"right", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"text-align", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_text_align_enum_vals},
-   {"text-decoration", {CssPropertyValueDataType::MULTI_ENUM, CssPropertyValueDataType::UNUSED},
-    Css_text_decoration_enum_vals},
-   {"text-indent", {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::UNUSED}, NULL},
-   {"text-shadow", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"text-transform", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},
-    Css_text_transform_enum_vals},
-   {"top", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"unicode-bidi", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"vertical-align",{CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},Css_vertical_align_vals},
-   {"visibility", {CssPropertyValueDataType::UNUSED}, NULL},
-   {"white-space", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_white_space_vals},
-   {"width", {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"word-spacing", {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::UNUSED},
-    Css_word_spacing_enum_vals},
-   {"z-index", {CssPropertyValueDataType::UNUSED}, NULL},
+const CssPropertyInfo Css_property_info[CSS_PROPERTY_LAST] = {
+   {"background-attachment",  {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},   Css_background_attachment_enum_vals},
+   {"background-color",       {CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED}, NULL},
+   {"background-image",       {CssPropertyValueDataType::URI, CssPropertyValueDataType::UNUSED}, NULL},
+   {"background-position",    {CssPropertyValueDataType::BACKGROUND_POSITION, CssPropertyValueDataType::UNUSED},     NULL},
+   {"background-repeat",      {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},     Css_background_repeat_enum_vals},
+   {"border-bottom-color",    {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},     Css_border_color_enum_vals},
+   {"border-bottom-style",    {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},     Css_border_style_enum_vals},
+   {"border-bottom-width",    {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},     Css_border_width_enum_vals},
+   {"border-collapse",        {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},     Css_border_collapse_enum_vals},
+   {"border-left-color",      {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},     Css_border_color_enum_vals},
+   {"border-left-style",      {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},     Css_border_style_enum_vals},
+   {"border-left-width",      {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},     Css_border_width_enum_vals},
+   {"border-right-color",     {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},     Css_border_color_enum_vals},
+   {"border-right-style",     {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_border_style_enum_vals},
+   {"border-rigth-width",     {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},    Css_border_width_enum_vals},
+   {"border-spacing",         {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
+   {"border-top-color",       {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},    Css_border_color_enum_vals},
+   {"border-top-style",       {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_border_style_enum_vals},
+   {"border-top-width",       {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},    Css_border_width_enum_vals},
+   {"bottom",                 {CssPropertyValueDataType::UNUSED}, NULL},
+   {"caption-side",           {CssPropertyValueDataType::UNUSED}, NULL},
+   {"clear",                  {CssPropertyValueDataType::UNUSED}, NULL},
+   {"clip",                   {CssPropertyValueDataType::UNUSED}, NULL},
+   {"color",                  {CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED}, NULL},
+   {"content",                {CssPropertyValueDataType::STRING, CssPropertyValueDataType::UNUSED}, NULL},
+   {"counter-increment",      {CssPropertyValueDataType::UNUSED}, NULL},
+   {"counter-reset",          {CssPropertyValueDataType::UNUSED}, NULL},
+   {"cursor",                 {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_cursor_enum_vals},
+   {"direction",              {CssPropertyValueDataType::UNUSED}, NULL},
+   {"display",                {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_display_enum_vals},
+   {"empty-cells",            {CssPropertyValueDataType::UNUSED}, NULL},
+   {"float",                  {CssPropertyValueDataType::UNUSED}, NULL},
+   {"font-family",            {CssPropertyValueDataType::SYMBOL, CssPropertyValueDataType::UNUSED}, NULL},
+   {"font-size",              {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::UNUSED},    Css_font_size_enum_vals},
+   {"font-size-adjust",       {CssPropertyValueDataType::UNUSED}, NULL},
+   {"font-stretch",           {CssPropertyValueDataType::UNUSED}, NULL},
+   {"font-style",             {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_font_style_enum_vals},
+   {"font-variant",           {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_font_variant_enum_vals},
+   {"font-weight",            {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::FONT_WEIGHT, CssPropertyValueDataType::UNUSED},    Css_font_weight_enum_vals},
+   {"height",                 {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
+   {"left",                   {CssPropertyValueDataType::UNUSED}, NULL},
+   {"letter-spacing",         {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::UNUSED},    Css_letter_spacing_enum_vals},
+   {"line-height",            {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER, CssPropertyValueDataType::UNUSED},    Css_line_height_enum_vals},
+   {"list-style-image",       {CssPropertyValueDataType::UNUSED}, NULL},
+   {"list-style-position",    {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_list_style_position_enum_vals},
+   {"list-style-type",        {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_list_style_type_enum_vals},
+   {"margin-bottom",          {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
+   {"margin-left",            {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
+   {"margin-right",           {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
+   {"margin-top",             {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
+   {"marker-offset",          {CssPropertyValueDataType::UNUSED}, NULL},
+   {"marks",                  {CssPropertyValueDataType::UNUSED}, NULL},
+   {"max-height",             {CssPropertyValueDataType::UNUSED}, NULL},
+   {"max-width",              {CssPropertyValueDataType::UNUSED}, NULL},
+   {"min-height",             {CssPropertyValueDataType::UNUSED}, NULL},
+   {"min-width",              {CssPropertyValueDataType::UNUSED}, NULL},
+   {"outline-color",          {CssPropertyValueDataType::UNUSED}, NULL},
+   {"outline-style",          {CssPropertyValueDataType::UNUSED}, NULL},
+   {"outline-width",          {CssPropertyValueDataType::UNUSED}, NULL},
+   {"overflow",               {CssPropertyValueDataType::UNUSED}, NULL},
+   {"padding-bottom",         {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
+   {"padding-left",           {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
+   {"padding-right",          {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
+   {"padding-top",            {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
+   {"position",               {CssPropertyValueDataType::UNUSED}, NULL},
+   {"quotes",                 {CssPropertyValueDataType::UNUSED}, NULL},
+   {"right",                  {CssPropertyValueDataType::UNUSED}, NULL},
+   {"text-align",             {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_text_align_enum_vals},
+   {"text-decoration",        {CssPropertyValueDataType::MULTI_ENUM, CssPropertyValueDataType::UNUSED},    Css_text_decoration_enum_vals},
+   {"text-indent",            {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::UNUSED}, NULL},
+   {"text-shadow",            {CssPropertyValueDataType::UNUSED}, NULL},
+   {"text-transform",         {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_text_transform_enum_vals},
+   {"top",                    {CssPropertyValueDataType::UNUSED}, NULL},
+   {"unicode-bidi",           {CssPropertyValueDataType::UNUSED}, NULL},
+   {"vertical-align",         {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},Css_vertical_align_vals},
+   {"visibility",             {CssPropertyValueDataType::UNUSED}, NULL},
+   {"white-space",            {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_white_space_vals},
+   {"width",                  {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
+   {"word-spacing",           {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::UNUSED},    Css_word_spacing_enum_vals},
+   {"z-index",                {CssPropertyValueDataType::UNUSED}, NULL},
 
    /* These are extensions, for internal used, and never parsed. */
-   {"x-link", {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
-   {"x-colspan", {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
-   {"x-rowspan", {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
-   {"last", {CssPropertyValueDataType::UNUSED}, NULL},
+   {"x-link",                 {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
+   {"x-colspan",              {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
+   {"x-rowspan",              {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
+   {"last",                   {CssPropertyValueDataType::UNUSED}, NULL},
 };
 
 typedef struct {
@@ -398,34 +366,20 @@ const CssPropertyName Css_font_properties[] = {
 };
 
 static const CssShorthandInfo Css_shorthand_info[] = {
-   {"background", CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,
-    Css_background_properties},
-   {"border", CssShorthandInfo::CSS_SHORTHAND_BORDER,
-    Css_border_properties},
-   {"border-bottom", CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,
-    Css_border_bottom_properties},
-   {"border-color", CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS,
-    Css_border_color_properties},
-   {"border-left", CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,
-    Css_border_left_properties},
-   {"border-right", CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,
-    Css_border_right_properties},
-   {"border-style", CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS,
-    Css_border_style_properties},
-   {"border-top", CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,
-    Css_border_top_properties},
-   {"border-width", CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS,
-    Css_border_width_properties},
-   {"font", CssShorthandInfo::CSS_SHORTHAND_FONT,
-    Css_font_properties},
-   {"list-style", CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,
-    Css_list_style_properties},
-   {"margin", CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS,
-    Css_margin_properties},
-   {"outline", CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,
-    Css_outline_properties},
-   {"padding", CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS,
-    Css_padding_properties},
+   {"background",     CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,      Css_background_properties},
+   {"border",         CssShorthandInfo::CSS_SHORTHAND_BORDER,        Css_border_properties},
+   {"border-bottom",  CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,      Css_border_bottom_properties},
+   {"border-color",   CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS,    Css_border_color_properties},
+   {"border-left",    CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,      Css_border_left_properties},
+   {"border-right",   CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,      Css_border_right_properties},
+   {"border-style",   CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS,    Css_border_style_properties},
+   {"border-top",     CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,      Css_border_top_properties},
+   {"border-width",   CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS,    Css_border_width_properties},
+   {"font",           CssShorthandInfo::CSS_SHORTHAND_FONT,          Css_font_properties},
+   {"list-style",     CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,      Css_list_style_properties},
+   {"margin",         CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS,    Css_margin_properties},
+   {"outline",        CssShorthandInfo::CSS_SHORTHAND_MULTIPLE,      Css_outline_properties},
+   {"padding",        CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS,    Css_padding_properties},
 };
 
 #define CSS_SHORTHAND_NUM \
@@ -441,40 +395,40 @@ CssParser::CssParser(CssContext *context, CssOrigin origin,
 {
    this->context = context;
    this->origin = origin;
-   this->buf = buf;
-   this->buflen = buflen;
-   this->bufptr = 0;
-   this->spaceSeparated = false;
+   this->token.buf = buf;
+   this->token.buflen = buflen;
+   this->token.buf_offset = 0;
    this->withinBlock = false;
+   this->spaceSeparated = false;
    this->baseUrl = baseUrl;
 
-   nextToken ();
+   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 }
 
 /*
  * Gets the next character from the buffer, or EOF.
  */
-int CssParser::getChar()
+int getChar(CssToken * token)
 {
    int c;
 
-   if (bufptr >= buflen)
+   if (token->buf_offset >= token->buflen)
       c = EOF;
    else
-      c = buf[bufptr];
+      c = token->buf[token->buf_offset];
 
    /* The buffer pointer is increased in any case, so that ungetChar works
     * correctly at the end of the buffer. */
-   bufptr++;
+   token->buf_offset++;
    return c;
 }
 
 /*
  * Undoes the last getChar().
  */
-void CssParser::ungetChar()
+void ungetChar(CssToken * tok)
 {
-   bufptr--;
+   tok->buf_offset--;
 }
 
 /*
@@ -483,15 +437,15 @@ void CssParser::ungetChar()
  * If not wind back. The first char is passed as parameter c
  * to avoid unnecessary getChar() / ungetChar() calls.
  */
-inline bool CssParser::skipString(int c, const char *str)
+inline bool skipString(CssToken * tok, int c, const char *str)
 {
    for (int n = 0; str[n]; n++) {
       if (n > 0)
-         c = getChar();
+         c = getChar(tok);
 
       if (str[n] != c) {
          while (n--)
-            ungetChar();
+            ungetChar(tok);
          return false;
       }
    }
@@ -499,133 +453,173 @@ inline bool CssParser::skipString(int c, const char *str)
    return true;
 }
 
-void CssParser::nextToken()
+void nextTokenInner(CssToken * tok, bool * spaceSeparated, bool withinBlock);
+void nextToken(CssToken * tok, bool * spaceSeparated, bool withinBlock)
 {
-   int c, c1, d, j;
-   char hexbuf[5];
-   int i = 0;
+   fprintf(stderr, "CSS tokenizer: buf before: [%s]\n", tok->buf + tok->buf_offset);
+   nextTokenInner(tok, spaceSeparated, withinBlock);
+   const char * type = NULL;
+   switch (tok->type) {
+   case CSS_TOKEN_TYPE_DECINT:
+      type = "decint";
+      break;
+   case CSS_TOKEN_TYPE_FLOAT:
+      type = "float";
+      break;
+   case CSS_TOKEN_TYPE_COLOR:
+      type = "color";
+      break;
+   case CSS_TOKEN_TYPE_SYMBOL:
+      type = "symbol";
+      break;
+   case CSS_TOKEN_TYPE_STRING:
+      type = "string";
+      break;
+   case CSS_TOKEN_TYPE_CHAR:
+      type = "char";
+      break;
+   case CSS_TOKEN_TYPE_END:
+      type = "end";
+      break;
+   default:
+      type = "unknown";
+      break;
+      }
 
-   ttype = CSS_TK_CHAR; /* init */
-   spaceSeparated = false;
+   fprintf(stderr, "CSS tokenizer: token type = %d (%s)\n", tok->type, type);
+   fprintf(stderr, "CSS tokenizer: token value = [%s]\n", tok->value);
+   fprintf(stderr, "CSS tokenizer: buf after: [%s]\n", tok->buf + tok->buf_offset);
+   fprintf(stderr, "CSS tokenizer: \n");
+   fprintf(stderr, "CSS tokenizer: \n");
+   fprintf(stderr, "CSS tokenizer: \n");
+}
 
+void nextTokenInner(CssToken * tok, bool * spaceSeparated, bool withinBlock)
+{
+   tok->type = CSS_TOKEN_TYPE_CHAR; /* init */
+   *spaceSeparated = false;
+
+   int c;
    while (true) {
-      c = getChar();
+      c = getChar(tok);
       if (isspace(c)) {                    // ignore whitespace
-         spaceSeparated = true;
-      } else if (skipString(c, "/*")) {    // ignore comments
+         *spaceSeparated = true;
+      } else if (skipString(tok, c, "/*")) {    // ignore comments
          do {
-            c = getChar();
-         } while (c != EOF && ! skipString(c, "*/"));
-      } else if (skipString(c, "<!--")) {  // ignore XML comment markers
-      } else if (skipString(c, "-->")) {
+            c = getChar(tok);
+         } while (c != EOF && ! skipString(tok, c, "*/"));
+      } else if (skipString(tok, c, "<!--")) {  // ignore XML comment markers
+      } else if (skipString(tok, c, "-->")) {
       } else {
          break;
       }
    }
 
+   int i = 0;
    // handle negative numbers
    if (c == '-') {
       if (i < maxStrLen - 1)
-         tval[i++] = c;
-      c = getChar();
+         tok->value[i++] = c;
+      c = getChar(tok);
    }
 
    if (isdigit(c)) {
-      ttype = CSS_TK_DECINT;
+      tok->type = CSS_TOKEN_TYPE_DECINT;
       do {
          if (i < maxStrLen - 1) {
-            tval[i++] = c;
+            tok->value[i++] = c;
          }
          /* else silently truncated */
-         c = getChar();
+         c = getChar(tok);
       } while (isdigit(c));
       if (c != '.')
-         ungetChar();
+         ungetChar(tok);
 
       /* ...but keep going to see whether it's really a float */
    }
 
    if (c == '.') {
-      c = getChar();
+      c = getChar(tok);
       if (isdigit(c)) {
-         ttype = CSS_TK_FLOAT;
+         tok->type = CSS_TOKEN_TYPE_FLOAT;
          if (i < maxStrLen - 1)
-            tval[i++] = '.';
+            tok->value[i++] = '.';
          do {
             if (i < maxStrLen - 1)
-               tval[i++] = c;
+               tok->value[i++] = c;
             /* else silently truncated */
-            c = getChar();
+            c = getChar(tok);
          } while (isdigit(c));
 
-         ungetChar();
-         tval[i] = 0;
-         DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token number %s\n", tval);
+         ungetChar(tok);
+         tok->value[i] = 0;
+         DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token number %s\n", tok->value);
          return;
       } else {
-         ungetChar();
-         if (ttype == CSS_TK_DECINT) {
-            ungetChar();
+         ungetChar(tok);
+         if (tok->type == CSS_TOKEN_TYPE_DECINT) {
+            ungetChar(tok);
          } else {
             c = '.';
          }
       }
    }
 
-   if (ttype == CSS_TK_DECINT) {
-      tval[i] = 0;
-      DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token number %s\n", tval);
+   if (tok->type == CSS_TOKEN_TYPE_DECINT) {
+      tok->value[i] = 0;
+      DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token number %s\n", tok->value);
       return;
    }
 
    if (i) {
-      ungetChar(); /* ungetChar '-' */
+      ungetChar(tok); /* ungetChar '-' */
       i--;
-      c = getChar();
+      c = getChar(tok);
    }
 
    if (isalpha(c) || c == '_' || c == '-') {
-      ttype = CSS_TK_SYMBOL;
+      tok->type = CSS_TOKEN_TYPE_SYMBOL;
 
-      tval[0] = c;
+      tok->value[0] = c;
       i = 1;
-      c = getChar();
+      c = getChar(tok);
       while (isalnum(c) || c == '_' || c == '-') {
          if (i < maxStrLen - 1) {
-            tval[i] = c;
+            tok->value[i] = c;
             i++;
          }                      /* else silently truncated */
-         c = getChar();
+         c = getChar(tok);
       }
-      tval[i] = 0;
-      ungetChar();
-      DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token symbol '%s'\n", tval);
+      tok->value[i] = 0;
+      ungetChar(tok);
+      DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token symbol '%s'\n", tok->value);
       return;
    }
 
    if (c == '"' || c == '\'') {
-      c1 = c;
-      ttype = CSS_TK_STRING;
+      int c1 = c;
+      tok->type = CSS_TOKEN_TYPE_STRING;
 
       i = 0;
-      c = getChar();
+      c = getChar(tok);
+      char hexbuf[5];
 
       while (c != EOF && c != c1) {
          if (c == '\\') {
-            d = getChar();
+            int d = getChar(tok);
             if (isxdigit(d)) {
                /* Read hex Unicode char. (Actually, strings are yet only 8
                 * bit.) */
                hexbuf[0] = d;
-               j = 1;
-               d = getChar();
+               int j = 1;
+               d = getChar(tok);
                while (j < 4 && isxdigit(d)) {
                   hexbuf[j] = d;
                   j++;
-                  d = getChar();
+                  d = getChar(tok);
                }
                hexbuf[j] = 0;
-               ungetChar();
+               ungetChar(tok);
                c = strtol(hexbuf, NULL, 16);
             } else {
                /* Take character literally. */
@@ -634,14 +628,14 @@ void CssParser::nextToken()
          }
 
          if (i < maxStrLen - 1) {
-            tval[i] = c;
+            tok->value[i] = c;
             i++;
          }                      /* else silently truncated */
-         c = getChar();
+         c = getChar(tok);
       }
-      tval[i] = 0;
+      tok->value[i] = 0;
       /* No ungetChar(). */
-      DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token string '%s'\n", tval);
+      DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token string '%s'\n", tok->value);
       return;
    }
 
@@ -649,33 +643,33 @@ void CssParser::nextToken()
     * Within blocks, '#' starts a color, outside, it is used in selectors.
     */
    if (c == '#' && withinBlock) {
-      ttype = CSS_TK_COLOR;
+      tok->type = CSS_TOKEN_TYPE_COLOR;
 
-      tval[0] = c;
+      tok->value[0] = c;
       i = 1;
-      c = getChar();
+      c = getChar(tok);
       while (isxdigit(c)) {
          if (i < maxStrLen - 1) {
-            tval[i] = c;
+            tok->value[i] = c;
             i++;
          }                      /* else silently truncated */
-         c = getChar();
+         c = getChar(tok);
       }
-      tval[i] = 0;
-      ungetChar();
-      DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token color '%s'\n", tval);
+      tok->value[i] = 0;
+      ungetChar(tok);
+      DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token color '%s'\n", tok->value);
       return;
    }
 
    if (c == EOF) {
       DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token %s\n", "EOF");
-      ttype = CSS_TK_END;
+      tok->type = CSS_TOKEN_TYPE_END;
       return;
    }
 
-   ttype = CSS_TK_CHAR;
-   tval[0] = c;
-   tval[1] = 0;
+   tok->type = CSS_TOKEN_TYPE_CHAR;
+   tok->value[0] = c;
+   tok->value[1] = 0;
    DEBUG_MSG(DEBUG_TOKEN_LEVEL, "token char '%c'\n", c);
 }
 
@@ -691,21 +685,21 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataT
       switch (Css_property_info[prop].type[j]) {
 
       case CssPropertyValueDataType::ENUM:
-         if (ttype == CSS_TK_SYMBOL) {
+         if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
             for (i = 0; Css_property_info[prop].enum_symbols[i]; i++)
-               if (dStrAsciiCasecmp(tval,
+               if (dStrAsciiCasecmp(token.value,
                      Css_property_info[prop].enum_symbols[i]) == 0)
                   return true;
          }
          break;
 
       case CssPropertyValueDataType::MULTI_ENUM:
-         if (ttype == CSS_TK_SYMBOL) {
-            if (dStrAsciiCasecmp(tval, "none") == 0) {
+         if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
+            if (dStrAsciiCasecmp(token.value, "none") == 0) {
                return true;
             } else {
                for (i = 0; Css_property_info[prop].enum_symbols[i]; i++) {
-                  if (dStrAsciiCasecmp(tval,
+                  if (dStrAsciiCasecmp(token.value,
                         Css_property_info[prop].enum_symbols[i]) == 0)
                      return true;
                }
@@ -714,60 +708,60 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataT
          break;
 
       case CssPropertyValueDataType::BACKGROUND_POSITION:
-         if (ttype == CSS_TK_SYMBOL &&
-             (dStrAsciiCasecmp(tval, "center") == 0 ||
-              dStrAsciiCasecmp(tval, "left") == 0 ||
-              dStrAsciiCasecmp(tval, "right") == 0 ||
-              dStrAsciiCasecmp(tval, "top") == 0 ||
-              dStrAsciiCasecmp(tval, "bottom") == 0))
+         if (token.type == CSS_TOKEN_TYPE_SYMBOL &&
+             (dStrAsciiCasecmp(token.value, "center") == 0 ||
+              dStrAsciiCasecmp(token.value, "left") == 0 ||
+              dStrAsciiCasecmp(token.value, "right") == 0 ||
+              dStrAsciiCasecmp(token.value, "top") == 0 ||
+              dStrAsciiCasecmp(token.value, "bottom") == 0))
             return true;
          // Fall Through (lenght and percentage)
       case CssPropertyValueDataType::LENGTH_PERCENTAGE:
       case CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER:
       case CssPropertyValueDataType::LENGTH:
-         if (tval[0] == '-')
+         if (token.value[0] == '-')
             return false;
          // Fall Through
       case CssPropertyValueDataType::SIGNED_LENGTH:
-         if (ttype == CSS_TK_DECINT || ttype == CSS_TK_FLOAT)
+         if (token.type == CSS_TOKEN_TYPE_DECINT || token.type == CSS_TOKEN_TYPE_FLOAT)
             return true;
          break;
 
       case CssPropertyValueDataType::AUTO:
-         if (ttype == CSS_TK_SYMBOL && dStrAsciiCasecmp(tval, "auto") == 0)
+         if (token.type == CSS_TOKEN_TYPE_SYMBOL && dStrAsciiCasecmp(token.value, "auto") == 0)
             return true;
          break;
 
       case CssPropertyValueDataType::COLOR:
-         if ((ttype == CSS_TK_COLOR ||
-              ttype == CSS_TK_SYMBOL) &&
-            (dStrAsciiCasecmp(tval, "rgb") == 0 ||
-             hll_colorsStringToColor(tval, -1) != -1))  /* TODO: set correct value of error flag err. */
+         if ((token.type == CSS_TOKEN_TYPE_COLOR ||
+              token.type == CSS_TOKEN_TYPE_SYMBOL) &&
+            (dStrAsciiCasecmp(token.value, "rgb") == 0 ||
+             hll_colorsStringToColor(token.value, -1) != -1))  /* TODO: set correct value of error flag err. */
             return true;
          break;
 
       case CssPropertyValueDataType::STRING:
-         if (ttype == CSS_TK_STRING)
+         if (token.type == CSS_TOKEN_TYPE_STRING)
             return true;
          break;
 
       case CssPropertyValueDataType::SYMBOL:
-         if (ttype == CSS_TK_SYMBOL ||
-             ttype == CSS_TK_STRING)
+         if (token.type == CSS_TOKEN_TYPE_SYMBOL ||
+             token.type == CSS_TOKEN_TYPE_STRING)
             return true;
          break;
 
       case CssPropertyValueDataType::FONT_WEIGHT:
-         if (ttype == CSS_TK_DECINT) {
-            i = strtol(tval, NULL, 10);
+         if (token.type == CSS_TOKEN_TYPE_DECINT) {
+            i = strtol(token.value, NULL, 10);
             if (i >= 100 && i <= 900)
                return true;
          }
          break;
 
       case CssPropertyValueDataType::URI:
-         if (ttype == CSS_TK_SYMBOL &&
-             dStrAsciiCasecmp(tval, "url") == 0)
+         if (token.type == CSS_TOKEN_TYPE_SYMBOL &&
+             dStrAsciiCasecmp(token.value, "url") == 0)
             return true;
          break;
 
@@ -785,22 +779,22 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataT
 }
 
 bool CssParser::parseRgbColorComponent(int32_t *cc, int *percentage) {
-   if (ttype != CSS_TK_DECINT) {
+   if (token.type != CSS_TOKEN_TYPE_DECINT) {
       MSG_CSS("expected integer not found in %s color\n", "rgb");
       return false;
    }
 
-   *cc = strtol(tval, NULL, 10);
+   *cc = strtol(token.value, NULL, 10);
 
-   nextToken();
-   if (ttype == CSS_TK_CHAR && tval[0] == '%') {
+   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+   if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '%') {
       if (*percentage == 0) {
          MSG_CSS("'%s' unexpected in rgb color\n", "%");
          return false;
       }
       *percentage = 1;
       *cc = *cc * 255 / 100;
-      nextToken();
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
    } else {
       if (*percentage == 1) {
          MSG_CSS("expected '%s' not found in rgb color\n", "%");
@@ -823,37 +817,37 @@ bool CssParser::parseRgbColor(int32_t *c) {
 
    *c = 0;
 
-   if (ttype != CSS_TK_CHAR || tval[0] != '(') {
+   if (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != '(') {
       MSG_CSS("expected '%s' not found in rgb color\n", "(");
       return false;
    }
-   nextToken();
+   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
    if (!parseRgbColorComponent(&cc, &percentage))
       return false;
    *c |= cc << 16;
 
-   if (ttype != CSS_TK_CHAR || tval[0] != ',') {
+   if (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != ',') {
       MSG_CSS("expected '%s' not found in rgb color\n", ",");
       return false;
    }
-   nextToken();
+   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
    if (!parseRgbColorComponent(&cc, &percentage))
       return false;
    *c |= cc << 8;
 
-   if (ttype != CSS_TK_CHAR || tval[0] != ',') {
+   if (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != ',') {
       MSG_CSS("expected '%s' not found in rgb color\n", ",");
       return false;
    }
-   nextToken();
+   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
    if (!parseRgbColorComponent(&cc, &percentage))
       return false;
    *c |= cc;
 
-   if (ttype != CSS_TK_CHAR || tval[0] != ')') {
+   if (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != ')') {
       MSG_CSS("expected '%s' not found in rgb color\n", ")");
       return false;
    }
@@ -874,15 +868,15 @@ bool CssParser::parseValue(CssPropertyName prop,
 
    switch (type) {
    case CssPropertyValueDataType::ENUM:
-      if (ttype == CSS_TK_SYMBOL) {
+      if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
          for (i = 0; Css_property_info[prop].enum_symbols[i]; i++)
-            if (dStrAsciiCasecmp(tval,
+            if (dStrAsciiCasecmp(token.value,
                             Css_property_info[prop].enum_symbols[i]) == 0) {
                val->intVal = i;
                ret = true;
                break;
             }
-         nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       }
       break;
 
@@ -890,16 +884,16 @@ bool CssParser::parseValue(CssPropertyName prop,
       val->intVal = 0;
       ret = true;
 
-      while (ttype == CSS_TK_SYMBOL) {
-         if (dStrAsciiCasecmp(tval, "none") != 0) {
+      while (token.type == CSS_TOKEN_TYPE_SYMBOL) {
+         if (dStrAsciiCasecmp(token.value, "none") != 0) {
             for (i = 0, found = false;
                  !found && Css_property_info[prop].enum_symbols[i]; i++) {
-               if (dStrAsciiCasecmp(tval,
+               if (dStrAsciiCasecmp(token.value,
                                Css_property_info[prop].enum_symbols[i]) == 0)
                   val->intVal |= (1 << i);
             }
          }
-         nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       }
       break;
 
@@ -907,54 +901,54 @@ bool CssParser::parseValue(CssPropertyName prop,
    case CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER:
    case CssPropertyValueDataType::LENGTH:
    case CssPropertyValueDataType::SIGNED_LENGTH:
-      if (ttype == CSS_TK_DECINT || ttype == CSS_TK_FLOAT) {
-         fval = atof(tval);
+      if (token.type == CSS_TOKEN_TYPE_DECINT || token.type == CSS_TOKEN_TYPE_FLOAT) {
+         fval = atof(token.value);
          lentype = CSS_LENGTH_TYPE_NONE;
 
-         nextToken();
-         if (!spaceSeparated && ttype == CSS_TK_SYMBOL) {
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         if (!spaceSeparated && token.type == CSS_TOKEN_TYPE_SYMBOL) {
             ret = true;
 
-            if (dStrAsciiCasecmp(tval, "px") == 0) {
+            if (dStrAsciiCasecmp(token.value, "px") == 0) {
                lentype = CSS_LENGTH_TYPE_PX;
-               nextToken();
-            } else if (dStrAsciiCasecmp(tval, "mm") == 0) {
+               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            } else if (dStrAsciiCasecmp(token.value, "mm") == 0) {
                lentype = CSS_LENGTH_TYPE_MM;
-               nextToken();
-            } else if (dStrAsciiCasecmp(tval, "cm") == 0) {
+               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            } else if (dStrAsciiCasecmp(token.value, "cm") == 0) {
                lentype = CSS_LENGTH_TYPE_MM;
                fval *= 10;
-               nextToken();
-            } else if (dStrAsciiCasecmp(tval, "in") == 0) {
+               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            } else if (dStrAsciiCasecmp(token.value, "in") == 0) {
                lentype = CSS_LENGTH_TYPE_MM;
                fval *= 25.4;
-               nextToken();
-            } else if (dStrAsciiCasecmp(tval, "pt") == 0) {
+               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            } else if (dStrAsciiCasecmp(token.value, "pt") == 0) {
                lentype = CSS_LENGTH_TYPE_MM;
                fval *= (25.4 / 72);
-               nextToken();
-            } else if (dStrAsciiCasecmp(tval, "pc") == 0) {
+               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            } else if (dStrAsciiCasecmp(token.value, "pc") == 0) {
                lentype = CSS_LENGTH_TYPE_MM;
                fval *= (25.4 / 6);
-               nextToken();
-            } else if (dStrAsciiCasecmp(tval, "em") == 0) {
+               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            } else if (dStrAsciiCasecmp(token.value, "em") == 0) {
                lentype = CSS_LENGTH_TYPE_EM;
-               nextToken();
-            } else if (dStrAsciiCasecmp(tval, "ex") == 0) {
+               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            } else if (dStrAsciiCasecmp(token.value, "ex") == 0) {
                lentype = CSS_LENGTH_TYPE_EX;
-               nextToken();
+               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
             } else {
                ret = false;
             }
          } else if (!spaceSeparated &&
                     (type == CssPropertyValueDataType::LENGTH_PERCENTAGE ||
                      type == CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER) &&
-                    ttype == CSS_TK_CHAR &&
-                    tval[0] == '%') {
+                    token.type == CSS_TOKEN_TYPE_CHAR &&
+                    token.value[0] == '%') {
             fval /= 100;
             lentype = CSS_LENGTH_TYPE_PERCENTAGE;
             ret = true;
-            nextToken();
+            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
          }
 
          /* Allow numbers without unit only for 0 or
@@ -969,58 +963,58 @@ bool CssParser::parseValue(CssPropertyName prop,
       break;
 
    case CssPropertyValueDataType::AUTO:
-      assert (ttype == CSS_TK_SYMBOL && !dStrAsciiCasecmp(tval, "auto"));
+      assert (token.type == CSS_TOKEN_TYPE_SYMBOL && !dStrAsciiCasecmp(token.value, "auto"));
       ret = true;
       val->intVal = CSS_LENGTH_TYPE_AUTO;
-      nextToken();
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       break;
 
    case CssPropertyValueDataType::COLOR:
-      if (ttype == CSS_TK_COLOR) {
+      if (token.type == CSS_TOKEN_TYPE_COLOR) {
          int colorError = 1;
-         val->intVal = hll_colorsStringToColor(tval, -1); colorError = 0;  /* TODO: set correct value of error flag colorError. */
+         val->intVal = hll_colorsStringToColor(token.value, -1); colorError = 0;  /* TODO: set correct value of error flag colorError. */
          if (colorError)
             MSG_CSS("color is not in \"%s\" format\n", "#RRGGBB");
          else
             ret = true;
-         nextToken();
-      } else if (ttype == CSS_TK_SYMBOL) {
-         if (dStrAsciiCasecmp(tval, "rgb") == 0) {
-            nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      } else if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
+         if (dStrAsciiCasecmp(token.value, "rgb") == 0) {
+            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
             if (parseRgbColor(&val->intVal))
                ret = true;
             else
                MSG_CSS("Failed to parse %s color\n", "rgb(r,g,b)");
          } else {
             int colorError = 1;
-            val->intVal = hll_colorsStringToColor(tval, -1); colorError = 0; /* TODO: set correct value of error flag colorError. */
+            val->intVal = hll_colorsStringToColor(token.value, -1); colorError = 0; /* TODO: set correct value of error flag colorError. */
             if (colorError)
                MSG_CSS("color is not in \"%s\" format\n", "#RRGGBB");
             else
                ret = true;
          }
-         nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       }
       break;
 
    case CssPropertyValueDataType::STRING:
-      if (ttype == CSS_TK_STRING) {
-         val->strVal = dStrdup(tval);
+      if (token.type == CSS_TOKEN_TYPE_STRING) {
+         val->strVal = dStrdup(token.value);
          ret = true;
-         nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       }
       break;
 
    case CssPropertyValueDataType::SYMBOL:
       /* Read comma separated list of font family names */
       dstr = dStr_new("");
-      while (ttype == CSS_TK_SYMBOL || ttype == CSS_TK_STRING ||
-             (ttype == CSS_TK_CHAR && tval[0] == ',')) {
+      while (token.type == CSS_TOKEN_TYPE_SYMBOL || token.type == CSS_TOKEN_TYPE_STRING ||
+             (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ',')) {
          if (spaceSeparated)
             dStr_append_c(dstr, ' ');
-         dStr_append(dstr, tval);
+         dStr_append(dstr, token.value);
          ret = true;
-         nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       }
 
       if (ret) {
@@ -1033,8 +1027,8 @@ bool CssParser::parseValue(CssPropertyName prop,
 
    case CssPropertyValueDataType::FONT_WEIGHT:
       ival = 0;
-      if (ttype == CSS_TK_DECINT) {
-         ival = strtol(tval, NULL, 10);
+      if (token.type == CSS_TOKEN_TYPE_DECINT) {
+         ival = strtol(token.value, NULL, 10);
          if (ival < 100 || ival > 900)
             /* invalid */
             ival = 0;
@@ -1043,15 +1037,15 @@ bool CssParser::parseValue(CssPropertyName prop,
       if (ival != 0) {
          val->intVal = ival;
          ret = true;
-         nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       }
       break;
 
    case CssPropertyValueDataType::URI:
-      if (ttype == CSS_TK_SYMBOL &&
-          dStrAsciiCasecmp(tval, "url") == 0) {
+      if (token.type == CSS_TOKEN_TYPE_SYMBOL &&
+          dStrAsciiCasecmp(token.value, "url") == 0) {
          val->strVal = parseUrl();
-         nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
          if (val->strVal)
             ret = true;
       }
@@ -1077,30 +1071,30 @@ bool CssParser::parseValue(CssPropertyName prop,
          // work on both parts, since they are exchangable.
          if (tokenMatchesProperty (CSS_PROPERTY_BACKGROUND_POSITION,
                                    &typeTmp)) {
-            h[i] = ttype != CSS_TK_SYMBOL ||
-               (dStrAsciiCasecmp(tval, "top") != 0 &&
-                dStrAsciiCasecmp(tval, "bottom") != 0);
-            v[i] = ttype != CSS_TK_SYMBOL ||
-               (dStrAsciiCasecmp(tval, "left") != 0 &&
-                dStrAsciiCasecmp(tval, "right") != 0);
+            h[i] = token.type != CSS_TOKEN_TYPE_SYMBOL ||
+               (dStrAsciiCasecmp(token.value, "top") != 0 &&
+                dStrAsciiCasecmp(token.value, "bottom") != 0);
+            v[i] = token.type != CSS_TOKEN_TYPE_SYMBOL ||
+               (dStrAsciiCasecmp(token.value, "left") != 0 &&
+                dStrAsciiCasecmp(token.value, "right") != 0);
          } else
             // No match.
             h[i] = v[i] = false;
 
          if (h[i] || v[i]) {
             // Calculate values.
-            if (ttype == CSS_TK_SYMBOL) {
-               if (dStrAsciiCasecmp(tval, "top") == 0 ||
-                   dStrAsciiCasecmp(tval, "left") == 0) {
+            if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
+               if (dStrAsciiCasecmp(token.value, "top") == 0 ||
+                   dStrAsciiCasecmp(token.value, "left") == 0) {
                   pos[i] = CSS_CREATE_LENGTH (0.0, CSS_LENGTH_TYPE_PERCENTAGE);
-                  nextToken();
-               } else if (dStrAsciiCasecmp(tval, "center") == 0) {
+                  nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               } else if (dStrAsciiCasecmp(token.value, "center") == 0) {
                   pos[i] = CSS_CREATE_LENGTH (0.5, CSS_LENGTH_TYPE_PERCENTAGE);
-                  nextToken();
-               } else if (dStrAsciiCasecmp(tval, "bottom") == 0 ||
-                          dStrAsciiCasecmp(tval, "right") == 0) {
+                  nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               } else if (dStrAsciiCasecmp(token.value, "bottom") == 0 ||
+                          dStrAsciiCasecmp(token.value, "right") == 0) {
                   pos[i] = CSS_CREATE_LENGTH (1.0, CSS_LENGTH_TYPE_PERCENTAGE);
-                  nextToken();
+                  nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
                } else
                   // tokenMatchesProperty should have returned "false" already.
                   lout::misc::assertNotReached ();
@@ -1163,11 +1157,11 @@ bool CssParser::parseValue(CssPropertyName prop,
 
 bool CssParser::parseWeight()
 {
-   if (ttype == CSS_TK_CHAR && tval[0] == '!') {
-      nextToken();
-      if (ttype == CSS_TK_SYMBOL &&
-          dStrAsciiCasecmp(tval, "important") == 0) {
-         nextToken();
+   if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '!') {
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      if (token.type == CSS_TOKEN_TYPE_SYMBOL &&
+          dStrAsciiCasecmp(token.value, "important") == 0) {
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
          return true;
       }
    }
@@ -1213,8 +1207,8 @@ void CssParser::parseDeclaration(CssPropertyList *props,
       /* 4 values */ {0, 2, 3, 1}
    };
 
-   if (ttype == CSS_TK_SYMBOL) {
-      pi.symbol = tval;
+   if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
+      pi.symbol = token.value;
       pip =
           (CssPropertyInfo *) bsearch(&pi, Css_property_info,
                                       CSS_NUM_PARSED_PROPERTIES,
@@ -1222,9 +1216,9 @@ void CssParser::parseDeclaration(CssPropertyList *props,
                                       Css_property_info_cmp);
       if (pip) {
          prop = (CssPropertyName) (pip - Css_property_info);
-         nextToken();
-         if (ttype == CSS_TK_CHAR && tval[0] == ':') {
-            nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ':') {
+            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
             if (tokenMatchesProperty (prop, &type) &&
                 parseValue(prop, type, &val)) {
                weight = parseWeight();
@@ -1243,9 +1237,9 @@ void CssParser::parseDeclaration(CssPropertyList *props,
                                           Css_shorthand_info_cmp);
          if (sip) {
             sh_index = sip - Css_shorthand_info;
-            nextToken();
-            if (ttype == CSS_TK_CHAR && tval[0] == ':') {
-               nextToken();
+            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ':') {
+               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
                switch (Css_shorthand_info[sh_index].type) {
 
@@ -1344,33 +1338,33 @@ void CssParser::parseDeclaration(CssPropertyList *props,
    }
 
    /* Skip all tokens until the expected end. */
-   while (!(ttype == CSS_TK_END ||
-            (ttype == CSS_TK_CHAR &&
-             (tval[0] == ';' || tval[0] == '}'))))
-      nextToken();
+   while (!(token.type == CSS_TOKEN_TYPE_END ||
+            (token.type == CSS_TOKEN_TYPE_CHAR &&
+             (token.value[0] == ';' || token.value[0] == '}'))))
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
-   if (ttype == CSS_TK_CHAR && tval[0] == ';')
-      nextToken();
+   if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ';')
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 }
 
 bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
 {
    CssSelectorType selectorType;
 
-   if (ttype == CSS_TK_SYMBOL) {
-      selector->setSelectorElement(a_Html_tag_index(tval));
-      nextToken();
+   if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
+      selector->setSelectorElement(a_Html_tag_index(token.value));
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       if (spaceSeparated)
          return true;
-   } else if (ttype == CSS_TK_CHAR && tval[0] == '*') {
+   } else if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '*') {
       selector->setSelectorElement(CssSimpleSelector::ELEMENT_ANY);
-      nextToken();
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       if (spaceSeparated)
          return true;
-   } else if (ttype == CSS_TK_CHAR &&
-              (tval[0] == '#' ||
-               tval[0] == '.' ||
-               tval[0] == ':')) {
+   } else if (token.type == CSS_TOKEN_TYPE_CHAR &&
+              (token.value[0] == '#' ||
+               token.value[0] == '.' ||
+               token.value[0] == ':')) {
       // nothing to be done in this case
    } else {
       return false;
@@ -1378,8 +1372,8 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
 
    do {
       selectorType = CssSelectorType::NONE;
-      if (ttype == CSS_TK_CHAR) {
-         switch (tval[0]) {
+      if (token.type == CSS_TOKEN_TYPE_CHAR) {
+         switch (token.value[0]) {
          case '#':
             selectorType = CssSelectorType::ID;
             break;
@@ -1400,13 +1394,13 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
       }
 
       if (selectorType != CssSelectorType::NONE) {
-         nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
          if (spaceSeparated)
             return false;
 
-         if (ttype == CSS_TK_SYMBOL) {
-            selector->setSelector(selectorType, tval);
-            nextToken();
+         if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
+            selector->setSelector(selectorType, token.value);
+            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
          } else {
             return false; // don't accept classes or id's starting with integer
          }
@@ -1433,16 +1427,16 @@ CssSelector *CssParser::parseSelector()
          break;
       }
 
-      if (ttype == CSS_TK_CHAR &&
-         (tval[0] == ',' || tval[0] == '{')) {
+      if (token.type == CSS_TOKEN_TYPE_CHAR &&
+         (token.value[0] == ',' || token.value[0] == '{')) {
          break;
-      } else if (ttype == CSS_TK_CHAR && tval[0] == '>') {
+      } else if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '>') {
          selector->addSimpleSelector (CssSelector::COMB_CHILD);
-         nextToken();
-      } else if (ttype == CSS_TK_CHAR && tval[0] == '+') {
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      } else if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '+') {
          selector->addSimpleSelector (CssSelector::COMB_ADJACENT_SIBLING);
-         nextToken();
-      } else if (ttype != CSS_TK_END && spaceSeparated) {
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      } else if (token.type != CSS_TOKEN_TYPE_END && spaceSeparated) {
          selector->addSimpleSelector (CssSelector::COMB_DESCENDANT);
       } else {
          delete selector;
@@ -1451,10 +1445,10 @@ CssSelector *CssParser::parseSelector()
       }
    }
 
-   while (ttype != CSS_TK_END &&
-          (ttype != CSS_TK_CHAR ||
-           (tval[0] != ',' && tval[0] != '{')))
-         nextToken();
+   while (token.type != CSS_TOKEN_TYPE_END &&
+          (token.type != CSS_TOKEN_TYPE_CHAR ||
+           (token.value[0] != ',' && token.value[0] != '{')))
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
    return selector;
 }
@@ -1480,9 +1474,9 @@ void CssParser::parseRuleset()
       //       however make sure we don't dump it if only dillo fails to parse
       //       valid CSS.
 
-      if (ttype == CSS_TK_CHAR && tval[0] == ',')
+      if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ',')
          /* To read the next token. */
-         nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       else
          /* No more selectors. */
          break;
@@ -1496,13 +1490,13 @@ void CssParser::parseRuleset()
    importantProps->ref();
 
    /* Read block. ('{' has already been read.) */
-   if (ttype != CSS_TK_END) {
+   if (token.type != CSS_TOKEN_TYPE_END) {
       withinBlock = true;
-      nextToken();
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       do
          parseDeclaration(props, importantProps);
-      while (!(ttype == CSS_TK_END ||
-               (ttype == CSS_TK_CHAR && tval[0] == '}')));
+      while (!(token.type == CSS_TOKEN_TYPE_END ||
+               (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '}')));
       withinBlock = false;
    }
 
@@ -1527,38 +1521,38 @@ void CssParser::parseRuleset()
 
    delete list;
 
-   if (ttype == CSS_TK_CHAR && tval[0] == '}')
-      nextToken();
+   if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '}')
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 }
 
 char * CssParser::parseUrl()
 {
    Dstr *urlStr = NULL;
 
-   if (ttype != CSS_TK_SYMBOL ||
-      dStrAsciiCasecmp(tval, "url") != 0)
+   if (token.type != CSS_TOKEN_TYPE_SYMBOL ||
+      dStrAsciiCasecmp(token.value, "url") != 0)
       return NULL;
 
-   nextToken();
+   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
-   if (ttype != CSS_TK_CHAR || tval[0] != '(')
+   if (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != '(')
       return NULL;
 
-   nextToken();
+   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
-   if (ttype == CSS_TK_STRING) {
-      urlStr = dStr_new(tval);
-      nextToken();
+   if (token.type == CSS_TOKEN_TYPE_STRING) {
+      urlStr = dStr_new(token.value);
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
    } else {
       urlStr = dStr_new("");
-      while (ttype != CSS_TK_END &&
-             (ttype != CSS_TK_CHAR || tval[0] != ')')) {
-         dStr_append(urlStr, tval);
-         nextToken();
+      while (token.type != CSS_TOKEN_TYPE_END &&
+             (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != ')')) {
+         dStr_append(urlStr, token.value);
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       }
    }
 
-   if (ttype != CSS_TK_CHAR || tval[0] != ')') {
+   if (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != ')') {
       dStr_free(urlStr, 1);
       urlStr = NULL;
    }
@@ -1581,27 +1575,27 @@ void CssParser::parseImport(DilloHtml *html)
    bool mediaSyntaxIsOK = true;
    bool mediaIsSelected = true;
 
-   nextToken();
+   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
-   if (ttype == CSS_TK_SYMBOL &&
-       dStrAsciiCasecmp(tval, "url") == 0)
+   if (token.type == CSS_TOKEN_TYPE_SYMBOL &&
+       dStrAsciiCasecmp(token.value, "url") == 0)
       urlStr = parseUrl();
-   else if (ttype == CSS_TK_STRING)
-      urlStr = dStrdup (tval);
+   else if (token.type == CSS_TOKEN_TYPE_STRING)
+      urlStr = dStrdup (token.value);
 
-   nextToken();
+   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
    /* parse a comma-separated list of media */
-   if (ttype == CSS_TK_SYMBOL) {
+   if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
       mediaSyntaxIsOK = false;
       mediaIsSelected = false;
-      while (ttype == CSS_TK_SYMBOL) {
-         if (dStrAsciiCasecmp(tval, "all") == 0 ||
-             dStrAsciiCasecmp(tval, "screen") == 0)
+      while (token.type == CSS_TOKEN_TYPE_SYMBOL) {
+         if (dStrAsciiCasecmp(token.value, "all") == 0 ||
+             dStrAsciiCasecmp(token.value, "screen") == 0)
             mediaIsSelected = true;
-         nextToken();
-         if (ttype == CSS_TK_CHAR && tval[0] == ',') {
-            nextToken();
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ',') {
+            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
          } else {
             mediaSyntaxIsOK = true;
             break;
@@ -1610,10 +1604,10 @@ void CssParser::parseImport(DilloHtml *html)
    }
 
    if (mediaSyntaxIsOK &&
-       ttype == CSS_TK_CHAR &&
-       tval[0] == ';') {
+       token.type == CSS_TOKEN_TYPE_CHAR &&
+       token.value[0] == ';') {
       importSyntaxIsOK = true;
-      nextToken();
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
    } else
       ignoreStatement();
 
@@ -1634,16 +1628,16 @@ void CssParser::parseMedia()
    bool mediaSyntaxIsOK = false;
    bool mediaIsSelected = false;
 
-   nextToken();
+   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
    /* parse a comma-separated list of media */
-   while (ttype == CSS_TK_SYMBOL) {
-      if (dStrAsciiCasecmp(tval, "all") == 0 ||
-          dStrAsciiCasecmp(tval, "screen") == 0)
+   while (token.type == CSS_TOKEN_TYPE_SYMBOL) {
+      if (dStrAsciiCasecmp(token.value, "all") == 0 ||
+          dStrAsciiCasecmp(token.value, "screen") == 0)
          mediaIsSelected = true;
-      nextToken();
-      if (ttype == CSS_TK_CHAR && tval[0] == ',') {
-         nextToken();
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ',') {
+         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
       } else {
          mediaSyntaxIsOK = true;
          break;
@@ -1652,19 +1646,19 @@ void CssParser::parseMedia()
 
    /* check that the syntax is OK so far */
    if (!(mediaSyntaxIsOK &&
-         ttype == CSS_TK_CHAR &&
-         tval[0] == '{')) {
+         token.type == CSS_TOKEN_TYPE_CHAR &&
+         token.value[0] == '{')) {
       ignoreStatement();
       return;
    }
 
    /* parse/ignore the block as required */
    if (mediaIsSelected) {
-      nextToken();
-      while (ttype != CSS_TK_END) {
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      while (token.type != CSS_TOKEN_TYPE_END) {
          parseRuleset();
-         if (ttype == CSS_TK_CHAR && tval[0] == '}') {
-            nextToken();
+         if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '}') {
+            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
             break;
          }
       }
@@ -1681,35 +1675,35 @@ void CssParser::ignoreBlock()
 {
    int depth = 0;
 
-   while (ttype != CSS_TK_END) {
-      if (ttype == CSS_TK_CHAR) {
-         if (tval[0] == '{') {
+   while (token.type != CSS_TOKEN_TYPE_END) {
+      if (token.type == CSS_TOKEN_TYPE_CHAR) {
+         if (token.value[0] == '{') {
             depth++;
-         } else if (tval[0] == '}') {
+         } else if (token.value[0] == '}') {
             depth--;
             if (depth == 0) {
-               nextToken();
+               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
                return;
             }
          }
       }
-      nextToken();
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
    }
 }
 
 void CssParser::ignoreStatement()
 {
-   while (ttype != CSS_TK_END) {
-      if (ttype == CSS_TK_CHAR) {
-         if (tval[0] == ';') {
-            nextToken();
+   while (token.type != CSS_TOKEN_TYPE_END) {
+      if (token.type == CSS_TOKEN_TYPE_CHAR) {
+         if (token.value[0] == ';') {
+            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
             return;
-         } else if (tval[0] =='{') {
+         } else if (token.value[0] =='{') {
             ignoreBlock();
             return;
          }
       }
-      nextToken();
+      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
    }
 }
 
@@ -1721,16 +1715,16 @@ void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
    CssParser parser (context, origin, baseUrl, buf, buflen);
    bool importsAreAllowed = true;
 
-   while (parser.ttype != CSS_TK_END) {
-      if (parser.ttype == CSS_TK_CHAR &&
-          parser.tval[0] == '@') {
-         parser.nextToken();
-         if (parser.ttype == CSS_TK_SYMBOL) {
-            if (dStrAsciiCasecmp(parser.tval, "import") == 0 &&
+   while (parser.token.type != CSS_TOKEN_TYPE_END) {
+      if (parser.token.type == CSS_TOKEN_TYPE_CHAR &&
+          parser.token.value[0] == '@') {
+         nextToken(&parser.token, &parser.spaceSeparated, parser.withinBlock);
+         if (parser.token.type == CSS_TOKEN_TYPE_SYMBOL) {
+            if (dStrAsciiCasecmp(parser.token.value, "import") == 0 &&
                 html != NULL &&
                 importsAreAllowed) {
                parser.parseImport(html);
-            } else if (dStrAsciiCasecmp(parser.tval, "media") == 0) {
+            } else if (dStrAsciiCasecmp(parser.token.value, "media") == 0) {
                parser.parseMedia();
             } else {
                parser.ignoreStatement();
@@ -1756,6 +1750,6 @@ void CssParser::parseDeclarationBlock(const DilloUrl *baseUrl,
 
    do
       parser.parseDeclaration(props, propsImortant);
-   while (!(parser.ttype == CSS_TK_END ||
-         (parser.ttype == CSS_TK_CHAR && parser.tval[0] == '}')));
+   while (!(parser.token.type == CSS_TOKEN_TYPE_END ||
+         (parser.token.type == CSS_TOKEN_TYPE_CHAR && parser.token.value[0] == '}')));
 }
