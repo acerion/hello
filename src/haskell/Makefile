@@ -9,9 +9,11 @@ all:
 	ghc -O2 -dynamic -shared -fPIC -o libhello.so \
 		URL.hs cookies.hs \
 		Gif.hs              ffi/Gif.hs \
+		CssParser.hs \
 		Colors.hs           ffi/Colors.hs \
 		HtmlEntity.hs \
 		HtmlTag.hs          ffi/HtmlTag.hs \
+		Utils.hs \
 		wrapper.o -lHSrts-ghc8.4.4
 
 distclean: clean
