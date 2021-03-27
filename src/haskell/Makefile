@@ -4,12 +4,13 @@
 all:
 	hsc2hs ffi/Gif.hsc
 	hsc2hs ffi/HtmlTag.hsc
+	hsc2hs ffi/CssParser.hsc
 
 	ghc -O2 -fPIC -c wrapper.c
 	ghc -O2 -dynamic -shared -fPIC -o libhello.so \
 		URL.hs cookies.hs \
 		Gif.hs              ffi/Gif.hs \
-		CssParser.hs \
+		CssParser.hs        ffi/CssParser.hs \
 		Colors.hs           ffi/Colors.hs \
 		HtmlEntity.hs \
 		HtmlTag.hs          ffi/HtmlTag.hs \

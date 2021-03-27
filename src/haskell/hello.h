@@ -14,6 +14,15 @@ extern "C" {
 
 
 
+typedef struct hll_CssParser {
+   bool spaceSeparatedC;
+   int consumedLenC; /* How much of input buffer has been consumed? By how much to move offset? */
+   int tokenTypeC;
+} hll_CssParser;
+
+
+
+
 /* URL */
 bool hll_hostIsIP(const char * hostname);
 
@@ -32,6 +41,10 @@ int64_t hll_htmlEntityToIsoCode(const char * token, int tokenLen);
 
 /* HtmlTag */
 char * hll_getAttrValue(const char * tag, int tagSize, const char * attrName);
+
+/* CssParser */
+/* Token value is returned through return statement. */
+char * hll_nextToken(hll_CssParser * hll_parser, const char * remainder, int inBlock);
 
 
 

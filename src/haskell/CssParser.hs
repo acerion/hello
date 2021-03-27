@@ -25,86 +25,138 @@ Copyright 2008-2009 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 
 
+{-
+TODO: be careful with decoding string from external representation into
+Data.Text. My original attempt to convert C string into Data.Text in
+ffi/CssParser.hsc used T.E.decodeUtf8. I had to change it to T.E.decodeLatin1
+because of exceptions from Data.Text module on some characters in some css
+files.
+
+Take a look at value of 'content' in this part of css:
+a.navmenu::after { content: " â–¶"; }font.logo, font.logobl, img.logo {display: none;}img.sslogo
+The line comes from https://lwn.net/CSS/pure-lwn, and the value would lead to
+"libEval.so: Cannot decode byte '\xb6': Data.Text.Internal.Encoding.decodeUtf8: Invalid UTF-8 stream" error.
+-}
+
+
+
+
 {-# LANGUAGE OverloadedStrings #-}
 
 
 
 
 module CssParser(nextToken
+                , takeAllTokens
                 , CssParser (..)
+                , CssTokenType (..)
                 , defaultParser) where
 
 
 
 
 import Prelude
-import Foreign.C.String
-import Foreign
 import Data.Maybe
 import qualified Data.Char as D.C
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T.E
-import qualified Data.Text.Read as T.R
-import qualified Data.Vector as V
+import qualified Data.Text.IO as T.IO
 import qualified HelloUtils as HU
 
 
 
 
 data CssParser = CssParser {
-    tokenValue  :: T.Text
-  , tokenType   :: Maybe CssTokenType
-  , remainder   :: T.Text
-  , withinBlock :: Bool
+    tokenValue     :: T.Text
+  , tokenType      :: Maybe CssTokenType
+  , remainder      :: T.Text
+  , spaceSeparated :: Bool
+  , withinBlock    :: Bool
   } deriving (Show)
 
 
 
 
-data CssTokenType = TokenInt | TokenFloat | TokenColor | TokenSymbol | TokenString | TokenChar | TokenEnd deriving (Show)
+data CssTokenType = TokenInt | TokenFloat | TokenColor | TokenSymbol | TokenString | TokenChar | TokenEnd
+                  deriving (Show, Eq)
 
 
 
 
-defaultParser = CssParser { tokenValue = "", tokenType = Nothing, remainder = "", withinBlock = True }
+defaultParser = CssParser { tokenValue = ""
+                          , tokenType = Nothing
+                          , remainder = ""
+                          , withinBlock = False
+                          , spaceSeparated = False
+                          }
+
+
+
+
+nextToken :: CssParser -> CssParser
+nextToken parser = nextToken' parser{spaceSeparated = False}
 
 
 
 
 -- TODO: another place that looks like that example from chapter about
 -- parsing in Real World Haskell with control structure nested few times.
-nextToken :: CssParser -> CssParser
-nextToken parser = case takeNumber . takeLeadingMinus . takeLeadingEmpty $ parser of
-                     par@CssParser{tokenType = Just _} -> par
-                     par -> case takeSymbol par of
-                              par@CssParser{tokenType = Just _} -> par
-                              par -> case takeString par of
-                                       par@CssParser{tokenType = Just _} -> par
-                                       par -> case takeColor par of
-                                                par@CssParser{tokenType = Just _} -> par
-                                                par -> case takeCharacter par of
-                                                         par@CssParser{tokenType = Just _} -> par
-                                                         par -> par
+nextToken' :: CssParser -> CssParser
+nextToken' parser = case takeNumber . takeLeadingMinus . takeLeadingEmpty $ parser of
+                      par@CssParser{tokenType = Just _} -> par
+                      par -> case takeSymbol par of
+                               par@CssParser{tokenType = Just _} -> par
+                               par -> case takeString par of
+                                        par@CssParser{tokenType = Just _} -> par
+                                        par -> case takeColor par of
+                                                 par@CssParser{tokenType = Just _} -> par
+                                                 par -> case takeCharacter par of
+                                                          par@CssParser{tokenType = Just _} -> par
+                                                          par -> par
 
 
 
 
-takeSymbol parser = parserAppend parser tok TokenSymbol
+-- Symbol must not start with a digit, therefore we have to have some kind of
+-- test at the beginning. TODO: can we do the test in a better way?
+--
+-- TODO: Original C code parsed symbols starting with '-' (such as
+-- "-webkit-user-select") in a way that resulted in token without the leading
+-- '-' (so the resulting token was "webkit-user-select"). Haskell code keeps
+-- the leading '-' character.
+takeSymbol parser = if predNonNumeric . T.head . remainder $ parser
+                    then parserAppend parser tok TokenSymbol
+                    else parser
   where tok = T.takeWhile pred (remainder parser)
-        pred = (\c -> D.C.isAlpha c || c == '_' || c == '-')
+        predNonNumeric = (\c -> D.C.isAlpha c || c == '_' || c == '-')
+        pred = (\c -> D.C.isAlphaNum c || c == '_' || c == '-')
 
 
 
 
+{-
+TODO: handle escaped sequences in string.
+Examples of escaped sequences:
+
+before{content:"Poka\00017C  wi\000119cej";position:relative;top:-5px}
+token: "Poka7C  wi19cej", [50 6f 6b 61 01 37 43 20 20 77 69 01 31 39 63 65 6a ]
+
+before{content:"Na \00017Bywo"}
+token: "Na 7Bywo", [4e 61 20 01 37 42 79 77 6f ]
+
+.icon--arrow-right:before{content:"\f107"}
+token  = "", [07 ]
+-}
 takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
                       (Just string, rem) -> parseString parser string rem
                       (Nothing, _) -> case HU.takeEnclosed (remainder parser) "'" "'" True of
                                        (Just string, rem) -> parseString parser string rem
                                        (Nothing, _) -> parser
   where
-    -- TODO: handle special cases in string
     parseString :: CssParser -> T.Text -> T.Text -> CssParser
-    parseString parser string rem = parser{tokenValue = string, tokenType = Just TokenString, remainder = rem}
+    parseString parser string rem = parser{tokenValue = escapedString string, tokenType = Just TokenString, remainder = rem}
+    escapedString str = case T.findIndex (== '\\') str of
+                          Just i -> ""
+                          Nothing -> str
 
 
 
@@ -135,7 +187,7 @@ takeCharacter parser = if T.null . remainder $ parser
 
 takeLeadingEmpty parser
   | T.null rem                 = parser { tokenType = Just TokenEnd }
-  | D.C.isSpace . T.head $ rem = takeLeadingEmpty parser { remainder = T.tail rem }
+  | D.C.isSpace . T.head $ rem = takeLeadingEmpty parser { remainder = T.tail rem, spaceSeparated = True }
   | T.isPrefixOf "/*" rem      = takeLeadingEmpty parser { remainder = HU.skipEnclosed rem "/*" "*/" }
   | T.isPrefixOf "<!--" rem    = takeLeadingEmpty parser { remainder = HU.skipEnclosed rem "<!--" "-->" }
   | otherwise = parser
@@ -188,4 +240,11 @@ takeNumber parser | (not (T.null dot)) && (not (T.null fractional)) = parserAppe
 
 
 
+takeAllTokens :: CssParser -> IO CssParser
+takeAllTokens parser = do
+  T.IO.putStrLn (remainder parser)
+  let p = nextToken parser
+  if tokenType p == Just TokenEnd
+    then return p
+    else takeAllTokens . nextToken $ p{tokenValue = "", tokenType = Nothing}
 

@@ -453,11 +453,27 @@ inline bool skipString(CssToken * tok, int c, const char *str)
    return true;
 }
 
+static FILE * g_file = NULL;
 void nextTokenInner(CssToken * tok, bool * spaceSeparated, bool withinBlock);
+void nextTokenInner2(CssToken * tok, bool * spaceSeparated, bool withinBlock);
 void nextToken(CssToken * tok, bool * spaceSeparated, bool withinBlock)
 {
-   fprintf(stderr, "CSS tokenizer: buf before: [%s]\n", tok->buf + tok->buf_offset);
-   nextTokenInner(tok, spaceSeparated, withinBlock);
+#if 0
+   if (NULL == g_file) {
+      char templ[] = "css_XXXXXX";
+      fprintf(stderr, "===%d\n", NULL == g_file);
+      const char * path = mktemp(templ);
+      fprintf(stderr, "===%d\n", NULL == g_file);
+      fprintf(stderr, "%s\n", path);
+      g_file = fopen(path, "w");
+   }
+
+   const size_t len_before = strlen(tok->buf + tok->buf_offset);
+   char before[128] = { 0 };
+   snprintf(before, sizeof (before), "%s", tok->buf + tok->buf_offset);
+#endif
+
+   nextTokenInner2(tok, spaceSeparated, withinBlock);
    const char * type = NULL;
    switch (tok->type) {
    case CSS_TOKEN_TYPE_DECINT:
@@ -486,18 +502,44 @@ void nextToken(CssToken * tok, bool * spaceSeparated, bool withinBlock)
       break;
       }
 
-   fprintf(stderr, "CSS tokenizer: token type = %d (%s)\n", tok->type, type);
-   fprintf(stderr, "CSS tokenizer: token value = [%s]\n", tok->value);
-   fprintf(stderr, "CSS tokenizer: buf after: [%s]\n", tok->buf + tok->buf_offset);
-   fprintf(stderr, "CSS tokenizer: \n");
-   fprintf(stderr, "CSS tokenizer: \n");
-   fprintf(stderr, "CSS tokenizer: \n");
+#if 0
+   const size_t len_after = strlen(tok->buf + tok->buf_offset);
+   const size_t diff = len_before - len_after;
+   char after[128] = { 0 };
+   snprintf(after, sizeof (after) - diff, "%s", tok->buf + tok->buf_offset);
+
+   fprintf(g_file, "CSStok: ^{\n");
+   fprintf(g_file, "CSStok:     \"%s\",\n", before);
+   fprintf(g_file, "nextToken defaultParser {remainder = KAMIL1%sKAMIL2}\n", before);
+   fprintf(g_file, "CSStok:    %*s \"%s\",\n", (int) diff, "", after);
+
+   fprintf(g_file, "CSStok:     %d,\n", tok->type);
+   fprintf(g_file, "CSStok:     type=%s,\n", type);
+   fprintf(g_file, "CSStok:     \"%s\",\n", tok->value);
+
+   fprintf(g_file, "CSStok: ^},\n");
+#endif
+}
+
+void nextTokenInner2(CssToken * tok, bool * spaceSeparated, bool withinBlock)
+{
+   hll_CssParser hll_parser;
+   char * tokenValue = hll_nextToken(&hll_parser, tok->buf + tok->buf_offset, withinBlock);
+
+   if (NULL == tokenValue) {
+      tok->type = CSS_TOKEN_TYPE_END;
+      tok->value[0] = '\0';
+   } else {
+      tok->type = (CssTokenType) hll_parser.tokenTypeC;
+      snprintf(tok->value, sizeof (tok->value), "%s", tokenValue);
+      tok->buf_offset += hll_parser.consumedLenC;
+      *spaceSeparated = hll_parser.spaceSeparatedC;
+   }
 }
 
 void nextTokenInner(CssToken * tok, bool * spaceSeparated, bool withinBlock)
 {
    tok->type = CSS_TOKEN_TYPE_CHAR; /* init */
-   *spaceSeparated = false;
 
    int c;
    while (true) {
@@ -606,25 +648,25 @@ void nextTokenInner(CssToken * tok, bool * spaceSeparated, bool withinBlock)
 
       while (c != EOF && c != c1) {
          if (c == '\\') {
-            int d = getChar(tok);
-            if (isxdigit(d)) {
-               /* Read hex Unicode char. (Actually, strings are yet only 8
-                * bit.) */
-               hexbuf[0] = d;
-               int j = 1;
-               d = getChar(tok);
-               while (j < 4 && isxdigit(d)) {
-                  hexbuf[j] = d;
-                  j++;
+               int d = getChar(tok);
+               if (isxdigit(d)) {
+                  /* Read hex Unicode char. (Actually, strings are yet only 8
+                   * bit.) */
+                  hexbuf[0] = d;
+                  int j = 1;
                   d = getChar(tok);
+                  while (j < 4 && isxdigit(d)) {
+                     hexbuf[j] = d;
+                     j++;
+                     d = getChar(tok);
+                  }
+                  hexbuf[j] = 0;
+                  ungetChar(tok);
+                  c = strtol(hexbuf, NULL, 16);
+               } else {
+                  /* Take character literally. */
+                  c = d;
                }
-               hexbuf[j] = 0;
-               ungetChar(tok);
-               c = strtol(hexbuf, NULL, 16);
-            } else {
-               /* Take character literally. */
-               c = d;
-            }
          }
 
          if (i < maxStrLen - 1) {
