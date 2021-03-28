@@ -42,56 +42,110 @@ import CssParser
 
 
 
-foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> CString -> Int -> IO CString
+foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> CString -> IO CString
+foreign export ccall "hll_parseRgbFunction" hll_parseRgbFunction :: Ptr HelloCssParser -> CString -> IO Int
 
 #include "../hello.h"
 
 data HelloCssParser = HelloCssParser {
-    spaceSeparatedC :: Bool
-  , consumedLenC    :: Int
+    spaceSeparatedC :: Int
+  , bufOffsetC      :: Int
   , tokenTypeC      :: Int
-  }
+  , withinBlockC    :: Int
+  } deriving (Show)
 
 
 instance Storable HelloCssParser where
   sizeOf    _ = #{size hll_CssParser}
-  alignment _ = alignment (undefined :: Int)
+  alignment _ = alignment (undefined :: Int) -- #{alignment hll_CssParser} --
 
+
+  poke ptr (HelloCssParser spaceSeparatedC bufOffsetC tokenTypeC withinBlockC) = do
+    #{poke hll_CssParser, spaceSeparatedC} ptr spaceSeparatedC
+    #{poke hll_CssParser, bufOffsetC}      ptr bufOffsetC
+    #{poke hll_CssParser, tokenTypeC}      ptr tokenTypeC
+    #{poke hll_CssParser, withinBlockC}    ptr withinBlockC
+
+{-
   poke ptr hll_CssParser = do
     #{poke hll_CssParser, spaceSeparatedC} ptr $ spaceSeparatedC hll_CssParser
-    #{poke hll_CssParser, consumedLenC} ptr    $ consumedLenC hll_CssParser
+    #{poke hll_CssParser, bufOffsetC} ptr      $ bufOffsetC hll_CssParser
     #{poke hll_CssParser, tokenTypeC} ptr      $ tokenTypeC hll_CssParser
-
+    #{poke hll_CssParser, withinBlockC} ptr    $ withinBlockC hll_CssParser
+-}
+  peek ptr = do
+    a <- #{peek hll_CssParser, spaceSeparatedC} ptr
+    b <- #{peek hll_CssParser, bufOffsetC} ptr
+    c <- #{peek hll_CssParser, tokenTypeC} ptr
+    d <- #{peek hll_CssParser, withinBlockC} ptr
+    return (HelloCssParser a b c d)
+{-
   peek ptr = return HelloCssParser
     `ap` (#{peek hll_CssParser, spaceSeparatedC} ptr)
-    `ap` (#{peek hll_CssParser, consumedLenC} ptr)
+    `ap` (#{peek hll_CssParser, bufOffsetC} ptr)
     `ap` (#{peek hll_CssParser, tokenTypeC} ptr)
+    `ap` (#{peek hll_CssParser, withinBlockC} ptr)
+-}
 
 
-
-
-hll_nextToken :: Ptr HelloCssParser -> CString -> Int -> IO CString
-hll_nextToken hll_cssparser cBuf inBlock = do
+hll_nextToken :: Ptr HelloCssParser -> CString -> IO CString
+hll_nextToken hll_cssparser cBuf = do
   buf <- BSU.unsafePackCString cBuf
-  let parser = nextToken defaultParser{remainder = T.E.decodeLatin1 buf,
-                                       withinBlock = inBlock > 0 }
+  oldParser <- peek hll_cssparser
+  let inBlock = withinBlockC oldParser
+  let parser = nextToken defaultParser{ remainder = T.E.decodeLatin1 buf
+                                      , withinBlock = inBlock > 0
+                                      , bufOffset = bufOffsetC oldParser
+                                      }
 
-  manipulateOutPtr hll_cssparser buf parser
+  manipulateOutPtr hll_cssparser buf parser inBlock
   (newCString . T.unpack . tokenValue $ parser)
-  where
-    manipulateOutPtr hll_cssparser buf parser =
+    where
       -- Set fields in pointer to struct passed from C code.
-      poke hll_cssparser $ HelloCssParser (spaceSeparated parser) (consumedLen buf parser) (getTokenType parser)
-    consumedLen buf parser = (T.length . T.E.decodeLatin1 $ buf) - (T.length . remainder $ parser)
-    getTokenType parser = case (tokenType parser) of
-                            Just t | t == TokenInt    -> 0
-                                   | t == TokenFloat  -> 1
-                                   | t == TokenColor  -> 2
-                                   | t == TokenSymbol -> 3
-                                   | t == TokenString -> 4
-                                   | t == TokenChar   -> 5
-                                   | t == TokenEnd    -> 6
-                                   | otherwise        -> 7
-                            Nothing -> 0
+      manipulateOutPtr :: Ptr HelloCssParser -> BS.ByteString -> CssParser -> Int -> IO ()
+      manipulateOutPtr hll_cssparser buf parser inBlock = do
+        poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) (getTokenType parser) inBlock
 
+
+
+
+hll_parseRgbFunction :: Ptr HelloCssParser -> CString -> IO Int
+hll_parseRgbFunction hll_cssparser cBuf = do
+  buf <- BSU.unsafePackCString cBuf
+  oldParser <- peek hll_cssparser
+  let inBlock = withinBlockC oldParser
+  let (parser, color) = parseRgbFunctionInt defaultParser{ remainder = T.E.decodeLatin1 buf
+                                                         , withinBlock = inBlock > 0
+                                                         , bufOffset = bufOffsetC oldParser
+                                                         }
+{-
+  putStr "\nParser = "
+  putStr (show parser)
+  putStr "\nColor = "
+  putStr (show color)
+  putStr "\n\n"
+-}
+  manipulateOutPtr hll_cssparser buf parser inBlock
+  case color of
+    Just value -> return value
+    Nothing    -> return 999999999 -- FIXME: Magic value treated as error
+  where
+      -- Set fields in pointer to struct passed from C code.
+      manipulateOutPtr :: Ptr HelloCssParser -> BS.ByteString -> CssParser -> Int -> IO ()
+      manipulateOutPtr hll_cssparser buf parser inBlock = do
+        poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) (getTokenType parser) inBlock
+
+
+
+
+getTokenType parser = case (tokenType parser) of
+                        Just t | t == TokenInt    -> 0
+                               | t == TokenFloat  -> 1
+                               | t == TokenColor  -> 2
+                               | t == TokenSymbol -> 3
+                               | t == TokenString -> 4
+                               | t == TokenChar   -> 5
+                               | t == TokenEnd    -> 6
+                               | otherwise        -> 7
+                        Nothing -> 0
 

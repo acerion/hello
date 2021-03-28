@@ -50,6 +50,9 @@ module CssParser(nextToken
                 , takeAllTokens
                 , CssParser (..)
                 , CssTokenType (..)
+                , tryTakingRgbFunction
+                , parseRgbFunction
+                , parseRgbFunctionInt
                 , defaultParser) where
 
 
@@ -57,8 +60,10 @@ module CssParser(nextToken
 
 import Prelude
 import Data.Maybe
+import Foreign
 import qualified Data.Char as D.C
 import qualified Data.Text as T
+import qualified Data.Text.Read as T.R
 import qualified Data.Text.IO as T.IO
 import qualified HelloUtils as HU
 
@@ -71,6 +76,7 @@ data CssParser = CssParser {
   , remainder      :: T.Text
   , spaceSeparated :: Bool
   , withinBlock    :: Bool
+  , bufOffset      :: Int
   } deriving (Show)
 
 
@@ -87,13 +93,17 @@ defaultParser = CssParser { tokenValue = ""
                           , remainder = ""
                           , withinBlock = False
                           , spaceSeparated = False
+                          , bufOffset = 0
                           }
 
 
 
 
 nextToken :: CssParser -> CssParser
-nextToken parser = nextToken' parser{spaceSeparated = False}
+nextToken parser = updatedParser{bufOffset = increasedBufOffset parser}
+  where
+    updatedParser = nextToken' parser{spaceSeparated = False, tokenValue = "", tokenType = Nothing}
+    increasedBufOffset parser = (bufOffset parser) + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
 
 
 
@@ -247,4 +257,59 @@ takeAllTokens parser = do
   if tokenType p == Just TokenEnd
     then return p
     else takeAllTokens . nextToken $ p{tokenValue = "", tokenType = Nothing}
+
+
+
+
+parseRgbFunctionInt :: CssParser -> (CssParser, Maybe Int)
+parseRgbFunctionInt parser =
+  case parseRgbFunction parser of
+    (parser', Nothing) -> (parser', Nothing)
+    (parser', Just (tr, tg, tb, ta, percent)) -> (parser', Just color)
+      where
+        color = (r `shiftL` 16) .|. (g `shiftL` 8) .|. b
+        r = getInt tr percent
+        g = getInt tg percent
+        b = getInt tb percent
+
+        -- TODO: re-work this function and calculation of percents.
+        getInt :: T.Text -> Bool -> Int
+        getInt text percent = case T.R.decimal text of
+                                Right pair -> if percent then ((fst pair) * 255) `div` 100 else (fst pair)
+                                Left pair  -> 0
+
+
+
+
+-- TODO: validation of percent tokens and r/g/b tokens is missing.
+parseRgbFunction :: CssParser -> (CssParser, Maybe (T.Text, T.Text, T.Text, T.Text, Bool))
+parseRgbFunction parser =
+  let fun = tryTakingRgbFunction $ parser
+      parser' = fst fun
+      tokens = snd fun :: [(Maybe CssTokenType, T.Text)]
+  in
+    case tokens of
+      (par2:perc3:b:comma3:perc2:g:comma2:perc1:r:par1:[]) ->
+        if (snd par1) == "(" && (snd par2) == ")"
+        then (parser', Just ((snd r), (snd g), (snd b), "%", True))
+        else (parser', Nothing)
+      (par2:b:comma3:g:comma2:r:par1:[]) ->
+        if (snd par1) == "(" && (snd par2) == ")"
+        then (parser', Just ((snd r), (snd g), (snd b), "/100", False))
+        else (parser', Nothing)
+      otherwise -> (parser', Nothing)
+
+
+
+
+tryTakingRgbFunction :: CssParser -> (CssParser, [(Maybe CssTokenType, T.Text)])
+tryTakingRgbFunction parser = takeNext parser []
+  where
+    takeNext :: CssParser -> [(Maybe CssTokenType, T.Text)] -> (CssParser, [(Maybe CssTokenType, T.Text)])
+    takeNext parser []          = takeNext next [(tokenType next, tokenValue next)]
+      where next = nextToken parser
+    takeNext parser list@(x:xs) = if length list == 10 || (snd x) == ")"
+                                  then (next, list)
+                                  else takeNext next ((tokenType next, tokenValue next):list)
+      where next = nextToken parser
 

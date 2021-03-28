@@ -15,9 +15,10 @@ extern "C" {
 
 
 typedef struct hll_CssParser {
-   bool spaceSeparatedC;
-   int consumedLenC; /* How much of input buffer has been consumed? By how much to move offset? */
+   int spaceSeparatedC;
+   int bufOffsetC;
    int tokenTypeC;
+   int withinBlockC;
 } hll_CssParser;
 
 
@@ -44,7 +45,9 @@ char * hll_getAttrValue(const char * tag, int tagSize, const char * attrName);
 
 /* CssParser */
 /* Token value is returned through return statement. */
-char * hll_nextToken(hll_CssParser * hll_parser, const char * remainder, int inBlock);
+char * hll_nextToken(hll_CssParser * hll_parser, const char * remainder);
+/* Function returns color through return statement. */
+int hll_parseRgbFunction(hll_CssParser * hll_parser, const char * remainder);
 
 
 

@@ -2,6 +2,7 @@
 #define __CSSPARSER_HH__
 
 #include "css.hh"
+#include "haskell/hello.h"
 
 class DilloHtml;
 
@@ -23,13 +24,21 @@ struct CssToken {
 
    const char *buf;
    int buflen;
-   int buf_offset;
+   int bufOffset;
 };
 
-void nextToken(CssToken * tok, bool * spaceSeparated, bool withinBlock);
+void nextToken(CssToken * tok, hll_CssParser * hll_css_parser);
 int getChar(CssToken * tok);
 void ungetChar(CssToken * tok);
-bool skipString(CssToken * tok, int c, const char *string);
+bool skipString(CssToken * tok);
+
+struct CssColor {
+   int32_t color;     /* All components combined into one variable. */
+   int percentage;
+};
+
+bool parseRgbFunctionComponent(CssToken * token, hll_CssParser * hll_css_parser, CssColor * color, int * component);
+bool parseRgbFunction(CssToken * token, hll_CssParser * hll_css_parser, CssColor * color);
 
 class CssParser {
    private:
@@ -40,9 +49,7 @@ class CssParser {
 
 
       CssToken token;
-
-      bool withinBlock;
-      bool spaceSeparated; /* used when parsing CSS selectors */
+      hll_CssParser hll_css_parser;
 
       CssParser(CssContext *context, CssOrigin origin, const DilloUrl *baseUrl,
                 const char *buf, int buflen);
@@ -51,8 +58,6 @@ class CssParser {
       bool parseValue(CssPropertyName prop, CssPropertyValueDataType type,
                       CssPropertyValue * val);
       bool parseWeight();
-      bool parseRgbColorComponent(int32_t *cc, int *percentage);
-      bool parseRgbColor(int32_t *c);
       void parseDeclaration(CssPropertyList * props,
                             CssPropertyList * importantProps);
       bool parseSimpleSelector(CssSimpleSelector *selector);

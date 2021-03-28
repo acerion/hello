@@ -397,12 +397,13 @@ CssParser::CssParser(CssContext *context, CssOrigin origin,
    this->origin = origin;
    this->token.buf = buf;
    this->token.buflen = buflen;
-   this->token.buf_offset = 0;
-   this->withinBlock = false;
-   this->spaceSeparated = false;
+   this->token.bufOffset = 0;
+   this->hll_css_parser.withinBlockC = false;
+   this->hll_css_parser.spaceSeparatedC = false;
+   this->hll_css_parser.bufOffsetC = 0;
    this->baseUrl = baseUrl;
 
-   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+   nextToken(&this->token, &this->hll_css_parser);
 }
 
 /*
@@ -412,14 +413,14 @@ int getChar(CssToken * token)
 {
    int c;
 
-   if (token->buf_offset >= token->buflen)
+   if (token->bufOffset >= token->buflen)
       c = EOF;
    else
-      c = token->buf[token->buf_offset];
+      c = token->buf[token->bufOffset];
 
    /* The buffer pointer is increased in any case, so that ungetChar works
     * correctly at the end of the buffer. */
-   token->buf_offset++;
+   token->bufOffset++;
    return c;
 }
 
@@ -428,7 +429,7 @@ int getChar(CssToken * token)
  */
 void ungetChar(CssToken * tok)
 {
-   tok->buf_offset--;
+   tok->bufOffset--;
 }
 
 /*
@@ -454,9 +455,9 @@ inline bool skipString(CssToken * tok, int c, const char *str)
 }
 
 static FILE * g_file = NULL;
-void nextTokenInner(CssToken * tok, bool * spaceSeparated, bool withinBlock);
-void nextTokenInner2(CssToken * tok, bool * spaceSeparated, bool withinBlock);
-void nextToken(CssToken * tok, bool * spaceSeparated, bool withinBlock)
+void nextTokenInner(CssToken * tok, hll_CssParser * hll_css_parser);
+void nextTokenInner2(CssToken * tok, hll_CssParser * hll_css_parser);
+void nextToken(CssToken * tok, hll_CssParser * hll_css_parser)
 {
 #if 0
    if (NULL == g_file) {
@@ -468,12 +469,12 @@ void nextToken(CssToken * tok, bool * spaceSeparated, bool withinBlock)
       g_file = fopen(path, "w");
    }
 
-   const size_t len_before = strlen(tok->buf + tok->buf_offset);
+   const size_t len_before = strlen(tok->buf + hll_css_parser->bufOffset);
    char before[128] = { 0 };
-   snprintf(before, sizeof (before), "%s", tok->buf + tok->buf_offset);
+   snprintf(before, sizeof (before), "%s", tok->buf + hll_css_parser->bufOffset);
 #endif
 
-   nextTokenInner2(tok, spaceSeparated, withinBlock);
+   nextTokenInner2(tok, hll_css_parser);
    const char * type = NULL;
    switch (tok->type) {
    case CSS_TOKEN_TYPE_DECINT:
@@ -503,10 +504,10 @@ void nextToken(CssToken * tok, bool * spaceSeparated, bool withinBlock)
       }
 
 #if 0
-   const size_t len_after = strlen(tok->buf + tok->buf_offset);
+   const size_t len_after = strlen(tok->buf + hll_css_parser->bufOffset);
    const size_t diff = len_before - len_after;
    char after[128] = { 0 };
-   snprintf(after, sizeof (after) - diff, "%s", tok->buf + tok->buf_offset);
+   snprintf(after, sizeof (after) - diff, "%s", tok->buf + hll_css_parser->bufOffset);
 
    fprintf(g_file, "CSStok: ^{\n");
    fprintf(g_file, "CSStok:     \"%s\",\n", before);
@@ -521,23 +522,37 @@ void nextToken(CssToken * tok, bool * spaceSeparated, bool withinBlock)
 #endif
 }
 
-void nextTokenInner2(CssToken * tok, bool * spaceSeparated, bool withinBlock)
+void nextTokenInner2(CssToken * tok, hll_CssParser * hll_css_parser)
 {
-   hll_CssParser hll_parser;
-   char * tokenValue = hll_nextToken(&hll_parser, tok->buf + tok->buf_offset, withinBlock);
+#if 0
+   fprintf(stderr, "before:\n");
+   fprintf(stderr, "hll_css_parser->spaceSeparated = %d\n", hll_css_parser->spaceSeparatedC);
+   fprintf(stderr, "hll_css_parser->bufOffset = %d\n", hll_css_parser->bufOffsetC);
+   fprintf(stderr, "hll_css_parser->tokenType = %d\n", hll_css_parser->tokenTypeC);
+   fprintf(stderr, "hll_css_parser->withinBlockC = %d\n", hll_css_parser->withinBlockC);
+#endif
+   char * tokenValue = hll_nextToken(hll_css_parser, tok->buf + tok->bufOffset);
+#if 0
+   fprintf(stderr, "after:\n");
+   fprintf(stderr, "hll_css_parser->spaceSeparated = %d\n", hll_css_parser->spaceSeparatedC);
+   fprintf(stderr, "hll_css_parser->bufOffset = %d\n", hll_css_parser->bufOffsetC);
+   fprintf(stderr, "hll_css_parser->tokenType = %d\n", hll_css_parser->tokenTypeC);
+   fprintf(stderr, "hll_css_parser->withinBlockC = %d\n", hll_css_parser->withinBlockC);
+   fprintf(stderr, "\n");
+#endif
+
+   tok->bufOffset = hll_css_parser->bufOffsetC;
 
    if (NULL == tokenValue) {
       tok->type = CSS_TOKEN_TYPE_END;
       tok->value[0] = '\0';
    } else {
-      tok->type = (CssTokenType) hll_parser.tokenTypeC;
+      tok->type = (CssTokenType) hll_css_parser->tokenTypeC;
       snprintf(tok->value, sizeof (tok->value), "%s", tokenValue);
-      tok->buf_offset += hll_parser.consumedLenC;
-      *spaceSeparated = hll_parser.spaceSeparatedC;
    }
 }
 
-void nextTokenInner(CssToken * tok, bool * spaceSeparated, bool withinBlock)
+void nextTokenInner(CssToken * tok, hll_CssParser * hll_css_parser)
 {
    tok->type = CSS_TOKEN_TYPE_CHAR; /* init */
 
@@ -545,7 +560,7 @@ void nextTokenInner(CssToken * tok, bool * spaceSeparated, bool withinBlock)
    while (true) {
       c = getChar(tok);
       if (isspace(c)) {                    // ignore whitespace
-         *spaceSeparated = true;
+         hll_css_parser->spaceSeparatedC = true;
       } else if (skipString(tok, c, "/*")) {    // ignore comments
          do {
             c = getChar(tok);
@@ -648,7 +663,7 @@ void nextTokenInner(CssToken * tok, bool * spaceSeparated, bool withinBlock)
 
       while (c != EOF && c != c1) {
          if (c == '\\') {
-               int d = getChar(tok);
+            int d = getChar(tok);
                if (isxdigit(d)) {
                   /* Read hex Unicode char. (Actually, strings are yet only 8
                    * bit.) */
@@ -684,7 +699,7 @@ void nextTokenInner(CssToken * tok, bool * spaceSeparated, bool withinBlock)
    /*
     * Within blocks, '#' starts a color, outside, it is used in selectors.
     */
-   if (c == '#' && withinBlock) {
+   if (c == '#' && hll_css_parser->withinBlockC) {
       tok->type = CSS_TOKEN_TYPE_COLOR;
 
       tok->value[0] = c;
@@ -820,78 +835,61 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataT
    return false;
 }
 
-bool CssParser::parseRgbColorComponent(int32_t *cc, int *percentage) {
-   if (token.type != CSS_TOKEN_TYPE_DECINT) {
+bool parseRgbFunctionComponent(CssToken * token, hll_CssParser * hll_css_parser, CssColor * color, int * component)
+{
+   if (token->type != CSS_TOKEN_TYPE_DECINT) {
       MSG_CSS("expected integer not found in %s color\n", "rgb");
       return false;
    }
 
-   *cc = strtol(token.value, NULL, 10);
+   *component = strtol(token->value, NULL, 10);
 
-   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
-   if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '%') {
-      if (*percentage == 0) {
+   nextToken(token, hll_css_parser);
+   if (token->type == CSS_TOKEN_TYPE_CHAR && token->value[0] == '%') {
+      if (color->percentage == 0) {
          MSG_CSS("'%s' unexpected in rgb color\n", "%");
          return false;
       }
-      *percentage = 1;
-      *cc = *cc * 255 / 100;
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      color->percentage = 1;
+      *component = *component * 255 / 100;
+      nextToken(token, hll_css_parser);
    } else {
-      if (*percentage == 1) {
+      if (color->percentage == 1) {
          MSG_CSS("expected '%s' not found in rgb color\n", "%");
          return false;
       }
-      *percentage = 0;
+      color->percentage = 0;
    }
 
-   if (*cc > 255)
-      *cc = 255;
-   if (*cc < 0)
-      *cc = 0;
+   if (*component > 255)
+      *component = 255;
+   if (*component < 0)
+      *component = 0;
 
    return true;
 }
 
-bool CssParser::parseRgbColor(int32_t *c) {
-   int32_t cc;
-   int percentage = -1;
-
-   *c = 0;
-
-   if (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != '(') {
+bool parseRgbFunction(CssToken * token, hll_CssParser * hll_css_parser, CssColor * color)
+{
+   if (token->type != CSS_TOKEN_TYPE_CHAR || token->value[0] != '(') {
       MSG_CSS("expected '%s' not found in rgb color\n", "(");
       return false;
    }
-   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
 
-   if (!parseRgbColorComponent(&cc, &percentage))
-      return false;
-   *c |= cc << 16;
+   int component = 0;
+   int shift = 16;
+   const char sep[] = { ',', ',', ')' };
 
-   if (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != ',') {
-      MSG_CSS("expected '%s' not found in rgb color\n", ",");
-      return false;
-   }
-   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
-
-   if (!parseRgbColorComponent(&cc, &percentage))
-      return false;
-   *c |= cc << 8;
-
-   if (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != ',') {
-      MSG_CSS("expected '%s' not found in rgb color\n", ",");
-      return false;
-   }
-   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
-
-   if (!parseRgbColorComponent(&cc, &percentage))
-      return false;
-   *c |= cc;
-
-   if (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != ')') {
-      MSG_CSS("expected '%s' not found in rgb color\n", ")");
-      return false;
+   for (int i = 0; i < 3; i++) {
+      nextToken(token, hll_css_parser);
+      if (!parseRgbFunctionComponent(token, hll_css_parser, color, &component))
+         return false;
+      color->color |= component << shift;
+      if (token->type != CSS_TOKEN_TYPE_CHAR || token->value[0] != sep[i]) {
+         MSG_CSS("expected '%s' not found in rgb color\n", ",");
+         return false;
+      }
+      shift -= 8;
    }
 
    return true;
@@ -918,7 +916,7 @@ bool CssParser::parseValue(CssPropertyName prop,
                ret = true;
                break;
             }
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
       }
       break;
 
@@ -935,7 +933,7 @@ bool CssParser::parseValue(CssPropertyName prop,
                   val->intVal |= (1 << i);
             }
          }
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
       }
       break;
 
@@ -947,42 +945,42 @@ bool CssParser::parseValue(CssPropertyName prop,
          fval = atof(token.value);
          lentype = CSS_LENGTH_TYPE_NONE;
 
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
-         if (!spaceSeparated && token.type == CSS_TOKEN_TYPE_SYMBOL) {
+         nextToken(&this->token, &this->hll_css_parser);
+         if (!this->hll_css_parser.spaceSeparatedC && token.type == CSS_TOKEN_TYPE_SYMBOL) {
             ret = true;
 
             if (dStrAsciiCasecmp(token.value, "px") == 0) {
                lentype = CSS_LENGTH_TYPE_PX;
-               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               nextToken(&this->token, &this->hll_css_parser);
             } else if (dStrAsciiCasecmp(token.value, "mm") == 0) {
                lentype = CSS_LENGTH_TYPE_MM;
-               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               nextToken(&this->token, &this->hll_css_parser);
             } else if (dStrAsciiCasecmp(token.value, "cm") == 0) {
                lentype = CSS_LENGTH_TYPE_MM;
                fval *= 10;
-               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               nextToken(&this->token, &this->hll_css_parser);
             } else if (dStrAsciiCasecmp(token.value, "in") == 0) {
                lentype = CSS_LENGTH_TYPE_MM;
                fval *= 25.4;
-               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               nextToken(&this->token, &this->hll_css_parser);
             } else if (dStrAsciiCasecmp(token.value, "pt") == 0) {
                lentype = CSS_LENGTH_TYPE_MM;
                fval *= (25.4 / 72);
-               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               nextToken(&this->token, &this->hll_css_parser);
             } else if (dStrAsciiCasecmp(token.value, "pc") == 0) {
                lentype = CSS_LENGTH_TYPE_MM;
                fval *= (25.4 / 6);
-               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               nextToken(&this->token, &this->hll_css_parser);
             } else if (dStrAsciiCasecmp(token.value, "em") == 0) {
                lentype = CSS_LENGTH_TYPE_EM;
-               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               nextToken(&this->token, &this->hll_css_parser);
             } else if (dStrAsciiCasecmp(token.value, "ex") == 0) {
                lentype = CSS_LENGTH_TYPE_EX;
-               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               nextToken(&this->token, &this->hll_css_parser);
             } else {
                ret = false;
             }
-         } else if (!spaceSeparated &&
+         } else if (!this->hll_css_parser.spaceSeparatedC &&
                     (type == CssPropertyValueDataType::LENGTH_PERCENTAGE ||
                      type == CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER) &&
                     token.type == CSS_TOKEN_TYPE_CHAR &&
@@ -990,7 +988,7 @@ bool CssParser::parseValue(CssPropertyName prop,
             fval /= 100;
             lentype = CSS_LENGTH_TYPE_PERCENTAGE;
             ret = true;
-            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            nextToken(&this->token, &this->hll_css_parser);
          }
 
          /* Allow numbers without unit only for 0 or
@@ -1008,7 +1006,7 @@ bool CssParser::parseValue(CssPropertyName prop,
       assert (token.type == CSS_TOKEN_TYPE_SYMBOL && !dStrAsciiCasecmp(token.value, "auto"));
       ret = true;
       val->intVal = CSS_LENGTH_TYPE_AUTO;
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      nextToken(&this->token, &this->hll_css_parser);
       break;
 
    case CssPropertyValueDataType::COLOR:
@@ -1019,14 +1017,31 @@ bool CssParser::parseValue(CssPropertyName prop,
             MSG_CSS("color is not in \"%s\" format\n", "#RRGGBB");
          else
             ret = true;
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
       } else if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
          if (dStrAsciiCasecmp(token.value, "rgb") == 0) {
-            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
-            if (parseRgbColor(&val->intVal))
+#if 1
+            fprintf(stderr, "buf before = '%s'\n\n", this->token.buf + this->token.bufOffset);
+            int color = hll_parseRgbFunction(&this->hll_css_parser, this->token.buf + this->token.bufOffset);
+            //this->hll_css_parser.bufOffsetC--;
+            this->token.bufOffset = this->hll_css_parser.bufOffsetC;
+            fprintf(stderr, "buf after = '%s'\n\n", this->token.buf + this->token.bufOffset);
+            if (999999999 != color) { // Magic value indicating error
+               val->intVal = color;
                ret = true;
-            else
+            } else {
+            }
+#else
+            nextToken(&this->token, &this->hll_css_parser);
+            CssColor color = { .color = 0, .percentage = -1 };
+            if (parseRgbFunction(&this->token, &this->hll_css_parser, &color)) {
+               val->intVal = color.color;
+               ret = true;
+            } else {
                MSG_CSS("Failed to parse %s color\n", "rgb(r,g,b)");
+            }
+#endif
+            fprintf(stderr, "rgb function color = %d\n", val->intVal);
          } else {
             int colorError = 1;
             val->intVal = hll_colorsStringToColor(token.value, -1); colorError = 0; /* TODO: set correct value of error flag colorError. */
@@ -1035,7 +1050,7 @@ bool CssParser::parseValue(CssPropertyName prop,
             else
                ret = true;
          }
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
       }
       break;
 
@@ -1043,7 +1058,7 @@ bool CssParser::parseValue(CssPropertyName prop,
       if (token.type == CSS_TOKEN_TYPE_STRING) {
          val->strVal = dStrdup(token.value);
          ret = true;
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
       }
       break;
 
@@ -1052,11 +1067,11 @@ bool CssParser::parseValue(CssPropertyName prop,
       dstr = dStr_new("");
       while (token.type == CSS_TOKEN_TYPE_SYMBOL || token.type == CSS_TOKEN_TYPE_STRING ||
              (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ',')) {
-         if (spaceSeparated)
+         if (this->hll_css_parser.spaceSeparatedC)
             dStr_append_c(dstr, ' ');
          dStr_append(dstr, token.value);
          ret = true;
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
       }
 
       if (ret) {
@@ -1079,7 +1094,7 @@ bool CssParser::parseValue(CssPropertyName prop,
       if (ival != 0) {
          val->intVal = ival;
          ret = true;
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
       }
       break;
 
@@ -1087,7 +1102,7 @@ bool CssParser::parseValue(CssPropertyName prop,
       if (token.type == CSS_TOKEN_TYPE_SYMBOL &&
           dStrAsciiCasecmp(token.value, "url") == 0) {
          val->strVal = parseUrl();
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
          if (val->strVal)
             ret = true;
       }
@@ -1129,14 +1144,14 @@ bool CssParser::parseValue(CssPropertyName prop,
                if (dStrAsciiCasecmp(token.value, "top") == 0 ||
                    dStrAsciiCasecmp(token.value, "left") == 0) {
                   pos[i] = CSS_CREATE_LENGTH (0.0, CSS_LENGTH_TYPE_PERCENTAGE);
-                  nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+                  nextToken(&this->token, &this->hll_css_parser);
                } else if (dStrAsciiCasecmp(token.value, "center") == 0) {
                   pos[i] = CSS_CREATE_LENGTH (0.5, CSS_LENGTH_TYPE_PERCENTAGE);
-                  nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+                  nextToken(&this->token, &this->hll_css_parser);
                } else if (dStrAsciiCasecmp(token.value, "bottom") == 0 ||
                           dStrAsciiCasecmp(token.value, "right") == 0) {
                   pos[i] = CSS_CREATE_LENGTH (1.0, CSS_LENGTH_TYPE_PERCENTAGE);
-                  nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+                  nextToken(&this->token, &this->hll_css_parser);
                } else
                   // tokenMatchesProperty should have returned "false" already.
                   lout::misc::assertNotReached ();
@@ -1200,10 +1215,10 @@ bool CssParser::parseValue(CssPropertyName prop,
 bool CssParser::parseWeight()
 {
    if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '!') {
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      nextToken(&this->token, &this->hll_css_parser);
       if (token.type == CSS_TOKEN_TYPE_SYMBOL &&
           dStrAsciiCasecmp(token.value, "important") == 0) {
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
          return true;
       }
    }
@@ -1258,9 +1273,9 @@ void CssParser::parseDeclaration(CssPropertyList *props,
                                       Css_property_info_cmp);
       if (pip) {
          prop = (CssPropertyName) (pip - Css_property_info);
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
          if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ':') {
-            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            nextToken(&this->token, &this->hll_css_parser);
             if (tokenMatchesProperty (prop, &type) &&
                 parseValue(prop, type, &val)) {
                weight = parseWeight();
@@ -1279,9 +1294,9 @@ void CssParser::parseDeclaration(CssPropertyList *props,
                                           Css_shorthand_info_cmp);
          if (sip) {
             sh_index = sip - Css_shorthand_info;
-            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            nextToken(&this->token, &this->hll_css_parser);
             if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ':') {
-               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               nextToken(&this->token, &this->hll_css_parser);
 
                switch (Css_shorthand_info[sh_index].type) {
 
@@ -1383,10 +1398,10 @@ void CssParser::parseDeclaration(CssPropertyList *props,
    while (!(token.type == CSS_TOKEN_TYPE_END ||
             (token.type == CSS_TOKEN_TYPE_CHAR &&
              (token.value[0] == ';' || token.value[0] == '}'))))
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      nextToken(&this->token, &this->hll_css_parser);
 
    if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ';')
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      nextToken(&this->token, &this->hll_css_parser);
 }
 
 bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
@@ -1395,13 +1410,13 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
 
    if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
       selector->setSelectorElement(a_Html_tag_index(token.value));
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
-      if (spaceSeparated)
+      nextToken(&this->token, &this->hll_css_parser);
+      if (this->hll_css_parser.spaceSeparatedC)
          return true;
    } else if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '*') {
       selector->setSelectorElement(CssSimpleSelector::ELEMENT_ANY);
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
-      if (spaceSeparated)
+      nextToken(&this->token, &this->hll_css_parser);
+      if (this->hll_css_parser.spaceSeparatedC)
          return true;
    } else if (token.type == CSS_TOKEN_TYPE_CHAR &&
               (token.value[0] == '#' ||
@@ -1436,17 +1451,17 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
       }
 
       if (selectorType != CssSelectorType::NONE) {
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
-         if (spaceSeparated)
+         nextToken(&this->token, &this->hll_css_parser);
+         if (this->hll_css_parser.spaceSeparatedC)
             return false;
 
          if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
             selector->setSelector(selectorType, token.value);
-            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            nextToken(&this->token, &this->hll_css_parser);
          } else {
             return false; // don't accept classes or id's starting with integer
          }
-         if (spaceSeparated)
+         if (this->hll_css_parser.spaceSeparatedC)
             return true;
       }
    } while (selectorType != CssSelectorType::NONE);
@@ -1474,11 +1489,11 @@ CssSelector *CssParser::parseSelector()
          break;
       } else if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '>') {
          selector->addSimpleSelector (CssSelector::COMB_CHILD);
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
       } else if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '+') {
          selector->addSimpleSelector (CssSelector::COMB_ADJACENT_SIBLING);
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
-      } else if (token.type != CSS_TOKEN_TYPE_END && spaceSeparated) {
+         nextToken(&this->token, &this->hll_css_parser);
+      } else if (token.type != CSS_TOKEN_TYPE_END && this->hll_css_parser.spaceSeparatedC) {
          selector->addSimpleSelector (CssSelector::COMB_DESCENDANT);
       } else {
          delete selector;
@@ -1490,7 +1505,7 @@ CssSelector *CssParser::parseSelector()
    while (token.type != CSS_TOKEN_TYPE_END &&
           (token.type != CSS_TOKEN_TYPE_CHAR ||
            (token.value[0] != ',' && token.value[0] != '{')))
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
 
    return selector;
 }
@@ -1518,7 +1533,7 @@ void CssParser::parseRuleset()
 
       if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ',')
          /* To read the next token. */
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
       else
          /* No more selectors. */
          break;
@@ -1533,13 +1548,13 @@ void CssParser::parseRuleset()
 
    /* Read block. ('{' has already been read.) */
    if (token.type != CSS_TOKEN_TYPE_END) {
-      withinBlock = true;
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      this->hll_css_parser.withinBlockC = true;
+      nextToken(&this->token, &this->hll_css_parser);
       do
          parseDeclaration(props, importantProps);
       while (!(token.type == CSS_TOKEN_TYPE_END ||
                (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '}')));
-      withinBlock = false;
+      this->hll_css_parser.withinBlockC = false;
    }
 
    for (int i = 0; i < list->size(); i++) {
@@ -1564,7 +1579,7 @@ void CssParser::parseRuleset()
    delete list;
 
    if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '}')
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      nextToken(&this->token, &this->hll_css_parser);
 }
 
 char * CssParser::parseUrl()
@@ -1575,22 +1590,22 @@ char * CssParser::parseUrl()
       dStrAsciiCasecmp(token.value, "url") != 0)
       return NULL;
 
-   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+   nextToken(&this->token, &this->hll_css_parser);
 
    if (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != '(')
       return NULL;
 
-   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+   nextToken(&this->token, &this->hll_css_parser);
 
    if (token.type == CSS_TOKEN_TYPE_STRING) {
       urlStr = dStr_new(token.value);
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      nextToken(&this->token, &this->hll_css_parser);
    } else {
       urlStr = dStr_new("");
       while (token.type != CSS_TOKEN_TYPE_END &&
              (token.type != CSS_TOKEN_TYPE_CHAR || token.value[0] != ')')) {
          dStr_append(urlStr, token.value);
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
       }
    }
 
@@ -1617,7 +1632,7 @@ void CssParser::parseImport(DilloHtml *html)
    bool mediaSyntaxIsOK = true;
    bool mediaIsSelected = true;
 
-   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+   nextToken(&this->token, &this->hll_css_parser);
 
    if (token.type == CSS_TOKEN_TYPE_SYMBOL &&
        dStrAsciiCasecmp(token.value, "url") == 0)
@@ -1625,7 +1640,7 @@ void CssParser::parseImport(DilloHtml *html)
    else if (token.type == CSS_TOKEN_TYPE_STRING)
       urlStr = dStrdup (token.value);
 
-   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+   nextToken(&this->token, &this->hll_css_parser);
 
    /* parse a comma-separated list of media */
    if (token.type == CSS_TOKEN_TYPE_SYMBOL) {
@@ -1635,9 +1650,9 @@ void CssParser::parseImport(DilloHtml *html)
          if (dStrAsciiCasecmp(token.value, "all") == 0 ||
              dStrAsciiCasecmp(token.value, "screen") == 0)
             mediaIsSelected = true;
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
          if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ',') {
-            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            nextToken(&this->token, &this->hll_css_parser);
          } else {
             mediaSyntaxIsOK = true;
             break;
@@ -1649,7 +1664,7 @@ void CssParser::parseImport(DilloHtml *html)
        token.type == CSS_TOKEN_TYPE_CHAR &&
        token.value[0] == ';') {
       importSyntaxIsOK = true;
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      nextToken(&this->token, &this->hll_css_parser);
    } else
       ignoreStatement();
 
@@ -1670,16 +1685,16 @@ void CssParser::parseMedia()
    bool mediaSyntaxIsOK = false;
    bool mediaIsSelected = false;
 
-   nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+   nextToken(&this->token, &this->hll_css_parser);
 
    /* parse a comma-separated list of media */
    while (token.type == CSS_TOKEN_TYPE_SYMBOL) {
       if (dStrAsciiCasecmp(token.value, "all") == 0 ||
           dStrAsciiCasecmp(token.value, "screen") == 0)
          mediaIsSelected = true;
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      nextToken(&this->token, &this->hll_css_parser);
       if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == ',') {
-         nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+         nextToken(&this->token, &this->hll_css_parser);
       } else {
          mediaSyntaxIsOK = true;
          break;
@@ -1696,11 +1711,11 @@ void CssParser::parseMedia()
 
    /* parse/ignore the block as required */
    if (mediaIsSelected) {
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      nextToken(&this->token, &this->hll_css_parser);
       while (token.type != CSS_TOKEN_TYPE_END) {
          parseRuleset();
          if (token.type == CSS_TOKEN_TYPE_CHAR && token.value[0] == '}') {
-            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            nextToken(&this->token, &this->hll_css_parser);
             break;
          }
       }
@@ -1724,12 +1739,12 @@ void CssParser::ignoreBlock()
          } else if (token.value[0] == '}') {
             depth--;
             if (depth == 0) {
-               nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+               nextToken(&this->token, &this->hll_css_parser);
                return;
             }
          }
       }
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      nextToken(&this->token, &this->hll_css_parser);
    }
 }
 
@@ -1738,14 +1753,14 @@ void CssParser::ignoreStatement()
    while (token.type != CSS_TOKEN_TYPE_END) {
       if (token.type == CSS_TOKEN_TYPE_CHAR) {
          if (token.value[0] == ';') {
-            nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+            nextToken(&this->token, &this->hll_css_parser);
             return;
          } else if (token.value[0] =='{') {
             ignoreBlock();
             return;
          }
       }
-      nextToken(&this->token, &this->spaceSeparated, this->withinBlock);
+      nextToken(&this->token, &this->hll_css_parser);
    }
 }
 
@@ -1760,7 +1775,7 @@ void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
    while (parser.token.type != CSS_TOKEN_TYPE_END) {
       if (parser.token.type == CSS_TOKEN_TYPE_CHAR &&
           parser.token.value[0] == '@') {
-         nextToken(&parser.token, &parser.spaceSeparated, parser.withinBlock);
+         nextToken(&parser.token, &parser.hll_css_parser);
          if (parser.token.type == CSS_TOKEN_TYPE_SYMBOL) {
             if (dStrAsciiCasecmp(parser.token.value, "import") == 0 &&
                 html != NULL &&
@@ -1788,7 +1803,7 @@ void CssParser::parseDeclarationBlock(const DilloUrl *baseUrl,
 {
    CssParser parser (NULL, CSS_ORIGIN_AUTHOR, baseUrl, buf, buflen);
 
-   parser.withinBlock = true;
+   parser.hll_css_parser.withinBlockC = true;
 
    do
       parser.parseDeclaration(props, propsImortant);
