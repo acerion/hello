@@ -18,7 +18,7 @@ typedef enum {
               CSS_TOKEN_TYPE_END       // End of input, no new tokens.
 } CssTokenType;
 
-struct CssToken {
+struct CssTokenizer {
    CssTokenType type;
    char value[maxStrLen];
 
@@ -27,18 +27,18 @@ struct CssToken {
    int bufOffset;
 };
 
-void nextToken(CssToken * tok, hll_CssParser * hll_css_parser);
-int getChar(CssToken * tok);
-void ungetChar(CssToken * tok);
-bool skipString(CssToken * tok);
+void nextToken(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
+int getChar(CssTokenizer * tokenizer);
+void ungetChar(CssTokenizer * tokenizer);
+bool skipString(CssTokenizer * tokenizer);
 
 struct CssColor {
    int32_t color;     /* All components combined into one variable. */
    int percentage;
 };
 
-bool parseRgbFunctionComponent(CssToken * token, hll_CssParser * hll_css_parser, CssColor * color, int * component);
-bool parseRgbFunction(CssToken * token, hll_CssParser * hll_css_parser, CssColor * color);
+bool parseRgbFunctionComponent(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser, CssColor * color, int * component);
+bool parseRgbFunction(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser, CssColor * color);
 
 class CssParser {
    private:
@@ -48,7 +48,7 @@ class CssParser {
       const DilloUrl *baseUrl;
 
 
-      CssToken token;
+      CssTokenizer tokenizer;
       hll_CssParser hll_css_parser;
 
       CssParser(CssContext *context, CssOrigin origin, const DilloUrl *baseUrl,
