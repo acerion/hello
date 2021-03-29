@@ -19,6 +19,7 @@ typedef struct hll_CssParser {
    int bufOffsetC;
    int tokenTypeC;
    int withinBlockC;
+   int isEndC;
 } hll_CssParser;
 
 

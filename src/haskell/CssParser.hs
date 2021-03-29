@@ -48,8 +48,10 @@ The line comes from https://lwn.net/CSS/pure-lwn, and the value would lead to
 
 module CssParser(nextToken
                 , takeAllTokens
+                , takeSymbol
                 , CssParser (..)
                 , CssTokenType (..)
+                , CssToken (..)
                 , tryTakingRgbFunction
                 , parseRgbFunction
                 , parseRgbFunctionInt
@@ -70,10 +72,15 @@ import qualified HelloUtils as HU
 
 
 
-data CssParser = CssParser {
+data CssToken = CssToken {
     tokenValue     :: T.Text
   , tokenType      :: Maybe CssTokenType
-  , remainder      :: T.Text
+  } deriving (Show)
+
+
+
+data CssParser = CssParser {
+    remainder      :: T.Text
   , spaceSeparated :: Bool
   , withinBlock    :: Bool
   , bufOffset      :: Int
@@ -82,27 +89,42 @@ data CssParser = CssParser {
 
 
 
-data CssTokenType = TokenInt | TokenFloat | TokenColor | TokenSymbol | TokenString | TokenChar | TokenEnd
-                  deriving (Show, Eq)
+data CssTokenType =
+  TokenInt
+  | TokenFloat
+  | TokenColor
+  | TokenSymbol
+  | TokenString
+  | TokenChar
+  | TokenEnd
+  | TokenEmpty -- takeLeadingEmpty may return this token type if it did not encounter end of input.
+  deriving (Show, Eq)
 
 
 
 
-defaultParser = CssParser { tokenValue = ""
-                          , tokenType = Nothing
-                          , remainder = ""
-                          , withinBlock = False
-                          , spaceSeparated = False
-                          , bufOffset = 0
-                          }
+defaultParser = CssParser {
+    remainder = ""
+  , withinBlock = False
+  , spaceSeparated = False
+  , bufOffset = 0
+  }
 
 
 
 
-nextToken :: CssParser -> CssParser
-nextToken parser = updatedParser{bufOffset = increasedBufOffset parser}
+defaultToken = CssToken {
+     tokenValue = ""
+   , tokenType = Nothing
+   }
+
+
+
+
+nextToken :: CssParser -> (CssParser, CssToken)
+nextToken parser = (updatedParser{bufOffset = increasedBufOffset parser}, token)
   where
-    updatedParser = nextToken' parser{spaceSeparated = False, tokenValue = "", tokenType = Nothing}
+    (updatedParser, token) = nextToken' parser{spaceSeparated = False}
     increasedBufOffset parser = (bufOffset parser) + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
 
 
@@ -110,18 +132,20 @@ nextToken parser = updatedParser{bufOffset = increasedBufOffset parser}
 
 -- TODO: another place that looks like that example from chapter about
 -- parsing in Real World Haskell with control structure nested few times.
-nextToken' :: CssParser -> CssParser
-nextToken' parser = case takeNumber . takeLeadingMinus . takeLeadingEmpty $ parser of
-                      par@CssParser{tokenType = Just _} -> par
-                      par -> case takeSymbol par of
-                               par@CssParser{tokenType = Just _} -> par
-                               par -> case takeString par of
-                                        par@CssParser{tokenType = Just _} -> par
-                                        par -> case takeColor par of
-                                                 par@CssParser{tokenType = Just _} -> par
-                                                 par -> case takeCharacter par of
-                                                          par@CssParser{tokenType = Just _} -> par
-                                                          par -> par
+nextToken' :: CssParser -> (CssParser, CssToken)
+nextToken' parser = case takeLeadingEmpty $ parser of
+                      pair@(par, CssToken{tokenType = Nothing}) -> pair
+                      (par, _) -> case takeNumber . takeLeadingMinus $ par of
+                                     pair@(_, CssToken{tokenType = Just _}) -> pair
+                                     (par, _) -> case takeSymbol par of
+                                                   pair@(_, CssToken{tokenType = Just _}) -> pair
+                                                   (par, _) -> case takeString par of
+                                                                 pair@(_, CssToken{tokenType = Just _}) -> pair
+                                                                 (par, _) -> case takeColor par of
+                                                                               pair@(_, CssToken{tokenType = Just _}) -> pair
+                                                                               (par, _) -> case takeCharacter par of
+                                                                                             pair@(_, CssToken{tokenType = Just _}) -> pair
+                                                                                             (par, tok) -> (par, tok)
 
 
 
@@ -133,9 +157,10 @@ nextToken' parser = case takeNumber . takeLeadingMinus . takeLeadingEmpty $ pars
 -- "-webkit-user-select") in a way that resulted in token without the leading
 -- '-' (so the resulting token was "webkit-user-select"). Haskell code keeps
 -- the leading '-' character.
+takeSymbol :: CssParser -> (CssParser, CssToken)
 takeSymbol parser = if predNonNumeric . T.head . remainder $ parser
-                    then parserAppend parser tok TokenSymbol
-                    else parser
+                    then (parserAppend parser tok, defaultToken{tokenValue = tok, tokenType = Just TokenSymbol})
+                    else (parser, defaultToken)
   where tok = T.takeWhile pred (remainder parser)
         predNonNumeric = (\c -> D.C.isAlpha c || c == '_' || c == '-')
         pred = (\c -> D.C.isAlphaNum c || c == '_' || c == '-')
@@ -156,14 +181,15 @@ token: "Na 7Bywo", [4e 61 20 01 37 42 79 77 6f ]
 .icon--arrow-right:before{content:"\f107"}
 token  = "", [07 ]
 -}
+takeString :: CssParser -> (CssParser, CssToken)
 takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
                       (Just string, rem) -> parseString parser string rem
                       (Nothing, _) -> case HU.takeEnclosed (remainder parser) "'" "'" True of
                                        (Just string, rem) -> parseString parser string rem
-                                       (Nothing, _) -> parser
+                                       (Nothing, _) -> (parser, defaultToken)
   where
-    parseString :: CssParser -> T.Text -> T.Text -> CssParser
-    parseString parser string rem = parser{tokenValue = escapedString string, tokenType = Just TokenString, remainder = rem}
+    parseString :: CssParser -> T.Text -> T.Text -> (CssParser, CssToken)
+    parseString parser string rem = (parser{remainder = rem}, defaultToken{tokenValue = escapedString string, tokenType = Just TokenString})
     escapedString str = case T.findIndex (== '\\') str of
                           Just i -> ""
                           Nothing -> str
@@ -173,35 +199,46 @@ takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
 
 -- TODO: think about performance of using isPrefixOf to get just one
 -- character, here and elsewhere.
+takeColor :: CssParser -> (CssParser, CssToken)
 takeColor parser = if T.isPrefixOf "#" (remainder parser) && (withinBlock parser)
                    then takeColor' parser
-                   else parser -- Don't take the leading '#' if we are not in a block
-  where takeColor' parser = parser{ tokenValue = T.concat ["#", newValue ] -- TODO: verify if we really need the leading '#' in token.
-                                  , tokenType = newType
-                                  , remainder = newRem }
-          where
-            newValue = T.takeWhile D.C.isHexDigit digitsString
-            newRem = T.dropWhile D.C.isHexDigit digitsString
-            newType = if T.length newValue > 0 then Just TokenColor else Nothing -- TODO: add better handling of '#' followed by non-hex string.
-            digitsString = T.drop 1 (remainder parser)
+                   else (parser, defaultToken) -- Don't take the leading '#' if we are not in a block
+
+  where
+    takeColor' :: CssParser -> (CssParser, CssToken)
+    takeColor' parser = (parser{ remainder = newRem }
+                        , defaultToken{tokenValue = T.concat ["#", newValue ] -- TODO: verify if we really need the leading '#' in token.
+                                      , tokenType = newType})
+
+      where
+        newValue = T.takeWhile D.C.isHexDigit digitsString
+        newRem = T.dropWhile D.C.isHexDigit digitsString
+        newType = if T.length newValue > 0 then Just TokenColor else Nothing -- TODO: add better handling of '#' followed by non-hex string.
+        digitsString = T.drop 1 (remainder parser)
 
 
 
 
+takeCharacter :: CssParser -> (CssParser, CssToken)
 takeCharacter parser = if T.null . remainder $ parser
-                       then parser
-                       else parserAppend parser (T.singleton . T.head . remainder $ parser) TokenChar
+                       then (parser, defaultToken)
+                       else (parserAppend parser (T.singleton . T.head . remainder $ parser),
+                             defaultToken{tokenValue = (T.singleton . T.head . remainder $ parser)
+                                         , tokenType = Just TokenChar})
 
 
 
-
+-- This function does not return a token. Discarding meaningless data from
+-- beginning of text would not create a valid token.
+takeLeadingEmpty :: CssParser -> (CssParser, CssToken)
 takeLeadingEmpty parser
-  | T.null rem                 = parser { tokenType = Just TokenEnd }
+  | T.null rem                 = (parser, defaultToken{tokenType = Nothing})
   | D.C.isSpace . T.head $ rem = takeLeadingEmpty parser { remainder = T.tail rem, spaceSeparated = True }
   | T.isPrefixOf "/*" rem      = takeLeadingEmpty parser { remainder = HU.skipEnclosed rem "/*" "*/" }
   | T.isPrefixOf "<!--" rem    = takeLeadingEmpty parser { remainder = HU.skipEnclosed rem "<!--" "-->" }
-  | otherwise = parser
+  | otherwise                  = (parser, defaultToken{tokenType = Just TokenChar})
   where rem = remainder parser
+
 
 
 
@@ -210,31 +247,31 @@ takeLeadingEmpty parser
 -- type of token. Make sure that this call: "nextToken
 -- defaultParser{remainder="/* hello */ -"}" returns token type == TokenChar.
 -- Or should it be treated as invalid?
-takeLeadingMinus :: CssParser -> CssParser
+takeLeadingMinus :: CssParser -> (CssParser, CssToken)
 takeLeadingMinus parser = case T.uncons (remainder parser) of
-                            Just (c, rem) | c == '-'  -> parser { tokenValue = T.snoc (tokenValue parser) c
-                                                                , remainder = rem
-                                                                }
-                                          | otherwise -> parser
-                            Nothing -> parser
+                            Just (c, rem) | c == '-'  -> (parser{remainder = rem}, defaultToken{ tokenValue = T.singleton c })
+                                          | otherwise -> (parser, defaultToken)
+                            Nothing -> (parser, defaultToken)
 
 
 
 
-parserAppend :: CssParser -> T.Text -> CssTokenType -> CssParser
-parserAppend parser tok tokType = parser { tokenValue = T.append (tokenValue parser) tok
-                                         , tokenType = if T.length tok > 0 then (Just tokType) else (tokenType parser)
-                                         , remainder = T.drop (T.length tok) (remainder parser)
-                                         }
+parserAppend :: CssParser -> T.Text -> CssParser
+parserAppend parser tok = parser { remainder = T.drop (T.length tok) (remainder parser) }
+
+
+tokenAppend :: CssToken -> T.Text -> CssTokenType -> CssToken
+tokenAppend token str tokType = token{tokenValue = T.append (tokenValue token) str
+                                     , tokenType = if T.length str > 0 then (Just tokType) else (tokenType token) }
 
 
 
 
 -- TODO: this function is beyond ugly
-takeNumber :: CssParser -> CssParser
-takeNumber parser | (not (T.null dot)) && (not (T.null fractional)) = parserAppend parser tokenFloat TokenFloat
-                  | (not (T.null integral))                         = parserAppend parser tokenInt TokenInt
-                  | otherwise                                       = parser
+takeNumber :: (CssParser, CssToken) -> (CssParser, CssToken)
+takeNumber (parser, inTok) | (not (T.null dot)) && (not (T.null fractional)) = (parserAppend parser tokenFloat, inTok{tokenValue = T.append (tokenValue inTok) tokenFloat, tokenType = Just TokenFloat })
+                           | (not (T.null integral))                         = (parserAppend parser tokenInt,  inTok{tokenValue = T.append (tokenValue inTok)  tokenInt, tokenType = Just TokenInt })
+                           | otherwise                                       = (parser, inTok)
   where tokenFloat = T.concat [ integral, dot, fractional ]
         tokenInt = integral
         triplet = (fst pair1, fst pair2, fst pair3)
@@ -250,13 +287,13 @@ takeNumber parser | (not (T.null dot)) && (not (T.null fractional)) = parserAppe
 
 
 
-takeAllTokens :: CssParser -> IO CssParser
-takeAllTokens parser = do
+takeAllTokens :: (CssParser, CssToken) -> IO CssParser
+takeAllTokens (parser,token) = do
   T.IO.putStrLn (remainder parser)
-  let p = nextToken parser
-  if tokenType p == Just TokenEnd
+  let (p, t) = nextToken parser
+  if tokenType t == Just TokenEnd
     then return p
-    else takeAllTokens . nextToken $ p{tokenValue = "", tokenType = Nothing}
+    else takeAllTokens . nextToken $ p
 
 
 
@@ -286,30 +323,35 @@ parseRgbFunction :: CssParser -> (CssParser, Maybe (T.Text, T.Text, T.Text, T.Te
 parseRgbFunction parser =
   let fun = tryTakingRgbFunction $ parser
       parser' = fst fun
-      tokens = snd fun :: [(Maybe CssTokenType, T.Text)]
+      tokens = snd fun :: [CssToken]
   in
     case tokens of
       (par2:perc3:b:comma3:perc2:g:comma2:perc1:r:par1:[]) ->
-        if (snd par1) == "(" && (snd par2) == ")"
-        then (parser', Just ((snd r), (snd g), (snd b), "%", True))
+        if (tokenValue par1) == "(" && (tokenValue par2) == ")"
+        then (parser', Just ((tokenValue r), (tokenValue g), (tokenValue b), "%", True))
         else (parser', Nothing)
       (par2:b:comma3:g:comma2:r:par1:[]) ->
-        if (snd par1) == "(" && (snd par2) == ")"
-        then (parser', Just ((snd r), (snd g), (snd b), "/100", False))
+        if (tokenValue par1) == "(" && (tokenValue par2) == ")"
+        then (parser', Just ((tokenValue r), (tokenValue g), (tokenValue b), "/100", False))
         else (parser', Nothing)
       otherwise -> (parser', Nothing)
 
 
 
 
-tryTakingRgbFunction :: CssParser -> (CssParser, [(Maybe CssTokenType, T.Text)])
+tryTakingRgbFunction :: CssParser -> (CssParser, [CssToken])
 tryTakingRgbFunction parser = takeNext parser []
   where
-    takeNext :: CssParser -> [(Maybe CssTokenType, T.Text)] -> (CssParser, [(Maybe CssTokenType, T.Text)])
-    takeNext parser []          = takeNext next [(tokenType next, tokenValue next)]
-      where next = nextToken parser
-    takeNext parser list@(x:xs) = if length list == 10 || (snd x) == ")"
-                                  then (next, list)
-                                  else takeNext next ((tokenType next, tokenValue next):list)
-      where next = nextToken parser
+    takeNext :: CssParser -> [CssToken] -> (CssParser, [CssToken])
+    takeNext parser []          = takeNext nextParser [tok]
+      where (nextParser, tok) = nextToken parser
+    takeNext parser list@(x:xs) = if length list == 10 || (tokenValue x) == ")"
+                                  then (nextParser, list)
+                                  else takeNext nextParser (tok:list)
+      where (nextParser, tok) = nextToken parser
 
+
+
+
+
+-- , tokenType = if T.length tok > 0 then (Just tokType) else (tokenType parser)
