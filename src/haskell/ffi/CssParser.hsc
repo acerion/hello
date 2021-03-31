@@ -99,7 +99,7 @@ hll_nextToken hll_cssparser cBuf = do
                                                }
 
   manipulateOutPtr hll_cssparser buf parser token inBlock
-  (newCString . T.unpack . tokenValue $ token)
+  (newCString . T.unpack . cssTokenValue $ token)
     where
       -- Set fields in pointer to struct passed from C code.
       manipulateOutPtr :: Ptr HelloCssParser -> BS.ByteString -> CssParser -> CssToken -> Int -> IO ()
@@ -139,7 +139,7 @@ hll_parseRgbFunction hll_cssparser cBuf = do
 
 
 
-getTokenType parser = case (tokenType parser) of
+getTokenType parser = case (cssTokenType parser) of
                         Just t | t == TokenInt    -> 0
                                | t == TokenFloat  -> 1
                                | t == TokenColor  -> 2

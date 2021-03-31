@@ -49,6 +49,8 @@ The line comes from https://lwn.net/CSS/pure-lwn, and the value would lead to
 module CssParser(nextToken
                 , takeAllTokens
                 , takeSymbol
+                , cssTokenValue
+                , cssTokenType
                 , CssParser (..)
                 , CssTokenType (..)
                 , CssToken (..)
@@ -72,10 +74,13 @@ import qualified HelloUtils as HU
 
 
 
-data CssToken = CssToken {
-    tokenValue     :: T.Text
-  , tokenType      :: Maybe CssTokenType
-  } deriving (Show)
+
+data CssToken = CssToken T.Text (Maybe CssTokenType)
+
+
+cssTokenValue (CssToken text _) = text
+cssTokenType  (CssToken _ t)    = t
+
 
 
 
@@ -97,7 +102,7 @@ data CssTokenType =
   | TokenString
   | TokenChar
   | TokenEnd
-  | TokenEmpty -- takeLeadingEmpty may return this token type if it did not encounter end of input.
+  | CssTokenEmpty
   deriving (Show, Eq)
 
 
@@ -113,14 +118,6 @@ defaultParser = CssParser {
 
 
 
-defaultToken = CssToken {
-     tokenValue = ""
-   , tokenType = Nothing
-   }
-
-
-
-
 nextToken :: CssParser -> (CssParser, CssToken)
 nextToken parser = (updatedParser{bufOffset = increasedBufOffset parser}, token)
   where
@@ -130,22 +127,29 @@ nextToken parser = (updatedParser{bufOffset = increasedBufOffset parser}, token)
 
 
 
--- TODO: another place that looks like that example from chapter about
--- parsing in Real World Haskell with control structure nested few times.
+-- This function is based on function with the same name from Real World
+-- Haskell, chapter 10.
+--
+-- These two lines are most awesome piece of code that I've written so far,
+-- in any project.
+(>>?) :: (CssParser, CssToken) -> (CssParser -> (CssParser, CssToken)) -> (CssParser, CssToken)
+pair@(par, CssToken _ (Just _)) >>? _ = pair
+(par, _) >>? f = f par
+
+
+
+
+-- Try taking Float before trying to take Int, because otherwise you may take
+-- only an initial (integral) part of Float as an Int, and leave fractional
+-- part in remainder.
 nextToken' :: CssParser -> (CssParser, CssToken)
-nextToken' parser = case takeLeadingEmpty $ parser of
-                      pair@(par, CssToken{tokenType = Nothing}) -> pair
-                      (par, _) -> case takeNumber . takeLeadingMinus $ par of
-                                     pair@(_, CssToken{tokenType = Just _}) -> pair
-                                     (par, _) -> case takeSymbol par of
-                                                   pair@(_, CssToken{tokenType = Just _}) -> pair
-                                                   (par, _) -> case takeString par of
-                                                                 pair@(_, CssToken{tokenType = Just _}) -> pair
-                                                                 (par, _) -> case takeColor par of
-                                                                               pair@(_, CssToken{tokenType = Just _}) -> pair
-                                                                               (par, _) -> case takeCharacter par of
-                                                                                             pair@(_, CssToken{tokenType = Just _}) -> pair
-                                                                                             (par, tok) -> (par, tok)
+nextToken' parser = takeLeadingEmpty parser >>?
+                    takeFloat >>?
+                    takeInt >>?
+                    takeSymbol >>?
+                    takeString >>?
+                    takeColor >>?
+                    takeCharacter
 
 
 
@@ -159,8 +163,8 @@ nextToken' parser = case takeLeadingEmpty $ parser of
 -- the leading '-' character.
 takeSymbol :: CssParser -> (CssParser, CssToken)
 takeSymbol parser = if predNonNumeric . T.head . remainder $ parser
-                    then (parserAppend parser tok, defaultToken{tokenValue = tok, tokenType = Just TokenSymbol})
-                    else (parser, defaultToken)
+                    then (parserAppend parser tok, CssToken tok (Just TokenSymbol))
+                    else (parser, CssToken "" Nothing)
   where tok = T.takeWhile pred (remainder parser)
         predNonNumeric = (\c -> D.C.isAlpha c || c == '_' || c == '-')
         pred = (\c -> D.C.isAlphaNum c || c == '_' || c == '-')
@@ -186,10 +190,10 @@ takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
                       (Just string, rem) -> parseString parser string rem
                       (Nothing, _) -> case HU.takeEnclosed (remainder parser) "'" "'" True of
                                        (Just string, rem) -> parseString parser string rem
-                                       (Nothing, _) -> (parser, defaultToken)
+                                       (Nothing, _) -> (parser, CssToken "" Nothing)
   where
     parseString :: CssParser -> T.Text -> T.Text -> (CssParser, CssToken)
-    parseString parser string rem = (parser{remainder = rem}, defaultToken{tokenValue = escapedString string, tokenType = Just TokenString})
+    parseString parser string rem = (parser{remainder = rem}, CssToken (escapedString string) (Just TokenString))
     escapedString str = case T.findIndex (== '\\') str of
                           Just i -> ""
                           Nothing -> str
@@ -202,13 +206,13 @@ takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
 takeColor :: CssParser -> (CssParser, CssToken)
 takeColor parser = if T.isPrefixOf "#" (remainder parser) && (withinBlock parser)
                    then takeColor' parser
-                   else (parser, defaultToken) -- Don't take the leading '#' if we are not in a block
+                   else (parser, CssToken "" Nothing) -- Don't take the leading '#' if we are not in a block
 
   where
     takeColor' :: CssParser -> (CssParser, CssToken)
     takeColor' parser = (parser{ remainder = newRem }
-                        , defaultToken{tokenValue = T.concat ["#", newValue ] -- TODO: verify if we really need the leading '#' in token.
-                                      , tokenType = newType})
+                        , CssToken (T.concat ["#", newValue ]) -- TODO: verify if we really need the leading '#' in token.
+                                   newType)
 
       where
         newValue = T.takeWhile D.C.isHexDigit digitsString
@@ -221,10 +225,10 @@ takeColor parser = if T.isPrefixOf "#" (remainder parser) && (withinBlock parser
 
 takeCharacter :: CssParser -> (CssParser, CssToken)
 takeCharacter parser = if T.null . remainder $ parser
-                       then (parser, defaultToken)
+                       then (parser, CssToken "" Nothing)
                        else (parserAppend parser (T.singleton . T.head . remainder $ parser),
-                             defaultToken{tokenValue = (T.singleton . T.head . remainder $ parser)
-                                         , tokenType = Just TokenChar})
+                             CssToken (T.singleton . T.head . remainder $ parser) (Just TokenChar))
+
 
 
 
@@ -232,26 +236,12 @@ takeCharacter parser = if T.null . remainder $ parser
 -- beginning of text would not create a valid token.
 takeLeadingEmpty :: CssParser -> (CssParser, CssToken)
 takeLeadingEmpty parser
-  | T.null rem                 = (parser, defaultToken{tokenType = Nothing})
+  | T.null rem                 = (parser, CssToken "" (Just TokenEnd))
   | D.C.isSpace . T.head $ rem = takeLeadingEmpty parser { remainder = T.tail rem, spaceSeparated = True }
   | T.isPrefixOf "/*" rem      = takeLeadingEmpty parser { remainder = HU.skipEnclosed rem "/*" "*/" }
   | T.isPrefixOf "<!--" rem    = takeLeadingEmpty parser { remainder = HU.skipEnclosed rem "<!--" "-->" }
-  | otherwise                  = (parser, defaultToken{tokenType = Just TokenChar})
+  | otherwise                  = (parser, CssToken "" Nothing)
   where rem = remainder parser
-
-
-
-
--- TODO: move getting leading minus to takeNumber. Have a clearer distinction
--- between minus being a part of a number and minus being a part of other
--- type of token. Make sure that this call: "nextToken
--- defaultParser{remainder="/* hello */ -"}" returns token type == TokenChar.
--- Or should it be treated as invalid?
-takeLeadingMinus :: CssParser -> (CssParser, CssToken)
-takeLeadingMinus parser = case T.uncons (remainder parser) of
-                            Just (c, rem) | c == '-'  -> (parser{remainder = rem}, defaultToken{ tokenValue = T.singleton c })
-                                          | otherwise -> (parser, defaultToken)
-                            Nothing -> (parser, defaultToken)
 
 
 
@@ -260,29 +250,34 @@ parserAppend :: CssParser -> T.Text -> CssParser
 parserAppend parser tok = parser { remainder = T.drop (T.length tok) (remainder parser) }
 
 
-tokenAppend :: CssToken -> T.Text -> CssTokenType -> CssToken
-tokenAppend token str tokType = token{tokenValue = T.append (tokenValue token) str
-                                     , tokenType = if T.length str > 0 then (Just tokType) else (tokenType token) }
+
+
+-- TODO: this function doesn't recognize some float formats that are valid in
+-- CSS, e.g. ".5".
+takeFloat :: CssParser -> (CssParser, CssToken)
+takeFloat parser = case T.R.signed T.R.rational (remainder parser) of
+                     Right pair -> (parserAppend parser val, CssToken val (Just TokenFloat))
+                       where
+                         val = T.take diff (remainder parser)
+                         newRem = snd pair
+                         diff = (T.length . remainder $ parser) - (T.length newRem)
+                     Left pair -> (parser, CssToken "" Nothing)
 
 
 
 
--- TODO: this function is beyond ugly
-takeNumber :: (CssParser, CssToken) -> (CssParser, CssToken)
-takeNumber (parser, inTok) | (not (T.null dot)) && (not (T.null fractional)) = (parserAppend parser tokenFloat, inTok{tokenValue = T.append (tokenValue inTok) tokenFloat, tokenType = Just TokenFloat })
-                           | (not (T.null integral))                         = (parserAppend parser tokenInt,  inTok{tokenValue = T.append (tokenValue inTok)  tokenInt, tokenType = Just TokenInt })
-                           | otherwise                                       = (parser, inTok)
-  where tokenFloat = T.concat [ integral, dot, fractional ]
-        tokenInt = integral
-        triplet = (fst pair1, fst pair2, fst pair3)
-        pair1 = takeDec (remainder parser)
-        pair2 = takeDot . snd $ pair1
-        pair3 = takeDec . snd $ pair2
-        takeDec text = (T.takeWhile D.C.isDigit text, T.dropWhile D.C.isDigit text)
-        takeDot text = if T.isPrefixOf "." text then (".", T.tail text) else ("", text)
-        integral = HU.tripletFst triplet
-        dot = HU.tripletSnd triplet
-        fractional = HU.tripletThrd triplet
+-- This function is very similar to takeFloat, but I don't want to write a
+-- common function just yet. takeFloat will have to be updated to read all
+-- formats of float value, and that change may make it more complicated and
+-- less similar to takeInt.
+takeInt :: CssParser -> (CssParser, CssToken)
+takeInt parser = case T.R.signed T.R.decimal (remainder parser) of
+                   Right pair -> (parserAppend parser val, CssToken val (Just TokenFloat))
+                     where
+                       val = T.take diff (remainder parser)
+                       newRem = snd pair
+                       diff = (T.length . remainder $ parser) - (T.length newRem)
+                   Left pair -> (parser, CssToken "" Nothing)
 
 
 
@@ -291,7 +286,7 @@ takeAllTokens :: (CssParser, CssToken) -> IO CssParser
 takeAllTokens (parser,token) = do
   T.IO.putStrLn (remainder parser)
   let (p, t) = nextToken parser
-  if tokenType t == Just TokenEnd
+  if cssTokenType t == Just TokenEnd
     then return p
     else takeAllTokens . nextToken $ p
 
@@ -327,12 +322,12 @@ parseRgbFunction parser =
   in
     case tokens of
       (par2:perc3:b:comma3:perc2:g:comma2:perc1:r:par1:[]) ->
-        if (tokenValue par1) == "(" && (tokenValue par2) == ")"
-        then (parser', Just ((tokenValue r), (tokenValue g), (tokenValue b), "%", True))
+        if (cssTokenValue par1) == "(" && (cssTokenValue par2) == ")"
+        then (parser', Just ((cssTokenValue r), (cssTokenValue g), (cssTokenValue b), "%", True))
         else (parser', Nothing)
       (par2:b:comma3:g:comma2:r:par1:[]) ->
-        if (tokenValue par1) == "(" && (tokenValue par2) == ")"
-        then (parser', Just ((tokenValue r), (tokenValue g), (tokenValue b), "/100", False))
+        if (cssTokenValue par1) == "(" && (cssTokenValue par2) == ")"
+        then (parser', Just ((cssTokenValue r), (cssTokenValue g), (cssTokenValue b), "/100", False))
         else (parser', Nothing)
       otherwise -> (parser', Nothing)
 
@@ -345,7 +340,7 @@ tryTakingRgbFunction parser = takeNext parser []
     takeNext :: CssParser -> [CssToken] -> (CssParser, [CssToken])
     takeNext parser []          = takeNext nextParser [tok]
       where (nextParser, tok) = nextToken parser
-    takeNext parser list@(x:xs) = if length list == 10 || (tokenValue x) == ")"
+    takeNext parser list@(x:xs) = if length list == 10 || (cssTokenValue x) == ")"
                                   then (nextParser, list)
                                   else takeNext nextParser (tok:list)
       where (nextParser, tok) = nextToken parser
@@ -354,4 +349,18 @@ tryTakingRgbFunction parser = takeNext parser []
 
 
 
--- , tokenType = if T.length tok > 0 then (Just tokType) else (tokenType parser)
+{-
+-- TODO: move getting leading minus to takeNumber. Have a clearer distinction
+-- between minus being a part of a number and minus being a part of other
+-- type of token. Make sure that this call: "nextToken
+-- defaultParser{remainder="/* hello */ -"}" returns token type == TokenChar.
+-- Or should it be treated as invalid?
+takeLeadingMinus :: CssParser -> (CssParser, CssToken)
+takeLeadingMinus parser = case T.uncons (remainder parser) of
+                            Just (c, rem) | c == '-'  -> (parser{remainder = rem}, CssToken (T.singleton c) Nothing)
+                                          | otherwise -> (parser, CssToken "" Nothing)
+                            Nothing -> (parser, CssToken "" Nothing)
+-}
+
+
+
