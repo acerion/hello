@@ -20,8 +20,7 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
-module CssParserFFI(hll_nextToken
-                   ) where
+module CssParserFFI() where
 
 
 
@@ -99,12 +98,19 @@ hll_nextToken hll_cssparser cBuf = do
                                                }
 
   manipulateOutPtr hll_cssparser buf parser token inBlock
-  (newCString . T.unpack . cssTokenValue $ token)
-    where
-      -- Set fields in pointer to struct passed from C code.
-      manipulateOutPtr :: Ptr HelloCssParser -> BS.ByteString -> CssParser -> CssToken -> Int -> IO ()
-      manipulateOutPtr hll_cssparser buf parser token inBlock = do
-        poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) (getTokenType token) inBlock
+  case token of
+    (CssTokI i)   -> (newCString . show $ i)
+    (CssTokF f)   -> (newCString . show $ f)
+    (CssTokCol c) -> (newCString . T.unpack $ c)
+    (CssTokSym s) -> (newCString . T.unpack $ s)
+    (CssTokStr s) -> (newCString . T.unpack $ s)
+    (CssTokCh c)  -> (newCString . T.unpack . T.singleton $ c)
+    otherwise     -> return nullPtr --(newCString . T.unpack . cssTokenValue $ token)
+  where
+    -- Set fields in pointer to struct passed from C code.
+    manipulateOutPtr :: Ptr HelloCssParser -> BS.ByteString -> CssParser -> CssToken -> Int -> IO ()
+    manipulateOutPtr hll_cssparser buf parser token inBlock = do
+      poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) (getTokenType token) inBlock
 
 
 
@@ -139,14 +145,12 @@ hll_parseRgbFunction hll_cssparser cBuf = do
 
 
 
-getTokenType parser = case (cssTokenType parser) of
-                        Just t | t == TokenInt    -> 0
-                               | t == TokenFloat  -> 1
-                               | t == TokenColor  -> 2
-                               | t == TokenSymbol -> 3
-                               | t == TokenString -> 4
-                               | t == TokenChar   -> 5
-                               | t == TokenEnd    -> 6
-                               | otherwise        -> 7
-                        Nothing -> 6
+getTokenType (CssTokI    _) = 0
+getTokenType (CssTokF    _) = 1
+getTokenType (CssTokCol  _) = 2
+getTokenType (CssTokSym  _) = 3
+getTokenType (CssTokStr  _) = 4
+getTokenType (CssTokCh   _) = 5
+getTokenType (CssTokEnd)    = 6
+getTokenType _              = 7
 

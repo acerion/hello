@@ -1022,27 +1022,15 @@ bool CssParser::parseValue(CssPropertyName prop,
          nextToken(&this->tokenizer, &this->hll_css_parser);
       } else if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
          if (dStrAsciiCasecmp(tokenizer.value, "rgb") == 0) {
-#if 1
-            fprintf(stderr, "buf before = '%s'\n\n", this->tokenizer.buf + this->tokenizer.bufOffset);
+
             int color = hll_parseRgbFunction(&this->hll_css_parser, this->tokenizer.buf + this->tokenizer.bufOffset);
             //this->hll_css_parser.bufOffsetC--;
             this->tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
-            fprintf(stderr, "buf after = '%s'\n\n", this->tokenizer.buf + this->tokenizer.bufOffset);
             if (999999999 != color) { // Magic value indicating error
                val->intVal = color;
                ret = true;
             } else {
             }
-#else
-            nextToken(&this->tokenizer, &this->hll_css_parser);
-            CssColor color = { .color = 0, .percentage = -1 };
-            if (parseRgbFunction(&this->tokenizer, &this->hll_css_parser, &color)) {
-               val->intVal = color.color;
-               ret = true;
-            } else {
-               MSG_CSS("Failed to parse %s color\n", "rgb(r,g,b)");
-            }
-#endif
             fprintf(stderr, "rgb function color = %d\n", val->intVal);
          } else {
             int colorError = 1;
