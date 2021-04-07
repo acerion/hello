@@ -54,6 +54,7 @@ module CssParser(nextToken
                 , tryTakingRgbFunction
                 , parseRgbFunction
                 , parseRgbFunctionInt
+                , declarationValueAsColor
                 , defaultParser) where
 
 
@@ -67,6 +68,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Read as T.R
 import qualified Data.Text.IO as T.IO
 import qualified HelloUtils as HU
+import Colors
 
 
 
@@ -288,6 +290,7 @@ takeAllTokens (parser,token) = do
 
 
 
+
 parseRgbFunctionInt :: CssParser -> (CssParser, Maybe Int)
 parseRgbFunctionInt parser =
   case parseRgbFunction parser of
@@ -299,6 +302,7 @@ parseRgbFunctionInt parser =
         g = getInt tg isPercent
         b = getInt tb isPercent
 
+        -- TODO: make sure that r/g/b values are in range 0-255.
         getInt :: Int -> Bool -> Int
         getInt i isPercent = if isPercent then (i * 255) `div` 100 else i
 
@@ -361,3 +365,14 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 
 
 
+
+
+declarationValueAsColor :: CssParser -> CssToken -> (CssParser, Maybe Int)
+declarationValueAsColor parser (CssTokCol c) = case colorsStringToColor c of -- TODO: we know here that color should have form #RRGGBB. Call function that accepts only this format.
+                                                 Just i  -> (parser, Just i)
+                                                 Nothing -> (parser, Nothing)
+declarationValueAsColor parser (CssTokSym s) | s == "rgb" = parseRgbFunctionInt parser
+                                             | otherwise = case colorsStringToColor s of
+                                                             Just i  -> (parser, Just i)
+                                                             Nothing -> (parser, Nothing)
+declarationValueAsColor parser _             = (parser, Nothing)

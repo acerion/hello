@@ -29,6 +29,7 @@ import Prelude
 import Foreign.C.String
 import Foreign
 import qualified Data.Text as T
+import qualified Data.Text.Read as T.R
 import qualified Data.Text.Encoding as T.E
 import qualified Data.Text.Encoding.Error as T.E.E
 import qualified Data.Text.IO as T.IO
@@ -42,7 +43,9 @@ import CssParser
 
 
 foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> CString -> IO CString
-foreign export ccall "hll_parseRgbFunction" hll_parseRgbFunction :: Ptr HelloCssParser -> CString -> IO Int
+foreign export ccall "hll_declarationValueAsColor" hll_declarationValueAsColor :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
+--foreign export ccall "hll_parseRgbFunction" hll_parseRgbFunction :: Ptr HelloCssParser -> CString -> IO Int
+
 
 #include "../hello.h"
 
@@ -116,6 +119,34 @@ hll_nextToken hll_cssparser cBuf = do
 
 
 
+hll_declarationValueAsColor :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
+hll_declarationValueAsColor hll_cssparser tokType cTokValue cBuf = do
+  buf      <- BSU.unsafePackCString $ cBuf
+  tokValue <- BSU.unsafePackCString $ cTokValue
+  hllParser <- peek hll_cssparser
+  let inBlock = withinBlockC hllParser
+  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
+
+  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
+                            , withinBlock = inBlock > 0
+                            , bufOffset   = bufOffsetC hllParser
+                            }
+
+
+  let pair@(newParser, newToken) = declarationValueAsColor parser inputToken
+  manipulateOutPtr hll_cssparser parser inputToken inBlock
+  case pair of
+    (_, Just i) -> return i
+    (_, _)      -> return 999999999
+
+  where
+    manipulateOutPtr :: Ptr HelloCssParser -> CssParser -> CssToken -> Int -> IO ()
+    manipulateOutPtr hll_cssparser parser token inBlock = do
+      poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) 2 inBlock
+
+
+
+{-
 hll_parseRgbFunction :: Ptr HelloCssParser -> CString -> IO Int
 hll_parseRgbFunction hll_cssparser cBuf = do
   buf <- BSU.unsafePackCString cBuf
@@ -141,7 +172,7 @@ hll_parseRgbFunction hll_cssparser cBuf = do
       manipulateOutPtr :: Ptr HelloCssParser -> BS.ByteString -> CssParser -> Int -> IO ()
       manipulateOutPtr hll_cssparser buf parser inBlock = do
         poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) 2 inBlock
-
+-}
 
 
 
@@ -153,4 +184,20 @@ getTokenType (CssTokStr  _) = 4
 getTokenType (CssTokCh   _) = 5
 getTokenType (CssTokEnd)    = 6
 getTokenType _              = 7
+
+
+
+
+
+getTokenADT tokType tokValue | tokType == 0 = case T.R.signed T.R.decimal tokValue of
+                                                Right pair -> CssTokI (fst pair)
+                                                Left  _    -> CssTokI 0
+                             | tokType == 1 = case T.R.signed T.R.rational tokValue of
+                                                Right pair -> CssTokF (fst pair)
+                                                Left  _    -> CssTokF 0.0
+                             | tokType == 2 = CssTokCol  tokValue
+                             | tokType == 3 = CssTokSym  tokValue
+                             | tokType == 4 = CssTokStr  tokValue
+                             | tokType == 5 = CssTokCh   (T.head tokValue)
+                             | tokType == 6 = CssTokEnd
 

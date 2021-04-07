@@ -385,6 +385,51 @@ static const CssShorthandInfo Css_shorthand_info[] = {
 #define CSS_SHORTHAND_NUM \
    (sizeof(Css_shorthand_info) / sizeof(Css_shorthand_info[0]))
 
+void tokenizerPrintCurrentToken(CssTokenizer * tokenizer);
+const char * tokenizerGetTokenTypeStr(CssTokenizer * tokenizer);
+
+const char * tokenizerGetTokenTypeStr(CssTokenizer * tokenizer)
+{
+   const char * typeStr = NULL;
+
+   switch (tokenizer->type) {
+   case CSS_TOKEN_TYPE_DECINT:
+      typeStr = "decint";
+      break;
+   case CSS_TOKEN_TYPE_FLOAT:
+      typeStr = "float";
+      break;
+   case CSS_TOKEN_TYPE_COLOR:
+      typeStr = "color";
+      break;
+   case CSS_TOKEN_TYPE_SYMBOL:
+      typeStr = "symbol";
+      break;
+   case CSS_TOKEN_TYPE_STRING:
+      typeStr = "string";
+      break;
+   case CSS_TOKEN_TYPE_CHAR:
+      typeStr = "char";
+      break;
+   case CSS_TOKEN_TYPE_END:
+      typeStr = "end";
+      break;
+   default:
+      typeStr = "unknown";
+      break;
+      }
+
+   return typeStr;
+}
+
+void tokenizerPrintCurrentToken(CssTokenizer * tokenizer)
+{
+   fprintf(stderr, "Current token: '%s' = '%s'\n",
+           tokenizerGetTokenTypeStr(tokenizer),
+           tokenizer->value);
+}
+
+
 /* ----------------------------------------------------------------------
  *    Parsing
  * ---------------------------------------------------------------------- */
@@ -475,33 +520,8 @@ void nextToken(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser)
 #endif
 
    nextTokenInner2(tokenizer, hll_css_parser);
-   const char * type = NULL;
-   switch (tokenizer->type) {
-   case CSS_TOKEN_TYPE_DECINT:
-      type = "decint";
-      break;
-   case CSS_TOKEN_TYPE_FLOAT:
-      type = "float";
-      break;
-   case CSS_TOKEN_TYPE_COLOR:
-      type = "color";
-      break;
-   case CSS_TOKEN_TYPE_SYMBOL:
-      type = "symbol";
-      break;
-   case CSS_TOKEN_TYPE_STRING:
-      type = "string";
-      break;
-   case CSS_TOKEN_TYPE_CHAR:
-      type = "char";
-      break;
-   case CSS_TOKEN_TYPE_END:
-      type = "end";
-      break;
-   default:
-      type = "unknown";
-      break;
-      }
+   const char * type = tokenizerGetTokenTypeStr(tokenizer);
+
 
 #if 0
    const size_t len_after = strlen(tok->buf + hll_css_parser->bufOffset);
@@ -837,66 +857,6 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataT
    return false;
 }
 
-bool parseRgbFunctionComponent(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser, CssColor * color, int * component)
-{
-   if (tokenizer->type != CSS_TOKEN_TYPE_DECINT) {
-      MSG_CSS("expected integer not found in %s color\n", "rgb");
-      return false;
-   }
-
-   *component = strtol(tokenizer->value, NULL, 10);
-
-   nextToken(tokenizer, hll_css_parser);
-   if (tokenizer->type == CSS_TOKEN_TYPE_CHAR && tokenizer->value[0] == '%') {
-      if (color->percentage == 0) {
-         MSG_CSS("'%s' unexpected in rgb color\n", "%");
-         return false;
-      }
-      color->percentage = 1;
-      *component = *component * 255 / 100;
-      nextToken(tokenizer, hll_css_parser);
-   } else {
-      if (color->percentage == 1) {
-         MSG_CSS("expected '%s' not found in rgb color\n", "%");
-         return false;
-      }
-      color->percentage = 0;
-   }
-
-   if (*component > 255)
-      *component = 255;
-   if (*component < 0)
-      *component = 0;
-
-   return true;
-}
-
-bool parseRgbFunction(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser, CssColor * color)
-{
-   if (tokenizer->type != CSS_TOKEN_TYPE_CHAR || tokenizer->value[0] != '(') {
-      MSG_CSS("expected '%s' not found in rgb color\n", "(");
-      return false;
-   }
-
-   int component = 0;
-   int shift = 16;
-   const char sep[] = { ',', ',', ')' };
-
-   for (int i = 0; i < 3; i++) {
-      nextToken(tokenizer, hll_css_parser);
-      if (!parseRgbFunctionComponent(tokenizer, hll_css_parser, color, &component))
-         return false;
-      color->color |= component << shift;
-      if (tokenizer->type != CSS_TOKEN_TYPE_CHAR || tokenizer->value[0] != sep[i]) {
-         MSG_CSS("expected '%s' not found in rgb color\n", ",");
-         return false;
-      }
-      shift -= 8;
-   }
-
-   return true;
-}
-
 bool CssParser::parseValue(CssPropertyName prop,
                            CssPropertyValueDataType type,
                            CssPropertyValue *val)
@@ -1012,34 +972,19 @@ bool CssParser::parseValue(CssPropertyName prop,
       break;
 
    case CssPropertyValueDataType::COLOR:
-      if (tokenizer.type == CSS_TOKEN_TYPE_COLOR) {
-         int colorError = 1;
-         val->intVal = hll_colorsStringToColor(tokenizer.value, -1); colorError = 0;  /* TODO: set correct value of error flag colorError. */
-         if (colorError)
-            MSG_CSS("color is not in \"%s\" format\n", "#RRGGBB");
-         else
+      {
+         int color = hll_declarationValueAsColor(&this->hll_css_parser,
+                                                 tokenizer.type,
+                                                 tokenizer.value,
+                                                 this->tokenizer.buf + this->tokenizer.bufOffset);
+         this->tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
+         if (999999999 != color) { // Magic value indicating error
+            val->intVal = color;
             ret = true;
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-      } else if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-         if (dStrAsciiCasecmp(tokenizer.value, "rgb") == 0) {
-
-            int color = hll_parseRgbFunction(&this->hll_css_parser, this->tokenizer.buf + this->tokenizer.bufOffset);
-            //this->hll_css_parser.bufOffsetC--;
-            this->tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
-            if (999999999 != color) { // Magic value indicating error
-               val->intVal = color;
-               ret = true;
-            } else {
-            }
-            fprintf(stderr, "rgb function color = %d\n", val->intVal);
          } else {
-            int colorError = 1;
-            val->intVal = hll_colorsStringToColor(tokenizer.value, -1); colorError = 0; /* TODO: set correct value of error flag colorError. */
-            if (colorError)
-               MSG_CSS("color is not in \"%s\" format\n", "#RRGGBB");
-            else
-               ret = true;
+            //colorError = 0;  /* TODO: set correct value of error flag colorError. */
          }
+         // This takes token that is a semicolon after declaration value.
          nextToken(&this->tokenizer, &this->hll_css_parser);
       }
       break;

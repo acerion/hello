@@ -48,8 +48,10 @@ char * hll_getAttrValue(const char * tag, int tagSize, const char * attrName);
 /* Token value is returned through return statement. */
 char * hll_nextToken(hll_CssParser * hll_parser, const char * remainder);
 /* Function returns color through return statement. */
-int hll_parseRgbFunction(hll_CssParser * hll_parser, const char * remainder);
+//int hll_parseRgbFunction(hll_CssParser * hll_parser, const char * remainder);
 
+/* Function returns color through return statement. */
+int hll_declarationValueAsColor(hll_CssParser * hll_parser, int tokType, const char * tokValue, const char * remainder);
 
 
 

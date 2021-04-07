@@ -37,8 +37,6 @@ struct CssColor {
    int percentage;
 };
 
-bool parseRgbFunctionComponent(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser, CssColor * color, int * component);
-bool parseRgbFunction(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser, CssColor * color);
 
 class CssParser {
    private:
@@ -55,6 +53,8 @@ class CssParser {
                 const char *buf, int buflen);
 
       bool tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataType * type);
+
+      /* declarationProperty:declarationValue, e.g. color:#324156 */
       bool parseValue(CssPropertyName prop, CssPropertyValueDataType type,
                       CssPropertyValue * val);
       bool parseWeight();
