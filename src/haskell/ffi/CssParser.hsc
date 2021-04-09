@@ -44,6 +44,7 @@ import CssParser
 
 foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> CString -> IO CString
 foreign export ccall "hll_declarationValueAsColor" hll_declarationValueAsColor :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
+foreign export ccall "hll_declarationValueAsEnum"  hll_declarationValueAsEnum ::  Int -> CString -> Int -> IO Int
 --foreign export ccall "hll_parseRgbFunction" hll_parseRgbFunction :: Ptr HelloCssParser -> CString -> IO Int
 
 
@@ -142,7 +143,21 @@ hll_declarationValueAsColor hll_cssparser tokType cTokValue cBuf = do
   where
     manipulateOutPtr :: Ptr HelloCssParser -> CssParser -> CssToken -> Int -> IO ()
     manipulateOutPtr hll_cssparser parser token inBlock = do
-      poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) 2 inBlock
+      poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) 2 inBlock -- 2 == color
+
+
+
+
+hll_declarationValueAsEnum :: Int -> CString -> Int -> IO Int
+hll_declarationValueAsEnum tokType cTokValue property = do
+  tokValue <- BSU.unsafePackCString $ cTokValue
+  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
+
+  let pair@(newParser, newToken) = declarationValueAsEnum defaultParser inputToken property
+  case pair of
+    (_, Just i) -> return i
+    (_, _)      -> return 999999999
+
 
 
 

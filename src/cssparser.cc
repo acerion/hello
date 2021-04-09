@@ -763,11 +763,10 @@ bool CssParser::tokenMatchesProperty(CssDeclarationProperty property, CssDeclara
 
       switch (Css_property_info[property].accepted_value_type[j]) {
 
-      case CssDeclarationValueTypeENUM:
+      case CssDeclarationValueTypeENUM: // TODO: this if/for/if looks almost exactly like original C++ code that was replaced with hll_declarationValueAsEnum()
          if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
             for (i = 0; Css_property_info[property].enum_symbols[i]; i++)
-               if (dStrAsciiCasecmp(tokenizer.value,
-                     Css_property_info[property].enum_symbols[i]) == 0)
+               if (dStrAsciiCasecmp(tokenizer.value, Css_property_info[property].enum_symbols[i]) == 0)
                   return true;
          }
          break;
@@ -869,13 +868,17 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
    switch (valueType) {
    case CssDeclarationValueTypeENUM:
       if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-         for (int i = 0; Css_property_info[property].enum_symbols[i]; i++)
-            if (dStrAsciiCasecmp(tokenizer.value,
-                            Css_property_info[property].enum_symbols[i]) == 0) {
-               value->intVal = i;
-               ret = true;
-               break;
-            }
+
+         const int idx = hll_declarationValueAsEnum(tokenizer.type,
+                                                    tokenizer.value,
+                                                    property);
+         if (999999999 != idx) { // Magic value indicating error
+            value->intVal = idx;
+            ret = true;
+         } else {
+            //colorError = 0;  /* TODO: set correct value of error flag colorError. */
+         }
+         // This takes token that is a semicolon after declaration value.
          nextToken(&this->tokenizer, &this->hll_css_parser);
       }
       break;

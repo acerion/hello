@@ -55,6 +55,8 @@ module CssParser(nextToken
                 , parseRgbFunction
                 , parseRgbFunctionInt
                 , declarationValueAsColor
+                , declarationValueAsEnum
+                , declarationValueAsEnum'
                 , defaultParser) where
 
 
@@ -68,7 +70,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Read as T.R
 import qualified Data.Text.IO as T.IO
 import qualified HelloUtils as HU
+import qualified Data.Vector as V
 import Colors
+import HelloUtils
 
 
 
@@ -103,6 +107,150 @@ defaultParser = CssParser {
   , spaceSeparated = False
   , bufOffset = 0
   }
+
+
+
+
+css_background_attachment_enum_vals = ["scroll", "fixed"]
+css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
+css_border_collapse_enum_vals       = ["separate", "collapse"]
+css_border_color_enum_vals          = ["transparent"]
+css_border_style_enum_vals          = ["none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset"]
+css_border_width_enum_vals          = ["thin", "medium", "thick"]
+css_cursor_enum_vals                = ["crosshair", "default", "pointer", "move", "e-resize", "ne-resize", "nw-resize", "n-resize", "se-resize", "sw-resize", "s-resize", "w-resize", "text", "wait", "help"]
+css_display_enum_vals               = ["block", "inline", "inline-block", "list-item", "none", "table", "table-row-group", "table-header-group", "table-footer-group", "table-row", "table-cell"]
+css_font_size_enum_vals             = ["large", "larger", "medium", "small", "smaller", "xx-large", "xx-small", "x-large", "x-small"]
+css_font_style_enum_vals            = ["normal", "italic", "oblique"]
+css_font_variant_enum_vals          = ["normal", "small-caps"]
+css_font_weight_enum_vals           = ["bold", "bolder", "light", "lighter", "normal"]
+css_letter_spacing_enum_vals        = ["normal"]
+css_list_style_position_enum_vals   = ["inside", "outside"]
+css_line_height_enum_vals           = ["normal"]
+css_list_style_type_enum_vals       = ["disc", "circle", "square", "decimal", "decimal-leading-zero", "lower-roman", "upper-roman", "lower-greek", "lower-alpha", "lower-latin", "upper-alpha", "upper-latin", "hebrew", "armenian", "georgian", "cjk-ideographic", "hiragana", "katakana", "hiragana-iroha", "katakana-iroha", "none"]
+css_text_align_enum_vals            = ["left", "right", "center", "justify", "string"]
+css_text_decoration_enum_vals       = ["underline", "overline", "line-through", "blink"]
+css_text_transform_enum_vals        = ["none", "capitalize", "uppercase", "lowercase"]
+css_vertical_align_vals             = ["top", "bottom", "middle", "baseline", "sub", "super", "text-top", "text-bottom"]
+css_white_space_vals                = ["normal", "pre", "nowrap", "pre-wrap", "pre-line"]
+css_word_spacing_enum_vals          = ["normal"]
+
+
+
+
+cssDeclarationValueTypeINTEGER                  =  0 -- This type is only used internally, for x-* properties.
+cssDeclarationValueTypeENUM                     =  1 -- Value is i, if represented by enum_symbols[i].
+cssDeclarationValueTypeMULTI_ENUM               =  2 -- For all enum_symbols[i], 1 << i are combined.
+cssDeclarationValueTypeLENGTH_PERCENTAGE        =  3 -- <length> or <percentage>. Represented by CssLength.
+cssDeclarationValueTypeLENGTH                   =  4 -- <length>, represented as CssLength. Note: In some
+                                                    -- cases, CSS_TYPE_LENGTH is used instead of
+                                                    -- CSS_TYPE_LENGTH_PERCENTAGE, only because Dw cannot
+                                                    -- handle percentages in this particular case (e.g.
+                                                    -- 'margin-*-width').
+cssDeclarationValueTypeSIGNED_LENGTH            =  5 -- As CSS_TYPE_LENGTH but may be negative.
+cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER =  6 -- <length> or <percentage>, or <number>
+cssDeclarationValueTypeAUTO                     =  7 -- Represented as CssLength of type CSS_LENGTH_TYPE_AUTO
+cssDeclarationValueTypeCOLOR                    =  8 -- Represented as integer.
+cssDeclarationValueTypeFONT_WEIGHT              =  9 -- This very special and only used by 'font-weight'
+cssDeclarationValueTypeSTRING                   = 10 -- <string>
+cssDeclarationValueTypeSYMBOL                   = 11 -- Symbols, which are directly copied (as opposed to
+                                                     -- CSS_PROPERTY_DATA_TYPE_ENUM and
+                                                     -- CSS_PROPERTY_DATA_TYPE_MULTI_ENUM). Used for
+                                                     -- 'font-family'.
+cssDeclarationValueTypeURI                      = 12 -- <uri>
+cssDeclarationValueTypeBACKGROUND_POSITION      = 13 --
+cssDeclarationValueTypeUNUSED                   = 14 -- Not yet used. Will itself get unused some day.
+
+
+
+
+cssPropertyInfo = V.fromList [
+     ("background-attachment",  [ cssDeclarationValueTypeENUM ],                                                    css_background_attachment_enum_vals)
+   , ("background-color",       [ cssDeclarationValueTypeCOLOR ],                                                   [])
+   , ("background-image",       [ cssDeclarationValueTypeURI ],                                                     [])
+   , ("background-position",    [ cssDeclarationValueTypeBACKGROUND_POSITION ],                                     [])
+   , ("background-repeat",      [ cssDeclarationValueTypeENUM ],                                                    css_background_repeat_enum_vals)
+   , ("border-bottom-color",    [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeCOLOR ],                      css_border_color_enum_vals)
+   , ("border-bottom-style",    [ cssDeclarationValueTypeENUM ],                                                    css_border_style_enum_vals)
+   , ("border-bottom-width",    [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH ],                     css_border_width_enum_vals)
+   , ("border-collapse",        [ cssDeclarationValueTypeENUM ],                                                    css_border_collapse_enum_vals)
+   , ("border-left-color",      [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeCOLOR ],                      css_border_color_enum_vals)
+   , ("border-left-style",      [ cssDeclarationValueTypeENUM ],                                                    css_border_style_enum_vals)
+   , ("border-left-width",      [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH ],                     css_border_width_enum_vals)
+   , ("border-right-color",     [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeCOLOR ],                      css_border_color_enum_vals)
+   , ("border-right-style",     [ cssDeclarationValueTypeENUM ],                                                    css_border_style_enum_vals)
+   , ("border-rigth-width",     [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH ],                     css_border_width_enum_vals)
+   , ("border-spacing",         [ cssDeclarationValueTypeLENGTH ],                                                  [])
+   , ("border-top-color",       [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeCOLOR ],                      css_border_color_enum_vals)
+   , ("border-top-style",       [ cssDeclarationValueTypeENUM ],                                                    css_border_style_enum_vals)
+   , ("border-top-width",       [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH ],                     css_border_width_enum_vals)
+   , ("bottom",                 [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("caption-side",           [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("clear",                  [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("clip",                   [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("color",                  [ cssDeclarationValueTypeCOLOR ],                                                   [])
+   , ("content",                [ cssDeclarationValueTypeSTRING ],                                                  [])
+   , ("counter-increment",      [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("counter-reset",          [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("cursor",                 [ cssDeclarationValueTypeENUM ],                                                    css_cursor_enum_vals)
+   , ("direction",              [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("display",                [ cssDeclarationValueTypeENUM ],                                                    css_display_enum_vals)
+   , ("empty-cells",            [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("float",                  [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("font-family",            [ cssDeclarationValueTypeSYMBOL ],                                                  [])
+   , ("font-size",              [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH_PERCENTAGE ],          css_font_size_enum_vals)
+   , ("font-size-adjust",       [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("font-stretch",           [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("font-style",             [ cssDeclarationValueTypeENUM ],                                                    css_font_style_enum_vals)
+   , ("font-variant",           [ cssDeclarationValueTypeENUM ],                                                    css_font_variant_enum_vals)
+   , ("font-weight",            [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeFONT_WEIGHT ],                css_font_weight_enum_vals)
+   , ("height",                 [ cssDeclarationValueTypeLENGTH_PERCENTAGE, cssDeclarationValueTypeAUTO ],          [])
+   , ("left",                   [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("letter-spacing",         [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeSIGNED_LENGTH ],              css_letter_spacing_enum_vals)
+   , ("line-height",            [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER ],   css_line_height_enum_vals)
+   , ("list-style-image",       [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("list-style-position",    [ cssDeclarationValueTypeENUM ],                                                    css_list_style_position_enum_vals)
+   , ("list-style-type",        [ cssDeclarationValueTypeENUM ],                                                    css_list_style_type_enum_vals)
+   , ("margin-bottom",          [ cssDeclarationValueTypeSIGNED_LENGTH, cssDeclarationValueTypeAUTO ],              [])
+   , ("margin-left",            [ cssDeclarationValueTypeSIGNED_LENGTH, cssDeclarationValueTypeAUTO ],              [])
+   , ("margin-right",           [ cssDeclarationValueTypeSIGNED_LENGTH, cssDeclarationValueTypeAUTO ],              [])
+   , ("margin-top",             [ cssDeclarationValueTypeSIGNED_LENGTH, cssDeclarationValueTypeAUTO ],              [])
+   , ("marker-offset",          [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("marks",                  [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("max-height",             [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("max-width",              [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("min-height",             [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("min-width",              [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("outline-color",          [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("outline-style",          [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("outline-width",          [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("overflow",               [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("padding-bottom",         [ cssDeclarationValueTypeLENGTH ],                                                  [])
+   , ("padding-left",           [ cssDeclarationValueTypeLENGTH ],                                                  [])
+   , ("padding-right",          [ cssDeclarationValueTypeLENGTH ],                                                  [])
+   , ("padding-top",            [ cssDeclarationValueTypeLENGTH ],                                                  [])
+   , ("position",               [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("quotes",                 [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("right",                  [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("text-align",             [ cssDeclarationValueTypeENUM ],                                                    css_text_align_enum_vals)
+   , ("text-decoration",        [ cssDeclarationValueTypeMULTI_ENUM ],                                              css_text_decoration_enum_vals)
+   , ("text-indent",            [ cssDeclarationValueTypeLENGTH_PERCENTAGE ],                                       [])
+   , ("text-shadow",            [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("text-transform",         [ cssDeclarationValueTypeENUM ],                                                    css_text_transform_enum_vals)
+   , ("top",                    [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("unicode-bidi",           [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("vertical-align",         [ cssDeclarationValueTypeENUM ],                                                    css_vertical_align_vals)
+   , ("visibility",             [ cssDeclarationValueTypeUNUSED ],                                                  [])
+   , ("white-space",            [ cssDeclarationValueTypeENUM ],                                                    css_white_space_vals)
+   , ("width",                  [ cssDeclarationValueTypeLENGTH_PERCENTAGE, cssDeclarationValueTypeAUTO ],          [])
+   , ("word-spacing",           [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeSIGNED_LENGTH ],              css_word_spacing_enum_vals)
+   , ("z-index",                [ cssDeclarationValueTypeUNUSED ],                                                  [])
+
+   -- These are extensions, for internal used, and never parsed.
+   , ("x-link",                 [ cssDeclarationValueTypeINTEGER ],                                                 [])
+   , ("x-colspan",              [ cssDeclarationValueTypeINTEGER ],                                                 [])
+   , ("x-rowspan",              [ cssDeclarationValueTypeINTEGER ],                                                 [])
+   , ("last",                   [], [])
+   ] :: V.Vector (T.Text, [Int], [T.Text])
 
 
 
@@ -376,3 +524,36 @@ declarationValueAsColor parser (CssTokSym s) | s == "rgb" = parseRgbFunctionInt 
                                                              Just i  -> (parser, Just i)
                                                              Nothing -> (parser, Nothing)
 declarationValueAsColor parser _             = (parser, Nothing)
+
+
+
+
+declarationValueAsEnum :: CssParser -> CssToken -> Int -> (CssParser, Maybe Int)
+declarationValueAsEnum parser (CssTokSym symbol) property =
+  case declarationValueAsEnum' symbol enums 0 of
+    -1  -> (parser, Nothing)
+    idx -> (parser, Just idx)
+  where
+    propInfo = cssPropertyInfo V.! property
+    enums = tripletThrd propInfo
+
+declarationValueAsEnum' :: T.Text -> [T.Text] -> Int -> Int
+declarationValueAsEnum' symbol []     idx = -1
+declarationValueAsEnum' symbol (x:xs) idx = if x == symbol
+                                            then idx
+                                            else declarationValueAsEnum' symbol xs (idx + 1)
+
+
+
+{-
+
+         for (int i = 0; Css_property_info[property].enum_symbols[i]; i++) {
+            if (dStrAsciiCasecmp(tokenizer.value, Css_property_info[property].enum_symbols[i]) == 0) {
+               value->intVal = i;
+               ret = true;
+               break;
+            }
+         }
+
+
+-}

@@ -53,6 +53,9 @@ char * hll_nextToken(hll_CssParser * hll_parser, const char * remainder);
 /* Function returns color through return statement. */
 int hll_declarationValueAsColor(hll_CssParser * hll_parser, int tokType, const char * tokValue, const char * remainder);
 
+/* Function returns integer enum through return statement. */
+int hll_declarationValueAsEnum(int tokType, const char * tokValue, int property);
+
 
 
 #ifdef __cplusplus
