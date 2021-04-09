@@ -20,9 +20,9 @@ class StyleEngine;
 class StyleEngine {
    private:
       struct Node {
-         CssPropertyList *styleAttrProperties;
-         CssPropertyList *styleAttrPropertiesImportant;
-         CssPropertyList *nonCssProperties;
+         CssDeclartionList *styleAttrProperties;
+         CssDeclartionList *styleAttrPropertiesImportant;
+         CssDeclartionList *nonCssDeclarations;
          dw::core::style::Style *style;
          dw::core::style::Style *wordStyle;
          dw::core::style::Style *backgroundStyle;
@@ -43,25 +43,26 @@ class StyleEngine {
       void buildUserStyle ();
       dw::core::style::Style *getStyle0 (int i, BrowserWindow *bw);
       dw::core::style::Style *getWordStyle0 (BrowserWindow *bw);
-      inline void setNonCssHint(CssPropertyName name, CssPropertyValueDataType type,
-                                CssPropertyValue value) {
+      inline void setNonCssHint(CssDeclarationProperty property, CssDeclarationValueType type, CssDeclarationValue value) {
          Node *n = stack->getRef (stack->size () - 1);
 
-         if (!n->nonCssProperties)
-            n->nonCssProperties = new CssPropertyList (true);
-         n->nonCssProperties->set(name, type, value);
+         if (!n->nonCssDeclarations)
+            n->nonCssDeclarations = new CssDeclartionList(true);
+
+         value.type = type;
+         n->nonCssDeclarations->updateOrAddDeclaration(property, value);
       }
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void apply (int i, dw::core::style::StyleAttrs *attrs,
-                  CssPropertyList *props, BrowserWindow *bw);
+                  CssDeclartionList * declList, BrowserWindow *bw);
       bool computeValue (int *dest, CssLength value,
                          dw::core::style::Font *font);
       bool computeValue (int *dest, CssLength value,
                          dw::core::style::Font *font, int percentageBase);
       bool computeLength (dw::core::style::Length *dest, CssLength value,
                           dw::core::style::Font *font);
-      void computeBorderWidth (int *dest, CssProperty *p,
+      void computeBorderWidth (int *dest, CssDeclaration * decl,
                                dw::core::style::Font *font);
 
    public:
@@ -82,17 +83,15 @@ class StyleEngine {
       void endElement (int tag);
       void setPseudoLink ();
       void setPseudoVisited ();
-      inline void setNonCssHint(CssPropertyName name, CssPropertyValueDataType type,
-                                int value) {
-         CssPropertyValue v;
+      inline void setNonCssHint(CssDeclarationProperty property, CssDeclarationValueType type, int value) {
+         CssDeclarationValue v;
          v.intVal = value;
-         setNonCssHint (name, type, v);
+         setNonCssHint(property, type, v);
       }
-      inline void setNonCssHint(CssPropertyName name, CssPropertyValueDataType type,
-                                const char *value) {
-         CssPropertyValue v;
+      inline void setNonCssHint(CssDeclarationProperty property, CssDeclarationValueType type, const char *value) {
+         CssDeclarationValue v;
          v.strVal = dStrdup(value);
-         setNonCssHint (name, type, v);
+         setNonCssHint(property, type, v);
       }
       void inheritNonCssHints ();
       void clearNonCssHints ();

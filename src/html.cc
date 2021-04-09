@@ -322,7 +322,7 @@ void a_Html_tag_set_align_attr(DilloHtml *html, const char *tag, int tagsize)
             style_attrs.textAlignChar = '.';
       }
 #endif
-      html->styleEngine->setNonCssHint(CSS_PROPERTY_TEXT_ALIGN, CssPropertyValueDataType::ENUM,
+      html->styleEngine->setNonCssHint(CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM,
                                        textAlignType);
    }
 }
@@ -350,7 +350,7 @@ bool a_Html_tag_set_valign_attr(DilloHtml *html, const char *tag, int tagsize)
          valign = VALIGN_MIDDLE;
 
       html->styleEngine->setNonCssHint (CSS_PROPERTY_VERTICAL_ALIGN,
-                                        CssPropertyValueDataType::ENUM, valign);
+                                        CssDeclarationValueTypeENUM, valign);
       return true;
    } else
       return false;
@@ -1688,7 +1688,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 
       if (color != -1)
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BACKGROUND_COLOR,
-                                           CssPropertyValueDataType::COLOR, color);
+                                           CssDeclarationValueTypeCOLOR, color);
    }
 
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "text"))) {
@@ -1699,7 +1699,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 
       if (color != -1)
          html->styleEngine->setNonCssHint (CSS_PROPERTY_COLOR,
-                                           CssPropertyValueDataType::COLOR, color);
+                                           CssDeclarationValueTypeCOLOR, color);
    }
 
    html->styleEngine->restyle (html->bw);
@@ -1737,7 +1737,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    html->styleEngine->startElement (tag_index_a, html->bw);
    html->styleEngine->setPseudoVisited ();
    if (html->non_css_visited_color != -1) {
-      html->styleEngine->setNonCssHint (CSS_PROPERTY_COLOR, CssPropertyValueDataType::COLOR,
+      html->styleEngine->setNonCssHint (CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR,
                                         html->non_css_visited_color);
    }
    html->visited_color = html->styleEngine->getStyle (html->bw)->color->getColor ();
@@ -1772,8 +1772,6 @@ static void Html_tag_close_body(DilloHtml *html)
  */
 static void Html_tag_open_p(DilloHtml *html, const char *tag, int tagsize)
 {
-   CssPropertyList props;
-
    a_Html_tag_set_align_attr (html, tag, tagsize);
 }
 
@@ -1786,7 +1784,6 @@ static void Html_tag_open_frame (DilloHtml *html, const char *tag, int tagsize)
 {
    const char *attrbuf;
    DilloUrl *url;
-   CssPropertyList props;
 
    if (!(attrbuf = a_Html_get_attr(html, tag, tagsize, "src")))
       return;
@@ -1802,7 +1799,7 @@ static void Html_tag_open_frame (DilloHtml *html, const char *tag, int tagsize)
       html->styleEngine->setPseudoLink ();
    }
 
-   html->styleEngine->setNonCssHint (PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
+   html->styleEngine->setNonCssHint (PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER,
                                      Html_set_new_link(html,&url));
 }
 
@@ -1898,13 +1895,13 @@ static void Html_tag_open_font(DilloHtml *html, const char *tag, int tagsize)
       }
       if (color != -1)
          html->styleEngine->setNonCssHint (CSS_PROPERTY_COLOR,
-                                           CssPropertyValueDataType::COLOR, color);
+                                           CssDeclarationValueTypeCOLOR, color);
    }
 
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "face"))) {
       fontFamily = dStrdup(attrbuf);
        html->styleEngine->setNonCssHint (CSS_PROPERTY_FONT_FAMILY,
-                                         CssPropertyValueDataType::SYMBOL, fontFamily);
+                                         CssDeclarationValueTypeSYMBOL, fontFamily);
    }
 
    dFree(fontFamily);
@@ -1922,7 +1919,7 @@ static void Html_tag_open_abbr(DilloHtml *html, const char *tag, int tagsize)
    if (prefs.show_tooltip &&
        (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
 
-      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
+      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING,
                                         attrbuf);
    }
 }
@@ -1940,7 +1937,7 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
 
    if (prefs.show_tooltip &&
        (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
-      html->styleEngine->setNonCssHint(PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
+      html->styleEngine->setNonCssHint(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING,
                                        attrbuf);
    }
    width_ptr = a_Html_get_attr_wdef(html, tag, tagsize, "width", NULL);
@@ -1977,10 +1974,10 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
    } else {
       if (CSS_LENGTH_TYPE(l_w) != CSS_LENGTH_TYPE_AUTO)
          html->styleEngine->setNonCssHint (CSS_PROPERTY_WIDTH,
-                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, l_w);
+                                           CssDeclarationValueTypeLENGTH_PERCENTAGE, l_w);
       if (CSS_LENGTH_TYPE(l_h) != CSS_LENGTH_TYPE_AUTO)
          html->styleEngine->setNonCssHint (CSS_PROPERTY_HEIGHT,
-                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, l_h);
+                                           CssDeclarationValueTypeLENGTH_PERCENTAGE, l_h);
    }
 
    /* TODO: we should scale the image respecting its ratio.
@@ -1992,7 +1989,7 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
 
    /* x_img is an index to a list of {url,image} pairs.
     * We know a_Html_image_new() will use size() as its next index */
-   html->styleEngine->setNonCssHint (PROPERTY_X_IMG, CssPropertyValueDataType::INTEGER,
+   html->styleEngine->setNonCssHint (PROPERTY_X_IMG, CssDeclarationValueTypeINTEGER,
                                      html->images->size());
 
 
@@ -2081,9 +2078,9 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
       if (space > 0) {
          space = CSS_CREATE_LENGTH(space, CSS_LENGTH_TYPE_PX);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_MARGIN_LEFT,
-                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, space);
+                                           CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_MARGIN_RIGHT,
-                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, space);
+                                           CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
       }
    }
 
@@ -2093,9 +2090,9 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
       if (space > 0) {
          space = CSS_CREATE_LENGTH(space, CSS_LENGTH_TYPE_PX);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_MARGIN_TOP,
-                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, space);
+                                           CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_MARGIN_BOTTOM,
-                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, space);
+                                           CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
       }
    }
 
@@ -2105,22 +2102,22 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
       if (border >= 0) {
          border = CSS_CREATE_LENGTH(border, CSS_LENGTH_TYPE_PX);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_TOP_WIDTH,
-                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, border);
+                                           CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_BOTTOM_WIDTH,
-                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, border);
+                                           CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_LEFT_WIDTH,
-                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, border);
+                                           CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_RIGHT_WIDTH,
-                                           CssPropertyValueDataType::LENGTH_PERCENTAGE, border);
+                                           CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
 
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_TOP_STYLE,
-                                           CssPropertyValueDataType::ENUM, BORDER_SOLID);
+                                           CssDeclarationValueTypeENUM, BORDER_SOLID);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_BOTTOM_STYLE,
-                                           CssPropertyValueDataType::ENUM, BORDER_SOLID);
+                                           CssDeclarationValueTypeENUM, BORDER_SOLID);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_LEFT_STYLE,
-                                           CssPropertyValueDataType::ENUM, BORDER_SOLID);
+                                           CssDeclarationValueTypeENUM, BORDER_SOLID);
          html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_RIGHT_STYLE,
-                                           CssPropertyValueDataType::ENUM, BORDER_SOLID);
+                                           CssDeclarationValueTypeENUM, BORDER_SOLID);
       }
    }
 
@@ -2358,7 +2355,7 @@ static void Html_tag_open_object(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
+      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER,
                                        Html_set_new_link(html, &url));
    }
    a_Url_free(base_url);
@@ -2396,7 +2393,7 @@ static void Html_tag_open_video(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
+      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER,
                                        Html_set_new_link(html, &url));
 
       Html2TextBlock(html)->addText("[VIDEO]", html->styleEngine->getWordStyle (html->bw));
@@ -2428,7 +2425,7 @@ static void Html_tag_open_audio(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
+      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER,
                                        Html_set_new_link(html, &url));
 
       Html2TextBlock(html)->addText("[AUDIO]", html->styleEngine->getWordStyle (html->bw));
@@ -2462,7 +2459,7 @@ static void Html_tag_open_source(DilloHtml *html, const char *tag,
       } else {
          html->styleEngine->setPseudoLink ();
       }
-      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
+      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER,
                                        Html_set_new_link(html, &url));
    }
 }
@@ -2501,7 +2498,7 @@ static void Html_tag_open_embed(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
+      html->styleEngine->setNonCssHint(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER,
                                        Html_set_new_link(html, &url));
    }
 }
@@ -2579,22 +2576,22 @@ static void Html_tag_open_a(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoVisited ();
          if (html->non_css_visited_color != -1)
             html->styleEngine->setNonCssHint(CSS_PROPERTY_COLOR,
-                                             CssPropertyValueDataType::COLOR,
+                                             CssDeclarationValueTypeCOLOR,
                                              html->non_css_visited_color);
       } else {
          html->styleEngine->setPseudoLink ();
          if (html->non_css_link_color != -1)
             html->styleEngine->setNonCssHint(CSS_PROPERTY_COLOR,
-                                             CssPropertyValueDataType::COLOR,
+                                             CssDeclarationValueTypeCOLOR,
                                              html->non_css_link_color);
       }
 
-      html->styleEngine->setNonCssHint (PROPERTY_X_LINK, CssPropertyValueDataType::INTEGER,
+      html->styleEngine->setNonCssHint (PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER,
                                         Html_set_new_link(html, &url));
    }
    if (prefs.show_tooltip &&
        (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
-      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
+      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING,
                                         attrbuf);
    }
 
@@ -2688,7 +2685,7 @@ static void Html_tag_open_ul(DilloHtml *html, const char *tag, int tagsize)
          list_style_type = LIST_STYLE_TYPE_DISC;
 
       html->styleEngine->setNonCssHint (CSS_PROPERTY_LIST_STYLE_TYPE,
-                                        CssPropertyValueDataType::ENUM, list_style_type);
+                                        CssDeclarationValueTypeENUM, list_style_type);
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<ul> type attribute is obsolete.");
    }
@@ -2755,7 +2752,7 @@ static void Html_tag_open_ol(DilloHtml *html, const char *tag, int tagsize)
          listStyleType = LIST_STYLE_TYPE_UPPER_ROMAN;
 
       html->styleEngine->setNonCssHint (CSS_PROPERTY_LIST_STYLE_TYPE,
-                                        CssPropertyValueDataType::ENUM, listStyleType);
+                                        CssDeclarationValueTypeENUM, listStyleType);
    }
 
    TopOfParsingStack(html)->list_type = HTML_LIST_ORDERED;
@@ -2819,7 +2816,7 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<hr> width attribute is obsolete.");
       html->styleEngine->setNonCssHint (CSS_PROPERTY_WIDTH,
-                                        CssPropertyValueDataType::LENGTH_PERCENTAGE,
+                                        CssDeclarationValueTypeLENGTH_PERCENTAGE,
                                         a_Html_parse_length (html, width_ptr));
       dFree(width_ptr);
    }
@@ -2837,13 +2834,13 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<hr> noshade attribute is obsolete.");
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_TOP_STYLE,
-                                        CssPropertyValueDataType::ENUM, BORDER_SOLID);
+                                        CssDeclarationValueTypeENUM, BORDER_SOLID);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_BOTTOM_STYLE,
-                                        CssPropertyValueDataType::ENUM, BORDER_SOLID);
+                                        CssDeclarationValueTypeENUM, BORDER_SOLID);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_LEFT_STYLE,
-                                        CssPropertyValueDataType::ENUM, BORDER_SOLID);
+                                        CssDeclarationValueTypeENUM, BORDER_SOLID);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_RIGHT_STYLE,
-                                        CssPropertyValueDataType::ENUM, BORDER_SOLID);
+                                        CssDeclarationValueTypeENUM, BORDER_SOLID);
 
       if (size <= 0)
          size = 1;
@@ -2853,14 +2850,14 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
       CssLength size_top = CSS_CREATE_LENGTH ((size+1)/2, CSS_LENGTH_TYPE_PX);
       CssLength size_bottom = CSS_CREATE_LENGTH (size / 2, CSS_LENGTH_TYPE_PX);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_TOP_WIDTH,
-                                        CssPropertyValueDataType::LENGTH_PERCENTAGE, size_top);
+                                        CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_LEFT_WIDTH,
-                                        CssPropertyValueDataType::LENGTH_PERCENTAGE, size_top);
+                                        CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_BOTTOM_WIDTH,
-                                        CssPropertyValueDataType::LENGTH_PERCENTAGE,
+                                        CssDeclarationValueTypeLENGTH_PERCENTAGE,
                                         size_bottom);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_RIGHT_WIDTH,
-                                        CssPropertyValueDataType::LENGTH_PERCENTAGE,
+                                        CssDeclarationValueTypeLENGTH_PERCENTAGE,
                                         size_bottom);
    }
 
@@ -3238,7 +3235,7 @@ static void Html_tag_open_span(DilloHtml *html, const char *tag, int tagsize)
    if (prefs.show_tooltip &&
        (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
 
-      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
+      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING,
                                         attrbuf);
    }
 }
@@ -3254,7 +3251,7 @@ static void Html_tag_open_sectioning(DilloHtml *html, const char *tag,
    if (prefs.show_tooltip &&
        (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
 
-      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
+      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING,
                                         attrbuf);
    }
 }
@@ -3679,7 +3676,7 @@ static void Html_parse_common_attrs(DilloHtml *html, char *tag, int tagsize)
          strncpy(lang, attrbuf, 2);
    }
    if (lang[0])
-      html->styleEngine->setNonCssHint(PROPERTY_X_LANG, CssPropertyValueDataType::STRING, lang);
+      html->styleEngine->setNonCssHint(PROPERTY_X_LANG, CssDeclarationValueTypeSTRING, lang);
 }
 
 /*

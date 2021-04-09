@@ -17,24 +17,32 @@
 
 using namespace dw::core::style;
 
-void CssProperty::printCssProperty () {
-   fprintf (stderr, "    %s: %d\n",
-            CssParser::propertyNameString(this->property_name),
-            this->property_value.intVal);
+void CssDeclaration::printCssDeclaration()
+{
+   switch (this->value.type) {
+   case CssDeclarationValueTypeSTRING:
+   case CssDeclarationValueTypeSYMBOL:
+   case CssDeclarationValueTypeURI:
+      fprintf (stderr, "    %s: [%s]\n", CssParser::propertyNameString(this->property), this->value.strVal);
+      break;
+   default:
+      fprintf (stderr, "    %s: %d\n", CssParser::propertyNameString(this->property), this->value.intVal);
+      break;
+   }
 }
 
-CssPropertyList::CssPropertyList (const CssPropertyList &p, bool deep) :
-   lout::misc::SimpleVector <CssProperty> (p)
+CssDeclartionList::CssDeclartionList (const CssDeclartionList & declList, bool deep) :
+   lout::misc::SimpleVector <CssDeclaration> (declList)
 {
    refCount = 0;
-   safe = p.safe;
+   safe = declList.safe;
    if (deep) {
       for (int i = 0; i < size (); i++) {
-         CssProperty *p = getRef(i);
-         switch (p->property_data_type) {
-         case CssPropertyValueDataType::STRING:
-         case CssPropertyValueDataType::SYMBOL:
-               p->property_value.strVal = dStrdup (p->property_value.strVal);
+         CssDeclaration * decl = getRef(i);
+         switch (decl->value.type) {
+         case CssDeclarationValueTypeSTRING:
+         case CssDeclarationValueTypeSYMBOL:
+               decl->value.strVal = dStrdup (decl->value.strVal);  // TODO: there seems to be a mistake: string is duplicated onto itself
                break;
             default:
                break;
@@ -46,7 +54,7 @@ CssPropertyList::CssPropertyList (const CssPropertyList &p, bool deep) :
    }
 }
 
-CssPropertyList::~CssPropertyList () {
+CssDeclartionList::~CssDeclartionList () {
    if (ownerOfStrings)
       for (int i = 0; i < size (); i++)
          getRef (i)->free ();
@@ -55,54 +63,49 @@ CssPropertyList::~CssPropertyList () {
 /**
  * \brief Set property to a given name and type.
  */
-void CssPropertyList::set (CssPropertyName name,
-                           CssPropertyValueDataType type,
-                           CssPropertyValue value) {
-   CssProperty *prop;
+void CssDeclartionList::updateOrAddDeclaration(CssDeclarationProperty property, CssDeclarationValue value) {
+   CssDeclaration * decl;
 
-   if (name == CSS_PROPERTY_DISPLAY || name == CSS_PROPERTY_BACKGROUND_IMAGE)
+   if (property == CSS_PROPERTY_DISPLAY || property == CSS_PROPERTY_BACKGROUND_IMAGE)
       safe = false;
 
    for (int i = 0; i < size (); i++) {
-      prop = getRef (i);
+      decl = getRef (i);
 
-      if (prop->property_name == name) {
+      if (decl->property == property) {
          if (ownerOfStrings)
-            prop->free ();
-         prop->property_data_type = type;
-         prop->property_value = value;
+            decl->free ();
+         decl->value = value;
          return;
       }
    }
 
    increase ();
-   prop = getRef (size () - 1);
-   prop->property_name = name;
-   prop->property_data_type = type;
-   prop->property_value = value;
+   decl = getRef (size () - 1);
+   decl->property = property;
+   decl->value = value;
 }
 
 /**
  * \brief Merge properties into argument property list.
  */
-void CssPropertyList::apply_css_properties (CssPropertyList *props) {
+void CssDeclartionList::appendDeclarationsToArg(CssDeclartionList * declList) {
    for (int i = 0; i < size (); i++) {
-      CssPropertyValue value = getRef (i)->property_value;
+      CssDeclarationValue value = getRef (i)->value;
 
-      if (props->ownerOfStrings &&
-          (getRef (i)->property_data_type == CssPropertyValueDataType::STRING ||
-           getRef (i)->property_data_type == CssPropertyValueDataType::SYMBOL))
+      if (declList->ownerOfStrings &&
+          (getRef (i)->value.type == CssDeclarationValueTypeSTRING ||
+           getRef (i)->value.type == CssDeclarationValueTypeSYMBOL))
          value.strVal = strdup(value.strVal);
 
-      props->set(getRef (i)->property_name,
-                 getRef (i)->property_data_type,
-                 value);
+      value.type = getRef (i)->value.type;
+      declList->updateOrAddDeclaration(getRef(i)->property, value);
    }
 }
 
-void CssPropertyList::printCssPropertyList () {
+void CssDeclartionList::printCssDeclartionList () {
    for (int i = 0; i < size (); i++)
-      getRef (i)->printCssProperty ();
+      getRef (i)->printCssDeclaration ();
 }
 
 CssSelector::CssSelector () {
@@ -328,26 +331,26 @@ void CssSimpleSelector::printCssSimpleSelector()
    }
 }
 
-CssRule::CssRule (CssSelector *selector, CssPropertyList *props, int pos) {
+CssRule::CssRule (CssSelector *selector, CssDeclartionList * declList, int pos) {
    assert (selector->size () > 0);
 
    this->selector = selector;
    this->selector->ref ();
-   this->css_properties = props;
-   this->css_properties->ref ();
+   this->declList = declList;
+   this->declList->ref ();
    this->pos = pos;
    spec = selector->specificity ();
 }
 
 CssRule::~CssRule () {
    selector->unref ();
-   css_properties->unref ();
+   declList->unref ();
 }
 
-void CssRule::apply_css_rule(CssPropertyList *props, Doctree *docTree,
+void CssRule::apply_css_rule(CssDeclartionList * declList, Doctree *docTree,
                      const DoctreeNode *node, MatchCache *matchCache) const {
    if (selector->full_selector_submatches(docTree, node, matchCache))
-      this->css_properties->apply_css_properties(props);
+      this->declList->appendDeclarationsToArg(declList);
 
    this->printCssRule();
 }
@@ -355,8 +358,8 @@ void CssRule::apply_css_rule(CssPropertyList *props, Doctree *docTree,
 void CssRule::printCssRule () const {
    selector->printCssSelector ();
    fprintf(stderr, " {\n");
-   if (nullptr != this->css_properties) {
-      css_properties->printCssPropertyList();
+   if (nullptr != this->declList) {
+      declList->printCssDeclartionList();
    }
    fprintf(stderr, "}\n");
 }
@@ -431,7 +434,7 @@ void CssStyleSheet::addRule (CssRule *rule) {
  * The properties are set as defined by the rules in the stylesheet that
  * match at the given node in the document tree.
  */
-void CssStyleSheet::apply_style_sheet(CssPropertyList *props, Doctree *docTree,
+void CssStyleSheet::apply_style_sheet(CssDeclartionList * declList, Doctree *docTree,
                         const DoctreeNode *node, MatchCache *matchCache) const {
    static const int maxLists = 32;
    const RuleList *ruleList[maxLists];
@@ -493,7 +496,7 @@ void CssStyleSheet::apply_style_sheet(CssPropertyList *props, Doctree *docTree,
 
       if (minSpecIndex >= 0) {
          CssRule *rule = ruleList[minSpecIndex]->get (index[minSpecIndex]);
-         rule->apply_css_rule(props, docTree, node, matchCache);
+         rule->apply_css_rule(declList, docTree, node, matchCache);
          index[minSpecIndex]++;
       } else {
          break;
@@ -517,37 +520,37 @@ CssContext::CssContext () {
  * by previous stylesheets.
  * This allows e.g. user styles to overwrite author styles.
  */
-void CssContext::apply_css_context(CssPropertyList *props, Doctree *docTree,
+void CssContext::apply_css_context(CssDeclartionList * declList, Doctree *docTree,
          DoctreeNode *node,
-         CssPropertyList *tagStyle, CssPropertyList *tagStyleImportant,
-         CssPropertyList *nonCssHints) {
+         CssDeclartionList *tagStyle, CssDeclartionList *tagStyleImportant,
+         CssDeclartionList *nonCssHints) {
 
-   userAgentSheet.apply_style_sheet(props, docTree, node, &matchCache);
+   userAgentSheet.apply_style_sheet(declList, docTree, node, &matchCache);
 
-   sheet[CSS_PRIMARY_USER].apply_style_sheet(props, docTree, node, &matchCache);
+   sheet[CSS_PRIMARY_USER].apply_style_sheet(declList, docTree, node, &matchCache);
 
    if (nonCssHints)
-        nonCssHints->apply_css_properties(props);
+        nonCssHints->appendDeclarationsToArg(declList);
 
-   sheet[CSS_PRIMARY_AUTHOR].apply_style_sheet(props, docTree, node, &matchCache);
+   sheet[CSS_PRIMARY_AUTHOR].apply_style_sheet(declList, docTree, node, &matchCache);
 
    if (tagStyle)
-        tagStyle->apply_css_properties(props);
+        tagStyle->appendDeclarationsToArg(declList);
 
-   sheet[CSS_PRIMARY_AUTHOR_IMPORTANT].apply_style_sheet(props, docTree, node,
+   sheet[CSS_PRIMARY_AUTHOR_IMPORTANT].apply_style_sheet(declList, docTree, node,
                                                          &matchCache);
 
    if (tagStyleImportant)
-        tagStyleImportant->apply_css_properties(props);
+        tagStyleImportant->appendDeclarationsToArg(declList);
 
-   sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(props, docTree, node, &matchCache);
+   sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(declList, docTree, node, &matchCache);
 }
 
-void CssContext::addRule (CssSelector *sel, CssPropertyList *props,
+void CssContext::addRule (CssSelector *sel, CssDeclartionList * declList,
                           CssPrimaryOrder order) {
 
-   if (props->size () > 0) {
-      CssRule *rule = new CssRule (sel, props, pos++);
+   if (declList->size () > 0) {
+      CssRule *rule = new CssRule (sel, declList, pos++);
 
       if ((order == CSS_PRIMARY_AUTHOR ||
            order == CSS_PRIMARY_AUTHOR_IMPORTANT) &&

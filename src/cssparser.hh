@@ -52,14 +52,13 @@ class CssParser {
       CssParser(CssContext *context, CssOrigin origin, const DilloUrl *baseUrl,
                 const char *buf, int buflen);
 
-      bool tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataType * type);
+      bool tokenMatchesProperty(CssDeclarationProperty property, CssDeclarationValueType * type);
 
       /* declarationProperty:declarationValue, e.g. color:#324156 */
-      bool parseValue(CssPropertyName prop, CssPropertyValueDataType type,
-                      CssPropertyValue * val);
+      bool parseDeclarationValue(CssDeclarationProperty property, CssDeclarationValueType type, CssDeclarationValue * val);
       bool parseWeight();
-      void parseDeclaration(CssPropertyList * props,
-                            CssPropertyList * importantProps);
+      void parseDeclaration(CssDeclartionList * declList,
+                            CssDeclartionList * declListImportant);
       bool parseSimpleSelector(CssSimpleSelector *selector);
       char *parseUrl();
       void parseImport(DilloHtml *html);
@@ -72,11 +71,11 @@ class CssParser {
    public:
       static void parseDeclarationBlock(const DilloUrl *baseUrl,
                                         const char *buf, int buflen,
-                                        CssPropertyList *props,
-                                        CssPropertyList *propsImortant);
+                                        CssDeclartionList * declList,
+                                        CssDeclartionList * declListImportant);
       static void parse(DilloHtml *html, const DilloUrl *baseUrl, CssContext *context,
                         const char *buf, int buflen, CssOrigin origin);
-      static const char *propertyNameString(CssPropertyName name);
+      static const char *propertyNameString(CssDeclarationProperty property);
 };
 
 #endif

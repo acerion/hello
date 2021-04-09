@@ -20,37 +20,29 @@ typedef enum {
    CSS_ORIGIN_AUTHOR,
 } CssOrigin;
 
-enum class CssPropertyValueDataType {
-   INTEGER,            /* This type is only used internally, for x-*
-                                   properties. */
-   ENUM,               /* Value is i, if represented by
-                                   enum_symbols[i]. */
-   MULTI_ENUM,         /* For all enum_symbols[i], 1 << i are
-                                   combined. */
-   LENGTH_PERCENTAGE,  /* <length> or <percentage>. Represented by
-                                   CssLength. */
-   LENGTH,             /* <length>, represented as CssLength.
-                                   Note: In some cases, CSS_TYPE_LENGTH is used
-                                   instead of CSS_TYPE_LENGTH_PERCENTAGE,
-                                   only because Dw cannot handle percentages
-                                   in this particular case (e.g.
-                                   'margin-*-width'). */
-   SIGNED_LENGTH,      /* As CSS_TYPE_LENGTH but may be negative. */
-   LENGTH_PERCENTAGE_NUMBER,  /* <length> or <percentage>, or <number> */
-   AUTO,               /* Represented as CssLength of type
-                                   CSS_LENGTH_TYPE_AUTO */
-   COLOR,              /* Represented as integer. */
-   FONT_WEIGHT,        /* this very special and only used by
-                                   'font-weight' */
-   STRING,             /* <string> */
-   SYMBOL,             /* Symbols, which are directly copied (as
-                                   opposed to CSS_PROPERTY_DATA_TYPE_ENUM and
-                                   CSS_PROPERTY_DATA_TYPE_MULTI_ENUM). Used for
-                                   'font-family'. */
-   URI,                /* <uri> */
-   BACKGROUND_POSITION,
-   UNUSED              /* Not yet used. Will itself get unused some
-                                   day. */
+enum CssDeclarationValueType {
+   CssDeclarationValueTypeINTEGER,            /* This type is only used internally, for x-* properties. */
+   CssDeclarationValueTypeENUM,               /* Value is i, if represented by enum_symbols[i]. */
+   CssDeclarationValueTypeMULTI_ENUM,         /* For all enum_symbols[i], 1 << i are combined. */
+   CssDeclarationValueTypeLENGTH_PERCENTAGE,  /* <length> or <percentage>. Represented by CssLength. */
+   CssDeclarationValueTypeLENGTH,             /* <length>, represented as CssLength. Note: In some
+                                                 cases, CSS_TYPE_LENGTH is used instead of
+                                                 CSS_TYPE_LENGTH_PERCENTAGE, only because Dw cannot
+                                                 handle percentages in this particular case (e.g.
+                                                 'margin-*-width'). */
+   CssDeclarationValueTypeSIGNED_LENGTH,      /* As CSS_TYPE_LENGTH but may be negative. */
+   CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER,  /* <length> or <percentage>, or <number> */
+   CssDeclarationValueTypeAUTO,               /* Represented as CssLength of type CSS_LENGTH_TYPE_AUTO */
+   CssDeclarationValueTypeCOLOR,              /* Represented as integer. */
+   CssDeclarationValueTypeFONT_WEIGHT,        /* this very special and only used by 'font-weight' */
+   CssDeclarationValueTypeSTRING,             /* <string> */
+   CssDeclarationValueTypeSYMBOL,             /* Symbols, which are directly copied (as opposed to
+                                                 CSS_PROPERTY_DATA_TYPE_ENUM and
+                                                 CSS_PROPERTY_DATA_TYPE_MULTI_ENUM). Used for
+                                                 'font-family'. */
+   CssDeclarationValueTypeURI,                /* <uri> */
+   CssDeclarationValueTypeBACKGROUND_POSITION,
+   CssDeclarationValueTypeUNUSED              /* Not yet used. Will itself get unused some day. */
 } ;
 
 /*
@@ -232,18 +224,20 @@ typedef enum {
    PROPERTY_X_IMG,
    PROPERTY_X_TOOLTIP,
    CSS_PROPERTY_LAST
-} CssPropertyName;
+} CssDeclarationProperty;
 
 typedef struct {
    int32_t posX;
    int32_t posY;
 } CssBackgroundPosition;
 
-typedef union {
+typedef struct {
+   CssDeclarationValueType type;
+
    int32_t intVal;
    char *strVal;
    CssBackgroundPosition *posVal;
-} CssPropertyValue;
+} CssDeclarationValue;
 
 typedef enum {
    CSS_BORDER_WIDTH_THIN,
@@ -281,54 +275,52 @@ typedef enum {
 
 
 /**
- * \brief This class holds a CSS property and value pair.
+ * \brief This class holds a CSS declaration: a pair of property and value.
  */
-class CssProperty {
+class CssDeclaration {
    public:
 
-      CssPropertyName property_name;
-      CssPropertyValueDataType property_data_type;
-      CssPropertyValue property_value;
+      CssDeclarationProperty property;
+      CssDeclarationValue value;
 
       inline void free () {
-         switch (this->property_data_type) {
-         case CssPropertyValueDataType::STRING:
-         case CssPropertyValueDataType::SYMBOL:
-         case CssPropertyValueDataType::URI:
-               dFree (this->property_value.strVal);
+         switch (this->value.type) {
+         case CssDeclarationValueTypeSTRING:
+         case CssDeclarationValueTypeSYMBOL:
+         case CssDeclarationValueTypeURI:
+               dFree (this->value.strVal);
                break;
-         case CssPropertyValueDataType::BACKGROUND_POSITION:
-               dFree (this->property_value.posVal);
+         case CssDeclarationValueTypeBACKGROUND_POSITION:
+               dFree (this->value.posVal);
             default:
                break;
          }
       }
-      void printCssProperty ();
+      void printCssDeclaration();
 };
 
 /**
- * \brief A list of CssProperty objects.
+ * \brief A list of CssDeclaration objects.
  */
-class CssPropertyList : public lout::misc::SimpleVector <CssProperty> {
+class CssDeclartionList : public lout::misc::SimpleVector <CssDeclaration> {
    int refCount;
    bool ownerOfStrings;
    bool safe;
 
    public:
-      inline CssPropertyList(bool ownerOfStrings = false) :
-                  lout::misc::SimpleVector <CssProperty> (1) {
+      inline CssDeclartionList(bool ownerOfStrings = false) :
+                  lout::misc::SimpleVector <CssDeclaration> (1) {
          refCount = 0;
          safe = true;
          this->ownerOfStrings = ownerOfStrings;
       };
-      CssPropertyList(const CssPropertyList &p, bool deep = false);
-      ~CssPropertyList ();
+      CssDeclartionList(const CssDeclartionList & declList, bool deep = false);
+      ~CssDeclartionList ();
 
-      void set (CssPropertyName name, CssPropertyValueDataType type,
-                CssPropertyValue value);
-      void apply_css_properties(CssPropertyList *props);
+      void updateOrAddDeclaration(CssDeclarationProperty property, CssDeclarationValue value);
+      void appendDeclarationsToArg(CssDeclartionList * declList);
       bool isSafe () { return safe; };
-      void printCssPropertyList ();
+      void printCssDeclartionList ();
       inline void ref () { refCount++; }
       inline void unref () { if (--refCount == 0) delete this; }
 };
@@ -430,25 +422,25 @@ class CssSelector {
 };
 
 /**
- * \brief A CssSelector CssPropertyList pair.
+ * \brief A CssSelector CssDeclartionList pair.
  *
- *  The CssPropertyList is applied if the CssSelector matches.
+ *  The CssDeclartionList is applied if the CssSelector matches.
  */
 class CssRule {
    private:
-      CssPropertyList *css_properties = nullptr;
+      CssDeclartionList * declList = nullptr;
       int spec, pos;
 
    public:
       CssSelector *selector;
 
-      CssRule (CssSelector *selector, CssPropertyList *props, int pos);
+      CssRule (CssSelector *selector, CssDeclartionList * declList, int pos);
       ~CssRule ();
 
-      void apply_css_rule (CssPropertyList *props, Doctree *docTree,
+      void apply_css_rule (CssDeclartionList * declList, Doctree *docTree,
                   const DoctreeNode *node, MatchCache *matchCache) const;
       inline bool isSafe () {
-         return !selector->checksPseudoClass () || css_properties->isSafe ();
+         return !selector->checksPseudoClass () || declList->isSafe ();
       };
       inline int specificity () { return spec; };
       inline int position () { return pos; };
@@ -500,7 +492,7 @@ class CssStyleSheet {
    public:
       CssStyleSheet () { requiredMatchCache = 0; }
       void addRule (CssRule *rule);
-      void apply_style_sheet(CssPropertyList *props, Doctree *docTree,
+      void apply_style_sheet(CssDeclartionList * declList, Doctree *docTree,
                   const DoctreeNode *node, MatchCache *matchCache) const;
       int getRequiredMatchCache () { return requiredMatchCache; }
 };
@@ -518,12 +510,12 @@ class CssContext {
    public:
       CssContext ();
 
-      void addRule (CssSelector *sel, CssPropertyList *props,
+      void addRule (CssSelector *sel, CssDeclartionList * declList,
                     CssPrimaryOrder order);
-      void apply_css_context(CssPropertyList *props,
+      void apply_css_context(CssDeclartionList * declList,
          Doctree *docTree, DoctreeNode *node,
-         CssPropertyList *tagStyle, CssPropertyList *tagStyleImportant,
-         CssPropertyList *nonCssHints);
+         CssDeclartionList *tagStyle, CssDeclartionList *tagStyleImportant,
+         CssDeclartionList *nonCssHints);
 };
 
 #endif

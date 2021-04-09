@@ -566,7 +566,7 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
       if (prefs.show_tooltip &&
           (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
 
-         html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
+         html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING,
                                            attrbuf);
       }
       Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle(html->bw));
@@ -769,7 +769,7 @@ void Html_tag_open_select(DilloHtml *html, const char *tag, int tagsize)
    if (prefs.show_tooltip &&
        (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
 
-      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
+      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING,
                                         attrbuf);
    }
    Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle (html->bw));
@@ -937,7 +937,7 @@ void Html_tag_open_button(DilloHtml *html, const char *tag, int tagsize)
       if (prefs.show_tooltip &&
           (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
 
-         html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssPropertyValueDataType::STRING,
+         html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING,
                                            attrbuf);
       }
       /* We used to have Textblock (prefs.limit_text_width, ...) here,

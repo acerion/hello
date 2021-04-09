@@ -43,7 +43,7 @@ using namespace dw::core::style;
 
 typedef struct {
    const char *symbol;
-   const CssPropertyValueDataType type[3];
+   const CssDeclarationValueType accepted_value_type[3];
    const char *const *enum_symbols;
 } CssPropertyInfo;
 
@@ -147,92 +147,92 @@ static const char *const Css_word_spacing_enum_vals[] = {
 };
 
 const CssPropertyInfo Css_property_info[CSS_PROPERTY_LAST] = {
-   {"background-attachment",  {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},   Css_background_attachment_enum_vals},
-   {"background-color",       {CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED}, NULL},
-   {"background-image",       {CssPropertyValueDataType::URI, CssPropertyValueDataType::UNUSED}, NULL},
-   {"background-position",    {CssPropertyValueDataType::BACKGROUND_POSITION, CssPropertyValueDataType::UNUSED},     NULL},
-   {"background-repeat",      {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},     Css_background_repeat_enum_vals},
-   {"border-bottom-color",    {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},     Css_border_color_enum_vals},
-   {"border-bottom-style",    {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},     Css_border_style_enum_vals},
-   {"border-bottom-width",    {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},     Css_border_width_enum_vals},
-   {"border-collapse",        {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},     Css_border_collapse_enum_vals},
-   {"border-left-color",      {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},     Css_border_color_enum_vals},
-   {"border-left-style",      {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},     Css_border_style_enum_vals},
-   {"border-left-width",      {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},     Css_border_width_enum_vals},
-   {"border-right-color",     {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},     Css_border_color_enum_vals},
-   {"border-right-style",     {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_border_style_enum_vals},
-   {"border-rigth-width",     {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},    Css_border_width_enum_vals},
-   {"border-spacing",         {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
-   {"border-top-color",       {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED},    Css_border_color_enum_vals},
-   {"border-top-style",       {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_border_style_enum_vals},
-   {"border-top-width",       {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED},    Css_border_width_enum_vals},
-   {"bottom",                 {CssPropertyValueDataType::UNUSED}, NULL},
-   {"caption-side",           {CssPropertyValueDataType::UNUSED}, NULL},
-   {"clear",                  {CssPropertyValueDataType::UNUSED}, NULL},
-   {"clip",                   {CssPropertyValueDataType::UNUSED}, NULL},
-   {"color",                  {CssPropertyValueDataType::COLOR, CssPropertyValueDataType::UNUSED}, NULL},
-   {"content",                {CssPropertyValueDataType::STRING, CssPropertyValueDataType::UNUSED}, NULL},
-   {"counter-increment",      {CssPropertyValueDataType::UNUSED}, NULL},
-   {"counter-reset",          {CssPropertyValueDataType::UNUSED}, NULL},
-   {"cursor",                 {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_cursor_enum_vals},
-   {"direction",              {CssPropertyValueDataType::UNUSED}, NULL},
-   {"display",                {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_display_enum_vals},
-   {"empty-cells",            {CssPropertyValueDataType::UNUSED}, NULL},
-   {"float",                  {CssPropertyValueDataType::UNUSED}, NULL},
-   {"font-family",            {CssPropertyValueDataType::SYMBOL, CssPropertyValueDataType::UNUSED}, NULL},
-   {"font-size",              {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::UNUSED},    Css_font_size_enum_vals},
-   {"font-size-adjust",       {CssPropertyValueDataType::UNUSED}, NULL},
-   {"font-stretch",           {CssPropertyValueDataType::UNUSED}, NULL},
-   {"font-style",             {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_font_style_enum_vals},
-   {"font-variant",           {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_font_variant_enum_vals},
-   {"font-weight",            {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::FONT_WEIGHT, CssPropertyValueDataType::UNUSED},    Css_font_weight_enum_vals},
-   {"height",                 {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"left",                   {CssPropertyValueDataType::UNUSED}, NULL},
-   {"letter-spacing",         {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::UNUSED},    Css_letter_spacing_enum_vals},
-   {"line-height",            {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER, CssPropertyValueDataType::UNUSED},    Css_line_height_enum_vals},
-   {"list-style-image",       {CssPropertyValueDataType::UNUSED}, NULL},
-   {"list-style-position",    {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_list_style_position_enum_vals},
-   {"list-style-type",        {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_list_style_type_enum_vals},
-   {"margin-bottom",          {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"margin-left",            {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"margin-right",           {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"margin-top",             {CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"marker-offset",          {CssPropertyValueDataType::UNUSED}, NULL},
-   {"marks",                  {CssPropertyValueDataType::UNUSED}, NULL},
-   {"max-height",             {CssPropertyValueDataType::UNUSED}, NULL},
-   {"max-width",              {CssPropertyValueDataType::UNUSED}, NULL},
-   {"min-height",             {CssPropertyValueDataType::UNUSED}, NULL},
-   {"min-width",              {CssPropertyValueDataType::UNUSED}, NULL},
-   {"outline-color",          {CssPropertyValueDataType::UNUSED}, NULL},
-   {"outline-style",          {CssPropertyValueDataType::UNUSED}, NULL},
-   {"outline-width",          {CssPropertyValueDataType::UNUSED}, NULL},
-   {"overflow",               {CssPropertyValueDataType::UNUSED}, NULL},
-   {"padding-bottom",         {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
-   {"padding-left",           {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
-   {"padding-right",          {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
-   {"padding-top",            {CssPropertyValueDataType::LENGTH, CssPropertyValueDataType::UNUSED}, NULL},
-   {"position",               {CssPropertyValueDataType::UNUSED}, NULL},
-   {"quotes",                 {CssPropertyValueDataType::UNUSED}, NULL},
-   {"right",                  {CssPropertyValueDataType::UNUSED}, NULL},
-   {"text-align",             {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_text_align_enum_vals},
-   {"text-decoration",        {CssPropertyValueDataType::MULTI_ENUM, CssPropertyValueDataType::UNUSED},    Css_text_decoration_enum_vals},
-   {"text-indent",            {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::UNUSED}, NULL},
-   {"text-shadow",            {CssPropertyValueDataType::UNUSED}, NULL},
-   {"text-transform",         {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},    Css_text_transform_enum_vals},
-   {"top",                    {CssPropertyValueDataType::UNUSED}, NULL},
-   {"unicode-bidi",           {CssPropertyValueDataType::UNUSED}, NULL},
-   {"vertical-align",         {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED},Css_vertical_align_vals},
-   {"visibility",             {CssPropertyValueDataType::UNUSED}, NULL},
-   {"white-space",            {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::UNUSED}, Css_white_space_vals},
-   {"width",                  {CssPropertyValueDataType::LENGTH_PERCENTAGE, CssPropertyValueDataType::AUTO, CssPropertyValueDataType::UNUSED}, NULL},
-   {"word-spacing",           {CssPropertyValueDataType::ENUM, CssPropertyValueDataType::SIGNED_LENGTH, CssPropertyValueDataType::UNUSED},    Css_word_spacing_enum_vals},
-   {"z-index",                {CssPropertyValueDataType::UNUSED}, NULL},
+   {"background-attachment",  {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},   Css_background_attachment_enum_vals},
+   {"background-color",       {CssDeclarationValueTypeCOLOR, CssDeclarationValueTypeUNUSED}, NULL},
+   {"background-image",       {CssDeclarationValueTypeURI, CssDeclarationValueTypeUNUSED}, NULL},
+   {"background-position",    {CssDeclarationValueTypeBACKGROUND_POSITION, CssDeclarationValueTypeUNUSED},     NULL},
+   {"background-repeat",      {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},     Css_background_repeat_enum_vals},
+   {"border-bottom-color",    {CssDeclarationValueTypeENUM, CssDeclarationValueTypeCOLOR, CssDeclarationValueTypeUNUSED},     Css_border_color_enum_vals},
+   {"border-bottom-style",    {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},     Css_border_style_enum_vals},
+   {"border-bottom-width",    {CssDeclarationValueTypeENUM, CssDeclarationValueTypeLENGTH, CssDeclarationValueTypeUNUSED},     Css_border_width_enum_vals},
+   {"border-collapse",        {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},     Css_border_collapse_enum_vals},
+   {"border-left-color",      {CssDeclarationValueTypeENUM, CssDeclarationValueTypeCOLOR, CssDeclarationValueTypeUNUSED},     Css_border_color_enum_vals},
+   {"border-left-style",      {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},     Css_border_style_enum_vals},
+   {"border-left-width",      {CssDeclarationValueTypeENUM, CssDeclarationValueTypeLENGTH, CssDeclarationValueTypeUNUSED},     Css_border_width_enum_vals},
+   {"border-right-color",     {CssDeclarationValueTypeENUM, CssDeclarationValueTypeCOLOR, CssDeclarationValueTypeUNUSED},     Css_border_color_enum_vals},
+   {"border-right-style",     {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},    Css_border_style_enum_vals},
+   {"border-rigth-width",     {CssDeclarationValueTypeENUM, CssDeclarationValueTypeLENGTH, CssDeclarationValueTypeUNUSED},    Css_border_width_enum_vals},
+   {"border-spacing",         {CssDeclarationValueTypeLENGTH, CssDeclarationValueTypeUNUSED}, NULL},
+   {"border-top-color",       {CssDeclarationValueTypeENUM, CssDeclarationValueTypeCOLOR, CssDeclarationValueTypeUNUSED},    Css_border_color_enum_vals},
+   {"border-top-style",       {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},    Css_border_style_enum_vals},
+   {"border-top-width",       {CssDeclarationValueTypeENUM, CssDeclarationValueTypeLENGTH, CssDeclarationValueTypeUNUSED},    Css_border_width_enum_vals},
+   {"bottom",                 {CssDeclarationValueTypeUNUSED}, NULL},
+   {"caption-side",           {CssDeclarationValueTypeUNUSED}, NULL},
+   {"clear",                  {CssDeclarationValueTypeUNUSED}, NULL},
+   {"clip",                   {CssDeclarationValueTypeUNUSED}, NULL},
+   {"color",                  {CssDeclarationValueTypeCOLOR, CssDeclarationValueTypeUNUSED}, NULL},
+   {"content",                {CssDeclarationValueTypeSTRING, CssDeclarationValueTypeUNUSED}, NULL},
+   {"counter-increment",      {CssDeclarationValueTypeUNUSED}, NULL},
+   {"counter-reset",          {CssDeclarationValueTypeUNUSED}, NULL},
+   {"cursor",                 {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED}, Css_cursor_enum_vals},
+   {"direction",              {CssDeclarationValueTypeUNUSED}, NULL},
+   {"display",                {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED}, Css_display_enum_vals},
+   {"empty-cells",            {CssDeclarationValueTypeUNUSED}, NULL},
+   {"float",                  {CssDeclarationValueTypeUNUSED}, NULL},
+   {"font-family",            {CssDeclarationValueTypeSYMBOL, CssDeclarationValueTypeUNUSED}, NULL},
+   {"font-size",              {CssDeclarationValueTypeENUM, CssDeclarationValueTypeLENGTH_PERCENTAGE, CssDeclarationValueTypeUNUSED},    Css_font_size_enum_vals},
+   {"font-size-adjust",       {CssDeclarationValueTypeUNUSED}, NULL},
+   {"font-stretch",           {CssDeclarationValueTypeUNUSED}, NULL},
+   {"font-style",             {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED}, Css_font_style_enum_vals},
+   {"font-variant",           {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},    Css_font_variant_enum_vals},
+   {"font-weight",            {CssDeclarationValueTypeENUM, CssDeclarationValueTypeFONT_WEIGHT, CssDeclarationValueTypeUNUSED},    Css_font_weight_enum_vals},
+   {"height",                 {CssDeclarationValueTypeLENGTH_PERCENTAGE, CssDeclarationValueTypeAUTO, CssDeclarationValueTypeUNUSED}, NULL},
+   {"left",                   {CssDeclarationValueTypeUNUSED}, NULL},
+   {"letter-spacing",         {CssDeclarationValueTypeENUM, CssDeclarationValueTypeSIGNED_LENGTH, CssDeclarationValueTypeUNUSED},    Css_letter_spacing_enum_vals},
+   {"line-height",            {CssDeclarationValueTypeENUM, CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER, CssDeclarationValueTypeUNUSED},    Css_line_height_enum_vals},
+   {"list-style-image",       {CssDeclarationValueTypeUNUSED}, NULL},
+   {"list-style-position",    {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},    Css_list_style_position_enum_vals},
+   {"list-style-type",        {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},    Css_list_style_type_enum_vals},
+   {"margin-bottom",          {CssDeclarationValueTypeSIGNED_LENGTH, CssDeclarationValueTypeAUTO, CssDeclarationValueTypeUNUSED}, NULL},
+   {"margin-left",            {CssDeclarationValueTypeSIGNED_LENGTH, CssDeclarationValueTypeAUTO, CssDeclarationValueTypeUNUSED}, NULL},
+   {"margin-right",           {CssDeclarationValueTypeSIGNED_LENGTH, CssDeclarationValueTypeAUTO, CssDeclarationValueTypeUNUSED}, NULL},
+   {"margin-top",             {CssDeclarationValueTypeSIGNED_LENGTH, CssDeclarationValueTypeAUTO, CssDeclarationValueTypeUNUSED}, NULL},
+   {"marker-offset",          {CssDeclarationValueTypeUNUSED}, NULL},
+   {"marks",                  {CssDeclarationValueTypeUNUSED}, NULL},
+   {"max-height",             {CssDeclarationValueTypeUNUSED}, NULL},
+   {"max-width",              {CssDeclarationValueTypeUNUSED}, NULL},
+   {"min-height",             {CssDeclarationValueTypeUNUSED}, NULL},
+   {"min-width",              {CssDeclarationValueTypeUNUSED}, NULL},
+   {"outline-color",          {CssDeclarationValueTypeUNUSED}, NULL},
+   {"outline-style",          {CssDeclarationValueTypeUNUSED}, NULL},
+   {"outline-width",          {CssDeclarationValueTypeUNUSED}, NULL},
+   {"overflow",               {CssDeclarationValueTypeUNUSED}, NULL},
+   {"padding-bottom",         {CssDeclarationValueTypeLENGTH, CssDeclarationValueTypeUNUSED}, NULL},
+   {"padding-left",           {CssDeclarationValueTypeLENGTH, CssDeclarationValueTypeUNUSED}, NULL},
+   {"padding-right",          {CssDeclarationValueTypeLENGTH, CssDeclarationValueTypeUNUSED}, NULL},
+   {"padding-top",            {CssDeclarationValueTypeLENGTH, CssDeclarationValueTypeUNUSED}, NULL},
+   {"position",               {CssDeclarationValueTypeUNUSED}, NULL},
+   {"quotes",                 {CssDeclarationValueTypeUNUSED}, NULL},
+   {"right",                  {CssDeclarationValueTypeUNUSED}, NULL},
+   {"text-align",             {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED}, Css_text_align_enum_vals},
+   {"text-decoration",        {CssDeclarationValueTypeMULTI_ENUM, CssDeclarationValueTypeUNUSED},    Css_text_decoration_enum_vals},
+   {"text-indent",            {CssDeclarationValueTypeLENGTH_PERCENTAGE, CssDeclarationValueTypeUNUSED}, NULL},
+   {"text-shadow",            {CssDeclarationValueTypeUNUSED}, NULL},
+   {"text-transform",         {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},    Css_text_transform_enum_vals},
+   {"top",                    {CssDeclarationValueTypeUNUSED}, NULL},
+   {"unicode-bidi",           {CssDeclarationValueTypeUNUSED}, NULL},
+   {"vertical-align",         {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED},Css_vertical_align_vals},
+   {"visibility",             {CssDeclarationValueTypeUNUSED}, NULL},
+   {"white-space",            {CssDeclarationValueTypeENUM, CssDeclarationValueTypeUNUSED}, Css_white_space_vals},
+   {"width",                  {CssDeclarationValueTypeLENGTH_PERCENTAGE, CssDeclarationValueTypeAUTO, CssDeclarationValueTypeUNUSED}, NULL},
+   {"word-spacing",           {CssDeclarationValueTypeENUM, CssDeclarationValueTypeSIGNED_LENGTH, CssDeclarationValueTypeUNUSED},    Css_word_spacing_enum_vals},
+   {"z-index",                {CssDeclarationValueTypeUNUSED}, NULL},
 
    /* These are extensions, for internal used, and never parsed. */
-   {"x-link",                 {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
-   {"x-colspan",              {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
-   {"x-rowspan",              {CssPropertyValueDataType::INTEGER, CssPropertyValueDataType::UNUSED}, NULL},
-   {"last",                   {CssPropertyValueDataType::UNUSED}, NULL},
+   {"x-link",                 {CssDeclarationValueTypeINTEGER, CssDeclarationValueTypeUNUSED}, NULL},
+   {"x-colspan",              {CssDeclarationValueTypeINTEGER, CssDeclarationValueTypeUNUSED}, NULL},
+   {"x-rowspan",              {CssDeclarationValueTypeINTEGER, CssDeclarationValueTypeUNUSED}, NULL},
+   {"last",                   {CssDeclarationValueTypeUNUSED}, NULL},
 };
 
 typedef struct {
@@ -244,18 +244,18 @@ typedef struct {
       CSS_SHORTHAND_BORDER,     /* special, used for 'border' */
       CSS_SHORTHAND_FONT,       /* special, used for 'font' */
    } type;
-   const CssPropertyName *properties; /* CSS_SHORTHAND_MULTIPLE:
-                                       *   must be terminated by
-                                       *   CSS_PROPERTY_END 
-                                       * CSS_SHORTHAND_DIRECTIONS:
-                                       *   must have length 4
-                                       * CSS_SHORTHAND_BORDERS:
-                                       *   must have length 12
-                                       * CSS_SHORTHAND_FONT:
-                                       *   unused */
+   const CssDeclarationProperty *properties; /* CSS_SHORTHAND_MULTIPLE:
+                                              *   must be terminated by
+                                              *   CSS_PROPERTY_END 
+                                              * CSS_SHORTHAND_DIRECTIONS:
+                                              *   must have length 4
+                                              * CSS_SHORTHAND_BORDERS:
+                                              *   must have length 12
+                                              * CSS_SHORTHAND_FONT:
+                                              *   unused */
 } CssShorthandInfo;
 
-const CssPropertyName Css_background_properties[] = {
+const CssDeclarationProperty Css_background_properties[] = {
    CSS_PROPERTY_BACKGROUND_COLOR,
    CSS_PROPERTY_BACKGROUND_IMAGE,
    CSS_PROPERTY_BACKGROUND_REPEAT,
@@ -264,84 +264,84 @@ const CssPropertyName Css_background_properties[] = {
    CSS_PROPERTY_END
 };
 
-const CssPropertyName Css_border_bottom_properties[] = {
+const CssDeclarationProperty Css_border_bottom_properties[] = {
    CSS_PROPERTY_BORDER_BOTTOM_WIDTH,
    CSS_PROPERTY_BORDER_BOTTOM_STYLE,
    CSS_PROPERTY_BORDER_BOTTOM_COLOR,
    CSS_PROPERTY_END
 };
 
-const CssPropertyName Css_border_color_properties[4] = {
+const CssDeclarationProperty Css_border_color_properties[4] = {
    CSS_PROPERTY_BORDER_TOP_COLOR,
    CSS_PROPERTY_BORDER_BOTTOM_COLOR,
    CSS_PROPERTY_BORDER_LEFT_COLOR,
    CSS_PROPERTY_BORDER_RIGHT_COLOR
 };
 
-const CssPropertyName Css_border_left_properties[] = {
+const CssDeclarationProperty Css_border_left_properties[] = {
    CSS_PROPERTY_BORDER_LEFT_WIDTH,
    CSS_PROPERTY_BORDER_LEFT_STYLE,
    CSS_PROPERTY_BORDER_LEFT_COLOR,
    CSS_PROPERTY_END
 };
 
-const CssPropertyName Css_border_right_properties[] = {
+const CssDeclarationProperty Css_border_right_properties[] = {
    CSS_PROPERTY_BORDER_RIGHT_WIDTH,
    CSS_PROPERTY_BORDER_RIGHT_STYLE,
    CSS_PROPERTY_BORDER_RIGHT_COLOR,
    CSS_PROPERTY_END
 };
 
-const CssPropertyName Css_border_style_properties[] = {
+const CssDeclarationProperty Css_border_style_properties[] = {
    CSS_PROPERTY_BORDER_TOP_STYLE,
    CSS_PROPERTY_BORDER_BOTTOM_STYLE,
    CSS_PROPERTY_BORDER_LEFT_STYLE,
    CSS_PROPERTY_BORDER_RIGHT_STYLE
 };
 
-const CssPropertyName Css_border_top_properties[] = {
+const CssDeclarationProperty Css_border_top_properties[] = {
    CSS_PROPERTY_BORDER_TOP_WIDTH,
    CSS_PROPERTY_BORDER_TOP_STYLE,
    CSS_PROPERTY_BORDER_TOP_COLOR,
    CSS_PROPERTY_END
 };
 
-const CssPropertyName Css_border_width_properties[] = {
+const CssDeclarationProperty Css_border_width_properties[] = {
    CSS_PROPERTY_BORDER_TOP_WIDTH,
    CSS_PROPERTY_BORDER_BOTTOM_WIDTH,
    CSS_PROPERTY_BORDER_LEFT_WIDTH,
    CSS_PROPERTY_BORDER_RIGHT_WIDTH
 };
 
-const CssPropertyName Css_list_style_properties[] = {
+const CssDeclarationProperty Css_list_style_properties[] = {
    CSS_PROPERTY_LIST_STYLE_TYPE,
    CSS_PROPERTY_LIST_STYLE_POSITION,
    CSS_PROPERTY_LIST_STYLE_IMAGE,
    CSS_PROPERTY_END
 };
 
-const CssPropertyName Css_margin_properties[] = {
+const CssDeclarationProperty Css_margin_properties[] = {
    CSS_PROPERTY_MARGIN_TOP,
    CSS_PROPERTY_MARGIN_BOTTOM,
    CSS_PROPERTY_MARGIN_LEFT,
    CSS_PROPERTY_MARGIN_RIGHT
 };
 
-const CssPropertyName Css_outline_properties[] = {
+const CssDeclarationProperty Css_outline_properties[] = {
    CSS_PROPERTY_OUTLINE_COLOR,
    CSS_PROPERTY_OUTLINE_STYLE,
    CSS_PROPERTY_OUTLINE_WIDTH,
    CSS_PROPERTY_END
 };
 
-const CssPropertyName Css_padding_properties[] = {
+const CssDeclarationProperty Css_padding_properties[] = {
    CSS_PROPERTY_PADDING_TOP,
    CSS_PROPERTY_PADDING_BOTTOM,
    CSS_PROPERTY_PADDING_LEFT,
    CSS_PROPERTY_PADDING_RIGHT
 };
 
-const CssPropertyName Css_border_properties[] = {
+const CssDeclarationProperty Css_border_properties[] = {
    CSS_PROPERTY_BORDER_TOP_WIDTH,
    CSS_PROPERTY_BORDER_TOP_STYLE,
    CSS_PROPERTY_BORDER_TOP_COLOR,
@@ -356,7 +356,7 @@ const CssPropertyName Css_border_properties[] = {
    CSS_PROPERTY_BORDER_RIGHT_COLOR
 };
 
-const CssPropertyName Css_font_properties[] = {
+const CssDeclarationProperty Css_font_properties[] = {
    CSS_PROPERTY_FONT_SIZE,
    CSS_PROPERTY_FONT_STYLE,
    CSS_PROPERTY_FONT_VARIANT,
@@ -520,10 +520,10 @@ void nextToken(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser)
 #endif
 
    nextTokenInner2(tokenizer, hll_css_parser);
-   const char * type = tokenizerGetTokenTypeStr(tokenizer);
 
 
 #if 0
+   const char * type = tokenizerGetTokenTypeStr(tokenizer);
    const size_t len_after = strlen(tok->buf + hll_css_parser->bufOffset);
    const size_t diff = len_before - len_after;
    char after[128] = { 0 };
@@ -753,40 +753,40 @@ void nextTokenInner(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser)
 }
 
 
-bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataType *type)
+bool CssParser::tokenMatchesProperty(CssDeclarationProperty property, CssDeclarationValueType * valueType)
 {
    int i, err = 1;
-   CssPropertyValueDataType savedType = *type;
+   CssDeclarationValueType savedValueType = *valueType;
 
-   for (int j = 0; Css_property_info[prop].type[j] != CssPropertyValueDataType::UNUSED; j++) {
-      *type = Css_property_info[prop].type[j];
+   for (int j = 0; Css_property_info[property].accepted_value_type[j] != CssDeclarationValueTypeUNUSED; j++) {
+      *valueType = Css_property_info[property].accepted_value_type[j];
 
-      switch (Css_property_info[prop].type[j]) {
+      switch (Css_property_info[property].accepted_value_type[j]) {
 
-      case CssPropertyValueDataType::ENUM:
+      case CssDeclarationValueTypeENUM:
          if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-            for (i = 0; Css_property_info[prop].enum_symbols[i]; i++)
+            for (i = 0; Css_property_info[property].enum_symbols[i]; i++)
                if (dStrAsciiCasecmp(tokenizer.value,
-                     Css_property_info[prop].enum_symbols[i]) == 0)
+                     Css_property_info[property].enum_symbols[i]) == 0)
                   return true;
          }
          break;
 
-      case CssPropertyValueDataType::MULTI_ENUM:
+      case CssDeclarationValueTypeMULTI_ENUM:
          if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
             if (dStrAsciiCasecmp(tokenizer.value, "none") == 0) {
                return true;
             } else {
-               for (i = 0; Css_property_info[prop].enum_symbols[i]; i++) {
+               for (i = 0; Css_property_info[property].enum_symbols[i]; i++) {
                   if (dStrAsciiCasecmp(tokenizer.value,
-                        Css_property_info[prop].enum_symbols[i]) == 0)
+                        Css_property_info[property].enum_symbols[i]) == 0)
                      return true;
                }
             }
          }
          break;
 
-      case CssPropertyValueDataType::BACKGROUND_POSITION:
+      case CssDeclarationValueTypeBACKGROUND_POSITION:
          if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL &&
              (dStrAsciiCasecmp(tokenizer.value, "center") == 0 ||
               dStrAsciiCasecmp(tokenizer.value, "left") == 0 ||
@@ -795,23 +795,23 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataT
               dStrAsciiCasecmp(tokenizer.value, "bottom") == 0))
             return true;
          // Fall Through (lenght and percentage)
-      case CssPropertyValueDataType::LENGTH_PERCENTAGE:
-      case CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER:
-      case CssPropertyValueDataType::LENGTH:
+      case CssDeclarationValueTypeLENGTH_PERCENTAGE:
+      case CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER:
+      case CssDeclarationValueTypeLENGTH:
          if (tokenizer.value[0] == '-')
             return false;
          // Fall Through
-      case CssPropertyValueDataType::SIGNED_LENGTH:
+      case CssDeclarationValueTypeSIGNED_LENGTH:
          if (tokenizer.type == CSS_TOKEN_TYPE_DECINT || tokenizer.type == CSS_TOKEN_TYPE_FLOAT)
             return true;
          break;
 
-      case CssPropertyValueDataType::AUTO:
+      case CssDeclarationValueTypeAUTO:
          if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL && dStrAsciiCasecmp(tokenizer.value, "auto") == 0)
             return true;
          break;
 
-      case CssPropertyValueDataType::COLOR:
+      case CssDeclarationValueTypeCOLOR:
          if ((tokenizer.type == CSS_TOKEN_TYPE_COLOR ||
               tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) &&
             (dStrAsciiCasecmp(tokenizer.value, "rgb") == 0 ||
@@ -819,18 +819,18 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataT
             return true;
          break;
 
-      case CssPropertyValueDataType::STRING:
+      case CssDeclarationValueTypeSTRING:
          if (tokenizer.type == CSS_TOKEN_TYPE_STRING)
             return true;
          break;
 
-      case CssPropertyValueDataType::SYMBOL:
+      case CssDeclarationValueTypeSYMBOL:
          if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL ||
              tokenizer.type == CSS_TOKEN_TYPE_STRING)
             return true;
          break;
 
-      case CssPropertyValueDataType::FONT_WEIGHT:
+      case CssDeclarationValueTypeFONT_WEIGHT:
          if (tokenizer.type == CSS_TOKEN_TYPE_DECINT) {
             i = strtol(tokenizer.value, NULL, 10);
             if (i >= 100 && i <= 900)
@@ -838,14 +838,14 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataT
          }
          break;
 
-      case CssPropertyValueDataType::URI:
+      case CssDeclarationValueTypeURI:
          if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL &&
              dStrAsciiCasecmp(tokenizer.value, "url") == 0)
             return true;
          break;
 
-      case CssPropertyValueDataType::UNUSED:
-      case CssPropertyValueDataType::INTEGER:
+      case CssDeclarationValueTypeUNUSED:
+      case CssDeclarationValueTypeINTEGER:
          /* Not used for parser values. */
       default:
          assert(false);
@@ -853,28 +853,26 @@ bool CssParser::tokenMatchesProperty(CssPropertyName prop, CssPropertyValueDataT
       }
    }
 
-   *type = savedType;
+   *valueType = savedValueType;
    return false;
 }
 
-bool CssParser::parseValue(CssPropertyName prop,
-                           CssPropertyValueDataType type,
-                           CssPropertyValue *val)
+bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
+                                      CssDeclarationValueType valueType,
+                                      CssDeclarationValue * value)
 {
    CssLengthType lentype;
    bool found, ret = false;
-   float fval;
-   int i;
    int ival;
    Dstr *dstr;
 
-   switch (type) {
-   case CssPropertyValueDataType::ENUM:
+   switch (valueType) {
+   case CssDeclarationValueTypeENUM:
       if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-         for (i = 0; Css_property_info[prop].enum_symbols[i]; i++)
+         for (int i = 0; Css_property_info[property].enum_symbols[i]; i++)
             if (dStrAsciiCasecmp(tokenizer.value,
-                            Css_property_info[prop].enum_symbols[i]) == 0) {
-               val->intVal = i;
+                            Css_property_info[property].enum_symbols[i]) == 0) {
+               value->intVal = i;
                ret = true;
                break;
             }
@@ -882,29 +880,29 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
       break;
 
-   case CssPropertyValueDataType::MULTI_ENUM:
-      val->intVal = 0;
+   case CssDeclarationValueTypeMULTI_ENUM:
+      value->intVal = 0;
       ret = true;
 
       while (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
          if (dStrAsciiCasecmp(tokenizer.value, "none") != 0) {
-            for (i = 0, found = false;
-                 !found && Css_property_info[prop].enum_symbols[i]; i++) {
+            for (int i = 0, found = false;
+                 !found && Css_property_info[property].enum_symbols[i]; i++) {
                if (dStrAsciiCasecmp(tokenizer.value,
-                               Css_property_info[prop].enum_symbols[i]) == 0)
-                  val->intVal |= (1 << i);
+                               Css_property_info[property].enum_symbols[i]) == 0)
+                  value->intVal |= (1 << i);
             }
          }
          nextToken(&this->tokenizer, &this->hll_css_parser);
       }
       break;
 
-   case CssPropertyValueDataType::LENGTH_PERCENTAGE:
-   case CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER:
-   case CssPropertyValueDataType::LENGTH:
-   case CssPropertyValueDataType::SIGNED_LENGTH:
+   case CssDeclarationValueTypeLENGTH_PERCENTAGE:
+   case CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER:
+   case CssDeclarationValueTypeLENGTH:
+   case CssDeclarationValueTypeSIGNED_LENGTH:
       if (tokenizer.type == CSS_TOKEN_TYPE_DECINT || tokenizer.type == CSS_TOKEN_TYPE_FLOAT) {
-         fval = atof(tokenizer.value);
+         float fval = atof(tokenizer.value);
          lentype = CSS_LENGTH_TYPE_NONE;
 
          nextToken(&this->tokenizer, &this->hll_css_parser);
@@ -943,8 +941,8 @@ bool CssParser::parseValue(CssPropertyName prop,
                ret = false;
             }
          } else if (!this->hll_css_parser.spaceSeparatedC &&
-                    (type == CssPropertyValueDataType::LENGTH_PERCENTAGE ||
-                     type == CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER) &&
+                    (valueType == CssDeclarationValueTypeLENGTH_PERCENTAGE ||
+                     valueType == CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER) &&
                     tokenizer.type == CSS_TOKEN_TYPE_CHAR &&
                     tokenizer.value[0] == '%') {
             fval /= 100;
@@ -954,24 +952,24 @@ bool CssParser::parseValue(CssPropertyName prop,
          }
 
          /* Allow numbers without unit only for 0 or
-          * CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER
+          * CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER
           */
          if (lentype == CSS_LENGTH_TYPE_NONE &&
-            (type == CssPropertyValueDataType::LENGTH_PERCENTAGE_NUMBER || fval == 0.0))
+            (valueType == CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER || fval == 0.0))
             ret = true;
 
-         val->intVal = CSS_CREATE_LENGTH(fval, lentype);
+         value->intVal = CSS_CREATE_LENGTH(fval, lentype);
       }
       break;
 
-   case CssPropertyValueDataType::AUTO:
+   case CssDeclarationValueTypeAUTO:
       assert (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL && !dStrAsciiCasecmp(tokenizer.value, "auto"));
       ret = true;
-      val->intVal = CSS_LENGTH_TYPE_AUTO;
+      value->intVal = CSS_LENGTH_TYPE_AUTO;
       nextToken(&this->tokenizer, &this->hll_css_parser);
       break;
 
-   case CssPropertyValueDataType::COLOR:
+   case CssDeclarationValueTypeCOLOR:
       {
          int color = hll_declarationValueAsColor(&this->hll_css_parser,
                                                  tokenizer.type,
@@ -979,7 +977,7 @@ bool CssParser::parseValue(CssPropertyName prop,
                                                  this->tokenizer.buf + this->tokenizer.bufOffset);
          this->tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
          if (999999999 != color) { // Magic value indicating error
-            val->intVal = color;
+            value->intVal = color;
             ret = true;
          } else {
             //colorError = 0;  /* TODO: set correct value of error flag colorError. */
@@ -989,15 +987,15 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
       break;
 
-   case CssPropertyValueDataType::STRING:
+   case CssDeclarationValueTypeSTRING:
       if (tokenizer.type == CSS_TOKEN_TYPE_STRING) {
-         val->strVal = dStrdup(tokenizer.value);
+         value->strVal = dStrdup(tokenizer.value);
          ret = true;
          nextToken(&this->tokenizer, &this->hll_css_parser);
       }
       break;
 
-   case CssPropertyValueDataType::SYMBOL:
+   case CssDeclarationValueTypeSYMBOL:
       /* Read comma separated list of font family names */
       dstr = dStr_new("");
       while (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL || tokenizer.type == CSS_TOKEN_TYPE_STRING ||
@@ -1010,14 +1008,14 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
 
       if (ret) {
-         val->strVal = dStrstrip(dstr->str);
+         value->strVal = dStrstrip(dstr->str);
          dStr_free(dstr, 0);
       } else {
          dStr_free(dstr, 1);
       }
       break;
 
-   case CssPropertyValueDataType::FONT_WEIGHT:
+   case CssDeclarationValueTypeFONT_WEIGHT:
       ival = 0;
       if (tokenizer.type == CSS_TOKEN_TYPE_DECINT) {
          ival = strtol(tokenizer.value, NULL, 10);
@@ -1027,23 +1025,23 @@ bool CssParser::parseValue(CssPropertyName prop,
       }
 
       if (ival != 0) {
-         val->intVal = ival;
+         value->intVal = ival;
          ret = true;
          nextToken(&this->tokenizer, &this->hll_css_parser);
       }
       break;
 
-   case CssPropertyValueDataType::URI:
+   case CssDeclarationValueTypeURI:
       if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL &&
           dStrAsciiCasecmp(tokenizer.value, "url") == 0) {
-         val->strVal = parseUrl();
+         value->strVal = parseUrl();
          nextToken(&this->tokenizer, &this->hll_css_parser);
-         if (val->strVal)
+         if (value->strVal)
             ret = true;
       }
       break;
 
-   case CssPropertyValueDataType::BACKGROUND_POSITION:
+   case CssDeclarationValueTypeBACKGROUND_POSITION:
       // 'background-position' consists of one or two values: vertical and
       // horizontal position; in most cases in this order. However, as long it
       // is unambigous, the order can be switched: "10px left" and "left 10px"
@@ -1057,8 +1055,8 @@ bool CssParser::parseValue(CssPropertyName prop,
       // First: collect values in pos[0] and pos[1], and determine whether
       // they can be used for a horizontal (h[i]) or vertical (v[i]) position
       // (or both). When neither h[i] or v[i] is set, pos[i] is undefined.
-      for (i = 0; i < 2; i++) {
-         CssPropertyValueDataType typeTmp;
+      for (int i = 0; i < 2; i++) {
+         CssDeclarationValueType typeTmp;
          // tokenMatchesProperty will, for CSS_PROPERTY_BACKGROUND_POSITION,
          // work on both parts, since they are exchangable.
          if (tokenMatchesProperty (CSS_PROPERTY_BACKGROUND_POSITION,
@@ -1092,8 +1090,8 @@ bool CssParser::parseValue(CssPropertyName prop,
                   lout::misc::assertNotReached ();
             } else {
                // We can assume <length> or <percentage> here ...
-               CssPropertyValue valTmp;
-               if (parseValue(prop, CssPropertyValueDataType::LENGTH_PERCENTAGE, &valTmp)) {
+               CssDeclarationValue valTmp;
+               if (parseDeclarationValue(property, CssDeclarationValueTypeLENGTH_PERCENTAGE, &valTmp)) {
                   pos[i] = valTmp.intVal;
                   ret = true;
                } else
@@ -1119,26 +1117,26 @@ bool CssParser::parseValue(CssPropertyName prop,
          // Only valid, when a combination h/v or v/h is possible.
          if ((h[0] && v[1]) || (v[0] && h[1])) {
             ret = true;
-            val->posVal = dNew(CssBackgroundPosition, 1);
+            value->posVal = dNew(CssBackgroundPosition, 1);
 
             // Prefer combination h/v:
             if (h[0] && v[1]) {
-                val->posVal->posX = pos[0];
-                val->posVal->posY = pos[1];
+                value->posVal->posX = pos[0];
+                value->posVal->posY = pos[1];
             } else {
                // This should be v/h:
-                val->posVal->posX = pos[1];
-                val->posVal->posY = pos[0];
+                value->posVal->posX = pos[1];
+                value->posVal->posY = pos[0];
             }
          }
       }
       break;
 
-   case CssPropertyValueDataType::UNUSED:
+   case CssDeclarationValueTypeUNUSED:
       /* nothing */
       break;
 
-   case CssPropertyValueDataType::INTEGER:
+   case CssDeclarationValueTypeINTEGER:
       /* Not used for parser values. */
    default:
       assert(false);            /* not reached */
@@ -1167,7 +1165,7 @@ bool CssParser::parseWeight()
 static int Css_property_info_cmp(const void *a, const void *b)
 {
    return dStrAsciiCasecmp(((CssPropertyInfo *) a)->symbol,
-                      ((CssPropertyInfo *) b)->symbol);
+                           ((CssPropertyInfo *) b)->symbol);
 }
 
 
@@ -1180,16 +1178,16 @@ static int Css_shorthand_info_cmp(const void *a, const void *b)
                       ((CssShorthandInfo *) b)->symbol);
 }
 
-void CssParser::parseDeclaration(CssPropertyList *props,
-                                 CssPropertyList *importantProps)
+void CssParser::parseDeclaration(CssDeclartionList * declList,
+                                 CssDeclartionList *importantProps)
 {
-   CssPropertyInfo pi = {NULL, {CssPropertyValueDataType::UNUSED}, NULL}, *pip;
+   CssPropertyInfo pi = {NULL, {CssDeclarationValueTypeUNUSED}, NULL}, *pip;
    CssShorthandInfo *sip;
-   CssPropertyValueDataType type = CssPropertyValueDataType::UNUSED;
+   CssDeclarationValueType type = CssDeclarationValueTypeUNUSED;
 
-   CssPropertyName prop;
-   CssPropertyValue val, dir_vals[4];
-   CssPropertyValueDataType dir_types[4];
+   CssDeclarationProperty property;
+   CssDeclarationValue val, dir_vals[4];
+   CssDeclarationValueType dir_types[4];
    bool found, weight;
    int sh_index, i, j, n;
    int dir_set[4][4] = {
@@ -1207,17 +1205,19 @@ void CssParser::parseDeclaration(CssPropertyList *props,
                                       sizeof(CssPropertyInfo),
                                       Css_property_info_cmp);
       if (pip) {
-         prop = (CssPropertyName) (pip - Css_property_info);
+         property = (CssDeclarationProperty) (pip - Css_property_info);
          nextToken(&this->tokenizer, &this->hll_css_parser);
          if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == ':') {
             nextToken(&this->tokenizer, &this->hll_css_parser);
-            if (tokenMatchesProperty (prop, &type) &&
-                parseValue(prop, type, &val)) {
+            if (tokenMatchesProperty (property, &type) &&
+                parseDeclarationValue(property, type, &val)) {
                weight = parseWeight();
+
+               val.type = type;
                if (weight && importantProps)
-                  importantProps->set(prop, type, val);
+                  importantProps->updateOrAddDeclaration(property, val);
                else
-                  props->set(prop, type, val);
+                  declList->updateOrAddDeclaration(property, val);
             }
          }
       } else {
@@ -1252,16 +1252,14 @@ void CssParser::parseDeclaration(CssPropertyList *props,
                                      Css_property_info
                                      [Css_shorthand_info[sh_index]
                                       .properties[i]].symbol);
-                           if (parseValue(Css_shorthand_info[sh_index]
-                                          .properties[i], type, &val)) {
+                           if (parseDeclarationValue(Css_shorthand_info[sh_index].properties[i], type, &val)) {
                               weight = parseWeight();
+
+                              val.type = type;
                               if (weight && importantProps)
-                                 importantProps->
-                                     set(Css_shorthand_info[sh_index].
-                                         properties[i], type, val);
+                                 importantProps->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[i], val);
                               else
-                                 props->set(Css_shorthand_info[sh_index].
-                                            properties[i], type, val);
+                                 declList->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[i], val);
                            }
                         }
                   } while (found);
@@ -1270,10 +1268,8 @@ void CssParser::parseDeclaration(CssPropertyList *props,
                case CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS:
                   n = 0;
                   while (n < 4) {
-                     if (tokenMatchesProperty(Css_shorthand_info[sh_index].
-                                              properties[0], &type) &&
-                         parseValue(Css_shorthand_info[sh_index]
-                                    .properties[0], type, &val)) {
+                     if (tokenMatchesProperty(Css_shorthand_info[sh_index].properties[0], &type) &&
+                         parseDeclarationValue(Css_shorthand_info[sh_index].properties[0], type, &val)) {
                         dir_vals[n] = val;
                         dir_types[n] = type;
                         n++;
@@ -1283,17 +1279,16 @@ void CssParser::parseDeclaration(CssPropertyList *props,
 
                   weight = parseWeight();
                   if (n > 0) {
-                     for (i = 0; i < 4; i++)
+                     for (i = 0; i < 4; i++) {
+
+                        dir_vals[dir_set[n - 1][i]].type = dir_types[dir_set[n - 1][i]];
                         if (weight && importantProps)
-                           importantProps->set(Css_shorthand_info[sh_index]
-                                               .properties[i],
-                                               dir_types[dir_set[n - 1][i]],
-                                               dir_vals[dir_set[n - 1][i]]);
+                           importantProps->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[i],
+                                                                  dir_vals[dir_set[n - 1][i]]);
                         else
-                           props->set(Css_shorthand_info[sh_index]
-                                      .properties[i],
-                                      dir_types[dir_set[n - 1][i]],
-                                      dir_vals[dir_set[n - 1][i]]);
+                           declList->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[i],
+                                                            dir_vals[dir_set[n - 1][i]]);
+                     }
                   } else
                      MSG_CSS("no values for shorthand property '%s'\n",
                              Css_shorthand_info[sh_index].symbol);
@@ -1302,23 +1297,20 @@ void CssParser::parseDeclaration(CssPropertyList *props,
 
                case CssShorthandInfo::CSS_SHORTHAND_BORDER:
                   do {
-                     for (found = false, i = 0;
-                          !found && i < 3;
-                          i++)
+                     for (found = false, i = 0; !found && i < 3; i++)
                         if (tokenMatchesProperty(Css_shorthand_info[sh_index].
                                                  properties[i], &type)) {
                            found = true;
-                           if (parseValue(Css_shorthand_info[sh_index]
-                                          .properties[i], type, &val)) {
+                           if (parseDeclarationValue(Css_shorthand_info[sh_index].properties[i], type, &val)) {
                               weight = parseWeight();
-                              for (j = 0; j < 4; j++)
+                              for (j = 0; j < 4; j++) {
+
+                                 val.type = type;
                                  if (weight && importantProps)
-                                    importantProps->
-                                       set(Css_shorthand_info[sh_index].
-                                          properties[j * 3 + i], type, val);
+                                    importantProps->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[j * 3 + i], val);
                                  else
-                                    props->set(Css_shorthand_info[sh_index].
-                                       properties[j * 3 + i], type, val);
+                                    declList->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[j * 3 + i], val);
+                              }
                            }
                         }
                   } while (found);
@@ -1448,7 +1440,7 @@ CssSelector *CssParser::parseSelector()
 void CssParser::parseRuleset()
 {
    lout::misc::SimpleVector < CssSelector * >*list;
-   CssPropertyList *props, *importantProps;
+   CssDeclartionList * declList, *importantProps;
    CssSelector *selector;
 
    list = new lout::misc::SimpleVector < CssSelector * >(1);
@@ -1476,9 +1468,9 @@ void CssParser::parseRuleset()
 
    DEBUG_MSG(DEBUG_PARSE_LEVEL, "end of %s\n", "selectors");
 
-   props = new CssPropertyList(true);
-   props->ref();
-   importantProps = new CssPropertyList(true);
+   declList = new CssDeclartionList(true);
+   declList->ref();
+   importantProps = new CssDeclartionList(true);
    importantProps->ref();
 
    /* Read block. ('{' has already been read.) */
@@ -1486,7 +1478,7 @@ void CssParser::parseRuleset()
       this->hll_css_parser.withinBlockC = true;
       nextToken(&this->tokenizer, &this->hll_css_parser);
       do
-         parseDeclaration(props, importantProps);
+         parseDeclaration(declList, importantProps);
       while (!(tokenizer.type == CSS_TOKEN_TYPE_END ||
                (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '}')));
       this->hll_css_parser.withinBlockC = false;
@@ -1496,19 +1488,19 @@ void CssParser::parseRuleset()
       CssSelector *s = list->get(i);
 
       if (origin == CSS_ORIGIN_USER_AGENT) {
-         context->addRule(s, props, CSS_PRIMARY_USER_AGENT);
+         context->addRule(s, declList, CSS_PRIMARY_USER_AGENT);
       } else if (origin == CSS_ORIGIN_USER) {
-         context->addRule(s, props, CSS_PRIMARY_USER);
+         context->addRule(s, declList, CSS_PRIMARY_USER);
          context->addRule(s, importantProps, CSS_PRIMARY_USER_IMPORTANT);
       } else if (origin == CSS_ORIGIN_AUTHOR) {
-         context->addRule(s, props, CSS_PRIMARY_AUTHOR);
+         context->addRule(s, declList, CSS_PRIMARY_AUTHOR);
          context->addRule(s, importantProps, CSS_PRIMARY_AUTHOR_IMPORTANT);
       }
 
       s->unref();
    }
 
-   props->unref();
+   declList->unref();
    importantProps->unref();
 
    delete list;
@@ -1658,9 +1650,9 @@ void CssParser::parseMedia()
       ignoreBlock();
 }
 
-const char * CssParser::propertyNameString(CssPropertyName name)
+const char * CssParser::propertyNameString(CssDeclarationProperty property)
 {
-   return Css_property_info[name].symbol;
+   return Css_property_info[property].symbol;
 }
 
 void CssParser::ignoreBlock()
@@ -1733,15 +1725,15 @@ void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
 
 void CssParser::parseDeclarationBlock(const DilloUrl *baseUrl,
                                       const char *buf, int buflen,
-                                      CssPropertyList *props,
-                                      CssPropertyList *propsImortant)
+                                      CssDeclartionList * declList,
+                                      CssDeclartionList *propsImortant)
 {
    CssParser parser (NULL, CSS_ORIGIN_AUTHOR, baseUrl, buf, buflen);
 
    parser.hll_css_parser.withinBlockC = true;
 
    do
-      parser.parseDeclaration(props, propsImortant);
+      parser.parseDeclaration(declList, propsImortant);
    while (!(parser.tokenizer.type == CSS_TOKEN_TYPE_END ||
          (parser.tokenizer.type == CSS_TOKEN_TYPE_CHAR && parser.tokenizer.value[0] == '}')));
 }
