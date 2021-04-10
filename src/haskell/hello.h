@@ -50,11 +50,8 @@ char * hll_nextToken(hll_CssParser * hll_parser, const char * remainder);
 /* Function returns color through return statement. */
 //int hll_parseRgbFunction(hll_CssParser * hll_parser, const char * remainder);
 
-/* Function returns color through return statement. */
-int hll_declarationValueAsColor(hll_CssParser * hll_parser, int tokType, const char * tokValue, const char * remainder);
-
-/* Function returns integer enum through return statement. */
-int hll_declarationValueAsEnum(int tokType, const char * tokValue, int property);
+int hll_declarationValueAsInt(hll_CssParser * hll_parser, int tokType, const char * tokValue, const char * remainder, int valueType, int property);
+int hll_declarationValueAsMultiEnum(hll_CssParser * hll_parser, int tokType, const char * tokValue, const char * remainder, int property);
 
 
 

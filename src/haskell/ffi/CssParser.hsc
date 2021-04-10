@@ -43,9 +43,10 @@ import CssParser
 
 
 foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> CString -> IO CString
-foreign export ccall "hll_declarationValueAsColor" hll_declarationValueAsColor :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
-foreign export ccall "hll_declarationValueAsEnum"  hll_declarationValueAsEnum ::  Int -> CString -> Int -> IO Int
---foreign export ccall "hll_parseRgbFunction" hll_parseRgbFunction :: Ptr HelloCssParser -> CString -> IO Int
+foreign export ccall "hll_declarationValueAsInt"   hll_declarationValueAsInt   :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO Int
+foreign export ccall "hll_declarationValueAsMultiEnum" hll_declarationValueAsMultiEnum :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> IO Int
+
+
 
 
 #include "../hello.h"
@@ -101,7 +102,7 @@ hll_nextToken hll_cssparser cBuf = do
                                                , bufOffset   = bufOffsetC oldParser
                                                }
 
-  manipulateOutPtr hll_cssparser buf parser token inBlock
+  manipulateOutPtr hll_cssparser parser token inBlock
   case token of
     (CssTokI i)   -> (newCString . show $ i)
     (CssTokF f)   -> (newCString . show $ f)
@@ -110,18 +111,42 @@ hll_nextToken hll_cssparser cBuf = do
     (CssTokStr s) -> (newCString . T.unpack $ s)
     (CssTokCh c)  -> (newCString . T.unpack . T.singleton $ c)
     otherwise     -> return nullPtr --(newCString . T.unpack . cssTokenValue $ token)
-  where
-    -- Set fields in pointer to struct passed from C code.
-    manipulateOutPtr :: Ptr HelloCssParser -> BS.ByteString -> CssParser -> CssToken -> Int -> IO ()
-    manipulateOutPtr hll_cssparser buf parser token inBlock = do
-      poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) (getTokenType token) inBlock
 
 
 
 
+-- Set fields in pointer to struct passed from C code.
+manipulateOutPtr :: Ptr HelloCssParser -> CssParser -> CssToken -> Int -> IO ()
+manipulateOutPtr hll_cssparser parser token inBlock = do
+  poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) (getTokenType token) inBlock
 
-hll_declarationValueAsColor :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
-hll_declarationValueAsColor hll_cssparser tokType cTokValue cBuf = do
+
+
+
+hll_declarationValueAsInt :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO Int
+hll_declarationValueAsInt hll_cssparser tokType cTokValue cBuf valueType property = do
+  buf      <- BSU.unsafePackCString $ cBuf
+  tokValue <- BSU.unsafePackCString $ cTokValue
+  hllParser <- peek hll_cssparser
+  let inBlock = withinBlockC hllParser
+  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
+
+  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
+                            , withinBlock = inBlock > 0
+                            , bufOffset   = bufOffsetC hllParser
+                            }
+
+  let pair@(newParser, newToken) = declarationValueAsInt parser inputToken valueType property
+  manipulateOutPtr hll_cssparser parser inputToken inBlock
+  case pair of
+    (_, Just i) -> return i
+    (_, _)      -> return 999999999
+
+
+
+
+hll_declarationValueAsMultiEnum :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> IO Int
+hll_declarationValueAsMultiEnum hll_cssparser tokType cTokValue cBuf property = do
   buf      <- BSU.unsafePackCString $ cBuf
   tokValue <- BSU.unsafePackCString $ cTokValue
   hllParser <- peek hll_cssparser
@@ -134,60 +159,12 @@ hll_declarationValueAsColor hll_cssparser tokType cTokValue cBuf = do
                             }
 
 
-  let pair@(newParser, newToken) = declarationValueAsColor parser inputToken
+  let pair@(newParser, newToken) = declarationValueAsMultiEnum parser inputToken property
   manipulateOutPtr hll_cssparser parser inputToken inBlock
   case pair of
     (_, Just i) -> return i
     (_, _)      -> return 999999999
 
-  where
-    manipulateOutPtr :: Ptr HelloCssParser -> CssParser -> CssToken -> Int -> IO ()
-    manipulateOutPtr hll_cssparser parser token inBlock = do
-      poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) 2 inBlock -- 2 == color
-
-
-
-
-hll_declarationValueAsEnum :: Int -> CString -> Int -> IO Int
-hll_declarationValueAsEnum tokType cTokValue property = do
-  tokValue <- BSU.unsafePackCString $ cTokValue
-  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
-
-  let pair@(newParser, newToken) = declarationValueAsEnum defaultParser inputToken property
-  case pair of
-    (_, Just i) -> return i
-    (_, _)      -> return 999999999
-
-
-
-
-{-
-hll_parseRgbFunction :: Ptr HelloCssParser -> CString -> IO Int
-hll_parseRgbFunction hll_cssparser cBuf = do
-  buf <- BSU.unsafePackCString cBuf
-  oldParser <- peek hll_cssparser
-  let inBlock = withinBlockC oldParser
-  let (parser, color) = parseRgbFunctionInt defaultParser{ remainder = T.E.decodeLatin1 buf
-                                                         , withinBlock = inBlock > 0
-                                                         , bufOffset = bufOffsetC oldParser
-                                                         }
-
-  putStr "\nParser = "
-  putStr (show parser)
-  putStr "\nColor = "
-  putStr (show color)
-  putStr "\n\n"
-
-  manipulateOutPtr hll_cssparser buf parser inBlock
-  case color of
-    Just value -> return value
-    Nothing    -> return 999999999 -- FIXME: Magic value treated as error
-  where
-      -- Set fields in pointer to struct passed from C code.
-      manipulateOutPtr :: Ptr HelloCssParser -> BS.ByteString -> CssParser -> Int -> IO ()
-      manipulateOutPtr hll_cssparser buf parser inBlock = do
-        poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) 2 inBlock
--}
 
 
 

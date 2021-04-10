@@ -753,32 +753,33 @@ void nextTokenInner(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser)
 }
 
 
-bool CssParser::tokenMatchesProperty(CssDeclarationProperty property, CssDeclarationValueType * valueType)
+bool tokenMatchesProperty(CssDeclarationProperty property, CssDeclarationValueType * valueType, const char * tokenValue, int tokenType)
 {
    int i, err = 1;
    CssDeclarationValueType savedValueType = *valueType;
+   const CssPropertyInfo * info = &Css_property_info[property];
 
-   for (int j = 0; Css_property_info[property].accepted_value_type[j] != CssDeclarationValueTypeUNUSED; j++) {
-      *valueType = Css_property_info[property].accepted_value_type[j];
 
-      switch (Css_property_info[property].accepted_value_type[j]) {
+   for (int j = 0; info->accepted_value_type[j] != CssDeclarationValueTypeUNUSED; j++) {
+      *valueType = info->accepted_value_type[j];
+
+      switch (info->accepted_value_type[j]) {
 
       case CssDeclarationValueTypeENUM: // TODO: this if/for/if looks almost exactly like original C++ code that was replaced with hll_declarationValueAsEnum()
-         if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-            for (i = 0; Css_property_info[property].enum_symbols[i]; i++)
-               if (dStrAsciiCasecmp(tokenizer.value, Css_property_info[property].enum_symbols[i]) == 0)
+         if (tokenType == CSS_TOKEN_TYPE_SYMBOL) {
+            for (i = 0; info->enum_symbols[i]; i++)
+               if (dStrAsciiCasecmp(tokenValue, info->enum_symbols[i]) == 0)
                   return true;
          }
          break;
 
       case CssDeclarationValueTypeMULTI_ENUM:
-         if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-            if (dStrAsciiCasecmp(tokenizer.value, "none") == 0) {
+         if (tokenType == CSS_TOKEN_TYPE_SYMBOL) {
+            if (dStrAsciiCasecmp(tokenValue, "none") == 0) {
                return true;
             } else {
-               for (i = 0; Css_property_info[property].enum_symbols[i]; i++) {
-                  if (dStrAsciiCasecmp(tokenizer.value,
-                        Css_property_info[property].enum_symbols[i]) == 0)
+               for (i = 0; info->enum_symbols[i]; i++) {
+                  if (dStrAsciiCasecmp(tokenValue, info->enum_symbols[i]) == 0)
                      return true;
                }
             }
@@ -786,60 +787,60 @@ bool CssParser::tokenMatchesProperty(CssDeclarationProperty property, CssDeclara
          break;
 
       case CssDeclarationValueTypeBACKGROUND_POSITION:
-         if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL &&
-             (dStrAsciiCasecmp(tokenizer.value, "center") == 0 ||
-              dStrAsciiCasecmp(tokenizer.value, "left") == 0 ||
-              dStrAsciiCasecmp(tokenizer.value, "right") == 0 ||
-              dStrAsciiCasecmp(tokenizer.value, "top") == 0 ||
-              dStrAsciiCasecmp(tokenizer.value, "bottom") == 0))
+         if (tokenType == CSS_TOKEN_TYPE_SYMBOL &&
+             (dStrAsciiCasecmp(tokenValue, "center") == 0 ||
+              dStrAsciiCasecmp(tokenValue, "left") == 0 ||
+              dStrAsciiCasecmp(tokenValue, "right") == 0 ||
+              dStrAsciiCasecmp(tokenValue, "top") == 0 ||
+              dStrAsciiCasecmp(tokenValue, "bottom") == 0))
             return true;
          // Fall Through (lenght and percentage)
       case CssDeclarationValueTypeLENGTH_PERCENTAGE:
       case CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER:
       case CssDeclarationValueTypeLENGTH:
-         if (tokenizer.value[0] == '-')
+         if (tokenValue[0] == '-')
             return false;
          // Fall Through
       case CssDeclarationValueTypeSIGNED_LENGTH:
-         if (tokenizer.type == CSS_TOKEN_TYPE_DECINT || tokenizer.type == CSS_TOKEN_TYPE_FLOAT)
+         if (tokenType == CSS_TOKEN_TYPE_DECINT || tokenType == CSS_TOKEN_TYPE_FLOAT)
             return true;
          break;
 
       case CssDeclarationValueTypeAUTO:
-         if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL && dStrAsciiCasecmp(tokenizer.value, "auto") == 0)
+         if (tokenType == CSS_TOKEN_TYPE_SYMBOL && dStrAsciiCasecmp(tokenValue, "auto") == 0)
             return true;
          break;
 
       case CssDeclarationValueTypeCOLOR:
-         if ((tokenizer.type == CSS_TOKEN_TYPE_COLOR ||
-              tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) &&
-            (dStrAsciiCasecmp(tokenizer.value, "rgb") == 0 ||
-             hll_colorsStringToColor(tokenizer.value, -1) != -1))  /* TODO: set correct value of error flag err. */
+         if ((tokenType == CSS_TOKEN_TYPE_COLOR ||
+              tokenType == CSS_TOKEN_TYPE_SYMBOL) &&
+            (dStrAsciiCasecmp(tokenValue, "rgb") == 0 ||
+             hll_colorsStringToColor(tokenValue, -1) != -1))  /* TODO: set correct value of error flag err. */
             return true;
          break;
 
       case CssDeclarationValueTypeSTRING:
-         if (tokenizer.type == CSS_TOKEN_TYPE_STRING)
+         if (tokenType == CSS_TOKEN_TYPE_STRING)
             return true;
          break;
 
       case CssDeclarationValueTypeSYMBOL:
-         if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL ||
-             tokenizer.type == CSS_TOKEN_TYPE_STRING)
+         if (tokenType == CSS_TOKEN_TYPE_SYMBOL ||
+             tokenType == CSS_TOKEN_TYPE_STRING)
             return true;
          break;
 
       case CssDeclarationValueTypeFONT_WEIGHT:
-         if (tokenizer.type == CSS_TOKEN_TYPE_DECINT) {
-            i = strtol(tokenizer.value, NULL, 10);
+         if (tokenType == CSS_TOKEN_TYPE_DECINT) {
+            i = strtol(tokenValue, NULL, 10);
             if (i >= 100 && i <= 900)
                return true;
          }
          break;
 
       case CssDeclarationValueTypeURI:
-         if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL &&
-             dStrAsciiCasecmp(tokenizer.value, "url") == 0)
+         if (tokenType == CSS_TOKEN_TYPE_SYMBOL &&
+             dStrAsciiCasecmp(tokenValue, "url") == 0)
             return true;
          break;
 
@@ -861,42 +862,47 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
                                       CssDeclarationValue * value)
 {
    CssLengthType lentype;
-   bool found, ret = false;
-   int ival;
+   bool ret = false;
    Dstr *dstr;
 
    switch (valueType) {
    case CssDeclarationValueTypeENUM:
-      if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-
-         const int idx = hll_declarationValueAsEnum(tokenizer.type,
-                                                    tokenizer.value,
-                                                    property);
-         if (999999999 != idx) { // Magic value indicating error
-            value->intVal = idx;
+   case CssDeclarationValueTypeCOLOR:
+   case CssDeclarationValueTypeFONT_WEIGHT:
+      {
+         int ival = hll_declarationValueAsInt(&this->hll_css_parser,
+                                              tokenizer.type,
+                                              tokenizer.value,
+                                              this->tokenizer.buf + this->tokenizer.bufOffset,
+                                              valueType,
+                                              property);
+         this->tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
+         if (999999999 != ival) {
+            value->intVal = ival;
             ret = true;
          } else {
-            //colorError = 0;  /* TODO: set correct value of error flag colorError. */
+            // TODO: report error
          }
          // This takes token that is a semicolon after declaration value.
+         // TODO: consider if this should be called only on success of
+         // parsing value, or regardless of success/failure.
          nextToken(&this->tokenizer, &this->hll_css_parser);
       }
       break;
 
    case CssDeclarationValueTypeMULTI_ENUM:
-      value->intVal = 0;
-      ret = true;
-
-      while (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-         if (dStrAsciiCasecmp(tokenizer.value, "none") != 0) {
-            for (int i = 0, found = false;
-                 !found && Css_property_info[property].enum_symbols[i]; i++) {
-               if (dStrAsciiCasecmp(tokenizer.value,
-                               Css_property_info[property].enum_symbols[i]) == 0)
-                  value->intVal |= (1 << i);
-            }
+      {
+         int ival = hll_declarationValueAsMultiEnum(&this->hll_css_parser,
+                                                    tokenizer.type,
+                                                    tokenizer.value,
+                                                    this->tokenizer.buf + this->tokenizer.bufOffset,
+                                                    property);
+         if (999999999 != ival) {
+            value->intVal = ival;
+            ret = true;
+         } else {
+            // TODO: report error
          }
-         nextToken(&this->tokenizer, &this->hll_css_parser);
       }
       break;
 
@@ -972,23 +978,6 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
       nextToken(&this->tokenizer, &this->hll_css_parser);
       break;
 
-   case CssDeclarationValueTypeCOLOR:
-      {
-         int color = hll_declarationValueAsColor(&this->hll_css_parser,
-                                                 tokenizer.type,
-                                                 tokenizer.value,
-                                                 this->tokenizer.buf + this->tokenizer.bufOffset);
-         this->tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
-         if (999999999 != color) { // Magic value indicating error
-            value->intVal = color;
-            ret = true;
-         } else {
-            //colorError = 0;  /* TODO: set correct value of error flag colorError. */
-         }
-         // This takes token that is a semicolon after declaration value.
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-      }
-      break;
 
    case CssDeclarationValueTypeSTRING:
       if (tokenizer.type == CSS_TOKEN_TYPE_STRING) {
@@ -1015,22 +1004,6 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
          dStr_free(dstr, 0);
       } else {
          dStr_free(dstr, 1);
-      }
-      break;
-
-   case CssDeclarationValueTypeFONT_WEIGHT:
-      ival = 0;
-      if (tokenizer.type == CSS_TOKEN_TYPE_DECINT) {
-         ival = strtol(tokenizer.value, NULL, 10);
-         if (ival < 100 || ival > 900)
-            /* invalid */
-            ival = 0;
-      }
-
-      if (ival != 0) {
-         value->intVal = ival;
-         ret = true;
-         nextToken(&this->tokenizer, &this->hll_css_parser);
       }
       break;
 
@@ -1062,8 +1035,7 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
          CssDeclarationValueType typeTmp;
          // tokenMatchesProperty will, for CSS_PROPERTY_BACKGROUND_POSITION,
          // work on both parts, since they are exchangable.
-         if (tokenMatchesProperty (CSS_PROPERTY_BACKGROUND_POSITION,
-                                   &typeTmp)) {
+         if (tokenMatchesProperty(CSS_PROPERTY_BACKGROUND_POSITION, &typeTmp, this->tokenizer.value, this->tokenizer.type)) {
             h[i] = tokenizer.type != CSS_TOKEN_TYPE_SYMBOL ||
                (dStrAsciiCasecmp(tokenizer.value, "top") != 0 &&
                 dStrAsciiCasecmp(tokenizer.value, "bottom") != 0);
@@ -1212,8 +1184,9 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
          nextToken(&this->tokenizer, &this->hll_css_parser);
          if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == ':') {
             nextToken(&this->tokenizer, &this->hll_css_parser);
-            if (tokenMatchesProperty (property, &type) &&
-                parseDeclarationValue(property, type, &val)) {
+            if (tokenMatchesProperty(property, &type, this->tokenizer.value, this->tokenizer.type)
+                && parseDeclarationValue(property, type, &val)) {
+
                weight = parseWeight();
 
                val.type = type;
@@ -1247,8 +1220,7 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
                           Css_shorthand_info[sh_index].properties[i] !=
                           CSS_PROPERTY_END;
                           i++)
-                        if (tokenMatchesProperty(Css_shorthand_info[sh_index].
-                                                 properties[i], &type)) {
+                        if (tokenMatchesProperty(Css_shorthand_info[sh_index].properties[i], &type, this->tokenizer.value, this->tokenizer.type)) {
                            found = true;
                            DEBUG_MSG(DEBUG_PARSE_LEVEL,
                                      "will assign to '%s'\n",
@@ -1271,7 +1243,7 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
                case CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS:
                   n = 0;
                   while (n < 4) {
-                     if (tokenMatchesProperty(Css_shorthand_info[sh_index].properties[0], &type) &&
+                     if (tokenMatchesProperty(Css_shorthand_info[sh_index].properties[0], &type, this->tokenizer.value, this->tokenizer.type) &&
                          parseDeclarationValue(Css_shorthand_info[sh_index].properties[0], type, &val)) {
                         dir_vals[n] = val;
                         dir_types[n] = type;
@@ -1301,8 +1273,7 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
                case CssShorthandInfo::CSS_SHORTHAND_BORDER:
                   do {
                      for (found = false, i = 0; !found && i < 3; i++)
-                        if (tokenMatchesProperty(Css_shorthand_info[sh_index].
-                                                 properties[i], &type)) {
+                        if (tokenMatchesProperty(Css_shorthand_info[sh_index].properties[i], &type, this->tokenizer.value, this->tokenizer.type)) {
                            found = true;
                            if (parseDeclarationValue(Css_shorthand_info[sh_index].properties[i], type, &val)) {
                               weight = parseWeight();

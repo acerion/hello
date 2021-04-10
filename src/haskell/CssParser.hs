@@ -55,8 +55,11 @@ module CssParser(nextToken
                 , parseRgbFunction
                 , parseRgbFunctionInt
                 , declarationValueAsColor
+                , declarationValueAsInt
                 , declarationValueAsEnum
                 , declarationValueAsEnum'
+                , declarationValueAsMultiEnum
+                , declarationValueAsWeightInteger
                 , defaultParser) where
 
 
@@ -71,6 +74,7 @@ import qualified Data.Text.Read as T.R
 import qualified Data.Text.IO as T.IO
 import qualified HelloUtils as HU
 import qualified Data.Vector as V
+import qualified Data.List as L
 import Colors
 import HelloUtils
 
@@ -528,6 +532,35 @@ declarationValueAsColor parser _             = (parser, Nothing)
 
 
 
+declarationValueAsInt :: CssParser -> CssToken -> Int -> Int -> (CssParser, Maybe Int)
+declarationValueAsInt parser token valueType property = (retParser, retInt)
+  where
+    (newParser, retInt) | valueType == cssDeclarationValueTypeENUM                     = declarationValueAsEnum parser token property
+                        | valueType == cssDeclarationValueTypeCOLOR                    = declarationValueAsColor parser token
+                        | valueType == cssDeclarationValueTypeFONT_WEIGHT              = declarationValueAsWeightInteger parser token property
+                        | otherwise                                                    = (parser, Nothing)
+    --(retParser, _) = nextToken newParser
+    retParser = newParser
+
+{-
+  | valueType == cssDeclarationValueTypeINTEGER                  = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeMULTI_ENUM               = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE        = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeLENGTH                   = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeSIGNED_LENGTH            = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeAUTO                     = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeSTRING                   = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeSYMBOL                   = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeURI                      = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeBACKGROUND_POSITION      = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeUNUSED                   = (parser, Nothing)
+-}
+
+
+
+
+
 declarationValueAsEnum :: CssParser -> CssToken -> Int -> (CssParser, Maybe Int)
 declarationValueAsEnum parser (CssTokSym symbol) property =
   case declarationValueAsEnum' symbol enums 0 of
@@ -536,7 +569,14 @@ declarationValueAsEnum parser (CssTokSym symbol) property =
   where
     propInfo = cssPropertyInfo V.! property
     enums = tripletThrd propInfo
+declarationValueAsEnum parser _ property                  = (parser, Nothing)
+                                                            -- TODO: is this the right place to reject everything else other than symbol?
+                                                            -- Shouldn't we do it somewhere else?
 
+
+
+
+-- TODO: can't we use Data.List.elemIndex here?
 declarationValueAsEnum' :: T.Text -> [T.Text] -> Int -> Int
 declarationValueAsEnum' symbol []     idx = -1
 declarationValueAsEnum' symbol (x:xs) idx = if x == symbol
@@ -545,15 +585,36 @@ declarationValueAsEnum' symbol (x:xs) idx = if x == symbol
 
 
 
-{-
 
-         for (int i = 0; Css_property_info[property].enum_symbols[i]; i++) {
-            if (dStrAsciiCasecmp(tokenizer.value, Css_property_info[property].enum_symbols[i]) == 0) {
-               value->intVal = i;
-               ret = true;
-               break;
-            }
-         }
+declarationValueAsMultiEnum :: CssParser -> CssToken -> Int -> (CssParser, Maybe Int)
+declarationValueAsMultiEnum parser token@(CssTokSym symbol) property = declarationValueAsMultiEnum' parser token enums 0
+  where
+    propInfo = cssPropertyInfo V.! property
+    enums = tripletThrd propInfo
+declarationValueAsMultiEnum parser _ property               = (parser, Nothing)
+                                                            -- TODO: is this the right place to reject everything else other than symbol?
+                                                            -- Shouldn't we do it somewhere else?
 
 
--}
+
+
+declarationValueAsMultiEnum' :: CssParser -> CssToken -> [T.Text] -> Int -> (CssParser, Maybe Int)
+declarationValueAsMultiEnum' parser (CssTokSym symbol) (enums) bits =
+  case L.elemIndex symbol enums of
+    Just pos -> declarationValueAsMultiEnum' newParser newToken enums (bits .|. (1  `shiftL` pos))
+    Nothing  -> declarationValueAsMultiEnum' newParser newToken enums bits
+  where
+    (newParser, newToken) = nextToken parser
+declarationValueAsMultiEnum' parser _ _ bits                        = (parser, Just bits)
+-- TODO: we should probably handle in a different way a situation where one
+-- of tokens is not a symbol.
+--
+-- TOOO: symbol "none" should be handled in special way (probably).
+
+
+
+
+declarationValueAsWeightInteger :: CssParser -> CssToken -> Int -> (CssParser, Maybe Int)
+declarationValueAsWeightInteger parser (CssTokI i) property = if i >= 100 && i <= 900
+                                                              then (parser, Just i)
+                                                              else (parser, Nothing)

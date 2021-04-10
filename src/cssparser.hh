@@ -31,6 +31,7 @@ void nextToken(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
 int getChar(CssTokenizer * tokenizer);
 void ungetChar(CssTokenizer * tokenizer);
 bool skipString(CssTokenizer * tokenizer);
+bool tokenMatchesProperty(CssDeclarationProperty property, CssDeclarationValueType * type, const char * tokenValue, int tokenType);
 
 struct CssColor {
    int32_t color;     /* All components combined into one variable. */
@@ -51,8 +52,6 @@ class CssParser {
 
       CssParser(CssContext *context, CssOrigin origin, const DilloUrl *baseUrl,
                 const char *buf, int buflen);
-
-      bool tokenMatchesProperty(CssDeclarationProperty property, CssDeclarationValueType * type);
 
       /* declarationProperty:declarationValue, e.g. color:#324156 */
       bool parseDeclarationValue(CssDeclarationProperty property, CssDeclarationValueType type, CssDeclarationValue * val);
