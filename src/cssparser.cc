@@ -755,106 +755,14 @@ void nextTokenInner(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser)
 
 bool tokenMatchesProperty(CssDeclarationProperty property, CssDeclarationValueType * valueType, const char * tokenValue, int tokenType)
 {
-   int i, err = 1;
-   CssDeclarationValueType savedValueType = *valueType;
-   const CssPropertyInfo * info = &Css_property_info[property];
-
-
-   for (int j = 0; info->accepted_value_type[j] != CssDeclarationValueTypeUNUSED; j++) {
-      *valueType = info->accepted_value_type[j];
-
-      switch (info->accepted_value_type[j]) {
-
-      case CssDeclarationValueTypeENUM: // TODO: this if/for/if looks almost exactly like original C++ code that was replaced with hll_declarationValueAsEnum()
-         if (tokenType == CSS_TOKEN_TYPE_SYMBOL) {
-            for (i = 0; info->enum_symbols[i]; i++)
-               if (dStrAsciiCasecmp(tokenValue, info->enum_symbols[i]) == 0)
-                  return true;
-         }
-         break;
-
-      case CssDeclarationValueTypeMULTI_ENUM:
-         if (tokenType == CSS_TOKEN_TYPE_SYMBOL) {
-            if (dStrAsciiCasecmp(tokenValue, "none") == 0) {
-               return true;
-            } else {
-               for (i = 0; info->enum_symbols[i]; i++) {
-                  if (dStrAsciiCasecmp(tokenValue, info->enum_symbols[i]) == 0)
-                     return true;
-               }
-            }
-         }
-         break;
-
-      case CssDeclarationValueTypeBACKGROUND_POSITION:
-         if (tokenType == CSS_TOKEN_TYPE_SYMBOL &&
-             (dStrAsciiCasecmp(tokenValue, "center") == 0 ||
-              dStrAsciiCasecmp(tokenValue, "left") == 0 ||
-              dStrAsciiCasecmp(tokenValue, "right") == 0 ||
-              dStrAsciiCasecmp(tokenValue, "top") == 0 ||
-              dStrAsciiCasecmp(tokenValue, "bottom") == 0))
-            return true;
-         // Fall Through (lenght and percentage)
-      case CssDeclarationValueTypeLENGTH_PERCENTAGE:
-      case CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER:
-      case CssDeclarationValueTypeLENGTH:
-         if (tokenValue[0] == '-')
-            return false;
-         // Fall Through
-      case CssDeclarationValueTypeSIGNED_LENGTH:
-         if (tokenType == CSS_TOKEN_TYPE_DECINT || tokenType == CSS_TOKEN_TYPE_FLOAT)
-            return true;
-         break;
-
-      case CssDeclarationValueTypeAUTO:
-         if (tokenType == CSS_TOKEN_TYPE_SYMBOL && dStrAsciiCasecmp(tokenValue, "auto") == 0)
-            return true;
-         break;
-
-      case CssDeclarationValueTypeCOLOR:
-         if ((tokenType == CSS_TOKEN_TYPE_COLOR ||
-              tokenType == CSS_TOKEN_TYPE_SYMBOL) &&
-            (dStrAsciiCasecmp(tokenValue, "rgb") == 0 ||
-             hll_colorsStringToColor(tokenValue, -1) != -1))  /* TODO: set correct value of error flag err. */
-            return true;
-         break;
-
-      case CssDeclarationValueTypeSTRING:
-         if (tokenType == CSS_TOKEN_TYPE_STRING)
-            return true;
-         break;
-
-      case CssDeclarationValueTypeSYMBOL:
-         if (tokenType == CSS_TOKEN_TYPE_SYMBOL ||
-             tokenType == CSS_TOKEN_TYPE_STRING)
-            return true;
-         break;
-
-      case CssDeclarationValueTypeFONT_WEIGHT:
-         if (tokenType == CSS_TOKEN_TYPE_DECINT) {
-            i = strtol(tokenValue, NULL, 10);
-            if (i >= 100 && i <= 900)
-               return true;
-         }
-         break;
-
-      case CssDeclarationValueTypeURI:
-         if (tokenType == CSS_TOKEN_TYPE_SYMBOL &&
-             dStrAsciiCasecmp(tokenValue, "url") == 0)
-            return true;
-         break;
-
-      case CssDeclarationValueTypeUNUSED:
-      case CssDeclarationValueTypeINTEGER:
-         /* Not used for parser values. */
-      default:
-         assert(false);
-         break;
-      }
+   const int hll_valueType = hll_tokenMatchesProperty(tokenType, tokenValue, property);
+   if (-1 == hll_valueType) {
+      //*valueType = savedValueType;
+      return false;
+   } else {
+      *valueType = (CssDeclarationValueType) hll_valueType;
+      return true;
    }
-
-   *valueType = savedValueType;
-   return false;
 }
 
 bool CssParser::parseDeclarationValue(CssDeclarationProperty property,

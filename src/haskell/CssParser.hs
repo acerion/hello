@@ -60,6 +60,7 @@ module CssParser(nextToken
                 , declarationValueAsEnum'
                 , declarationValueAsMultiEnum
                 , declarationValueAsWeightInteger
+                , tokenMatchesProperty
                 , defaultParser) where
 
 
@@ -600,7 +601,7 @@ declarationValueAsMultiEnum parser _ property               = (parser, Nothing)
 
 declarationValueAsMultiEnum' :: CssParser -> CssToken -> [T.Text] -> Int -> (CssParser, Maybe Int)
 declarationValueAsMultiEnum' parser (CssTokSym symbol) (enums) bits =
-  case L.elemIndex symbol enums of
+  case L.elemIndex symbol enums of -- TODO: this search should be case-insensitive
     Just pos -> declarationValueAsMultiEnum' newParser newToken enums (bits .|. (1  `shiftL` pos))
     Nothing  -> declarationValueAsMultiEnum' newParser newToken enums bits
   where
@@ -618,3 +619,96 @@ declarationValueAsWeightInteger :: CssParser -> CssToken -> Int -> (CssParser, M
 declarationValueAsWeightInteger parser (CssTokI i) property = if i >= 100 && i <= 900
                                                               then (parser, Just i)
                                                               else (parser, Nothing)
+
+
+
+
+tokenMatchesProperty :: CssToken -> Int -> Maybe Int
+tokenMatchesProperty token property = tokenMatchesProperty' token acceptedValueTypes enums
+  where
+    propInfo = cssPropertyInfo V.! property
+    acceptedValueTypes = tripletSnd propInfo
+    enums = tripletThrd propInfo
+
+    tokenMatchesProperty' :: CssToken -> [Int] -> [T.Text] -> Maybe Int
+    tokenMatchesProperty' token (t:ts) enums        | t == cssDeclarationValueTypeENUM =
+                                                        case token of -- TODO: compare with similar code in in declarationValueAsEnum
+                                                          CssTokSym symbol -> case L.elemIndex symbol enums of -- TODO: this search should be case-insensitive
+                                                                                Just pos -> Just t
+                                                                                Nothing  -> tokenMatchesProperty' token ts enums
+                                                          _                -> tokenMatchesProperty' token ts enums
+
+                                                    | t == cssDeclarationValueTypeMULTI_ENUM =
+                                                        case token of
+                                                          CssTokSym symbol -> if symbol == "none"
+                                                                              then Just t
+                                                                              else case L.elemIndex symbol enums of -- TODO: this search should be case-insensitive
+                                                                                     Just pos -> Just t
+                                                                                     Nothing  -> tokenMatchesProperty' token ts enums
+                                                          _                -> tokenMatchesProperty' token ts enums
+                                                    | t == cssDeclarationValueTypeBACKGROUND_POSITION =
+                                                        case token of
+                                                          CssTokSym s -> if s == "center" || s == "left" || s == "right" || s == "top" || s == "bottom"
+                                                                         then Just t
+                                                                         else tokenMatchesProperty' token ts enums
+                                                          _           -> tokenMatchesProperty' token ts enums
+                                                          -- TODO: actually here we should also somehow handle numeric background positions
+
+
+                                                    | t == cssDeclarationValueTypeLENGTH_PERCENTAGE || t == cssDeclarationValueTypeLENGTH || t == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER =
+                                                        case token of
+                                                          CssTokF f -> if f < 0
+                                                                       then Nothing
+                                                                       else Just t
+                                                          CssTokI i -> if i < 0
+                                                                       then Nothing
+                                                                       else Just t
+                                                          _         -> Nothing
+
+                                                    | t == cssDeclarationValueTypeSIGNED_LENGTH =
+                                                        case token of
+                                                          CssTokF _ -> Just t
+                                                          CssTokI _ -> Just t
+                                                          _         -> tokenMatchesProperty' token ts enums
+
+                                                    | t == cssDeclarationValueTypeAUTO =
+                                                        case token of
+                                                          CssTokSym symbol -> if symbol == "auto"
+                                                                              then Just t
+                                                                              else tokenMatchesProperty' token ts enums
+                                                          _                 -> tokenMatchesProperty' token ts enums
+                                                    | t == cssDeclarationValueTypeCOLOR =
+                                                        case token of
+                                                          CssTokCol c -> Just t -- We already know that the token is a valid color token
+                                                          CssTokSym s -> case colorsStringToColor s of
+                                                                          Just i -> Just t
+                                                                          _      -> if s == "rgb"
+                                                                                    then Just t
+                                                                                    else tokenMatchesProperty' token ts enums
+                                                          _           -> tokenMatchesProperty' token ts enums
+                                                    | t == cssDeclarationValueTypeSTRING =
+                                                        case token of
+                                                          CssTokStr s -> Just t
+                                                          _           -> tokenMatchesProperty' token ts enums
+                                                    | t == cssDeclarationValueTypeSYMBOL =
+                                                      case token of
+                                                        CssTokSym sym -> Just t
+                                                        CssTokStr str -> Just t
+                                                        _             -> tokenMatchesProperty' token ts enums
+                                                    | t == cssDeclarationValueTypeFONT_WEIGHT =
+                                                        case token of
+                                                          CssTokI i -> if i >= 100 && i <= 900 -- TODO: this test of range is repeated in this file
+                                                                       then Just t
+                                                                       else  tokenMatchesProperty' token ts enums
+                                                          _         -> tokenMatchesProperty' token ts enums
+                                                    | t == cssDeclarationValueTypeURI =
+                                                        case token of
+                                                          CssTokSym s -> if s == "url"
+                                                                         then Just t
+                                                                         else tokenMatchesProperty' token ts enums
+                                                          _           -> tokenMatchesProperty' token ts enums
+                                                    | t == cssDeclarationValueTypeINTEGER = tokenMatchesProperty' token ts enums
+                                                    | t == cssDeclarationValueTypeUNUSED = tokenMatchesProperty' token ts enums
+                                                    | otherwise = Nothing
+
+    tokenMatchesProperty' token [] _ = Nothing

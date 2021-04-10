@@ -52,7 +52,7 @@ char * hll_nextToken(hll_CssParser * hll_parser, const char * remainder);
 
 int hll_declarationValueAsInt(hll_CssParser * hll_parser, int tokType, const char * tokValue, const char * remainder, int valueType, int property);
 int hll_declarationValueAsMultiEnum(hll_CssParser * hll_parser, int tokType, const char * tokValue, const char * remainder, int property);
-
+int hll_tokenMatchesProperty(int tokType, const char * tokValue, int property);
 
 
 #ifdef __cplusplus

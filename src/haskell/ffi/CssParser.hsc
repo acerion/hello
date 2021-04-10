@@ -45,7 +45,7 @@ import CssParser
 foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> CString -> IO CString
 foreign export ccall "hll_declarationValueAsInt"   hll_declarationValueAsInt   :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO Int
 foreign export ccall "hll_declarationValueAsMultiEnum" hll_declarationValueAsMultiEnum :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> IO Int
-
+foreign export ccall "hll_tokenMatchesProperty" hll_tokenMatchesProperty :: Int -> CString -> Int -> IO Int
 
 
 
@@ -193,3 +193,20 @@ getTokenADT tokType tokValue | tokType == 0 = case T.R.signed T.R.decimal tokVal
                              | tokType == 5 = CssTokCh   (T.head tokValue)
                              | tokType == 6 = CssTokEnd
 
+
+
+
+hll_tokenMatchesProperty :: Int -> CString -> Int -> IO Int
+hll_tokenMatchesProperty tokType cTokValue property = do
+  tokValue <- BSU.unsafePackCString $ cTokValue
+  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
+  putStr (show inputToken)
+  case tokenMatchesProperty inputToken property of
+    Just i -> do
+      putStr " results in just"
+      putStr (show i)
+      putStr "\n"
+      return i
+    _      -> do
+      putStr " results innothing\n"
+      return (-1)
