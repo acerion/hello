@@ -28,9 +28,6 @@ struct CssTokenizer {
 };
 
 void nextToken(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
-int getChar(CssTokenizer * tokenizer);
-void ungetChar(CssTokenizer * tokenizer);
-bool skipString(CssTokenizer * tokenizer);
 bool tokenMatchesProperty(CssDeclarationProperty property, CssDeclarationValueType * type, const char * tokenValue, int tokenType);
 
 struct CssColor {
