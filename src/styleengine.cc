@@ -603,9 +603,9 @@ void StyleEngine::apply (int i, StyleAttrs *attrs, CssDeclartionList * declList,
             if (decl->value.type == CssDeclarationValueTypeENUM) { //only valid enum value is "normal"
                attrs->lineHeight = dw::core::style::LENGTH_AUTO;
             } else if (decl->value.type == CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER) {
-               if (CSS_LENGTH_TYPE (decl->value.intVal) == CSS_LENGTH_TYPE_NONE) {
+               if (hll_cssLengthType(decl->value.intVal) == CSS_LENGTH_TYPE_NONE) {
                   attrs->lineHeight =
-                     createPerLength(CSS_LENGTH_VALUE(decl->value.intVal));
+                     createPerLength(hll_cssLengthValue(decl->value.intVal));
                } else if (computeValue (&lineHeight, decl->value.intVal,
                                         attrs->font, attrs->font->size)) {
                   attrs->lineHeight = createAbsLength(lineHeight);
@@ -748,24 +748,24 @@ bool StyleEngine::computeValue (int *dest, CssLength value, Font *font) {
    if (dpmm == 0.0)
       dpmm = layout->dpiX () / 25.4; /* assume dpiX == dpiY */
 
-   switch (CSS_LENGTH_TYPE (value)) {
+   switch (hll_cssLengthType(value)) {
       case CSS_LENGTH_TYPE_PX:
-         *dest = (int) CSS_LENGTH_VALUE (value);
+         *dest = (int) hll_cssLengthValue(value);
          return true;
       case CSS_LENGTH_TYPE_MM:
-         *dest = roundInt (CSS_LENGTH_VALUE (value) * dpmm);
+         *dest = roundInt (hll_cssLengthValue(value) * dpmm);
          return true;
       case CSS_LENGTH_TYPE_EM:
-         *dest = roundInt (CSS_LENGTH_VALUE (value) * font->size);
+         *dest = roundInt (hll_cssLengthValue(value) * font->size);
          return true;
       case CSS_LENGTH_TYPE_EX:
-         *dest = roundInt (CSS_LENGTH_VALUE(value) * font->xHeight);
+         *dest = roundInt (hll_cssLengthValue(value) * font->xHeight);
          return true;
       case CSS_LENGTH_TYPE_NONE:
          // length values other than 0 without unit are only allowed
          // in special cases (line-height) and have to be handled
          // separately.
-         assert ((int) CSS_LENGTH_VALUE (value) == 0);
+         assert ((int) hll_cssLengthValue(value) == 0);
          *dest = 0;
          return true;
       default:
@@ -777,8 +777,8 @@ bool StyleEngine::computeValue (int *dest, CssLength value, Font *font) {
 
 bool StyleEngine::computeValue (int *dest, CssLength value, Font *font,
                                 int percentageBase) {
-   if (CSS_LENGTH_TYPE (value) == CSS_LENGTH_TYPE_PERCENTAGE) {
-      *dest = roundInt (CSS_LENGTH_VALUE (value) * percentageBase);
+   if (hll_cssLengthType(value) == CSS_LENGTH_TYPE_PERCENTAGE) {
+      *dest = roundInt (hll_cssLengthValue(value) * percentageBase);
       return true;
    } else
       return computeValue (dest, value, font);
@@ -788,10 +788,10 @@ bool StyleEngine::computeLength (dw::core::style::Length *dest,
                                  CssLength value, Font *font) {
    int v;
 
-   if (CSS_LENGTH_TYPE (value) == CSS_LENGTH_TYPE_PERCENTAGE) {
-      *dest = createPerLength (CSS_LENGTH_VALUE (value));
+   if (hll_cssLengthType(value) == CSS_LENGTH_TYPE_PERCENTAGE) {
+      *dest = createPerLength (hll_cssLengthValue(value));
       return true;
-   } else if (CSS_LENGTH_TYPE (value) == CSS_LENGTH_TYPE_AUTO) {
+   } else if (hll_cssLengthType(value) == CSS_LENGTH_TYPE_AUTO) {
       *dest = dw::core::style::LENGTH_AUTO;
       return true;
    } else if (computeValue (&v, value, font)) {

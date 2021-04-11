@@ -47,6 +47,10 @@ foreign export ccall "hll_declarationValueAsInt"   hll_declarationValueAsInt   :
 foreign export ccall "hll_declarationValueAsMultiEnum" hll_declarationValueAsMultiEnum :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> IO Int
 foreign export ccall "hll_tokenMatchesProperty" hll_tokenMatchesProperty :: Int -> CString -> Int -> IO Int
 
+foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Int -> IO Int
+foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
+foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
+
 
 
 #include "../hello.h"
@@ -210,3 +214,25 @@ hll_tokenMatchesProperty tokType cTokValue property = do
     _      -> do
       putStr " results innothing\n"
       return (-1)
+
+
+
+
+hll_cssLengthType :: Int -> IO Int
+hll_cssLengthType len = do
+  return (cssLengthType len)
+
+
+
+
+hll_cssLengthValue :: Int -> IO Float
+hll_cssLengthValue len = do
+  return (cssLengthValue len)
+
+
+
+
+hll_cssCreateLength :: Float -> Int -> IO Int
+hll_cssCreateLength val t = do
+  return (cssCreateLength val t)
+

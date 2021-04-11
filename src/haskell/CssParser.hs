@@ -61,14 +61,16 @@ module CssParser(nextToken
                 , declarationValueAsMultiEnum
                 , declarationValueAsWeightInteger
                 , tokenMatchesProperty
+                , cssLengthType
+                , cssLengthValue
+                , cssCreateLength
                 , defaultParser) where
 
 
 
 
-import Prelude
+--import Prelude
 import Data.Maybe
-import Foreign
 import qualified Data.Char as D.C
 import qualified Data.Text as T
 import qualified Data.Text.Read as T.R
@@ -76,6 +78,7 @@ import qualified Data.Text.IO as T.IO
 import qualified HelloUtils as HU
 import qualified Data.Vector as V
 import qualified Data.List as L
+import Data.Bits
 import Colors
 import HelloUtils
 
@@ -112,6 +115,18 @@ defaultParser = CssParser {
   , spaceSeparated = False
   , bufOffset = 0
   }
+
+
+
+
+cssLengthTypeNone       = 0
+cssLengthTypePX         = 1
+cssLengthTypeMM         = 2 -- "cm", "in", "pt" and "pc" are converted into millimeters.
+cssLengthTypeEM         = 3
+cssLengthTypeEX         = 4
+cssLengthTypePercentage = 5
+cssLengthTypeRelative   = 6 -- This does not exist in CSS but is used in HTML
+cssLengthTypeAuto       = 7 -- This can be used as a simple value.
 
 
 
@@ -153,7 +168,7 @@ cssDeclarationValueTypeLENGTH                   =  4 -- <length>, represented as
                                                     -- 'margin-*-width').
 cssDeclarationValueTypeSIGNED_LENGTH            =  5 -- As CSS_TYPE_LENGTH but may be negative.
 cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER =  6 -- <length> or <percentage>, or <number>
-cssDeclarationValueTypeAUTO                     =  7 -- Represented as CssLength of type CSS_LENGTH_TYPE_AUTO
+cssDeclarationValueTypeAUTO                     =  7 -- Represented as CssLength of type cssLengthTypeAuto
 cssDeclarationValueTypeCOLOR                    =  8 -- Represented as integer.
 cssDeclarationValueTypeFONT_WEIGHT              =  9 -- This very special and only used by 'font-weight'
 cssDeclarationValueTypeSTRING                   = 10 -- <string>
@@ -712,3 +727,99 @@ tokenMatchesProperty token property = tokenMatchesProperty' token acceptedValueT
                                                     | otherwise = Nothing
 
     tokenMatchesProperty' token [] _ = Nothing
+
+
+
+
+
+{-
+  Lengths are represented as int in the following way:
+
+     | <------   integer value   ------> |
+
+     +---+ - - - +---+---+- - - - - -+---+---+---+---+
+     |          integer part             |   type    |
+     +---+ - - - +---+---+- - - - - -+---+---+---+---+
+     | integer part  | decimal fraction  |   type    |
+     +---+ - - - +---+---+- - - - - -+---+---+---+---+
+      n-1          15  14              3   2  1   0
+
+     | <------ fixed point value ------> |
+
+  where type is one of the CSS_LENGTH_TYPE_* values.
+  CSS_LENGTH_TYPE_PX values are stored as
+  29 bit signed integer, all other types as fixed point values.
+
+What you see below is some wild attempt to make Haskell code correctly
+interpret floats encoded in upper bits of integers. Not the best approach to
+take.
+-}
+
+
+cssLengthType :: Int -> Int
+cssLengthType length = length .&. 7
+
+
+
+
+cssLengthValue :: Int -> Float
+cssLengthValue len | t == cssLengthTypePX = let
+                       z = (len `shiftR` 3)
+                       in
+                         if (0xf0000000 .&. len) == 0xf0000000
+                         then fromIntegral ((-1) * ((4294967295 - len) `shiftR` 3) - 1)
+                         else fromIntegral z
+                   | t == cssLengthTypeNone
+                     || t == cssLengthTypeMM
+                     || t == cssLengthTypeEM
+                     || t == cssLengthTypeEX
+                     || t == cssLengthTypePercentage
+                     || t == cssLengthTypeRelative =
+                     (fromIntegral (up2 len)) / (fromIntegral down2)
+                   | t == cssLengthTypeAuto = 0.0
+                   | otherwise = 0.0
+  where
+    t = cssLengthType len
+    up2 lenA = let
+      z = lenA .&. (complement 0x00000007) :: Int
+      in
+        if (0xf0000000 .&. z) == 0xf0000000
+        then (-1) * (4294967295 - z - 1)
+        else z
+    down2 = 1 `shiftL` 15 :: Int
+
+
+
+
+
+css_LENGTH_FRAC_MAX = (1 `shiftL` (32 - 15 - 1)) - 1 :: Int
+css_LENGTH_INT_MAX  = (1 `shiftL` (32 - 4)) - 1 :: Int
+
+cssCreateLength :: Float -> Int -> Int
+cssCreateLength val t | t == cssLengthTypePX = ((asInt1 (round (val))) `shiftL` 3) .|. t
+                      | t == cssLengthTypeNone
+                        || t == cssLengthTypeMM
+                        || t == cssLengthTypeEM
+                        || t == cssLengthTypeEX
+                        || t == cssLengthTypePercentage
+                        || t == cssLengthTypeRelative = ((round ((asInt2 val) * (fromIntegral shift15L))) .&. (complement 7)) .|. t
+
+                      | t == cssLengthTypeAuto = t
+                      | otherwise = cssLengthTypeAuto
+
+  where
+    shift15L = (1 `shiftL` 15) :: Int
+
+    asInt1 :: Int -> Int
+    asInt1 f = if f > css_LENGTH_INT_MAX
+               then css_LENGTH_INT_MAX
+               else if f < (-css_LENGTH_INT_MAX)
+                    then (-css_LENGTH_INT_MAX)
+                    else f
+
+    asInt2 :: Float -> Float
+    asInt2 f = if f > fromIntegral css_LENGTH_FRAC_MAX
+               then fromIntegral css_LENGTH_FRAC_MAX
+               else if f < fromIntegral (-css_LENGTH_FRAC_MAX)
+                    then fromIntegral (-css_LENGTH_FRAC_MAX)
+                    else f

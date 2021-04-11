@@ -58,7 +58,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    }
 
    if (border != -1) {
-      cssLength = CSS_CREATE_LENGTH (border, CSS_LENGTH_TYPE_PX);
+      cssLength = hll_cssCreateLength(border, CSS_LENGTH_TYPE_PX);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_TOP_WIDTH,
                                         CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_BOTTOM_WIDTH,
@@ -78,7 +78,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    }
 
    if (cellspacing != -1) {
-      cssLength = CSS_CREATE_LENGTH (cellspacing, CSS_LENGTH_TYPE_PX);
+      cssLength = hll_cssCreateLength(cellspacing, CSS_LENGTH_TYPE_PX);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_SPACING,
                                         CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
    }
@@ -119,7 +119,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    /* The style for the cells */
    html->styleEngine->clearNonCssHints ();
    if (border > 0) {
-      cssLength = CSS_CREATE_LENGTH (1, CSS_LENGTH_TYPE_PX);
+      cssLength = hll_cssCreateLength(1, CSS_LENGTH_TYPE_PX);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_TOP_WIDTH,
                                         CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_BORDER_BOTTOM_WIDTH,
@@ -139,7 +139,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    }
 
    if (cellpadding != -1) {
-      cssLength = CSS_CREATE_LENGTH (cellpadding, CSS_LENGTH_TYPE_PX);
+      cssLength = hll_cssCreateLength(cellpadding, CSS_LENGTH_TYPE_PX);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_PADDING_TOP,
                                         CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       html->styleEngine->setNonCssHint (CSS_PROPERTY_PADDING_BOTTOM,

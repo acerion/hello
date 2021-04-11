@@ -648,7 +648,7 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
             (valueType == CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER || fval == 0.0))
             ret = true;
 
-         value->intVal = CSS_CREATE_LENGTH(fval, lentype);
+         value->intVal = hll_cssCreateLength(fval, lentype);
       }
       break;
 
@@ -732,14 +732,14 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
             if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
                if (dStrAsciiCasecmp(tokenizer.value, "top") == 0 ||
                    dStrAsciiCasecmp(tokenizer.value, "left") == 0) {
-                  pos[i] = CSS_CREATE_LENGTH (0.0, CSS_LENGTH_TYPE_PERCENTAGE);
+                  pos[i] = hll_cssCreateLength(0.0, CSS_LENGTH_TYPE_PERCENTAGE);
                   nextToken(&this->tokenizer, &this->hll_css_parser);
                } else if (dStrAsciiCasecmp(tokenizer.value, "center") == 0) {
-                  pos[i] = CSS_CREATE_LENGTH (0.5, CSS_LENGTH_TYPE_PERCENTAGE);
+                  pos[i] = hll_cssCreateLength(0.5, CSS_LENGTH_TYPE_PERCENTAGE);
                   nextToken(&this->tokenizer, &this->hll_css_parser);
                } else if (dStrAsciiCasecmp(tokenizer.value, "bottom") == 0 ||
                           dStrAsciiCasecmp(tokenizer.value, "right") == 0) {
-                  pos[i] = CSS_CREATE_LENGTH (1.0, CSS_LENGTH_TYPE_PERCENTAGE);
+                  pos[i] = hll_cssCreateLength(1.0, CSS_LENGTH_TYPE_PERCENTAGE);
                   nextToken(&this->tokenizer, &this->hll_css_parser);
                } else
                   // tokenMatchesProperty should have returned "false" already.
@@ -766,7 +766,7 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
          // If second value is not set, it is set to "center", i. e. 50%, (see
          // CSS specification), which is suitable for both dimensions.
          if (!h[1] && !v[1]) {
-            pos[1] = CSS_CREATE_LENGTH (0.5, CSS_LENGTH_TYPE_PERCENTAGE);
+            pos[1] = hll_cssCreateLength(0.5, CSS_LENGTH_TYPE_PERCENTAGE);
             h[1] = v[1] = true;
          }
 

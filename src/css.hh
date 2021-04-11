@@ -3,6 +3,8 @@
 
 #include "dw/core.hh"
 #include "doctree.hh"
+#include "css.h"
+#include "haskell/hello.h"
 
 /* Origin and weight. Used only internally.*/
 typedef enum {
@@ -45,94 +47,8 @@ enum CssDeclarationValueType {
    CssDeclarationValueTypeUNUSED              /* Not yet used. Will itself get unused some day. */
 } ;
 
-/*
- * Lengths are represented as int in the following way:
- *
- *    | <------   integer value   ------> |
- *
- *    +---+ - - - +---+---+- - - - - -+---+---+---+---+
- *    |          integer part             |   type    |
- *    +---+ - - - +---+---+- - - - - -+---+---+---+---+
- *    | integer part  | decimal fraction  |   type    |
- *    +---+ - - - +---+---+- - - - - -+---+---+---+---+
- *     n-1          15  14              3   2  1   0
- *
- *    | <------ fixed point value ------> |
- *
- * where type is one of the CSS_LENGTH_TYPE_* values.
- * CSS_LENGTH_TYPE_PX values are stored as
- * 29 bit signed integer, all other types as fixed point values.
- */
 
-typedef int CssLength;
 
-typedef enum {
-   CSS_LENGTH_TYPE_NONE,
-   CSS_LENGTH_TYPE_PX,
-   CSS_LENGTH_TYPE_MM,         /* "cm", "in", "pt" and "pc" are converted into
-                                  millimeters. */
-   CSS_LENGTH_TYPE_EM,
-   CSS_LENGTH_TYPE_EX,
-   CSS_LENGTH_TYPE_PERCENTAGE,
-   CSS_LENGTH_TYPE_RELATIVE,   /* This does not exist in CSS but
-                                  is used in HTML */
-   CSS_LENGTH_TYPE_AUTO        /* This can be used as a simple value. */
-} CssLengthType;
-
-inline CssLength CSS_CREATE_LENGTH (float v, CssLengthType t) {
-   static const int CSS_LENGTH_FRAC_MAX = (1 << (32 - 15 - 1)) - 1;
-   static const int CSS_LENGTH_INT_MAX = (1 << (32 - 4)) - 1;
-   int iv;
-
-   switch (t) {
-   case CSS_LENGTH_TYPE_PX:
-      iv = lout::misc::roundInt(v);
-      if (iv > CSS_LENGTH_INT_MAX)
-         iv = CSS_LENGTH_INT_MAX;
-      else if (iv < -CSS_LENGTH_INT_MAX)
-         iv = -CSS_LENGTH_INT_MAX;
-      return iv << 3 | t;
-   case CSS_LENGTH_TYPE_NONE:
-   case CSS_LENGTH_TYPE_MM:
-   case CSS_LENGTH_TYPE_EM:
-   case CSS_LENGTH_TYPE_EX:
-   case CSS_LENGTH_TYPE_PERCENTAGE:
-   case CSS_LENGTH_TYPE_RELATIVE:
-      if (v > CSS_LENGTH_FRAC_MAX)
-         v = CSS_LENGTH_FRAC_MAX;
-      else if (v < -CSS_LENGTH_FRAC_MAX)
-         v = -CSS_LENGTH_FRAC_MAX;
-      return ((int) (v * (1 << 15)) & ~7 ) | t;
-   case CSS_LENGTH_TYPE_AUTO:
-      return t;
-   default:
-      assert(false);
-      return CSS_LENGTH_TYPE_AUTO;
-   }
-}
-
-inline CssLengthType CSS_LENGTH_TYPE (CssLength l) {
-   return (CssLengthType) (l & 7);
-}
-
-inline float CSS_LENGTH_VALUE (CssLength l) {
-   switch (CSS_LENGTH_TYPE(l)) {
-   case CSS_LENGTH_TYPE_PX:
-      return (float) (l >> 3);
-   case CSS_LENGTH_TYPE_NONE:
-   case CSS_LENGTH_TYPE_MM:
-   case CSS_LENGTH_TYPE_EM:
-   case CSS_LENGTH_TYPE_EX:
-   case CSS_LENGTH_TYPE_PERCENTAGE:
-   case CSS_LENGTH_TYPE_RELATIVE:
-      return  ((float)(l & ~7)) / (1 << 15);
-   case CSS_LENGTH_TYPE_AUTO:
-      return 0.0;
-   default:
-      assert(false);
-      return 0.0;
-   }
-}
 
 typedef enum {
    CSS_PROPERTY_END = -1, // used as terminator in CssShorthandInfo
