@@ -29,6 +29,8 @@ struct CssTokenizer {
 
 void nextToken(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
 bool tokenMatchesProperty(CssDeclarationProperty property, CssDeclarationValueType * type, const char * tokenValue, int tokenType);
+void ignoreBlock(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
+void ignoreStatement(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
 
 struct CssColor {
    int32_t color;     /* All components combined into one variable. */
@@ -61,8 +63,6 @@ class CssParser {
       void parseMedia();
       CssSelector *parseSelector();
       void parseRuleset();
-      void ignoreBlock();
-      void ignoreStatement();
 
    public:
       static void parseDeclarationBlock(const DilloUrl *baseUrl,

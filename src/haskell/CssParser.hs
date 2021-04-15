@@ -47,6 +47,8 @@ The line comes from https://lwn.net/CSS/pure-lwn, and the value would lead to
 
 
 module CssParser(nextToken
+                , ignoreBlock
+                , ignoreStatement
                 , takeSymbol
                 , takeInt
                 , CssParser (..)
@@ -823,3 +825,60 @@ cssCreateLength val t | t == cssLengthTypePX = ((asInt1 (round (val))) `shiftL` 
                else if f < fromIntegral (-css_LENGTH_FRAC_MAX)
                     then fromIntegral (-css_LENGTH_FRAC_MAX)
                     else f
+
+
+
+
+
+ignoreBlock :: CssParser -> (CssParser, CssToken)
+ignoreBlock parser = ignoreBlock' (parser, CssTokNone) 0
+  where
+    ignoreBlock' (parser, tok@CssTokEnd) depth    = (parser, tok)
+    ignoreBlock' (parser, tok@(CssTokCh c)) depth | c == '{' = ignoreBlock' (nextToken parser) (depth + 1)
+                                                  | c == '}' = if depth == 1
+                                                              then nextToken parser
+                                                              else ignoreBlock' (nextToken parser) (depth - 1)
+                                                  | otherwise = ignoreBlock' (nextToken parser) depth
+    ignoreBlock' (parser, tok) depth              = ignoreBlock' (nextToken parser) depth
+{-
+   while (tokenizer->type != CSS_TOKEN_TYPE_END) {
+      if (tokenizer->type == CSS_TOKEN_TYPE_CHAR) {
+         if (tokenizer->value[0] == '{') {
+            depth++;
+         } else if (tokenizer->value[0] == '}') {
+            depth--;
+            if (depth == 0) {
+               nextToken(tokenizer, hll_css_parser);
+               return;
+            }
+         }
+      }
+      nextToken(tokenizer, hll_css_parser);
+   }
+-}
+
+
+
+
+ignoreStatement :: CssParser -> (CssParser, CssToken)
+ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
+  where
+    ignoreStatement' (parser, tok@CssTokEnd)    = (parser, tok)
+    ignoreStatement' (parser, tok@(CssTokCh c)) | c == ';' = nextToken parser
+                                                | c == '{' = ignoreBlock parser
+                                                | otherwise = ignoreStatement' (nextToken parser)
+    ignoreStatement' (parser, tok)              = ignoreStatement' (nextToken parser)
+{-
+   while (tokenizer->type != CSS_TOKEN_TYPE_END) {
+      if (tokenizer->type == CSS_TOKEN_TYPE_CHAR) {
+         if (tokenizer->value[0] == ';') {
+            nextToken(tokenizer, hll_css_parser);
+            return;
+         } else if (tokenizer->value[0] =='{') {
+            ignoreBlock(tokenizer, hll_css_parser);
+            return;
+         }
+      }
+      nextToken(tokenizer, hll_css_parser);
+   }
+-}

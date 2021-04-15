@@ -17,16 +17,16 @@
 
 using namespace dw::core::style;
 
-void CssDeclaration::printCssDeclaration()
+void CssDeclaration::printCssDeclaration(FILE * file)
 {
    switch (this->value.type) {
    case CssDeclarationValueTypeSTRING:
    case CssDeclarationValueTypeSYMBOL:
    case CssDeclarationValueTypeURI:
-      fprintf (stderr, "    %s: [%s]\n", CssParser::propertyNameString(this->property), this->value.strVal);
+      fprintf (file, "            Rule: Declaration: property = '%s', value = [%s]\n", CssParser::propertyNameString(this->property), this->value.strVal);
       break;
    default:
-      fprintf (stderr, "    %s: %d\n", CssParser::propertyNameString(this->property), this->value.intVal);
+      fprintf (file, "            Rule: Declaration: property = '%s', value = %d\n", CssParser::propertyNameString(this->property), this->value.intVal);
       break;
    }
 }
@@ -103,9 +103,11 @@ void CssDeclartionList::appendDeclarationsToArg(CssDeclartionList * declList) {
    }
 }
 
-void CssDeclartionList::printCssDeclartionList () {
-   for (int i = 0; i < size (); i++)
-      getRef (i)->printCssDeclaration ();
+void CssDeclartionList::printCssDeclartionList (FILE * file) {
+   //fprintf(stderr, "        Rule: %d Declarations Begin\n", size());
+   for (int i = 0; i < size(); i++)
+      getRef (i)->printCssDeclaration (file);
+   //fprintf(stderr, "        Rule: Declarations End\n");
 }
 
 CssSelector::CssSelector () {
@@ -117,12 +119,12 @@ CssSelector::CssSelector () {
    cs = selectorList.getRef (selectorList.size () - 1);
 
    cs->combinator = COMB_NONE;
-   cs->selector = new CssSimpleSelector ();
+   cs->simpleSelector = new CssSimpleSelector ();
 }
 
 CssSelector::~CssSelector () {
    for (int i = selectorList.size () - 1; i >= 0; i--)
-      delete selectorList.getRef (i)->selector;
+      delete selectorList.getRef (i)->simpleSelector;
 }
 
 /**
@@ -137,7 +139,7 @@ bool CssSelector::full_selector_matches(Doctree *docTree, const DoctreeNode *nod
       return true;
 
    struct CombinatorAndSelector *cs = selectorList.getRef (i);
-   CssSimpleSelector *sel = cs->selector;
+   CssSimpleSelector *sel = cs->simpleSelector;
 
    switch (comb) {
       case COMB_NONE:
@@ -182,12 +184,12 @@ void CssSelector::addSimpleSelector (Combinator c) {
    cs = selectorList.getRef (selectorList.size () - 1);
 
    cs->combinator = c;
-   cs->selector = new CssSimpleSelector ();
+   cs->simpleSelector = new CssSimpleSelector ();
 }
 
 bool CssSelector::checksPseudoClass () {
    for (int i = 0; i < selectorList.size (); i++)
-      if (selectorList.getRef (i)->selector->getSelectorPseudoClass ())
+      if (selectorList.getRef (i)->simpleSelector->getSelectorPseudoClass ())
          return true;
    return false;
 }
@@ -202,34 +204,38 @@ int CssSelector::specificity () {
    int spec = 0;
 
    for (int i = 0; i < selectorList.size (); i++)
-      spec += selectorList.getRef (i)->selector->specificity ();
+      spec += selectorList.getRef (i)->simpleSelector->specificity ();
 
    return spec;
 }
 
-void CssSelector::printCssSelector () {
+void CssSelector::printCssSelector(FILE * file) {
+   //fprintf(file, "        Rule SelectorList: Begin\n");
+   fprintf(file, "        Rule SelectorList: %d simple selectors\n", selectorList.size());
    for (int i = 0; i < selectorList.size (); i++) {
-      selectorList.getRef (i)->selector->printCssSimpleSelector ();
+      selectorList.getRef (i)->simpleSelector->printCssSimpleSelector (file);
 
       if (i < selectorList.size () - 1) {
          switch (selectorList.getRef (i + 1)->combinator) {
             case COMB_CHILD:
-               fprintf (stderr, "> ");
+               fprintf (file, "                Rule SelectorList: combinator > \n");
                break;
             case COMB_DESCENDANT:
-               fprintf (stderr, "\" \" ");
+               fprintf (file, "                Rule SelectorList: combinator \" \" \n");
                break;
             case COMB_ADJACENT_SIBLING:
-               fprintf (stderr, "+ ");
+               fprintf (file, "                Rule SelectorList: combinator + \n");
                break;
             default:
-               fprintf (stderr, "? ");
+               fprintf (file, "                Rule SelectorList: combinator ? \n");
                break;
          }
       }
    }
+   //fprintf(file, "        Rule SelectorList: End\n");
+   //fprintf(file, "        Rule SelectorList: --------\n");
 
-   //fprintf (stderr, "\n");
+   //fprintf (file, "\n");
 }
 
 CssSimpleSelector::CssSimpleSelector () {}
@@ -242,22 +248,46 @@ CssSimpleSelector::~CssSimpleSelector () {
 }
 
 void CssSimpleSelector::setSelector(CssSelectorType type, const char *value) {
+
    switch (type) {
    case CssSelectorType::CLASS:
+      //fprintf(stderr, "======= Appending selector CLASS: '%s'\n", value);
          selector_class.increase ();
          selector_class.set (selector_class.size () - 1, dStrdup (value));
+         //fprintf(stderr, "======= Updated CLASS:\n");
+         for (int i = 0; i < selector_class.size(); i++) {
+            //fprintf(stderr, "======= Updated contents %d = '%s'\n", i, selector_class.get(i));
+         }
          break;
    case CssSelectorType::PSEUDO_CLASS:
+      //fprintf(stderr, "======= Appending selector PSEUDO_CLASS: '%s'\n", value);
          if (selector_pseudo_class == NULL)
             selector_pseudo_class = dStrdup(value);
+
          break;
    case CssSelectorType::ID:
+      //fprintf(stderr, "======= Appending selector ID: '%s'\n", value);
          if (selector_id == NULL)
             selector_id = dStrdup(value);
          break;
       default:
          break;
    }
+
+   if (selector_class.size() > 2) {
+      fprintf(stderr, "========== selector_class size = %d\n", selector_class.size());
+   }
+
+   if (selector_class.size() && selector_pseudo_class) {
+      fprintf(stderr, "========== selector_class + pseudo class\n");
+   }
+   if (selector_class.size() && selector_id) {
+      fprintf(stderr, "========== selector_class + id\n");
+   }
+   if (selector_pseudo_class && selector_id) {
+      fprintf(stderr, "========== selector_pseudo_class + id\n");
+   }
+   //fprintf(stderr, "=======\n");
 }
 
 /**
@@ -309,26 +339,31 @@ int CssSimpleSelector::specificity () {
    return spec;
 }
 
-void CssSimpleSelector::printCssSimpleSelector()
+void CssSimpleSelector::printCssSimpleSelector(FILE * file)
 {
+   //fprintf(file, "                Rule SimpleSelector: Begin\n");
+   fprintf(file, "            Rule SimpleSelector: ");
+
    if (selector_element == ELEMENT_ANY) {
-      fprintf(stderr, "Element ANY ");
+      fprintf(file, "Element ANY\n");
    } else if (selector_element >= 0) {
-      fprintf(stderr, "Element [%s] ", a_Html_tag_name(selector_element));
+      fprintf(file, "Element [%s]\n", a_Html_tag_name(selector_element));
    }
 
    if (selector_pseudo_class) {
-      fprintf(stderr, "Pseudo class [%s] ", selector_pseudo_class);
+      fprintf(file, "            Rule SimpleSelector: selector = Pseudo class [%s]\n", selector_pseudo_class);
    }
    if (selector_id) {
-      fprintf(stderr, "ID %s ", selector_id);
+      fprintf(file, "            Rule SimpleSelector: selector = ID %s\n", selector_id);
    }
    if (selector_class.size()) {
-      fprintf (stderr, "class [");
+      fprintf(file, "            Rule SimpleSelector: selector = class [");
       for (int i = 0; i < selector_class.size (); i++)
-         fprintf (stderr, ".%s", selector_class.get (i));
-      fprintf (stderr, "]");
+         fprintf (file, ".%s", selector_class.get (i));
+      fprintf (file, "]\n");
    }
+   //fprintf(file, "\n               Rule SimpleSelector: End\n");
+   //fprintf(file, "\n            SimpleSelector: --------------\n");
 }
 
 CssRule::CssRule (CssSelector *selector, CssDeclartionList * declList, int pos) {
@@ -347,21 +382,27 @@ CssRule::~CssRule () {
    declList->unref ();
 }
 
-void CssRule::apply_css_rule(CssDeclartionList * declList, Doctree *docTree,
+void CssRule::apply_css_rule(FILE * file, CssDeclartionList * outDeclList, Doctree *docTree,
                      const DoctreeNode *node, MatchCache *matchCache) const {
    if (selector->full_selector_submatches(docTree, node, matchCache))
-      this->declList->appendDeclarationsToArg(declList);
+      this->declList->appendDeclarationsToArg(outDeclList);
 
-   this->printCssRule();
+   this->printCssRule(file);
 }
 
-void CssRule::printCssRule () const {
-   selector->printCssSelector ();
-   fprintf(stderr, " {\n");
+void CssRule::printCssRule (FILE * file) const {
+
+   fprintf(file, "    Rule: Begin\n");
+   selector->printCssSelector (file);
    if (nullptr != this->declList) {
-      declList->printCssDeclartionList();
+      fprintf(file, "        Rule Declarations (%d) {\n", declList->size());
+      declList->printCssDeclartionList(file);
+   } else {
+         fprintf(file, "        Rule Declarations (0) {\n");
    }
-   fprintf(stderr, "}\n");
+   fprintf(file, "        Rule Declarations }\n");
+   fprintf(file, "    Rule: End\n");
+   fprintf(file, "    Rule: ---------------------------\n");
 }
 
 /*
@@ -471,6 +512,13 @@ void CssStyleSheet::apply_style_sheet(CssDeclartionList * declList, Doctree *doc
    if (ruleList[numLists])
       numLists++;
 
+   static int i = 0;
+   char path[20] = { 0 };
+   snprintf(path, sizeof (path), "/tmp/css_rules_%04d", i);
+   FILE * file = fopen(path, "w");
+   i++;
+
+
    // Apply potentially matching rules from ruleList[0-numLists] with
    // ascending specificity.
    // If specificity is equal, rules are applied in order of appearance.
@@ -496,12 +544,15 @@ void CssStyleSheet::apply_style_sheet(CssDeclartionList * declList, Doctree *doc
 
       if (minSpecIndex >= 0) {
          CssRule *rule = ruleList[minSpecIndex]->get (index[minSpecIndex]);
-         rule->apply_css_rule(declList, docTree, node, matchCache);
+         rule->apply_css_rule(file, declList, docTree, node, matchCache);
          index[minSpecIndex]++;
       } else {
          break;
       }
    }
+
+   fclose(file);
+
 }
 
 CssStyleSheet CssContext::userAgentSheet;

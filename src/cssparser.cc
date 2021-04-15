@@ -837,38 +837,24 @@ static int Css_shorthand_info_cmp(const void *a, const void *b)
 void CssParser::parseDeclaration(CssDeclartionList * declList,
                                  CssDeclartionList *importantProps)
 {
-   CssPropertyInfo pi = {NULL, {CssDeclarationValueTypeUNUSED}, NULL}, *pip;
-   CssShorthandInfo *sip;
-   CssDeclarationValueType type = CssDeclarationValueTypeUNUSED;
-
-   CssDeclarationProperty property;
-   CssDeclarationValue val, dir_vals[4];
-   CssDeclarationValueType dir_types[4];
-   bool found, weight;
-   int sh_index, i, j, n;
-   int dir_set[4][4] = {
-      /* 1 value  */ {0, 0, 0, 0},
-      /* 2 values */ {0, 0, 1, 1},
-      /* 3 values */ {0, 2, 1, 1},
-      /* 4 values */ {0, 2, 3, 1}
-   };
-
    if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-      pi.symbol = tokenizer.value;
-      pip =
-          (CssPropertyInfo *) bsearch(&pi, Css_property_info,
-                                      CSS_NUM_PARSED_PROPERTIES,
-                                      sizeof(CssPropertyInfo),
-                                      Css_property_info_cmp);
+      CssPropertyInfo pi = { .symbol = tokenizer.value, {CssDeclarationValueTypeUNUSED}, NULL};
+      CssPropertyInfo * pip = (CssPropertyInfo *) bsearch(&pi, Css_property_info,
+                                                          CSS_NUM_PARSED_PROPERTIES,
+                                                          sizeof(CssPropertyInfo),
+                                                          Css_property_info_cmp);
       if (pip) {
-         property = (CssDeclarationProperty) (pip - Css_property_info);
+         CssDeclarationProperty property = (CssDeclarationProperty) (pip - Css_property_info);
          nextToken(&this->tokenizer, &this->hll_css_parser);
          if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == ':') {
             nextToken(&this->tokenizer, &this->hll_css_parser);
+
+            CssDeclarationValue val;
+            CssDeclarationValueType type = CssDeclarationValueTypeUNUSED;
             if (tokenMatchesProperty(property, &type, this->tokenizer.value, this->tokenizer.type)
                 && parseDeclarationValue(property, type, &val)) {
 
-               weight = parseWeight();
+               const bool weight = parseWeight();
 
                val.type = type;
                if (weight && importantProps)
@@ -879,53 +865,62 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
          }
       } else {
          /* Try shorthands. */
-         sip =
-             (CssShorthandInfo *) bsearch(&pi, Css_shorthand_info,
-                                          CSS_SHORTHAND_NUM,
-                                          sizeof(CssShorthandInfo),
-                                          Css_shorthand_info_cmp);
+         CssShorthandInfo * sip = (CssShorthandInfo *) bsearch(&pi, Css_shorthand_info,
+                                                               CSS_SHORTHAND_NUM,
+                                                               sizeof(CssShorthandInfo),
+                                                               Css_shorthand_info_cmp);
          if (sip) {
-            sh_index = sip - Css_shorthand_info;
+            const int sh_index = sip - Css_shorthand_info;
+            const CssShorthandInfo * shinfo = &Css_shorthand_info[sh_index];
             nextToken(&this->tokenizer, &this->hll_css_parser);
             if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == ':') {
                nextToken(&this->tokenizer, &this->hll_css_parser);
 
-               switch (Css_shorthand_info[sh_index].type) {
+               switch (shinfo->type) {
 
                case CssShorthandInfo::CSS_SHORTHAND_FONT:
                   /* \todo Implement details. */
-               case CssShorthandInfo::CSS_SHORTHAND_MULTIPLE:
+               case CssShorthandInfo::CSS_SHORTHAND_MULTIPLE: {
+                  bool found;
                   do {
-                     for (found = false, i = 0;
-                          !found &&
-                          Css_shorthand_info[sh_index].properties[i] !=
-                          CSS_PROPERTY_END;
-                          i++)
-                        if (tokenMatchesProperty(Css_shorthand_info[sh_index].properties[i], &type, this->tokenizer.value, this->tokenizer.type)) {
+                     int i = 0;
+                     for (found = false, i = 0; !found && shinfo->properties[i] != CSS_PROPERTY_END; i++) {
+
+                        CssDeclarationValue val;
+                        CssDeclarationValueType type = CssDeclarationValueTypeUNUSED;
+                        if (tokenMatchesProperty(shinfo->properties[i], &type, this->tokenizer.value, this->tokenizer.type)) {
                            found = true;
-                           DEBUG_MSG(DEBUG_PARSE_LEVEL,
-                                     "will assign to '%s'\n",
-                                     Css_property_info
-                                     [Css_shorthand_info[sh_index]
-                                      .properties[i]].symbol);
-                           if (parseDeclarationValue(Css_shorthand_info[sh_index].properties[i], type, &val)) {
-                              weight = parseWeight();
+                           DEBUG_MSG(DEBUG_PARSE_LEVEL, "will assign to '%s'\n", Css_property_info[shinfo->properties[i]].symbol);
+                           if (parseDeclarationValue(shinfo->properties[i], type, &val)) {
+                              const bool weight = parseWeight();
 
                               val.type = type;
                               if (weight && importantProps)
-                                 importantProps->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[i], val);
+                                 importantProps->updateOrAddDeclaration(shinfo->properties[i], val);
                               else
-                                 declList->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[i], val);
+                                 declList->updateOrAddDeclaration(shinfo->properties[i], val);
                            }
                         }
+                     }
                   } while (found);
+               }
                   break;
 
-               case CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS:
-                  n = 0;
+               case CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS: {
+                  int n = 0;
+                  int dir_set[4][4] = {
+                                       /* 1 value  */ {0, 0, 0, 0},
+                                       /* 2 values */ {0, 0, 1, 1},
+                                       /* 3 values */ {0, 2, 1, 1},
+                                       /* 4 values */ {0, 2, 3, 1}
+                  };
+                  CssDeclarationValue dir_vals[4];
+                  CssDeclarationValueType dir_types[4];
                   while (n < 4) {
-                     if (tokenMatchesProperty(Css_shorthand_info[sh_index].properties[0], &type, this->tokenizer.value, this->tokenizer.type) &&
-                         parseDeclarationValue(Css_shorthand_info[sh_index].properties[0], type, &val)) {
+                     CssDeclarationValue val;
+                     CssDeclarationValueType type = CssDeclarationValueTypeUNUSED;
+                     if (tokenMatchesProperty(shinfo->properties[0], &type, this->tokenizer.value, this->tokenizer.type) &&
+                         parseDeclarationValue(shinfo->properties[0], type, &val)) {
                         dir_vals[n] = val;
                         dir_types[n] = type;
                         n++;
@@ -933,42 +928,46 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
                         break;
                   }
 
-                  weight = parseWeight();
+                  const bool weight = parseWeight();
                   if (n > 0) {
-                     for (i = 0; i < 4; i++) {
+                     for (int i = 0; i < 4; i++) {
 
                         dir_vals[dir_set[n - 1][i]].type = dir_types[dir_set[n - 1][i]];
                         if (weight && importantProps)
-                           importantProps->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[i],
-                                                                  dir_vals[dir_set[n - 1][i]]);
+                           importantProps->updateOrAddDeclaration(shinfo->properties[i], dir_vals[dir_set[n - 1][i]]);
                         else
-                           declList->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[i],
-                                                            dir_vals[dir_set[n - 1][i]]);
+                           declList->updateOrAddDeclaration(shinfo->properties[i], dir_vals[dir_set[n - 1][i]]);
                      }
                   } else
                      MSG_CSS("no values for shorthand property '%s'\n",
-                             Css_shorthand_info[sh_index].symbol);
-
+                             shinfo->symbol);
+               }
                   break;
 
-               case CssShorthandInfo::CSS_SHORTHAND_BORDER:
+               case CssShorthandInfo::CSS_SHORTHAND_BORDER: {
+                  bool found;
                   do {
-                     for (found = false, i = 0; !found && i < 3; i++)
-                        if (tokenMatchesProperty(Css_shorthand_info[sh_index].properties[i], &type, this->tokenizer.value, this->tokenizer.type)) {
+                     int i = 0;
+                     for (found = false, i = 0; !found && i < 3; i++) {
+                        CssDeclarationValue val;
+                        CssDeclarationValueType type = CssDeclarationValueTypeUNUSED;
+                        if (tokenMatchesProperty(shinfo->properties[i], &type, this->tokenizer.value, this->tokenizer.type)) {
                            found = true;
-                           if (parseDeclarationValue(Css_shorthand_info[sh_index].properties[i], type, &val)) {
-                              weight = parseWeight();
-                              for (j = 0; j < 4; j++) {
+                           if (parseDeclarationValue(shinfo->properties[i], type, &val)) {
+                              const bool weight = parseWeight();
+                              for (int j = 0; j < 4; j++) {
 
                                  val.type = type;
                                  if (weight && importantProps)
-                                    importantProps->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[j * 3 + i], val);
+                                    importantProps->updateOrAddDeclaration(shinfo->properties[j * 3 + i], val);
                                  else
-                                    declList->updateOrAddDeclaration(Css_shorthand_info[sh_index].properties[j * 3 + i], val);
+                                    declList->updateOrAddDeclaration(shinfo->properties[j * 3 + i], val);
                               }
                            }
                         }
+                     }
                   } while (found);
+               }
                   break;
                }
             }
@@ -986,17 +985,17 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
       nextToken(&this->tokenizer, &this->hll_css_parser);
 }
 
-bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
+bool CssParser::parseSimpleSelector(CssSimpleSelector *simpleSelector)
 {
    CssSelectorType selectorType;
 
    if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-      selector->setSelectorElement(a_Html_tag_index(tokenizer.value));
+      simpleSelector->setSelectorElement(a_Html_tag_index(tokenizer.value));
       nextToken(&this->tokenizer, &this->hll_css_parser);
       if (this->hll_css_parser.spaceSeparatedC)
          return true;
    } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '*') {
-      selector->setSelectorElement(CssSimpleSelector::ELEMENT_ANY);
+      simpleSelector->setSelectorElement(CssSimpleSelector::ELEMENT_ANY);
       nextToken(&this->tokenizer, &this->hll_css_parser);
       if (this->hll_css_parser.spaceSeparatedC)
          return true;
@@ -1021,7 +1020,7 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
             break;
          case ':':
             selectorType = CssSelectorType::PSEUDO_CLASS;
-            if (selector->getSelectorPseudoClass ())
+            if (simpleSelector->getSelectorPseudoClass ())
                // pseudo class has been set already.
                // As dillo currently only supports :link and :visisted, a
                // selector with more than one pseudo class will never match.
@@ -1038,7 +1037,7 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *selector)
             return false;
 
          if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-            selector->setSelector(selectorType, tokenizer.value);
+            simpleSelector->setSelector(selectorType, tokenizer.value);
             nextToken(&this->tokenizer, &this->hll_css_parser);
          } else {
             return false; // don't accept classes or id's starting with integer
@@ -1070,13 +1069,13 @@ CssSelector *CssParser::parseSelector()
          (tokenizer.value[0] == ',' || tokenizer.value[0] == '{')) {
          break;
       } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '>') {
-         selector->addSimpleSelector (CssSelector::COMB_CHILD);
+         selector->addSimpleSelector(CssSelector::COMB_CHILD);
          nextToken(&this->tokenizer, &this->hll_css_parser);
       } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '+') {
-         selector->addSimpleSelector (CssSelector::COMB_ADJACENT_SIBLING);
+         selector->addSimpleSelector(CssSelector::COMB_ADJACENT_SIBLING);
          nextToken(&this->tokenizer, &this->hll_css_parser);
       } else if (tokenizer.type != CSS_TOKEN_TYPE_END && this->hll_css_parser.spaceSeparatedC) {
-         selector->addSimpleSelector (CssSelector::COMB_DESCENDANT);
+         selector->addSimpleSelector(CssSelector::COMB_DESCENDANT);
       } else {
          delete selector;
          selector = NULL;
@@ -1094,19 +1093,15 @@ CssSelector *CssParser::parseSelector()
 
 void CssParser::parseRuleset()
 {
-   lout::misc::SimpleVector < CssSelector * >*list;
-   CssDeclartionList * declList, *importantProps;
-   CssSelector *selector;
-
-   list = new lout::misc::SimpleVector < CssSelector * >(1);
+   lout::misc::SimpleVector < CssSelector * > * selectors = new lout::misc::SimpleVector < CssSelector * >(1);
 
    while (true) {
-      selector = parseSelector();
+      CssSelector * selector = parseSelector();
 
       if (selector) {
          selector->ref();
-         list->increase();
-         list->set(list->size() - 1, selector);
+         selectors->increase();
+         selectors->set(selectors->size() - 1, selector);
       }
 
       // \todo dump whole ruleset in case of parse error as required by CSS 2.1
@@ -1114,7 +1109,7 @@ void CssParser::parseRuleset()
       //       valid CSS.
 
       if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == ',')
-         /* To read the next tokenizer. */
+         /* To read the next selector. */
          nextToken(&this->tokenizer, &this->hll_css_parser);
       else
          /* No more selectors. */
@@ -1123,9 +1118,9 @@ void CssParser::parseRuleset()
 
    DEBUG_MSG(DEBUG_PARSE_LEVEL, "end of %s\n", "selectors");
 
-   declList = new CssDeclartionList(true);
+   CssDeclartionList * declList = new CssDeclartionList(true);
    declList->ref();
-   importantProps = new CssDeclartionList(true);
+   CssDeclartionList * importantProps = new CssDeclartionList(true);
    importantProps->ref();
 
    /* Read block. ('{' has already been read.) */
@@ -1139,26 +1134,26 @@ void CssParser::parseRuleset()
       this->hll_css_parser.withinBlockC = false;
    }
 
-   for (int i = 0; i < list->size(); i++) {
-      CssSelector *s = list->get(i);
+   for (int i = 0; i < selectors->size(); i++) {
+      CssSelector * sel = selectors->get(i);
 
       if (origin == CSS_ORIGIN_USER_AGENT) {
-         context->addRule(s, declList, CSS_PRIMARY_USER_AGENT);
+         context->addRule(sel, declList, CSS_PRIMARY_USER_AGENT);
       } else if (origin == CSS_ORIGIN_USER) {
-         context->addRule(s, declList, CSS_PRIMARY_USER);
-         context->addRule(s, importantProps, CSS_PRIMARY_USER_IMPORTANT);
+         context->addRule(sel, declList, CSS_PRIMARY_USER);
+         context->addRule(sel, importantProps, CSS_PRIMARY_USER_IMPORTANT);
       } else if (origin == CSS_ORIGIN_AUTHOR) {
-         context->addRule(s, declList, CSS_PRIMARY_AUTHOR);
-         context->addRule(s, importantProps, CSS_PRIMARY_AUTHOR_IMPORTANT);
+         context->addRule(sel, declList, CSS_PRIMARY_AUTHOR);
+         context->addRule(sel, importantProps, CSS_PRIMARY_AUTHOR_IMPORTANT);
       }
 
-      s->unref();
+      sel->unref();
    }
 
    declList->unref();
    importantProps->unref();
 
-   delete list;
+   delete selectors;
 
    if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '}')
       nextToken(&this->tokenizer, &this->hll_css_parser);
@@ -1248,7 +1243,7 @@ void CssParser::parseImport(DilloHtml *html)
       importSyntaxIsOK = true;
       nextToken(&this->tokenizer, &this->hll_css_parser);
    } else
-      ignoreStatement();
+      ignoreStatement(&this->tokenizer, &this->hll_css_parser);
 
    if (urlStr) {
       if (importSyntaxIsOK && mediaIsSelected) {
@@ -1287,7 +1282,7 @@ void CssParser::parseMedia()
    if (!(mediaSyntaxIsOK &&
          tokenizer.type == CSS_TOKEN_TYPE_CHAR &&
          tokenizer.value[0] == '{')) {
-      ignoreStatement();
+      ignoreStatement(&this->tokenizer, &this->hll_css_parser);
       return;
    }
 
@@ -1302,7 +1297,7 @@ void CssParser::parseMedia()
          }
       }
    } else
-      ignoreBlock();
+      ignoreBlock(&this->tokenizer, &this->hll_css_parser);
 }
 
 const char * CssParser::propertyNameString(CssDeclarationProperty property)
@@ -1310,40 +1305,16 @@ const char * CssParser::propertyNameString(CssDeclarationProperty property)
    return Css_property_info[property].symbol;
 }
 
-void CssParser::ignoreBlock()
+void ignoreBlock(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser)
 {
-   int depth = 0;
-
-   while (tokenizer.type != CSS_TOKEN_TYPE_END) {
-      if (tokenizer.type == CSS_TOKEN_TYPE_CHAR) {
-         if (tokenizer.value[0] == '{') {
-            depth++;
-         } else if (tokenizer.value[0] == '}') {
-            depth--;
-            if (depth == 0) {
-               nextToken(&this->tokenizer, &this->hll_css_parser);
-               return;
-            }
-         }
-      }
-      nextToken(&this->tokenizer, &this->hll_css_parser);
-   }
+   hll_ignoreBlock(hll_css_parser, tokenizer->buf + tokenizer->bufOffset);
+   tokenizer->bufOffset = hll_css_parser->bufOffsetC;
 }
 
-void CssParser::ignoreStatement()
+void ignoreStatement(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser)
 {
-   while (tokenizer.type != CSS_TOKEN_TYPE_END) {
-      if (tokenizer.type == CSS_TOKEN_TYPE_CHAR) {
-         if (tokenizer.value[0] == ';') {
-            nextToken(&this->tokenizer, &this->hll_css_parser);
-            return;
-         } else if (tokenizer.value[0] =='{') {
-            ignoreBlock();
-            return;
-         }
-      }
-      nextToken(&this->tokenizer, &this->hll_css_parser);
-   }
+   hll_ignoreStatement(hll_css_parser, tokenizer->buf + tokenizer->bufOffset);
+   tokenizer->bufOffset = hll_css_parser->bufOffsetC;
 }
 
 void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
@@ -1366,10 +1337,10 @@ void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
             } else if (dStrAsciiCasecmp(parser.tokenizer.value, "media") == 0) {
                parser.parseMedia();
             } else {
-               parser.ignoreStatement();
+               ignoreStatement(&parser.tokenizer, &parser.hll_css_parser);
             }
          } else {
-            parser.ignoreStatement();
+            ignoreStatement(&parser.tokenizer, &parser.hll_css_parser);
          }
       } else {
          importsAreAllowed = false;

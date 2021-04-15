@@ -46,6 +46,8 @@ foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> CStr
 foreign export ccall "hll_declarationValueAsInt"   hll_declarationValueAsInt   :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO Int
 foreign export ccall "hll_declarationValueAsMultiEnum" hll_declarationValueAsMultiEnum :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> IO Int
 foreign export ccall "hll_tokenMatchesProperty" hll_tokenMatchesProperty :: Int -> CString -> Int -> IO Int
+foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr HelloCssParser -> CString -> IO Int
+foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr HelloCssParser -> CString -> IO Int
 
 foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Int -> IO Int
 foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
@@ -168,6 +170,39 @@ hll_declarationValueAsMultiEnum hll_cssparser tokType cTokValue cBuf property = 
   case pair of
     (_, Just i) -> return i
     (_, _)      -> return 999999999
+
+
+
+hll_ignoreBlock :: Ptr HelloCssParser -> CString -> IO Int
+hll_ignoreBlock hll_cssparser cBuf = do
+  buf       <- BSU.unsafePackCString $ cBuf
+  hllParser <- peek hll_cssparser
+  let inBlock = withinBlockC hllParser
+  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
+                            , withinBlock = inBlock > 0
+                            , bufOffset   = bufOffsetC hllParser
+                            }
+
+  let (newParser, newToken) = ignoreBlock parser
+  manipulateOutPtr hll_cssparser parser newToken inBlock
+  return 0
+
+
+
+
+hll_ignoreStatement :: Ptr HelloCssParser -> CString -> IO Int
+hll_ignoreStatement hll_cssparser cBuf = do
+  buf       <- BSU.unsafePackCString $ cBuf
+  hllParser <- peek hll_cssparser
+  let inBlock = withinBlockC hllParser
+  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
+                            , withinBlock = inBlock > 0
+                            , bufOffset   = bufOffsetC hllParser
+                            }
+
+  let (newParser, newToken) = ignoreBlock parser
+  manipulateOutPtr hll_cssparser parser newToken inBlock
+  return 0
 
 
 

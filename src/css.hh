@@ -212,7 +212,7 @@ class CssDeclaration {
                break;
          }
       }
-      void printCssDeclaration();
+      void printCssDeclaration(FILE * file);
 };
 
 /**
@@ -236,7 +236,7 @@ class CssDeclartionList : public lout::misc::SimpleVector <CssDeclaration> {
       void updateOrAddDeclaration(CssDeclarationProperty property, CssDeclarationValue value);
       void appendDeclarationsToArg(CssDeclartionList * declList);
       bool isSafe () { return safe; };
-      void printCssDeclartionList ();
+      void printCssDeclartionList (FILE * file);
       inline void ref () { refCount++; }
       inline void unref () { if (--refCount == 0) delete this; }
 };
@@ -252,6 +252,9 @@ enum class CssSelectorType {
 class CssSimpleSelector {
 private:
    int selector_element = ELEMENT_ANY; /* Index corresponding to html.cc::Tags[]. */
+
+   /* It's possible that more than one of these is set in a single
+      CssSimpleSelector struct. */
    char * selector_pseudo_class = nullptr;
    char * selector_id = nullptr;
    lout::misc::SimpleVector <char *> selector_class;
@@ -276,7 +279,7 @@ public:
 
       bool simple_selector_matches(const DoctreeNode *node);
       int specificity ();
-      void printCssSimpleSelector ();
+      void printCssSimpleSelector (FILE * file);
 };
 
 class MatchCache : public lout::misc::SimpleVector <int> {
@@ -301,7 +304,7 @@ class CssSelector {
    private:
       struct CombinatorAndSelector {
          Combinator combinator;
-         CssSimpleSelector *selector;
+         CssSimpleSelector *simpleSelector;
       };
 
       int refCount, matchCacheOffset;
@@ -315,7 +318,7 @@ class CssSelector {
       ~CssSelector ();
       void addSimpleSelector (Combinator c);
       inline CssSimpleSelector *top () {
-         return selectorList.getRef (selectorList.size () - 1)->selector;
+         return selectorList.getRef (selectorList.size () - 1)->simpleSelector;
       }
       inline int size () { return selectorList.size (); };
       inline bool full_selector_submatches(Doctree *dt, const DoctreeNode *node,
@@ -332,7 +335,7 @@ class CssSelector {
       }
       int specificity ();
       bool checksPseudoClass ();
-      void printCssSelector ();
+      void printCssSelector (FILE * file);
       inline void ref () { refCount++; }
       inline void unref () { if (--refCount == 0) delete this; }
 };
@@ -353,14 +356,14 @@ class CssRule {
       CssRule (CssSelector *selector, CssDeclartionList * declList, int pos);
       ~CssRule ();
 
-      void apply_css_rule (CssDeclartionList * declList, Doctree *docTree,
+   void apply_css_rule (FILE * file, CssDeclartionList * outDeclList, Doctree *docTree,
                   const DoctreeNode *node, MatchCache *matchCache) const;
       inline bool isSafe () {
          return !selector->checksPseudoClass () || declList->isSafe ();
       };
       inline int specificity () { return spec; };
       inline int position () { return pos; };
-      void printCssRule () const;
+      void printCssRule (FILE * file) const;
 };
 
 /**
