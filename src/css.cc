@@ -23,10 +23,10 @@ void CssDeclaration::printCssDeclaration(FILE * file)
    case CssDeclarationValueTypeSTRING:
    case CssDeclarationValueTypeSYMBOL:
    case CssDeclarationValueTypeURI:
-      fprintf (file, "            Rule: Declaration: property = '%s', value = [%s]\n", CssParser::propertyNameString(this->property), this->value.strVal);
+      fprintf (file, "            Rule: Declaration: property = '%s', value = [%s]\n", hll_cssPropertyNameString(this->property), this->value.strVal);
       break;
    default:
-      fprintf (file, "            Rule: Declaration: property = '%s', value = %d\n", CssParser::propertyNameString(this->property), this->value.intVal);
+      fprintf (file, "            Rule: Declaration: property = '%s', value = %d\n", hll_cssPropertyNameString(this->property), this->value.intVal);
       break;
    }
 }

@@ -63,6 +63,8 @@ module CssParser(nextToken
                 , declarationValueAsMultiEnum
                 , declarationValueAsWeightInteger
                 , tokenMatchesProperty
+                , cssPropertyInfoIdxByName
+                , cssPropertyNameString
                 , cssLengthType
                 , cssLengthValue
                 , cssCreateLength
@@ -268,6 +270,8 @@ cssPropertyInfo = V.fromList [
    , ("z-index",                [ cssDeclarationValueTypeUNUSED ],                                                  [])
 
    -- These are extensions, for internal used, and never parsed.
+   -- TODO: verify whether we need them.
+   -- TODO: verify if we still need "last" property.
    , ("x-link",                 [ cssDeclarationValueTypeINTEGER ],                                                 [])
    , ("x-colspan",              [ cssDeclarationValueTypeINTEGER ],                                                 [])
    , ("x-rowspan",              [ cssDeclarationValueTypeINTEGER ],                                                 [])
@@ -882,3 +886,21 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
       nextToken(tokenizer, hll_css_parser);
    }
 -}
+
+
+
+
+cssPropertyInfoIdxByName :: T.Text -> Int
+cssPropertyInfoIdxByName propertyName =
+  case V.findIndex p cssPropertyInfo of
+    Just idx -> idx
+    Nothing  -> -1
+  where
+    p :: (T.Text, [Int], [T.Text]) -> Bool
+    p = (\t -> (tripletFst t) == propertyName)
+
+
+
+
+cssPropertyNameString :: Int -> T.Text
+cssPropertyNameString property = tripletFst (cssPropertyInfo V.! property) -- TODO: no bounds checking?

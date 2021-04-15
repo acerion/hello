@@ -71,7 +71,6 @@ class CssParser {
                                         CssDeclartionList * declListImportant);
       static void parse(DilloHtml *html, const DilloUrl *baseUrl, CssContext *context,
                         const char *buf, int buflen, CssOrigin origin);
-      static const char *propertyNameString(CssDeclarationProperty property);
 };
 
 #endif

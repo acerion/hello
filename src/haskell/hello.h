@@ -57,6 +57,9 @@ int hll_tokenMatchesProperty(int tokType, const char * tokValue, int property);
 int hll_ignoreBlock(hll_CssParser * hll_parser, const char * remainder);
 int hll_ignoreStatement(hll_CssParser * hll_parser, const char * remainder);
 
+int hll_cssPropertyInfoIdxByName(const char * propertyName);
+const char * hll_cssPropertyNameString(int property);
+
 
 CssLengthType hll_cssLengthType(CssLength len);
 float hll_cssLengthValue(CssLength len);

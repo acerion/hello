@@ -53,6 +53,9 @@ foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Int -> IO Int
 foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
 foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
 
+foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
+foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
+
 
 
 #include "../hello.h"
@@ -271,3 +274,19 @@ hll_cssCreateLength :: Float -> Int -> IO Int
 hll_cssCreateLength val t = do
   return (cssCreateLength val t)
 
+
+
+
+hll_cssPropertyInfoIdxByName :: CString -> IO Int
+hll_cssPropertyInfoIdxByName cPropertyName = do
+  propertyName       <- BSU.unsafePackCString $ cPropertyName
+  let idx = cssPropertyInfoIdxByName . T.E.decodeLatin1 $ propertyName
+  return idx
+
+
+
+
+hll_cssPropertyNameString :: Int -> IO CString
+hll_cssPropertyNameString property = do
+  let name = cssPropertyNameString property
+  newCString . T.unpack $ name
