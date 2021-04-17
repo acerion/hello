@@ -44,6 +44,7 @@ import CssParser
 
 foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> CString -> IO CString
 foreign export ccall "hll_declarationValueAsInt"   hll_declarationValueAsInt   :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO Int
+foreign export ccall "hll_declarationValueAsString"   hll_declarationValueAsString :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO CString
 foreign export ccall "hll_declarationValueAsMultiEnum" hll_declarationValueAsMultiEnum :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> IO Int
 foreign export ccall "hll_tokenMatchesProperty" hll_tokenMatchesProperty :: Int -> CString -> Int -> IO Int
 foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr HelloCssParser -> CString -> IO Int
@@ -150,6 +151,27 @@ hll_declarationValueAsInt hll_cssparser tokType cTokValue cBuf valueType propert
   case pair of
     (_, Just i) -> return i
     (_, _)      -> return 999999999
+
+
+
+hll_declarationValueAsString :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO CString
+hll_declarationValueAsString hll_cssparser tokType cTokValue cBuf valueType property = do
+  buf      <- BSU.unsafePackCString $ cBuf
+  tokValue <- BSU.unsafePackCString $ cTokValue
+  hllParser <- peek hll_cssparser
+  let inBlock = withinBlockC hllParser
+  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
+
+  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
+                            , withinBlock = inBlock > 0
+                            , bufOffset   = bufOffsetC hllParser
+                            }
+
+  let pair@(newParser, newToken) = declarationValueAsString parser inputToken valueType property
+  manipulateOutPtr hll_cssparser parser inputToken inBlock
+  case pair of
+    (_, Just s) -> newCString . T.unpack $ s
+    (_, _)      -> return nullPtr
 
 
 

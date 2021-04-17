@@ -58,6 +58,7 @@ module CssParser(nextToken
                 , parseRgbFunctionInt
                 , declarationValueAsColor
                 , declarationValueAsInt
+                , declarationValueAsString
                 , declarationValueAsEnum
                 , declarationValueAsEnum'
                 , declarationValueAsMultiEnum
@@ -560,21 +561,31 @@ declarationValueAsInt parser token valueType property = (retParser, retInt)
     (newParser, retInt) | valueType == cssDeclarationValueTypeENUM                     = declarationValueAsEnum parser token property
                         | valueType == cssDeclarationValueTypeCOLOR                    = declarationValueAsColor parser token
                         | valueType == cssDeclarationValueTypeFONT_WEIGHT              = declarationValueAsWeightInteger parser token property
+                        | valueType == cssDeclarationValueTypeMULTI_ENUM               = declarationValueAsMultiEnum parser token property
+                        | valueType == cssDeclarationValueTypeAUTO                     = declarationValueAsAuto parser token
+                        | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE        = declarationValueAsLength parser token valueType
+                        | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER = declarationValueAsLength parser token valueType
+                        | valueType == cssDeclarationValueTypeLENGTH                   = declarationValueAsLength parser token valueType
+                        | valueType == cssDeclarationValueTypeSIGNED_LENGTH            = declarationValueAsLength parser token valueType
+                        | otherwise                                                    = (parser, Nothing)
+    --(retParser, _) = nextToken newParser
+    retParser = newParser
+
+
+
+
+declarationValueAsString :: CssParser -> CssToken -> Int -> Int -> (CssParser, Maybe T.Text)
+declarationValueAsString parser token valueType property = (retParser, retInt)
+  where
+    (newParser, retInt) | valueType == cssDeclarationValueTypeSTRING                   = declarationValueAsString' parser token
+                        | valueType == cssDeclarationValueTypeSYMBOL                   = declarationValueAsSymbol (parser, token) ""
                         | otherwise                                                    = (parser, Nothing)
     --(retParser, _) = nextToken newParser
     retParser = newParser
 
 {-
   | valueType == cssDeclarationValueTypeINTEGER                  = (parser, Nothing)
-  | valueType == cssDeclarationValueTypeMULTI_ENUM               = (parser, Nothing)
-  | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE        = (parser, Nothing)
-  | valueType == cssDeclarationValueTypeLENGTH                   = (parser, Nothing)
-  | valueType == cssDeclarationValueTypeSIGNED_LENGTH            = (parser, Nothing)
-  | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER = (parser, Nothing)
-  | valueType == cssDeclarationValueTypeAUTO                     = (parser, Nothing)
-  | valueType == cssDeclarationValueTypeSTRING                   = (parser, Nothing)
-  | valueType == cssDeclarationValueTypeSYMBOL                   = (parser, Nothing)
-  | valueType == cssDeclarationValueTypeURI                      = (parser, Nothing)
+  | valueType == cssDeclarationValueTypeURI                      = declarationValueAsURI parser token
   | valueType == cssDeclarationValueTypeBACKGROUND_POSITION      = (parser, Nothing)
   | valueType == cssDeclarationValueTypeUNUSED                   = (parser, Nothing)
 -}
@@ -634,6 +645,127 @@ declarationValueAsMultiEnum' parser _ _ bits                        = (parser, J
 -- TOOO: symbol "none" should be handled in special way (probably).
 
 
+
+
+-- TODO: check value of symbol (case insensitive): it should be "auto".
+declarationValueAsAuto :: CssParser -> CssToken -> (CssParser, Maybe Int)
+declarationValueAsAuto parser token@(CssTokSym symbol) = (nextParser, Just cssLengthTypeAuto)
+  where (nextParser, _) = nextToken parser
+declarationValueAsAuto parser _                        = (parser, Nothing)
+
+
+
+
+declarationValueAsLength :: CssParser -> CssToken -> Int-> (CssParser, Maybe Int)
+declarationValueAsLength parser token@(CssTokI i) valueType = declarationValueAsLength' parser (fromIntegral i) valueType
+declarationValueAsLength parser token@(CssTokF f) valueType = declarationValueAsLength' parser f valueType
+declarationValueAsLength parser _ _                         = (parser, Just 777777)
+
+
+
+
+lengthValueToUnited :: Float -> T.Text -> (Float, Int)
+lengthValueToUnited fval unitStr | unitStr == "px" = (fval,               cssLengthTypePX)
+                                 | unitStr == "mm" = (fval,               cssLengthTypeMM)
+                                 | unitStr == "cm" = (fval * 10,          cssLengthTypeMM)
+                                 | unitStr == "in" = (fval * 25.4,        cssLengthTypeMM)
+                                 | unitStr == "pt" = (fval * (25.4/72.0), cssLengthTypeMM)
+                                 | unitStr == "pc" = (fval * (25.4/6.0),  cssLengthTypeMM)
+                                 | unitStr == "em" = (fval,               cssLengthTypeEM)
+                                 | unitStr == "ex" = (fval,               cssLengthTypeEX)
+                                 | otherwise       = (fval,               cssLengthTypeNone)
+
+
+
+
+declarationValueAsLength' :: CssParser -> Float -> Int -> (CssParser, Maybe Int)
+declarationValueAsLength' parser fval valueType = (retParser, retInt)
+  where
+    (retParser, _) = case retInt of
+                       Just i  -> nextToken newParser
+                       Nothing -> (newParser, CssTokNone)
+    retInt = if (snd united) == cssLengthTypeNone
+             then if (valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER || (fst united) == 0.0)
+                     -- Allow numbers without unit only for 0 or CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER
+                  then Just (cssCreateLength (fst united) (snd united))
+                  else Nothing
+             else Just (cssCreateLength (fst united) (snd united))
+    (newParser, united) = case nextToken parser of
+                            (newParser, CssTokSym sym) -> if (not (spaceSeparated newParser))
+                                                          then (newParser, lengthValueToUnited fval (T.toLower sym))
+                                                          else (newParser, (fval, cssLengthTypeNone))
+                            (newParser, CssTokCh chr)  -> if ((not) (spaceSeparated newParser))
+                                                             && (valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE
+                                                                 || valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER)
+                                                             && chr == '%'
+                                                          then (newParser, (fval / 100.0, cssLengthTypePercentage))
+                                                          else (newParser, (fval, cssLengthTypeNone))
+                            (newParser, _)             -> (newParser, (fval, cssLengthTypeNone))
+
+
+
+
+declarationValueAsString' :: CssParser -> CssToken -> (CssParser, Maybe T.Text)
+declarationValueAsString' parser (CssTokStr s) = (nextParser, Just s)
+  where (nextParser, _) = nextToken parser
+declarationValueAsString' parser _             = (parser, Nothing)
+
+
+
+
+declarationValueAsURI :: CssParser -> CssToken -> (CssParser, Maybe T.Text)
+declarationValueAsURI parser (CssTokStr s) = if T.toLower s == "url"
+                                             then (nextParser, Just (parseUrl s))
+                                             else (parser, Nothing)
+  where (nextParser, _) = nextToken parser
+        parseUrl = undefined
+declarationValueAsURI parser _             = (parser, Nothing)
+
+
+
+
+-- Read comma separated list of font family names.
+-- TODO: test the code for list of symbols separated by space or comma.
+declarationValueAsSymbol :: (CssParser, CssToken) -> T.Text -> (CssParser, Maybe T.Text)
+declarationValueAsSymbol (parser, (CssTokSym sym)) acc = declarationValueAsSymbol (nextToken parser) (T.append acc (separated parser sym))
+declarationValueAsSymbol (parser, (CssTokStr str)) acc = declarationValueAsSymbol (nextToken parser) (T.append acc (separated parser str))
+declarationValueAsSymbol (parser, (CssTokCh  ',')) acc = declarationValueAsSymbol (nextToken parser) (T.append acc (separated parser ","))
+declarationValueAsSymbol (parser, _) acc               = finalSymbol parser acc
+
+finalSymbol parser acc = if T.null acc
+                         then (parser, Nothing)
+                         else (parser, Just acc)
+
+-- TODO: check if CSS code really needs this space. In some situations
+-- symbols in text returned by declarationValueAsSymbol may be separated by
+-- comma AND space, which may be redundant.
+separated parser str = if spaceSeparated parser
+                       then T.cons ' ' str
+                       else str
+
+
+{-
+   case CssDeclarationValueTypeSYMBOL:
+
+      dstr = dStr_new("");
+      while (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL || tokenizer.type == CSS_TOKEN_TYPE_STRING ||
+             (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == ',')) {
+         if (this->hll_css_parser.spaceSeparatedC)
+            dStr_append_c(dstr, ' ');
+         dStr_append(dstr, tokenizer.value);
+         ret = true;
+         nextToken(&this->tokenizer, &this->hll_css_parser);
+      }
+
+      if (ret) {
+         value->strVal = dStrstrip(dstr->str);
+         dStr_free(dstr, 0);
+      } else {
+         dStr_free(dstr, 1);
+      }
+      break;
+
+-}
 
 
 declarationValueAsWeightInteger :: CssParser -> CssToken -> Int -> (CssParser, Maybe Int)

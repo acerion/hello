@@ -345,7 +345,6 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
                                       CssDeclarationValueType valueType,
                                       CssDeclarationValue * value)
 {
-   CssLengthType lentype;
    bool ret = false;
    Dstr *dstr;
 
@@ -353,6 +352,12 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
    case CssDeclarationValueTypeENUM:
    case CssDeclarationValueTypeCOLOR:
    case CssDeclarationValueTypeFONT_WEIGHT:
+   case CssDeclarationValueTypeMULTI_ENUM:
+   case CssDeclarationValueTypeAUTO:
+   case CssDeclarationValueTypeLENGTH_PERCENTAGE:
+   case CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER:
+   case CssDeclarationValueTypeLENGTH:
+   case CssDeclarationValueTypeSIGNED_LENGTH:
       {
          int ival = hll_declarationValueAsInt(&this->hll_css_parser,
                                               tokenizer.type,
@@ -374,120 +379,27 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
       }
       break;
 
-   case CssDeclarationValueTypeMULTI_ENUM:
+   case CssDeclarationValueTypeSTRING:
+   case CssDeclarationValueTypeSYMBOL:
       {
-         int ival = hll_declarationValueAsMultiEnum(&this->hll_css_parser,
-                                                    tokenizer.type,
-                                                    tokenizer.value,
-                                                    this->tokenizer.buf + this->tokenizer.bufOffset,
-                                                    property);
-         if (999999999 != ival) {
-            value->intVal = ival;
+         char * str = hll_declarationValueAsString(&this->hll_css_parser,
+                                                   tokenizer.type,
+                                                   tokenizer.value,
+                                                   this->tokenizer.buf + this->tokenizer.bufOffset,
+                                                   valueType,
+                                                   property);
+         this->tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
+         if (NULL != str) {
+            value->strVal = str;
             ret = true;
          } else {
             // TODO: report error
          }
-      }
-      break;
 
-   case CssDeclarationValueTypeLENGTH_PERCENTAGE:
-   case CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER:
-   case CssDeclarationValueTypeLENGTH:
-   case CssDeclarationValueTypeSIGNED_LENGTH:
-      if (tokenizer.type == CSS_TOKEN_TYPE_DECINT || tokenizer.type == CSS_TOKEN_TYPE_FLOAT) {
-         float fval = atof(tokenizer.value);
-         lentype = CSS_LENGTH_TYPE_NONE;
-
+         // This takes token that is a semicolon after declaration value.
+         // TODO: consider if this should be called only on success of
+         // parsing value, or regardless of success/failure.
          nextToken(&this->tokenizer, &this->hll_css_parser);
-         if (!this->hll_css_parser.spaceSeparatedC && tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-            ret = true;
-
-            if (dStrAsciiCasecmp(tokenizer.value, "px") == 0) {
-               lentype = CSS_LENGTH_TYPE_PX;
-               nextToken(&this->tokenizer, &this->hll_css_parser);
-            } else if (dStrAsciiCasecmp(tokenizer.value, "mm") == 0) {
-               lentype = CSS_LENGTH_TYPE_MM;
-               nextToken(&this->tokenizer, &this->hll_css_parser);
-            } else if (dStrAsciiCasecmp(tokenizer.value, "cm") == 0) {
-               lentype = CSS_LENGTH_TYPE_MM;
-               fval *= 10;
-               nextToken(&this->tokenizer, &this->hll_css_parser);
-            } else if (dStrAsciiCasecmp(tokenizer.value, "in") == 0) {
-               lentype = CSS_LENGTH_TYPE_MM;
-               fval *= 25.4;
-               nextToken(&this->tokenizer, &this->hll_css_parser);
-            } else if (dStrAsciiCasecmp(tokenizer.value, "pt") == 0) {
-               lentype = CSS_LENGTH_TYPE_MM;
-               fval *= (25.4 / 72);
-               nextToken(&this->tokenizer, &this->hll_css_parser);
-            } else if (dStrAsciiCasecmp(tokenizer.value, "pc") == 0) {
-               lentype = CSS_LENGTH_TYPE_MM;
-               fval *= (25.4 / 6);
-               nextToken(&this->tokenizer, &this->hll_css_parser);
-            } else if (dStrAsciiCasecmp(tokenizer.value, "em") == 0) {
-               lentype = CSS_LENGTH_TYPE_EM;
-               nextToken(&this->tokenizer, &this->hll_css_parser);
-            } else if (dStrAsciiCasecmp(tokenizer.value, "ex") == 0) {
-               lentype = CSS_LENGTH_TYPE_EX;
-               nextToken(&this->tokenizer, &this->hll_css_parser);
-            } else {
-               ret = false;
-            }
-         } else if (!this->hll_css_parser.spaceSeparatedC &&
-                    (valueType == CssDeclarationValueTypeLENGTH_PERCENTAGE ||
-                     valueType == CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER) &&
-                    tokenizer.type == CSS_TOKEN_TYPE_CHAR &&
-                    tokenizer.value[0] == '%') {
-            fval /= 100;
-            lentype = CSS_LENGTH_TYPE_PERCENTAGE;
-            ret = true;
-            nextToken(&this->tokenizer, &this->hll_css_parser);
-         }
-
-         /* Allow numbers without unit only for 0 or
-          * CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER
-          */
-         if (lentype == CSS_LENGTH_TYPE_NONE &&
-            (valueType == CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER || fval == 0.0))
-            ret = true;
-
-         value->intVal = hll_cssCreateLength(fval, lentype);
-      }
-      break;
-
-   case CssDeclarationValueTypeAUTO:
-      assert (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL && !dStrAsciiCasecmp(tokenizer.value, "auto"));
-      ret = true;
-      value->intVal = CSS_LENGTH_TYPE_AUTO;
-      nextToken(&this->tokenizer, &this->hll_css_parser);
-      break;
-
-
-   case CssDeclarationValueTypeSTRING:
-      if (tokenizer.type == CSS_TOKEN_TYPE_STRING) {
-         value->strVal = dStrdup(tokenizer.value);
-         ret = true;
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-      }
-      break;
-
-   case CssDeclarationValueTypeSYMBOL:
-      /* Read comma separated list of font family names */
-      dstr = dStr_new("");
-      while (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL || tokenizer.type == CSS_TOKEN_TYPE_STRING ||
-             (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == ',')) {
-         if (this->hll_css_parser.spaceSeparatedC)
-            dStr_append_c(dstr, ' ');
-         dStr_append(dstr, tokenizer.value);
-         ret = true;
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-      }
-
-      if (ret) {
-         value->strVal = dStrstrip(dstr->str);
-         dStr_free(dstr, 0);
-      } else {
-         dStr_free(dstr, 1);
       }
       break;
 
@@ -699,21 +611,16 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
 
                case CssShorthandInfo::CSS_SHORTHAND_DIRECTIONS: {
                   int n = 0;
-                  int dir_set[4][4] = {
-                                       /* 1 value  */ {0, 0, 0, 0},
-                                       /* 2 values */ {0, 0, 1, 1},
-                                       /* 3 values */ {0, 2, 1, 1},
-                                       /* 4 values */ {0, 2, 3, 1}
-                  };
-                  CssDeclarationValue dir_vals[4];
-                  CssDeclarationValueType dir_types[4];
+
+                  CssDeclarationValue values[4];
+                  CssDeclarationValueType types[4];
                   while (n < 4) {
                      CssDeclarationValue val;
                      CssDeclarationValueType type = CssDeclarationValueTypeUNUSED;
                      if (tokenMatchesProperty(shinfo->properties[0], &type, this->tokenizer.value, this->tokenizer.type) &&
                          parseDeclarationValue(shinfo->properties[0], type, &val)) {
-                        dir_vals[n] = val;
-                        dir_types[n] = type;
+                        values[n] = val;
+                        types[n] = type;
                         n++;
                      } else
                         break;
@@ -721,17 +628,22 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
 
                   const bool weight = parseWeight();
                   if (n > 0) {
+                     int dir_set[4][4] = {
+                                          /* 1 value  */ {0, 0, 0, 0},
+                                          /* 2 values */ {0, 0, 1, 1},
+                                          /* 3 values */ {0, 2, 1, 1},
+                                          /* 4 values */ {0, 2, 3, 1}
+                     };
                      for (int i = 0; i < 4; i++) {
-
-                        dir_vals[dir_set[n - 1][i]].type = dir_types[dir_set[n - 1][i]];
+                        const int set_idx = dir_set[n - 1][i];
+                        values[set_idx].type = types[set_idx];
                         if (weight && importantProps)
-                           importantProps->updateOrAddDeclaration(shinfo->properties[i], dir_vals[dir_set[n - 1][i]]);
+                           importantProps->updateOrAddDeclaration(shinfo->properties[i], values[set_idx]);
                         else
-                           declList->updateOrAddDeclaration(shinfo->properties[i], dir_vals[dir_set[n - 1][i]]);
+                           declList->updateOrAddDeclaration(shinfo->properties[i], values[set_idx]);
                      }
                   } else
-                     MSG_CSS("no values for shorthand property '%s'\n",
-                             shinfo->symbol);
+                     MSG_CSS("no values for shorthand property '%s'\n", shinfo->symbol);
                }
                   break;
 
