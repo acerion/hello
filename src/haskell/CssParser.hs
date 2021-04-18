@@ -716,13 +716,30 @@ declarationValueAsString' parser _             = (parser, Nothing)
 
 
 
-declarationValueAsURI :: CssParser -> CssToken -> (CssParser, Maybe T.Text)
-declarationValueAsURI parser (CssTokStr s) = if T.toLower s == "url"
-                                             then (nextParser, Just (parseUrl s))
-                                             else (parser, Nothing)
-  where (nextParser, _) = nextToken parser
-        parseUrl = undefined
-declarationValueAsURI parser _             = (parser, Nothing)
+declarationValueAsURI :: (CssParser, CssToken) -> (CssParser, Maybe T.Text)
+declarationValueAsURI = parseUrl
+
+
+
+
+parseUrl :: (CssParser, CssToken) -> (CssParser, Maybe T.Text)
+parseUrl (parser, (CssTokSym "url")) = (outParser, outUrl)
+  where
+    outUrl = case partialUrl of
+      Nothing  -> Nothing
+      Just url -> Just url -- TODO: here we have to add first part of URL, defined in CssParser (the one starting with e.g. http://server.com).
+    (outParser, partialUrl) = case nextToken parser of
+                                (nextParser, CssTokCh '(') -> appendToUrl nextParser ""
+                                (nextParser, _)            -> (parser, Nothing)
+    appendToUrl parser acc = case nextToken parser of
+                               (nextParser, CssTokCh ')')  -> (nextParser, Just acc)
+                               (nextParser, CssTokCh ch)   -> appendToUrl nextParser (T.snoc acc ch)
+                               (nextParser, CssTokStr str) -> appendToUrl nextParser (T.concat [acc, str])
+                               (nextParser, CssTokSym str) -> appendToUrl nextParser (T.concat [acc, str])
+                               (nextParser, _)             -> (nextParser, Nothing) -- TODO: This is a BAD URL situation
+parseUrl (parser, _)               = (parser, Nothing)
+
+
 
 
 
@@ -807,9 +824,9 @@ tokenMatchesProperty token property = tokenMatchesProperty' token acceptedValueT
                                                           CssTokSym s -> if s == "center" || s == "left" || s == "right" || s == "top" || s == "bottom"
                                                                          then Just t
                                                                          else tokenMatchesProperty' token ts enums
+                                                          CssTokI i   -> Just t   -- TODO: here we should better handle numeric background positions
+                                                          CssTokF f   -> Just t
                                                           _           -> tokenMatchesProperty' token ts enums
-                                                          -- TODO: actually here we should also somehow handle numeric background positions
-
 
                                                     | t == cssDeclarationValueTypeLENGTH_PERCENTAGE || t == cssDeclarationValueTypeLENGTH || t == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER =
                                                         case token of
@@ -1039,3 +1056,6 @@ cssPropertyInfoIdxByName propertyName =
 
 cssPropertyNameString :: Int -> T.Text
 cssPropertyNameString property = tripletFst (cssPropertyInfo V.! property) -- TODO: no bounds checking?
+
+
+
