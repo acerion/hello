@@ -51,6 +51,8 @@ module CssParser(nextToken
                 , ignoreStatement
                 , takeSymbol
                 , takeInt
+                , parseUrl
+                , declarationValueAsURI
                 , CssParser (..)
                 , CssToken (..)
                 , tryTakingRgbFunction
@@ -579,13 +581,14 @@ declarationValueAsString parser token valueType property = (retParser, retInt)
   where
     (newParser, retInt) | valueType == cssDeclarationValueTypeSTRING                   = declarationValueAsString' parser token
                         | valueType == cssDeclarationValueTypeSYMBOL                   = declarationValueAsSymbol (parser, token) ""
+                        | valueType == cssDeclarationValueTypeURI                      = declarationValueAsURI (parser, token)
                         | otherwise                                                    = (parser, Nothing)
     --(retParser, _) = nextToken newParser
     retParser = newParser
 
 {-
   | valueType == cssDeclarationValueTypeINTEGER                  = (parser, Nothing)
-  | valueType == cssDeclarationValueTypeURI                      = declarationValueAsURI parser token
+
   | valueType == cssDeclarationValueTypeBACKGROUND_POSITION      = (parser, Nothing)
   | valueType == cssDeclarationValueTypeUNUSED                   = (parser, Nothing)
 -}

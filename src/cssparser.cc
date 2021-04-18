@@ -381,6 +381,7 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
 
    case CssDeclarationValueTypeSTRING:
    case CssDeclarationValueTypeSYMBOL:
+   case CssDeclarationValueTypeURI:
       {
          char * str = hll_declarationValueAsString(&this->hll_css_parser,
                                                    tokenizer.type,
@@ -400,16 +401,6 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
          // TODO: consider if this should be called only on success of
          // parsing value, or regardless of success/failure.
          nextToken(&this->tokenizer, &this->hll_css_parser);
-      }
-      break;
-
-   case CssDeclarationValueTypeURI:
-      if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL &&
-          dStrAsciiCasecmp(tokenizer.value, "url") == 0) {
-         value->strVal = parseUrl();
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-         if (value->strVal)
-            ret = true;
       }
       break;
 
