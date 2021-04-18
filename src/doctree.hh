@@ -10,31 +10,31 @@ class DoctreeNode {
       DoctreeNode *lastChild;
       int num; // unique ascending id
       int html_element_idx; /* Index to html.cc::Tags */
-      lout::misc::SimpleVector<char*> *klass;
+      lout::misc::SimpleVector<char*> * element_class;
       const char *pseudo;
-      const char *id;
+      const char *element_id;
 
       DoctreeNode () {
          parent = NULL;
          sibling = NULL;
          lastChild = NULL;
-         klass = NULL;
+         element_class = NULL;
          pseudo = NULL;
-         id = NULL;
+         element_id = NULL;
          html_element_idx = 0;
       };
 
       ~DoctreeNode () {
-         dFree ((void*) id);
+         dFree ((void*) element_id);
          while (lastChild) {
             DoctreeNode *n = lastChild;
             lastChild = lastChild->sibling;
             delete n;
          }
-         if (klass) {
-            for (int i = 0; i < klass->size (); i++)
-               dFree (klass->get(i));
-            delete klass;
+         if (element_class) {
+            for (int i = 0; i < element_class->size (); i++)
+               dFree (element_class->get(i));
+            delete element_class;
          }
       }
 };

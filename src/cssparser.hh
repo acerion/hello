@@ -27,17 +27,6 @@ struct CssTokenizer {
    int bufOffset;
 };
 
-void nextToken(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
-bool tokenMatchesProperty(CssDeclarationProperty property, CssDeclarationValueType * type, const char * tokenValue, int tokenType);
-void ignoreBlock(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
-void ignoreStatement(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
-
-struct CssColor {
-   int32_t color;     /* All components combined into one variable. */
-   int percentage;
-};
-
-
 class CssParser {
    private:
 
@@ -65,10 +54,10 @@ class CssParser {
       void parseRuleset();
 
    public:
-      static void parseDeclarationBlock(const DilloUrl *baseUrl,
-                                        const char *buf, int buflen,
-                                        CssDeclartionList * declList,
-                                        CssDeclartionList * declListImportant);
+      static void parseElementStyleAttribute(const DilloUrl *baseUrl,
+                                             const char * cssStyleAttribute, int buflen,
+                                             CssDeclartionList * declList,
+                                             CssDeclartionList * declListImportant);
       static void parse(DilloHtml *html, const DilloUrl *baseUrl, CssContext *context,
                         const char *buf, int buflen, CssOrigin origin);
 };

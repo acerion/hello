@@ -25,6 +25,14 @@ void CssDeclaration::printCssDeclaration(FILE * file)
    case CssDeclarationValueTypeURI:
       fprintf (file, "            Rule: Declaration: property = '%s', value = [%s]\n", hll_cssPropertyNameString(this->property), this->value.strVal);
       break;
+   case CssDeclarationValueTypeBACKGROUND_POSITION:
+      if (this->value.posVal) {
+         fprintf (file, "            Rule: Declaration: property = '%s', posValue = %d / %d\n", hll_cssPropertyNameString(this->property),
+                  this->value.posVal->posX, this->value.posVal->posY);
+      } else {
+         fprintf (file, "            Rule: Declaration: property = '%s', posValue = unknown\n", hll_cssPropertyNameString(this->property));
+      }
+      break;
    default:
       fprintf (file, "            Rule: Declaration: property = '%s', value = %d\n", hll_cssPropertyNameString(this->property), this->value.intVal);
       break;
@@ -301,13 +309,13 @@ bool CssSimpleSelector::simple_selector_matches(const DoctreeNode *n) {
    if (selector_pseudo_class != NULL &&
       (n->pseudo == NULL || dStrAsciiCasecmp (selector_pseudo_class, n->pseudo) != 0))
       return false;
-   if (selector_id != NULL && (n->id == NULL || dStrAsciiCasecmp (selector_id, n->id) != 0))
+   if (selector_id != NULL && (n->element_id == NULL || dStrAsciiCasecmp (selector_id, n->element_id) != 0))
       return false;
    for (int i = 0; i < selector_class.size (); i++) {
       bool found = false;
-      if (n->klass != NULL) {
-         for (int j = 0; j < n->klass->size (); j++) {
-            if (dStrAsciiCasecmp (selector_class.get(i), n->klass->get(j)) == 0) {
+      if (n->element_class != NULL) {
+         for (int j = 0; j < n->element_class->size (); j++) {
+            if (dStrAsciiCasecmp (selector_class.get(i), n->element_class->get(j)) == 0) {
                found = true;
                break;
             }
@@ -470,33 +478,33 @@ void CssStyleSheet::addRule (CssRule *rule) {
 }
 
 /**
- * \brief Apply a stylesheet to a property list.
+ * \brief Apply a stylesheet to a list of declarations.
  *
- * The properties are set as defined by the rules in the stylesheet that
- * match at the given node in the document tree.
+ * The declarations (list property+value) are set as defined by the rules in
+ * the stylesheet that match at the given node in the document tree.
  */
 void CssStyleSheet::apply_style_sheet(CssDeclartionList * declList, Doctree *docTree,
-                        const DoctreeNode *node, MatchCache *matchCache) const {
+                                      const DoctreeNode *node, MatchCache *matchCache) const {
    static const int maxLists = 32;
    const RuleList *ruleList[maxLists];
    int numLists = 0, index[maxLists] = {0};
 
-   if (node->id) {
-      lout::object::ConstString idString (node->id);
+   if (node->element_id) {
+      lout::object::ConstString idString (node->element_id);
 
       ruleList[numLists] = idTable.get (&idString);
       if (ruleList[numLists])
          numLists++;
    }
 
-   if (node->klass) {
-      for (int i = 0; i < node->klass->size (); i++) {
+   if (node->element_class) {
+      for (int i = 0; i < node->element_class->size (); i++) {
          if (i >= maxLists - 4) {
             MSG_WARN("Maximum number of classes per element exceeded.\n");
             break;
          }
 
-         lout::object::ConstString classString (node->klass->get (i));
+         lout::object::ConstString classString (node->element_class->get(i));
 
          ruleList[numLists] = classTable.get (&classString);
          if (ruleList[numLists])
@@ -571,30 +579,30 @@ CssContext::CssContext () {
  * by previous stylesheets.
  * This allows e.g. user styles to overwrite author styles.
  */
-void CssContext::apply_css_context(CssDeclartionList * declList, Doctree *docTree,
-         DoctreeNode *node,
-         CssDeclartionList *tagStyle, CssDeclartionList *tagStyleImportant,
-         CssDeclartionList *nonCssHints) {
+void CssContext::apply_css_context(CssDeclartionList * mergedDeclList, Doctree *docTree,
+                                   DoctreeNode * node,
+                                   CssDeclartionList * declList,
+                                   CssDeclartionList * declListImportant,
+                                   CssDeclartionList * declListNonCss) {
 
-   userAgentSheet.apply_style_sheet(declList, docTree, node, &matchCache);
+   userAgentSheet.apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
 
-   sheet[CSS_PRIMARY_USER].apply_style_sheet(declList, docTree, node, &matchCache);
+   sheet[CSS_PRIMARY_USER].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
 
-   if (nonCssHints)
-        nonCssHints->appendDeclarationsToArg(declList);
+   if (declListNonCss)
+        declListNonCss->appendDeclarationsToArg(mergedDeclList);
 
-   sheet[CSS_PRIMARY_AUTHOR].apply_style_sheet(declList, docTree, node, &matchCache);
+   sheet[CSS_PRIMARY_AUTHOR].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
 
-   if (tagStyle)
-        tagStyle->appendDeclarationsToArg(declList);
+   if (declList)
+        declList->appendDeclarationsToArg(mergedDeclList);
 
-   sheet[CSS_PRIMARY_AUTHOR_IMPORTANT].apply_style_sheet(declList, docTree, node,
-                                                         &matchCache);
+   sheet[CSS_PRIMARY_AUTHOR_IMPORTANT].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
 
-   if (tagStyleImportant)
-        tagStyleImportant->appendDeclarationsToArg(declList);
+   if (declListImportant)
+        declListImportant->appendDeclarationsToArg(mergedDeclList);
 
-   sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(declList, docTree, node, &matchCache);
+   sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
 }
 
 void CssContext::addRule (CssSelector *sel, CssDeclartionList * declList,

@@ -192,6 +192,12 @@ static const CssShorthandInfo Css_shorthand_info[] = {
 
 void tokenizerPrintCurrentToken(CssTokenizer * tokenizer);
 const char * tokenizerGetTokenTypeStr(CssTokenizer * tokenizer);
+void nextToken(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
+bool tokenMatchesProperty(CssDeclarationProperty property, CssDeclarationValueType * type, const char * tokenValue, int tokenType);
+void ignoreBlock(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
+void ignoreStatement(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser);
+
+
 
 const char * tokenizerGetTokenTypeStr(CssTokenizer * tokenizer)
 {
@@ -346,7 +352,6 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
                                       CssDeclarationValue * value)
 {
    bool ret = false;
-   Dstr *dstr;
 
    switch (valueType) {
    case CssDeclarationValueTypeENUM:
@@ -405,47 +410,52 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
       break;
 
    case CssDeclarationValueTypeBACKGROUND_POSITION:
+      {
       // 'background-position' consists of one or two values: vertical and
       // horizontal position; in most cases in this order. However, as long it
       // is unambigous, the order can be switched: "10px left" and "left 10px"
       // are both possible and have the same effect. For this reason, all
       // possibilities are tested in parallel.
 
-      bool h[2], v[2];
-      int pos[2];
-      h[0] = v[0] = h[1] = v[1] = false;
+         struct pos {
+            int value;
+            bool as_h;
+            bool as_v;
+         };
 
-      // First: collect values in pos[0] and pos[1], and determine whether
-      // they can be used for a horizontal (h[i]) or vertical (v[i]) position
-      // (or both). When neither h[i] or v[i] is set, pos[i] is undefined.
+         struct pos positions[2] =
+            {
+             {0, false, false},
+             {0, false, false}
+            };
+
+      // First: collect values in positions[0].value and positions[1].value, and determine whether
+      // they can be used for a horizontal (positions[i].as_h) or vertical (positions[i].as_v) position
+      // (or both). When neither positions[i].as_h or positions[i].as_v is set, positions[i].value is undefined.
       for (int i = 0; i < 2; i++) {
          CssDeclarationValueType typeTmp;
          // tokenMatchesProperty will, for CSS_PROPERTY_BACKGROUND_POSITION,
          // work on both parts, since they are exchangable.
          if (tokenMatchesProperty(CSS_PROPERTY_BACKGROUND_POSITION, &typeTmp, this->tokenizer.value, this->tokenizer.type)) {
-            h[i] = tokenizer.type != CSS_TOKEN_TYPE_SYMBOL ||
-               (dStrAsciiCasecmp(tokenizer.value, "top") != 0 &&
-                dStrAsciiCasecmp(tokenizer.value, "bottom") != 0);
-            v[i] = tokenizer.type != CSS_TOKEN_TYPE_SYMBOL ||
-               (dStrAsciiCasecmp(tokenizer.value, "left") != 0 &&
-                dStrAsciiCasecmp(tokenizer.value, "right") != 0);
-         } else
+            positions[i].as_h = tokenizer.type != CSS_TOKEN_TYPE_SYMBOL || (dStrAsciiCasecmp(tokenizer.value, "top") != 0  && dStrAsciiCasecmp(tokenizer.value, "bottom") != 0);
+            positions[i].as_v = tokenizer.type != CSS_TOKEN_TYPE_SYMBOL || (dStrAsciiCasecmp(tokenizer.value, "left") != 0 && dStrAsciiCasecmp(tokenizer.value, "right") != 0);
+            fprintf(stderr, "POSITION %s:%d: '%s' %d %d\n", __func__, __LINE__, this->tokenizer.value, positions[i].as_h, positions[i].as_v);
+         } else {
             // No match.
-            h[i] = v[i] = false;
+            positions[i].as_h = positions[i].as_v = false;
+         }
 
-         if (h[i] || v[i]) {
+         if (positions[i].as_h || positions[i].as_v) {
             // Calculate values.
             if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-               if (dStrAsciiCasecmp(tokenizer.value, "top") == 0 ||
-                   dStrAsciiCasecmp(tokenizer.value, "left") == 0) {
-                  pos[i] = hll_cssCreateLength(0.0, CSS_LENGTH_TYPE_PERCENTAGE);
+               if (dStrAsciiCasecmp(tokenizer.value, "top") == 0 || dStrAsciiCasecmp(tokenizer.value, "left") == 0) {
+                  positions[i].value = hll_cssCreateLength(0.0, CSS_LENGTH_TYPE_PERCENTAGE);
                   nextToken(&this->tokenizer, &this->hll_css_parser);
                } else if (dStrAsciiCasecmp(tokenizer.value, "center") == 0) {
-                  pos[i] = hll_cssCreateLength(0.5, CSS_LENGTH_TYPE_PERCENTAGE);
+                  positions[i].value = hll_cssCreateLength(0.5, CSS_LENGTH_TYPE_PERCENTAGE);
                   nextToken(&this->tokenizer, &this->hll_css_parser);
-               } else if (dStrAsciiCasecmp(tokenizer.value, "bottom") == 0 ||
-                          dStrAsciiCasecmp(tokenizer.value, "right") == 0) {
-                  pos[i] = hll_cssCreateLength(1.0, CSS_LENGTH_TYPE_PERCENTAGE);
+               } else if (dStrAsciiCasecmp(tokenizer.value, "bottom") == 0 || dStrAsciiCasecmp(tokenizer.value, "right") == 0) {
+                  positions[i].value = hll_cssCreateLength(1.0, CSS_LENGTH_TYPE_PERCENTAGE);
                   nextToken(&this->tokenizer, &this->hll_css_parser);
                } else
                   // tokenMatchesProperty should have returned "false" already.
@@ -454,43 +464,45 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
                // We can assume <length> or <percentage> here ...
                CssDeclarationValue valTmp;
                if (parseDeclarationValue(property, CssDeclarationValueTypeLENGTH_PERCENTAGE, &valTmp)) {
-                  pos[i] = valTmp.intVal;
+                  positions[i].value = valTmp.intVal;
                   ret = true;
                } else
                   // ... but something may still fail.
-                  h[i] = v[i] = false;
+                  positions[i].as_h = positions[i].as_v = false;
             }
          }
 
          // If the first value cannot be read, do not read the second.
-         if (!h[i] && !v[i])
+         if (!positions[i].as_h && !positions[i].as_v)
             break;
       }
 
       // Second: Create the final value. Order will be determined here.
-      if (v[0] || h[0]) {
+      if (positions[0].as_v || positions[0].as_h) {
          // If second value is not set, it is set to "center", i. e. 50%, (see
          // CSS specification), which is suitable for both dimensions.
-         if (!h[1] && !v[1]) {
-            pos[1] = hll_cssCreateLength(0.5, CSS_LENGTH_TYPE_PERCENTAGE);
-            h[1] = v[1] = true;
+         if (!positions[1].as_h && !positions[1].as_v) {
+            positions[1].value = hll_cssCreateLength(0.5, CSS_LENGTH_TYPE_PERCENTAGE);
+            positions[1].as_h = positions[1].as_v = true;
          }
 
          // Only valid, when a combination h/v or v/h is possible.
-         if ((h[0] && v[1]) || (v[0] && h[1])) {
+         if ((positions[0].as_h && positions[1].as_v) || (positions[0].as_v && positions[1].as_h)) {
             ret = true;
             value->posVal = dNew(CssBackgroundPosition, 1);
+            fprintf(stderr, "POSITION\n");
 
             // Prefer combination h/v:
-            if (h[0] && v[1]) {
-                value->posVal->posX = pos[0];
-                value->posVal->posY = pos[1];
+            if (positions[0].as_h && positions[1].as_v) {
+               value->posVal->posX = positions[0].value;
+               value->posVal->posY = positions[1].value;
             } else {
                // This should be v/h:
-                value->posVal->posX = pos[1];
-                value->posVal->posY = pos[0];
+               value->posVal->posX = positions[1].value;
+               value->posVal->posY = positions[0].value;
             }
          }
+      }
       }
       break;
 
@@ -742,7 +754,7 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *simpleSelector)
    } while (selectorType != CssSelectorType::NONE);
 
    DEBUG_MSG(DEBUG_PARSE_LEVEL, "end of simple selector (%s, %s, %s, %d)\n",
-      selector->id, selector->klass,
+      selector->id, selector->css_selector_class,
       selector->pseudo, selector->element);
 
    return true;
@@ -855,45 +867,14 @@ void CssParser::parseRuleset()
 
 char * CssParser::parseUrl()
 {
-   Dstr *urlStr = NULL;
+   char * str = hll_declarationValueAsString(&this->hll_css_parser,
+                                             tokenizer.type,
+                                             tokenizer.value,
+                                             this->tokenizer.buf + this->tokenizer.bufOffset,
+                                             0, 0);
+   this->tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
 
-   if (tokenizer.type != CSS_TOKEN_TYPE_SYMBOL ||
-      dStrAsciiCasecmp(tokenizer.value, "url") != 0)
-      return NULL;
-
-   nextToken(&this->tokenizer, &this->hll_css_parser);
-
-   if (tokenizer.type != CSS_TOKEN_TYPE_CHAR || tokenizer.value[0] != '(')
-      return NULL;
-
-   nextToken(&this->tokenizer, &this->hll_css_parser);
-
-   if (tokenizer.type == CSS_TOKEN_TYPE_STRING) {
-      urlStr = dStr_new(tokenizer.value);
-      nextToken(&this->tokenizer, &this->hll_css_parser);
-   } else {
-      urlStr = dStr_new("");
-      while (tokenizer.type != CSS_TOKEN_TYPE_END &&
-             (tokenizer.type != CSS_TOKEN_TYPE_CHAR || tokenizer.value[0] != ')')) {
-         dStr_append(urlStr, tokenizer.value);
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-      }
-   }
-
-   if (tokenizer.type != CSS_TOKEN_TYPE_CHAR || tokenizer.value[0] != ')') {
-      dStr_free(urlStr, 1);
-      urlStr = NULL;
-   }
-
-   if (urlStr) {
-      DilloUrl *dilloUrl = a_Url_new(urlStr->str, a_Url_str(this->baseUrl));
-      char *url = dStrdup(a_Url_str(dilloUrl));
-      a_Url_free(dilloUrl);
-      dStr_free(urlStr, 1);
-      return url;
-   } else {
-      return NULL;
-   }
+   return str;
 }
 
 void CssParser::parseImport(DilloHtml *html)
@@ -1038,17 +1019,18 @@ void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
    }
 }
 
-void CssParser::parseDeclarationBlock(const DilloUrl *baseUrl,
-                                      const char *buf, int buflen,
-                                      CssDeclartionList * declList,
-                                      CssDeclartionList *propsImortant)
+/* Parse CSS style information contained in "cssStyleAttribute". The buffer
+   contains value of "style" attribute of a html element. */
+void CssParser::parseElementStyleAttribute(const DilloUrl *baseUrl,
+                                           const char * cssStyleAttribute, int buflen,
+                                           CssDeclartionList * declList,
+                                           CssDeclartionList * declListImportant)
 {
-   CssParser parser (NULL, CSS_ORIGIN_AUTHOR, baseUrl, buf, buflen);
+   CssParser parser(NULL, CSS_ORIGIN_AUTHOR, baseUrl, cssStyleAttribute, buflen);
 
    parser.hll_css_parser.withinBlockC = true;
 
    do
-      parser.parseDeclaration(declList, propsImortant);
-   while (!(parser.tokenizer.type == CSS_TOKEN_TYPE_END ||
-         (parser.tokenizer.type == CSS_TOKEN_TYPE_CHAR && parser.tokenizer.value[0] == '}')));
+      parser.parseDeclaration(declList, declListImportant);
+   while (!(parser.tokenizer.type == CSS_TOKEN_TYPE_END || (parser.tokenizer.type == CSS_TOKEN_TYPE_CHAR && parser.tokenizer.value[0] == '}')));
 }

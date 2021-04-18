@@ -20,9 +20,9 @@ class StyleEngine;
 class StyleEngine {
    private:
       struct Node {
-         CssDeclartionList *styleAttrProperties;
-         CssDeclartionList *styleAttrPropertiesImportant;
-         CssDeclartionList *nonCssDeclarations;
+         CssDeclartionList * declList;
+         CssDeclartionList * declListImportant;
+         CssDeclartionList * declListNonCss;
          dw::core::style::Style *style;
          dw::core::style::Style *wordStyle;
          dw::core::style::Style *backgroundStyle;
@@ -32,7 +32,7 @@ class StyleEngine {
       };
 
       dw::core::Layout *layout;
-      lout::misc::SimpleVector <Node> *stack;
+      lout::misc::SimpleVector <Node> *styleNodesStack;
       CssContext *cssContext;
       Doctree *doctree;
       int importDepth;
@@ -43,14 +43,14 @@ class StyleEngine {
       void buildUserStyle ();
       dw::core::style::Style *getStyle0 (int i, BrowserWindow *bw);
       dw::core::style::Style *getWordStyle0 (BrowserWindow *bw);
-      inline void setNonCssHint(CssDeclarationProperty property, CssDeclarationValueType type, CssDeclarationValue value) {
-         Node *n = stack->getRef (stack->size () - 1);
+      inline void setNonCssHintOfProperty(CssDeclarationProperty property, CssDeclarationValue value, CssDeclarationValueType type) {
+         Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
 
-         if (!n->nonCssDeclarations)
-            n->nonCssDeclarations = new CssDeclartionList(true);
+         if (!n->declListNonCss)
+            n->declListNonCss = new CssDeclartionList(true);
 
          value.type = type;
-         n->nonCssDeclarations->updateOrAddDeclaration(property, value);
+         n->declListNonCss->updateOrAddDeclaration(property, value);
       }
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
@@ -72,26 +72,30 @@ class StyleEngine {
                    const DilloUrl *pageUrl, const DilloUrl *baseUrl);
       ~StyleEngine ();
 
-      void parse (DilloHtml *html, DilloUrl *url, const char *buf, int buflen,
-                  CssOrigin origin);
+      void parse(DilloHtml *html, DilloUrl *url, const char *buf, int buflen, CssOrigin origin);
+
       void startElement (int tag, BrowserWindow *bw);
       void startElement (const char *tagname, BrowserWindow *bw);
-      void setId (const char *id);
-      const char * getId () { return doctree->top ()->id; };
-      void setClass (const char *klass);
-      void setStyle (const char *style);
       void endElement (int tag);
+
+      void setElementId(const char *id);
+      const char * getElementId() { return doctree->top ()->element_id; };
+
+      void setElementClass(const char * element_class);
+
+      void setCssStyleForCurrentNode(const char * cssStyle);
+
       void setPseudoLink ();
       void setPseudoVisited ();
-      inline void setNonCssHint(CssDeclarationProperty property, CssDeclarationValueType type, int value) {
+      inline void setNonCssHintOfCurrentNode(CssDeclarationProperty property, CssDeclarationValueType type, int value) {
          CssDeclarationValue v;
          v.intVal = value;
-         setNonCssHint(property, type, v);
+         setNonCssHintOfProperty(property, v, type);
       }
-      inline void setNonCssHint(CssDeclarationProperty property, CssDeclarationValueType type, const char *value) {
+      inline void setNonCssHintOfCurrentNode(CssDeclarationProperty property, CssDeclarationValueType type, const char *value) {
          CssDeclarationValue v;
          v.strVal = dStrdup(value);
-         setNonCssHint(property, type, v);
+         setNonCssHintOfProperty(property, v, type);
       }
       void inheritNonCssHints ();
       void clearNonCssHints ();
@@ -106,15 +110,15 @@ class StyleEngine {
           dw::core::style::Length *bgPositionY);
 
       inline dw::core::style::Style *getStyle (BrowserWindow *bw) {
-         dw::core::style::Style *s = stack->getRef (stack->size () - 1)->style;
+         dw::core::style::Style *s = styleNodesStack->getRef(styleNodesStack->size () - 1)->style;
          if (s)
             return s;
          else
-            return getStyle0 (stack->size () - 1, bw);
+            return getStyle0(styleNodesStack->size () - 1, bw);
       };
 
       inline dw::core::style::Style *getWordStyle (BrowserWindow *bw) {
-         dw::core::style::Style *s = stack->getRef(stack->size()-1)->wordStyle;
+         dw::core::style::Style *s = styleNodesStack->getRef(styleNodesStack->size()-1)->wordStyle;
          if (s)
             return s;
          else

@@ -431,10 +431,11 @@ class CssContext {
 
       void addRule (CssSelector *sel, CssDeclartionList * declList,
                     CssPrimaryOrder order);
-      void apply_css_context(CssDeclartionList * declList,
-         Doctree *docTree, DoctreeNode *node,
-         CssDeclartionList *tagStyle, CssDeclartionList *tagStyleImportant,
-         CssDeclartionList *nonCssHints);
+      void apply_css_context(CssDeclartionList * mergedDeclList,
+                             Doctree *docTree, DoctreeNode *node,
+                             CssDeclartionList * declList,
+                             CssDeclartionList * declListImportant,
+                             CssDeclartionList * declListNonCss);
 };
 
 #endif

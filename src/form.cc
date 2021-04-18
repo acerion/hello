@@ -563,11 +563,8 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
             ((EntryResource *) resource)->setMaxLength(maxlen);
          }
       }
-      if (prefs.show_tooltip &&
-          (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
-
-         html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING,
-                                           attrbuf);
+      if (prefs.show_tooltip && (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
+         html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attrbuf);
       }
       Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle(html->bw));
    }
@@ -766,11 +763,8 @@ void Html_tag_open_select(DilloHtml *html, const char *tag, int tagsize)
    }
    Embed *embed = new Embed(res);
 
-   if (prefs.show_tooltip &&
-       (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
-
-      html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING,
-                                        attrbuf);
+   if (prefs.show_tooltip && (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
+      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attrbuf);
    }
    Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle (html->bw));
 
@@ -934,11 +928,8 @@ void Html_tag_open_button(DilloHtml *html, const char *tag, int tagsize)
       const char *attrbuf;
       char *name, *value;
 
-      if (prefs.show_tooltip &&
-          (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
-
-         html->styleEngine->setNonCssHint (PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING,
-                                           attrbuf);
+      if (prefs.show_tooltip && (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
+         html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attrbuf);
       }
       /* We used to have Textblock (prefs.limit_text_width, ...) here,
        * but it caused 100% CPU usage.
