@@ -9,6 +9,7 @@
 
 #include "../lout/signal.hh"
 #include "../lout/debug.hh"
+#include "../src/css.h"
 
 namespace dw {
 namespace core {
@@ -386,44 +387,59 @@ enum WhiteSpace {
  *
  * "auto" lengths are represented as dw::core::style::LENGTH_AUTO.
  */
-typedef int Length;
+typedef struct {
+    int bits;
+} Length;
 
 /** \brief Returns a length of \em n pixels. */
-inline Length createAbsLength(int n) { return (n << 2) | 1; }
+inline Length createAbsLength(int n)
+{
+   Length l;
+   l.bits = (n << 2) | 1;
+   return l;
+}
 
 /** \brief Returns a percentage, \em v is relative to 1, not to 100. */
-inline Length createPerLength(double v) {
-   return ((int)(v * (1 << 18)) & ~3) | 2; }
+inline Length createPerLength(double v)
+{
+   Length l;
+   l.bits = ((int)(v * (1 << 18)) & ~3) | 2;
+   return l;
+}
 
 /** \brief Returns a relative length. */
-inline Length createRelLength(double v) {
-   return ((int)(v * (1 << 18)) & ~3) | 3; }
+inline Length createRelLength(double v)
+{
+   Length l;
+   l.bits = ((int)(v * (1 << 18)) & ~3) | 3;
+   return l;
+}
 
 /** \brief Returns true if \em l is an absolute length. */
-inline bool isAbsLength(Length l) { return (l & 3) == 1; }
+inline bool isAbsLength(Length l) { return (l.bits & 3) == 1; }
 
 /** \brief Returns true if \em l is a percentage. */
-inline bool isPerLength(Length l) { return (l & 3) == 2; }
+inline bool isPerLength(Length l) { return (l.bits & 3) == 2; }
 
 /** \brief Returns true if \em l is a relative length. */
-inline bool isRelLength(Length l) { return (l & 3) == 3; }
+inline bool isRelLength(Length l) { return (l.bits & 3) == 3; }
 
 /** \brief Returns the value of a length in pixels, as an integer. */
-inline int absLengthVal(Length l) { return l >> 2; }
+inline int absLengthVal(Length l) { return l.bits >> 2; }
 
 /** \brief Returns the value of a percentage, relative to 1, as a double.
  *
  * When possible, do not use this function directly; it may be removed
  * soon. Instead, use multiplyWithPerLength or multiplyWithPerLengthRounded.
  */
-inline double perLengthVal(Length l) { return (double)(l & ~3) / (1 << 18); }
+inline double perLengthVal(Length l) { return (double)(l.bits & ~3) / (1 << 18); }
 
 /** \brief Returns the value of a relative length, as a float.
  *
  * When possible, do not use this function directly; it may be removed
  * soon.
  */
-inline double relLengthVal(Length l) { return (double)(l & ~3) / (1 << 18); }
+inline double relLengthVal(Length l) { return (double)(l.bits & ~3) / (1 << 18); }
 
 /**
  * \brief Multiply an int with a percentage length, returning int.

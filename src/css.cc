@@ -629,3 +629,21 @@ void CssContext::addRule (CssSelector *sel, CssDeclartionList * declList,
       }
    }
 }
+
+
+
+
+CssLength cssCreateLength(float val, CssLengthType t)
+{
+   CssLength cssLength;
+   cssLength.bits = hll_cssCreateLength(val, t);
+   return cssLength;
+}
+CssLengthType cssLengthType(CssLength cssLength)
+{
+   return hll_cssLengthType(cssLength.bits);
+}
+float cssLengthValue(CssLength cssLength)
+{
+   return hll_cssLengthValue(cssLength.bits);
+}

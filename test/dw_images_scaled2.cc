@@ -125,8 +125,8 @@ int main(int argc, char **argv)
 
    textblock->addParbreak (10, wordStyle);
 
-   styleAttrs.width = LENGTH_AUTO;
-   styleAttrs.height = LENGTH_AUTO;
+   styleAttrs.width.bits = LENGTH_AUTO;
+   styleAttrs.height.bits = LENGTH_AUTO;
 
    Style *imageStyle2 = Style::create (&styleAttrs);
    image2 = new dw::Image ("A longer ALT Text to demonstrate clipping.");

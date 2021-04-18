@@ -418,7 +418,7 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
       // possibilities are tested in parallel.
 
          struct pos {
-            int value;
+            CssLength cssLength;
             bool as_h;
             bool as_v;
          };
@@ -449,13 +449,13 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
             // Calculate values.
             if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
                if (dStrAsciiCasecmp(tokenizer.value, "top") == 0 || dStrAsciiCasecmp(tokenizer.value, "left") == 0) {
-                  positions[i].value = hll_cssCreateLength(0.0, CSS_LENGTH_TYPE_PERCENTAGE);
+                  positions[i].cssLength = cssCreateLength(0.0, CSS_LENGTH_TYPE_PERCENTAGE);
                   nextToken(&this->tokenizer, &this->hll_css_parser);
                } else if (dStrAsciiCasecmp(tokenizer.value, "center") == 0) {
-                  positions[i].value = hll_cssCreateLength(0.5, CSS_LENGTH_TYPE_PERCENTAGE);
+                  positions[i].cssLength = cssCreateLength(0.5, CSS_LENGTH_TYPE_PERCENTAGE);
                   nextToken(&this->tokenizer, &this->hll_css_parser);
                } else if (dStrAsciiCasecmp(tokenizer.value, "bottom") == 0 || dStrAsciiCasecmp(tokenizer.value, "right") == 0) {
-                  positions[i].value = hll_cssCreateLength(1.0, CSS_LENGTH_TYPE_PERCENTAGE);
+                  positions[i].cssLength = cssCreateLength(1.0, CSS_LENGTH_TYPE_PERCENTAGE);
                   nextToken(&this->tokenizer, &this->hll_css_parser);
                } else
                   // tokenMatchesProperty should have returned "false" already.
@@ -464,7 +464,7 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
                // We can assume <length> or <percentage> here ...
                CssDeclarationValue valTmp;
                if (parseDeclarationValue(property, CssDeclarationValueTypeLENGTH_PERCENTAGE, &valTmp)) {
-                  positions[i].value = valTmp.intVal;
+                  positions[i].cssLength.bits = valTmp.intVal;
                   ret = true;
                } else
                   // ... but something may still fail.
@@ -482,7 +482,7 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
          // If second value is not set, it is set to "center", i. e. 50%, (see
          // CSS specification), which is suitable for both dimensions.
          if (!positions[1].as_h && !positions[1].as_v) {
-            positions[1].value = hll_cssCreateLength(0.5, CSS_LENGTH_TYPE_PERCENTAGE);
+            positions[1].cssLength = cssCreateLength(0.5, CSS_LENGTH_TYPE_PERCENTAGE);
             positions[1].as_h = positions[1].as_v = true;
          }
 
@@ -494,12 +494,12 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
 
             // Prefer combination h/v:
             if (positions[0].as_h && positions[1].as_v) {
-               value->posVal->posX = positions[0].value;
-               value->posVal->posY = positions[1].value;
+               value->posVal->posX = positions[0].cssLength.bits;
+               value->posVal->posY = positions[1].cssLength.bits;
             } else {
                // This should be v/h:
-               value->posVal->posX = positions[1].value;
-               value->posVal->posY = positions[0].value;
+               value->posVal->posX = positions[1].cssLength.bits;
+               value->posVal->posY = positions[0].cssLength.bits;
             }
          }
       }

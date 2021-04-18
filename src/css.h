@@ -1,7 +1,9 @@
 #ifndef _CSS_H_
 #define _CSS_H_
 
-typedef int CssLength;
+typedef struct {
+   int bits; /* Vector of bits, in which a length value and type is encoded. */
+} CssLength;
 
 typedef enum {
    CSS_LENGTH_TYPE_NONE       = 0,

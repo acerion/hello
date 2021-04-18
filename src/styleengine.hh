@@ -56,14 +56,10 @@ class StyleEngine {
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void apply (int i, dw::core::style::StyleAttrs *attrs,
                   CssDeclartionList * declList, BrowserWindow *bw);
-      bool computeValue (int *dest, CssLength value,
-                         dw::core::style::Font *font);
-      bool computeValue (int *dest, CssLength value,
-                         dw::core::style::Font *font, int percentageBase);
-      bool computeLength (dw::core::style::Length *dest, CssLength value,
-                          dw::core::style::Font *font);
-      void computeBorderWidth (int *dest, CssDeclaration * decl,
-                               dw::core::style::Font *font);
+      bool computeAbsoluteLengthValue (int *dest, CssLength value, dw::core::style::Font *font);
+      bool computeAbsoluteLengthValue (int *dest, CssLength value, dw::core::style::Font *font, int percentageBase);
+      bool computeLength (dw::core::style::Length *dest, CssLength value, dw::core::style::Font *font);
+      void computeBorderWidth (int *dest, CssDeclaration * decl, dw::core::style::Font *font);
 
    public:
       static void init ();
@@ -95,6 +91,11 @@ class StyleEngine {
       inline void setNonCssHintOfCurrentNode(CssDeclarationProperty property, CssDeclarationValueType type, const char *value) {
          CssDeclarationValue v;
          v.strVal = dStrdup(value);
+         setNonCssHintOfProperty(property, v, type);
+      }
+      inline void setNonCssHintOfCurrentNode(CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength) {
+         CssDeclarationValue v;
+         v.intVal = cssLength.bits;
          setNonCssHintOfProperty(property, v, type);
       }
       void inheritNonCssHints ();

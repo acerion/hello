@@ -62,9 +62,9 @@ int hll_cssPropertyInfoIdxByName(const char * propertyName);
 const char * hll_cssPropertyNameString(int property);
 
 
-CssLengthType hll_cssLengthType(CssLength len);
-float hll_cssLengthValue(CssLength len);
-CssLength hll_cssCreateLength(float val, CssLengthType t);
+CssLengthType hll_cssLengthType(int cssLength);
+float hll_cssLengthValue(int cssLength);
+int hll_cssCreateLength(float val, CssLengthType t);
 
 
 #ifdef __cplusplus

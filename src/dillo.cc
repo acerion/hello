@@ -1156,26 +1156,28 @@ void css_length_test(void)
    int z = 0;
    while (css_length_test_data[z].lengthtype != 99) {
 
-      const int len = hll_cssCreateLength(css_length_test_data[z].inValue, (CssLengthType) css_length_test_data[z].lengthtype);
+      const CssLength lenVal = cssCreateLength(css_length_test_data[z].inValue, (CssLengthType) css_length_test_data[z].lengthtype);
 
-      const CssLengthType t = hll_cssLengthType(len);
+      const CssLengthType t = cssLengthType(lenVal);
       if (t != (CssLengthType) css_length_test_data[z].lengthtype) {
          fprintf(stderr, "CSS_LENGTH_TYPE: Failure in test %d, expected result = %d, but got %d\n", z, css_length_test_data[z].lengthtype, t);
          exit(-1);
       }
 
       {
-         const float f = hll_cssLengthValue(len);
+         const float f = cssLengthValue(lenVal);
          const float epsilon = 0.01 * css_length_test_data[z].inValue;
          if (fabs(f - css_length_test_data[z].inValue) > fabs(epsilon)) {
             fprintf(stderr, "CSS_LENGTH_VALUE (1): Failure in test %d, type %d, expected result = %f, but got %f (len = %d / 0x%08x)\n",
-                    z, t, css_length_test_data[z].inValue, f, (int) len, len);
+                    z, t, css_length_test_data[z].inValue, f, (int) lenVal.bits, lenVal.bits);
             exit(-1);
          }
       }
 
       {
-         const float f = hll_cssLengthValue(css_length_test_data[z].cssLength);
+         CssLength cssLength;
+         cssLength.bits = css_length_test_data[z].cssLength;
+         const float f = cssLengthValue(cssLength);
          const float epsilon = 0.01 * css_length_test_data[z].inValue;
          if (fabs(f - css_length_test_data[z].inValue) > fabs(epsilon)) {
             fprintf(stderr, "CSS_LENGTH_VALUE (2): Failure in test %d, type %d, expected result = %f, but got %f (len = %d / 0x%08x)\n",

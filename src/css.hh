@@ -438,4 +438,10 @@ class CssContext {
                              CssDeclartionList * declListNonCss);
 };
 
+
+CssLengthType cssLengthType(CssLength len);
+float cssLengthValue(CssLength len);
+CssLength cssCreateLength(float val, CssLengthType t);
+
+
 #endif

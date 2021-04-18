@@ -899,11 +899,11 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
       widget->setDescent (availDescent);
       widget->sizeRequest (size);
    } else {
-      if (wstyle->width == core::style::LENGTH_AUTO ||
-          wstyle->height == core::style::LENGTH_AUTO)
+      if (wstyle->width.bits == core::style::LENGTH_AUTO ||
+          wstyle->height.bits == core::style::LENGTH_AUTO)
          widget->sizeRequest (&requisition);
 
-      if (wstyle->width == core::style::LENGTH_AUTO)
+      if (wstyle->width.bits == core::style::LENGTH_AUTO)
          size->width = requisition.width;
       else if (core::style::isAbsLength (wstyle->width))
          /* Fixed lengths are only applied to the content, so we have to
@@ -914,7 +914,7 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
          size->width =
             core::style::multiplyWithPerLength (availWidth, wstyle->width);
 
-      if (wstyle->height == core::style::LENGTH_AUTO) {
+      if (wstyle->height.bits == core::style::LENGTH_AUTO) {
          size->ascent = requisition.ascent;
          size->descent = requisition.descent;
       } else if (core::style::isAbsLength (wstyle->height)) {
@@ -924,10 +924,11 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
                         + wstyle->boxDiffHeight ();
          size->descent = 0;
       } else {
-         size->ascent =
-            core::style::multiplyWithPerLength (wstyle->height, availAscent);
-         size->descent =
-            core::style::multiplyWithPerLength (wstyle->height, availDescent);
+         core::style::Length length;
+         length.bits = availAscent;
+         size->ascent = core::style::multiplyWithPerLength (wstyle->height.bits, length);
+         length.bits = availDescent;
+         size->descent = core::style::multiplyWithPerLength (wstyle->height.bits, length);
       }
    }
 
@@ -1631,7 +1632,7 @@ void Textblock::calcTextSize (const char *text, size_t len,
     * For absolute/percentage, line height is relative to font size, which
     * is (irritatingly) smaller than ascent+descent.
     */
-   if (style->lineHeight != core::style::LENGTH_AUTO) {
+   if (style->lineHeight.bits != core::style::LENGTH_AUTO) {
       int height, leading;
       float factor = style->font->size;
 

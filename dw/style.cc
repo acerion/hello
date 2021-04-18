@@ -74,8 +74,10 @@ void StyleAttrs::initValues ()
    backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
    backgroundPositionX = createPerLength (0);
    backgroundPositionY = createPerLength (0);
-   width = height = lineHeight = LENGTH_AUTO;
-   textIndent = 0;
+   width.bits = LENGTH_AUTO;
+   height.bits = LENGTH_AUTO;
+   lineHeight.bits = LENGTH_AUTO;
+   textIndent.bits = 0;
    margin.setVal (0);
    borderWidth.setVal (0);
    padding.setVal (0);
@@ -107,8 +109,8 @@ void StyleAttrs::resetValues ()
    backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
    backgroundPositionX = createPerLength (0);
    backgroundPositionY = createPerLength (0);
-   width = LENGTH_AUTO;
-   height = LENGTH_AUTO;
+   width.bits = LENGTH_AUTO;
+   height.bits = LENGTH_AUTO;
 
    margin.setVal (0);
    borderWidth.setVal (0);
@@ -150,8 +152,8 @@ bool StyleAttrs::equals (object::Object *other) {
        backgroundImage == otherAttrs->backgroundImage &&
        backgroundRepeat == otherAttrs->backgroundRepeat &&
        backgroundAttachment == otherAttrs->backgroundAttachment &&
-       backgroundPositionX == otherAttrs->backgroundPositionX &&
-       backgroundPositionY == otherAttrs->backgroundPositionY &&
+       backgroundPositionX.bits == otherAttrs->backgroundPositionX.bits &&
+       backgroundPositionY.bits == otherAttrs->backgroundPositionY.bits &&
        textAlign == otherAttrs->textAlign &&
        valign == otherAttrs->valign &&
        textAlignChar == otherAttrs->textAlignChar &&
@@ -159,10 +161,10 @@ bool StyleAttrs::equals (object::Object *other) {
        hBorderSpacing == otherAttrs->hBorderSpacing &&
        vBorderSpacing == otherAttrs->vBorderSpacing &&
        wordSpacing == otherAttrs->wordSpacing &&
-       width == otherAttrs->width &&
-       height == otherAttrs->height &&
-       lineHeight == otherAttrs->lineHeight &&
-       textIndent == otherAttrs->textIndent &&
+       width.bits == otherAttrs->width.bits &&
+       height.bits == otherAttrs->height.bits &&
+       lineHeight.bits == otherAttrs->lineHeight.bits &&
+       textIndent.bits == otherAttrs->textIndent.bits &&
        margin.equals (&otherAttrs->margin) &&
        borderWidth.equals (&otherAttrs->borderWidth) &&
        padding.equals (&otherAttrs->padding) &&
@@ -195,8 +197,8 @@ int StyleAttrs::hashValue () {
       (intptr_t) backgroundImage +
       backgroundRepeat +
       backgroundAttachment +
-      backgroundPositionX +
-      backgroundPositionY +
+      backgroundPositionX.bits +
+      backgroundPositionY.bits +
       textAlign +
       valign +
       textAlignChar +
@@ -204,10 +206,10 @@ int StyleAttrs::hashValue () {
       hBorderSpacing +
       vBorderSpacing +
       wordSpacing +
-      width +
-      height +
-      lineHeight +
-      textIndent +
+      width.bits +
+      height.bits +
+      lineHeight.bits +
+      textIndent.bits +
       margin.hashValue () +
       borderWidth.hashValue () +
       padding.hashValue () +
