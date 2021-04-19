@@ -54,6 +54,8 @@ foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Int -> IO Int
 foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
 foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
 
+foreign export ccall "hll_cssParseWeight"  hll_cssParseWeight :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
+
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
@@ -312,3 +314,28 @@ hll_cssPropertyNameString :: Int -> IO CString
 hll_cssPropertyNameString property = do
   let name = cssPropertyNameString property
   newCString . T.unpack $ name
+
+
+
+
+
+
+hll_cssParseWeight :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
+hll_cssParseWeight hll_cssparser tokType cTokValue cBuf = do
+  buf      <- BSU.unsafePackCString $ cBuf
+  tokValue <- BSU.unsafePackCString $ cTokValue
+  hllParser <- peek hll_cssparser
+  let inBlock = withinBlockC hllParser
+  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
+
+  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
+                            , withinBlock = inBlock > 0
+                            , bufOffset   = bufOffsetC hllParser
+                            }
+
+  let ((newParser, newToken), isImportant) = cssParseWeight (parser, inputToken)
+  manipulateOutPtr hll_cssparser newParser newToken inBlock
+  if isImportant
+  then return 1
+  else return 0
+

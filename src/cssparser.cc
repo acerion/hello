@@ -521,16 +521,12 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
 
 bool CssParser::parseWeight()
 {
-   if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '!') {
-      nextToken(&this->tokenizer, &this->hll_css_parser);
-      if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL &&
-          dStrAsciiCasecmp(tokenizer.value, "important") == 0) {
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-         return true;
-      }
-   }
-
-   return false;
+   int ival = hll_cssParseWeight(&this->hll_css_parser,
+                                 tokenizer.type,
+                                 tokenizer.value,
+                                 this->tokenizer.buf + this->tokenizer.bufOffset);
+   this->tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
+   return ival;
 }
 
 

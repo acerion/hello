@@ -52,6 +52,7 @@ module CssParser(nextToken
                 , takeSymbol
                 , takeInt
                 , parseUrl
+                , cssParseWeight
                 , declarationValueAsURI
                 , CssParser (..)
                 , CssToken (..)
@@ -1059,3 +1060,11 @@ cssPropertyNameString property = tripletFst (cssPropertyInfo V.! property) -- TO
 
 
 
+
+
+
+cssParseWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Bool)
+cssParseWeight (parser, CssTokCh '!') = case nextToken parser of
+                                          (newParser, CssTokSym "important") -> (nextToken newParser, True)
+                                          (newParser, tok)                   -> ((newParser, tok), False)
+cssParseWeight (parser, tok)          = ((parser, tok), False)
