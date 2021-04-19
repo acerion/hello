@@ -212,34 +212,32 @@ class CssDeclaration {
                break;
          }
       }
-      void printCssDeclaration(FILE * file);
 };
+void printCssDeclaration(CssDeclaration * declaration, FILE * file);
+
+
+
 
 /**
  * \brief A list of CssDeclaration objects.
  */
 class CssDeclartionList : public lout::misc::SimpleVector <CssDeclaration> {
-   int refCount;
+public:
    bool ownerOfStrings;
-   bool safe;
+   bool isSafe;
 
-   public:
-      inline CssDeclartionList(bool ownerOfStrings = false) :
-                  lout::misc::SimpleVector <CssDeclaration> (1) {
-         refCount = 0;
-         safe = true;
-         this->ownerOfStrings = ownerOfStrings;
-      };
-      CssDeclartionList(const CssDeclartionList & declList, bool deep = false);
-      ~CssDeclartionList ();
+   inline CssDeclartionList(bool ownerOfStrings = false) :
+      lout::misc::SimpleVector <CssDeclaration> (1) {
+      isSafe = true;
+      this->ownerOfStrings = ownerOfStrings;
+   };
+   CssDeclartionList(const CssDeclartionList & declList, bool deep = false);
+   ~CssDeclartionList ();
 
-      void updateOrAddDeclaration(CssDeclarationProperty property, CssDeclarationValue value);
-      void appendDeclarationsToArg(CssDeclartionList * declList);
-      bool isSafe () { return safe; };
-      void printCssDeclartionList (FILE * file);
-      inline void ref () { refCount++; }
-      inline void unref () { if (--refCount == 0) delete this; }
+   void updateOrAddDeclaration(CssDeclarationProperty property, CssDeclarationValue value);
+   void appendDeclarationsToArg(CssDeclartionList * declList);
 };
+void printCssDeclartionList(CssDeclartionList * declList, FILE * file);
 
 enum class CssSelectorType {
    NONE,
@@ -249,38 +247,31 @@ enum class CssSelectorType {
 };
 
 
-class CssSimpleSelector {
-private:
-   int selector_element = ELEMENT_ANY; /* Index corresponding to html.cc::Tags[]. */
 
+
+
+enum {
+      CssSimpleSelectorElementNone = -1,
+      CssSimpleSelectorElementAny = -2,
+};
+
+typedef struct CssSimpleSelector {
    /* It's possible that more than one of these is set in a single
       CssSimpleSelector struct. */
    char * selector_pseudo_class = nullptr;
    char * selector_id = nullptr;
-   lout::misc::SimpleVector <char *> selector_class;
+   char selector_class[10][128];
+   int selector_class_size = 0;
 
-public:
-   enum {
-         ELEMENT_NONE = -1,
-         ELEMENT_ANY = -2,
-      };
+   int selector_element = CssSimpleSelectorElementAny; /* Index corresponding to html.cc::Tags[]. */
+} CssSimpleSelector;
+void setSimpleSelector(CssSimpleSelector * selector, CssSelectorType type, const char *value);
+void printCssSimpleSelector(CssSimpleSelector * selector, FILE * file);
+bool simple_selector_matches(CssSimpleSelector * selector, const DoctreeNode *node);
+int cssSimpleSelectorSpecificity(CssSimpleSelector * selector);
 
 
-      CssSimpleSelector ();
-      ~CssSimpleSelector ();
 
-      inline void setSelectorElement(int e) { selector_element = e; };
-      void setSelector(CssSelectorType type, const char *value);
-
-      inline lout::misc::SimpleVector <char *> *getSelectorClass () { return &selector_class; };
-      inline const char *getSelectorPseudoClass () { return selector_pseudo_class; };
-      inline const char *getSelectorId () { return selector_id; };
-      inline int getSelectorElement() { return selector_element; };
-
-      bool simple_selector_matches(const DoctreeNode *node);
-      int specificity ();
-      void printCssSimpleSelector (FILE * file);
-};
 
 class MatchCache : public lout::misc::SimpleVector <int> {
    public:
@@ -292,38 +283,34 @@ class MatchCache : public lout::misc::SimpleVector <int> {
  *
  * \todo Implement missing selector options.
  */
+typedef enum {
+              CssSelectorCombinatorNone,
+              CssSelectorCombinatorDescendant,
+              CssSelectorCombinatorChild,
+              CssSelectorCombinatorAdjacentSibling,
+} Combinator;
+struct CombinatorAndSelector {
+   Combinator combinator;
+   CssSimpleSelector *simpleSelector;
+};
 class CssSelector {
    public:
-      typedef enum {
-         COMB_NONE,
-         COMB_DESCENDANT,
-         COMB_CHILD,
-         COMB_ADJACENT_SIBLING,
-      } Combinator;
-
-   private:
-      struct CombinatorAndSelector {
-         Combinator combinator;
-         CssSimpleSelector *simpleSelector;
-      };
 
       int refCount, matchCacheOffset;
-      lout::misc::SimpleVector <struct CombinatorAndSelector> selectorList;
+      struct CombinatorAndSelector selectorList[10];
+      int selectorListSize = 0;
 
       bool full_selector_matches(Doctree *dt, const DoctreeNode *node, int i, Combinator comb,
                                  MatchCache *matchCache);
 
-   public:
       CssSelector ();
       ~CssSelector ();
-      void addSimpleSelector (Combinator c);
-      inline CssSimpleSelector *top () {
-         return selectorList.getRef (selectorList.size () - 1)->simpleSelector;
+      inline CssSimpleSelector *top() {
+         return selectorList[selectorListSize - 1].simpleSelector;
       }
-      inline int size () { return selectorList.size (); };
       inline bool full_selector_submatches(Doctree *dt, const DoctreeNode *node,
                          MatchCache *matchCache) {
-         return full_selector_matches(dt, node, selectorList.size () - 1, COMB_NONE,
+         return full_selector_matches(dt, node, selectorListSize - 1, CssSelectorCombinatorNone,
                                       matchCache);
       }
       inline void setMatchCacheOffset (int mo) {
@@ -331,7 +318,7 @@ class CssSelector {
             matchCacheOffset = mo;
       }
       inline int getRequiredMatchCache () {
-         return matchCacheOffset + size ();
+         return matchCacheOffset + this->selectorListSize;
       }
       int specificity ();
       bool checksPseudoClass ();
@@ -339,6 +326,9 @@ class CssSelector {
       inline void ref () { refCount++; }
       inline void unref () { if (--refCount == 0) delete this; }
 };
+void cssSelectorAddSimpleSelector(CssSelector * selector, Combinator c);
+
+
 
 /**
  * \brief A CssSelector CssDeclartionList pair.
@@ -346,24 +336,21 @@ class CssSelector {
  *  The CssDeclartionList is applied if the CssSelector matches.
  */
 class CssRule {
-   private:
-      CssDeclartionList * declList = nullptr;
-      int spec, pos;
-
    public:
       CssSelector *selector;
+      int specificity;
+      int position;
+      CssDeclartionList * declList = nullptr;
 
-      CssRule (CssSelector *selector, CssDeclartionList * declList, int pos);
-      ~CssRule ();
+      CssRule(CssSelector *selector, CssDeclartionList * declList, int pos);
+      ~CssRule();
 
-   void apply_css_rule (FILE * file, CssDeclartionList * outDeclList, Doctree *docTree,
-                  const DoctreeNode *node, MatchCache *matchCache) const;
-      inline bool isSafe () {
-         return !selector->checksPseudoClass () || declList->isSafe ();
+      void apply_css_rule(FILE * file, CssDeclartionList * outDeclList, Doctree *docTree,
+                          const DoctreeNode *node, MatchCache *matchCache) const;
+      inline bool isSafe() {
+         return !selector->checksPseudoClass () || declList->isSafe;
       };
-      inline int specificity () { return spec; };
-      inline int position () { return pos; };
-      void printCssRule (FILE * file) const;
+      void printCssRule(FILE * file) const;
 };
 
 /**

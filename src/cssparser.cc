@@ -692,12 +692,12 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *simpleSelector)
    CssSelectorType selectorType;
 
    if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-      simpleSelector->setSelectorElement(a_Html_tag_index(tokenizer.value));
+      simpleSelector->selector_element = a_Html_tag_index(tokenizer.value);
       nextToken(&this->tokenizer, &this->hll_css_parser);
       if (this->hll_css_parser.spaceSeparatedC)
          return true;
    } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '*') {
-      simpleSelector->setSelectorElement(CssSimpleSelector::ELEMENT_ANY);
+      simpleSelector->selector_element = CssSimpleSelectorElementAny;
       nextToken(&this->tokenizer, &this->hll_css_parser);
       if (this->hll_css_parser.spaceSeparatedC)
          return true;
@@ -722,7 +722,7 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *simpleSelector)
             break;
          case ':':
             selectorType = CssSelectorType::PSEUDO_CLASS;
-            if (simpleSelector->getSelectorPseudoClass ())
+            if (nullptr != simpleSelector->selector_pseudo_class)
                // pseudo class has been set already.
                // As dillo currently only supports :link and :visisted, a
                // selector with more than one pseudo class will never match.
@@ -739,7 +739,7 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *simpleSelector)
             return false;
 
          if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-            simpleSelector->setSelector(selectorType, tokenizer.value);
+            setSimpleSelector(simpleSelector, selectorType, tokenizer.value);
             nextToken(&this->tokenizer, &this->hll_css_parser);
          } else {
             return false; // don't accept classes or id's starting with integer
@@ -771,13 +771,13 @@ CssSelector *CssParser::parseSelector()
          (tokenizer.value[0] == ',' || tokenizer.value[0] == '{')) {
          break;
       } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '>') {
-         selector->addSimpleSelector(CssSelector::COMB_CHILD);
+         cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorChild);
          nextToken(&this->tokenizer, &this->hll_css_parser);
       } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '+') {
-         selector->addSimpleSelector(CssSelector::COMB_ADJACENT_SIBLING);
+         cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorAdjacentSibling);
          nextToken(&this->tokenizer, &this->hll_css_parser);
       } else if (tokenizer.type != CSS_TOKEN_TYPE_END && this->hll_css_parser.spaceSeparatedC) {
-         selector->addSimpleSelector(CssSelector::COMB_DESCENDANT);
+         cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorDescendant);
       } else {
          delete selector;
          selector = NULL;
@@ -821,9 +821,7 @@ void CssParser::parseRuleset()
    DEBUG_MSG(DEBUG_PARSE_LEVEL, "end of %s\n", "selectors");
 
    CssDeclartionList * declList = new CssDeclartionList(true);
-   declList->ref();
    CssDeclartionList * importantProps = new CssDeclartionList(true);
-   importantProps->ref();
 
    /* Read block. ('{' has already been read.) */
    if (tokenizer.type != CSS_TOKEN_TYPE_END) {
@@ -852,8 +850,6 @@ void CssParser::parseRuleset()
       sel->unref();
    }
 
-   declList->unref();
-   importantProps->unref();
 
    delete selectors;
 
