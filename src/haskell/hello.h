@@ -21,7 +21,22 @@ typedef struct hll_CssParser {
    int tokenTypeC;
    int withinBlockC;
    int isEndC;
+   char * tokenValueC;
 } hll_CssParser;
+
+
+
+
+typedef struct hll_CssSimpleSelector {
+   /* It's possible that more than one of these is set in a single
+      CssSimpleSelector struct. */
+   char * selector_class[10];
+   int selector_class_size;
+   char * selector_pseudo_class;
+   char * selector_id;
+   int selector_element; /* Index corresponding to html.cc::Tags[]. */
+   int alloced;
+} hll_CssSimpleSelector;
 
 
 
@@ -67,6 +82,9 @@ int hll_cssParseWeight(hll_CssParser * hll_parser, int tokType, const char * tok
 CssLengthType hll_cssLengthType(int cssLength);
 float hll_cssLengthValue(int cssLength);
 int hll_cssCreateLength(float val, CssLengthType t);
+
+
+int hll_cssParseSimpleSelector(hll_CssParser * hll_parser, hll_CssSimpleSelector * simpleSelector, int tokType, const char * tokValue, const char * remainder);
 
 
 #ifdef __cplusplus

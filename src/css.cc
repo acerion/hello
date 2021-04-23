@@ -122,12 +122,14 @@ CssSelector::CssSelector () {
    struct CombinatorAndSelector * cs = &selectorList[selectorListSize - 1];
 
    cs->combinator = CssSelectorCombinatorNone;
-   cs->simpleSelector = new CssSimpleSelector ();
+
+   // "Allocate" first empty element in new selector.
+   cs->simpleSelector.alloced = true;
 }
 
 CssSelector::~CssSelector () {
    for (int i = selectorListSize - 1; i >= 0; i--)
-      delete selectorList[i].simpleSelector;
+      selectorList[i].simpleSelector.alloced = false;
 }
 
 /**
@@ -142,7 +144,7 @@ bool CssSelector::full_selector_matches(Doctree *docTree, const DoctreeNode *nod
       return true;
 
    struct CombinatorAndSelector *cs = &selectorList[i];
-   CssSimpleSelector *sel = cs->simpleSelector;
+   CssSimpleSelector *sel = cs->simpleSelector.alloced ? &cs->simpleSelector : nullptr;
 
    switch (comb) {
       case CssSelectorCombinatorNone:
@@ -185,12 +187,15 @@ void cssSelectorAddSimpleSelector(CssSelector * selector, Combinator c) {
    struct CombinatorAndSelector * cs = &selector->selectorList[selector->selectorListSize - 1];
 
    cs->combinator = c;
-   cs->simpleSelector = new CssSimpleSelector ();
+
+   /* "Allocate" new simple selector. */
+   cs->simpleSelector.alloced = true;
+
 }
 
 bool CssSelector::checksPseudoClass () {
    for (int i = 0; i < selectorListSize; i++)
-      if (nullptr != selectorList[i].simpleSelector->selector_pseudo_class)
+      if (nullptr != selectorList[i].simpleSelector.selector_pseudo_class)
          return true;
    return false;
 }
@@ -205,7 +210,7 @@ int CssSelector::specificity () {
    int spec = 0;
 
    for (int i = 0; i < selectorListSize; i++)
-      spec += cssSimpleSelectorSpecificity(selectorList[i].simpleSelector);
+      spec += cssSimpleSelectorSpecificity(&selectorList[i].simpleSelector);
 
    return spec;
 }
@@ -214,7 +219,7 @@ void CssSelector::printCssSelector(FILE * file) {
    //fprintf(file, "        Rule SelectorList: Begin\n");
    fprintf(file, "        Rule SelectorList: %d simple selectors\n", selectorListSize);
    for (int i = 0; i < selectorListSize; i++) {
-      printCssSimpleSelector(selectorList[i].simpleSelector, file);
+      printCssSimpleSelector(&selectorList[i].simpleSelector, file);
 
       if (i < selectorListSize - 1) {
          switch (selectorList[i + 1].combinator) {
@@ -243,7 +248,7 @@ void setSimpleSelector(CssSimpleSelector * selector, CssSelectorType type, const
 
    switch (type) {
    case CssSelectorType::CLASS:
-         snprintf(selector->selector_class[selector->selector_class_size], sizeof (selector->selector_class[selector->selector_class_size]), "%s", value);
+         selector->selector_class[selector->selector_class_size] = strdup(value);
          selector->selector_class_size++;
          break;
    case CssSelectorType::PSEUDO_CLASS:

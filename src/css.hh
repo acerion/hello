@@ -258,12 +258,12 @@ enum {
 typedef struct CssSimpleSelector {
    /* It's possible that more than one of these is set in a single
       CssSimpleSelector struct. */
+   char * selector_class[10] = { 0 };
+   int selector_class_size = 0;
    char * selector_pseudo_class = nullptr;
    char * selector_id = nullptr;
-   char selector_class[10][128];
-   int selector_class_size = 0;
-
    int selector_element = CssSimpleSelectorElementAny; /* Index corresponding to html.cc::Tags[]. */
+   int alloced = false;
 } CssSimpleSelector;
 void setSimpleSelector(CssSimpleSelector * selector, CssSelectorType type, const char *value);
 void printCssSimpleSelector(CssSimpleSelector * selector, FILE * file);
@@ -291,7 +291,7 @@ typedef enum {
 } Combinator;
 struct CombinatorAndSelector {
    Combinator combinator;
-   CssSimpleSelector *simpleSelector;
+   CssSimpleSelector simpleSelector;
 };
 class CssSelector {
    public:
@@ -306,7 +306,11 @@ class CssSelector {
       CssSelector ();
       ~CssSelector ();
       inline CssSimpleSelector *top() {
-         return selectorList[selectorListSize - 1].simpleSelector;
+         if (selectorList[selectorListSize - 1].simpleSelector.alloced) {
+            return &selectorList[selectorListSize - 1].simpleSelector;
+         } else {
+            return NULL;
+         }
       }
       inline bool full_selector_submatches(Doctree *dt, const DoctreeNode *node,
                          MatchCache *matchCache) {

@@ -691,24 +691,68 @@ bool CssParser::parseSimpleSelector(CssSimpleSelector *simpleSelector)
 {
    CssSelectorType selectorType;
 
+   char val[30];
+   snprintf(val, sizeof (val), "%s", tokenizer.value);
+   int rv = -2;
+#if 1
+   hll_CssSimpleSelector * simSel = (hll_CssSimpleSelector *) simpleSelector;
+   rv = hll_cssParseSimpleSelector(&this->hll_css_parser, simSel, tokenizer.type, tokenizer.value, tokenizer.buf + tokenizer.bufOffset);
+   simSel->alloced = true;
+   tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
+   snprintf(tokenizer.value, sizeof (tokenizer.value), "%s", this->hll_css_parser.tokenValueC);
+   tokenizer.type = (CssTokenType) this->hll_css_parser.tokenTypeC;
+
+   if (rv == 0) {
+      // continue;
+   } else if (rv == 1) {
+      fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
+              rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
+      return true;
+   } else {
+      fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
+              rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
+      return false;
+   }
+#else
    if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
       simpleSelector->selector_element = a_Html_tag_index(tokenizer.value);
       nextToken(&this->tokenizer, &this->hll_css_parser);
-      if (this->hll_css_parser.spaceSeparatedC)
+      if (this->hll_css_parser.spaceSeparatedC) {
+         rv = 1;
+         fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
+                 rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
          return true;
+      } else {
+         rv = 0;
+      }
+
    } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '*') {
       simpleSelector->selector_element = CssSimpleSelectorElementAny;
       nextToken(&this->tokenizer, &this->hll_css_parser);
-      if (this->hll_css_parser.spaceSeparatedC)
+      if (this->hll_css_parser.spaceSeparatedC) {
+         rv = 1;
+         fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
+                 rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
          return true;
+      } else {
+         rv = 0;
+      }
    } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR &&
               (tokenizer.value[0] == '#' ||
                tokenizer.value[0] == '.' ||
                tokenizer.value[0] == ':')) {
+      rv = 0;
       // nothing to be done in this case
    } else {
+      rv = 2;
+      fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
+              rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
       return false;
    }
+
+#endif
+   fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
+           rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
 
    do {
       selectorType = CssSelectorType::NONE;
@@ -865,6 +909,9 @@ char * CssParser::parseUrl()
                                              this->tokenizer.buf + this->tokenizer.bufOffset,
                                              0, 0);
    this->tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
+   snprintf(tokenizer.value, sizeof (tokenizer.value), "%s", this->hll_css_parser.tokenValueC);
+   tokenizer.type = (CssTokenType) this->hll_css_parser.tokenTypeC;
+
 
    return str;
 }
@@ -971,12 +1018,18 @@ void ignoreBlock(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser)
 {
    hll_ignoreBlock(hll_css_parser, tokenizer->buf + tokenizer->bufOffset);
    tokenizer->bufOffset = hll_css_parser->bufOffsetC;
+   snprintf(tokenizer->value, sizeof (tokenizer->value), "%s", hll_css_parser->tokenValueC);
+   tokenizer->type = (CssTokenType) hll_css_parser->tokenTypeC;
+
 }
 
 void ignoreStatement(CssTokenizer * tokenizer, hll_CssParser * hll_css_parser)
 {
    hll_ignoreStatement(hll_css_parser, tokenizer->buf + tokenizer->bufOffset);
    tokenizer->bufOffset = hll_css_parser->bufOffsetC;
+   snprintf(tokenizer->value, sizeof (tokenizer->value), "%s", hll_css_parser->tokenValueC);
+   tokenizer->type = (CssTokenType) hll_css_parser->tokenTypeC;
+
 }
 
 void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
@@ -986,6 +1039,8 @@ void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
 {
    CssParser parser (context, origin, baseUrl, buf, buflen);
    bool importsAreAllowed = true;
+
+   fprintf(stderr, "ZZZZ %s\n", buf);
 
    while (parser.tokenizer.type != CSS_TOKEN_TYPE_END) {
       if (parser.tokenizer.type == CSS_TOKEN_TYPE_CHAR &&

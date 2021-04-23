@@ -72,6 +72,11 @@ module CssParser(nextToken
                 , cssLengthType
                 , cssLengthValue
                 , cssCreateLength
+
+                , parseSimpleSelector
+                , defaultSimpleSelector
+                , CssSimpleSelector (..)
+
                 , defaultParser) where
 
 
@@ -89,6 +94,7 @@ import qualified Data.List as L
 import Data.Bits
 import Colors
 import HelloUtils
+import HtmlTag
 
 
 
@@ -1068,3 +1074,83 @@ cssParseWeight (parser, CssTokCh '!') = case nextToken parser of
                                           (newParser, CssTokSym "important") -> (nextToken newParser, True)
                                           (newParser, tok)                   -> ((newParser, tok), False)
 cssParseWeight (parser, tok)          = ((parser, tok), False)
+
+
+
+
+data CssSimpleSelector = CssSimpleSelector {
+    selectorPseudoClass :: T.Text
+  , selectorId          :: T.Text
+  , selectorClass       :: [T.Text]
+  , selectorElement     :: Int
+  } deriving (Show)
+
+
+
+
+cssSimpleSelectorElementNone = (-1)
+cssSimpleSelectorElementAny = (-2)
+
+
+
+
+defaultSimpleSelector = CssSimpleSelector {
+    selectorPseudoClass = ""
+  , selectorId = ""
+  , selectorClass = []
+  , selectorElement = cssSimpleSelectorElementAny
+  }
+
+
+
+
+parseSimpleSelector :: ((CssParser, CssToken), CssSimpleSelector) -> IO ((CssParser, CssToken), CssSimpleSelector, Int)
+parseSimpleSelector ((parser, token@(CssTokSym sym)), simSel) = do
+  if spaceSeparated newParser
+    then return ((newParser, newToken), simpleSelector, 1)
+    else parseSimpleSelector' ((newParser, newToken), simpleSelector)
+  where
+    (newParser, newToken) = nextToken parser
+    simpleSelector = simSel { selectorElement = hs_Html_tag_index sym }
+parseSimpleSelector ((parser, CssTokCh '*'), simSel) = do
+  if spaceSeparated newParser
+    then return ((newParser, newToken), simpleSelector, 1)
+    else parseSimpleSelector' ((newParser, newToken), simpleSelector)
+  where
+    (newParser, newToken) = nextToken parser
+    simpleSelector = simSel { selectorElement = cssSimpleSelectorElementAny }
+
+parseSimpleSelector ((parser, token@(CssTokCh chr)), simSel) | chr == '#' = parseSimpleSelector' ((parser{spaceSeparated = spaceSeparated newParser}, token), simSel)
+                                                             | chr == '.' = parseSimpleSelector' ((parser{spaceSeparated = spaceSeparated newParser}, token), simSel)
+                                                             | chr == ':' = parseSimpleSelector' ((parser{spaceSeparated = spaceSeparated newParser}, token), simSel)
+                                                             | otherwise = return ((parser{spaceSeparated = spaceSeparated newParser}, token), simSel, 2)
+  where
+    (newParser, newToken) = nextToken parser
+parseSimpleSelector ((parser, token), simSel) = return ((parser{spaceSeparated = spaceSeparated newParser}, token), simSel, 2)
+  where
+    (newParser, newToken) = nextToken parser
+
+parseSimpleSelector' ((parser, token), simpleSelector) = do
+  return ((parser, token), simpleSelector, 0)
+
+
+{-
+   if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
+      simpleSelector->selector_element = a_Html_tag_index(tokenizer.value);
+      nextToken(&this->tokenizer, &this->hll_css_parser);
+      if (this->hll_css_parser.spaceSeparatedC)
+         return true;
+   } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '*') {
+      simpleSelector->selector_element = CssSimpleSelectorElementAny;
+      nextToken(&this->tokenizer, &this->hll_css_parser);
+      if (this->hll_css_parser.spaceSeparatedC)
+         return true;
+   } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR &&
+              (tokenizer.value[0] == '#' ||
+               tokenizer.value[0] == '.' ||
+               tokenizer.value[0] == ':')) {
+      // nothing to be done in this case
+   } else {
+      return false;
+   }
+-}
