@@ -56,7 +56,7 @@ foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
 foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
 
 foreign export ccall "hll_cssParseWeight"  hll_cssParseWeight :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
-foreign export ccall "hll_cssParseSimpleSelector"  hll_cssParseSimpleSelector :: Ptr HelloCssParser -> Ptr HelloCssSimpleSelector -> Int -> CString -> CString -> IO Int
+foreign export ccall "hll_cssParseSimpleSelector"  hll_cssParseSimpleSelector :: Ptr HelloCssParser -> Ptr HelloCssSimpleSelector -> Int -> CString -> CString -> IO Bool
 
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
@@ -371,7 +371,7 @@ hll_cssParseWeight hll_cssparser tokType cTokValue cBuf = do
 
 
 
-hll_cssParseSimpleSelector :: Ptr HelloCssParser -> Ptr HelloCssSimpleSelector -> Int -> CString -> CString -> IO Int
+hll_cssParseSimpleSelector :: Ptr HelloCssParser -> Ptr HelloCssSimpleSelector -> Int -> CString -> CString -> IO Bool
 hll_cssParseSimpleSelector hll_cssparser hll_simpleSelector tokType cTokValue cBuf = do
   buf      <- BSU.unsafePackCString $ cBuf
   tokValue <- BSU.unsafePackCString $ cTokValue
@@ -396,7 +396,7 @@ hll_cssParseSimpleSelector hll_cssparser hll_simpleSelector tokType cTokValue cB
                                      }
 
 
-  ((newParser, newToken), simpleSelector, ret) <- parseSimpleSelector ((parser, inputToken), simSel2)
+  let ((newParser, newToken), simpleSelector, valid) =parseSimpleSelector ((parser, inputToken), simSel2)
   manipulateOutPtr hll_cssparser newParser newToken inBlock
   setSimpleSelector hll_simpleSelector simpleSelector
 {-
@@ -406,7 +406,7 @@ hll_cssParseSimpleSelector hll_cssparser hll_simpleSelector tokType cTokValue cB
   putStr (show ret)
   putStr "\n"
 -}
-  return ret
+  return valid
 
 
 
@@ -450,11 +450,16 @@ instance Storable HelloCssSimpleSelector where
 
 setSimpleSelector :: Ptr HelloCssSimpleSelector -> CssSimpleSelector -> IO Int
 setSimpleSelector hll_simpleSelector simpleSelector = do
-  ss <- peek hll_simpleSelector
+  a <- if T.null . selectorPseudoClass $ simpleSelector
+       then return nullPtr
+       else newCString . T.unpack . selectorPseudoClass $ simpleSelector
+  b <- if T.null . selectorId $ simpleSelector
+       then return nullPtr
+       else newCString . T.unpack . selectorId $ simpleSelector
   pokeByteOff hll_simpleSelector (8 * 10) (length . selectorClass $ simpleSelector) -- selector_class_size
-  -- pokeByteOff hll_simpleSelector (8 * 11)  -- selector_pseudo_class
-  -- pokeByteOff hll_simpleSelector (8 * 12) -- selector_id
-  pokeByteOff hll_simpleSelector (8 * 13) (selectorElement simpleSelector) -- selector_element
+  pokeByteOff hll_simpleSelector (8 * 11) a       -- selector_pseudo_class
+  pokeByteOff hll_simpleSelector (8 * 12) b       -- selector_id
+  pokeByteOff hll_simpleSelector (8 * 13) (selectorElement simpleSelector)          -- selector_element
   --setSimpleSelectorClass ["aa", "bb"] 0 hll_simpleSelector
   setSimpleSelectorClass (selectorClass simpleSelector) 0 hll_simpleSelector
 

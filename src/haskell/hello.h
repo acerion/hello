@@ -83,8 +83,9 @@ CssLengthType hll_cssLengthType(int cssLength);
 float hll_cssLengthValue(int cssLength);
 int hll_cssCreateLength(float val, CssLengthType t);
 
-
-int hll_cssParseSimpleSelector(hll_CssParser * hll_parser, hll_CssSimpleSelector * simpleSelector, int tokType, const char * tokValue, const char * remainder);
+/* Return true if valid simple selector was found.
+   Return false otherwise. */
+bool hll_cssParseSimpleSelector(hll_CssParser * hll_parser, hll_CssSimpleSelector * simpleSelector, int tokType, const char * tokValue, const char * remainder);
 
 
 #ifdef __cplusplus

@@ -689,115 +689,14 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
 
 bool CssParser::parseSimpleSelector(CssSimpleSelector *simpleSelector)
 {
-   CssSelectorType selectorType;
-
-   char val[30];
-   snprintf(val, sizeof (val), "%s", tokenizer.value);
-   int rv = -2;
-#if 1
    hll_CssSimpleSelector * simSel = (hll_CssSimpleSelector *) simpleSelector;
-   rv = hll_cssParseSimpleSelector(&this->hll_css_parser, simSel, tokenizer.type, tokenizer.value, tokenizer.buf + tokenizer.bufOffset);
+   bool valid = hll_cssParseSimpleSelector(&this->hll_css_parser, simSel, tokenizer.type, tokenizer.value, tokenizer.buf + tokenizer.bufOffset);
    simSel->alloced = true;
    tokenizer.bufOffset = this->hll_css_parser.bufOffsetC;
    snprintf(tokenizer.value, sizeof (tokenizer.value), "%s", this->hll_css_parser.tokenValueC);
    tokenizer.type = (CssTokenType) this->hll_css_parser.tokenTypeC;
 
-   if (rv == 0) {
-      // continue;
-   } else if (rv == 1) {
-      fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
-              rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
-      return true;
-   } else {
-      fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
-              rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
-      return false;
-   }
-#else
-   if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-      simpleSelector->selector_element = a_Html_tag_index(tokenizer.value);
-      nextToken(&this->tokenizer, &this->hll_css_parser);
-      if (this->hll_css_parser.spaceSeparatedC) {
-         rv = 1;
-         fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
-                 rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
-         return true;
-      } else {
-         rv = 0;
-      }
-
-   } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '*') {
-      simpleSelector->selector_element = CssSimpleSelectorElementAny;
-      nextToken(&this->tokenizer, &this->hll_css_parser);
-      if (this->hll_css_parser.spaceSeparatedC) {
-         rv = 1;
-         fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
-                 rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
-         return true;
-      } else {
-         rv = 0;
-      }
-   } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR &&
-              (tokenizer.value[0] == '#' ||
-               tokenizer.value[0] == '.' ||
-               tokenizer.value[0] == ':')) {
-      rv = 0;
-      // nothing to be done in this case
-   } else {
-      rv = 2;
-      fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
-              rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
-      return false;
-   }
-
-#endif
-   fprintf(stderr, "%d: %d simpleSelector.selector_class_size = %d, simpleSelector->selector_element = %d = '%s'\n",
-           rv, this->hll_css_parser.spaceSeparatedC, simpleSelector->selector_class_size, simpleSelector->selector_element, val);
-
-   do {
-      selectorType = CssSelectorType::NONE;
-      if (tokenizer.type == CSS_TOKEN_TYPE_CHAR) {
-         switch (tokenizer.value[0]) {
-         case '#':
-            selectorType = CssSelectorType::ID;
-            break;
-         case '.':
-            selectorType = CssSelectorType::CLASS;
-            break;
-         case ':':
-            selectorType = CssSelectorType::PSEUDO_CLASS;
-            if (nullptr != simpleSelector->selector_pseudo_class)
-               // pseudo class has been set already.
-               // As dillo currently only supports :link and :visisted, a
-               // selector with more than one pseudo class will never match.
-               // By returning false, the whole CssRule will be dropped.
-               // \todo adapt this when supporting :hover, :active...
-               return false;
-            break;
-         }
-      }
-
-      if (selectorType != CssSelectorType::NONE) {
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-         if (this->hll_css_parser.spaceSeparatedC)
-            return false;
-
-         if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-            setSimpleSelector(simpleSelector, selectorType, tokenizer.value);
-            nextToken(&this->tokenizer, &this->hll_css_parser);
-         } else {
-            return false; // don't accept classes or id's starting with integer
-         }
-         if (this->hll_css_parser.spaceSeparatedC)
-            return true;
-      }
-   } while (selectorType != CssSelectorType::NONE);
-
-   DEBUG_MSG(DEBUG_PARSE_LEVEL, "end of simple selector (%s, %s, %s, %d)\n",
-      selector->id, selector->css_selector_class,
-      selector->pseudo, selector->element);
-
-   return true;
+   return valid;
 }
 
 CssSelector *CssParser::parseSelector()
@@ -805,10 +704,15 @@ CssSelector *CssParser::parseSelector()
    CssSelector *selector = new CssSelector ();
 
    while (true) {
+      CssSimpleSelector * simSel = selector->top ();
       if (! parseSimpleSelector (selector->top ())) {
+         //fprintf(stderr, "========= failed to parse simple selector\n");
          delete selector;
          selector = NULL;
          break;
+      } else {
+         //fprintf(stderr, "========= parsed simple selector:\n");
+         //printCssSimpleSelector(simSel, stderr);
       }
 
       if (tokenizer.type == CSS_TOKEN_TYPE_CHAR &&

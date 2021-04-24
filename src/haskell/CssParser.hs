@@ -1067,8 +1067,6 @@ cssPropertyNameString property = tripletFst (cssPropertyInfo V.! property) -- TO
 
 
 
-
-
 cssParseWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Bool)
 cssParseWeight (parser, CssTokCh '!') = case nextToken parser of
                                           (newParser, CssTokSym "important") -> (nextToken newParser, True)
@@ -1103,54 +1101,65 @@ defaultSimpleSelector = CssSimpleSelector {
 
 
 
+data CssSelectorType = CssSelectorTypeNone
+  | CssSelectorTypeClass
+  | CssSelectorTypePseudoClass
+  | CssSelectorTypeID
 
-parseSimpleSelector :: ((CssParser, CssToken), CssSimpleSelector) -> IO ((CssParser, CssToken), CssSimpleSelector, Int)
-parseSimpleSelector ((parser, token@(CssTokSym sym)), simSel) = do
-  if spaceSeparated newParser
-    then return ((newParser, newToken), simpleSelector, 1)
-    else parseSimpleSelector' ((newParser, newToken), simpleSelector)
+
+
+
+parseSimpleSelector :: ((CssParser, CssToken), CssSimpleSelector) -> ((CssParser, CssToken), CssSimpleSelector, Bool)
+parseSimpleSelector ((parser, token), simSel) = ((newParser, newToken), newSimSel, valid)
   where
-    (newParser, newToken) = nextToken parser
-    simpleSelector = simSel { selectorElement = hs_Html_tag_index sym }
-parseSimpleSelector ((parser, CssTokCh '*'), simSel) = do
-  if spaceSeparated newParser
-    then return ((newParser, newToken), simpleSelector, 1)
-    else parseSimpleSelector' ((newParser, newToken), simpleSelector)
+    ((newParser, newToken), tokens) = takeSimpleSelectorTokens (parser, token)
+    (newSimSel, valid) = parseList tokens 0 simSel
+
+    parseList :: [CssToken] -> Int -> CssSimpleSelector -> (CssSimpleSelector, Bool)
+    parseList [] idx simSel                   = if idx == 0
+                                                then (simSel, False)
+                                                else (simSel, True)
+    parseList ((CssTokSym sym):xs) idx simSel = if idx == 0
+                                                then parseList xs (idx + 1) simSel{selectorElement = hs_Html_tag_index sym}
+                                                else (simSel, False) -- Valid combos of {#.:}+symbol are handled below. This is invalid situation
+    parseList ((CssTokCh '*'):xs) idx simSel  = if idx == 0
+                                                then parseList xs (idx + 1) simSel{selectorElement = cssSimpleSelectorElementAny}
+                                                else (simSel, False)
+    parseList ((CssTokCh '#'):(CssTokSym sym):xs) idx simSel = parseList xs (idx + 1) (setSimpleSelector simSel CssSelectorTypeID sym)
+    parseList ((CssTokCh '.'):(CssTokSym sym):xs) idx simSel = parseList xs (idx + 1) (setSimpleSelector simSel CssSelectorTypeClass sym)
+    parseList ((CssTokCh ':'):(CssTokSym sym):xs) idx simSel = parseList xs (idx + 1) (setSimpleSelector simSel CssSelectorTypePseudoClass sym)
+    parseList _ _ simSel = (simSel, False)
+
+
+
+
+setSimpleSelector :: CssSimpleSelector -> CssSelectorType -> T.Text -> CssSimpleSelector
+setSimpleSelector simpleSelector selectorType sym =
+  case selectorType of
+    CssSelectorTypeClass       -> simpleSelector {selectorClass = (selectorClass simpleSelector) ++ [sym]}
+    CssSelectorTypePseudoClass -> if selectorPseudoClass simpleSelector == ""
+                                  then simpleSelector {selectorPseudoClass = sym}
+                                  else simpleSelector
+    CssSelectorTypeID          -> if selectorId simpleSelector == ""
+                                  then simpleSelector {selectorId = sym}
+                                  else simpleSelector
+    otherwise                  -> simpleSelector
+
+
+
+
+takeSimpleSelectorTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
+takeSimpleSelectorTokens (parser, token) = takeNext (parser, token) []
   where
-    (newParser, newToken) = nextToken parser
-    simpleSelector = simSel { selectorElement = cssSimpleSelectorElementAny }
-
-parseSimpleSelector ((parser, token@(CssTokCh chr)), simSel) | chr == '#' = parseSimpleSelector' ((parser{spaceSeparated = spaceSeparated newParser}, token), simSel)
-                                                             | chr == '.' = parseSimpleSelector' ((parser{spaceSeparated = spaceSeparated newParser}, token), simSel)
-                                                             | chr == ':' = parseSimpleSelector' ((parser{spaceSeparated = spaceSeparated newParser}, token), simSel)
-                                                             | otherwise = return ((parser{spaceSeparated = spaceSeparated newParser}, token), simSel, 2)
-  where
-    (newParser, newToken) = nextToken parser
-parseSimpleSelector ((parser, token), simSel) = return ((parser{spaceSeparated = spaceSeparated newParser}, token), simSel, 2)
-  where
-    (newParser, newToken) = nextToken parser
-
-parseSimpleSelector' ((parser, token), simpleSelector) = do
-  return ((parser, token), simpleSelector, 0)
+    takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
+    takeNext (parser, token) tokens = case token of
+                                        CssTokNone    -> takeNext (nextToken parser) tokens -- Kick-start taking tokens.
+                                        CssTokSym sym -> takeNext (nextToken parser) (tokens ++ [token])
+                                        CssTokCh '*'  -> takeNext (nextToken parser) (tokens ++ [token])
+                                        CssTokCh '#'  -> takeNext (nextToken parser) (tokens ++ [token])
+                                        CssTokCh '.'  -> takeNext (nextToken parser) (tokens ++ [token])
+                                        CssTokCh ':'  -> takeNext (nextToken parser) (tokens ++ [token])
+                                        otherwise     -> ((parser, token), tokens)
 
 
-{-
-   if (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL) {
-      simpleSelector->selector_element = a_Html_tag_index(tokenizer.value);
-      nextToken(&this->tokenizer, &this->hll_css_parser);
-      if (this->hll_css_parser.spaceSeparatedC)
-         return true;
-   } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '*') {
-      simpleSelector->selector_element = CssSimpleSelectorElementAny;
-      nextToken(&this->tokenizer, &this->hll_css_parser);
-      if (this->hll_css_parser.spaceSeparatedC)
-         return true;
-   } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR &&
-              (tokenizer.value[0] == '#' ||
-               tokenizer.value[0] == '.' ||
-               tokenizer.value[0] == ':')) {
-      // nothing to be done in this case
-   } else {
-      return false;
-   }
--}
+

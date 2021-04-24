@@ -244,26 +244,6 @@ void CssSelector::printCssSelector(FILE * file) {
    //fprintf (file, "\n");
 }
 
-void setSimpleSelector(CssSimpleSelector * selector, CssSelectorType type, const char *value) {
-
-   switch (type) {
-   case CssSelectorType::CLASS:
-         selector->selector_class[selector->selector_class_size] = strdup(value);
-         selector->selector_class_size++;
-         break;
-   case CssSelectorType::PSEUDO_CLASS:
-         if (selector->selector_pseudo_class == NULL)
-            selector->selector_pseudo_class = dStrdup(value);
-         break;
-   case CssSelectorType::ID:
-         if (selector->selector_id == NULL)
-            selector->selector_id = dStrdup(value);
-         break;
-      default:
-         break;
-   }
-}
-
 /**
  * \brief Return whether simple selector matches at a given node of
  *        the document tree.

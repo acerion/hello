@@ -265,7 +265,6 @@ typedef struct CssSimpleSelector {
    int selector_element = CssSimpleSelectorElementAny; /* Index corresponding to html.cc::Tags[]. */
    int alloced = false;
 } CssSimpleSelector;
-void setSimpleSelector(CssSimpleSelector * selector, CssSelectorType type, const char *value);
 void printCssSimpleSelector(CssSimpleSelector * selector, FILE * file);
 bool simple_selector_matches(CssSimpleSelector * selector, const DoctreeNode *node);
 int cssSimpleSelectorSpecificity(CssSimpleSelector * selector);
