@@ -52,7 +52,7 @@ import Gif
 
 foreign export ccall "hll_parseExtension" hll_parseExtension :: Ptr HelloGifGC -> CString -> Int -> IO Int
 
-#include "../../gif.h"
+#include "../hello.h"
 
 -- [1] "23. Graphic Control Extension.", Required version: Gif89.
 data HelloGifGC = HelloGifGC {
@@ -63,20 +63,20 @@ data HelloGifGC = HelloGifGC {
   }
 
 instance Storable HelloGifGC where
-  sizeOf    _ = #{size hll_Gif}
+  sizeOf    _ = #{size c_gif_t}
   alignment _ = alignment (undefined :: Int)
 
-  poke ptr hll_Gif = do
-    #{poke hll_Gif, transparentColorIndexC} ptr $ transparentColorIndexC hll_Gif
-    #{poke hll_Gif, delayTimeC} ptr             $ delayTimeC hll_Gif
-    #{poke hll_Gif, userInputFlagC} ptr         $ userInputFlagC hll_Gif
-    #{poke hll_Gif, disposalMethodC} ptr        $ disposalMethodC hll_Gif
+  poke ptr c_gif_t = do
+    #{poke c_gif_t, c_transparent_color_index} ptr $ transparentColorIndexC c_gif_t
+    #{poke c_gif_t, c_delay_time} ptr              $ delayTimeC c_gif_t
+    #{poke c_gif_t, c_user_input_flag} ptr         $ userInputFlagC c_gif_t
+    #{poke c_gif_t, c_disposal_method} ptr         $ disposalMethodC c_gif_t
 
   peek ptr = return HelloGifGC
-    `ap` (#{peek hll_Gif, transparentColorIndexC} ptr)
-    `ap` (#{peek hll_Gif, delayTimeC} ptr)
-    `ap` (#{peek hll_Gif, userInputFlagC} ptr)
-    `ap` (#{peek hll_Gif, disposalMethodC} ptr)
+    `ap` (#{peek c_gif_t, c_transparent_color_index} ptr)
+    `ap` (#{peek c_gif_t, c_delay_time}              ptr)
+    `ap` (#{peek c_gif_t, c_user_input_flag}         ptr)
+    `ap` (#{peek c_gif_t, c_disposal_method}         ptr)
 
 
 

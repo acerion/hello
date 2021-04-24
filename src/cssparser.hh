@@ -36,7 +36,7 @@ class CssParser {
 
 
       CssTokenizer tokenizer;
-      hll_CssParser hll_css_parser;
+      c_css_parser_t hll_css_parser;
 
       CssParser(CssContext *context, CssOrigin origin, const DilloUrl *baseUrl,
                 const char *buf, int buflen);

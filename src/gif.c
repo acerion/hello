@@ -66,7 +66,6 @@
 #include <string.h>             /* for memcpy and memmove */
 #include <stdlib.h>
 
-#include "gif.h"
 #include "msg.h"
 #include "image.hh"
 #include "cache.h"
@@ -147,7 +146,7 @@ typedef struct {
 #endif
 
 
-   hll_Gif hll_gif;
+   c_gif_t hll_gif;
 
 
    /* state for the new push-oriented decoder */
@@ -170,7 +169,7 @@ typedef struct {
  */
 
 
-typedef bool (* extension_sub_block_handler_t)(hll_Gif * gif, const uchar_t * buf, int size);
+typedef bool (* extension_sub_block_handler_t)(c_gif_t * gif, const uchar_t * buf, int size);
 /*
  * Forward declarations
  */
@@ -227,7 +226,7 @@ void *a_Gif_new(DilloImage *Image, DilloUrl *url, int version)
    gif->url = url;
    gif->version = version;
    gif->Background = Image->bg_color;
-   gif->hll_gif.transparentColorIndexC = -1;
+   gif->hll_gif.c_transparent_color_index = -1;
 
    return gif;
 }
@@ -821,7 +820,7 @@ static int gif_do_image_descriptor(DilloGif *gif, img_chunk img_descriptor)
    } else {
       a_Dicache_set_color_map(gif->url, gif->version, gif->Background,
                               gif->global_color_map,
-                              gif->global_color_map_triplets_count, MAX_COLORMAP_SIZE, gif->hll_gif.transparentColorIndexC);
+                              gif->global_color_map_triplets_count, MAX_COLORMAP_SIZE, gif->hll_gif.c_transparent_color_index);
    }
 
    return total_size;

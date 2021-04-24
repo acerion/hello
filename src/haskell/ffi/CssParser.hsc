@@ -75,49 +75,49 @@ data HelloCssParser = HelloCssParser {
 
 
 instance Storable HelloCssParser where
-  sizeOf    _ = #{size hll_CssParser}
-  alignment _ = alignment (undefined :: Int) -- #{alignment hll_CssParser} --
+  sizeOf    _ = #{size c_css_parser_t}
+  alignment _ = alignment (undefined :: Int) -- #{alignment c_css_parser_t} --
 
 
   poke ptr (HelloCssParser spaceSeparatedC bufOffsetC tokenTypeC withinBlockC tokenValueC) = do
-    #{poke hll_CssParser, spaceSeparatedC} ptr spaceSeparatedC
-    #{poke hll_CssParser, bufOffsetC}      ptr bufOffsetC
-    #{poke hll_CssParser, tokenTypeC}      ptr tokenTypeC
-    #{poke hll_CssParser, withinBlockC}    ptr withinBlockC
-    #{poke hll_CssParser, tokenValueC}     ptr tokenValueC
+    #{poke c_css_parser_t, c_space_separated} ptr spaceSeparatedC
+    #{poke c_css_parser_t, c_buf_offset}      ptr bufOffsetC
+    #{poke c_css_parser_t, c_token_type}      ptr tokenTypeC
+    #{poke c_css_parser_t, c_within_block}    ptr withinBlockC
+    #{poke c_css_parser_t, c_token_value}     ptr tokenValueC
 
 {-
-  poke ptr hll_CssParser = do
-    #{poke hll_CssParser, spaceSeparatedC} ptr $ spaceSeparatedC hll_CssParser
-    #{poke hll_CssParser, bufOffsetC} ptr      $ bufOffsetC hll_CssParser
-    #{poke hll_CssParser, tokenTypeC} ptr      $ tokenTypeC hll_CssParser
-    #{poke hll_CssParser, withinBlockC} ptr    $ withinBlockC hll_CssParser
+  poke ptr c_css_parser_t = do
+    #{poke c_css_parser_t, spaceSeparatedC} ptr $ spaceSeparatedC c_css_parser_t
+    #{poke c_css_parser_t, bufOffsetC} ptr      $ bufOffsetC c_css_parser_t
+    #{poke c_css_parser_t, tokenTypeC} ptr      $ tokenTypeC c_css_parser_t
+    #{poke c_css_parser_t, withinBlockC} ptr    $ withinBlockC c_css_parser_t
 -}
   peek ptr = do
-    a <- #{peek hll_CssParser, spaceSeparatedC} ptr
-    b <- #{peek hll_CssParser, bufOffsetC} ptr
-    c <- #{peek hll_CssParser, tokenTypeC} ptr
-    d <- #{peek hll_CssParser, withinBlockC} ptr
-    e <- #{peek hll_CssParser, tokenValueC} ptr
+    a <- #{peek c_css_parser_t, c_space_separated} ptr
+    b <- #{peek c_css_parser_t, c_buf_offset}      ptr
+    c <- #{peek c_css_parser_t, c_token_type}      ptr
+    d <- #{peek c_css_parser_t, c_within_block}    ptr
+    e <- #{peek c_css_parser_t, c_token_value}     ptr
     return (HelloCssParser a b c d e)
 {-
   peek ptr = return HelloCssParser
-    `ap` (#{peek hll_CssParser, spaceSeparatedC} ptr)
-    `ap` (#{peek hll_CssParser, bufOffsetC} ptr)
-    `ap` (#{peek hll_CssParser, tokenTypeC} ptr)
-    `ap` (#{peek hll_CssParser, withinBlockC} ptr)
+    `ap` (#{peek c_css_parser_t, spaceSeparatedC} ptr)
+    `ap` (#{peek c_css_parser_t, bufOffsetC} ptr)
+    `ap` (#{peek c_css_parser_t, tokenTypeC} ptr)
+    `ap` (#{peek c_css_parser_t, withinBlockC} ptr)
 -}
 
 
 hll_nextToken :: Ptr HelloCssParser -> CString -> IO CString
-hll_nextToken hll_cssparser cBuf = do
+hll_nextToken ptrStructCssParser cBuf = do
   buf <- BSU.unsafePackCString cBuf
-  oldParser <- peek hll_cssparser
-  let inBlock = withinBlockC oldParser
+  hllParser <- peek ptrStructCssParser
+  let inBlock = withinBlockC hllParser
   let (parser, token) = nextToken defaultParser{ remainder   = T.E.decodeLatin1 buf
                                                , withinBlock = inBlock > 0
-                                               , bufOffset   = bufOffsetC oldParser
-                                               , spaceSeparated = spaceSeparatedC oldParser > 0
+                                               , bufOffset   = bufOffsetC hllParser
+                                               , spaceSeparated = spaceSeparatedC hllParser > 0
                                                }
   {-
   putStr (show parser)
@@ -125,7 +125,7 @@ hll_nextToken hll_cssparser cBuf = do
   putStr (show token)
   putStr "\n"
 -}
-  manipulateOutPtr hll_cssparser parser token inBlock
+  manipulateOutPtr ptrStructCssParser parser token inBlock
   case token of
     (CssTokI i)   -> (newCString . show $ i)
     (CssTokF f)   -> (newCString . show $ f)
@@ -140,9 +140,9 @@ hll_nextToken hll_cssparser cBuf = do
 
 -- Set fields in pointer to struct passed from C code.
 manipulateOutPtr :: Ptr HelloCssParser -> CssParser -> CssToken -> Int -> IO ()
-manipulateOutPtr hll_cssparser parser token inBlock = do
+manipulateOutPtr ptrStructCssParser parser token inBlock = do
   s <- (cstr token)
-  poke hll_cssparser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) (getTokenType token) inBlock s
+  poke ptrStructCssParser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (bufOffset parser) (getTokenType token) inBlock s
 
 
 cstr :: CssToken -> IO CString
@@ -159,10 +159,10 @@ cstr token = case token of
 
 
 hll_declarationValueAsInt :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO Int
-hll_declarationValueAsInt hll_cssparser tokType cTokValue cBuf valueType property = do
+hll_declarationValueAsInt ptrStructCssParser tokType cTokValue cBuf valueType property = do
   buf      <- BSU.unsafePackCString $ cBuf
   tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek hll_cssparser
+  hllParser <- peek ptrStructCssParser
   let inBlock = withinBlockC hllParser
   let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
 
@@ -173,7 +173,7 @@ hll_declarationValueAsInt hll_cssparser tokType cTokValue cBuf valueType propert
                             }
 
   let pair@(newParser, newToken) = declarationValueAsInt parser inputToken valueType property
-  manipulateOutPtr hll_cssparser parser inputToken inBlock
+  manipulateOutPtr ptrStructCssParser parser inputToken inBlock
   case pair of
     (_, Just i) -> return i
     (_, _)      -> return 999999999
@@ -181,10 +181,10 @@ hll_declarationValueAsInt hll_cssparser tokType cTokValue cBuf valueType propert
 
 
 hll_declarationValueAsString :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO CString
-hll_declarationValueAsString hll_cssparser tokType cTokValue cBuf valueType property = do
+hll_declarationValueAsString ptrStructCssParser tokType cTokValue cBuf valueType property = do
   buf      <- BSU.unsafePackCString $ cBuf
   tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek hll_cssparser
+  hllParser <- peek ptrStructCssParser
   let inBlock = withinBlockC hllParser
   let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
 
@@ -195,7 +195,7 @@ hll_declarationValueAsString hll_cssparser tokType cTokValue cBuf valueType prop
                             }
 
   let pair@(newParser, newToken) = declarationValueAsString parser inputToken valueType property
-  manipulateOutPtr hll_cssparser parser inputToken inBlock
+  manipulateOutPtr ptrStructCssParser parser inputToken inBlock
   case pair of
     (_, Just s) -> newCString . T.unpack $ s
     (_, _)      -> return nullPtr
@@ -204,10 +204,10 @@ hll_declarationValueAsString hll_cssparser tokType cTokValue cBuf valueType prop
 
 
 hll_declarationValueAsMultiEnum :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> IO Int
-hll_declarationValueAsMultiEnum hll_cssparser tokType cTokValue cBuf property = do
+hll_declarationValueAsMultiEnum ptrStructCssParser tokType cTokValue cBuf property = do
   buf      <- BSU.unsafePackCString $ cBuf
   tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek hll_cssparser
+  hllParser <- peek ptrStructCssParser
   let inBlock = withinBlockC hllParser
   let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
 
@@ -219,7 +219,7 @@ hll_declarationValueAsMultiEnum hll_cssparser tokType cTokValue cBuf property = 
 
 
   let pair@(newParser, newToken) = declarationValueAsMultiEnum parser inputToken property
-  manipulateOutPtr hll_cssparser parser inputToken inBlock
+  manipulateOutPtr ptrStructCssParser parser inputToken inBlock
   case pair of
     (_, Just i) -> return i
     (_, _)      -> return 999999999
@@ -227,9 +227,9 @@ hll_declarationValueAsMultiEnum hll_cssparser tokType cTokValue cBuf property = 
 
 
 hll_ignoreBlock :: Ptr HelloCssParser -> CString -> IO Int
-hll_ignoreBlock hll_cssparser cBuf = do
+hll_ignoreBlock ptrStructCssParser cBuf = do
   buf       <- BSU.unsafePackCString $ cBuf
-  hllParser <- peek hll_cssparser
+  hllParser <- peek ptrStructCssParser
   let inBlock = withinBlockC hllParser
   let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
                             , withinBlock = inBlock > 0
@@ -238,16 +238,16 @@ hll_ignoreBlock hll_cssparser cBuf = do
                             }
 
   let (newParser, newToken) = ignoreBlock parser
-  manipulateOutPtr hll_cssparser parser newToken inBlock
+  manipulateOutPtr ptrStructCssParser parser newToken inBlock
   return 0
 
 
 
 
 hll_ignoreStatement :: Ptr HelloCssParser -> CString -> IO Int
-hll_ignoreStatement hll_cssparser cBuf = do
+hll_ignoreStatement ptrStructCssParser cBuf = do
   buf       <- BSU.unsafePackCString $ cBuf
-  hllParser <- peek hll_cssparser
+  hllParser <- peek ptrStructCssParser
   let inBlock = withinBlockC hllParser
   let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
                             , withinBlock = inBlock > 0
@@ -256,7 +256,7 @@ hll_ignoreStatement hll_cssparser cBuf = do
                             }
 
   let (newParser, newToken) = ignoreBlock parser
-  manipulateOutPtr hll_cssparser parser newToken inBlock
+  manipulateOutPtr ptrStructCssParser parser newToken inBlock
   return 0
 
 
@@ -349,10 +349,10 @@ hll_cssPropertyNameString property = do
 
 
 hll_cssParseWeight :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
-hll_cssParseWeight hll_cssparser tokType cTokValue cBuf = do
+hll_cssParseWeight ptrStructCssParser tokType cTokValue cBuf = do
   buf      <- BSU.unsafePackCString $ cBuf
   tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek hll_cssparser
+  hllParser <- peek ptrStructCssParser
   let inBlock = withinBlockC hllParser
   let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
 
@@ -363,7 +363,7 @@ hll_cssParseWeight hll_cssparser tokType cTokValue cBuf = do
                             }
 
   let ((newParser, newToken), isImportant) = cssParseWeight (parser, inputToken)
-  manipulateOutPtr hll_cssparser newParser newToken inBlock
+  manipulateOutPtr ptrStructCssParser newParser newToken inBlock
   if isImportant
   then return 1
   else return 0
@@ -372,11 +372,11 @@ hll_cssParseWeight hll_cssparser tokType cTokValue cBuf = do
 
 
 hll_cssParseSimpleSelector :: Ptr HelloCssParser -> Ptr HelloCssSimpleSelector -> Int -> CString -> CString -> IO Bool
-hll_cssParseSimpleSelector hll_cssparser hll_simpleSelector tokType cTokValue cBuf = do
+hll_cssParseSimpleSelector ptrStructCssParser ptrStructSimpleSelector tokType cTokValue cBuf = do
   buf      <- BSU.unsafePackCString $ cBuf
   tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek hll_cssparser
-  simSel    <- peek hll_simpleSelector
+  hllParser <- peek ptrStructCssParser
+  simSel    <- peek ptrStructSimpleSelector
   let inBlock = withinBlockC hllParser
   let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
 
@@ -396,9 +396,9 @@ hll_cssParseSimpleSelector hll_cssparser hll_simpleSelector tokType cTokValue cB
                                      }
 
 
-  let ((newParser, newToken), simpleSelector, valid) =parseSimpleSelector ((parser, inputToken), simSel2)
-  manipulateOutPtr hll_cssparser newParser newToken inBlock
-  setSimpleSelector hll_simpleSelector simpleSelector
+  let ((newParser, newToken), simpleSelector, valid) = parseSimpleSelector ((parser, inputToken), simSel2)
+  manipulateOutPtr ptrStructCssParser newParser newToken inBlock
+  setSimpleSelector ptrStructSimpleSelector simpleSelector
 {-
   putStr "ZAAA"
   putStr (show inputToken)
@@ -427,47 +427,47 @@ data HelloCssSimpleSelector = HelloCssSimpleSelector {
 
 
 instance Storable HelloCssSimpleSelector where
-  sizeOf    _ = #{size hll_CssSimpleSelector}
-  alignment _ = #{alignment hll_CssSimpleSelector}
+  sizeOf    _ = #{size c_css_simple_selector_t}
+  alignment _ = #{alignment c_css_simple_selector_t}
 
   peek ptr = do
-    a <- #{peek hll_CssSimpleSelector, selector_class} ptr
-    b <- #{peek hll_CssSimpleSelector, selector_class_size} ptr
-    c <- #{peek hll_CssSimpleSelector, selector_pseudo_class} ptr
-    d <- #{peek hll_CssSimpleSelector, selector_pseudo_class_size} ptr
-    e <- #{peek hll_CssSimpleSelector, selector_id} ptr
-    f <- #{peek hll_CssSimpleSelector, selector_element} ptr
-    g <- #{peek hll_CssSimpleSelector, alloced} ptr
+    a <- #{peek c_css_simple_selector_t, c_selector_class} ptr
+    b <- #{peek c_css_simple_selector_t, c_selector_class_size} ptr
+    c <- #{peek c_css_simple_selector_t, c_selector_pseudo_class} ptr
+    d <- #{peek c_css_simple_selector_t, c_selector_pseudo_class_size} ptr
+    e <- #{peek c_css_simple_selector_t, c_selector_id} ptr
+    f <- #{peek c_css_simple_selector_t, c_selector_element} ptr
+    g <- #{peek c_css_simple_selector_t, c_alloced} ptr
     return (HelloCssSimpleSelector a b c d e f g)
 
 
   poke ptr (HelloCssSimpleSelector selectorClassI selector_class_size_I selector_pseudo_class_I selector_pseudo_class_size_I selector_id_I selector_element_I alloced_I) = do
-    #{poke hll_CssSimpleSelector, selector_class}             ptr selectorClassI
-    #{poke hll_CssSimpleSelector, selector_class_size}        ptr selector_class_size_I
-    #{poke hll_CssSimpleSelector, selector_pseudo_class}      ptr selector_pseudo_class_I
-    #{poke hll_CssSimpleSelector, selector_pseudo_class_size} ptr selector_pseudo_class_size_I
-    #{poke hll_CssSimpleSelector, selector_id}                ptr selector_id_I
-    #{poke hll_CssSimpleSelector, selector_element}           ptr selector_element_I
-    #{poke hll_CssSimpleSelector, alloced}                    ptr alloced_I
+    #{poke c_css_simple_selector_t, c_selector_class}             ptr selectorClassI
+    #{poke c_css_simple_selector_t, c_selector_class_size}        ptr selector_class_size_I
+    #{poke c_css_simple_selector_t, c_selector_pseudo_class}      ptr selector_pseudo_class_I
+    #{poke c_css_simple_selector_t, c_selector_pseudo_class_size} ptr selector_pseudo_class_size_I
+    #{poke c_css_simple_selector_t, c_selector_id}                ptr selector_id_I
+    #{poke c_css_simple_selector_t, c_selector_element}           ptr selector_element_I
+    #{poke c_css_simple_selector_t, c_alloced}                    ptr alloced_I
 
 
 
 
 -- Save given Haskell simple selector to C simple selector.
 setSimpleSelector :: Ptr HelloCssSimpleSelector -> CssSimpleSelector -> IO ()
-setSimpleSelector hll_simpleSelector simpleSelector = do
+setSimpleSelector ptrStructSimpleSelector simpleSelector = do
   cStringPtrSelId <- if T.null . selectorId $ simpleSelector
                      then return nullPtr
                      else newCString . T.unpack . selectorId $ simpleSelector
 
-  setArrayOfStringPointers (selectorClass simpleSelector) hll_simpleSelector 0             -- Bytes 0-9
-  pokeByteOff hll_simpleSelector (8 * 10) (length . selectorClass $ simpleSelector)        -- Byte 10
+  setArrayOfStringPointers (selectorClass simpleSelector) ptrStructSimpleSelector 0             -- Bytes 0-9
+  pokeByteOff ptrStructSimpleSelector (8 * 10) (length . selectorClass $ simpleSelector)        -- Byte 10
 
-  setArrayOfStringPointers (selectorPseudoClass simpleSelector) hll_simpleSelector 11      -- Bytes 11-20
-  pokeByteOff hll_simpleSelector (8 * 21) (length . selectorPseudoClass $ simpleSelector)  -- Byte 21
+  setArrayOfStringPointers (selectorPseudoClass simpleSelector) ptrStructSimpleSelector 11      -- Bytes 11-20
+  pokeByteOff ptrStructSimpleSelector (8 * 21) (length . selectorPseudoClass $ simpleSelector)  -- Byte 21
 
-  pokeByteOff hll_simpleSelector (8 * 22) cStringPtrSelId                                  -- Byte 22
-  pokeByteOff hll_simpleSelector (8 * 23) (selectorElement simpleSelector)                 -- Byte 23
+  pokeByteOff ptrStructSimpleSelector (8 * 22) cStringPtrSelId                                  -- Byte 22
+  pokeByteOff ptrStructSimpleSelector (8 * 23) (selectorElement simpleSelector)                 -- Byte 23
 
 
 
@@ -477,11 +477,11 @@ setSimpleSelector hll_simpleSelector simpleSelector = do
 -- The pointers are stored in a structure given by second arg.
 -- Offset to beginning of the array of pointers (to first cell) is given by third arg.
 setArrayOfStringPointers :: [T.Text] -> Ptr HelloCssSimpleSelector -> Int ->  IO Int
-setArrayOfStringPointers [] hll_simpleSelector arrayPosition = do
+setArrayOfStringPointers [] ptrStructSimpleSelector arrayPosition = do
   return arrayPosition
-setArrayOfStringPointers (x:xs) hll_simpleSelector arrayPosition = do
+setArrayOfStringPointers (x:xs) ptrStructSimpleSelector arrayPosition = do
   let pointerSize = 8
   str  <- newCString . T.unpack $ x
-  pokeByteOff hll_simpleSelector (arrayPosition * pointerSize) str
-  setArrayOfStringPointers xs hll_simpleSelector (arrayPosition + 1)
+  pokeByteOff ptrStructSimpleSelector (arrayPosition * pointerSize) str
+  setArrayOfStringPointers xs ptrStructSimpleSelector (arrayPosition + 1)
 

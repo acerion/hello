@@ -26,3 +26,5 @@ clean:
 	rm -rf ffi/*.o ffi/*.hi ffi/*.h
 	rm ffi/Gif.hs
 	rm ffi/HtmlTag.hs
+	rm ffi/CssParser.hs
+
