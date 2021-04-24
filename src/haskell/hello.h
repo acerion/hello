@@ -32,7 +32,12 @@ typedef struct hll_CssSimpleSelector {
       CssSimpleSelector struct. */
    char * selector_class[10];
    int selector_class_size;
-   char * selector_pseudo_class;
+
+   /* In CSS there can be more pseudo-classes and Haskell can read them, but
+      for now C/C++ code will only use first one. */
+   char * selector_pseudo_class[10];
+   int selector_pseudo_class_size;
+
    char * selector_id;
    int selector_element; /* Index corresponding to html.cc::Tags[]. */
    int alloced;

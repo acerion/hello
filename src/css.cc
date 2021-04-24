@@ -195,7 +195,7 @@ void cssSelectorAddSimpleSelector(CssSelector * selector, Combinator c) {
 
 bool CssSelector::checksPseudoClass () {
    for (int i = 0; i < selectorListSize; i++)
-      if (nullptr != selectorList[i].simpleSelector.selector_pseudo_class)
+      if (selectorList[i].simpleSelector.selector_pseudo_class_size > 0) // Remember that C/C++ code can use only first pseudo class
          return true;
    return false;
 }
@@ -252,8 +252,8 @@ bool simple_selector_matches(CssSimpleSelector * selector, const DoctreeNode *n)
    assert (n);
    if (selector->selector_element != CssSimpleSelectorElementAny && selector->selector_element != n->html_element_idx)
       return false;
-   if (selector->selector_pseudo_class != NULL &&
-      (n->pseudo == NULL || dStrAsciiCasecmp (selector->selector_pseudo_class, n->pseudo) != 0))
+   if (selector->selector_pseudo_class_size > 0 &&
+       (n->pseudo == NULL || dStrAsciiCasecmp (selector->selector_pseudo_class[0], n->pseudo) != 0)) // C/C++ code can use only first pseudo class
       return false;
    if (selector->selector_id != NULL && (n->element_id == NULL || dStrAsciiCasecmp (selector->selector_id, n->element_id) != 0))
       return false;
@@ -286,7 +286,7 @@ int cssSimpleSelectorSpecificity(CssSimpleSelector * selector)
    if (selector->selector_id)
       spec += 1 << 20;
    spec += selector->selector_class_size << 10;
-   if (selector->selector_pseudo_class)
+   if (selector->selector_pseudo_class_size > 0) // Remember that C/C++ code can use only first pseudo code.
       spec += 1 << 10;
    if (selector->selector_element != CssSimpleSelectorElementAny)
       spec += 1;
@@ -304,8 +304,16 @@ void printCssSimpleSelector(CssSimpleSelector * selector, FILE * file)
       fprintf(file, "Element [%s]\n", a_Html_tag_name(selector->selector_element));
    }
 
-   if (selector->selector_pseudo_class) {
-      fprintf(file, "            Rule SimpleSelector: selector = Pseudo class [%s]\n", selector->selector_pseudo_class);
+   if (selector->selector_pseudo_class_size > 0) {
+      fprintf(file, "            Rule SimpleSelector: selector = Pseudo class [");
+      for (int i = 0; i < selector->selector_pseudo_class_size; i++) {
+         if (0 == i) {
+            fprintf(file, "%s", selector->selector_pseudo_class[i]);
+         } else {
+            fprintf(file, " %s", selector->selector_pseudo_class[i]);
+         }
+      }
+      fprintf(file, "]\n");
    }
    if (selector->selector_id) {
       fprintf(file, "            Rule SimpleSelector: selector = ID %s\n", selector->selector_id);

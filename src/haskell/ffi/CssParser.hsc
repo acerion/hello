@@ -388,8 +388,8 @@ hll_cssParseSimpleSelector hll_cssparser hll_simpleSelector tokType cTokValue cB
 
   a <- if nullPtr == selectorPseudoClassC simSel then return "" else (peekCString . selectorPseudoClassC $ simSel)
   b <- if nullPtr == selectorIdC simSel then return "" else (peekCString . selectorIdC $ simSel)
-  let c = [] -- selectorClassC simSel
-  let simSel2 = defaultSimpleSelector { selectorPseudoClass = T.pack a
+  let c = [] -- selectorClassC simSel -- TODO: create the array from simSel
+  let simSel2 = defaultSimpleSelector { selectorPseudoClass = []
                                       , selectorId = T.pack b
                                       , selectorClass = c
                                       , selectorElement = selectorElementC simSel
@@ -412,12 +412,15 @@ hll_cssParseSimpleSelector hll_cssparser hll_simpleSelector tokType cTokValue cB
 
 
 data HelloCssSimpleSelector = HelloCssSimpleSelector {
-    selectorClassC         :: CString
-  , selectorClassSizeC     :: Int
-  , selectorPseudoClassC   :: CString
-  , selectorIdC            :: CString
-  , selectorElementC       :: Int
-  , allocedC               :: Int
+    selectorClassC           :: CString
+  , selectorClassSizeC       :: Int
+
+  , selectorPseudoClassC     :: CString
+  , selectorPseudoClassSizeC :: Int
+
+  , selectorIdC              :: CString
+  , selectorElementC         :: Int
+  , allocedC                 :: Int
   } deriving (Show)
 
 
@@ -431,45 +434,54 @@ instance Storable HelloCssSimpleSelector where
     a <- #{peek hll_CssSimpleSelector, selector_class} ptr
     b <- #{peek hll_CssSimpleSelector, selector_class_size} ptr
     c <- #{peek hll_CssSimpleSelector, selector_pseudo_class} ptr
-    d <- #{peek hll_CssSimpleSelector, selector_id} ptr
-    e <- #{peek hll_CssSimpleSelector, selector_element} ptr
-    f <- #{peek hll_CssSimpleSelector, alloced} ptr
-    return (HelloCssSimpleSelector a b c d e f)
+    d <- #{peek hll_CssSimpleSelector, selector_pseudo_class_size} ptr
+    e <- #{peek hll_CssSimpleSelector, selector_id} ptr
+    f <- #{peek hll_CssSimpleSelector, selector_element} ptr
+    g <- #{peek hll_CssSimpleSelector, alloced} ptr
+    return (HelloCssSimpleSelector a b c d e f g)
 
 
-  poke ptr (HelloCssSimpleSelector selectorClassI selector_class_size_I selector_pseudo_class_I selector_id_I selector_element_I alloced_I) = do
-    #{poke hll_CssSimpleSelector, selector_class}        ptr selectorClassI
-    #{poke hll_CssSimpleSelector, selector_class_size}   ptr selector_class_size_I
-    #{poke hll_CssSimpleSelector, selector_pseudo_class} ptr selector_pseudo_class_I
-    #{poke hll_CssSimpleSelector, selector_id}           ptr selector_id_I
-    #{poke hll_CssSimpleSelector, selector_element}      ptr selector_element_I
-    #{poke hll_CssSimpleSelector, alloced}               ptr alloced_I
+  poke ptr (HelloCssSimpleSelector selectorClassI selector_class_size_I selector_pseudo_class_I selector_pseudo_class_size_I selector_id_I selector_element_I alloced_I) = do
+    #{poke hll_CssSimpleSelector, selector_class}             ptr selectorClassI
+    #{poke hll_CssSimpleSelector, selector_class_size}        ptr selector_class_size_I
+    #{poke hll_CssSimpleSelector, selector_pseudo_class}      ptr selector_pseudo_class_I
+    #{poke hll_CssSimpleSelector, selector_pseudo_class_size} ptr selector_pseudo_class_size_I
+    #{poke hll_CssSimpleSelector, selector_id}                ptr selector_id_I
+    #{poke hll_CssSimpleSelector, selector_element}           ptr selector_element_I
+    #{poke hll_CssSimpleSelector, alloced}                    ptr alloced_I
 
 
 
 
-setSimpleSelector :: Ptr HelloCssSimpleSelector -> CssSimpleSelector -> IO Int
+-- Save given Haskell simple selector to C simple selector.
+setSimpleSelector :: Ptr HelloCssSimpleSelector -> CssSimpleSelector -> IO ()
 setSimpleSelector hll_simpleSelector simpleSelector = do
-  a <- if T.null . selectorPseudoClass $ simpleSelector
-       then return nullPtr
-       else newCString . T.unpack . selectorPseudoClass $ simpleSelector
-  b <- if T.null . selectorId $ simpleSelector
-       then return nullPtr
-       else newCString . T.unpack . selectorId $ simpleSelector
-  pokeByteOff hll_simpleSelector (8 * 10) (length . selectorClass $ simpleSelector) -- selector_class_size
-  pokeByteOff hll_simpleSelector (8 * 11) a       -- selector_pseudo_class
-  pokeByteOff hll_simpleSelector (8 * 12) b       -- selector_id
-  pokeByteOff hll_simpleSelector (8 * 13) (selectorElement simpleSelector)          -- selector_element
-  --setSimpleSelectorClass ["aa", "bb"] 0 hll_simpleSelector
-  setSimpleSelectorClass (selectorClass simpleSelector) 0 hll_simpleSelector
+  cStringPtrSelId <- if T.null . selectorId $ simpleSelector
+                     then return nullPtr
+                     else newCString . T.unpack . selectorId $ simpleSelector
+
+  setArrayOfStringPointers (selectorClass simpleSelector) hll_simpleSelector 0             -- Bytes 0-9
+  pokeByteOff hll_simpleSelector (8 * 10) (length . selectorClass $ simpleSelector)        -- Byte 10
+
+  setArrayOfStringPointers (selectorPseudoClass simpleSelector) hll_simpleSelector 11      -- Bytes 11-20
+  pokeByteOff hll_simpleSelector (8 * 21) (length . selectorPseudoClass $ simpleSelector)  -- Byte 21
+
+  pokeByteOff hll_simpleSelector (8 * 22) cStringPtrSelId                                  -- Byte 22
+  pokeByteOff hll_simpleSelector (8 * 23) (selectorElement simpleSelector)                 -- Byte 23
 
 
 
-setSimpleSelectorClass :: [T.Text] -> Int -> Ptr HelloCssSimpleSelector ->  IO Int
-setSimpleSelectorClass [] idx hll_simpleSelector = do
-  return idx
-setSimpleSelectorClass (x:xs) idx hll_simpleSelector = do
+
+-- Save given array of texts as array pointer to C strings.
+-- The pointers are allocated by this function.
+-- The pointers are stored in a structure given by second arg.
+-- Offset to beginning of the array of pointers (to first cell) is given by third arg.
+setArrayOfStringPointers :: [T.Text] -> Ptr HelloCssSimpleSelector -> Int ->  IO Int
+setArrayOfStringPointers [] hll_simpleSelector arrayPosition = do
+  return arrayPosition
+setArrayOfStringPointers (x:xs) hll_simpleSelector arrayPosition = do
+  let pointerSize = 8
   str  <- newCString . T.unpack $ x
-  pokeByteOff hll_simpleSelector (8 * idx) str
-  setSimpleSelectorClass xs (idx+1) hll_simpleSelector
+  pokeByteOff hll_simpleSelector (arrayPosition * pointerSize) str
+  setArrayOfStringPointers xs hll_simpleSelector (arrayPosition + 1)
 

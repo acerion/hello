@@ -76,6 +76,7 @@ module CssParser(nextToken
                 , parseSimpleSelector
                 , defaultSimpleSelector
                 , CssSimpleSelector (..)
+                , takeSimpleSelectorTokens
 
                 , defaultParser) where
 
@@ -1077,7 +1078,7 @@ cssParseWeight (parser, tok)          = ((parser, tok), False)
 
 
 data CssSimpleSelector = CssSimpleSelector {
-    selectorPseudoClass :: T.Text
+    selectorPseudoClass :: [T.Text]
   , selectorId          :: T.Text
   , selectorClass       :: [T.Text]
   , selectorElement     :: Int
@@ -1093,7 +1094,7 @@ cssSimpleSelectorElementAny = (-2)
 
 
 defaultSimpleSelector = CssSimpleSelector {
-    selectorPseudoClass = ""
+    selectorPseudoClass = []
   , selectorId = ""
   , selectorClass = []
   , selectorElement = cssSimpleSelectorElementAny
@@ -1137,9 +1138,9 @@ setSimpleSelector :: CssSimpleSelector -> CssSelectorType -> T.Text -> CssSimple
 setSimpleSelector simpleSelector selectorType sym =
   case selectorType of
     CssSelectorTypeClass       -> simpleSelector {selectorClass = (selectorClass simpleSelector) ++ [sym]}
-    CssSelectorTypePseudoClass -> if selectorPseudoClass simpleSelector == ""
-                                  then simpleSelector {selectorPseudoClass = sym}
-                                  else simpleSelector
+    CssSelectorTypePseudoClass -> if T.null sym
+                                  then simpleSelector
+                                  else simpleSelector {selectorPseudoClass = (selectorPseudoClass simpleSelector) ++ [sym]}
     CssSelectorTypeID          -> if selectorId simpleSelector == ""
                                   then simpleSelector {selectorId = sym}
                                   else simpleSelector
@@ -1148,13 +1149,19 @@ setSimpleSelector simpleSelector selectorType sym =
 
 
 
+
+-- TODO: it seems that we will have to have Space tokens too, to properly
+-- recognize where simple selector ends. Right now I had to add the call to
+-- isSpaceSeparated to recognize the space that ends a simple selector.
 takeSimpleSelectorTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
 takeSimpleSelectorTokens (parser, token) = takeNext (parser, token) []
   where
     takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
     takeNext (parser, token) tokens = case token of
                                         CssTokNone    -> takeNext (nextToken parser) tokens -- Kick-start taking tokens.
-                                        CssTokSym sym -> takeNext (nextToken parser) (tokens ++ [token])
+                                        CssTokSym sym -> if isSpaceSeparated parser -- Take only ":"+"link" tokens in situations like this: ":link img, :visited img {...}".
+                                                         then ((nextToken parser), (tokens ++ [token]))
+                                                         else takeNext (nextToken parser) (tokens ++ [token])
                                         CssTokCh '*'  -> takeNext (nextToken parser) (tokens ++ [token])
                                         CssTokCh '#'  -> takeNext (nextToken parser) (tokens ++ [token])
                                         CssTokCh '.'  -> takeNext (nextToken parser) (tokens ++ [token])
@@ -1163,3 +1170,5 @@ takeSimpleSelectorTokens (parser, token) = takeNext (parser, token) []
 
 
 
+isSpaceSeparated parser = spaceSeparated newParser
+  where (newParser, newToken) = nextToken parser
