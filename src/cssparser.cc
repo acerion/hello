@@ -685,58 +685,52 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
       nextToken(&this->tokenizer, &this->hll_css_parser);
 }
 
-bool CssParser::parseSimpleSelector(CssSimpleSelector *simpleSelector)
+bool parseSelector(CssParser * cssParser, CssSelector * selector)
 {
-   c_css_simple_selector_t * simSel = (c_css_simple_selector_t *) simpleSelector;
-   bool valid = hll_cssParseSimpleSelector(&this->hll_css_parser, simSel, tokenizer.type, tokenizer.value, tokenizer.buf + tokenizer.bufOffset);
-   simSel->c_alloced = true;
-   tokenizer.bufOffset = this->hll_css_parser.c_buf_offset;
-   snprintf(tokenizer.value, sizeof (tokenizer.value), "%s", this->hll_css_parser.c_token_value);
-   tokenizer.type = (CssTokenType) this->hll_css_parser.c_token_type;
-
-   return valid;
-}
-
-CssSelector *CssParser::parseSelector()
-{
-   CssSelector *selector = new CssSelector ();
+   bool success = true;
 
    while (true) {
-      CssSimpleSelector * simSel = selector->top ();
-      if (! parseSimpleSelector (selector->top ())) {
-         fprintf(stderr, "========= failed to parse simple selector\n");
-         delete selector;
-         selector = NULL;
-         break;
-      } else {
-         fprintf(stderr, "========= parsed simple selector:\n");
-         printCssSimpleSelector(simSel, stderr);
+      CssSimpleSelector * simpleSelector = selectorGetTopSimpleSelector(selector);
+
+      bool simpleSelectorIsValid = false;
+      {
+         c_css_simple_selector_t * simSel = (c_css_simple_selector_t *) simpleSelector;
+         simpleSelectorIsValid = hll_cssParseSimpleSelector(&cssParser->hll_css_parser, simSel,
+                                                            cssParser->tokenizer.type, cssParser->tokenizer.value,
+                                                            cssParser->tokenizer.buf + cssParser->tokenizer.bufOffset);
+         cssParser->tokenizer.bufOffset = cssParser->hll_css_parser.c_buf_offset;
+         snprintf(cssParser->tokenizer.value, sizeof (cssParser->tokenizer.value), "%s", cssParser->hll_css_parser.c_token_value);
+         cssParser->tokenizer.type = (CssTokenType) cssParser->hll_css_parser.c_token_type;
       }
 
-      if (tokenizer.type == CSS_TOKEN_TYPE_CHAR &&
-         (tokenizer.value[0] == ',' || tokenizer.value[0] == '{')) {
+      if (!simpleSelectorIsValid) {
+         success = false;
          break;
-      } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '>') {
+      }
+
+      if (cssParser->tokenizer.type == CSS_TOKEN_TYPE_CHAR &&
+         (cssParser->tokenizer.value[0] == ',' || cssParser->tokenizer.value[0] == '{')) {
+         break;
+      } else if (cssParser->tokenizer.type == CSS_TOKEN_TYPE_CHAR && cssParser->tokenizer.value[0] == '>') {
          cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorChild);
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-      } else if (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == '+') {
+         nextToken(&cssParser->tokenizer, &cssParser->hll_css_parser);
+      } else if (cssParser->tokenizer.type == CSS_TOKEN_TYPE_CHAR && cssParser->tokenizer.value[0] == '+') {
          cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorAdjacentSibling);
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-      } else if (tokenizer.type != CSS_TOKEN_TYPE_END && this->hll_css_parser.c_space_separated) {
+         nextToken(&cssParser->tokenizer, &cssParser->hll_css_parser);
+      } else if (cssParser->tokenizer.type != CSS_TOKEN_TYPE_END && cssParser->hll_css_parser.c_space_separated) {
          cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorDescendant);
       } else {
-         delete selector;
-         selector = NULL;
+         success = false;
          break;
       }
    }
 
-   while (tokenizer.type != CSS_TOKEN_TYPE_END &&
-          (tokenizer.type != CSS_TOKEN_TYPE_CHAR ||
-           (tokenizer.value[0] != ',' && tokenizer.value[0] != '{')))
-         nextToken(&this->tokenizer, &this->hll_css_parser);
+   while (cssParser->tokenizer.type != CSS_TOKEN_TYPE_END &&
+          (cssParser->tokenizer.type != CSS_TOKEN_TYPE_CHAR ||
+           (cssParser->tokenizer.value[0] != ',' && cssParser->tokenizer.value[0] != '{')))
+         nextToken(&cssParser->tokenizer, &cssParser->hll_css_parser);
 
-   return selector;
+   return success;
 }
 
 void CssParser::parseRuleset()
@@ -744,12 +738,13 @@ void CssParser::parseRuleset()
    lout::misc::SimpleVector < CssSelector * > * selectors = new lout::misc::SimpleVector < CssSelector * >(1);
 
    while (true) {
-      CssSelector * selector = parseSelector();
-
-      if (selector) {
-         selector->ref();
+      CssSelector * selector = new CssSelector;
+      selector_init(selector);
+      if (parseSelector(this, selector)) {
          selectors->increase();
          selectors->set(selectors->size() - 1, selector);
+      } else {
+         delete selector;
       }
 
       // \todo dump whole ruleset in case of parse error as required by CSS 2.1
@@ -792,8 +787,6 @@ void CssParser::parseRuleset()
          context->addRule(sel, declList, CSS_PRIMARY_AUTHOR);
          context->addRule(sel, importantProps, CSS_PRIMARY_AUTHOR_IMPORTANT);
       }
-
-      sel->unref();
    }
 
 

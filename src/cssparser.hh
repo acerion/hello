@@ -28,7 +28,7 @@ struct CssTokenizer {
 };
 
 class CssParser {
-   private:
+   public:
 
       CssContext *context;
       CssOrigin origin;
@@ -46,14 +46,11 @@ class CssParser {
       bool parseWeight();
       void parseDeclaration(CssDeclartionList * declList,
                             CssDeclartionList * declListImportant);
-      bool parseSimpleSelector(CssSimpleSelector *selector);
       char *parseUrl();
       void parseImport(DilloHtml *html);
       void parseMedia();
-      CssSelector *parseSelector();
       void parseRuleset();
 
-   public:
       static void parseElementStyleAttribute(const DilloUrl *baseUrl,
                                              const char * cssStyleAttribute, int buflen,
                                              CssDeclartionList * declList,
@@ -61,5 +58,6 @@ class CssParser {
       static void parse(DilloHtml *html, const DilloUrl *baseUrl, CssContext *context,
                         const char *buf, int buflen, CssOrigin origin);
 };
+bool parseSelector(CssParser * cssParser, CssSelector * selector);
 
 #endif

@@ -415,7 +415,6 @@ data HelloCssSimpleSelector = HelloCssSimpleSelector {
 
   , selectorIdC              :: CString
   , selectorElementC         :: CInt
-  , allocedC                 :: CInt
   } deriving (Show)
 
 
@@ -432,18 +431,16 @@ instance Storable HelloCssSimpleSelector where
     d <- #{peek c_css_simple_selector_t, c_selector_pseudo_class_size} ptr
     e <- #{peek c_css_simple_selector_t, c_selector_id} ptr
     f <- #{peek c_css_simple_selector_t, c_selector_element} ptr
-    g <- #{peek c_css_simple_selector_t, c_alloced} ptr
-    return (HelloCssSimpleSelector a b c d e f g)
+    return (HelloCssSimpleSelector a b c d e f)
 
 
-  poke ptr (HelloCssSimpleSelector selectorClassI selector_class_size_I selector_pseudo_class_I selector_pseudo_class_size_I selector_id_I selector_element_I alloced_I) = do
+  poke ptr (HelloCssSimpleSelector selectorClassI selector_class_size_I selector_pseudo_class_I selector_pseudo_class_size_I selector_id_I selector_element_I) = do
     #{poke c_css_simple_selector_t, c_selector_class}             ptr selectorClassI
     #{poke c_css_simple_selector_t, c_selector_class_size}        ptr selector_class_size_I
     #{poke c_css_simple_selector_t, c_selector_pseudo_class}      ptr selector_pseudo_class_I
     #{poke c_css_simple_selector_t, c_selector_pseudo_class_size} ptr selector_pseudo_class_size_I
     #{poke c_css_simple_selector_t, c_selector_id}                ptr selector_id_I
     #{poke c_css_simple_selector_t, c_selector_element}           ptr selector_element_I
-    #{poke c_css_simple_selector_t, c_alloced}                    ptr alloced_I
 
 
 

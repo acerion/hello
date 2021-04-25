@@ -52,7 +52,6 @@ typedef struct c_css_simple_selector_t {
 
    char * c_selector_id;
    int c_selector_element; /* Index corresponding to html.cc::Tags[]. */
-   int c_alloced;
 } c_css_simple_selector_t;
 
 

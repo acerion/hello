@@ -268,7 +268,6 @@ typedef struct CssSimpleSelector {
 
    char * selector_id = nullptr;
    int selector_element = CssSimpleSelectorElementAny; /* Index corresponding to html.cc::Tags[]. */
-   int alloced = false;
 } CssSimpleSelector;
 void printCssSimpleSelector(CssSimpleSelector * selector, FILE * file);
 bool simple_selector_matches(CssSimpleSelector * selector, const DoctreeNode *node);
@@ -293,47 +292,29 @@ typedef enum {
               CssSelectorCombinatorChild,
               CssSelectorCombinatorAdjacentSibling,
 } Combinator;
-struct CombinatorAndSelector {
+
+struct CombinatorAndSimpleSelector {
    Combinator combinator;
    CssSimpleSelector simpleSelector;
 };
-class CssSelector {
-   public:
 
-      int refCount, matchCacheOffset;
-      struct CombinatorAndSelector selectorList[10];
-      int selectorListSize = 0;
+typedef struct CssSelector {
+   int matchCacheOffset = -1;
+   struct CombinatorAndSimpleSelector combinatorAndSimpleSelectorList[10];
+   int combinatorAndSimpleSelectorListSize = 1;
+} CssSelector;
 
-      bool full_selector_matches(Doctree *dt, const DoctreeNode *node, int i, Combinator comb,
-                                 MatchCache *matchCache);
+void selector_init(CssSelector * selector);
 
-      CssSelector ();
-      ~CssSelector ();
-      inline CssSimpleSelector *top() {
-         if (selectorList[selectorListSize - 1].simpleSelector.alloced) {
-            return &selectorList[selectorListSize - 1].simpleSelector;
-         } else {
-            return NULL;
-         }
-      }
-      inline bool full_selector_submatches(Doctree *dt, const DoctreeNode *node,
-                         MatchCache *matchCache) {
-         return full_selector_matches(dt, node, selectorListSize - 1, CssSelectorCombinatorNone,
-                                      matchCache);
-      }
-      inline void setMatchCacheOffset (int mo) {
-         if (matchCacheOffset == -1)
-            matchCacheOffset = mo;
-      }
-      inline int getRequiredMatchCache () {
-         return matchCacheOffset + this->selectorListSize;
-      }
-      int specificity ();
-      bool checksPseudoClass ();
-      void printCssSelector (FILE * file);
-      inline void ref () { refCount++; }
-      inline void unref () { if (--refCount == 0) delete this; }
-};
+bool selector_full_selector_matches(CssSelector * selector, Doctree *dt, const DoctreeNode *node, int i, Combinator comb,  MatchCache *matchCache);
+bool selector_full_selector_submatches(CssSelector * selector, Doctree *dt, const DoctreeNode *node, MatchCache *matchCache);
+
+CssSimpleSelector * selectorGetTopSimpleSelector(CssSelector * selector);
+void selectorSetMatchCacheOffset(CssSelector * selector, int mo);
+int selectorGetRequiredMatchCache(CssSelector * selector);
+bool selectorChecksPseudoClass(CssSelector * selector);
+int selectorSpecificity(CssSelector * selector);
+void printCssSelector(CssSelector * selector, FILE * file);
 void cssSelectorAddSimpleSelector(CssSelector * selector, Combinator c);
 
 
@@ -351,12 +332,11 @@ class CssRule {
       CssDeclartionList * declList = nullptr;
 
       CssRule(CssSelector *selector, CssDeclartionList * declList, int pos);
-      ~CssRule();
 
       void apply_css_rule(FILE * file, CssDeclartionList * outDeclList, Doctree *docTree,
                           const DoctreeNode *node, MatchCache *matchCache) const;
       inline bool isSafe() {
-         return !selector->checksPseudoClass () || declList->isSafe;
+         return !selectorChecksPseudoClass(selector) || declList->isSafe;
       };
       void printCssRule(FILE * file) const;
 };
@@ -372,10 +352,6 @@ class CssStyleSheet {
                        public lout::object::Object {
          public:
             RuleList () : lout::misc::SimpleVector <CssRule*> (1) {};
-            ~RuleList () {
-               for (int i = 0; i < size (); i++)
-                  delete get (i);
-            };
 
             void insert (CssRule *rule);
             inline bool equals (lout::object::Object *other) {
