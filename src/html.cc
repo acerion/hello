@@ -1178,9 +1178,10 @@ static void Html_tag_cleanup_to_idx(DilloHtml *html, int idx)
  */
 static void Html_tag_cleanup_at_close(DilloHtml *html, int new_idx)
 {
-   static int i_BUTTON = a_Html_tag_index("button"),
-              i_SELECT = a_Html_tag_index("select"),
-              i_TEXTAREA = a_Html_tag_index("textarea");
+   static int i_BUTTON   = hll_htmlTagIndex("button");
+   static int i_SELECT   = hll_htmlTagIndex("select");
+   static int i_TEXTAREA = hll_htmlTagIndex("textarea");
+
    int w3c_mode = !prefs.w3c_plus_heuristics;
    int stack_idx, tag_idx, matched = 0, expected = 0;
    TagInfo new_tag = Tags[new_idx];
@@ -1226,9 +1227,10 @@ static void Html_tag_cleanup_at_close(DilloHtml *html, int new_idx)
  */
 static void Html_tag_cleanup_nested_inputs(DilloHtml *html, int new_idx)
 {
-   static int i_BUTTON = a_Html_tag_index("button"),
-              i_SELECT = a_Html_tag_index("select"),
-              i_TEXTAREA = a_Html_tag_index("textarea");
+   static int i_BUTTON   = hll_htmlTagIndex("button");
+   static int i_SELECT   = hll_htmlTagIndex("select");
+   static int i_TEXTAREA = hll_htmlTagIndex("textarea");
+
    int stack_idx, u_idx, matched = 0;
 
    dReturn_if_fail(html->InFlags & (IN_BUTTON | IN_SELECT | IN_TEXTAREA));
@@ -1654,7 +1656,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 {
    const char *attrbuf;
    int32_t color;
-   int tag_index_a = a_Html_tag_index ("a");
+   const int tag_index_a = hll_htmlTagIndex("a");
    style::Color *bgColor;
    style::StyleImage *bgImage;
    style::BackgroundRepeat bgRepeat;
@@ -2877,7 +2879,7 @@ static int Html_tag_pre_excludes(DilloHtml *html, int tag_idx)
       /* initialize array */
       if (!ei_set[0])
          for (i = 0; es_set[i]; ++i)
-            ei_set[i] = a_Html_tag_index(es_set[i]);
+            ei_set[i] = hll_htmlTagIndex(es_set[i]);
 
       for (i = 0; ei_set[i]; ++i)
          if (tag_idx == ei_set[i])
@@ -3355,45 +3357,6 @@ const TagInfo Tags[] = {
 
 
 /*
- * Compares tag from buffer ('/' or '>' or space-ended string) [p1]
- * with tag from taglist (lowercase, zero ended string) [p2]
- * Return value: as strcmp()
- */
-static int Html_tag_compare(const char *p1, const char *p2)
-{
-   while ( *p2 ) {
-      if (D_ASCII_TOLOWER(*p1) != *p2)
-         return(D_ASCII_TOLOWER(*p1) - *p2);
-      ++p1;
-      ++p2;
-   }
-   return !strchr(" >/\n\r\t", *p1);
-}
-
-/*
- * Get 'tag' index
- * return -1 if tag is not handled yet
- */
-int a_Html_tag_index(const char *tag)
-{
-   int low, high, mid, cond;
-
-   /* Binary search */
-   low = 0;
-   high = NTAGS - 1;          /* Last tag index */
-   while (low <= high) {
-      mid = (low + high) / 2;
-      if ((cond = Html_tag_compare(tag, Tags[mid].name)) < 0 )
-         high = mid - 1;
-      else if (cond > 0)
-         low = mid + 1;
-      else
-         return mid;
-   }
-   return -1;
-}
-
-/*
  * Get 'tag' index
  * return -1 if tag is not handled yet
  */
@@ -3414,17 +3377,17 @@ static int Html_needs_optional_close(int old_idx, int cur_idx)
 
    if (i_P == -1) {
     /* initialize the indexes of elements with optional close */
-    i_P  = a_Html_tag_index("p"),
-    i_LI = a_Html_tag_index("li"),
-    i_TD = a_Html_tag_index("td"),
-    i_TR = a_Html_tag_index("tr"),
-    i_TH = a_Html_tag_index("th"),
-    i_DD = a_Html_tag_index("dd"),
-    i_DT = a_Html_tag_index("dt"),
-    i_OPTION = a_Html_tag_index("option");
-    // i_THEAD = a_Html_tag_index("thead");
-    // i_TFOOT = a_Html_tag_index("tfoot");
-    // i_COLGROUP = a_Html_tag_index("colgroup");
+    i_P  = hll_htmlTagIndex("p"),
+    i_LI = hll_htmlTagIndex("li"),
+    i_TD = hll_htmlTagIndex("td"),
+    i_TR = hll_htmlTagIndex("tr"),
+    i_TH = hll_htmlTagIndex("th"),
+    i_DD = hll_htmlTagIndex("dd"),
+    i_DT = hll_htmlTagIndex("dt"),
+    i_OPTION = hll_htmlTagIndex("option");
+    // i_THEAD = hll_htmlTagIndex("thead");
+    // i_TFOOT = hll_htmlTagIndex("tfoot");
+    // i_COLGROUP = hll_htmlTagIndex("colgroup");
    }
 
    if (old_idx == i_P || old_idx == i_DT) {
@@ -3522,7 +3485,7 @@ static void Html_test_section(DilloHtml *html, int new_idx, int IsCloseTag)
 
    if (!(html->InFlags & IN_HTML)) {
       tag = "<html>";
-      tag_idx = a_Html_tag_index(tag + 1);
+      tag_idx = hll_htmlTagIndex(tag + 1);
       if (tag_idx != new_idx || IsCloseTag) {
          /* implicit open */
          Html_force_push_tag(html, tag_idx);
@@ -3535,7 +3498,7 @@ static void Html_test_section(DilloHtml *html, int new_idx, int IsCloseTag)
       /* head element */
       if (!(html->InFlags & IN_HEAD) && html->Num_HEAD == 0) {
          tag = "<head>";
-         tag_idx = a_Html_tag_index(tag + 1);
+         tag_idx = hll_htmlTagIndex(tag + 1);
          if (tag_idx != new_idx || IsCloseTag) {
             /* implicit open of the head element */
             Html_force_push_tag(html, tag_idx);
@@ -3548,11 +3511,11 @@ static void Html_test_section(DilloHtml *html, int new_idx, int IsCloseTag)
       /* body element */
       if (html->InFlags & IN_HEAD) {
          tag = "</head>";
-         tag_idx = a_Html_tag_index(tag + 2);
+         tag_idx = hll_htmlTagIndex(tag + 2);
          Html_tag_cleanup_at_close(html, tag_idx);
       }
       tag = "<body>";
-      tag_idx = a_Html_tag_index(tag + 1);
+      tag_idx = hll_htmlTagIndex(tag + 1);
       if (tag_idx != new_idx || IsCloseTag) {
          /* implicit open */
          Html_force_push_tag(html, tag_idx);
@@ -3624,15 +3587,15 @@ static void Html_check_html5_obsolete(DilloHtml *html, int ni)
    static int indexes[9] = {-1};
 
    if (indexes[0] == -1) {
-      indexes[0] = a_Html_tag_index("dir");
-      indexes[1] = a_Html_tag_index("frame");
-      indexes[2] = a_Html_tag_index("frameset");
-      indexes[3] = a_Html_tag_index("isindex");
-      indexes[4] = a_Html_tag_index("strike");
-      indexes[5] = a_Html_tag_index("big");
-      indexes[6] = a_Html_tag_index("center");
-      indexes[7] = a_Html_tag_index("font");
-      indexes[8] = a_Html_tag_index("tt");
+      indexes[0] = hll_htmlTagIndex("dir");
+      indexes[1] = hll_htmlTagIndex("frame");
+      indexes[2] = hll_htmlTagIndex("frameset");
+      indexes[3] = hll_htmlTagIndex("isindex");
+      indexes[4] = hll_htmlTagIndex("strike");
+      indexes[5] = hll_htmlTagIndex("big");
+      indexes[6] = hll_htmlTagIndex("center");
+      indexes[7] = hll_htmlTagIndex("font");
+      indexes[8] = hll_htmlTagIndex("tt");
    }
    for (int i = 0; i < 9; i++) {
       if (indexes[i] == ni) {
@@ -3688,14 +3651,14 @@ static void Html_display_listitem(DilloHtml *html)
  */
 static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
 {
-   int ci, ni;           /* current and new tag indexes */
+   int ci;           /* current tag index */
    char *start = tag + 1; /* discard the '<' */
    int IsCloseTag = (*start == '/');
 
    dReturn_if (html->stop_parser == true);
 
-   ni = a_Html_tag_index(start + IsCloseTag);
-   if (ni == -1) {
+   const int new_tag_idx = hll_htmlTagIndex(start + IsCloseTag);
+   if (new_tag_idx == -1) {
       /* TODO: doctype parsing is a bit fuzzy, but enough for the time being */
       if (!(html->InFlags & IN_HTML)) {
          if (tagsize > 9 && !dStrnAsciiCasecmp(tag, "<!doctype", 9))
@@ -3706,11 +3669,11 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
    }
 
    if (!IsCloseTag && html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
-      Html_check_html5_obsolete(html, ni);
+      Html_check_html5_obsolete(html, new_tag_idx);
 
    /* Handle HTML, HEAD and BODY. Elements with optional open and close */
    if (!(html->InFlags & IN_BODY) /* && parsing HTML */)
-      Html_test_section(html, ni, IsCloseTag);
+      Html_test_section(html, new_tag_idx, IsCloseTag);
 
    /* Tag processing */
    ci = TopOfParsingStack(html)->tag_idx;
@@ -3720,30 +3683,30 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
 
       /* Cleanup when opening a block element, or
        * when openning over an element with optional close */
-      if (Tags[ni].Flags & 2 || (ci != -1 && Tags[ci].EndTag == 'O'))
-         Html_stack_cleanup_at_open(html, ni);
+      if (Tags[new_tag_idx].Flags & 2 || (ci != -1 && Tags[ci].EndTag == 'O'))
+         Html_stack_cleanup_at_open(html, new_tag_idx);
 
       /* TODO: this is only raising a warning, take some defined action.
        * Note: apache uses IMG inside PRE (we could use its "alt"). */
-      if ((html->InFlags & IN_PRE) && Html_tag_pre_excludes(html, ni))
-         BUG_MSG("<pre> is not allowed to contain <%s>.", Tags[ni].name);
+      if ((html->InFlags & IN_PRE) && Html_tag_pre_excludes(html, new_tag_idx))
+         BUG_MSG("<pre> is not allowed to contain <%s>.", Tags[new_tag_idx].name);
 
       /* Make sure these elements don't nest each other */
       if (html->InFlags & (IN_BUTTON | IN_SELECT | IN_TEXTAREA))
-         Html_tag_cleanup_nested_inputs(html, ni);
+         Html_tag_cleanup_nested_inputs(html, new_tag_idx);
 
       /* Push the tag into the stack */
-      Html_push_tag(html, ni);
+      Html_push_tag(html, new_tag_idx);
 
-      html->styleEngine->startElement (ni, html->bw);
-      _MSG("Open : %*s%s\n", html->stack->size(), " ", Tags[ni].name);
+      html->styleEngine->startElement (new_tag_idx, html->bw);
+      _MSG("Open : %*s%s\n", html->stack->size(), " ", Tags[new_tag_idx].name);
 
       /* Parse attributes that can appear on any tag */
       Html_parse_common_attrs(html, tag, tagsize);
 
       /* Call the open function for this tag */
-      _MSG("Html_process_tag Open : %s\n", Tags[ni].name);
-      Tags[ni].open (html, tag, tagsize);
+      _MSG("Html_process_tag Open : %s\n", Tags[new_tag_idx].name);
+      Tags[new_tag_idx].open (html, tag, tagsize);
 
       if (! TopOfParsingStack(html)->display_none) {
          switch (html->styleEngine->getStyle (html->bw)->display) {
@@ -3762,8 +3725,8 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
                break;
          }
 
-         if (Tags[ni].content && ! TopOfParsingStack(html)->display_none) {
-            Tags[ni].content (html, tag, tagsize);
+         if (Tags[new_tag_idx].content && ! TopOfParsingStack(html)->display_none) {
+            Tags[new_tag_idx].content (html, tag, tagsize);
          }
       }
 
@@ -3786,7 +3749,7 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       /* Request immediate close for elements with forbidden close tag. */
       /* TODO: XHTML always requires close tags. A simple implementation
        * of the commented clause below will make it work. */
-      if (/* parsing HTML && */ Tags[ni].EndTag == 'F')
+      if (/* parsing HTML && */ Tags[new_tag_idx].EndTag == 'F')
          html->ReqTagClose = true;
 
       /* Don't break! Open tags may also close themselves */
@@ -3799,10 +3762,10 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
           html->ReqTagClose ||                                  /* request */
           (tag[tagsize-2] == '/' &&                             /* XML:    */
            (strchr(" \"'", tag[tagsize-3]) ||                   /* [ "']/> */
-            (size_t)tagsize == strlen(Tags[ni].name) + 3))) {   /*  <x/>   */
+            (size_t)tagsize == strlen(Tags[new_tag_idx].name) + 3))) {   /*  <x/>   */
 
-         _MSG("Html_process_tag Close: %s\n", Tags[ni].name);
-         Html_tag_cleanup_at_close(html, ni);
+         _MSG("Html_process_tag Close: %s\n", Tags[new_tag_idx].name);
+         Html_tag_cleanup_at_close(html, new_tag_idx);
          /* This was a close tag */
          html->ReqTagClose = false;
       }

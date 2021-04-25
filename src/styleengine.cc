@@ -150,7 +150,7 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
 }
 
 void StyleEngine::startElement (const char *tagname, BrowserWindow *bw) {
-   startElement (a_Html_tag_index (tagname), bw);
+   startElement (hll_htmlTagIndex(tagname), bw);
 }
 
 void StyleEngine::setElementId (const char *id) {

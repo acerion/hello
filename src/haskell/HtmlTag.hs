@@ -36,7 +36,7 @@ module HtmlTag(
   , takeTagName
   , takeAttrValue
   , parserDefault
-  , hs_Html_tag_index
+  , htmlTagIndex
   , TagParser(..)
   ) where
 
@@ -310,12 +310,22 @@ fixWhiteSpaces text = T.map (\c -> if c == '\t' then ' ' else if c == '\n' then 
 
 
 
-hs_Html_tag_index :: T.Text -> Int -- TODO: the function should return Maybe Int
-hs_Html_tag_index elementName =
-  case V.findIndex p htmlTagInfo of
+-- Notice that tag name in elementName may be followed by characters that can
+-- appear in a HTML: '/', '>', ' ', e.g. "head>", "a ", "br/".
+-- The other chars that can appear in the elementName are '\n', '\r', '\t'.
+--
+-- TODO: make sure before calling the function that the elementName contains
+-- only an element name, without any following characters.
+htmlTagIndex :: T.Text -> Int -- TODO: the function should return Maybe Int
+htmlTagIndex elementName =
+  case V.findIndex findP htmlTagInfo of
     Just idx -> idx
     Nothing  -> -1
   where
-    p :: T.Text -> Bool
-    p = (\t -> t == T.toLower elementName) -- TODO: move the toLower elsewhere
+    findP :: T.Text -> Bool
+    findP = (\t -> t == elementName')
 
+    nameP :: Char -> Bool
+    nameP = (\c -> isAlphaNum c && isAscii c)
+
+    elementName' = T.toLower (T.takeWhile nameP elementName)

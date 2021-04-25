@@ -1121,7 +1121,7 @@ parseSimpleSelector ((parser, token), simSel) = ((newParser, newToken), newSimSe
                                                 then (simSel, False)
                                                 else (simSel, True)
     parseList ((CssTokSym sym):xs) idx simSel = if idx == 0
-                                                then parseList xs (idx + 1) simSel{selectorElement = hs_Html_tag_index sym}
+                                                then parseList xs (idx + 1) simSel{selectorElement = htmlTagIndex sym}
                                                 else (simSel, False) -- Valid combos of {#.:}+symbol are handled below. This is invalid situation
     parseList ((CssTokCh '*'):xs) idx simSel  = if idx == 0
                                                 then parseList xs (idx + 1) simSel{selectorElement = cssSimpleSelectorElementAny}

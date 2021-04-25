@@ -49,6 +49,8 @@ import HtmlTag
 
 
 foreign export ccall "hll_getAttrValue" hll_getAttrValue :: CString -> Int -> CString -> IO CString
+foreign export ccall "hll_htmlTagIndex" hll_htmlTagIndex :: CString -> IO Int
+
 
 
 
@@ -69,3 +71,11 @@ hll_getAttrValue cTag ctagSize cAttrName = do
   case htmlTagGetAttributeValue (T.E.decodeUtf8 tag) (T.E.decodeUtf8 attrName) of
     Just attrValue -> newCString (T.unpack attrValue) -- This string may be empty if attr value is empty.
     Nothing        -> return nullPtr                  -- Null pointer indicates "attribute name not found".
+
+
+
+
+hll_htmlTagIndex :: CString -> IO Int
+hll_htmlTagIndex cName = do
+  name <- BSU.unsafePackCString cName
+  return (htmlTagIndex . T.E.decodeUtf8 $ name)
