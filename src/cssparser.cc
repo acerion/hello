@@ -307,20 +307,18 @@ void nextTokenInner2(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
 {
 #if 0
    fprintf(stderr, "before:\n");
-   fprintf(stderr, "hll_css_parser->spaceSeparated = %d\n", hll_css_parser->c_space_separated);
-   fprintf(stderr, "hll_css_parser->bufOffset = %d\n", hll_css_parser->c_buf_offset);
-   fprintf(stderr, "hll_css_parser->tokenType = %d\n", hll_css_parser->c_token_type);
-   fprintf(stderr, "hll_css_parser->withinBlockC = %d\n", hll_css_parser->c_within_block);
-   fprintf(stderr, "hll_css_parser->isEndC = %d\n", hll_css_parser->c_is_end);
+   fprintf(stderr, "hll_css_parser->c_space_separated = %d\n", hll_css_parser->c_space_separated);
+   fprintf(stderr, "hll_css_parser->c_buf_offset      = %d\n", hll_css_parser->c_buf_offset);
+   fprintf(stderr, "hll_css_parser->c_token_type      = %d\n", hll_css_parser->c_token_type);
+   fprintf(stderr, "hll_css_parser->c_within_block    = %d\n", hll_css_parser->c_within_block);
 #endif
    char * tokenValue = hll_nextToken(hll_css_parser, tokenizer->buf + tokenizer->bufOffset);
 #if 0
    fprintf(stderr, "after:\n");
-   fprintf(stderr, "hll_css_parser->spaceSeparated = %d\n", hll_css_parser->c_space_separated);
-   fprintf(stderr, "hll_css_parser->bufOffset = %d\n", hll_css_parser->c_buf_offset);
-   fprintf(stderr, "hll_css_parser->tokenType = %d\n", hll_css_parser->c_token_type);
-   fprintf(stderr, "hll_css_parser->c_within_block = %d\n", hll_css_parser->c_within_block);
-   fprintf(stderr, "hll_css_parser->isEndC = %d\n", hll_css_parser->c_is_end);
+   fprintf(stderr, "hll_css_parser->c_space_separated = %d\n", hll_css_parser->c_space_separated);
+   fprintf(stderr, "hll_css_parser->c_buf_offset      = %d\n", hll_css_parser->c_buf_offset);
+   fprintf(stderr, "hll_css_parser->c_token_type      = %d\n", hll_css_parser->c_token_type);
+   fprintf(stderr, "hll_css_parser->c_within_block    = %d\n", hll_css_parser->c_within_block);
    fprintf(stderr, "\n");
 #endif
 
@@ -371,7 +369,7 @@ bool CssParser::parseDeclarationValue(CssDeclarationProperty property,
                                               valueType,
                                               property);
          this->tokenizer.bufOffset = this->hll_css_parser.c_buf_offset;
-         if (999999999 != ival) {
+         if (99999999 != ival) {
             value->intVal = ival;
             ret = true;
          } else {

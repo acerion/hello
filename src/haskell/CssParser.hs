@@ -73,6 +73,8 @@ module CssParser(nextToken
                 , cssLengthValue
                 , cssCreateLength
 
+                , invalidIntResult
+
                 , parseSimpleSelector
                 , defaultSimpleSelector
                 , CssSimpleSelector (..)
@@ -144,6 +146,8 @@ cssLengthTypeRelative   = 6 -- This does not exist in CSS but is used in HTML
 cssLengthTypeAuto       = 7 -- This can be used as a simple value.
 
 
+
+invalidIntResult = 99999999
 
 
 css_background_attachment_enum_vals = ["scroll", "fixed"]
@@ -552,47 +556,43 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 
 
 
-declarationValueAsColor :: CssParser -> CssToken -> (CssParser, Maybe Int)
-declarationValueAsColor parser (CssTokCol c) = case colorsStringToColor c of -- TODO: we know here that color should have form #RRGGBB. Call function that accepts only this format.
-                                                 Just i  -> (parser, Just i)
-                                                 Nothing -> (parser, Nothing)
-declarationValueAsColor parser (CssTokSym s) | s == "rgb" = parseRgbFunctionInt parser
-                                             | otherwise = case colorsStringToColor s of
-                                                             Just i  -> (parser, Just i)
-                                                             Nothing -> (parser, Nothing)
-declarationValueAsColor parser _             = (parser, Nothing)
+declarationValueAsColor :: (CssParser, CssToken) -> (CssParser, Maybe Int)
+declarationValueAsColor (parser, (CssTokCol c)) = case colorsStringToColor c of -- TODO: we know here that color should have form #RRGGBB. Call function that accepts only this format.
+                                                    Just i  -> (parser, Just i)
+                                                    Nothing -> (parser, Nothing)
+declarationValueAsColor (parser, (CssTokSym s)) | s == "rgb" = parseRgbFunctionInt parser
+                                                | otherwise = case colorsStringToColor s of
+                                                                Just i  -> (parser, Just i)
+                                                                Nothing -> (parser, Nothing)
+declarationValueAsColor (parser, token)         = (parser, Nothing)
 
 
 
 
-declarationValueAsInt :: CssParser -> CssToken -> Int -> Int -> (CssParser, Maybe Int)
-declarationValueAsInt parser token valueType property = (retParser, retInt)
+declarationValueAsInt :: (CssParser, CssToken) -> Int -> Int -> (CssParser, Maybe Int)
+declarationValueAsInt (parser, token) valueType property = (retParser, retInt)
   where
-    (newParser, retInt) | valueType == cssDeclarationValueTypeENUM                     = declarationValueAsEnum parser token property
-                        | valueType == cssDeclarationValueTypeCOLOR                    = declarationValueAsColor parser token
-                        | valueType == cssDeclarationValueTypeFONT_WEIGHT              = declarationValueAsWeightInteger parser token property
-                        | valueType == cssDeclarationValueTypeMULTI_ENUM               = declarationValueAsMultiEnum parser token property
-                        | valueType == cssDeclarationValueTypeAUTO                     = declarationValueAsAuto parser token
-                        | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE        = declarationValueAsLength parser token valueType
-                        | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER = declarationValueAsLength parser token valueType
-                        | valueType == cssDeclarationValueTypeLENGTH                   = declarationValueAsLength parser token valueType
-                        | valueType == cssDeclarationValueTypeSIGNED_LENGTH            = declarationValueAsLength parser token valueType
+    (retParser, retInt) | valueType == cssDeclarationValueTypeENUM                     = declarationValueAsEnum (parser, token) property
+                        | valueType == cssDeclarationValueTypeCOLOR                    = declarationValueAsColor (parser, token)
+                        | valueType == cssDeclarationValueTypeFONT_WEIGHT              = declarationValueAsWeightInteger (parser, token) property
+                        | valueType == cssDeclarationValueTypeMULTI_ENUM               = declarationValueAsMultiEnum (parser, token) property
+                        | valueType == cssDeclarationValueTypeAUTO                     = declarationValueAsAuto (parser, token)
+                        | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE        = declarationValueAsLength (parser, token) valueType
+                        | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER = declarationValueAsLength (parser, token) valueType
+                        | valueType == cssDeclarationValueTypeLENGTH                   = declarationValueAsLength (parser, token) valueType
+                        | valueType == cssDeclarationValueTypeSIGNED_LENGTH            = declarationValueAsLength (parser, token) valueType
                         | otherwise                                                    = (parser, Nothing)
-    --(retParser, _) = nextToken newParser
-    retParser = newParser
 
 
 
 
-declarationValueAsString :: CssParser -> CssToken -> Int -> Int -> (CssParser, Maybe T.Text)
-declarationValueAsString parser token valueType property = (retParser, retInt)
+declarationValueAsString :: (CssParser, CssToken) -> Int -> Int -> ((CssParser, CssToken), Maybe T.Text)
+declarationValueAsString (parser, token) valueType property = ((retParser, retToken), retText)
   where
-    (newParser, retInt) | valueType == cssDeclarationValueTypeSTRING                   = declarationValueAsString' parser token
-                        | valueType == cssDeclarationValueTypeSYMBOL                   = declarationValueAsSymbol (parser, token) ""
-                        | valueType == cssDeclarationValueTypeURI                      = declarationValueAsURI (parser, token)
-                        | otherwise                                                    = (parser, Nothing)
-    --(retParser, _) = nextToken newParser
-    retParser = newParser
+    ((retParser, retToken), retText) | valueType == cssDeclarationValueTypeSTRING                   = declarationValueAsString' (parser, token)
+                                     | valueType == cssDeclarationValueTypeSYMBOL                   = declarationValueAsSymbol (parser, token) ""
+                                     | valueType == cssDeclarationValueTypeURI                      = declarationValueAsURI (parser, token)
+                                     | otherwise                                                    = ((parser, token), Nothing)
 
 {-
   | valueType == cssDeclarationValueTypeINTEGER                  = (parser, Nothing)
@@ -605,15 +605,15 @@ declarationValueAsString parser token valueType property = (retParser, retInt)
 
 
 
-declarationValueAsEnum :: CssParser -> CssToken -> Int -> (CssParser, Maybe Int)
-declarationValueAsEnum parser (CssTokSym symbol) property =
+declarationValueAsEnum :: (CssParser, CssToken) -> Int -> (CssParser, Maybe Int)
+declarationValueAsEnum (parser, (CssTokSym symbol)) property =
   case declarationValueAsEnum' symbol enums 0 of
     -1  -> (parser, Nothing)
     idx -> (parser, Just idx)
   where
     propInfo = cssPropertyInfo V.! property
     enums = tripletThrd propInfo
-declarationValueAsEnum parser _ property                  = (parser, Nothing)
+declarationValueAsEnum (parser, token) property              = (parser, Nothing)
                                                             -- TODO: is this the right place to reject everything else other than symbol?
                                                             -- Shouldn't we do it somewhere else?
 
@@ -630,26 +630,26 @@ declarationValueAsEnum' symbol (x:xs) idx = if x == symbol
 
 
 
-declarationValueAsMultiEnum :: CssParser -> CssToken -> Int -> (CssParser, Maybe Int)
-declarationValueAsMultiEnum parser token@(CssTokSym symbol) property = declarationValueAsMultiEnum' parser token enums 0
+declarationValueAsMultiEnum :: (CssParser, CssToken) -> Int -> (CssParser, Maybe Int)
+declarationValueAsMultiEnum (parser, token@(CssTokSym symbol)) property = declarationValueAsMultiEnum' (parser, token) enums 0
   where
     propInfo = cssPropertyInfo V.! property
     enums = tripletThrd propInfo
-declarationValueAsMultiEnum parser _ property               = (parser, Nothing)
+declarationValueAsMultiEnum (parser, token) property                    = (parser, Nothing)
                                                             -- TODO: is this the right place to reject everything else other than symbol?
                                                             -- Shouldn't we do it somewhere else?
 
 
 
 
-declarationValueAsMultiEnum' :: CssParser -> CssToken -> [T.Text] -> Int -> (CssParser, Maybe Int)
-declarationValueAsMultiEnum' parser (CssTokSym symbol) (enums) bits =
+declarationValueAsMultiEnum' :: (CssParser, CssToken) -> [T.Text] -> Int -> (CssParser, Maybe Int)
+declarationValueAsMultiEnum' (parser, (CssTokSym symbol)) (enums) bits =
   case L.elemIndex symbol enums of -- TODO: this search should be case-insensitive
-    Just pos -> declarationValueAsMultiEnum' newParser newToken enums (bits .|. (1  `shiftL` pos))
-    Nothing  -> declarationValueAsMultiEnum' newParser newToken enums bits
+    Just pos -> declarationValueAsMultiEnum' (newParser, newToken) enums (bits .|. (1  `shiftL` pos))
+    Nothing  -> declarationValueAsMultiEnum' (newParser, newToken) enums bits
   where
     (newParser, newToken) = nextToken parser
-declarationValueAsMultiEnum' parser _ _ bits                        = (parser, Just bits)
+declarationValueAsMultiEnum' (parser, token) _ bits                    = (parser, Just bits)
 -- TODO: we should probably handle in a different way a situation where one
 -- of tokens is not a symbol.
 --
@@ -659,18 +659,18 @@ declarationValueAsMultiEnum' parser _ _ bits                        = (parser, J
 
 
 -- TODO: check value of symbol (case insensitive): it should be "auto".
-declarationValueAsAuto :: CssParser -> CssToken -> (CssParser, Maybe Int)
-declarationValueAsAuto parser token@(CssTokSym symbol) = (nextParser, Just cssLengthTypeAuto)
+declarationValueAsAuto :: (CssParser, CssToken) -> (CssParser, Maybe Int)
+declarationValueAsAuto (parser, token@(CssTokSym symbol)) = (nextParser, Just cssLengthTypeAuto)
   where (nextParser, _) = nextToken parser
-declarationValueAsAuto parser _                        = (parser, Nothing)
+declarationValueAsAuto (parser, token)                    = (parser, Nothing)
 
 
 
 
-declarationValueAsLength :: CssParser -> CssToken -> Int-> (CssParser, Maybe Int)
-declarationValueAsLength parser token@(CssTokI i) valueType = declarationValueAsLength' parser (fromIntegral i) valueType
-declarationValueAsLength parser token@(CssTokF f) valueType = declarationValueAsLength' parser f valueType
-declarationValueAsLength parser _ _                         = (parser, Just 777777)
+declarationValueAsLength :: (CssParser, CssToken) -> Int-> (CssParser, Maybe Int)
+declarationValueAsLength (parser, token@(CssTokI i)) valueType = declarationValueAsLength' parser (fromIntegral i) valueType
+declarationValueAsLength (parser, token@(CssTokF f)) valueType = declarationValueAsLength' parser f valueType
+declarationValueAsLength (parser, token) _                     = (parser, Just invalidIntResult)
 
 
 
@@ -716,36 +716,36 @@ declarationValueAsLength' parser fval valueType = (retParser, retInt)
 
 
 
-declarationValueAsString' :: CssParser -> CssToken -> (CssParser, Maybe T.Text)
-declarationValueAsString' parser (CssTokStr s) = (nextParser, Just s)
-  where (nextParser, _) = nextToken parser
-declarationValueAsString' parser _             = (parser, Nothing)
+declarationValueAsString' :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
+declarationValueAsString' (parser, (CssTokStr s)) = ((newParser, newToken), Just s)
+  where (newParser, newToken) = nextToken parser
+declarationValueAsString' (parser, token)         = ((parser, token), Nothing)
 
 
 
 
-declarationValueAsURI :: (CssParser, CssToken) -> (CssParser, Maybe T.Text)
+declarationValueAsURI :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
 declarationValueAsURI = parseUrl
 
 
 
 
-parseUrl :: (CssParser, CssToken) -> (CssParser, Maybe T.Text)
-parseUrl (parser, (CssTokSym "url")) = (outParser, outUrl)
+parseUrl :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
+parseUrl (parser, token@(CssTokSym "url")) = (outParser, outUrl)
   where
     outUrl = case partialUrl of
       Nothing  -> Nothing
       Just url -> Just url -- TODO: here we have to add first part of URL, defined in CssParser (the one starting with e.g. http://server.com).
     (outParser, partialUrl) = case nextToken parser of
-                                (nextParser, CssTokCh '(') -> appendToUrl nextParser ""
-                                (nextParser, _)            -> (parser, Nothing)
-    appendToUrl parser acc = case nextToken parser of
-                               (nextParser, CssTokCh ')')  -> (nextParser, Just acc)
-                               (nextParser, CssTokCh ch)   -> appendToUrl nextParser (T.snoc acc ch)
-                               (nextParser, CssTokStr str) -> appendToUrl nextParser (T.concat [acc, str])
-                               (nextParser, CssTokSym str) -> appendToUrl nextParser (T.concat [acc, str])
-                               (nextParser, _)             -> (nextParser, Nothing) -- TODO: This is a BAD URL situation
-parseUrl (parser, _)               = (parser, Nothing)
+                                (newParser, newToken@(CssTokCh '(')) -> appendToUrl (newParser, newToken) ""
+                                (newParser, newToken)                -> ((parser, token), Nothing)
+    appendToUrl (parser, token) acc = case nextToken parser of
+                                        pair@(newParser, CssTokCh ')')  -> (pair, Just acc)
+                                        pair@(newParser, CssTokCh ch)   -> appendToUrl pair (T.snoc acc ch)
+                                        pair@(newParser, CssTokStr str) -> appendToUrl pair (T.concat [acc, str])
+                                        pair@(newParser, CssTokSym str) -> appendToUrl pair (T.concat [acc, str])
+                                        pair@(newParser, _)             -> (pair, Nothing) -- TODO: This is a BAD URL situation
+parseUrl (parser, token)   = ((parser, token), Nothing)
 
 
 
@@ -754,15 +754,15 @@ parseUrl (parser, _)               = (parser, Nothing)
 
 -- Read comma separated list of font family names.
 -- TODO: test the code for list of symbols separated by space or comma.
-declarationValueAsSymbol :: (CssParser, CssToken) -> T.Text -> (CssParser, Maybe T.Text)
+declarationValueAsSymbol :: (CssParser, CssToken) -> T.Text -> ((CssParser, CssToken), Maybe T.Text)
 declarationValueAsSymbol (parser, (CssTokSym sym)) acc = declarationValueAsSymbol (nextToken parser) (T.append acc (separated parser sym))
 declarationValueAsSymbol (parser, (CssTokStr str)) acc = declarationValueAsSymbol (nextToken parser) (T.append acc (separated parser str))
 declarationValueAsSymbol (parser, (CssTokCh  ',')) acc = declarationValueAsSymbol (nextToken parser) (T.append acc (separated parser ","))
-declarationValueAsSymbol (parser, _) acc               = finalSymbol parser acc
+declarationValueAsSymbol (parser, token) acc           = finalSymbol (parser, token) acc
 
-finalSymbol parser acc = if T.null acc
-                         then (parser, Nothing)
-                         else (parser, Just acc)
+finalSymbol (parser, token) acc = if T.null acc
+                                  then ((parser, token), Nothing)
+                                  else ((parser, token), Just acc)
 
 -- TODO: check if CSS code really needs this space. In some situations
 -- symbols in text returned by declarationValueAsSymbol may be separated by
@@ -796,10 +796,10 @@ separated parser str = if spaceSeparated parser
 -}
 
 
-declarationValueAsWeightInteger :: CssParser -> CssToken -> Int -> (CssParser, Maybe Int)
-declarationValueAsWeightInteger parser (CssTokI i) property = if i >= 100 && i <= 900
-                                                              then (parser, Just i)
-                                                              else (parser, Nothing)
+declarationValueAsWeightInteger :: (CssParser, CssToken) -> Int -> (CssParser, Maybe Int)
+declarationValueAsWeightInteger (parser, (CssTokI i)) property = if i >= 100 && i <= 900
+                                                                 then (parser, Just i)
+                                                                 else (parser, Nothing)
 
 
 

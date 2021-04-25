@@ -33,7 +33,6 @@ typedef struct c_css_parser_t {
    int c_buf_offset;
    int c_token_type;
    int c_within_block;
-   int c_is_end;
    char * c_token_value;
 } c_css_parser_t;
 

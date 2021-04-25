@@ -167,11 +167,12 @@ hll_declarationValueAsInt ptrStructCssParser tokType cTokValue cBuf valueType pr
                             , spaceSeparated = spaceSeparatedC hllParser > 0
                             }
 
-  let pair@(newParser, newToken) = declarationValueAsInt parser inputToken valueType property
+  let pair@(newParser, intVal) = declarationValueAsInt (parser, inputToken) valueType property
   manipulateOutPtr ptrStructCssParser parser inputToken inBlock
-  case pair of
-    (_, Just i) -> return i
-    (_, _)      -> return 999999999
+  case intVal of
+    Just i -> return i
+    _      -> return invalidIntResult
+
 
 
 
@@ -189,11 +190,11 @@ hll_declarationValueAsString ptrStructCssParser tokType cTokValue cBuf valueType
                             , spaceSeparated = spaceSeparatedC hllParser > 0
                             }
 
-  let pair@(newParser, newToken) = declarationValueAsString parser inputToken valueType property
-  manipulateOutPtr ptrStructCssParser parser inputToken inBlock
-  case pair of
-    (_, Just s) -> newCString . T.unpack $ s
-    (_, _)      -> return nullPtr
+  let pair@((newParser, newToken), textVal) = declarationValueAsString (parser, inputToken) valueType property
+  manipulateOutPtr ptrStructCssParser parser newToken inBlock
+  case textVal of
+    Just t -> newCString . T.unpack $ t
+    _      -> return nullPtr
 
 
 
@@ -213,11 +214,12 @@ hll_declarationValueAsMultiEnum ptrStructCssParser tokType cTokValue cBuf proper
                             }
 
 
-  let pair@(newParser, newToken) = declarationValueAsMultiEnum parser inputToken property
+  let pair@(newParser, intVal) = declarationValueAsMultiEnum (parser, inputToken) property
   manipulateOutPtr ptrStructCssParser parser inputToken inBlock
-  case pair of
-    (_, Just i) -> return i
-    (_, _)      -> return 999999999
+  case intVal of
+    Just i -> return i
+    _      -> return invalidIntResult
+
 
 
 
