@@ -55,6 +55,9 @@ foreign export ccall "hll_parseExtension" hll_parseExtension :: Ptr HelloGifGC -
 #include "../hello.h"
 
 -- [1] "23. Graphic Control Extension.", Required version: Gif89.
+--
+-- TODO: type of these values must be CInt, not Int. See similar data type in
+-- CssParser.hsc.
 data HelloGifGC = HelloGifGC {
     transparentColorIndexC :: Int
   , delayTimeC             :: Int
