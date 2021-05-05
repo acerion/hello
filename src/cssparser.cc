@@ -689,6 +689,17 @@ bool parseSelector(CssParser * cssParser, CssSelector * selector)
 {
    bool success = true;
 
+   fprintf(stderr, "PARSE before '%s'\n", cssParser->tokenizer.buf + cssParser->tokenizer.bufOffset);
+
+#if 1
+   success = hll_cssParseSelector(&cssParser->hll_css_parser, (c_css_selector_t *) selector,
+                                  cssParser->tokenizer.type, cssParser->tokenizer.value,
+                                  cssParser->tokenizer.buf + cssParser->tokenizer.bufOffset);
+   cssParser->tokenizer.bufOffset = cssParser->hll_css_parser.c_buf_offset;
+   snprintf(cssParser->tokenizer.value, sizeof (cssParser->tokenizer.value), "%s", cssParser->hll_css_parser.c_token_value);
+   cssParser->tokenizer.type = (CssTokenType) cssParser->hll_css_parser.c_token_type;
+
+#else
    while (true) {
       CssSimpleSelector * simpleSelector = selectorGetTopSimpleSelector(selector);
 
@@ -724,6 +735,12 @@ bool parseSelector(CssParser * cssParser, CssSelector * selector)
          break;
       }
    }
+#endif
+
+   fprintf(stderr, "PARSE after (%s, tok = %s) '%s'\n",
+           success ? "success" : "failure", cssParser->tokenizer.value,
+           cssParser->tokenizer.buf + cssParser->tokenizer.bufOffset);
+
 
    while (cssParser->tokenizer.type != CSS_TOKEN_TYPE_END &&
           (cssParser->tokenizer.type != CSS_TOKEN_TYPE_CHAR ||

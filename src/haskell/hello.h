@@ -52,8 +52,17 @@ typedef struct c_css_simple_selector_t {
 
    char * c_selector_id;
    int c_selector_element; /* Index corresponding to html.cc::Tags[]. */
+
+   int c_combinator;
 } c_css_simple_selector_t;
 
+
+
+typedef struct c_css_selector_t {
+   int c_match_case_offset;
+   struct c_css_simple_selector_t * c_simple_selector_list[10];
+   int c_simple_selector_list_size;
+} c_css_selector_t;
 
 
 
@@ -111,7 +120,7 @@ int hll_cssCreateLength(float val, CssLengthType t);
 /* Return true if valid simple selector was found.
    Return false otherwise. */
 bool hll_cssParseSimpleSelector(c_css_parser_t * hll_parser, c_css_simple_selector_t * simpleSelector, int tokType, const char * tokValue, const char * remainder);
-
+bool hll_cssParseSelector(c_css_parser_t * hll_parser, c_css_selector_t * selector, int tokType, const char * tokValue, const char * remainder);
 
 #ifdef __cplusplus
 }

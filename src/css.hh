@@ -249,6 +249,17 @@ enum class CssSelectorType {
 
 
 
+/**
+ * \brief CSS selector class.
+ *
+ * \todo Implement missing selector options.
+ */
+typedef enum {
+              CssSelectorCombinatorNone,
+              CssSelectorCombinatorDescendant,
+              CssSelectorCombinatorChild,
+              CssSelectorCombinatorAdjacentSibling,
+} Combinator;
 
 enum {
       CssSimpleSelectorElementNone = -1,
@@ -268,6 +279,8 @@ typedef struct CssSimpleSelector {
 
    char * selector_id = nullptr;
    int selector_element = CssSimpleSelectorElementAny; /* Index corresponding to html.cc::Tags[]. */
+
+   int combinator = (int) CssSelectorCombinatorNone; /* Combinator that combines this simple selector and previous simple selector. */
 } CssSimpleSelector;
 void printCssSimpleSelector(CssSimpleSelector * selector, FILE * file);
 bool simple_selector_matches(CssSimpleSelector * selector, const DoctreeNode *node);
@@ -281,27 +294,11 @@ class MatchCache : public lout::misc::SimpleVector <int> {
       MatchCache() : lout::misc::SimpleVector <int> (0) {};
 };
 
-/**
- * \brief CSS selector class.
- *
- * \todo Implement missing selector options.
- */
-typedef enum {
-              CssSelectorCombinatorNone,
-              CssSelectorCombinatorDescendant,
-              CssSelectorCombinatorChild,
-              CssSelectorCombinatorAdjacentSibling,
-} Combinator;
-
-struct CombinatorAndSimpleSelector {
-   Combinator combinator;
-   CssSimpleSelector simpleSelector;
-};
 
 typedef struct CssSelector {
    int matchCacheOffset = -1;
-   struct CombinatorAndSimpleSelector combinatorAndSimpleSelectorList[10];
-   int combinatorAndSimpleSelectorListSize = 1;
+   struct CssSimpleSelector * simpleSelectorList[10];
+   int simpleSelectorListSize = 1;
 } CssSelector;
 
 void selector_init(CssSelector * selector);

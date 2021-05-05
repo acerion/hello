@@ -77,8 +77,11 @@ module CssParser(nextToken
 
                 , parseSimpleSelector
                 , defaultSimpleSelector
+                , defaultSelector
                 , CssSimpleSelector (..)
+                , CssSelector (..)
                 , takeSimpleSelectorTokens
+                , parseSelector
 
                 , defaultParser) where
 
@@ -98,6 +101,7 @@ import Data.Bits
 import Colors
 import HelloUtils
 import HtmlTag
+import Debug.Trace
 
 
 
@@ -1082,6 +1086,15 @@ data CssSimpleSelector = CssSimpleSelector {
   , selectorId          :: T.Text
   , selectorClass       :: [T.Text]
   , selectorElement     :: Int
+  , combinator          :: Int
+  } deriving (Show)
+
+
+
+
+data CssSelector = CssSelector {
+    matchCaseOffset      :: Int
+  , simpleSelectorList   :: [CssSimpleSelector]
   } deriving (Show)
 
 
@@ -1098,7 +1111,16 @@ defaultSimpleSelector = CssSimpleSelector {
   , selectorId = ""
   , selectorClass = []
   , selectorElement = cssSimpleSelectorElementAny
+  , combinator = 0 -- TODO: use constant
   }
+
+
+
+defaultSelector = CssSelector {
+    matchCaseOffset    = -1
+  , simpleSelectorList = [defaultSimpleSelector]
+  }
+
 
 
 
@@ -1110,11 +1132,11 @@ data CssSelectorType = CssSelectorTypeNone
 
 
 
-parseSimpleSelector :: ((CssParser, CssToken), CssSimpleSelector) -> ((CssParser, CssToken), CssSimpleSelector, Bool)
-parseSimpleSelector ((parser, token), simSel) = ((newParser, newToken), newSimSel, valid)
+parseSimpleSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), CssSimpleSelector, Bool)
+parseSimpleSelector (parser, token) = ((newParser, newToken), newSimSel, valid)
   where
     ((newParser, newToken), tokens) = takeSimpleSelectorTokens (parser, token)
-    (newSimSel, valid) = parseList tokens 0 simSel
+    (newSimSel, valid) = parseList tokens 0 defaultSimpleSelector
 
     parseList :: [CssToken] -> Int -> CssSimpleSelector -> (CssSimpleSelector, Bool)
     parseList [] idx simSel                   = if idx == 0
@@ -1172,3 +1194,79 @@ takeSimpleSelectorTokens (parser, token) = takeNext (parser, token) []
 
 isSpaceSeparated parser = spaceSeparated newParser
   where (newParser, newToken) = nextToken parser
+
+isSpaceSeparated2 parser = spaceSeparated newParser
+  where (newParser, newToken) = nextToken parser
+
+
+
+
+--parseSelector (defaultParser{remainder="h1>h2+h3 h4 {something}"}, CssTokNone)
+-- parseSelector (defaultParser{remainder="h1, h2, h3, h4, h5, h6, b, strong {font-weight: bolder}"}, CssTokNone)
+-- parseSelector (defaultParser{remainder="address, article, aside, center, div, figure, figcaption, footer, h1, h2, h3, h4, h5, h6, header, nav, ol, p, pre, section, ul {display: block}i, em, cite, address, var"}, CssTokNone)
+
+
+
+parseSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), CssSelector, Int)
+parseSelector (parser, token) = traceShow ("Calling parseSelector") ((finalParser, finalToken), defaultSelector{simpleSelectorList=(reverse simpleSelectors)}, valid)
+  where
+    ((finalParser, finalToken), simpleSelectors, valid) = parseSelector' (parser, token) [defaultSimpleSelector]
+
+    parseSelector' :: (CssParser, CssToken) -> [CssSimpleSelector] -> ((CssParser, CssToken), [CssSimpleSelector], Int)
+    parseSelector' (parser, token) (x:xs) =
+      case (parseSimpleSelector (parser, token)) of
+        ((newParser, newToken@(CssTokCh ',')), simSel, True) -> ((newParser, newToken), simSel:xs, 0)
+        ((newParser, newToken@(CssTokCh '{')), simSel, True) -> ((newParser, newToken), simSel:xs, 0)
+        ((newParser, newToken),                simSel, True) -> (parseCombinator (newParser, newToken) (simSel:xs))
+        ((newParser, newToken), _,                    False) -> ((newParser, newToken), xs, 1)
+
+    parseCombinator :: (CssParser, CssToken) -> [CssSimpleSelector] -> ((CssParser, CssToken), [CssSimpleSelector], Int)
+    parseCombinator (parser, token) (x:xs) =
+      if isSpaceSeparated2 parser
+      then traceShow ("Calling parseSelector'") (parseSelector' (nextToken parser) (defaultSimpleSelector{combinator = 3}:x:xs))
+      else
+        case token of
+          (CssTokCh '>') -> traceShow ("Calling parseSelector1") parseSelector' (nextToken parser) (defaultSimpleSelector{combinator = 1}:x:xs)
+          (CssTokCh '+') -> traceShow ("Calling parseSelector2") parseSelector' (nextToken parser) (defaultSimpleSelector{combinator = 2}:x:xs)
+          (tok)          -> traceShow ("Calling other token") ((parser, token), x:xs, 5)
+
+{-
+
+   bool success = true;
+
+   while (true) {
+      CssSimpleSelector * simpleSelector = selectorGetTopSimpleSelector(selector);
+
+      bool simpleSelectorIsValid = false;
+      {
+         c_css_simple_selector_t * simSel = (c_css_simple_selector_t *) simpleSelector;
+         simpleSelectorIsValid = hll_cssParseSimpleSelector(&cssParser->hll_css_parser, simSel,
+                                                            cssParser->tokenizer.type, cssParser->tokenizer.value,
+                                                            cssParser->tokenizer.buf + cssParser->tokenizer.bufOffset);
+         cssParser->tokenizer.bufOffset = cssParser->hll_css_parser.c_buf_offset;
+         snprintf(cssParser->tokenizer.value, sizeof (cssParser->tokenizer.value), "%s", cssParser->hll_css_parser.c_token_value);
+         cssParser->tokenizer.type = (CssTokenType) cssParser->hll_css_parser.c_token_type;
+      }
+
+      if (!simpleSelectorIsValid) {
+         success = false;
+         break;
+      }
+
+      if (cssParser->tokenizer.type == CSS_TOKEN_TYPE_CHAR &&
+         (cssParser->tokenizer.value[0] == ',' || cssParser->tokenizer.value[0] == '{')) {
+         break;
+      } else if (cssParser->tokenizer.type == CSS_TOKEN_TYPE_CHAR && cssParser->tokenizer.value[0] == '>') {
+         cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorChild);
+         nextToken(&cssParser->tokenizer, &cssParser->hll_css_parser);
+      } else if (cssParser->tokenizer.type == CSS_TOKEN_TYPE_CHAR && cssParser->tokenizer.value[0] == '+') {
+         cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorAdjacentSibling);
+         nextToken(&cssParser->tokenizer, &cssParser->hll_css_parser);
+      } else if (cssParser->tokenizer.type != CSS_TOKEN_TYPE_END && cssParser->hll_css_parser.c_space_separated) {
+         cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorDescendant);
+      } else {
+         success = false;
+         break;
+      }
+   }
+-}
