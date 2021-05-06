@@ -222,6 +222,9 @@ const char * tokenizerGetTokenTypeStr(CssTokenizer * tokenizer)
    case CSS_TOKEN_TYPE_CHAR:
       typeStr = "char";
       break;
+   case CSS_TOKEN_TYPE_WHITESPACE:
+      typeStr = "whitespace";
+      break;
    case CSS_TOKEN_TYPE_END:
       typeStr = "end";
       break;

@@ -123,13 +123,14 @@ hll_nextToken ptrStructCssParser cBuf = do
                                                , spaceSeparated = spaceSeparatedC hllParser > 0
                                                }
   manipulateOutPtr ptrStructCssParser parser token inBlock
-  case token of
+  case token of -- TODO: use "cstr" defined below
     (CssTokI i)   -> (newCString . show $ i)
     (CssTokF f)   -> (newCString . show $ f)
     (CssTokCol c) -> (newCString . T.unpack $ c)
     (CssTokSym s) -> (newCString . T.unpack $ s)
     (CssTokStr s) -> (newCString . T.unpack $ s)
     (CssTokCh c)  -> (newCString . T.unpack . T.singleton $ c)
+    CssTokWS      -> (newCString " ")
     otherwise     -> return nullPtr
 
 
@@ -150,6 +151,7 @@ cstr token = case token of
     (CssTokSym s) -> (newCString . T.unpack $ s)
     (CssTokStr s) -> (newCString . T.unpack $ s)
     (CssTokCh c)  -> (newCString . T.unpack . T.singleton $ c)
+    CssTokWS      -> (newCString " ")
     otherwise     -> return nullPtr --(newCString . T.unpack . cssTokenValue $ token)
 
 
@@ -267,8 +269,9 @@ getTokenType (CssTokCol  _) = 2
 getTokenType (CssTokSym  _) = 3
 getTokenType (CssTokStr  _) = 4
 getTokenType (CssTokCh   _) = 5
-getTokenType (CssTokEnd)    = 6
-getTokenType _              = 7
+getTokenType (CssTokWS)     = 6
+getTokenType (CssTokEnd)    = 7
+getTokenType _              = 8
 
 
 
@@ -284,7 +287,8 @@ getTokenADT tokType tokValue | tokType == 0 = case T.R.signed T.R.decimal tokVal
                              | tokType == 3 = CssTokSym  tokValue
                              | tokType == 4 = CssTokStr  tokValue
                              | tokType == 5 = CssTokCh   (T.head tokValue)
-                             | tokType == 6 = CssTokEnd
+                             | tokType == 6 = CssTokWS
+                             | tokType == 7 = CssTokEnd
 
 
 

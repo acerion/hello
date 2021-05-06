@@ -256,9 +256,9 @@ enum class CssSelectorType {
  */
 typedef enum {
               CssSelectorCombinatorNone,
-              CssSelectorCombinatorDescendant,
-              CssSelectorCombinatorChild,
-              CssSelectorCombinatorAdjacentSibling,
+              CssSelectorCombinatorDescendant,      // ' '
+              CssSelectorCombinatorChild,           // '>'
+              CssSelectorCombinatorAdjacentSibling, // '+'
 } Combinator;
 
 enum {

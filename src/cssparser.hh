@@ -15,6 +15,7 @@ typedef enum {
               CSS_TOKEN_TYPE_SYMBOL,   //
               CSS_TOKEN_TYPE_STRING,   // ['#00000000',] -> [#00000000] (quoted (') text)     ["\25B8";] -> [¸] (quoted (") text)       [ "";}DIV] -> [] (empty)
               CSS_TOKEN_TYPE_CHAR,
+              CSS_TOKEN_TYPE_WHITESPACE,
               CSS_TOKEN_TYPE_END       // End of input, no new tokens.
 } CssTokenType;
 

@@ -80,8 +80,10 @@ module CssParser(nextToken
                 , defaultSelector
                 , CssSimpleSelector (..)
                 , CssSelector (..)
+                , takeSelectorTokens
                 , takeSimpleSelectorTokens
                 , parseSelector
+                , removeSpaceTokens
 
                 , defaultParser) where
 
@@ -113,6 +115,7 @@ data CssToken =
   | CssTokSym T.Text
   | CssTokStr T.Text
   | CssTokCh  Char
+  | CssTokWS          -- Whitespace
   | CssTokEnd         -- End of input. No new tokens will appear in input.
   | CssTokNone        -- No token was taken, proceed with parsing input data to try to take some token.
   deriving (Show)
@@ -308,6 +311,13 @@ nextToken parser = (updatedParser{bufOffset = increasedBufOffset parser}, token)
 
 
 
+nextToken2 :: CssParser -> (CssParser, CssToken)
+nextToken2 parser = (updatedParser{bufOffset = increasedBufOffset parser}, token)
+  where
+    (updatedParser, token) = nextToken2' parser{spaceSeparated = False}
+    increasedBufOffset parser = (bufOffset parser) + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
+
+
 
 -- This function is based on function with the same name from Real World
 -- Haskell, chapter 10.
@@ -333,6 +343,20 @@ nextToken' parser = takeLeadingWhite parser >>?
                     takeString              >>?
                     takeColor               >>?
                     takeCharacter
+
+
+
+-- Try taking Float before trying to take Int, because otherwise you may take
+-- only an initial (integral) part of Float as an Int, and leave fractional
+-- part in remainder.
+nextToken2' :: CssParser -> (CssParser, CssToken)
+nextToken2' parser = takeLeadingWhite2 parser >>?
+                     takeFloat                >>?
+                     takeInt                  >>?
+                     takeSymbol               >>?
+                     takeString               >>?
+                     takeColor                >>?
+                     takeCharacter
 
 
 
@@ -425,6 +449,21 @@ takeLeadingWhite parser
   | T.isPrefixOf "/*" rem      = takeLeadingWhite parser { remainder = HU.skipEnclosed rem "/*" "*/" }
   | T.isPrefixOf "<!--" rem    = takeLeadingWhite parser { remainder = HU.skipEnclosed rem "<!--" "-->" }
   | otherwise                  = (parser, CssTokNone)
+  where rem = remainder parser
+
+
+
+-- This function does not return a token. Discarding meaningless data from
+-- beginning of text would not create a valid token.
+takeLeadingWhite2 :: CssParser -> (CssParser, CssToken)
+takeLeadingWhite2 parser
+  | T.null rem                 = (parser, CssTokEnd)
+  | D.C.isSpace . T.head $ rem = takeLeadingWhite2 parser { remainder = T.tail rem, spaceSeparated = True }
+  | T.isPrefixOf "/*" rem      = takeLeadingWhite2 parser { remainder = HU.skipEnclosed rem "/*" "*/" }
+  | T.isPrefixOf "<!--" rem    = takeLeadingWhite2 parser { remainder = HU.skipEnclosed rem "<!--" "-->" }
+  | otherwise                  = if (not . withinBlock $ parser) && spaceSeparated parser
+                                 then (parser, CssTokWS)
+                                 else (parser, CssTokNone)
   where rem = remainder parser
 
 
@@ -1101,17 +1140,24 @@ data CssSelector = CssSelector {
 
 
 cssSimpleSelectorElementNone = (-1)
-cssSimpleSelectorElementAny = (-2)
+cssSimpleSelectorElementAny  = (-2)
+
+
+
+cssSelectorCombinatorNone            = 0
+cssSelectorCombinatorDescendant      = 1   -- ' '
+cssSelectorCombinatorChild           = 2   -- '>'
+cssSelectorCombinatorAdjacentSibling = 3   -- '+'
 
 
 
 
 defaultSimpleSelector = CssSimpleSelector {
     selectorPseudoClass = []
-  , selectorId = ""
-  , selectorClass = []
-  , selectorElement = cssSimpleSelectorElementAny
-  , combinator = 0 -- TODO: use constant
+  , selectorId          = ""
+  , selectorClass       = []
+  , selectorElement     = cssSimpleSelectorElementAny
+  , combinator          = cssSelectorCombinatorNone
   }
 
 
@@ -1188,6 +1234,7 @@ takeSimpleSelectorTokens (parser, token) = takeNext (parser, token) []
                                         CssTokCh '#'  -> takeNext (nextToken parser) (tokens ++ [token])
                                         CssTokCh '.'  -> takeNext (nextToken parser) (tokens ++ [token])
                                         CssTokCh ':'  -> takeNext (nextToken parser) (tokens ++ [token])
+                                        CssTokWS      -> takeNext (nextToken parser) (tokens ++ [token])
                                         otherwise     -> ((parser, token), tokens)
 
 
@@ -1207,8 +1254,11 @@ isSpaceSeparated2 parser = spaceSeparated newParser
 
 
 
-parseSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), CssSelector, Int)
-parseSelector (parser, token) = traceShow ("Calling parseSelector") ((finalParser, finalToken), defaultSelector{simpleSelectorList=(reverse simpleSelectors)}, valid)
+parseSelector = parseSelectorNew
+
+
+parseSelectorOld :: (CssParser, CssToken) -> ((CssParser, CssToken), CssSelector, Int)
+parseSelectorOld (parser, token) = traceShow ("Calling parseSelector") ((finalParser, finalToken), defaultSelector{simpleSelectorList=(reverse simpleSelectors)}, valid)
   where
     ((finalParser, finalToken), simpleSelectors, valid) = parseSelector' (parser, token) [defaultSimpleSelector]
 
@@ -1229,6 +1279,95 @@ parseSelector (parser, token) = traceShow ("Calling parseSelector") ((finalParse
           (CssTokCh '>') -> traceShow ("Calling parseSelector1") parseSelector' (nextToken parser) (defaultSimpleSelector{combinator = 1}:x:xs)
           (CssTokCh '+') -> traceShow ("Calling parseSelector2") parseSelector' (nextToken parser) (defaultSimpleSelector{combinator = 2}:x:xs)
           (tok)          -> traceShow ("Calling other token") ((parser, token), x:xs, 5)
+
+
+
+
+parseSelectorNew :: (CssParser, CssToken) -> ((CssParser, CssToken), CssSelector, Int)
+parseSelectorNew (parser, token) = ((newParser, newToken), defaultSelector{simpleSelectorList = reverse simpleSelectors}, valid)
+  where
+    ((newParser, newToken), selectorTokens) = takeSelectorTokens (parser, token)
+    (simpleSelectors, valid) = parseSimpleSelectors (removeSpaceTokens selectorTokens []) [defaultSimpleSelector]
+
+    parseSimpleSelectors :: [CssToken] -> [CssSimpleSelector] -> ([CssSimpleSelector], Int)
+    parseSimpleSelectors (CssTokSym sym:tokens) (simSel:selectors)  = parseSimpleSelectors tokens ((simSel{selectorElement = htmlTagIndex sym}):selectors)
+
+    parseSimpleSelectors (CssTokCh '#':CssTokSym sym:tokens) (simSel:selectors) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypeID sym):selectors)
+    parseSimpleSelectors (CssTokCh '.':CssTokSym sym:tokens) (simSel:selectors) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypeClass sym):selectors)
+    parseSimpleSelectors (CssTokCh ':':CssTokSym sym:tokens) (simSel:selectors) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypePseudoClass sym):selectors)
+
+    parseSimpleSelectors (CssTokCh '>':tokens) (selectors) = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorChild}:selectors)
+    parseSimpleSelectors (CssTokCh '+':tokens) (selectors) = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorAdjacentSibling}:selectors)
+    parseSimpleSelectors (CssTokWS:tokens)     (selectors) = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorDescendant}:selectors)
+
+    parseSimpleSelectors [] selectors = (selectors, 0)
+    parseSimpleSelectors _ selectors = (selectors, 4)
+
+
+
+{-
+
+parseSimpleSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), CssSimpleSelector, Bool)
+parseSimpleSelector (parser, token) = ((newParser, newToken), newSimSel, valid)
+  where
+    ((newParser, newToken), tokens) = takeSimpleSelectorTokens (parser, token)
+    (newSimSel, valid) = parseList tokens 0 defaultSimpleSelector
+
+    parseList :: [CssToken] -> Int -> CssSimpleSelector -> (CssSimpleSelector, Bool)
+    parseList [] idx simSel                   = if idx == 0
+                                                then (simSel, False)
+                                                else (simSel, True)
+    parseList ((CssTokSym sym):xs) idx simSel = if idx == 0
+                                                then parseList xs (idx + 1) simSel{selectorElement = htmlTagIndex sym}
+                                                else (simSel, False) -- Valid combos of {#.:}+symbol are handled below. This is invalid situation
+    parseList ((CssTokCh '*'):xs) idx simSel  = if idx == 0
+                                                then parseList xs (idx + 1) simSel{selectorElement = cssSimpleSelectorElementAny}
+                                                else (simSel, False)
+    parseList _ _ simSel = (simSel, False)
+
+
+
+-}
+
+
+-- Take all tokens until ',' or '{' or EOF is met. The tokens will be used to
+-- create simple selector(s), possibly separated by combinator(s). If input
+-- stream starts with whitespace, discard the whitespace (don't return token
+-- for it) - leading whitespace is certainly meaningless.
+takeSelectorTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
+takeSelectorTokens (parser, token) = takeNext (parser, token) []
+  where
+    takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
+    takeNext (parser, token) tokens = case token of
+                                        CssTokCh '{' -> ((parser, token), tokens)
+                                        CssTokCh ',' -> ((parser, token), tokens)
+                                        CssTokEnd    -> ((parser, token), tokens)
+                                        -- Ignore whitespace occurring at the
+                                        -- beginning of selectors list. I
+                                        -- could filter it out later with
+                                        -- removeSpaceTokens, but it's easier
+                                        -- to not to add it at all.
+                                        CssTokWS   -> if length tokens == 0
+                                                      then takeNext (nextToken2 parser) tokens
+                                                      else takeNext (nextToken2 parser) (tokens ++ [token])
+                                        CssTokNone -> takeNext (nextToken2 parser) tokens -- This token can be used to 'kick-start' of parsing
+                                        otherwise  -> takeNext (nextToken2 parser) (tokens ++ [token])
+
+
+
+
+
+-- A dumb way to remove spaces that are adjactent to '+' or '>' combinators.
+-- In such situations the spaces aren't combinators themselves but are just
+-- separators.
+removeSpaceTokens :: [CssToken] -> [CssToken] -> [CssToken]
+removeSpaceTokens ((CssTokWS):(CssTokCh '+'):xs) acc = removeSpaceTokens ((CssTokCh '+'):xs) acc
+removeSpaceTokens ((CssTokCh '+'):(CssTokWS):xs) acc = removeSpaceTokens ((CssTokCh '+'):xs) acc
+removeSpaceTokens ((CssTokWS):(CssTokCh '>'):xs) acc = removeSpaceTokens ((CssTokCh '>'):xs) acc
+removeSpaceTokens ((CssTokCh '>'):(CssTokWS):xs) acc = removeSpaceTokens ((CssTokCh '>'):xs) acc
+removeSpaceTokens (x:(CssTokWS):[]) acc              = acc ++ [x] -- Don't forget to remove ending whitespace too.
+removeSpaceTokens (x:xs) acc                         = removeSpaceTokens xs (acc ++ [x])
+removeSpaceTokens [] acc                             = acc
 
 {-
 
