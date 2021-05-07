@@ -59,6 +59,6 @@ class CssParser {
       static void parse(DilloHtml *html, const DilloUrl *baseUrl, CssContext *context,
                         const char *buf, int buflen, CssOrigin origin);
 };
-bool parseSelector(CssParser * cssParser, CssSelector * selector);
+c_css_selector_t * parseSelector(CssParser * cssParser);
 
 #endif

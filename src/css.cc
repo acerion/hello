@@ -115,28 +115,17 @@ void printCssDeclartionList(CssDeclartionList * declList, FILE * file) {
       printCssDeclaration(declList->getRef(i), file);
 }
 
-void selector_init(CssSelector * selector)
-{
-#ifdef OLD
-   selector->simpleSelectorList[selector->simpleSelectorListSize - 1] = new CssSimpleSelector;
-   selector->simpleSelectorList[selector->simpleSelectorListSize - 1]->combinator = CssSelectorCombinatorNone;
-#else
-   memset(selector->simpleSelectorList, 0, sizeof (selector->simpleSelectorList));
-   selector->simpleSelectorListSize = 0;
-#endif
-}
-
 /**
  * \brief Return whether selector matches at a given node in the document tree.
  */
-bool selector_full_selector_matches(CssSelector * selector, Doctree *docTree, const DoctreeNode *node, int i, Combinator comb, MatchCache *matchCache) {
+bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *docTree, const DoctreeNode *node, int i, Combinator comb, MatchCache *matchCache) {
    int *matchCacheEntry;
    assert (node);
 
    if (i < 0)
       return true;
 
-   struct CssSimpleSelector *simpleSelector = selector->simpleSelectorList[i];
+   struct c_css_simple_selector_t *simpleSelector = selector->c_simple_selector_list[i];
 
    switch (comb) {
       case CssSelectorCombinatorNone:
@@ -149,12 +138,12 @@ bool selector_full_selector_matches(CssSelector * selector, Doctree *docTree, co
          break;
       case CssSelectorCombinatorDescendant:
          node = docTree->parent (node);
-         matchCacheEntry = matchCache->getRef(selector->matchCacheOffset + i);
+         matchCacheEntry = matchCache->getRef(selector->c_match_case_offset + i);
 
          for (const DoctreeNode *n = node;
               n && n->num > *matchCacheEntry; n = docTree->parent (n))
             if (simple_selector_matches(simpleSelector, n) &&
-                selector_full_selector_matches(selector, docTree, n, i - 1, (Combinator) simpleSelector->combinator, matchCache))
+                selector_full_selector_matches(selector, docTree, n, i - 1, (Combinator) simpleSelector->c_combinator, matchCache))
                return true;
 
          if (node) // remember that it didn't match to avoid future tests
@@ -170,46 +159,36 @@ bool selector_full_selector_matches(CssSelector * selector, Doctree *docTree, co
       return false;
 
    // tail recursion should be optimized by the compiler
-   return selector_full_selector_matches(selector, docTree, node, i - 1, (Combinator) simpleSelector->combinator, matchCache);
+   return selector_full_selector_matches(selector, docTree, node, i - 1, (Combinator) simpleSelector->c_combinator, matchCache);
 }
 
-void cssSelectorAddSimpleSelector(CssSelector * selector, Combinator c)
-{
-   selector->simpleSelectorListSize++;
-#ifdef OLD
-   selector->simpleSelectorList[selector->simpleSelectorListSize - 1] = new CssSimpleSelector;
-#endif
-   selector->simpleSelectorList[selector->simpleSelectorListSize - 1]->combinator = c;
-   //fprintf(stderr, "ZZZ added combinator %d on place %d\n", (int) c, selector->simpleSelectorListSize - 1);
-}
-
-bool selectorChecksPseudoClass(CssSelector * selector) {
-   for (int i = 0; i < selector->simpleSelectorListSize; i++)
-      if (selector->simpleSelectorList[i]->selector_pseudo_class_size > 0) // Remember that C/C++ code can use only first pseudo class
+bool selectorChecksPseudoClass(c_css_selector_t * selector) {
+   for (int i = 0; i < selector->c_simple_selector_list_size; i++)
+      if (selector->c_simple_selector_list[i]->c_selector_pseudo_class_size > 0) // Remember that C/C++ code can use only first pseudo class
          return true;
    return false;
 }
 
-CssSimpleSelector * selectorGetTopSimpleSelector(CssSelector * selector)
+c_css_simple_selector_t * selectorGetTopSimpleSelector(c_css_selector_t * selector)
 {
-   return selector->simpleSelectorList[selector->simpleSelectorListSize - 1];
+   return selector->c_simple_selector_list[selector->c_simple_selector_list_size - 1];
 }
 
-bool selector_full_selector_submatches(CssSelector * selector, Doctree *dt, const DoctreeNode *node, MatchCache *matchCache)
+bool selector_full_selector_submatches(c_css_selector_t * selector, Doctree *dt, const DoctreeNode *node, MatchCache *matchCache)
 {
-   return selector_full_selector_matches(selector, dt, node, selector->simpleSelectorListSize - 1, CssSelectorCombinatorNone, matchCache);
+   return selector_full_selector_matches(selector, dt, node, selector->c_simple_selector_list_size - 1, CssSelectorCombinatorNone, matchCache);
 }
 
-void selectorSetMatchCacheOffset(CssSelector * selector, int mo)
+void selectorSetMatchCacheOffset(c_css_selector_t * selector, int mo)
 {
-   if (selector->matchCacheOffset == -1) {
-      selector->matchCacheOffset = mo;
+   if (selector->c_match_case_offset == -1) {
+      selector->c_match_case_offset = mo;
    }
 }
 
-int selectorGetRequiredMatchCache(CssSelector * selector)
+int selectorGetRequiredMatchCache(c_css_selector_t * selector)
 {
-   return selector->matchCacheOffset + selector->simpleSelectorListSize;
+   return selector->c_match_case_offset + selector->c_simple_selector_list_size;
 }
 
 /**
@@ -218,23 +197,23 @@ int selectorGetRequiredMatchCache(CssSelector * selector)
  * The specificity of a CSS selector is defined in
  * http://www.w3.org/TR/CSS21/cascade.html#specificity
  */
-int selectorSpecificity(CssSelector * selector) {
+int selectorSpecificity(c_css_selector_t * selector) {
    int spec = 0;
 
-   for (int i = 0; i < selector->simpleSelectorListSize; i++)
-      spec += cssSimpleSelectorSpecificity(selector->simpleSelectorList[i]);
+   for (int i = 0; i < selector->c_simple_selector_list_size; i++)
+      spec += cssSimpleSelectorSpecificity(selector->c_simple_selector_list[i]);
 
    return spec;
 }
 
-void printCssSelector(CssSelector * selector, FILE * file) {
+void printCssSelector(c_css_selector_t * selector, FILE * file) {
    //fprintf(file, "        Rule SelectorList: Begin\n");
-   fprintf(file, "        Rule SelectorList: %d simple selectors\n", selector->simpleSelectorListSize);
-   for (int i = 0; i < selector->simpleSelectorListSize; i++) {
-      printCssSimpleSelector(selector->simpleSelectorList[i], file);
+   fprintf(file, "        Rule SelectorList: %d simple selectors\n", selector->c_simple_selector_list_size);
+   for (int i = 0; i < selector->c_simple_selector_list_size; i++) {
+      printCssSimpleSelector(selector->c_simple_selector_list[i], file);
 
-      if (i < selector->simpleSelectorListSize - 1) {
-         switch (selector->simpleSelectorList[i + 1]->combinator) {
+      if (i < selector->c_simple_selector_list_size - 1) {
+         switch (selector->c_simple_selector_list[i + 1]->c_combinator) {
             case CssSelectorCombinatorChild:
                fprintf (file, "                Rule SelectorList: combinator > \n");
                break;
@@ -260,20 +239,20 @@ void printCssSelector(CssSelector * selector, FILE * file) {
  * \brief Return whether simple selector matches at a given node of
  *        the document tree.
  */
-bool simple_selector_matches(CssSimpleSelector * selector, const DoctreeNode *n) {
+bool simple_selector_matches(c_css_simple_selector_t * selector, const DoctreeNode *n) {
    assert (n);
-   if (selector->selector_element != CssSimpleSelectorElementAny && selector->selector_element != n->html_element_idx)
+   if (selector->c_selector_element != CssSimpleSelectorElementAny && selector->c_selector_element != n->html_element_idx)
       return false;
-   if (selector->selector_pseudo_class_size > 0 &&
-       (n->pseudo == NULL || dStrAsciiCasecmp (selector->selector_pseudo_class[0], n->pseudo) != 0)) // C/C++ code can use only first pseudo class
+   if (selector->c_selector_pseudo_class_size > 0 &&
+       (n->pseudo == NULL || dStrAsciiCasecmp (selector->c_selector_pseudo_class[0], n->pseudo) != 0)) // C/C++ code can use only first pseudo class
       return false;
-   if (selector->selector_id != NULL && (n->element_id == NULL || dStrAsciiCasecmp (selector->selector_id, n->element_id) != 0))
+   if (selector->c_selector_id != NULL && (n->element_id == NULL || dStrAsciiCasecmp (selector->c_selector_id, n->element_id) != 0))
       return false;
-   for (int i = 0; i < selector->selector_class_size; i++) {
+   for (int i = 0; i < selector->c_selector_class_size; i++) {
       bool found = false;
       if (n->element_class != NULL) {
          for (int j = 0; j < n->element_class->size (); j++) {
-            if (dStrAsciiCasecmp (selector->selector_class[i], n->element_class->get(j)) == 0) {
+            if (dStrAsciiCasecmp (selector->c_selector_class[i], n->element_class->get(j)) == 0) {
                found = true;
                break;
             }
@@ -291,55 +270,55 @@ bool simple_selector_matches(CssSimpleSelector * selector, const DoctreeNode *n)
  *
  * The result is used in CssSelector::specificity ().
  */
-int cssSimpleSelectorSpecificity(CssSimpleSelector * selector)
+int cssSimpleSelectorSpecificity(c_css_simple_selector_t * selector)
 {
    int spec = 0;
 
-   if (selector->selector_id)
+   if (selector->c_selector_id)
       spec += 1 << 20;
-   spec += selector->selector_class_size << 10;
-   if (selector->selector_pseudo_class_size > 0) // Remember that C/C++ code can use only first pseudo code.
+   spec += selector->c_selector_class_size << 10;
+   if (selector->c_selector_pseudo_class_size > 0) // Remember that C/C++ code can use only first pseudo code.
       spec += 1 << 10;
-   if (selector->selector_element != CssSimpleSelectorElementAny)
+   if (selector->c_selector_element != CssSimpleSelectorElementAny)
       spec += 1;
 
    return spec;
 }
 
-void printCssSimpleSelector(CssSimpleSelector * selector, FILE * file)
+void printCssSimpleSelector(c_css_simple_selector_t * selector, FILE * file)
 {
    fprintf(file, "            Rule SimpleSelector: ");
 
-   if (selector->selector_element == CssSimpleSelectorElementAny) {
+   if (selector->c_selector_element == CssSimpleSelectorElementAny) {
       fprintf(file, "Element ANY\n");
-   } else if (selector->selector_element >= 0) {
-      fprintf(file, "Element [%s]\n", a_Html_tag_name(selector->selector_element));
+   } else if (selector->c_selector_element >= 0) {
+      fprintf(file, "Element [%s]\n", a_Html_tag_name(selector->c_selector_element));
    }
 
-   if (selector->selector_pseudo_class_size > 0) {
+   if (selector->c_selector_pseudo_class_size > 0) {
       fprintf(file, "            Rule SimpleSelector: selector = Pseudo class [");
-      for (int i = 0; i < selector->selector_pseudo_class_size; i++) {
+      for (int i = 0; i < selector->c_selector_pseudo_class_size; i++) {
          if (0 == i) {
-            fprintf(file, "%s", selector->selector_pseudo_class[i]);
+            fprintf(file, "%s", selector->c_selector_pseudo_class[i]);
          } else {
-            fprintf(file, " %s", selector->selector_pseudo_class[i]);
+            fprintf(file, " %s", selector->c_selector_pseudo_class[i]);
          }
       }
       fprintf(file, "]\n");
    }
-   if (selector->selector_id) {
-      fprintf(file, "            Rule SimpleSelector: selector = ID %s\n", selector->selector_id);
+   if (selector->c_selector_id) {
+      fprintf(file, "            Rule SimpleSelector: selector = ID %s\n", selector->c_selector_id);
    }
-   if (selector->selector_class_size) {
+   if (selector->c_selector_class_size) {
       fprintf(file, "            Rule SimpleSelector: selector = class [");
-      for (int i = 0; i < selector->selector_class_size; i++)
-         fprintf (file, ".%s", selector->selector_class[i]);
+      for (int i = 0; i < selector->c_selector_class_size; i++)
+         fprintf (file, ".%s", selector->c_selector_class[i]);
       fprintf (file, "]\n");
    }
 }
 
-CssRule::CssRule (CssSelector *selector, CssDeclartionList * declList, int pos) {
-   assert (selector->simpleSelectorListSize > 0);
+CssRule::CssRule (c_css_selector_t * selector, CssDeclartionList * declList, int pos) {
+   assert (selector->c_simple_selector_list_size > 0);
 
    this->selector = selector;
    this->declList = declList;
@@ -396,12 +375,12 @@ void CssStyleSheet::RuleList::insert (CssRule *rule) {
  * rule lists based on the topmost simple selector of their selector.
  */
 void CssStyleSheet::addRule (CssRule *rule) {
-   CssSimpleSelector *top = selectorGetTopSimpleSelector(rule->selector);
+   c_css_simple_selector_t *top = selectorGetTopSimpleSelector(rule->selector);
    RuleList *ruleList = NULL;
    lout::object::ConstString *string;
 
-   if (nullptr != top->selector_id) {
-      string = new lout::object::ConstString(top->selector_id);
+   if (nullptr != top->c_selector_id) {
+      string = new lout::object::ConstString(top->c_selector_id);
       ruleList = idTable.get (string);
       if (ruleList == NULL) {
          ruleList = new RuleList ();
@@ -409,8 +388,8 @@ void CssStyleSheet::addRule (CssRule *rule) {
       } else {
          delete string;
       }
-   } else if (top->selector_class_size > 0) {
-      string = new lout::object::ConstString (top->selector_class[0]);
+   } else if (top->c_selector_class_size > 0) {
+      string = new lout::object::ConstString (top->c_selector_class[0]);
       ruleList = classTable.get (string);
       if (ruleList == NULL) {
          ruleList = new RuleList;
@@ -418,9 +397,9 @@ void CssStyleSheet::addRule (CssRule *rule) {
       } else {
          delete string;
       }
-   } else if (top->selector_element >= 0 && top->selector_element < ntags) {
-      ruleList = &elementTable[top->selector_element];
-   } else if (top->selector_element == CssSimpleSelectorElementAny) {
+   } else if (top->c_selector_element >= 0 && top->c_selector_element < ntags) {
+      ruleList = &elementTable[top->c_selector_element];
+   } else if (top->c_selector_element == CssSimpleSelectorElementAny) {
       ruleList = &anyTable;
    }
 
@@ -429,7 +408,7 @@ void CssStyleSheet::addRule (CssRule *rule) {
       if (selectorGetRequiredMatchCache(rule->selector) > requiredMatchCache)
          requiredMatchCache = selectorGetRequiredMatchCache(rule->selector);
    } else {
-      assert (top->selector_element == CssSimpleSelectorElementNone);
+      assert (top->c_selector_element == CssSimpleSelectorElementNone);
    }
 }
 
@@ -561,7 +540,7 @@ void CssContext::apply_css_context(CssDeclartionList * mergedDeclList, Doctree *
    sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
 }
 
-void CssContext::addRule (CssSelector *sel, CssDeclartionList * declList,
+void CssContext::addRule (c_css_selector_t * sel, CssDeclartionList * declList,
                           CssPrimaryOrder order) {
 
    if (declList->size () > 0) {

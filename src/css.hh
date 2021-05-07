@@ -266,25 +266,9 @@ enum {
       CssSimpleSelectorElementAny = -2,
 };
 
-typedef struct CssSimpleSelector {
-   /* It's possible that more than one of these is set in a single
-      CssSimpleSelector struct. */
-   char * selector_class[10] = { 0 };
-   int selector_class_size = 0;
-
-   /* In CSS there can be more pseudo-classes and Haskell can read them, but
-      for now C/C++ code will only use first one. */
-   char * selector_pseudo_class[10] = { 0 };
-   int selector_pseudo_class_size = 0;
-
-   char * selector_id = nullptr;
-   int selector_element = CssSimpleSelectorElementAny; /* Index corresponding to html.cc::Tags[]. */
-
-   int combinator = (int) CssSelectorCombinatorNone; /* Combinator that combines this simple selector and previous simple selector. */
-} CssSimpleSelector;
-void printCssSimpleSelector(CssSimpleSelector * selector, FILE * file);
-bool simple_selector_matches(CssSimpleSelector * selector, const DoctreeNode *node);
-int cssSimpleSelectorSpecificity(CssSimpleSelector * selector);
+void printCssSimpleSelector(c_css_simple_selector_t * selector, FILE * file);
+bool simple_selector_matches(c_css_simple_selector_t * selector, const DoctreeNode *node);
+int cssSimpleSelectorSpecificity(c_css_simple_selector_t * selector);
 
 
 
@@ -294,41 +278,31 @@ class MatchCache : public lout::misc::SimpleVector <int> {
       MatchCache() : lout::misc::SimpleVector <int> (0) {};
 };
 
+bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *dt, const DoctreeNode *node, int i, Combinator comb,  MatchCache *matchCache);
+bool selector_full_selector_submatches(c_css_selector_t * selector, Doctree *dt, const DoctreeNode *node, MatchCache *matchCache);
 
-typedef struct CssSelector {
-   int matchCacheOffset = -1;
-   struct CssSimpleSelector * simpleSelectorList[10];
-   int simpleSelectorListSize = 1;
-} CssSelector;
-
-void selector_init(CssSelector * selector);
-
-bool selector_full_selector_matches(CssSelector * selector, Doctree *dt, const DoctreeNode *node, int i, Combinator comb,  MatchCache *matchCache);
-bool selector_full_selector_submatches(CssSelector * selector, Doctree *dt, const DoctreeNode *node, MatchCache *matchCache);
-
-CssSimpleSelector * selectorGetTopSimpleSelector(CssSelector * selector);
-void selectorSetMatchCacheOffset(CssSelector * selector, int mo);
-int selectorGetRequiredMatchCache(CssSelector * selector);
-bool selectorChecksPseudoClass(CssSelector * selector);
-int selectorSpecificity(CssSelector * selector);
-void printCssSelector(CssSelector * selector, FILE * file);
-void cssSelectorAddSimpleSelector(CssSelector * selector, Combinator c);
+c_css_simple_selector_t * selectorGetTopSimpleSelector(c_css_selector_t * selector);
+void selectorSetMatchCacheOffset(c_css_selector_t * selector, int mo);
+int selectorGetRequiredMatchCache(c_css_selector_t * selector);
+bool selectorChecksPseudoClass(c_css_selector_t * selector);
+int selectorSpecificity(c_css_selector_t * selector);
+void printCssSelector(c_css_selector_t * selector, FILE * file);
 
 
 
 /**
- * \brief A CssSelector CssDeclartionList pair.
+ * \brief A c_css_selector_t CssDeclartionList pair.
  *
- *  The CssDeclartionList is applied if the CssSelector matches.
+ *  The CssDeclartionList is applied if the c_css_selector_t matches.
  */
 class CssRule {
    public:
-      CssSelector *selector;
+      c_css_selector_t *selector;
       int specificity;
       int position;
       CssDeclartionList * declList = nullptr;
 
-      CssRule(CssSelector *selector, CssDeclartionList * declList, int pos);
+      CssRule(c_css_selector_t *selector, CssDeclartionList * declList, int pos);
 
       void apply_css_rule(FILE * file, CssDeclartionList * outDeclList, Doctree *docTree,
                           const DoctreeNode *node, MatchCache *matchCache) const;
@@ -397,7 +371,7 @@ class CssContext {
    public:
       CssContext ();
 
-      void addRule (CssSelector *sel, CssDeclartionList * declList,
+      void addRule (c_css_selector_t *sel, CssDeclartionList * declList,
                     CssPrimaryOrder order);
       void apply_css_context(CssDeclartionList * mergedDeclList,
                              Doctree *docTree, DoctreeNode *node,

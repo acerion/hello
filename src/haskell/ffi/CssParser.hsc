@@ -58,7 +58,7 @@ foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -
 
 foreign export ccall "hll_cssParseWeight"  hll_cssParseWeight :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
 
-foreign export ccall "hll_cssParseSelector"  hll_cssParseSelector :: Ptr HelloCssParser -> Ptr HelloCssSelector -> Int -> CString -> CString -> IO Bool
+foreign export ccall "hll_cssParseSelector"  hll_cssParseSelector :: Ptr HelloCssParser -> Int -> CString -> CString -> IO (Ptr HelloCssSelector)
 
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
@@ -464,12 +464,11 @@ setSimpleSelector ptrStructSimpleSelector simpleSelector = do
 
 
 
-hll_cssParseSelector :: Ptr HelloCssParser -> Ptr HelloCssSelector -> Int -> CString -> CString -> IO Bool
-hll_cssParseSelector ptrStructCssParser ptrStructSelector tokType cTokValue cBuf = do
+hll_cssParseSelector :: Ptr HelloCssParser -> Int -> CString -> CString -> IO (Ptr HelloCssSelector)
+hll_cssParseSelector ptrStructCssParser tokType cTokValue cBuf = do
   buf      <- BSU.unsafePackCString $ cBuf
   tokValue <- BSU.unsafePackCString $ cTokValue
   hllParser <- peek ptrStructCssParser
-  cStructPtrSelector  <- peek ptrStructSelector
   let inBlock = withinBlockC hllParser
   let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
 
@@ -484,39 +483,58 @@ hll_cssParseSelector ptrStructCssParser ptrStructSelector tokType cTokValue cBuf
   manipulateOutPtr ptrStructCssParser newParser newToken (if withinBlock newParser then 1 else 0)
   case newSelector of
     Just sel -> do
-      (setArrayOfPointers (simpleSelectorList sel) simSelToPtrStruct ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list))
+      ptrStructSelector <- callocBytes #{size c_css_selector_t}
+      (setArrayOfPointers (simpleSelectorList sel) simpleSelectorToPtrStruct ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list))
       pokeByteOff ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ sel)
-      return True
+      return ptrStructSelector
     Nothing ->
-      return False
+      return nullPtr
 
 
 
 
-simSelToPtrStruct :: CssSimpleSelector -> IO (Ptr HelloCssSimpleSelector)
-simSelToPtrStruct ss = do
+-- Get pointer to newly allocated pointer to C structure representing given
+-- simple selector.
+--
+-- This function allocates memory, but since the goal of this project is to
+-- replace C/C++ code with Haskell code, the allocation will be eventually
+-- removed. So I don't care about deallocating the memory.
+simpleSelectorToPtrStruct :: CssSimpleSelector -> IO (Ptr HelloCssSimpleSelector)
+simpleSelectorToPtrStruct simSel = do
   ptrStructSimpleSelector <- callocBytes #{size c_css_simple_selector_t}
-  setSimpleSelector ptrStructSimpleSelector ss
+  setSimpleSelector ptrStructSimpleSelector simSel
   return ptrStructSimpleSelector
 
 
 
 
+-- Get pointer to newly allocated pointer to C string representing given
+-- text.
+--
+-- This function allocates memory, but since the goal of this project is to
+-- replace C/C++ code with Haskell code, the allocation will be eventually
+-- removed. So I don't care about deallocating the memory.
 textToPtrString :: T.Text -> IO CString
 textToPtrString = newCString . T.unpack
 
 
 
 
--- Save given array of items 'a' as array of pointers to objects b.
+-- Save given array of items 'a' as array of pointers to objects 'b'.
 -- The pointers are allocated by this function.
 -- The pointers are stored in a structure given by second arg.
 -- Byte Offset to beginning of the array of pointers (to first cell) is given by fourth arg.
-setArrayOfPointers :: (Storable b) => [a] -> (a -> IO b) -> Ptr c -> Int ->  IO ()
-setArrayOfPointers [] f ptrStructSimpleSelector byteOffset = do
+--
+-- 'c' is a parent object, of which the array is a member.
+--
+-- 'f' converts input items into pointers to allocated memory. The pointers
+-- will be read and interpreted by C code. This can be a function that e.g.
+-- converts Data.Text into char* strings.
+setArrayOfPointers :: (Storable b) => [a] -> (a -> IO b) -> Ptr c -> Int -> IO ()
+setArrayOfPointers [] f ptrParent byteOffset = do
   return ()
-setArrayOfPointers (x:xs) f ptrStructSimpleSelector byteOffset = do
-  let pointerSize = 8
+setArrayOfPointers (x:xs) f ptrParent byteOffset = do
+  let pointerSize = 8 -- TODO: hardcoded value.
   ptr <- f x
-  pokeByteOff ptrStructSimpleSelector byteOffset ptr
-  setArrayOfPointers xs f ptrStructSimpleSelector (byteOffset + pointerSize)
+  pokeByteOff ptrParent byteOffset ptr
+  setArrayOfPointers xs f ptrParent (byteOffset + pointerSize)

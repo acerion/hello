@@ -688,11 +688,11 @@ void CssParser::parseDeclaration(CssDeclartionList * declList,
       nextToken(&this->tokenizer, &this->hll_css_parser);
 }
 
-bool parseSelector(CssParser * cssParser, CssSelector * selector)
+c_css_selector_t * parseSelector(CssParser * cssParser)
 {
-   const bool success = hll_cssParseSelector(&cssParser->hll_css_parser, (c_css_selector_t *) selector,
-                                             cssParser->tokenizer.type, cssParser->tokenizer.value,
-                                             cssParser->tokenizer.buf + cssParser->tokenizer.bufOffset);
+   c_css_selector_t * selector = hll_cssParseSelector(&cssParser->hll_css_parser,
+                                                      cssParser->tokenizer.type, cssParser->tokenizer.value,
+                                                      cssParser->tokenizer.buf + cssParser->tokenizer.bufOffset);
    cssParser->tokenizer.bufOffset = cssParser->hll_css_parser.c_buf_offset;
    snprintf(cssParser->tokenizer.value, sizeof (cssParser->tokenizer.value), "%s", cssParser->hll_css_parser.c_token_value);
    cssParser->tokenizer.type = (CssTokenType) cssParser->hll_css_parser.c_token_type;
@@ -702,21 +702,20 @@ bool parseSelector(CssParser * cssParser, CssSelector * selector)
            (cssParser->tokenizer.value[0] != ',' && cssParser->tokenizer.value[0] != '{')))
          nextToken(&cssParser->tokenizer, &cssParser->hll_css_parser);
 
-   return success;
+   return selector;
 }
 
 void CssParser::parseRuleset()
 {
-   lout::misc::SimpleVector < CssSelector * > * selectors = new lout::misc::SimpleVector < CssSelector * >(1);
+   lout::misc::SimpleVector < c_css_selector_t * > * selectors = new lout::misc::SimpleVector < c_css_selector_t * >(1);
 
    while (true) {
-      CssSelector * selector = new CssSelector;
-      selector_init(selector);
-      if (parseSelector(this, selector)) {
+      c_css_selector_t * selector = parseSelector(this);
+      if (nullptr != selector) {
          selectors->increase();
          selectors->set(selectors->size() - 1, selector);
       } else {
-         delete selector;
+         //delete selector;
       }
 
       // \todo dump whole ruleset in case of parse error as required by CSS 2.1
@@ -748,7 +747,7 @@ void CssParser::parseRuleset()
    }
 
    for (int i = 0; i < selectors->size(); i++) {
-      CssSelector * sel = selectors->get(i);
+      c_css_selector_t * sel = selectors->get(i);
 
       if (origin == CSS_ORIGIN_USER_AGENT) {
          context->addRule(sel, declList, CSS_PRIMARY_USER_AGENT);

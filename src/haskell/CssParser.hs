@@ -20,6 +20,9 @@ This file is derived from dillo-3.0.5/src/cssparser.cc.
 Copyright assignments from that file:
 Copyright 2004 Sebastian Geerken <sgeerken@dillo.org>
 Copyright 2008-2009 Johannes Hofmann <Johannes.Hofmann@gmx.de>
+Additional note in cssparser.cc:
+"This file is heavily based on the CSS parser of dillo-0.8.0-css-3 -
+a dillo1 based CSS prototype written by Sebastian Geerken."
 -}
 
 
@@ -1142,6 +1145,8 @@ cssSimpleSelectorElementAny  = (-2)
 
 
 
+
+-- TODO: convert to data.
 cssSelectorCombinatorNone            = 0
 cssSelectorCombinatorDescendant      = 1   -- ' '
 cssSelectorCombinatorChild           = 2   -- '>'
@@ -1155,6 +1160,10 @@ defaultSimpleSelector = CssSimpleSelector {
   , selectorId          = ""
   , selectorClass       = []
   , selectorElement     = cssSimpleSelectorElementAny
+
+  -- Combinator that combines this simple selector and the previous one. For
+  -- a simple selector that is first on the list (or the only on the list),
+  -- the combinator will be None.
   , combinator          = cssSelectorCombinatorNone
   }
 
@@ -1162,13 +1171,14 @@ defaultSimpleSelector = CssSimpleSelector {
 
 defaultSelector = CssSelector {
     matchCaseOffset    = -1
-  , simpleSelectorList = [defaultSimpleSelector]
+  , simpleSelectorList = [] -- [defaultSimpleSelector]
   }
 
 
 
 
-data CssSelectorType = CssSelectorTypeNone
+data CssSelectorType =
+    CssSelectorTypeNone
   | CssSelectorTypeClass
   | CssSelectorTypePseudoClass
   | CssSelectorTypeID
@@ -1176,8 +1186,10 @@ data CssSelectorType = CssSelectorTypeNone
 
 
 
-setSimpleSelector :: CssSimpleSelector -> CssSelectorType -> T.Text -> CssSimpleSelector
-setSimpleSelector simpleSelector selectorType sym =
+-- Update simple selector with given symbol 'sym', depending on type of
+-- symbol.
+updateSimpleSelector :: CssSimpleSelector -> CssSelectorType -> T.Text -> CssSimpleSelector
+updateSimpleSelector simpleSelector selectorType sym =
   case selectorType of
     CssSelectorTypeClass       -> simpleSelector {selectorClass = (selectorClass simpleSelector) ++ [sym]}
     CssSelectorTypePseudoClass -> if T.null sym
@@ -1185,8 +1197,8 @@ setSimpleSelector simpleSelector selectorType sym =
                                   else simpleSelector {selectorPseudoClass = (selectorPseudoClass simpleSelector) ++ [sym]}
     CssSelectorTypeID          -> if selectorId simpleSelector == ""
                                   then simpleSelector {selectorId = sym}
-                                  else simpleSelector
-    otherwise                  -> simpleSelector
+                                  else simpleSelector  -- TODO: is this valid that we ignore new value of the field without any warning?
+    otherwise                  -> simpleSelector -- TODO: this probably should be caught by some kind of "non-exhaustive pattern match" warning.
 
 
 
@@ -1199,34 +1211,39 @@ setSimpleSelector simpleSelector selectorType sym =
 
 
 
+-- Create a selector from a group of tokens that is terminated by ',' or '{'
+-- character.
+--
+-- Function always consumes the group of tokens, regardless of
+-- success/failure of the parsing.
 parseSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssSelector)
 parseSelector (parser, token) =
-  case parseSimpleSelectors (removeSpaceTokens selectorTokens []) [defaultSimpleSelector] of
+  case parseSelectorTokens (removeSpaceTokens selectorTokens []) [defaultSimpleSelector] of
     Just simpleSelectors -> ((newParser, newToken), Just defaultSelector{simpleSelectorList = reverse simpleSelectors})
     Nothing              -> ((newParser, newToken), Nothing)
 
   where
     ((newParser, newToken), selectorTokens) = takeSelectorTokens (parser, token)
 
-    parseSimpleSelectors :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
-    parseSimpleSelectors (CssTokSym sym:tokens) (simSel:simSels)  = parseSimpleSelectors tokens ((simSel{selectorElement = htmlTagIndex sym}):simSels)
+    parseSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
+    parseSelectorTokens (CssTokSym sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorElement = htmlTagIndex sym}):simSels)
 
-    parseSimpleSelectors (CssTokCh '#':CssTokSym sym:tokens) (simSel:simSels) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypeID sym):simSels)
-    parseSimpleSelectors (CssTokCh '.':CssTokSym sym:tokens) (simSel:simSels) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypeClass sym):simSels)
-    parseSimpleSelectors (CssTokCh ':':CssTokSym sym:tokens) (simSel:simSels) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
+    parseSelectorTokens (CssTokCh '#':CssTokSym sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID sym):simSels)
+    parseSelectorTokens (CssTokCh '.':CssTokSym sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
+    parseSelectorTokens (CssTokCh ':':CssTokSym sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
 
-    parseSimpleSelectors (CssTokCh '>':tokens) simSels = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorChild}:simSels)
-    parseSimpleSelectors (CssTokCh '+':tokens) simSels = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorAdjacentSibling}:simSels)
-    parseSimpleSelectors (CssTokWS:tokens)     simSels = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorDescendant}:simSels)
+    parseSelectorTokens (CssTokCh '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorChild}:simSels)
+    parseSelectorTokens (CssTokCh '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorAdjacentSibling}:simSels)
+    parseSelectorTokens (CssTokWS:tokens)     simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorDescendant}:simSels)
 
-    parseSimpleSelectors [] simSels = Just simSels
-    parseSimpleSelectors _  simSels = Nothing
+    parseSelectorTokens [] simSels = Just simSels
+    parseSelectorTokens _  simSels = Nothing
 
 
 
 
 -- Take all tokens until ',' or '{' or EOF is met. The tokens will be used to
--- create simple selector(s), possibly separated by combinator(s). If input
+-- create list of CssSimpleSelectors (with separating combinators). If input
 -- stream starts with whitespace, discard the whitespace (don't return token
 -- for it) - leading whitespace is certainly meaningless.
 takeSelectorTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
