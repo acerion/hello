@@ -75,13 +75,11 @@ module CssParser(nextToken
 
                 , invalidIntResult
 
-                , parseSimpleSelector
                 , defaultSimpleSelector
                 , defaultSelector
                 , CssSimpleSelector (..)
                 , CssSelector (..)
                 , takeSelectorTokens
-                , takeSimpleSelectorTokens
                 , parseSelector
                 , removeSpaceTokens
 
@@ -1178,30 +1176,6 @@ data CssSelectorType = CssSelectorTypeNone
 
 
 
-parseSimpleSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), CssSimpleSelector, Bool)
-parseSimpleSelector (parser, token) = ((newParser, newToken), newSimSel, valid)
-  where
-    ((newParser, newToken), tokens) = takeSimpleSelectorTokens (parser, token)
-    (newSimSel, valid) = parseList tokens 0 defaultSimpleSelector
-
-    parseList :: [CssToken] -> Int -> CssSimpleSelector -> (CssSimpleSelector, Bool)
-    parseList [] idx simSel                   = if idx == 0
-                                                then (simSel, False)
-                                                else (simSel, True)
-    parseList ((CssTokSym sym):xs) idx simSel = if idx == 0
-                                                then parseList xs (idx + 1) simSel{selectorElement = htmlTagIndex sym}
-                                                else (simSel, False) -- Valid combos of {#.:}+symbol are handled below. This is invalid situation
-    parseList ((CssTokCh '*'):xs) idx simSel  = if idx == 0
-                                                then parseList xs (idx + 1) simSel{selectorElement = cssSimpleSelectorElementAny}
-                                                else (simSel, False)
-    parseList ((CssTokCh '#'):(CssTokSym sym):xs) idx simSel = parseList xs (idx + 1) (setSimpleSelector simSel CssSelectorTypeID sym)
-    parseList ((CssTokCh '.'):(CssTokSym sym):xs) idx simSel = parseList xs (idx + 1) (setSimpleSelector simSel CssSelectorTypeClass sym)
-    parseList ((CssTokCh ':'):(CssTokSym sym):xs) idx simSel = parseList xs (idx + 1) (setSimpleSelector simSel CssSelectorTypePseudoClass sym)
-    parseList _ _ simSel = (simSel, False)
-
-
-
-
 setSimpleSelector :: CssSimpleSelector -> CssSelectorType -> T.Text -> CssSimpleSelector
 setSimpleSelector simpleSelector selectorType sym =
   case selectorType of
@@ -1218,116 +1192,37 @@ setSimpleSelector simpleSelector selectorType sym =
 
 
 
--- TODO: it seems that we will have to have Space tokens too, to properly
--- recognize where simple selector ends. Right now I had to add the call to
--- isSpaceSeparated to recognize the space that ends a simple selector.
-takeSimpleSelectorTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
-takeSimpleSelectorTokens (parser, token) = takeNext (parser, token) []
-  where
-    takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
-    takeNext (parser, token) tokens = case token of
-                                        CssTokNone    -> takeNext (nextToken parser) tokens -- Kick-start taking tokens.
-                                        CssTokSym sym -> if isSpaceSeparated parser -- Take only ":"+"link" tokens in situations like this: ":link img, :visited img {...}".
-                                                         then ((nextToken parser), (tokens ++ [token]))
-                                                         else takeNext (nextToken parser) (tokens ++ [token])
-                                        CssTokCh '*'  -> takeNext (nextToken parser) (tokens ++ [token])
-                                        CssTokCh '#'  -> takeNext (nextToken parser) (tokens ++ [token])
-                                        CssTokCh '.'  -> takeNext (nextToken parser) (tokens ++ [token])
-                                        CssTokCh ':'  -> takeNext (nextToken parser) (tokens ++ [token])
-                                        CssTokWS      -> takeNext (nextToken parser) (tokens ++ [token])
-                                        otherwise     -> ((parser, token), tokens)
-
-
-
-isSpaceSeparated parser = spaceSeparated newParser
-  where (newParser, newToken) = nextToken parser
-
-isSpaceSeparated2 parser = spaceSeparated newParser
-  where (newParser, newToken) = nextToken parser
-
-
-
-
 --parseSelector (defaultParser{remainder="h1>h2+h3 h4 {something}"}, CssTokNone)
 -- parseSelector (defaultParser{remainder="h1, h2, h3, h4, h5, h6, b, strong {font-weight: bolder}"}, CssTokNone)
 -- parseSelector (defaultParser{remainder="address, article, aside, center, div, figure, figcaption, footer, h1, h2, h3, h4, h5, h6, header, nav, ol, p, pre, section, ul {display: block}i, em, cite, address, var"}, CssTokNone)
 
 
 
-parseSelector = parseSelectorNew
 
+parseSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssSelector)
+parseSelector (parser, token) =
+  case parseSimpleSelectors (removeSpaceTokens selectorTokens []) [defaultSimpleSelector] of
+    Just simpleSelectors -> ((newParser, newToken), Just defaultSelector{simpleSelectorList = reverse simpleSelectors})
+    Nothing              -> ((newParser, newToken), Nothing)
 
-parseSelectorOld :: (CssParser, CssToken) -> ((CssParser, CssToken), CssSelector, Int)
-parseSelectorOld (parser, token) = traceShow ("Calling parseSelector") ((finalParser, finalToken), defaultSelector{simpleSelectorList=(reverse simpleSelectors)}, valid)
-  where
-    ((finalParser, finalToken), simpleSelectors, valid) = parseSelector' (parser, token) [defaultSimpleSelector]
-
-    parseSelector' :: (CssParser, CssToken) -> [CssSimpleSelector] -> ((CssParser, CssToken), [CssSimpleSelector], Int)
-    parseSelector' (parser, token) (x:xs) =
-      case (parseSimpleSelector (parser, token)) of
-        ((newParser, newToken@(CssTokCh ',')), simSel, True) -> ((newParser, newToken), simSel:xs, 0)
-        ((newParser, newToken@(CssTokCh '{')), simSel, True) -> ((newParser, newToken), simSel:xs, 0)
-        ((newParser, newToken),                simSel, True) -> (parseCombinator (newParser, newToken) (simSel:xs))
-        ((newParser, newToken), _,                    False) -> ((newParser, newToken), xs, 1)
-
-    parseCombinator :: (CssParser, CssToken) -> [CssSimpleSelector] -> ((CssParser, CssToken), [CssSimpleSelector], Int)
-    parseCombinator (parser, token) (x:xs) =
-      if isSpaceSeparated2 parser
-      then traceShow ("Calling parseSelector'") (parseSelector' (nextToken parser) (defaultSimpleSelector{combinator = 3}:x:xs))
-      else
-        case token of
-          (CssTokCh '>') -> traceShow ("Calling parseSelector1") parseSelector' (nextToken parser) (defaultSimpleSelector{combinator = 1}:x:xs)
-          (CssTokCh '+') -> traceShow ("Calling parseSelector2") parseSelector' (nextToken parser) (defaultSimpleSelector{combinator = 2}:x:xs)
-          (tok)          -> traceShow ("Calling other token") ((parser, token), x:xs, 5)
-
-
-
-
-parseSelectorNew :: (CssParser, CssToken) -> ((CssParser, CssToken), CssSelector, Int)
-parseSelectorNew (parser, token) = ((newParser, newToken), defaultSelector{simpleSelectorList = reverse simpleSelectors}, valid)
   where
     ((newParser, newToken), selectorTokens) = takeSelectorTokens (parser, token)
-    (simpleSelectors, valid) = parseSimpleSelectors (removeSpaceTokens selectorTokens []) [defaultSimpleSelector]
 
-    parseSimpleSelectors :: [CssToken] -> [CssSimpleSelector] -> ([CssSimpleSelector], Int)
-    parseSimpleSelectors (CssTokSym sym:tokens) (simSel:selectors)  = parseSimpleSelectors tokens ((simSel{selectorElement = htmlTagIndex sym}):selectors)
+    parseSimpleSelectors :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
+    parseSimpleSelectors (CssTokSym sym:tokens) (simSel:simSels)  = parseSimpleSelectors tokens ((simSel{selectorElement = htmlTagIndex sym}):simSels)
 
-    parseSimpleSelectors (CssTokCh '#':CssTokSym sym:tokens) (simSel:selectors) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypeID sym):selectors)
-    parseSimpleSelectors (CssTokCh '.':CssTokSym sym:tokens) (simSel:selectors) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypeClass sym):selectors)
-    parseSimpleSelectors (CssTokCh ':':CssTokSym sym:tokens) (simSel:selectors) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypePseudoClass sym):selectors)
+    parseSimpleSelectors (CssTokCh '#':CssTokSym sym:tokens) (simSel:simSels) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypeID sym):simSels)
+    parseSimpleSelectors (CssTokCh '.':CssTokSym sym:tokens) (simSel:simSels) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypeClass sym):simSels)
+    parseSimpleSelectors (CssTokCh ':':CssTokSym sym:tokens) (simSel:simSels) = parseSimpleSelectors tokens ((setSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
 
-    parseSimpleSelectors (CssTokCh '>':tokens) (selectors) = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorChild}:selectors)
-    parseSimpleSelectors (CssTokCh '+':tokens) (selectors) = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorAdjacentSibling}:selectors)
-    parseSimpleSelectors (CssTokWS:tokens)     (selectors) = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorDescendant}:selectors)
+    parseSimpleSelectors (CssTokCh '>':tokens) simSels = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorChild}:simSels)
+    parseSimpleSelectors (CssTokCh '+':tokens) simSels = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorAdjacentSibling}:simSels)
+    parseSimpleSelectors (CssTokWS:tokens)     simSels = parseSimpleSelectors tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorDescendant}:simSels)
 
-    parseSimpleSelectors [] selectors = (selectors, 0)
-    parseSimpleSelectors _ selectors = (selectors, 4)
-
+    parseSimpleSelectors [] simSels = Just simSels
+    parseSimpleSelectors _  simSels = Nothing
 
 
-{-
-
-parseSimpleSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), CssSimpleSelector, Bool)
-parseSimpleSelector (parser, token) = ((newParser, newToken), newSimSel, valid)
-  where
-    ((newParser, newToken), tokens) = takeSimpleSelectorTokens (parser, token)
-    (newSimSel, valid) = parseList tokens 0 defaultSimpleSelector
-
-    parseList :: [CssToken] -> Int -> CssSimpleSelector -> (CssSimpleSelector, Bool)
-    parseList [] idx simSel                   = if idx == 0
-                                                then (simSel, False)
-                                                else (simSel, True)
-    parseList ((CssTokSym sym):xs) idx simSel = if idx == 0
-                                                then parseList xs (idx + 1) simSel{selectorElement = htmlTagIndex sym}
-                                                else (simSel, False) -- Valid combos of {#.:}+symbol are handled below. This is invalid situation
-    parseList ((CssTokCh '*'):xs) idx simSel  = if idx == 0
-                                                then parseList xs (idx + 1) simSel{selectorElement = cssSimpleSelectorElementAny}
-                                                else (simSel, False)
-    parseList _ _ simSel = (simSel, False)
-
-
-
--}
 
 
 -- Take all tokens until ',' or '{' or EOF is met. The tokens will be used to
@@ -1369,43 +1264,3 @@ removeSpaceTokens (x:(CssTokWS):[]) acc              = acc ++ [x] -- Don't forge
 removeSpaceTokens (x:xs) acc                         = removeSpaceTokens xs (acc ++ [x])
 removeSpaceTokens [] acc                             = acc
 
-{-
-
-   bool success = true;
-
-   while (true) {
-      CssSimpleSelector * simpleSelector = selectorGetTopSimpleSelector(selector);
-
-      bool simpleSelectorIsValid = false;
-      {
-         c_css_simple_selector_t * simSel = (c_css_simple_selector_t *) simpleSelector;
-         simpleSelectorIsValid = hll_cssParseSimpleSelector(&cssParser->hll_css_parser, simSel,
-                                                            cssParser->tokenizer.type, cssParser->tokenizer.value,
-                                                            cssParser->tokenizer.buf + cssParser->tokenizer.bufOffset);
-         cssParser->tokenizer.bufOffset = cssParser->hll_css_parser.c_buf_offset;
-         snprintf(cssParser->tokenizer.value, sizeof (cssParser->tokenizer.value), "%s", cssParser->hll_css_parser.c_token_value);
-         cssParser->tokenizer.type = (CssTokenType) cssParser->hll_css_parser.c_token_type;
-      }
-
-      if (!simpleSelectorIsValid) {
-         success = false;
-         break;
-      }
-
-      if (cssParser->tokenizer.type == CSS_TOKEN_TYPE_CHAR &&
-         (cssParser->tokenizer.value[0] == ',' || cssParser->tokenizer.value[0] == '{')) {
-         break;
-      } else if (cssParser->tokenizer.type == CSS_TOKEN_TYPE_CHAR && cssParser->tokenizer.value[0] == '>') {
-         cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorChild);
-         nextToken(&cssParser->tokenizer, &cssParser->hll_css_parser);
-      } else if (cssParser->tokenizer.type == CSS_TOKEN_TYPE_CHAR && cssParser->tokenizer.value[0] == '+') {
-         cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorAdjacentSibling);
-         nextToken(&cssParser->tokenizer, &cssParser->hll_css_parser);
-      } else if (cssParser->tokenizer.type != CSS_TOKEN_TYPE_END && cssParser->hll_css_parser.c_space_separated) {
-         cssSelectorAddSimpleSelector(selector, CssSelectorCombinatorDescendant);
-      } else {
-         success = false;
-         break;
-      }
-   }
--}

@@ -57,7 +57,6 @@ foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
 foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
 
 foreign export ccall "hll_cssParseWeight"  hll_cssParseWeight :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
-foreign export ccall "hll_cssParseSimpleSelector"  hll_cssParseSimpleSelector :: Ptr HelloCssParser -> Ptr HelloCssSimpleSelector -> Int -> CString -> CString -> IO Bool
 
 foreign export ccall "hll_cssParseSelector"  hll_cssParseSelector :: Ptr HelloCssParser -> Ptr HelloCssSelector -> Int -> CString -> CString -> IO Bool
 
@@ -372,56 +371,6 @@ hll_cssParseWeight ptrStructCssParser tokType cTokValue cBuf = do
 
 
 
-hll_cssParseSimpleSelector :: Ptr HelloCssParser -> Ptr HelloCssSimpleSelector -> Int -> CString -> CString -> IO Bool
-hll_cssParseSimpleSelector ptrStructCssParser ptrStructSimpleSelector tokType cTokValue cBuf = do
-  buf      <- BSU.unsafePackCString $ cBuf
-  tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek ptrStructCssParser
-  simSel    <- peek ptrStructSimpleSelector
-  let inBlock = withinBlockC hllParser
-  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
-
-  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
-                            , withinBlock = inBlock > 0
-                            , bufOffset   = fromIntegral . bufOffsetC $ hllParser
-                            , spaceSeparated = spaceSeparatedC hllParser > 0
-                            }
-
-  a <- if nullPtr == selectorPseudoClassC simSel then return "" else (peekCString . selectorPseudoClassC $ simSel)
-  b <- if nullPtr == selectorIdC simSel then return "" else (peekCString . selectorIdC $ simSel)
-  let c = [] -- selectorClassC simSel -- TODO: create the array from simSel
-  let simSel2 = defaultSimpleSelector { selectorPseudoClass = []
-                                      , selectorId = T.pack b
-                                      , selectorClass = c
-                                      , selectorElement = fromIntegral . selectorElementC $ simSel
-                                      , combinator = 1 --fromIntegral . combinatorC $ simSel
-                                      }
-
-  let ((newParser, newToken), simpleSelector, valid) = parseSimpleSelector (parser, inputToken)
-
-  putStr "ZAAA - input simSel: "
-  putStr (show simSel)
-  putStr "\n"
-
-  putStr "ZAAA - parsed simpleSelector: "
-  putStr (show simpleSelector)
-  putStr "\n"
-
-  manipulateOutPtr ptrStructCssParser newParser newToken inBlock
-  setSimpleSelector ptrStructSimpleSelector simpleSelector
-
-  putStr "ZAAA - simpleSelector after setting pointer "
-  putStr (show simpleSelector)
-  putStr "\n"
-  p <- peek ptrStructSimpleSelector
-  putStr (show p)
-  putStr "\n"
-
-  return valid
-
-
-
-
 data HelloCssSimpleSelector = HelloCssSimpleSelector {
     selectorClassC           :: CString
   , selectorClassSizeC       :: CInt
@@ -502,84 +451,15 @@ setSimpleSelector ptrStructSimpleSelector simpleSelector = do
                      else newCString . T.unpack . selectorId $ simpleSelector
 
   setArrayOfPointers (selectorClass simpleSelector) textToPtrString ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class)
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class_size) (length . selectorClass $ simpleSelector)        -- Byte 10
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class_size) (length . selectorClass $ simpleSelector)
 
   setArrayOfPointers (selectorPseudoClass simpleSelector) textToPtrString ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class)
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class_size) (length . selectorPseudoClass $ simpleSelector)  -- Byte 21
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class_size) (length . selectorPseudoClass $ simpleSelector)
 
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_id) cStringPtrSelId                                  -- Byte 22
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_element) (selectorElement simpleSelector)                 -- Byte 23
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_id) cStringPtrSelId
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_element) (selectorElement simpleSelector)
 
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_combinator) (combinator simpleSelector)                      -- Byte 24
-
-
-
-
--- Save given array of texts as array pointer to C strings.
--- The pointers are allocated by this function.
--- The pointers are stored in a structure given by second arg.
--- Offset to beginning of the array of pointers (to first cell) is given by third arg.
-setArrayOfStringPointers :: [T.Text] -> Ptr HelloCssSimpleSelector -> Int ->  IO Int
-setArrayOfStringPointers [] ptrStructSimpleSelector arrayPosition = do
-  return arrayPosition
-setArrayOfStringPointers (x:xs) ptrStructSimpleSelector arrayPosition = do
-  let pointerSize = 8
-  str  <- newCString . T.unpack $ x
-  pokeByteOff ptrStructSimpleSelector (arrayPosition * pointerSize) str
-  setArrayOfStringPointers xs ptrStructSimpleSelector (arrayPosition + 1)
-
-
-
-
--- Save given array of texts as array pointer to C strings.
--- The pointers are allocated by this function.
--- The pointers are stored in a structure given by second arg.
--- Offset to beginning of the array of pointers (to first cell) is given by third arg.
-setArrayOfStructPointers :: [CssSimpleSelector] -> Ptr HelloCssSimpleSelector -> Int ->  IO Int
-setArrayOfStructPointers [] ptrStructSimpleSelector arrayPosition = do
-  return arrayPosition
-setArrayOfStructPointers (x:xs) ptrStructSimpleSelector arrayPosition = do
-  let pointerSize = 8
-  setSimpleSelector (advancePtr ptrStructSimpleSelector arrayPosition) x
-  setArrayOfStructPointers xs ptrStructSimpleSelector (arrayPosition + 1)
-
-
--- Save given array of texts as array pointer to C strings.
--- The pointers are allocated by this function.
--- The pointers are stored in a structure given by second arg.
--- Offset to beginning of the array of pointers (to first cell) is given by third arg.
-setArrayOfStructPointers2 :: [CssSimpleSelector] -> Ptr HelloCssSimpleSelector -> IO Int
-setArrayOfStructPointers2 [] ptrStructSimpleSelector = do
-  return 0
-setArrayOfStructPointers2 (x:xs) ptrStructSimpleSelector = do
-  setSimpleSelector ptrStructSimpleSelector x --  x
-  setArrayOfStructPointers2 xs  (advancePtr ptrStructSimpleSelector 1)
-
-
-
-
--- Save given Haskell simple selector to C simple selector.
--- https://downloads.haskell.org/~ghc/7.0.3/docs/html/users_guide/hsc2hs.html
-setSelector :: Ptr HelloCssSimpleSelector -> CssSelector -> IO ()
-setSelector ptrStructSimpleSelector selector = do
-  setSelectorElem ptrStructSimpleSelector (simpleSelectorList selector)
-    where
-      setSelectorElem :: Ptr HelloCssSimpleSelector -> [CssSimpleSelector] -> IO ()
-      setSelectorElem ptrStructSimpleSelector []     = return ()
-      setSelectorElem ptrStructSimpleSelector (x:xs) = do
-        putStr "++++++++++++++\n"
-        putStr (show x)
-        putStr "---------------\n"
-        --ptrStructSimpleSelector <- callocBytes 192
-        setSimpleSelector ptrStructSimpleSelector x
-
-        p <- peek ptrStructSimpleSelector
-        putStr ("configured simple selector 2: ")
-        putStr (show p)
-        putStr "\n"
-
-        setSelectorElem (advancePtr ptrStructSimpleSelector 1) xs
-
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_combinator) (combinator simpleSelector)
 
 
 
@@ -599,70 +479,31 @@ hll_cssParseSelector ptrStructCssParser ptrStructSelector tokType cTokValue cBuf
                             , spaceSeparated = (fromIntegral . bufOffsetC $ hllParser) > 0
                             }
 
-  let ((newParser, newToken), newSelector, valid) = parseSelector (parser, inputToken)
+  let ((newParser, newToken), newSelector) = parseSelector (parser, inputToken)
 
-{-
-  putStr "ZAAA - input buffer: "
-  putStrLn (show buf)
-  putStr "ZAAA - input token: "
-  putStrLn (show tokValue)
-  putStr "ZAAA - output token: "
-  putStrLn (show newToken)
-  putStr "ZAAA - input parser: "
-  putStrLn (show parser)
-  putStr "ZAAA - parsed selector: "
-  putStrLn (show newSelector)
-  putStr "ZAA valid = "
-  putStrLn (show valid)
-  putStr "\n"
--}
   manipulateOutPtr ptrStructCssParser newParser newToken (if withinBlock newParser then 1 else 0)
-
-  when (valid == 0) $ (setArrayOfPointers (simpleSelectorList newSelector) fun ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list))
-  when (valid == 0) $ pokeByteOff ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ newSelector)
-
-{-
-  putStr "ZAAA - selector after setting pointer "
-  putStr (show (length (simpleSelectorList newSelector)))
-  putStr (show newSelector)
-  putStr "\n"
-  p <- peek ptrStructSelector
-  putStr (show p)
-  putStr "\n"
-  --printSelector . simpleSelectorList $ newSelector
-  putStr "\n\n\n"
--}
-  return (valid == 0)
+  case newSelector of
+    Just sel -> do
+      (setArrayOfPointers (simpleSelectorList sel) simSelToPtrStruct ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list))
+      pokeByteOff ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ sel)
+      return True
+    Nothing ->
+      return False
 
 
 
 
-fun :: CssSimpleSelector -> IO (Ptr HelloCssSimpleSelector)
-fun ss = do
-  ptrStructSimpleSelector <- callocBytes 192
+simSelToPtrStruct :: CssSimpleSelector -> IO (Ptr HelloCssSimpleSelector)
+simSelToPtrStruct ss = do
+  ptrStructSimpleSelector <- callocBytes #{size c_css_simple_selector_t}
   setSimpleSelector ptrStructSimpleSelector ss
   return ptrStructSimpleSelector
 
 
 
 
-printSelector :: Ptr HelloCssSimpleSelector -> CssSelector -> IO ()
-printSelector ptrStructSimpleSelector selector = do
-  setSelectorElem ptrStructSimpleSelector (simpleSelectorList selector)
-    where
-      setSelectorElem :: Ptr HelloCssSimpleSelector -> [CssSimpleSelector] -> IO ()
-      setSelectorElem ptrStructSimpleSelector []     = return ()
-      setSelectorElem ptrStructSimpleSelector (x:xs) = do
-        putStr "++++++++++++++\n"
-        putStr (show x)
-        putStr "---------------\n"
-
-        p <- peek ptrStructSimpleSelector
-        putStr ("configured simple selector 3: ")
-        putStr (show p)
-        putStr "\n"
-
-        setSelectorElem (advancePtr ptrStructSimpleSelector 1) xs
+textToPtrString :: T.Text -> IO CString
+textToPtrString = newCString . T.unpack
 
 
 
@@ -679,10 +520,3 @@ setArrayOfPointers (x:xs) f ptrStructSimpleSelector byteOffset = do
   ptr <- f x
   pokeByteOff ptrStructSimpleSelector byteOffset ptr
   setArrayOfPointers xs f ptrStructSimpleSelector (byteOffset + pointerSize)
-
-
-
-textToPtrString :: T.Text -> IO CString
-textToPtrString = newCString . T.unpack
-
-
