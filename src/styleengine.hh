@@ -47,10 +47,10 @@ class StyleEngine {
          Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
 
          if (!n->declListNonCss)
-            n->declListNonCss = new CssDeclartionList(true);
+            n->declListNonCss = new CssDeclartionList();
 
          value.type = type;
-         n->declListNonCss->updateOrAddDeclaration(property, value);
+         declarationListAddOrUpdateDeclaration(n->declListNonCss, property, value);
       }
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
@@ -59,7 +59,7 @@ class StyleEngine {
       bool computeAbsoluteLengthValue (int *dest, CssLength value, dw::core::style::Font *font);
       bool computeAbsoluteLengthValue (int *dest, CssLength value, dw::core::style::Font *font, int percentageBase);
       bool computeLength (dw::core::style::Length *dest, CssLength value, dw::core::style::Font *font);
-      void computeBorderWidth (int *dest, CssDeclaration * decl, dw::core::style::Font *font);
+      void computeBorderWidth (int *dest, c_css_declaration_t * decl, dw::core::style::Font *font);
 
    public:
       static void init ();

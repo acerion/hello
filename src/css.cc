@@ -17,102 +17,88 @@
 
 using namespace dw::core::style;
 
-void printCssDeclaration(CssDeclaration * declaration, FILE * file)
+void printCssDeclaration(c_css_declaration_t * declaration, FILE * file)
 {
-   switch (declaration->value.type) {
+   switch (declaration->c_value.type) {
    case CssDeclarationValueTypeSTRING:
    case CssDeclarationValueTypeSYMBOL:
    case CssDeclarationValueTypeURI:
-      fprintf (file, "            Rule: Declaration: property = '%s', value = [%s]\n", hll_cssPropertyNameString(declaration->property), declaration->value.strVal);
+      fprintf (file, "            Rule: Declaration: property = '%s', value = [%s]\n", hll_cssPropertyNameString(declaration->c_property), declaration->c_value.strVal);
       break;
    case CssDeclarationValueTypeBACKGROUND_POSITION:
-      if (declaration->value.posVal) {
-         fprintf (file, "            Rule: Declaration: property = '%s', posValue = %d / %d\n", hll_cssPropertyNameString(declaration->property),
-                  declaration->value.posVal->posX, declaration->value.posVal->posY);
-      } else {
-         fprintf (file, "            Rule: Declaration: property = '%s', posValue = unknown\n", hll_cssPropertyNameString(declaration->property));
-      }
+      fprintf (file, "            Rule: Declaration: property = '%s', posValue = %d / %d\n",
+               hll_cssPropertyNameString(declaration->c_property),
+               declaration->c_value.posVal.posX, declaration->c_value.posVal.posY);
       break;
    default:
-      fprintf (file, "            Rule: Declaration: property = '%s', value = %d\n", hll_cssPropertyNameString(declaration->property), declaration->value.intVal);
+      fprintf (file, "            Rule: Declaration: property = '%s', value = %d\n", hll_cssPropertyNameString(declaration->c_property), declaration->c_value.intVal);
       break;
    }
 }
 
-CssDeclartionList::CssDeclartionList (const CssDeclartionList & declList, bool deep) :
-   lout::misc::SimpleVector <CssDeclaration> (declList)
+CssDeclartionList::CssDeclartionList(const CssDeclartionList & declList)
 {
-   isSafe = declList.isSafe;
-   if (deep) {
-      for (int i = 0; i < size (); i++) {
-         CssDeclaration * decl = getRef(i);
-         switch (decl->value.type) {
-         case CssDeclarationValueTypeSTRING:
-         case CssDeclarationValueTypeSYMBOL:
-               decl->value.strVal = dStrdup (decl->value.strVal);  // TODO: there seems to be a mistake: string is duplicated onto itself
-               break;
-            default:
-               break;
-         }
-      }
-      ownerOfStrings = true;
-   } else {
-      ownerOfStrings = false;
-   }
-}
+   memcpy(this->declarations, declList.declarations, sizeof (this->declarations));
+   this->isSafe = declList.isSafe;
 
-CssDeclartionList::~CssDeclartionList () {
-   if (ownerOfStrings)
-      for (int i = 0; i < size (); i++)
-         getRef (i)->free ();
+   for (int i = 0; i < this->declarations_count; i++) {
+      c_css_declaration_t * decl = this->declarations[i];
+      switch (decl->c_value.type) {
+      case CssDeclarationValueTypeSTRING:
+      case CssDeclarationValueTypeSYMBOL:
+         decl->c_value.strVal = dStrdup (decl->c_value.strVal);
+         break;
+      default:
+         break;
+      }
+   }
 }
 
 /**
  * \brief Set property to a given name and type.
  */
-void CssDeclartionList::updateOrAddDeclaration(CssDeclarationProperty property, CssDeclarationValue value) {
-   CssDeclaration * decl;
-
+void declarationListAddOrUpdateDeclaration(CssDeclartionList * declList, CssDeclarationProperty property, CssDeclarationValue value)
+{
    if (property == CSS_PROPERTY_DISPLAY || property == CSS_PROPERTY_BACKGROUND_IMAGE)
-      isSafe = false;
+      declList->isSafe = false;
 
-   for (int i = 0; i < size (); i++) {
-      decl = getRef (i);
+   for (int i = 0; i < declList->declarations_count; i++) {
+      c_css_declaration_t * decl = declList->declarations[i];
 
-      if (decl->property == property) {
-         if (ownerOfStrings)
-            decl->free ();
-         decl->value = value;
+      if (decl->c_property == property) {
+         decl->c_value = value;
          return;
       }
    }
 
-   increase ();
-   decl = getRef (size () - 1);
-   decl->property = property;
-   decl->value = value;
+   c_css_declaration_t * decl = new c_css_declaration_t;
+   decl->c_property = property;
+   decl->c_value = value;
+
+   declList->declarations[declList->declarations_count] = decl;
+   declList->declarations_count++;
 }
 
 /**
  * \brief Merge properties into argument property list.
  */
-void CssDeclartionList::appendDeclarationsToArg(CssDeclartionList * declList) {
-   for (int i = 0; i < size (); i++) {
-      CssDeclarationValue value = getRef (i)->value;
+void declarationListAppend(const CssDeclartionList * declList, CssDeclartionList * targetDeclList) {
+   for (int i = 0; i < declList->declarations_count; i++) {
+      c_css_declaration_t * decl = declList->declarations[i];
+      CssDeclarationValue value = decl->c_value;
 
-      if (declList->ownerOfStrings &&
-          (getRef (i)->value.type == CssDeclarationValueTypeSTRING ||
-           getRef (i)->value.type == CssDeclarationValueTypeSYMBOL))
+      if (decl->c_value.type == CssDeclarationValueTypeSTRING || decl->c_value.type == CssDeclarationValueTypeSYMBOL)
          value.strVal = strdup(value.strVal);
 
-      value.type = getRef (i)->value.type;
-      declList->updateOrAddDeclaration(getRef(i)->property, value);
+      value.type = decl->c_value.type;
+      declarationListAddOrUpdateDeclaration(targetDeclList, decl->c_property, value);
    }
 }
 
-void printCssDeclartionList(CssDeclartionList * declList, FILE * file) {
-   for (int i = 0; i < declList->size(); i++)
-      printCssDeclaration(declList->getRef(i), file);
+void declarationListPrint(CssDeclartionList * declList, FILE * file)
+{
+   for (int i = 0; i < declList->declarations_count; i++)
+      printCssDeclaration(declList->declarations[i], file);
 }
 
 /**
@@ -317,19 +303,20 @@ void printCssSimpleSelector(c_css_simple_selector_t * selector, FILE * file)
    }
 }
 
-CssRule::CssRule (c_css_selector_t * selector, CssDeclartionList * declList, int pos) {
+CssRule::CssRule(c_css_selector_t * selector, CssDeclartionList * declList, int rulePosition)
+{
    assert (selector->c_simple_selector_list_size > 0);
 
    this->selector = selector;
    this->declList = declList;
-   this->position = position;
+   this->position = rulePosition;
    this->specificity = selectorSpecificity(selector);
 }
 
 void CssRule::apply_css_rule(FILE * file, CssDeclartionList * outDeclList, Doctree *docTree,
                      const DoctreeNode *node, MatchCache *matchCache) const {
    if (selector_full_selector_submatches(selector, docTree, node, matchCache))
-      this->declList->appendDeclarationsToArg(outDeclList);
+      declarationListAppend(this->declList, outDeclList);
 
    this->printCssRule(file);
 }
@@ -339,8 +326,8 @@ void CssRule::printCssRule (FILE * file) const {
    fprintf(file, "    Rule: Begin\n");
    printCssSelector(selector, file);
    if (nullptr != this->declList) {
-      fprintf(file, "        Rule Declarations (%d) {\n", declList->size());
-      printCssDeclartionList(declList, file);
+      fprintf(file, "        Rule Declarations (%d) {\n", declList->declarations_count);
+      declarationListPrint(declList, file);
    } else {
          fprintf(file, "        Rule Declarations (0) {\n");
    }
@@ -501,7 +488,7 @@ void CssStyleSheet::apply_style_sheet(CssDeclartionList * declList, Doctree *doc
 CssStyleSheet CssContext::userAgentSheet;
 
 CssContext::CssContext () {
-   pos = 0;
+   rulePosition = 0;
    matchCache.setSize (userAgentSheet.getRequiredMatchCache (), -1);
 }
 
@@ -525,41 +512,34 @@ void CssContext::apply_css_context(CssDeclartionList * mergedDeclList, Doctree *
    sheet[CSS_PRIMARY_USER].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
 
    if (declListNonCss)
-        declListNonCss->appendDeclarationsToArg(mergedDeclList);
+      declarationListAppend(declListNonCss, mergedDeclList);
 
    sheet[CSS_PRIMARY_AUTHOR].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
 
    if (declList)
-        declList->appendDeclarationsToArg(mergedDeclList);
+      declarationListAppend(declList, mergedDeclList);
 
    sheet[CSS_PRIMARY_AUTHOR_IMPORTANT].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
 
    if (declListImportant)
-        declListImportant->appendDeclarationsToArg(mergedDeclList);
+      declarationListAppend(declListImportant, mergedDeclList);
 
    sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
 }
 
-void CssContext::addRule (c_css_selector_t * sel, CssDeclartionList * declList,
-                          CssPrimaryOrder order) {
+void addRuleToContext(CssContext * context, CssRule * rule, CssPrimaryOrder order)
+{
+   if ((order == CSS_PRIMARY_AUTHOR || order == CSS_PRIMARY_AUTHOR_IMPORTANT) && !rule->isSafe ()) {
+      MSG_WARN ("Ignoring unsafe author style that might reveal browsing history\n");
+   } else {
+      selectorSetMatchCacheOffset(rule->selector, context->matchCache.size ());
+      if (selectorGetRequiredMatchCache(rule->selector) > context->matchCache.size ())
+         context->matchCache.setSize(selectorGetRequiredMatchCache(rule->selector), -1);
 
-   if (declList->size () > 0) {
-      CssRule *rule = new CssRule (sel, declList, pos++);
-
-      if ((order == CSS_PRIMARY_AUTHOR ||
-           order == CSS_PRIMARY_AUTHOR_IMPORTANT) &&
-           !rule->isSafe ()) {
-         MSG_WARN ("Ignoring unsafe author style that might reveal browsing history\n");
+      if (order == CSS_PRIMARY_USER_AGENT) {
+         context->userAgentSheet.addRule (rule);
       } else {
-         selectorSetMatchCacheOffset(rule->selector, matchCache.size ());
-         if (selectorGetRequiredMatchCache(rule->selector) > matchCache.size ())
-            matchCache.setSize(selectorGetRequiredMatchCache(rule->selector), -1);
-
-         if (order == CSS_PRIMARY_USER_AGENT) {
-            userAgentSheet.addRule (rule);
-         } else { 
-            sheet[order].addRule (rule);
-         }
+         context->sheet[order].addRule (rule);
       }
    }
 }

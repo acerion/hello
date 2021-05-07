@@ -152,7 +152,7 @@ typedef struct {
 
    int32_t intVal;
    char *strVal;
-   CssBackgroundPosition *posVal;
+   CssBackgroundPosition posVal;
 } CssDeclarationValue;
 
 typedef enum {
@@ -193,51 +193,33 @@ typedef enum {
 /**
  * \brief This class holds a CSS declaration: a pair of property and value.
  */
-class CssDeclaration {
-   public:
-
-      CssDeclarationProperty property;
-      CssDeclarationValue value;
-
-      inline void free () {
-         switch (this->value.type) {
-         case CssDeclarationValueTypeSTRING:
-         case CssDeclarationValueTypeSYMBOL:
-         case CssDeclarationValueTypeURI:
-               dFree (this->value.strVal);
-               break;
-         case CssDeclarationValueTypeBACKGROUND_POSITION:
-               dFree (this->value.posVal);
-            default:
-               break;
-         }
-      }
-};
-void printCssDeclaration(CssDeclaration * declaration, FILE * file);
+typedef struct c_css_declaration_t {
+      CssDeclarationProperty c_property;
+      CssDeclarationValue c_value;
+} c_css_declaration_t;
+void printCssDeclaration(c_css_declaration_t * declaration, FILE * file);
 
 
 
 
 /**
- * \brief A list of CssDeclaration objects.
+ * \brief A list of c_css_declaration_t objects.
  */
-class CssDeclartionList : public lout::misc::SimpleVector <CssDeclaration> {
+class CssDeclartionList {
 public:
-   bool ownerOfStrings;
    bool isSafe;
 
-   inline CssDeclartionList(bool ownerOfStrings = false) :
-      lout::misc::SimpleVector <CssDeclaration> (1) {
-      isSafe = true;
-      this->ownerOfStrings = ownerOfStrings;
-   };
-   CssDeclartionList(const CssDeclartionList & declList, bool deep = false);
-   ~CssDeclartionList ();
+   c_css_declaration_t * declarations[100] = { 0 };
+   int declarations_count = 0;
 
-   void updateOrAddDeclaration(CssDeclarationProperty property, CssDeclarationValue value);
-   void appendDeclarationsToArg(CssDeclartionList * declList);
+   inline CssDeclartionList() {
+      isSafe = true;
+   };
+   CssDeclartionList(const CssDeclartionList & declList);
 };
-void printCssDeclartionList(CssDeclartionList * declList, FILE * file);
+void declarationListPrint(CssDeclartionList * declList, FILE * file);
+void declarationListAddOrUpdateDeclaration(CssDeclartionList * declList, CssDeclarationProperty property, CssDeclarationValue value);
+void declarationListAppend(const CssDeclartionList * declList, CssDeclartionList * targetDeclList);
 
 enum class CssSelectorType {
    NONE,
@@ -302,7 +284,7 @@ class CssRule {
       int position;
       CssDeclartionList * declList = nullptr;
 
-      CssRule(c_css_selector_t *selector, CssDeclartionList * declList, int pos);
+      CssRule(c_css_selector_t *selector, CssDeclartionList * declList, int rulePosition);
 
       void apply_css_rule(FILE * file, CssDeclartionList * outDeclList, Doctree *docTree,
                           const DoctreeNode *node, MatchCache *matchCache) const;
@@ -362,17 +344,15 @@ class CssStyleSheet {
  * \brief A set of CssStyleSheets.
  */
 class CssContext {
-   private:
+   public:
       static CssStyleSheet userAgentSheet;
       CssStyleSheet sheet[CSS_PRIMARY_USER_IMPORTANT + 1];
       MatchCache matchCache;
-      int pos;
+      int rulePosition;
 
-   public:
-      CssContext ();
 
-      void addRule (c_css_selector_t *sel, CssDeclartionList * declList,
-                    CssPrimaryOrder order);
+      CssContext();
+
       void apply_css_context(CssDeclartionList * mergedDeclList,
                              Doctree *docTree, DoctreeNode *node,
                              CssDeclartionList * declList,
@@ -384,6 +364,6 @@ class CssContext {
 CssLengthType cssLengthType(CssLength len);
 float cssLengthValue(CssLength len);
 CssLength cssCreateLength(float val, CssLengthType t);
-
+void addRuleToContext(CssContext * context, CssRule * rule, CssPrimaryOrder order);
 
 #endif

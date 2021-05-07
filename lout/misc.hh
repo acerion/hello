@@ -72,22 +72,21 @@ template <class T> class SimpleVector
 {
 private:
    T *array;
-   int num, numAlloc;
-
-   inline void resize ()
+   int num;
+   int count_of_allocated_elements;
+   
+   inline void resize()
    {
       /* This algorithm was tuned for memory&speed with this huge page:
        *   http://downloads.mysql.com/docs/refman-6.0-en.html.tar.gz
        */
       if (array == NULL) {
-         this->numAlloc = 1;
+         this->count_of_allocated_elements = 1;
          this->array = (T*) malloc (sizeof (T));
       }
-      if (this->numAlloc < this->num) {
-         this->numAlloc = (this->num < 100) ?
-                          this->num : this->num + this->num/10;
-         this->array =
-            (T*) realloc(this->array, (this->numAlloc * sizeof (T)));
+      if (this->count_of_allocated_elements < this->num) {
+         this->count_of_allocated_elements = (this->num < 100) ? this->num : this->num + this->num/10;
+         this->array = (T*) realloc(this->array, (this->count_of_allocated_elements * sizeof (T)));
       }
    }
 
@@ -95,14 +94,14 @@ public:
    inline SimpleVector (int initAlloc = 1)
    {
       this->num = 0;
-      this->numAlloc = initAlloc;
+      this->count_of_allocated_elements = initAlloc;
       this->array = NULL;
    }
 
    inline SimpleVector (const SimpleVector &o) {
       this->array = NULL;
       this->num = o.num;
-      this->numAlloc = o.numAlloc;
+      this->count_of_allocated_elements = o.count_of_allocated_elements;
       resize ();
       memcpy (this->array, o.array, sizeof (T) * num);
    }
@@ -123,7 +122,7 @@ public:
    inline T* detachArray() {
       T* arr = array;
       array = NULL;
-      numAlloc = 0;
+      count_of_allocated_elements = 0;
       num = 0;
       return arr;
    }

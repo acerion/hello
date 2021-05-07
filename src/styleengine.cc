@@ -198,8 +198,8 @@ void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
    assert (n->declList == NULL);
    // parse style information from style="" attribute, if it exists
    if (cssStyleAttribute && prefs.parse_embedded_css) {
-      n->declList = new CssDeclartionList(true);
-      n->declListImportant = new CssDeclartionList(true);
+      n->declList = new CssDeclartionList();
+      n->declListImportant = new CssDeclartionList();
 
       CssParser::parseElementStyleAttribute(baseUrl, cssStyleAttribute, strlen (cssStyleAttribute),
                                             n->declList, n->declListImportant);
@@ -219,10 +219,10 @@ void StyleEngine::inheritNonCssHints()
       Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
       CssDeclartionList * origDeclListNonCss = n->declListNonCss;
 
-      n->declListNonCss = new CssDeclartionList(*pn->declListNonCss, true);
+      n->declListNonCss = new CssDeclartionList(*pn->declListNonCss); // NOTICE: copy constructor
 
       if (origDeclListNonCss) // original declListNonCss have precedence
-         origDeclListNonCss->appendDeclarationsToArg(n->declListNonCss);
+         declarationListAppend(origDeclListNonCss, n->declListNonCss);
 
       delete origDeclListNonCss;
    }
@@ -364,38 +364,38 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, CssDeclartionList * declList,
    DilloUrl *imgUrl = NULL;
 
    /* Determine font first so it can be used to resolve relative lengths. */
-   for (int j = 0; j < declList->size (); j++) {
-      CssDeclaration * decl = declList->getRef (j);
+   for (int j = 0; j < declList->declarations_count; j++) {
+      c_css_declaration_t * decl = declList->declarations[j];
 
-      switch (decl->property) {
+      switch (decl->c_property) {
          case CSS_PROPERTY_FONT_FAMILY:
             // Check font names in comma separated list.
             // Note, that decl->value_.strVal is modified, so that in future calls
             // the matching font name can be used directly.
             fontName = NULL;
-            while (decl->value.strVal) {
-               if ((c = strchr(decl->value.strVal, ',')))
+            while (decl->c_value.strVal) {
+               if ((c = strchr(decl->c_value.strVal, ',')))
                   *c = '\0';
-               dStrstrip(decl->value.strVal);
+               dStrstrip(decl->c_value.strVal);
 
-               if (dStrAsciiCasecmp (decl->value.strVal, "serif") == 0)
+               if (dStrAsciiCasecmp (decl->c_value.strVal, "serif") == 0)
                   fontName = prefs.font_serif;
-               else if (dStrAsciiCasecmp (decl->value.strVal, "sans-serif") == 0)
+               else if (dStrAsciiCasecmp (decl->c_value.strVal, "sans-serif") == 0)
                   fontName = prefs.font_sans_serif;
-               else if (dStrAsciiCasecmp (decl->value.strVal, "cursive") == 0)
+               else if (dStrAsciiCasecmp (decl->c_value.strVal, "cursive") == 0)
                   fontName = prefs.font_cursive;
-               else if (dStrAsciiCasecmp (decl->value.strVal, "fantasy") == 0)
+               else if (dStrAsciiCasecmp (decl->c_value.strVal, "fantasy") == 0)
                   fontName = prefs.font_fantasy;
-               else if (dStrAsciiCasecmp (decl->value.strVal, "monospace") == 0)
+               else if (dStrAsciiCasecmp (decl->c_value.strVal, "monospace") == 0)
                   fontName = prefs.font_monospace;
-               else if (Font::exists(layout, decl->value.strVal))
-                  fontName = decl->value.strVal;
+               else if (Font::exists(layout, decl->c_value.strVal))
+                  fontName = decl->c_value.strVal;
 
                if (fontName) {   // font found
                   fontAttrs.name = fontName;
                   break;
                } else if (c) {   // try next from list
-                  memmove(decl->value.strVal, c + 1, strlen(c + 1) + 1);
+                  memmove(decl->c_value.strVal, c + 1, strlen(c + 1) + 1);
                } else {          // no font found
                   break;
                }
@@ -403,8 +403,8 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, CssDeclartionList * declList,
 
             break;
          case CSS_PROPERTY_FONT_SIZE:
-            if (decl->value.type == CssDeclarationValueTypeENUM) {
-               switch (decl->value.intVal) {
+            if (decl->c_value.type == CssDeclarationValueTypeENUM) {
+               switch (decl->c_value.intVal) {
                   case CSS_FONT_SIZE_XX_SMALL:
                      fontAttrs.size = roundInt(8.1 * prefs.font_factor);
                      break;
@@ -437,7 +437,7 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, CssDeclartionList * declList,
                }
             } else {
                CssLength cssLength;
-               cssLength.bits = decl->value.intVal;
+               cssLength.bits = decl->c_value.intVal;
                computeAbsoluteLengthValue(&fontAttrs.size, cssLength, parentFont, parentFont->size);
             }
 
@@ -448,12 +448,12 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, CssDeclartionList * declList,
 
             break;
          case CSS_PROPERTY_FONT_STYLE:
-            fontAttrs.style = (FontStyle) decl->value.intVal;
+            fontAttrs.style = (FontStyle) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_FONT_WEIGHT:
 
-            if (decl->value.type == CssDeclarationValueTypeENUM) {
-               switch (decl->value.intVal) {
+            if (decl->c_value.type == CssDeclarationValueTypeENUM) {
+               switch (decl->c_value.intVal) {
                   case CSS_FONT_WEIGHT_BOLD:
                      fontAttrs.weight = 700;
                      break;
@@ -474,7 +474,7 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, CssDeclartionList * declList,
                      break;
                }
             } else {
-               fontAttrs.weight = decl->value.intVal;
+               fontAttrs.weight = decl->c_value.intVal;
             }
 
             if (fontAttrs.weight < 100)
@@ -484,13 +484,13 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, CssDeclartionList * declList,
 
             break;
          case CSS_PROPERTY_LETTER_SPACING:
-            if (decl->value.type == CssDeclarationValueTypeENUM) {
-               if (decl->value.intVal == CSS_LETTER_SPACING_NORMAL) {
+            if (decl->c_value.type == CssDeclarationValueTypeENUM) {
+               if (decl->c_value.intVal == CSS_LETTER_SPACING_NORMAL) {
                   fontAttrs.letterSpacing = 0;
                }
             } else {
                CssLength cssLength;
-               cssLength.bits = decl->value.intVal;
+               cssLength.bits = decl->c_value.intVal;
                computeAbsoluteLengthValue (&fontAttrs.letterSpacing, cssLength, parentFont, parentFont->size);
             }
 
@@ -503,7 +503,7 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, CssDeclartionList * declList,
                fontAttrs.letterSpacing = -1000;
             break;
          case CSS_PROPERTY_FONT_VARIANT:
-            fontAttrs.fontVariant = (FontVariant) decl->value.intVal;
+            fontAttrs.fontVariant = (FontVariant) decl->c_value.intVal;
             break;
          default:
             break;
@@ -512,66 +512,66 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, CssDeclartionList * declList,
 
    attrs->font = Font::create (layout, &fontAttrs);
 
-   for (int j = 0; j < declList->size (); j++) {
-      CssDeclaration * decl = declList->getRef (j);
+   for (int j = 0; j < declList->declarations_count; j++) {
+      c_css_declaration_t * decl = declList->declarations[j];
 
-      switch (decl->property) {
+      switch (decl->c_property) {
          /* \todo missing cases */
          case CSS_PROPERTY_BACKGROUND_ATTACHMENT:
             attrs->backgroundAttachment =
-               (BackgroundAttachment) decl->value.intVal;
+               (BackgroundAttachment) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_BACKGROUND_COLOR:
-            if (prefs.allow_white_bg || decl->value.intVal != 0xffffff)
-               attrs->backgroundColor = Color::create(layout, decl->value.intVal);
+            if (prefs.allow_white_bg || decl->c_value.intVal != 0xffffff)
+               attrs->backgroundColor = Color::create(layout, decl->c_value.intVal);
             else
                attrs->backgroundColor =
                   Color::create(layout, prefs.white_bg_replacement);
             break;
          case CSS_PROPERTY_BACKGROUND_IMAGE:
             // decl->value.strVal should be absolute, so baseUrl is not needed
-            imgUrl = a_Url_new (decl->value.strVal, NULL);
+            imgUrl = a_Url_new (decl->c_value.strVal, NULL);
             break;
          case CSS_PROPERTY_BACKGROUND_POSITION:
             CssLength cssLength;
-            cssLength.bits = decl->value.posVal->posX;
+            cssLength.bits = decl->c_value.posVal.posX;
             computeLength (&attrs->backgroundPositionX, cssLength, attrs->font);
-            cssLength.bits = decl->value.posVal->posY;
+            cssLength.bits = decl->c_value.posVal.posY;
             computeLength (&attrs->backgroundPositionY, cssLength, attrs->font);
             break;
          case CSS_PROPERTY_BACKGROUND_REPEAT:
-            attrs->backgroundRepeat = (BackgroundRepeat) decl->value.intVal;
+            attrs->backgroundRepeat = (BackgroundRepeat) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_BORDER_COLLAPSE:
-            attrs->borderCollapse = (BorderCollapse) decl->value.intVal;
+            attrs->borderCollapse = (BorderCollapse) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_BORDER_TOP_COLOR:
-            attrs->borderColor.top = (decl->value.type == CssDeclarationValueTypeENUM) ? NULL :
-                                     Color::create (layout, decl->value.intVal);
+            attrs->borderColor.top = (decl->c_value.type == CssDeclarationValueTypeENUM) ? NULL :
+                                     Color::create (layout, decl->c_value.intVal);
             break;
          case CSS_PROPERTY_BORDER_BOTTOM_COLOR:
-            attrs->borderColor.bottom = (decl->value.type == CssDeclarationValueTypeENUM) ? NULL :
-                                       Color::create (layout, decl->value.intVal);
+            attrs->borderColor.bottom = (decl->c_value.type == CssDeclarationValueTypeENUM) ? NULL :
+                                       Color::create (layout, decl->c_value.intVal);
             break;
          case CSS_PROPERTY_BORDER_LEFT_COLOR:
-            attrs->borderColor.left = (decl->value.type == CssDeclarationValueTypeENUM) ? NULL :
-                                      Color::create (layout, decl->value.intVal);
+            attrs->borderColor.left = (decl->c_value.type == CssDeclarationValueTypeENUM) ? NULL :
+                                      Color::create (layout, decl->c_value.intVal);
             break;
          case CSS_PROPERTY_BORDER_RIGHT_COLOR:
-            attrs->borderColor.right = (decl->value.type == CssDeclarationValueTypeENUM) ? NULL :
-                                       Color::create (layout, decl->value.intVal);
+            attrs->borderColor.right = (decl->c_value.type == CssDeclarationValueTypeENUM) ? NULL :
+                                       Color::create (layout, decl->c_value.intVal);
             break;
          case CSS_PROPERTY_BORDER_BOTTOM_STYLE:
-            attrs->borderStyle.bottom = (BorderStyle) decl->value.intVal;
+            attrs->borderStyle.bottom = (BorderStyle) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_BORDER_LEFT_STYLE:
-            attrs->borderStyle.left = (BorderStyle) decl->value.intVal;
+            attrs->borderStyle.left = (BorderStyle) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_BORDER_RIGHT_STYLE:
-            attrs->borderStyle.right = (BorderStyle) decl->value.intVal;
+            attrs->borderStyle.right = (BorderStyle) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_BORDER_TOP_STYLE:
-            attrs->borderStyle.top = (BorderStyle) decl->value.intVal;
+            attrs->borderStyle.top = (BorderStyle) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_BORDER_BOTTOM_WIDTH:
             computeBorderWidth (&attrs->borderWidth.bottom, decl, attrs->font);
@@ -586,29 +586,29 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, CssDeclartionList * declList,
             computeBorderWidth (&attrs->borderWidth.top, decl, attrs->font);
             break;
          case CSS_PROPERTY_BORDER_SPACING:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeAbsoluteLengthValue (&attrs->hBorderSpacing, cssLength, attrs->font);
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeAbsoluteLengthValue (&attrs->vBorderSpacing, cssLength, attrs->font);
             break;
          case CSS_PROPERTY_COLOR:
-            attrs->color = Color::create (layout, decl->value.intVal);
+            attrs->color = Color::create (layout, decl->c_value.intVal);
             break;
          case CSS_PROPERTY_CURSOR:
-            attrs->cursor = (Cursor) decl->value.intVal;
+            attrs->cursor = (Cursor) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_DISPLAY:
-            attrs->display = (DisplayType) decl->value.intVal;
+            attrs->display = (DisplayType) decl->c_value.intVal;
             if (attrs->display == DISPLAY_NONE)
                styleNodesStack->getRef (i)->displayNone = true;
             break;
          case CSS_PROPERTY_LINE_HEIGHT:
-            if (decl->value.type == CssDeclarationValueTypeENUM) { //only valid enum value is "normal"
+            if (decl->c_value.type == CssDeclarationValueTypeENUM) { //only valid enum value is "normal"
                attrs->lineHeight.bits = dw::core::style::LENGTH_AUTO;
-            } else if (decl->value.type == CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER) {
+            } else if (decl->c_value.type == CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER) {
 
                CssLength cssLength;
-               cssLength.bits = decl->value.intVal;
+               cssLength.bits = decl->c_value.intVal;
                if (cssLengthType(cssLength) == CSS_LENGTH_TYPE_NONE) {
                   attrs->lineHeight = createPerLength(cssLengthValue(cssLength));
                } else if (computeAbsoluteLengthValue (&lineHeight, cssLength, attrs->font, attrs->font->size)) {
@@ -617,85 +617,85 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, CssDeclartionList * declList,
             }
             break;
          case CSS_PROPERTY_LIST_STYLE_POSITION:
-            attrs->listStylePosition = (ListStylePosition) decl->value.intVal;
+            attrs->listStylePosition = (ListStylePosition) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_LIST_STYLE_TYPE:
-            attrs->listStyleType = (ListStyleType) decl->value.intVal;
+            attrs->listStyleType = (ListStyleType) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_MARGIN_BOTTOM:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeAbsoluteLengthValue (&attrs->margin.bottom, cssLength, attrs->font);
             if (attrs->margin.bottom < 0) // \todo fix negative margins in dw/*
                attrs->margin.bottom = 0;
             break;
          case CSS_PROPERTY_MARGIN_LEFT:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeAbsoluteLengthValue (&attrs->margin.left, cssLength, attrs->font);
             if (attrs->margin.left < 0) // \todo fix negative margins in dw/*
                attrs->margin.left = 0;
             break;
          case CSS_PROPERTY_MARGIN_RIGHT:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeAbsoluteLengthValue (&attrs->margin.right, cssLength, attrs->font);
             if (attrs->margin.right < 0) // \todo fix negative margins in dw/*
                attrs->margin.right = 0;
             break;
          case CSS_PROPERTY_MARGIN_TOP:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeAbsoluteLengthValue (&attrs->margin.top, cssLength, attrs->font);
             if (attrs->margin.top < 0) // \todo fix negative margins in dw/*
                attrs->margin.top = 0;
             break;
          case CSS_PROPERTY_PADDING_TOP:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeAbsoluteLengthValue (&attrs->padding.top, cssLength, attrs->font);
             break;
          case CSS_PROPERTY_PADDING_BOTTOM:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeAbsoluteLengthValue (&attrs->padding.bottom, cssLength, attrs->font);
             break;
          case CSS_PROPERTY_PADDING_LEFT:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeAbsoluteLengthValue (&attrs->padding.left, cssLength, attrs->font);
             break;
          case CSS_PROPERTY_PADDING_RIGHT:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeAbsoluteLengthValue (&attrs->padding.right, cssLength, attrs->font);
             break;
          case CSS_PROPERTY_TEXT_ALIGN:
-            attrs->textAlign = (TextAlignType) decl->value.intVal;
+            attrs->textAlign = (TextAlignType) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_TEXT_DECORATION:
-            attrs->textDecoration |= decl->value.intVal;
+            attrs->textDecoration |= decl->c_value.intVal;
             break;
          case CSS_PROPERTY_TEXT_INDENT:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeLength (&attrs->textIndent, cssLength, attrs->font);
             break;
          case CSS_PROPERTY_TEXT_TRANSFORM:
-            attrs->textTransform = (TextTransform) decl->value.intVal;
+            attrs->textTransform = (TextTransform) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_VERTICAL_ALIGN:
-            attrs->valign = (VAlignType) decl->value.intVal;
+            attrs->valign = (VAlignType) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_WHITE_SPACE:
-            attrs->whiteSpace = (WhiteSpace) decl->value.intVal;
+            attrs->whiteSpace = (WhiteSpace) decl->c_value.intVal;
             break;
          case CSS_PROPERTY_WIDTH:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeLength (&attrs->width, cssLength, attrs->font);
             break;
          case CSS_PROPERTY_HEIGHT:
-            cssLength.bits = decl->value.intVal;
+            cssLength.bits = decl->c_value.intVal;
             computeLength (&attrs->height, cssLength, attrs->font);
             break;
          case CSS_PROPERTY_WORD_SPACING:
-            if (decl->value.type == CssDeclarationValueTypeENUM) {
-               if (decl->value.intVal == CSS_WORD_SPACING_NORMAL) {
+            if (decl->c_value.type == CssDeclarationValueTypeENUM) {
+               if (decl->c_value.intVal == CSS_WORD_SPACING_NORMAL) {
                   attrs->wordSpacing = 0;
                }
             } else {
-               cssLength.bits = decl->value.intVal;
+               cssLength.bits = decl->c_value.intVal;
                computeAbsoluteLengthValue(&attrs->wordSpacing, cssLength, attrs->font);
             }
 
@@ -706,20 +706,20 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, CssDeclartionList * declList,
                attrs->wordSpacing = -1000;
             break;
          case PROPERTY_X_LINK:
-            attrs->x_link = decl->value.intVal;
+            attrs->x_link = decl->c_value.intVal;
             break;
          case PROPERTY_X_LANG:
-            attrs->x_lang[0] = D_ASCII_TOLOWER(decl->value.strVal[0]);
+            attrs->x_lang[0] = D_ASCII_TOLOWER(decl->c_value.strVal[0]);
             if (attrs->x_lang[0])
-               attrs->x_lang[1] = D_ASCII_TOLOWER(decl->value.strVal[1]);
+               attrs->x_lang[1] = D_ASCII_TOLOWER(decl->c_value.strVal[1]);
             else
                attrs->x_lang[1] = 0;
             break;
          case PROPERTY_X_IMG:
-            attrs->x_img = decl->value.intVal;
+            attrs->x_img = decl->c_value.intVal;
             break;
          case PROPERTY_X_TOOLTIP:
-            attrs->x_tooltip = Tooltip::create(layout, decl->value.strVal);
+            attrs->x_tooltip = Tooltip::create(layout, decl->c_value.strVal);
             break;
          default:
             break;
@@ -813,10 +813,10 @@ bool StyleEngine::computeLength (dw::core::style::Length *dest,
    return false;
 }
 
-void StyleEngine::computeBorderWidth (int *dest, CssDeclaration * decl,
-                                      dw::core::style::Font *font) {
-   if (decl->value.type == CssDeclarationValueTypeENUM) {
-      switch (decl->value.intVal) {
+void StyleEngine::computeBorderWidth (int *dest, c_css_declaration_t * decl, dw::core::style::Font *font)
+{
+   if (decl->c_value.type == CssDeclarationValueTypeENUM) {
+      switch (decl->c_value.intVal) {
          case CSS_BORDER_WIDTH_THIN:
             *dest = 1;
             break;
@@ -831,7 +831,7 @@ void StyleEngine::computeBorderWidth (int *dest, CssDeclaration * decl,
       }
    } else {
       CssLength cssLength;
-      cssLength.bits = decl->value.intVal;
+      cssLength.bits = decl->c_value.intVal;
       computeAbsoluteLengthValue (dest, cssLength, font);
    }
 }

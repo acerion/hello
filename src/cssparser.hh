@@ -31,7 +31,7 @@ struct CssTokenizer {
 class CssParser {
    public:
 
-      CssContext *context;
+      CssContext *context_;
       CssOrigin origin;
       const DilloUrl *baseUrl;
 
@@ -43,14 +43,10 @@ class CssParser {
                 const char *buf, int buflen);
 
       /* declarationProperty:declarationValue, e.g. color:#324156 */
-      bool parseDeclarationValue(CssDeclarationProperty property, CssDeclarationValueType type, CssDeclarationValue * val);
       bool parseWeight();
-      void parseDeclaration(CssDeclartionList * declList,
-                            CssDeclartionList * declListImportant);
       char *parseUrl();
       void parseImport(DilloHtml *html);
       void parseMedia();
-      void parseRuleset();
 
       static void parseElementStyleAttribute(const DilloUrl *baseUrl,
                                              const char * cssStyleAttribute, int buflen,
@@ -59,6 +55,10 @@ class CssParser {
       static void parse(DilloHtml *html, const DilloUrl *baseUrl, CssContext *context,
                         const char *buf, int buflen, CssOrigin origin);
 };
+
+void parseDeclaration(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
+bool parseDeclarationValue(CssParser * parser, CssDeclarationProperty property, CssDeclarationValueType type, CssDeclarationValue * val);
+void parseRuleset(CssParser * parser, CssContext * context);
 c_css_selector_t * parseSelector(CssParser * cssParser);
 
 #endif
