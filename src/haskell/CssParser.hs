@@ -131,7 +131,7 @@ data CssToken =
 data CssParser = CssParser {
     remainder      :: T.Text
   , spaceSeparated :: Bool
-  , withinBlock    :: Bool
+  , inBlock        :: Bool
   , bufOffset      :: Int
   } deriving (Show)
 
@@ -140,7 +140,7 @@ data CssParser = CssParser {
 
 defaultParser = CssParser {
     remainder = ""
-  , withinBlock = False
+  , inBlock   = False
   , spaceSeparated = False
   , bufOffset = 0
   }
@@ -416,7 +416,7 @@ takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
 -- TODO: think about performance of using isPrefixOf to get just one
 -- character, here and elsewhere.
 takeColor :: CssParser -> (CssParser, CssToken)
-takeColor parser = if T.isPrefixOf "#" (remainder parser) && (withinBlock parser)
+takeColor parser = if T.isPrefixOf "#" (remainder parser) && (inBlock parser)
                    then takeColor' parser
                    else (parser, CssTokNone) -- Don't take the leading '#' if we are not in a block
 
@@ -466,7 +466,7 @@ takeLeadingWhite2 parser
   | D.C.isSpace . T.head $ rem = takeLeadingWhite2 parser { remainder = T.tail rem, spaceSeparated = True }
   | T.isPrefixOf "/*" rem      = takeLeadingWhite2 parser { remainder = HU.skipEnclosed rem "/*" "*/" }
   | T.isPrefixOf "<!--" rem    = takeLeadingWhite2 parser { remainder = HU.skipEnclosed rem "<!--" "-->" }
-  | otherwise                  = if (not . withinBlock $ parser) && spaceSeparated parser
+  | otherwise                  = if (not . inBlock $ parser) && spaceSeparated parser
                                  then (parser, CssTokWS)
                                  else (parser, CssTokNone)
   where rem = remainder parser

@@ -31,9 +31,7 @@ typedef struct c_gif_t {
 typedef struct c_css_parser_t {
    int c_space_separated;
    int c_buf_offset;
-   int c_token_type;
-   int c_within_block;
-   char * c_token_value;
+   int c_in_block;
 } c_css_parser_t;
 
 
@@ -74,6 +72,12 @@ typedef struct c_css_declaration_value_t {
 } c_css_declaration_value_t;
 
 
+typedef struct c_css_token_t {
+   int c_type;
+   char * c_value;
+} c_css_token_t;
+
+
 
 /* URL */
 bool hll_hostIsIP(const char * hostname);
@@ -105,20 +109,20 @@ int hll_htmlTagIndex(const char * tagName);
 
 /* CssParser */
 /* Token value is returned through return statement. */
-char * hll_nextToken(c_css_parser_t * hll_parser, const char * remainder);
+char * hll_nextToken(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
 /* Function returns color through return statement. */
 //int hll_parseRgbFunction(c_css_parser_t * hll_parser, const char * remainder);
 
-char * hll_declarationValueAsString(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder, int valueType, int property);
-int hll_tokenMatchesProperty(int tokType, const char * tokValue, int property);
-int hll_ignoreBlock(c_css_parser_t * hll_parser, const char * remainder);
-int hll_ignoreStatement(c_css_parser_t * hll_parser, const char * remainder);
+char * hll_declarationValueAsString(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int valueType, int property);
+int hll_tokenMatchesProperty(c_css_token_t * token, int property);
+int hll_ignoreBlock(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
+int hll_ignoreStatement(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
 
 int hll_cssPropertyInfoIdxByName(const char * propertyName);
 const char * hll_cssPropertyNameString(int property);
 
 
-int hll_cssParseWeight(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder);
+int hll_cssParseWeight(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
 
 CssLengthType hll_cssLengthType(int cssLength);
 float hll_cssLengthValue(int cssLength);
@@ -126,12 +130,12 @@ int hll_cssCreateLength(float val, CssLengthType t);
 
 /* Return allocated selector parsing succeeded.
    Return NULL otherwise. */
-c_css_selector_t * hll_cssParseSelector(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder);
+c_css_selector_t * hll_cssParseSelector(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
 
-int hll_parseDeclarationNormal(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder, c_css_declaration_value_t * value);
+int hll_parseDeclarationNormal(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_value_t * value);
 
 // Return value is boolean
-int hll_parseDeclarationValue(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder, int declValueType, int declProperty, c_css_declaration_value_t * value);
+int hll_parseDeclarationValue(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int declValueType, int declProperty, c_css_declaration_value_t * value);
 
 #ifdef __cplusplus
 }

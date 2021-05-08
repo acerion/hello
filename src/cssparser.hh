@@ -19,18 +19,16 @@ typedef enum {
               CSS_TOKEN_TYPE_END       // End of input, no new tokens.
 } CssTokenType;
 
+
 struct CssTokenizer {
-   CssTokenType type;
-   char value[maxStrLen];
+   c_css_token_t token;
 
    const char *buf;
    int buflen;
-   int bufOffset;
 };
 
 class CssParser {
    public:
-
       CssContext *context_;
       CssOrigin origin;
       const DilloUrl *baseUrl;

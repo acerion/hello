@@ -44,25 +44,25 @@ import CssParser
 
 
 
-foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> CString -> IO CString
-foreign export ccall "hll_declarationValueAsString"   hll_declarationValueAsString :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO CString
-foreign export ccall "hll_tokenMatchesProperty" hll_tokenMatchesProperty :: Int -> CString -> Int -> IO Int
-foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr HelloCssParser -> CString -> IO Int
-foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr HelloCssParser -> CString -> IO Int
+foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO CString
+foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> IO CString
+foreign export ccall "hll_tokenMatchesProperty" hll_tokenMatchesProperty :: Ptr HelloCssToken -> Int -> IO Int
+foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO Int
+foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO Int
 
 foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Int -> IO Int
 foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
 foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
 
-foreign export ccall "hll_cssParseWeight"  hll_cssParseWeight :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
+foreign export ccall "hll_cssParseWeight"  hll_cssParseWeight :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO Int
 
-foreign export ccall "hll_cssParseSelector"  hll_cssParseSelector :: Ptr HelloCssParser -> Int -> CString -> CString -> IO (Ptr HelloCssSelector)
+foreign export ccall "hll_cssParseSelector" hll_cssParseSelector :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO (Ptr HelloCssSelector)
 
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
-foreign export ccall "hll_parseDeclarationNormal" hll_parseDeclarationNormal :: Ptr HelloCssParser -> Int -> CString -> CString -> Ptr HelloCssDeclarationValue -> IO Int
-foreign export ccall "hll_parseDeclarationValue" hll_parseDeclarationValue :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> Ptr HelloCssDeclarationValue -> IO Int
+foreign export ccall "hll_parseDeclarationNormal" hll_parseDeclarationNormal :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDeclarationValue -> IO Int
+foreign export ccall "hll_parseDeclarationValue" hll_parseDeclarationValue :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> Ptr HelloCssDeclarationValue -> IO Int
 
 
 
@@ -72,59 +72,91 @@ foreign export ccall "hll_parseDeclarationValue" hll_parseDeclarationValue :: Pt
 data HelloCssParser = HelloCssParser {
     spaceSeparatedC :: CInt
   , bufOffsetC      :: CInt
-  , tokenTypeC      :: CInt
-  , withinBlockC    :: CInt
-  , tokenValueC     :: CString
+  , inBlockC        :: CInt
   } deriving (Show)
+
+
+
+
+data HelloCssToken = HelloCssToken {
+    typeC  :: CInt
+  , valueC :: CString
+  } deriving (Show)
+
+
 
 
 instance Storable HelloCssParser where
   sizeOf    _ = #{size c_css_parser_t}
-  alignment _ = #{alignment c_css_parser_t} -- alignment (undefined :: Int)
+  alignment _ = #{alignment c_css_parser_t}
 
-  poke ptr (HelloCssParser argSpaceSeparated argBufOffset argTokenType argWithinBlock argTokenValue) = do
+  poke ptr (HelloCssParser argSpaceSeparated argBufOffset argInBlock) = do
     #{poke c_css_parser_t, c_space_separated} ptr argSpaceSeparated
     #{poke c_css_parser_t, c_buf_offset}      ptr argBufOffset
-    #{poke c_css_parser_t, c_token_type}      ptr argTokenType
-    #{poke c_css_parser_t, c_within_block}    ptr argWithinBlock
-    #{poke c_css_parser_t, c_token_value}     ptr argTokenValue
+    #{poke c_css_parser_t, c_in_block}        ptr argInBlock
 
-{-
-  poke ptr c_css_parser_t = do
-    #{poke c_css_parser_t, spaceSeparatedC} ptr $ spaceSeparatedC c_css_parser_t
-    #{poke c_css_parser_t, bufOffsetC} ptr      $ bufOffsetC c_css_parser_t
-    #{poke c_css_parser_t, tokenTypeC} ptr      $ tokenTypeC c_css_parser_t
-    #{poke c_css_parser_t, withinBlockC} ptr    $ withinBlockC c_css_parser_t
--}
   peek ptr = do
     a <- #{peek c_css_parser_t, c_space_separated} ptr
     b <- #{peek c_css_parser_t, c_buf_offset}      ptr
-    c <- #{peek c_css_parser_t, c_token_type}      ptr
-    d <- #{peek c_css_parser_t, c_within_block}    ptr
-    e <- #{peek c_css_parser_t, c_token_value}     ptr
-    return (HelloCssParser a b c d e)
-{-
-  peek ptr = return HelloCssParser
-    `ap` (#{peek c_css_parser_t, c_space_separated} ptr)
-    `ap` (#{peek c_css_parser_t, c_buf_offset} ptr)
-    `ap` (#{peek c_css_parser_t, c_token_type} ptr)
-    `ap` (#{peek c_css_parser_t, c_within_block} ptr)
-    `ap` (#{peek c_css_parser_t, c_token_value} ptr)
--}
+    c <- #{peek c_css_parser_t, c_in_block}        ptr
+    return (HelloCssParser a b c)
 
 
-hll_nextToken :: Ptr HelloCssParser -> CString -> IO CString
-hll_nextToken ptrStructCssParser cBuf = do
-  buf <- BSU.unsafePackCString cBuf
-  hllParser <- peek ptrStructCssParser
-  let inBlock = withinBlockC hllParser :: CInt
-  let (parser, token) = nextToken defaultParser{ remainder   = T.E.decodeLatin1 buf
-                                               , withinBlock = inBlock > 0
-                                               , bufOffset   = fromIntegral . bufOffsetC $ hllParser
-                                               , spaceSeparated = spaceSeparatedC hllParser > 0
-                                               }
-  manipulateOutPtr ptrStructCssParser parser token inBlock
-  case token of -- TODO: use "cstr" defined below
+
+
+instance Storable HelloCssToken where
+  sizeOf    _ = #{size c_css_token_t}
+  alignment _ = #{alignment c_css_token_t}
+
+  poke ptr (HelloCssToken argType argValue) = do
+    #{poke c_css_token_t, c_type}  ptr argType
+    #{poke c_css_token_t, c_value} ptr argValue
+
+  peek ptr = do
+    a <- #{peek c_css_token_t, c_type}  ptr
+    b <- #{peek c_css_token_t, c_value} ptr
+    return (HelloCssToken a b)
+
+
+
+
+hll_nextToken :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO CString
+hll_nextToken ptrStructCssParser ptrStructCssToken cBuf = do
+  buf     <- BSU.unsafePackCString cBuf
+  cParser <- peek ptrStructCssParser
+
+  let (newParser, newToken) = nextToken defaultParser{ remainder = T.E.decodeLatin1 buf
+                                                     , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                                                     , bufOffset = fromIntegral . bufOffsetC $ cParser
+                                                     , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                                                     }
+
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
+
+  cstr newToken
+
+
+
+-- Set fields in pointer to struct passed from C code.
+updateParserStruct :: Ptr HelloCssParser -> CssParser -> IO ()
+updateParserStruct ptrStructCssParser parser = do
+  poke ptrStructCssParser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (fromIntegral . bufOffset $ parser) (if inBlock parser then 1 else 0)
+
+
+
+
+-- Set fields in pointer to struct passed from C code.
+updateTokenStruct :: Ptr HelloCssToken-> CssToken -> IO ()
+updateTokenStruct ptrStructCssToken token = do
+  s <- cstr token
+  poke ptrStructCssToken $ HelloCssToken (getTokenType token) s
+
+
+
+
+cstr :: CssToken -> IO CString
+cstr token = case token of
     (CssTokI i)   -> (newCString . show $ i)
     (CssTokF f)   -> (newCString . show $ f)
     (CssTokCol c) -> (newCString . T.unpack $ c)
@@ -137,65 +169,53 @@ hll_nextToken ptrStructCssParser cBuf = do
 
 
 
--- Set fields in pointer to struct passed from C code.
-manipulateOutPtr :: Ptr HelloCssParser -> CssParser -> CssToken -> CInt -> IO ()
-manipulateOutPtr ptrStructCssParser parser token inBlock = do
-  s <- (cstr token)
-  poke ptrStructCssParser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (fromIntegral . bufOffset $ parser) (getTokenType token) inBlock s
-
-
-cstr :: CssToken -> IO CString
-cstr token = case token of
-    (CssTokI i)   -> (newCString . show $ i)
-    (CssTokF f)   -> (newCString . show $ f)
-    (CssTokCol c) -> (newCString . T.unpack $ c)
-    (CssTokSym s) -> (newCString . T.unpack $ s)
-    (CssTokStr s) -> (newCString . T.unpack $ s)
-    (CssTokCh c)  -> (newCString . T.unpack . T.singleton $ c)
-    CssTokWS      -> (newCString " ")
-    otherwise     -> return nullPtr --(newCString . T.unpack . cssTokenValue $ token)
-
-
-
-
-hll_declarationValueAsString :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO CString
-hll_declarationValueAsString ptrStructCssParser tokType cTokValue cBuf valueType property = do
-  buf      <- BSU.unsafePackCString $ cBuf
-  tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek ptrStructCssParser
-  let inBlock = withinBlockC hllParser
-  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
+hll_declarationValueAsString :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> IO CString
+hll_declarationValueAsString ptrStructCssParser ptrStructCssToken cBuf valueType property = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
 
   let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
-                            , withinBlock = inBlock > 0
-                            , bufOffset   = fromIntegral . bufOffsetC $ hllParser
-                            , spaceSeparated = spaceSeparatedC hllParser > 0
+                            , inBlock     = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset   = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
                             }
 
-  let pair@((newParser, newToken), textVal) = declarationValueAsString (parser, inputToken) valueType property
-  manipulateOutPtr ptrStructCssParser parser newToken inBlock
+  cToken   <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ cToken
+  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+
+  let pair@((newParser, newToken), textVal) = declarationValueAsString (parser, token) valueType property
+
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
+
   case textVal of
     Just t -> newCString . T.unpack $ t
     _      -> return nullPtr
 
 
 
-hll_parseDeclarationValue :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> Ptr HelloCssDeclarationValue -> IO Int
-hll_parseDeclarationValue ptrStructCssParser tokType cTokValue cBuf declValueType property ptrStructCssDeclarationValue = do
-  buf      <- BSU.unsafePackCString $ cBuf
-  tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek ptrStructCssParser
-  let inBlock = withinBlockC hllParser
-  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
 
-  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
-                            , withinBlock = inBlock > 0
-                            , bufOffset   = fromIntegral . bufOffsetC $ hllParser
-                            , spaceSeparated = spaceSeparatedC hllParser > 0
+hll_parseDeclarationValue :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> Ptr HelloCssDeclarationValue -> IO Int
+hll_parseDeclarationValue ptrStructCssParser ptrStructCssToken cBuf declValueType property ptrStructCssDeclarationValue = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
+
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
                             }
 
-  let ((newParser, newToken), value) = parseDeclarationValue (parser, inputToken) declValueType property
-  manipulateOutPtr ptrStructCssParser parser inputToken inBlock
+  cToken   <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ cToken
+  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+
+  let ((newParser, newToken), value) = parseDeclarationValue (parser, token) declValueType property
+
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
+
   case value of
     Just v -> do
       ptrStr <- newCString . T.unpack . textVal $ v
@@ -206,38 +226,37 @@ hll_parseDeclarationValue ptrStructCssParser tokType cTokValue cBuf declValueTyp
 
 
 
-
-hll_ignoreBlock :: Ptr HelloCssParser -> CString -> IO Int
-hll_ignoreBlock ptrStructCssParser cBuf = do
-  buf       <- BSU.unsafePackCString $ cBuf
-  hllParser <- peek ptrStructCssParser
-  let inBlock = withinBlockC hllParser
-  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
-                            , withinBlock = inBlock > 0
-                            , bufOffset   = fromIntegral . bufOffsetC $ hllParser
-                            , spaceSeparated = spaceSeparatedC hllParser > 0
+hll_ignoreBlock :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO Int
+hll_ignoreBlock ptrStructCssParser ptrStructCssToken cBuf = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
                             }
 
-  let (newParser, newToken) = ignoreBlock parser
-  manipulateOutPtr ptrStructCssParser parser newToken inBlock
+  let (newParser, newToken) = ignoreBlock parser -- TODO: shouldn't we pass current token to the function?
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
   return 0
 
 
 
 
-hll_ignoreStatement :: Ptr HelloCssParser -> CString -> IO Int
-hll_ignoreStatement ptrStructCssParser cBuf = do
-  buf       <- BSU.unsafePackCString $ cBuf
-  hllParser <- peek ptrStructCssParser
-  let inBlock = withinBlockC hllParser
-  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
-                            , withinBlock = inBlock > 0
-                            , bufOffset   = fromIntegral . bufOffsetC $ hllParser
-                            , spaceSeparated = spaceSeparatedC hllParser > 0
+hll_ignoreStatement :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO Int
+hll_ignoreStatement ptrStructCssParser ptrStructCssToken cBuf = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
                             }
 
-  let (newParser, newToken) = ignoreBlock parser
-  manipulateOutPtr ptrStructCssParser parser newToken inBlock
+  let (newParser, newToken) = ignoreBlock parser -- TODO: shouldn't we pass current token to the function?
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
   return 0
 
 
@@ -252,7 +271,6 @@ getTokenType (CssTokCh   _) = 5
 getTokenType (CssTokWS)     = 6
 getTokenType (CssTokEnd)    = 7
 getTokenType _              = 8
-
 
 
 
@@ -273,19 +291,15 @@ getTokenADT tokType tokValue | tokType == 0 = case T.R.signed T.R.decimal tokVal
 
 
 
-hll_tokenMatchesProperty :: Int -> CString -> Int -> IO Int
-hll_tokenMatchesProperty tokType cTokValue property = do
-  tokValue <- BSU.unsafePackCString $ cTokValue
-  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
-  putStr (show inputToken)
-  case tokenMatchesProperty inputToken property of
+hll_tokenMatchesProperty :: Ptr HelloCssToken -> Int -> IO Int
+hll_tokenMatchesProperty ptrStructCssToken property = do
+  cToken    <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ cToken
+  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+  case tokenMatchesProperty token property of
     Just i -> do
-      putStr " results in just "
-      putStr (show i)
-      putStr "\n"
       return i
     _      -> do
-      putStr " results in nothing\n"
       return (-1)
 
 
@@ -329,22 +343,25 @@ hll_cssPropertyNameString property = do
 
 
 
-hll_cssParseWeight :: Ptr HelloCssParser -> Int -> CString -> CString -> IO Int
-hll_cssParseWeight ptrStructCssParser tokType cTokValue cBuf = do
-  buf      <- BSU.unsafePackCString $ cBuf
-  tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek ptrStructCssParser
-  let inBlock = withinBlockC hllParser
-  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
+hll_cssParseWeight :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO Int
+hll_cssParseWeight ptrStructCssParser ptrStructCssToken cBuf = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
 
-  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
-                            , withinBlock = inBlock > 0
-                            , bufOffset   = fromIntegral . bufOffsetC $ hllParser
-                            , spaceSeparated = spaceSeparatedC hllParser > 0
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
                             }
 
-  let ((newParser, newToken), isImportant) = cssParseWeight (parser, inputToken)
-  manipulateOutPtr ptrStructCssParser newParser newToken inBlock
+  cToken   <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ cToken
+  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+
+
+  let ((newParser, newToken), isImportant) = cssParseWeight (parser, token)
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
   if isImportant
   then return 1
   else return 0
@@ -445,23 +462,26 @@ setSimpleSelector ptrStructSimpleSelector simpleSelector = do
 
 
 
-hll_cssParseSelector :: Ptr HelloCssParser -> Int -> CString -> CString -> IO (Ptr HelloCssSelector)
-hll_cssParseSelector ptrStructCssParser tokType cTokValue cBuf = do
-  buf      <- BSU.unsafePackCString $ cBuf
-  tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek ptrStructCssParser
-  let inBlock = withinBlockC hllParser
-  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
+hll_cssParseSelector :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO (Ptr HelloCssSelector)
+hll_cssParseSelector ptrStructCssParser ptrStructCssToken cBuf = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
 
-  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
-                            , withinBlock = inBlock > 0
-                            , bufOffset   = fromIntegral . bufOffsetC $ hllParser
-                            , spaceSeparated = (fromIntegral . bufOffsetC $ hllParser) > 0
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
                             }
 
-  let ((newParser, newToken), newSelector) = parseSelector (parser, inputToken)
+  cToken   <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ cToken
+  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
 
-  manipulateOutPtr ptrStructCssParser newParser newToken (if withinBlock newParser then 1 else 0)
+  let ((newParser, newToken), newSelector) = parseSelector (parser, token)
+
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
+
   case newSelector of
     Just sel -> do
       ptrStructSelector <- callocBytes #{size c_css_selector_t}
@@ -523,7 +543,6 @@ setArrayOfPointers (x:xs) f ptrParent byteOffset = do
 
 
 
-
 data HelloCssDeclarationValue = HelloCssDeclarationValue {
     typeTagC   :: CInt
   , intValC    :: CInt
@@ -553,22 +572,27 @@ instance Storable HelloCssDeclarationValue where
 
 
 
-hll_parseDeclarationNormal :: Ptr HelloCssParser -> Int -> CString -> CString -> Ptr HelloCssDeclarationValue -> IO Int
-hll_parseDeclarationNormal ptrStructCssParser tokType cTokValue cBuf ptrStructCssDeclarationValue = do
-  buf      <- BSU.unsafePackCString $ cBuf
-  tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek ptrStructCssParser
-  let inBlock = withinBlockC hllParser
-  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
 
-  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
-                            , withinBlock = inBlock > 0
-                            , bufOffset   = fromIntegral . bufOffsetC $ hllParser
-                            , spaceSeparated = spaceSeparatedC hllParser > 0
+hll_parseDeclarationNormal :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDeclarationValue -> IO Int
+hll_parseDeclarationNormal ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDeclarationValue = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
+
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
                             }
 
-  let ((newParser, newToken), value, ret) = parseDeclarationNormal (parser, inputToken)
-  manipulateOutPtr ptrStructCssParser parser newToken inBlock
+  cToken   <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ cToken
+  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+
+  let ((newParser, newToken), value, ret) = parseDeclarationNormal (parser, token)
+
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
+
   if ret >= 0
   then case value of
          Just v -> do
