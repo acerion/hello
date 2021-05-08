@@ -561,6 +561,35 @@ void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, C
 
 bool parseDeclarationNormal(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant)
 {
+#if 1
+   c_css_declaration_value_t value;
+   memset(&value, 0, sizeof (value));
+   int rv = hll_parseDeclarationNormal(&parser->hll_css_parser,
+                                       parser->tokenizer.type, parser->tokenizer.value,
+                                       parser->tokenizer.buf + parser->tokenizer.bufOffset,
+                                       &value);
+
+   if (rv >= 0) {
+      // Property found. Value found and valid. Declaration parsed.
+      CssDeclarationValue val;
+      val.type   = (CssDeclarationValueType) value.c_type_tag;
+      val.intVal = value.c_int_val;
+      val.strVal = value.c_text_val;
+
+      if (value.c_important) {
+         declarationListAddOrUpdateDeclaration(declListImportant, (CssDeclarationProperty) rv, val);
+      } else {
+         declarationListAddOrUpdateDeclaration(declList, (CssDeclarationProperty) rv, val);
+      }
+      return true;
+   } else if (rv == -1) {
+      // Property not found. Try to find the property among shortcuts.
+      return false;
+   } else {
+      // Property found, but some error occurred during parsing. Skip this declaration.
+      return true;
+   }
+#else
    const int idx = hll_cssPropertyInfoIdxByName(parser->tokenizer.value);
    if (-1 != idx) {
       CssDeclarationProperty property = (CssDeclarationProperty) idx;
@@ -585,6 +614,7 @@ bool parseDeclarationNormal(CssParser * parser, CssDeclartionList * declList, Cs
    } else {
       return false;
    }
+#endif
 }
 
 void parseDeclarationShorthands(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant)

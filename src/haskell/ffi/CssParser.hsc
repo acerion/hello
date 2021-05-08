@@ -63,6 +63,7 @@ foreign export ccall "hll_cssParseSelector"  hll_cssParseSelector :: Ptr HelloCs
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
+foreign export ccall "hll_parseDeclarationNormal" hll_parseDeclarationNormal :: Ptr HelloCssParser -> Int -> CString -> CString -> Ptr HelloCssDeclarationValue -> IO Int
 
 
 #include "../hello.h"
@@ -538,3 +539,64 @@ setArrayOfPointers (x:xs) f ptrParent byteOffset = do
   ptr <- f x
   pokeByteOff ptrParent byteOffset ptr
   setArrayOfPointers xs f ptrParent (byteOffset + pointerSize)
+
+
+
+
+
+data HelloCssDeclarationValue = HelloCssDeclarationValue {
+    typeTagC   :: CInt
+  , intValC    :: CInt
+  , textValC   :: CString
+  , importantC :: CInt
+  } deriving (Show)
+
+
+
+
+instance Storable HelloCssDeclarationValue where
+  sizeOf    _ = #{size c_css_declaration_value_t}
+  alignment _ = #{alignment c_css_declaration_value_t}
+
+  poke ptr (HelloCssDeclarationValue argTypeTag argIntVal argTextVal argImportant) = do
+    #{poke c_css_declaration_value_t, c_type_tag}  ptr argTypeTag
+    #{poke c_css_declaration_value_t, c_int_val}   ptr argIntVal
+    #{poke c_css_declaration_value_t, c_text_val}  ptr argTextVal
+    #{poke c_css_declaration_value_t, c_important} ptr argImportant
+
+  peek ptr = do
+    a <- #{peek c_css_declaration_value_t, c_type_tag}  ptr
+    b <- #{peek c_css_declaration_value_t, c_int_val}   ptr
+    c <- #{peek c_css_declaration_value_t, c_text_val}  ptr
+    d <- #{peek c_css_declaration_value_t, c_important} ptr
+    return (HelloCssDeclarationValue a b c d)
+
+
+
+hll_parseDeclarationNormal :: Ptr HelloCssParser -> Int -> CString -> CString -> Ptr HelloCssDeclarationValue -> IO Int
+-- (CssParser, CssToken) -> ((CssParser, CssToken), Bool, Int, CssDeclarationValue)
+hll_parseDeclarationNormal ptrStructCssParser tokType cTokValue cBuf ptrStructCssDeclarationValue = do
+  buf      <- BSU.unsafePackCString $ cBuf
+  tokValue <- BSU.unsafePackCString $ cTokValue
+  hllParser <- peek ptrStructCssParser
+  let inBlock = withinBlockC hllParser
+  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
+
+  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
+                            , withinBlock = inBlock > 0
+                            , bufOffset   = fromIntegral . bufOffsetC $ hllParser
+                            , spaceSeparated = spaceSeparatedC hllParser > 0
+                            }
+
+  let ((newParser, newToken), value, ret) = parseDeclarationNormal (parser, inputToken)
+  manipulateOutPtr ptrStructCssParser parser newToken inBlock
+  if ret >= 0
+  then case value of
+         Just v -> do
+           ptrStr <- newCString . T.unpack . textVal $ v
+           poke ptrStructCssDeclarationValue $ HelloCssDeclarationValue (fromIntegral . typeTag $ v) (fromIntegral . intVal $ v) ptrStr (if important v then 1 else 0)
+           return ret
+         Nothing ->
+           return (-1)
+  else return ret
+

@@ -86,6 +86,10 @@ module CssParser(nextToken
                 , parseSelector
                 , removeSpaceTokens
 
+                , CssDeclarationValue (..)
+                , parseDeclarationNormal
+                , takePropertyTokens
+
                 , defaultParser) where
 
 
@@ -524,11 +528,11 @@ takeAllTokens (parser,token) = do
 
 
 
-parseRgbFunctionInt :: CssParser -> (CssParser, Maybe Int)
+parseRgbFunctionInt :: CssParser -> ((CssParser, CssToken), Maybe Int)
 parseRgbFunctionInt parser =
   case parseRgbFunction parser of
-    (parser', Nothing) -> (parser', Nothing)
-    (parser', Just (tr, tg, tb, ta, isPercent)) -> (parser', Just color)
+    (parser', Nothing) -> ((parser', CssTokNone), Nothing) -- TODO: return real token here
+    (parser', Just (tr, tg, tb, ta, isPercent)) -> ((parser', CssTokNone), Just color) -- TODO: return real token here
       where
         color = (r `shiftL` 16) .|. (g `shiftL` 8) .|. b
         r = getInt tr isPercent
@@ -600,15 +604,15 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 
 
 
-declarationValueAsColor :: (CssParser, CssToken) -> (CssParser, Maybe Int)
-declarationValueAsColor (parser, (CssTokCol c)) = case colorsStringToColor c of -- TODO: we know here that color should have form #RRGGBB. Call function that accepts only this format.
-                                                    Just i  -> (parser, Just i)
-                                                    Nothing -> (parser, Nothing)
-declarationValueAsColor (parser, (CssTokSym s)) | s == "rgb" = parseRgbFunctionInt parser
-                                                | otherwise = case colorsStringToColor s of
-                                                                Just i  -> (parser, Just i)
-                                                                Nothing -> (parser, Nothing)
-declarationValueAsColor (parser, token)         = (parser, Nothing)
+declarationValueAsColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe Int)
+declarationValueAsColor (parser, token@(CssTokCol c)) = case colorsStringToColor c of -- TODO: we know here that color should have form #RRGGBB. Call function that accepts only this format.
+                                                          Just i  -> ((parser, token), Just i)
+                                                          Nothing -> ((parser, token), Nothing)
+declarationValueAsColor (parser, token@(CssTokSym s)) | s == "rgb" = parseRgbFunctionInt parser
+                                                      | otherwise = case colorsStringToColor s of
+                                                                      Just i  -> ((parser, token), Just i)
+                                                                      Nothing -> ((parser, token), Nothing)
+declarationValueAsColor (parser, token)         = ((parser, token), Nothing)
 
 
 
@@ -616,16 +620,16 @@ declarationValueAsColor (parser, token)         = (parser, Nothing)
 declarationValueAsInt :: (CssParser, CssToken) -> Int -> Int -> (CssParser, Maybe Int)
 declarationValueAsInt (parser, token) valueType property = (retParser, retInt)
   where
-    (retParser, retInt) | valueType == cssDeclarationValueTypeENUM                     = declarationValueAsEnum (parser, token) property
-                        | valueType == cssDeclarationValueTypeCOLOR                    = declarationValueAsColor (parser, token)
-                        | valueType == cssDeclarationValueTypeFONT_WEIGHT              = declarationValueAsWeightInteger (parser, token) property
-                        | valueType == cssDeclarationValueTypeMULTI_ENUM               = declarationValueAsMultiEnum (parser, token) property
-                        | valueType == cssDeclarationValueTypeAUTO                     = declarationValueAsAuto (parser, token)
-                        | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE        = declarationValueAsLength (parser, token) valueType
-                        | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER = declarationValueAsLength (parser, token) valueType
-                        | valueType == cssDeclarationValueTypeLENGTH                   = declarationValueAsLength (parser, token) valueType
-                        | valueType == cssDeclarationValueTypeSIGNED_LENGTH            = declarationValueAsLength (parser, token) valueType
-                        | otherwise                                                    = (parser, Nothing)
+    ((retParser, retToken), retInt) | valueType == cssDeclarationValueTypeENUM                     = declarationValueAsEnum (parser, token) property
+                                    | valueType == cssDeclarationValueTypeCOLOR                    = declarationValueAsColor (parser, token)
+                                    | valueType == cssDeclarationValueTypeFONT_WEIGHT              = declarationValueAsWeightInteger (parser, token) property
+                                    | valueType == cssDeclarationValueTypeMULTI_ENUM               = declarationValueAsMultiEnum (parser, token) property
+                                    | valueType == cssDeclarationValueTypeAUTO                     = declarationValueAsAuto (parser, token)
+                                    | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE        = declarationValueAsLength (parser, token) valueType
+                                    | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER = declarationValueAsLength (parser, token) valueType
+                                    | valueType == cssDeclarationValueTypeLENGTH                   = declarationValueAsLength (parser, token) valueType
+                                    | valueType == cssDeclarationValueTypeSIGNED_LENGTH            = declarationValueAsLength (parser, token) valueType
+                                    | otherwise                                                    = ((parser, token), Nothing)
 
 
 
@@ -649,18 +653,17 @@ declarationValueAsString (parser, token) valueType property = ((retParser, retTo
 
 
 
-declarationValueAsEnum :: (CssParser, CssToken) -> Int -> (CssParser, Maybe Int)
-declarationValueAsEnum (parser, (CssTokSym symbol)) property =
+declarationValueAsEnum :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe Int)
+declarationValueAsEnum (parser, token@(CssTokSym symbol)) property =
   case declarationValueAsEnum' symbol enums 0 of
-    -1  -> (parser, Nothing)
-    idx -> (parser, Just idx)
+    -1  -> ((parser, token), Nothing)
+    idx -> ((parser, token), Just idx)
   where
     propInfo = cssPropertyInfo V.! property
     enums = tripletThrd propInfo
-declarationValueAsEnum (parser, token) property              = (parser, Nothing)
+declarationValueAsEnum (parser, token) property              = ((parser, token), Nothing)
                                                             -- TODO: is this the right place to reject everything else other than symbol?
                                                             -- Shouldn't we do it somewhere else?
-
 
 
 
@@ -674,26 +677,26 @@ declarationValueAsEnum' symbol (x:xs) idx = if x == symbol
 
 
 
-declarationValueAsMultiEnum :: (CssParser, CssToken) -> Int -> (CssParser, Maybe Int)
+declarationValueAsMultiEnum :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe Int)
 declarationValueAsMultiEnum (parser, token@(CssTokSym symbol)) property = declarationValueAsMultiEnum' (parser, token) enums 0
   where
     propInfo = cssPropertyInfo V.! property
     enums = tripletThrd propInfo
-declarationValueAsMultiEnum (parser, token) property                    = (parser, Nothing)
+declarationValueAsMultiEnum (parser, token) property                    = ((parser, token), Nothing)
                                                             -- TODO: is this the right place to reject everything else other than symbol?
                                                             -- Shouldn't we do it somewhere else?
 
 
 
 
-declarationValueAsMultiEnum' :: (CssParser, CssToken) -> [T.Text] -> Int -> (CssParser, Maybe Int)
+declarationValueAsMultiEnum' :: (CssParser, CssToken) -> [T.Text] -> Int -> ((CssParser, CssToken), Maybe Int)
 declarationValueAsMultiEnum' (parser, (CssTokSym symbol)) (enums) bits =
   case L.elemIndex symbol enums of -- TODO: this search should be case-insensitive
     Just pos -> declarationValueAsMultiEnum' (newParser, newToken) enums (bits .|. (1  `shiftL` pos))
     Nothing  -> declarationValueAsMultiEnum' (newParser, newToken) enums bits
   where
     (newParser, newToken) = nextToken parser
-declarationValueAsMultiEnum' (parser, token) _ bits                    = (parser, Just bits)
+declarationValueAsMultiEnum' (parser, token) _ bits                    = ((parser, token), Just bits)
 -- TODO: we should probably handle in a different way a situation where one
 -- of tokens is not a symbol.
 --
@@ -703,19 +706,17 @@ declarationValueAsMultiEnum' (parser, token) _ bits                    = (parser
 
 
 -- TODO: check value of symbol (case insensitive): it should be "auto".
-declarationValueAsAuto :: (CssParser, CssToken) -> (CssParser, Maybe Int)
-declarationValueAsAuto (parser, token@(CssTokSym symbol)) = (nextParser, Just cssLengthTypeAuto)
-  where (nextParser, _) = nextToken parser
-declarationValueAsAuto (parser, token)                    = (parser, Nothing)
+declarationValueAsAuto :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe Int)
+declarationValueAsAuto (parser, token@(CssTokSym symbol)) = (nextToken parser, Just cssLengthTypeAuto)
+declarationValueAsAuto (parser, token)                    = ((parser, token), Nothing)
 
 
 
 
-declarationValueAsLength :: (CssParser, CssToken) -> Int-> (CssParser, Maybe Int)
-declarationValueAsLength (parser, token@(CssTokI i)) valueType = declarationValueAsLength' parser (fromIntegral i) valueType
-declarationValueAsLength (parser, token@(CssTokF f)) valueType = declarationValueAsLength' parser f valueType
-declarationValueAsLength (parser, token) _                     = (parser, Just invalidIntResult)
-
+declarationValueAsLength :: (CssParser, CssToken) -> Int-> ((CssParser, CssToken), Maybe Int)
+declarationValueAsLength (parser, token@(CssTokI i)) valueType = declarationValueAsLength' (parser, token) (fromIntegral i) valueType
+declarationValueAsLength (parser, token@(CssTokF f)) valueType = declarationValueAsLength' (parser, token) f valueType
+declarationValueAsLength (parser, token) _                     = ((parser, token), Just invalidIntResult)
 
 
 
@@ -733,12 +734,12 @@ lengthValueToUnited fval unitStr | unitStr == "px" = (fval,               cssLen
 
 
 
-declarationValueAsLength' :: CssParser -> Float -> Int -> (CssParser, Maybe Int)
-declarationValueAsLength' parser fval valueType = (retParser, retInt)
+declarationValueAsLength' :: (CssParser, CssToken) -> Float -> Int -> ((CssParser, CssToken), Maybe Int)
+declarationValueAsLength' (parser, token) fval valueType = ((retParser, retToken), retInt)
   where
-    (retParser, _) = case retInt of
-                       Just i  -> nextToken newParser
-                       Nothing -> (newParser, CssTokNone)
+    (retParser, retToken) = case retInt of
+                              Just i  -> nextToken newParser
+                              Nothing -> (newParser, CssTokNone)
     retInt = if (snd united) == cssLengthTypeNone
              then if (valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER || (fst united) == 0.0)
                      -- Allow numbers without unit only for 0 or CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER
@@ -804,6 +805,9 @@ declarationValueAsSymbol (parser, (CssTokStr str)) acc = declarationValueAsSymbo
 declarationValueAsSymbol (parser, (CssTokCh  ',')) acc = declarationValueAsSymbol (nextToken parser) (T.append acc (separated parser ","))
 declarationValueAsSymbol (parser, token) acc           = finalSymbol (parser, token) acc
 
+
+
+
 finalSymbol (parser, token) acc = if T.null acc
                                   then ((parser, token), Nothing)
                                   else ((parser, token), Just acc)
@@ -840,10 +844,11 @@ separated parser str = if spaceSeparated parser
 -}
 
 
-declarationValueAsWeightInteger :: (CssParser, CssToken) -> Int -> (CssParser, Maybe Int)
-declarationValueAsWeightInteger (parser, (CssTokI i)) property = if i >= 100 && i <= 900
-                                                                 then (parser, Just i)
-                                                                 else (parser, Nothing)
+declarationValueAsWeightInteger :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe Int)
+declarationValueAsWeightInteger (parser, token@(CssTokI i)) property = if i >= 100 && i <= 900
+                                                                       then ((parser, token), Just i)
+                                                                       else ((parser, token), Nothing)
+declarationValueAsWeightInteger (parser, token) property             = ((parser, token), Nothing)
 
 
 
@@ -1280,4 +1285,122 @@ removeSpaceTokens ((CssTokCh '>'):(CssTokWS):xs) acc = removeSpaceTokens ((CssTo
 removeSpaceTokens (x:(CssTokWS):[]) acc              = acc ++ [x] -- Don't forget to remove ending whitespace too.
 removeSpaceTokens (x:xs) acc                         = removeSpaceTokens xs (acc ++ [x])
 removeSpaceTokens [] acc                             = acc
+
+
+
+
+data CssDeclarationValue = CssDeclarationValue {
+    typeTag :: Int
+  , intVal  :: Int
+  , textVal :: T.Text
+  , important :: Bool
+  } deriving (Show)
+
+
+
+
+-- Returned list inclues ':' character that is after the property name.
+takePropertyTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
+takePropertyTokens (parser, token) = takeNext (parser, token) []
+  where
+    takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
+    takeNext (parser, token) tokens = case token of
+                                        CssTokCh ':' -> (nextToken2 parser, (tokens ++ [token]))
+                                        CssTokCh ';' -> ((parser, token), tokens)
+                                        CssTokCh '}' -> ((parser, token), tokens)
+                                        CssTokEnd    -> ((parser, token), tokens)
+                                        CssTokNone -> takeNext (nextToken2 parser) tokens -- This token can be used to 'kick-start' of parsing
+                                        otherwise  -> takeNext (nextToken2 parser) (tokens ++ [token])
+
+
+
+
+defaultValue = CssDeclarationValue {
+    typeTag = cssDeclarationValueTypeUNUSED
+  , intVal  = 0
+  , textVal = ""
+  , important = False
+  }
+
+
+
+
+
+parseDeclarationProperty :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe Int)
+parseDeclarationProperty (parser, token) = if property >= 0
+                                           then ((newParser, newToken), Just property)
+                                           else ((parser, token), Nothing)
+  where
+    ((newParser, newToken), propTokens) = takePropertyTokens (parser, token)
+    property = case propTokens of
+                 (CssTokSym sym:CssTokCh ':':[]) -> cssPropertyInfoIdxByName sym
+                 otherwise                       -> (-1)
+
+
+
+parseDeclarationValue2 :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssDeclarationValue, Int)
+parseDeclarationValue2 (parser, token) property =
+  case tokenMatchesProperty token property of
+    Just valueType  -> case parseDeclarationValue (parser, token) valueType property of
+                         ((p, t), Just v)  -> ((p, t), Just v{important = imp}, property)
+                         ((p, t), Nothing) -> ((p, t), Nothing, -2)
+    Nothing -> ((parser, token), Nothing, -2)
+
+  where
+    imp = False -- TODO: cssParseWeight
+
+
+
+
+parseDeclarationNormal :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclarationValue, Int)
+parseDeclarationNormal (parser, token) = case parseDeclarationProperty (parser, token) of
+                                           ((newParser, newToken), Just property) -> parseDeclarationValue2 (newParser, newToken) property
+                                           ((newParser, newToken), Nothing)       -> ((parser, token), Nothing, -1)
+
+
+
+
+parseDeclarationValue :: (CssParser, CssToken) -> Int -> Int -> ((CssParser, CssToken), Maybe CssDeclarationValue)
+parseDeclarationValue (parser, token) valueType property | valueType == cssDeclarationValueTypeINTEGER             = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 1})
+                                                         | valueType == cssDeclarationValueTypeENUM                = case declarationValueAsEnum (parser, token) property of
+                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
+                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
+                                                         | valueType == cssDeclarationValueTypeMULTI_ENUM          = case declarationValueAsMultiEnum (parser, token) property of
+                                                                                                                       ((p, t), Just bits) -> ((p, t), Just defaultValue{typeTag = valueType, intVal = bits})
+                                                                                                                       ((p, t), Nothing)   -> ((p, t), Nothing)
+
+                                                         | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE   = case declarationValueAsLength (parser, token) valueType of
+                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
+                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
+                                                         | valueType == cssDeclarationValueTypeLENGTH              = case declarationValueAsLength (parser, token) valueType of
+                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
+                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
+                                                         | valueType == cssDeclarationValueTypeSIGNED_LENGTH       = case declarationValueAsLength (parser, token) valueType of
+                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
+                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
+                                                         | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER = case declarationValueAsLength (parser, token) valueType of
+                                                                                                                            ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
+                                                                                                                            ((p, t), Nothing) -> ((p, t), Nothing)
+
+                                                         | valueType == cssDeclarationValueTypeAUTO                = case declarationValueAsAuto (parser, token) of
+                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
+                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
+                                                         | valueType == cssDeclarationValueTypeCOLOR               = case declarationValueAsColor (parser, token) of
+                                                                                                                       ((p, t), Just c)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = c})
+                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
+                                                         | valueType == cssDeclarationValueTypeFONT_WEIGHT         = case declarationValueAsWeightInteger (parser, token) property of
+                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
+                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
+                                                         | valueType == cssDeclarationValueTypeSTRING              = case declarationValueAsString' (parser, token) of
+                                                                                                                       ((p, t), Just str)-> ((p, t), Just defaultValue{typeTag = valueType, textVal = str})
+                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
+                                                         | valueType == cssDeclarationValueTypeSYMBOL              = case declarationValueAsSymbol (parser, token) "" of
+                                                                                                                       ((p, t), Just sym) -> ((p, t), Just defaultValue{typeTag = valueType, textVal = sym})
+                                                                                                                       ((p, t), Nothing)  -> ((p, t), Nothing)
+                                                         | valueType == cssDeclarationValueTypeURI                 = case declarationValueAsURI (parser, token) of
+                                                                                                                       ((p, t), Just sym) -> ((p, t), Just defaultValue{typeTag = valueType, textVal = sym})
+                                                                                                                       ((p, t), Nothing)  -> ((p, t), Nothing)
+                                                         | valueType == cssDeclarationValueTypeBACKGROUND_POSITION = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 12}) -- TODO
+                                                         | valueType == cssDeclarationValueTypeUNUSED              = ((parser, token), Nothing)
+                                                         | otherwise                                               = ((parser, token), Nothing)
 

@@ -66,6 +66,15 @@ typedef struct c_css_selector_t {
 
 
 
+typedef struct c_css_declaration_value_t {
+   int c_type_tag;
+   int c_int_val;
+   char * c_text_val;
+   int c_important;
+} c_css_declaration_value_t;
+
+
+
 /* URL */
 bool hll_hostIsIP(const char * hostname);
 
@@ -120,6 +129,8 @@ int hll_cssCreateLength(float val, CssLengthType t);
 /* Return allocated selector parsing succeeded.
    Return NULL otherwise. */
 c_css_selector_t * hll_cssParseSelector(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder);
+
+int hll_parseDeclarationNormal(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder, c_css_declaration_value_t * value);
 
 #ifdef __cplusplus
 }
