@@ -405,7 +405,7 @@ void CssStyleSheet::addRule (CssRule *rule) {
  * The declarations (list property+value) are set as defined by the rules in
  * the stylesheet that match at the given node in the document tree.
  */
-void CssStyleSheet::apply_style_sheet(CssDeclartionList * declList, Doctree *docTree,
+void CssStyleSheet::apply_style_sheet(FILE * file, CssDeclartionList * declList, Doctree *docTree,
                                       const DoctreeNode *node, MatchCache *matchCache) const {
    static const int maxLists = 32;
    const RuleList *ruleList[maxLists];
@@ -442,13 +442,6 @@ void CssStyleSheet::apply_style_sheet(CssDeclartionList * declList, Doctree *doc
    if (ruleList[numLists])
       numLists++;
 
-   static int i = 0;
-   char path[20] = { 0 };
-   snprintf(path, sizeof (path), "/tmp/css_rules_%04d", i);
-   FILE * file = fopen(path, "w");
-   i++;
-
-
    // Apply potentially matching rules from ruleList[0-numLists] with
    // ascending specificity.
    // If specificity is equal, rules are applied in order of appearance.
@@ -480,9 +473,6 @@ void CssStyleSheet::apply_style_sheet(CssDeclartionList * declList, Doctree *doc
          break;
       }
    }
-
-   fclose(file);
-
 }
 
 CssStyleSheet CssContext::userAgentSheet;
@@ -507,24 +497,36 @@ void CssContext::apply_css_context(CssDeclartionList * mergedDeclList, Doctree *
                                    CssDeclartionList * declListImportant,
                                    CssDeclartionList * declListNonCss) {
 
-   userAgentSheet.apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
+   static int i = 0;
+   char path[20] = { 0 };
+   snprintf(path, sizeof (path), "/tmp/css_rules_%04d", i);
+   FILE * file = fopen(path, "w");
+   i++;
 
-   sheet[CSS_PRIMARY_USER].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
+   userAgentSheet.apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
+
+   fprintf(file, "CSS_PRIMARY_USER\n");
+   sheet[CSS_PRIMARY_USER].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
 
    if (declListNonCss)
       declarationListAppend(declListNonCss, mergedDeclList);
 
-   sheet[CSS_PRIMARY_AUTHOR].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
+   fprintf(file, "CSS_PRIMARY_AUTHOR\n");
+   sheet[CSS_PRIMARY_AUTHOR].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
 
    if (declList)
       declarationListAppend(declList, mergedDeclList);
 
-   sheet[CSS_PRIMARY_AUTHOR_IMPORTANT].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
+   fprintf(file, "CSS_PRIMARY_AUTHOR_IMPORTANT\n");
+   sheet[CSS_PRIMARY_AUTHOR_IMPORTANT].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
 
    if (declListImportant)
       declarationListAppend(declListImportant, mergedDeclList);
 
-   sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(mergedDeclList, docTree, node, &matchCache);
+   fprintf(file, "CSS_PRIMARY_USER_IMPORTANT\n");
+   sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
+
+   fclose(file);
 }
 
 void addRuleToContext(CssContext * context, CssRule * rule, CssPrimaryOrder order)

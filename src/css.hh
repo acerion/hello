@@ -335,7 +335,7 @@ class CssStyleSheet {
    public:
       CssStyleSheet () { requiredMatchCache = 0; }
       void addRule (CssRule *rule);
-      void apply_style_sheet(CssDeclartionList * declList, Doctree *docTree,
+      void apply_style_sheet(FILE * file, CssDeclartionList * declList, Doctree *docTree,
                   const DoctreeNode *node, MatchCache *matchCache) const;
       int getRequiredMatchCache () { return requiredMatchCache; }
 };
