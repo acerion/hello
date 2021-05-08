@@ -63,7 +63,6 @@ module CssParser(nextToken
                 , parseRgbFunction
                 , parseRgbFunctionInt
                 , declarationValueAsColor
-                , declarationValueAsInt
                 , declarationValueAsString
                 , declarationValueAsEnum
                 , declarationValueAsEnum'
@@ -89,6 +88,7 @@ module CssParser(nextToken
                 , CssDeclarationValue (..)
                 , parseDeclarationNormal
                 , takePropertyTokens
+                , parseDeclarationValue
 
                 , defaultParser) where
 
@@ -614,22 +614,6 @@ declarationValueAsColor (parser, token@(CssTokSym s)) | s == "rgb" = parseRgbFun
                                                                       Nothing -> ((parser, token), Nothing)
 declarationValueAsColor (parser, token)         = ((parser, token), Nothing)
 
-
-
-
-declarationValueAsInt :: (CssParser, CssToken) -> Int -> Int -> (CssParser, Maybe Int)
-declarationValueAsInt (parser, token) valueType property = (retParser, retInt)
-  where
-    ((retParser, retToken), retInt) | valueType == cssDeclarationValueTypeENUM                     = declarationValueAsEnum (parser, token) property
-                                    | valueType == cssDeclarationValueTypeCOLOR                    = declarationValueAsColor (parser, token)
-                                    | valueType == cssDeclarationValueTypeFONT_WEIGHT              = declarationValueAsWeightInteger (parser, token) property
-                                    | valueType == cssDeclarationValueTypeMULTI_ENUM               = declarationValueAsMultiEnum (parser, token) property
-                                    | valueType == cssDeclarationValueTypeAUTO                     = declarationValueAsAuto (parser, token)
-                                    | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE        = declarationValueAsLength (parser, token) valueType
-                                    | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER = declarationValueAsLength (parser, token) valueType
-                                    | valueType == cssDeclarationValueTypeLENGTH                   = declarationValueAsLength (parser, token) valueType
-                                    | valueType == cssDeclarationValueTypeSIGNED_LENGTH            = declarationValueAsLength (parser, token) valueType
-                                    | otherwise                                                    = ((parser, token), Nothing)
 
 
 
@@ -1348,6 +1332,7 @@ parseDeclarationValue2 (parser, token) property =
 
   where
     imp = False -- TODO: cssParseWeight
+
 
 
 

@@ -45,9 +45,7 @@ import CssParser
 
 
 foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> CString -> IO CString
-foreign export ccall "hll_declarationValueAsInt"   hll_declarationValueAsInt   :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO Int
 foreign export ccall "hll_declarationValueAsString"   hll_declarationValueAsString :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO CString
-foreign export ccall "hll_declarationValueAsMultiEnum" hll_declarationValueAsMultiEnum :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> IO Int
 foreign export ccall "hll_tokenMatchesProperty" hll_tokenMatchesProperty :: Int -> CString -> Int -> IO Int
 foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr HelloCssParser -> CString -> IO Int
 foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr HelloCssParser -> CString -> IO Int
@@ -64,6 +62,9 @@ foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
 foreign export ccall "hll_parseDeclarationNormal" hll_parseDeclarationNormal :: Ptr HelloCssParser -> Int -> CString -> CString -> Ptr HelloCssDeclarationValue -> IO Int
+foreign export ccall "hll_parseDeclarationValue" hll_parseDeclarationValue :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> Ptr HelloCssDeclarationValue -> IO Int
+
+
 
 
 #include "../hello.h"
@@ -157,29 +158,6 @@ cstr token = case token of
 
 
 
-hll_declarationValueAsInt :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO Int
-hll_declarationValueAsInt ptrStructCssParser tokType cTokValue cBuf valueType property = do
-  buf      <- BSU.unsafePackCString $ cBuf
-  tokValue <- BSU.unsafePackCString $ cTokValue
-  hllParser <- peek ptrStructCssParser
-  let inBlock = withinBlockC hllParser
-  let inputToken = getTokenADT tokType (T.E.decodeLatin1 tokValue)
-
-  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
-                            , withinBlock = inBlock > 0
-                            , bufOffset   = fromIntegral . bufOffsetC $ hllParser
-                            , spaceSeparated = spaceSeparatedC hllParser > 0
-                            }
-
-  let pair@(newParser, intVal) = declarationValueAsInt (parser, inputToken) valueType property
-  manipulateOutPtr ptrStructCssParser parser inputToken inBlock
-  case intVal of
-    Just i -> return i
-    _      -> return invalidIntResult
-
-
-
-
 hll_declarationValueAsString :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> IO CString
 hll_declarationValueAsString ptrStructCssParser tokType cTokValue cBuf valueType property = do
   buf      <- BSU.unsafePackCString $ cBuf
@@ -202,9 +180,8 @@ hll_declarationValueAsString ptrStructCssParser tokType cTokValue cBuf valueType
 
 
 
-
-hll_declarationValueAsMultiEnum :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> IO Int
-hll_declarationValueAsMultiEnum ptrStructCssParser tokType cTokValue cBuf property = do
+hll_parseDeclarationValue :: Ptr HelloCssParser -> Int -> CString -> CString -> Int -> Int -> Ptr HelloCssDeclarationValue -> IO Int
+hll_parseDeclarationValue ptrStructCssParser tokType cTokValue cBuf declValueType property ptrStructCssDeclarationValue = do
   buf      <- BSU.unsafePackCString $ cBuf
   tokValue <- BSU.unsafePackCString $ cTokValue
   hllParser <- peek ptrStructCssParser
@@ -217,12 +194,15 @@ hll_declarationValueAsMultiEnum ptrStructCssParser tokType cTokValue cBuf proper
                             , spaceSeparated = spaceSeparatedC hllParser > 0
                             }
 
-
-  let pair@(newParser, intVal) = declarationValueAsMultiEnum (parser, inputToken) property
+  let ((newParser, newToken), value) = parseDeclarationValue (parser, inputToken) declValueType property
   manipulateOutPtr ptrStructCssParser parser inputToken inBlock
-  case intVal of
-    Just i -> return i
-    _      -> return invalidIntResult
+  case value of
+    Just v -> do
+      ptrStr <- newCString . T.unpack . textVal $ v
+      poke ptrStructCssDeclarationValue $ HelloCssDeclarationValue (fromIntegral . typeTag $ v) (fromIntegral . intVal $ v) ptrStr (if important v then 1 else 0)
+      return 1 -- True
+    Nothing -> return 0 -- False
+
 
 
 
@@ -574,7 +554,6 @@ instance Storable HelloCssDeclarationValue where
 
 
 hll_parseDeclarationNormal :: Ptr HelloCssParser -> Int -> CString -> CString -> Ptr HelloCssDeclarationValue -> IO Int
--- (CssParser, CssToken) -> ((CssParser, CssToken), Bool, Int, CssDeclarationValue)
 hll_parseDeclarationNormal ptrStructCssParser tokType cTokValue cBuf ptrStructCssDeclarationValue = do
   buf      <- BSU.unsafePackCString $ cBuf
   tokValue <- BSU.unsafePackCString $ cTokValue

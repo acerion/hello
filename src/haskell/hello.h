@@ -109,9 +109,7 @@ char * hll_nextToken(c_css_parser_t * hll_parser, const char * remainder);
 /* Function returns color through return statement. */
 //int hll_parseRgbFunction(c_css_parser_t * hll_parser, const char * remainder);
 
-int hll_declarationValueAsInt(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder, int valueType, int property);
 char * hll_declarationValueAsString(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder, int valueType, int property);
-int hll_declarationValueAsMultiEnum(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder, int property);
 int hll_tokenMatchesProperty(int tokType, const char * tokValue, int property);
 int hll_ignoreBlock(c_css_parser_t * hll_parser, const char * remainder);
 int hll_ignoreStatement(c_css_parser_t * hll_parser, const char * remainder);
@@ -131,6 +129,9 @@ int hll_cssCreateLength(float val, CssLengthType t);
 c_css_selector_t * hll_cssParseSelector(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder);
 
 int hll_parseDeclarationNormal(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder, c_css_declaration_value_t * value);
+
+// Return value is boolean
+int hll_parseDeclarationValue(c_css_parser_t * hll_parser, int tokType, const char * tokValue, const char * remainder, int declValueType, int declProperty, c_css_declaration_value_t * value);
 
 #ifdef __cplusplus
 }

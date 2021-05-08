@@ -366,43 +366,26 @@ bool parseDeclarationValue(CssParser * parser,
    case CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER:
    case CssDeclarationValueTypeLENGTH:
    case CssDeclarationValueTypeSIGNED_LENGTH:
-      {
-         int ival = hll_declarationValueAsInt(&parser->hll_css_parser,
-                                              parser->tokenizer.type,
-                                              parser->tokenizer.value,
-                                              parser->tokenizer.buf + parser->tokenizer.bufOffset,
-                                              valueType,
-                                              property);
-         parser->tokenizer.bufOffset = parser->hll_css_parser.c_buf_offset;
-         if (99999999 != ival) {
-            value->intVal = ival;
-            ret = true;
-         } else {
-            // TODO: report error
-         }
-         // This takes token that is a semicolon after declaration value.
-         // TODO: consider if this should be called only on success of
-         // parsing value, or regardless of success/failure.
-         nextToken(&parser->tokenizer, &parser->hll_css_parser);
-      }
-      break;
-
    case CssDeclarationValueTypeSTRING:
    case CssDeclarationValueTypeSYMBOL:
    case CssDeclarationValueTypeURI:
       {
-         char * str = hll_declarationValueAsString(&parser->hll_css_parser,
-                                                   parser->tokenizer.type,
-                                                   parser->tokenizer.value,
-                                                   parser->tokenizer.buf + parser->tokenizer.bufOffset,
-                                                   valueType,
-                                                   property);
-         parser->tokenizer.bufOffset = parser->hll_css_parser.c_buf_offset;
-         if (NULL != str) {
-            value->strVal = str;
+         c_css_declaration_value_t val;
+         memset(&val, 0, sizeof (val));
+
+         if (hll_parseDeclarationValue(&parser->hll_css_parser,
+                                       parser->tokenizer.type,
+                                       parser->tokenizer.value,
+                                       parser->tokenizer.buf + parser->tokenizer.bufOffset,
+                                       valueType,
+                                       property,
+                                       &val)) {
+
+            // Property found. Value found and valid. Declaration parsed.
+            value->type   = (CssDeclarationValueType) val.c_type_tag;
+            value->intVal = val.c_int_val;
+            value->strVal = val.c_text_val;
             ret = true;
-         } else {
-            // TODO: report error
          }
 
          // This takes token that is a semicolon after declaration value.
@@ -411,7 +394,6 @@ bool parseDeclarationValue(CssParser * parser,
          nextToken(&parser->tokenizer, &parser->hll_css_parser);
       }
       break;
-
    case CssDeclarationValueTypeBACKGROUND_POSITION:
       {
       // 'background-position' consists of one or two values: vertical and
