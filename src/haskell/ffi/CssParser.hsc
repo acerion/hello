@@ -61,8 +61,8 @@ foreign export ccall "hll_cssParseSelector" hll_cssParseSelector :: Ptr HelloCss
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
-foreign export ccall "hll_parseDeclarationNormal" hll_parseDeclarationNormal :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDeclarationValue -> IO Int
-foreign export ccall "hll_parseDeclarationValue" hll_parseDeclarationValue :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> Ptr HelloCssDeclarationValue -> IO Int
+foreign export ccall "hll_parseDeclarationNormal" hll_parseDeclarationNormal :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDeclValue -> IO Int
+foreign export ccall "hll_parseDeclarationValue" hll_parseDeclarationValue :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> Ptr HelloCssDeclValue -> IO Int
 
 
 
@@ -184,7 +184,7 @@ hll_declarationValueAsString ptrStructCssParser ptrStructCssToken cBuf valueType
   tokValue <- BSU.unsafePackCString . valueC $ cToken
   let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
 
-  let pair@((newParser, newToken), textVal) = declarationValueAsString (parser, token) valueType property
+  let pair@((newParser, newToken), textVal) = declValueAsString (parser, token) valueType property
 
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
@@ -196,8 +196,8 @@ hll_declarationValueAsString ptrStructCssParser ptrStructCssToken cBuf valueType
 
 
 
-hll_parseDeclarationValue :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> Ptr HelloCssDeclarationValue -> IO Int
-hll_parseDeclarationValue ptrStructCssParser ptrStructCssToken cBuf declValueType property ptrStructCssDeclarationValue = do
+hll_parseDeclarationValue :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> Ptr HelloCssDeclValue -> IO Int
+hll_parseDeclarationValue ptrStructCssParser ptrStructCssToken cBuf declValueType property ptrStructCssDeclValue = do
   buf     <- BSU.unsafePackCString $ cBuf
   cParser <- peek ptrStructCssParser
 
@@ -211,7 +211,7 @@ hll_parseDeclarationValue ptrStructCssParser ptrStructCssToken cBuf declValueTyp
   tokValue <- BSU.unsafePackCString . valueC $ cToken
   let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
 
-  let ((newParser, newToken), value) = parseDeclarationValue (parser, token) declValueType property
+  let ((newParser, newToken), value) = parseDeclValue (parser, token) declValueType property
 
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
@@ -219,7 +219,7 @@ hll_parseDeclarationValue ptrStructCssParser ptrStructCssToken cBuf declValueTyp
   case value of
     Just v -> do
       ptrStr <- newCString . T.unpack . textVal $ v
-      poke ptrStructCssDeclarationValue $ HelloCssDeclarationValue (fromIntegral . typeTag $ v) (fromIntegral . intVal $ v) ptrStr (if important v then 1 else 0)
+      poke ptrStructCssDeclValue $ HelloCssDeclValue (fromIntegral . typeTag $ v) (fromIntegral . intVal $ v) ptrStr (if important v then 1 else 0)
       return 1 -- True
     Nothing -> return 0 -- False
 
@@ -543,7 +543,7 @@ setArrayOfPointers (x:xs) f ptrParent byteOffset = do
 
 
 
-data HelloCssDeclarationValue = HelloCssDeclarationValue {
+data HelloCssDeclValue = HelloCssDeclValue {
     typeTagC   :: CInt
   , intValC    :: CInt
   , textValC   :: CString
@@ -553,11 +553,11 @@ data HelloCssDeclarationValue = HelloCssDeclarationValue {
 
 
 
-instance Storable HelloCssDeclarationValue where
+instance Storable HelloCssDeclValue where
   sizeOf    _ = #{size c_css_declaration_value_t}
   alignment _ = #{alignment c_css_declaration_value_t}
 
-  poke ptr (HelloCssDeclarationValue argTypeTag argIntVal argTextVal argImportant) = do
+  poke ptr (HelloCssDeclValue argTypeTag argIntVal argTextVal argImportant) = do
     #{poke c_css_declaration_value_t, c_type_tag}  ptr argTypeTag
     #{poke c_css_declaration_value_t, c_int_val}   ptr argIntVal
     #{poke c_css_declaration_value_t, c_text_val}  ptr argTextVal
@@ -568,13 +568,13 @@ instance Storable HelloCssDeclarationValue where
     b <- #{peek c_css_declaration_value_t, c_int_val}   ptr
     c <- #{peek c_css_declaration_value_t, c_text_val}  ptr
     d <- #{peek c_css_declaration_value_t, c_important} ptr
-    return (HelloCssDeclarationValue a b c d)
+    return (HelloCssDeclValue a b c d)
 
 
 
 
-hll_parseDeclarationNormal :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDeclarationValue -> IO Int
-hll_parseDeclarationNormal ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDeclarationValue = do
+hll_parseDeclarationNormal :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDeclValue -> IO Int
+hll_parseDeclarationNormal ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDeclValue = do
   buf     <- BSU.unsafePackCString $ cBuf
   cParser <- peek ptrStructCssParser
 
@@ -588,7 +588,7 @@ hll_parseDeclarationNormal ptrStructCssParser ptrStructCssToken cBuf ptrStructCs
   tokValue <- BSU.unsafePackCString . valueC $ cToken
   let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
 
-  let ((newParser, newToken), value, ret) = parseDeclarationNormal (parser, token)
+  let ((newParser, newToken), value, ret) = parseDeclNormal (parser, token)
 
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
@@ -597,7 +597,7 @@ hll_parseDeclarationNormal ptrStructCssParser ptrStructCssToken cBuf ptrStructCs
   then case value of
          Just v -> do
            ptrStr <- newCString . T.unpack . textVal $ v
-           poke ptrStructCssDeclarationValue $ HelloCssDeclarationValue (fromIntegral . typeTag $ v) (fromIntegral . intVal $ v) ptrStr (if important v then 1 else 0)
+           poke ptrStructCssDeclValue $ HelloCssDeclValue (fromIntegral . typeTag $ v) (fromIntegral . intVal $ v) ptrStr (if important v then 1 else 0)
            return ret
          Nothing ->
            return (-1)

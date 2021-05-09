@@ -56,18 +56,18 @@ module CssParser(nextToken
                 , takeInt
                 , parseUrl
                 , cssParseWeight
-                , declarationValueAsURI
+                , declValueAsURI
                 , CssParser (..)
                 , CssToken (..)
                 , tryTakingRgbFunction
                 , parseRgbFunction
                 , parseRgbFunctionInt
-                , declarationValueAsColor
-                , declarationValueAsString
-                , declarationValueAsEnum
-                , declarationValueAsEnum'
-                , declarationValueAsMultiEnum
-                , declarationValueAsWeightInteger
+                , declValueAsColor
+                , declValueAsString
+                , declValueAsEnum
+                , declValueAsEnum'
+                , declValueAsMultiEnum
+                , declValueAsFontWeightInteger
                 , tokenMatchesProperty
                 , cssPropertyInfoIdxByName
                 , cssPropertyNameString
@@ -85,10 +85,10 @@ module CssParser(nextToken
                 , parseSelector
                 , removeSpaceTokens
 
-                , CssDeclarationValue (..)
-                , parseDeclarationNormal
+                , CssDeclValue (..)
+                , parseDeclNormal
                 , takePropertyTokens
-                , parseDeclarationValue
+                , parseDeclValue
 
                 , defaultParser) where
 
@@ -188,122 +188,124 @@ css_word_spacing_enum_vals          = ["normal"]
 
 
 
-cssDeclarationValueTypeINTEGER                  =  0 -- This type is only used internally, for x-* properties.
-cssDeclarationValueTypeENUM                     =  1 -- Value is i, if represented by enum_symbols[i].
-cssDeclarationValueTypeMULTI_ENUM               =  2 -- For all enum_symbols[i], 1 << i are combined.
-cssDeclarationValueTypeLENGTH_PERCENTAGE        =  3 -- <length> or <percentage>. Represented by CssLength.
-cssDeclarationValueTypeLENGTH                   =  4 -- <length>, represented as CssLength. Note: In some
+type CssDeclValueType = Int
+
+cssDeclValueTypeInt                 =  0 -- This type is only used internally, for x-* properties.
+cssDeclValueTypeEnum                =  1 -- Value is i, if represented by enum_symbols[i].
+cssDeclValueTypeMultiEnum           =  2 -- For all enum_symbols[i], 1 << i are combined.
+cssDeclValueTypeLengthPercent       =  3 -- <length> or <percentage>. Represented by CssLength.
+cssDeclValueTypeLength              =  4 -- <length>, represented as CssLength. Note: In some
                                                     -- cases, CSS_TYPE_LENGTH is used instead of
                                                     -- CSS_TYPE_LENGTH_PERCENTAGE, only because Dw cannot
                                                     -- handle percentages in this particular case (e.g.
                                                     -- 'margin-*-width').
-cssDeclarationValueTypeSIGNED_LENGTH            =  5 -- As CSS_TYPE_LENGTH but may be negative.
-cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER =  6 -- <length> or <percentage>, or <number>
-cssDeclarationValueTypeAUTO                     =  7 -- Represented as CssLength of type cssLengthTypeAuto
-cssDeclarationValueTypeCOLOR                    =  8 -- Represented as integer.
-cssDeclarationValueTypeFONT_WEIGHT              =  9 -- This very special and only used by 'font-weight'
-cssDeclarationValueTypeSTRING                   = 10 -- <string>
-cssDeclarationValueTypeSYMBOL                   = 11 -- Symbols, which are directly copied (as opposed to
+cssDeclValueTypeSignedLength        =  5 -- As CSS_TYPE_LENGTH but may be negative.
+cssDeclValueTypeLengthPercentNumber =  6 -- <length> or <percentage>, or <number>
+cssDeclValueTypeAuto                =  7 -- Represented as CssLength of type cssLengthTypeAuto
+cssDeclValueTypeColor               =  8 -- Represented as integer.
+cssDeclValueTypeFontWeight          =  9 -- This very special and only used by 'font-weight'
+cssDeclValueTypeString              = 10 -- <string>
+cssDeclValueTypeSymbol              = 11 -- Symbols, which are directly copied (as opposed to
                                                      -- CSS_PROPERTY_DATA_TYPE_ENUM and
                                                      -- CSS_PROPERTY_DATA_TYPE_MULTI_ENUM). Used for
                                                      -- 'font-family'.
-cssDeclarationValueTypeURI                      = 12 -- <uri>
-cssDeclarationValueTypeBACKGROUND_POSITION      = 13 --
-cssDeclarationValueTypeUNUSED                   = 14 -- Not yet used. Will itself get unused some day.
+cssDeclValueTypeURI                 = 12 -- <uri>
+cssDeclValueTypeBgPosition          = 13 --
+cssDeclValueTypeUnused              = 14 -- Not yet used. Will itself get unused some day.
 
 
 
 
 cssPropertyInfo = V.fromList [
-     ("background-attachment",  [ cssDeclarationValueTypeENUM ],                                                    css_background_attachment_enum_vals)
-   , ("background-color",       [ cssDeclarationValueTypeCOLOR ],                                                   [])
-   , ("background-image",       [ cssDeclarationValueTypeURI ],                                                     [])
-   , ("background-position",    [ cssDeclarationValueTypeBACKGROUND_POSITION ],                                     [])
-   , ("background-repeat",      [ cssDeclarationValueTypeENUM ],                                                    css_background_repeat_enum_vals)
-   , ("border-bottom-color",    [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeCOLOR ],                      css_border_color_enum_vals)
-   , ("border-bottom-style",    [ cssDeclarationValueTypeENUM ],                                                    css_border_style_enum_vals)
-   , ("border-bottom-width",    [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH ],                     css_border_width_enum_vals)
-   , ("border-collapse",        [ cssDeclarationValueTypeENUM ],                                                    css_border_collapse_enum_vals)
-   , ("border-left-color",      [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeCOLOR ],                      css_border_color_enum_vals)
-   , ("border-left-style",      [ cssDeclarationValueTypeENUM ],                                                    css_border_style_enum_vals)
-   , ("border-left-width",      [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH ],                     css_border_width_enum_vals)
-   , ("border-right-color",     [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeCOLOR ],                      css_border_color_enum_vals)
-   , ("border-right-style",     [ cssDeclarationValueTypeENUM ],                                                    css_border_style_enum_vals)
-   , ("border-rigth-width",     [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH ],                     css_border_width_enum_vals)
-   , ("border-spacing",         [ cssDeclarationValueTypeLENGTH ],                                                  [])
-   , ("border-top-color",       [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeCOLOR ],                      css_border_color_enum_vals)
-   , ("border-top-style",       [ cssDeclarationValueTypeENUM ],                                                    css_border_style_enum_vals)
-   , ("border-top-width",       [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH ],                     css_border_width_enum_vals)
-   , ("bottom",                 [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("caption-side",           [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("clear",                  [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("clip",                   [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("color",                  [ cssDeclarationValueTypeCOLOR ],                                                   [])
-   , ("content",                [ cssDeclarationValueTypeSTRING ],                                                  [])
-   , ("counter-increment",      [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("counter-reset",          [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("cursor",                 [ cssDeclarationValueTypeENUM ],                                                    css_cursor_enum_vals)
-   , ("direction",              [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("display",                [ cssDeclarationValueTypeENUM ],                                                    css_display_enum_vals)
-   , ("empty-cells",            [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("float",                  [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("font-family",            [ cssDeclarationValueTypeSYMBOL ],                                                  [])
-   , ("font-size",              [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH_PERCENTAGE ],          css_font_size_enum_vals)
-   , ("font-size-adjust",       [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("font-stretch",           [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("font-style",             [ cssDeclarationValueTypeENUM ],                                                    css_font_style_enum_vals)
-   , ("font-variant",           [ cssDeclarationValueTypeENUM ],                                                    css_font_variant_enum_vals)
-   , ("font-weight",            [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeFONT_WEIGHT ],                css_font_weight_enum_vals)
-   , ("height",                 [ cssDeclarationValueTypeLENGTH_PERCENTAGE, cssDeclarationValueTypeAUTO ],          [])
-   , ("left",                   [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("letter-spacing",         [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeSIGNED_LENGTH ],              css_letter_spacing_enum_vals)
-   , ("line-height",            [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER ],   css_line_height_enum_vals)
-   , ("list-style-image",       [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("list-style-position",    [ cssDeclarationValueTypeENUM ],                                                    css_list_style_position_enum_vals)
-   , ("list-style-type",        [ cssDeclarationValueTypeENUM ],                                                    css_list_style_type_enum_vals)
-   , ("margin-bottom",          [ cssDeclarationValueTypeSIGNED_LENGTH, cssDeclarationValueTypeAUTO ],              [])
-   , ("margin-left",            [ cssDeclarationValueTypeSIGNED_LENGTH, cssDeclarationValueTypeAUTO ],              [])
-   , ("margin-right",           [ cssDeclarationValueTypeSIGNED_LENGTH, cssDeclarationValueTypeAUTO ],              [])
-   , ("margin-top",             [ cssDeclarationValueTypeSIGNED_LENGTH, cssDeclarationValueTypeAUTO ],              [])
-   , ("marker-offset",          [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("marks",                  [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("max-height",             [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("max-width",              [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("min-height",             [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("min-width",              [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("outline-color",          [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("outline-style",          [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("outline-width",          [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("overflow",               [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("padding-bottom",         [ cssDeclarationValueTypeLENGTH ],                                                  [])
-   , ("padding-left",           [ cssDeclarationValueTypeLENGTH ],                                                  [])
-   , ("padding-right",          [ cssDeclarationValueTypeLENGTH ],                                                  [])
-   , ("padding-top",            [ cssDeclarationValueTypeLENGTH ],                                                  [])
-   , ("position",               [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("quotes",                 [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("right",                  [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("text-align",             [ cssDeclarationValueTypeENUM ],                                                    css_text_align_enum_vals)
-   , ("text-decoration",        [ cssDeclarationValueTypeMULTI_ENUM ],                                              css_text_decoration_enum_vals)
-   , ("text-indent",            [ cssDeclarationValueTypeLENGTH_PERCENTAGE ],                                       [])
-   , ("text-shadow",            [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("text-transform",         [ cssDeclarationValueTypeENUM ],                                                    css_text_transform_enum_vals)
-   , ("top",                    [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("unicode-bidi",           [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("vertical-align",         [ cssDeclarationValueTypeENUM ],                                                    css_vertical_align_vals)
-   , ("visibility",             [ cssDeclarationValueTypeUNUSED ],                                                  [])
-   , ("white-space",            [ cssDeclarationValueTypeENUM ],                                                    css_white_space_vals)
-   , ("width",                  [ cssDeclarationValueTypeLENGTH_PERCENTAGE, cssDeclarationValueTypeAUTO ],          [])
-   , ("word-spacing",           [ cssDeclarationValueTypeENUM, cssDeclarationValueTypeSIGNED_LENGTH ],              css_word_spacing_enum_vals)
-   , ("z-index",                [ cssDeclarationValueTypeUNUSED ],                                                  [])
+     ("background-attachment",  [ cssDeclValueTypeEnum ],                                             css_background_attachment_enum_vals)
+   , ("background-color",       [ cssDeclValueTypeColor ],                                            [])
+   , ("background-image",       [ cssDeclValueTypeURI ],                                              [])
+   , ("background-position",    [ cssDeclValueTypeBgPosition ],                                       [])
+   , ("background-repeat",      [ cssDeclValueTypeEnum ],                                             css_background_repeat_enum_vals)
+   , ("border-bottom-color",    [ cssDeclValueTypeEnum, cssDeclValueTypeColor ],                      css_border_color_enum_vals)
+   , ("border-bottom-style",    [ cssDeclValueTypeEnum ],                                             css_border_style_enum_vals)
+   , ("border-bottom-width",    [ cssDeclValueTypeEnum, cssDeclValueTypeLength ],                     css_border_width_enum_vals)
+   , ("border-collapse",        [ cssDeclValueTypeEnum ],                                             css_border_collapse_enum_vals)
+   , ("border-left-color",      [ cssDeclValueTypeEnum, cssDeclValueTypeColor ],                      css_border_color_enum_vals)
+   , ("border-left-style",      [ cssDeclValueTypeEnum ],                                             css_border_style_enum_vals)
+   , ("border-left-width",      [ cssDeclValueTypeEnum, cssDeclValueTypeLength ],                     css_border_width_enum_vals)
+   , ("border-right-color",     [ cssDeclValueTypeEnum, cssDeclValueTypeColor ],                      css_border_color_enum_vals)
+   , ("border-right-style",     [ cssDeclValueTypeEnum ],                                             css_border_style_enum_vals)
+   , ("border-rigth-width",     [ cssDeclValueTypeEnum, cssDeclValueTypeLength ],                     css_border_width_enum_vals)
+   , ("border-spacing",         [ cssDeclValueTypeLength ],                                           [])
+   , ("border-top-color",       [ cssDeclValueTypeEnum, cssDeclValueTypeColor ],                      css_border_color_enum_vals)
+   , ("border-top-style",       [ cssDeclValueTypeEnum ],                                             css_border_style_enum_vals)
+   , ("border-top-width",       [ cssDeclValueTypeEnum, cssDeclValueTypeLength ],                     css_border_width_enum_vals)
+   , ("bottom",                 [],                                                                   [])
+   , ("caption-side",           [],                                                                   [])
+   , ("clear",                  [],                                                                   [])
+   , ("clip",                   [],                                                                   [])
+   , ("color",                  [ cssDeclValueTypeColor ],                                            [])
+   , ("content",                [ cssDeclValueTypeString ],                                           [])
+   , ("counter-increment",      [],                                                                   [])
+   , ("counter-reset",          [],                                                                   [])
+   , ("cursor",                 [ cssDeclValueTypeEnum ],                                             css_cursor_enum_vals)
+   , ("direction",              [],                                                                   [])
+   , ("display",                [ cssDeclValueTypeEnum ],                                             css_display_enum_vals)
+   , ("empty-cells",            [],                                                                   [])
+   , ("float",                  [],                                                                   [])
+   , ("font-family",            [ cssDeclValueTypeSymbol ],                                           [])
+   , ("font-size",              [ cssDeclValueTypeEnum, cssDeclValueTypeLengthPercent ],              css_font_size_enum_vals)
+   , ("font-size-adjust",       [],                                                                   [])
+   , ("font-stretch",           [],                                                                   [])
+   , ("font-style",             [ cssDeclValueTypeEnum ],                                             css_font_style_enum_vals)
+   , ("font-variant",           [ cssDeclValueTypeEnum ],                                             css_font_variant_enum_vals)
+   , ("font-weight",            [ cssDeclValueTypeEnum, cssDeclValueTypeFontWeight ],                 css_font_weight_enum_vals)
+   , ("height",                 [ cssDeclValueTypeLengthPercent, cssDeclValueTypeAuto ],              [])
+   , ("left",                   [],                                                                   [])
+   , ("letter-spacing",         [ cssDeclValueTypeEnum, cssDeclValueTypeSignedLength ],               css_letter_spacing_enum_vals)
+   , ("line-height",            [ cssDeclValueTypeEnum, cssDeclValueTypeLengthPercentNumber ],        css_line_height_enum_vals)
+   , ("list-style-image",       [],                                                                   [])
+   , ("list-style-position",    [ cssDeclValueTypeEnum ],                                             css_list_style_position_enum_vals)
+   , ("list-style-type",        [ cssDeclValueTypeEnum ],                                             css_list_style_type_enum_vals)
+   , ("margin-bottom",          [ cssDeclValueTypeSignedLength, cssDeclValueTypeAuto ],               [])
+   , ("margin-left",            [ cssDeclValueTypeSignedLength, cssDeclValueTypeAuto ],               [])
+   , ("margin-right",           [ cssDeclValueTypeSignedLength, cssDeclValueTypeAuto ],               [])
+   , ("margin-top",             [ cssDeclValueTypeSignedLength, cssDeclValueTypeAuto ],               [])
+   , ("marker-offset",          [],                                                                   [])
+   , ("marks",                  [],                                                                   [])
+   , ("max-height",             [],                                                                   [])
+   , ("max-width",              [],                                                                   [])
+   , ("min-height",             [],                                                                   [])
+   , ("min-width",              [],                                                                   [])
+   , ("outline-color",          [],                                                                   [])
+   , ("outline-style",          [],                                                                   [])
+   , ("outline-width",          [],                                                                   [])
+   , ("overflow",               [],                                                                   [])
+   , ("padding-bottom",         [ cssDeclValueTypeLength ],                                           [])
+   , ("padding-left",           [ cssDeclValueTypeLength ],                                           [])
+   , ("padding-right",          [ cssDeclValueTypeLength ],                                           [])
+   , ("padding-top",            [ cssDeclValueTypeLength ],                                           [])
+   , ("position",               [],                                                                   [])
+   , ("quotes",                 [],                                                                   [])
+   , ("right",                  [],                                                                   [])
+   , ("text-align",             [ cssDeclValueTypeEnum ],                                             css_text_align_enum_vals)
+   , ("text-decoration",        [ cssDeclValueTypeMultiEnum ],                                        css_text_decoration_enum_vals)
+   , ("text-indent",            [ cssDeclValueTypeLengthPercent ],                                    [])
+   , ("text-shadow",            [],                                                                   [])
+   , ("text-transform",         [ cssDeclValueTypeEnum ],                                             css_text_transform_enum_vals)
+   , ("top",                    [],                                                                   [])
+   , ("unicode-bidi",           [],                                                                   [])
+   , ("vertical-align",         [ cssDeclValueTypeEnum ],                                             css_vertical_align_vals)
+   , ("visibility",             [],                                                                   [])
+   , ("white-space",            [ cssDeclValueTypeEnum ],                                             css_white_space_vals)
+   , ("width",                  [ cssDeclValueTypeLengthPercent, cssDeclValueTypeAuto ],              [])
+   , ("word-spacing",           [ cssDeclValueTypeEnum, cssDeclValueTypeSignedLength ],               css_word_spacing_enum_vals)
+   , ("z-index",                [],                                                                   [])
 
    -- These are extensions, for internal used, and never parsed.
    -- TODO: verify whether we need them.
    -- TODO: verify if we still need "last" property.
-   , ("x-link",                 [ cssDeclarationValueTypeINTEGER ],                                                 [])
-   , ("x-colspan",              [ cssDeclarationValueTypeINTEGER ],                                                 [])
-   , ("x-rowspan",              [ cssDeclarationValueTypeINTEGER ],                                                 [])
+   , ("x-link",                 [ cssDeclValueTypeInt ],                                              [])
+   , ("x-colspan",              [ cssDeclValueTypeInt ],                                              [])
+   , ("x-rowspan",              [ cssDeclValueTypeInt ],                                              [])
    , ("last",                   [], [])
-   ] :: V.Vector (T.Text, [Int], [T.Text])
+   ] :: V.Vector (T.Text, [CssDeclValueType], [T.Text])
 
 
 
@@ -604,83 +606,87 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 
 
 
-declarationValueAsColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe Int)
-declarationValueAsColor (parser, token@(CssTokCol c)) = case colorsStringToColor c of -- TODO: we know here that color should have form #RRGGBB. Call function that accepts only this format.
-                                                          Just i  -> ((parser, token), Just i)
-                                                          Nothing -> ((parser, token), Nothing)
-declarationValueAsColor (parser, token@(CssTokSym s)) | s == "rgb" = parseRgbFunctionInt parser
-                                                      | otherwise = case colorsStringToColor s of
-                                                                      Just i  -> ((parser, token), Just i)
-                                                                      Nothing -> ((parser, token), Nothing)
-declarationValueAsColor (parser, token)         = ((parser, token), Nothing)
+declValueAsColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsColor (parser, token@(CssTokCol c)) = case colorsStringToColor c of -- TODO: we know here that color should have form #RRGGBB. Call function that accepts only this format.
+                                                   Just i  -> ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = i})
+                                                   Nothing -> ((parser, token), Nothing)
+declValueAsColor (parser, token@(CssTokSym s)) | s == "rgb" = case parseRgbFunctionInt parser of
+                                                                ((p, t), Just c)  -> ((p, t), Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = c})
+                                                                ((p, t), Nothing) -> ((p, t), Nothing)
+                                               | otherwise = case colorsStringToColor s of
+                                                               Just i  -> ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = i})
+                                                               Nothing -> ((parser, token), Nothing)
+declValueAsColor (parser, token)               = ((parser, token), Nothing)
 
 
 
 
 
-declarationValueAsString :: (CssParser, CssToken) -> Int -> Int -> ((CssParser, CssToken), Maybe T.Text)
-declarationValueAsString (parser, token) valueType property = ((retParser, retToken), retText)
+declValueAsString :: (CssParser, CssToken) -> Int -> Int -> ((CssParser, CssToken), Maybe T.Text)
+declValueAsString (parser, token) valueType property = case ((retParser, retToken), value) of
+                                                         ((p, t), Just v)  -> ((p, t), Just (textVal v))
+                                                         ((p, t), Nothing) -> ((p, t), Nothing)
   where
-    ((retParser, retToken), retText) | valueType == cssDeclarationValueTypeSTRING                   = declarationValueAsString' (parser, token)
-                                     | valueType == cssDeclarationValueTypeSYMBOL                   = declarationValueAsSymbol (parser, token) ""
-                                     | valueType == cssDeclarationValueTypeURI                      = declarationValueAsURI (parser, token)
-                                     | otherwise                                                    = ((parser, token), Nothing)
+    ((retParser, retToken), value) | valueType == cssDeclValueTypeString = declValueAsString' (parser, token)
+                                   | valueType == cssDeclValueTypeSymbol = declValueAsSymbol (parser, token) ""
+                                   | valueType == cssDeclValueTypeURI    = declValueAsURI (parser, token)
+                                   | otherwise                           = ((parser, token), Nothing)
 
 {-
-  | valueType == cssDeclarationValueTypeINTEGER                  = (parser, Nothing)
+  | valueType == cssDeclValueTypeInt                  = (parser, Nothing)
 
-  | valueType == cssDeclarationValueTypeBACKGROUND_POSITION      = (parser, Nothing)
-  | valueType == cssDeclarationValueTypeUNUSED                   = (parser, Nothing)
+  | valueType == cssDeclValueTypeBgPosition      = (parser, Nothing)
+  | valueType == cssDeclValueTypeUnused                   = (parser, Nothing)
 -}
 
 
 
 
 
-declarationValueAsEnum :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe Int)
-declarationValueAsEnum (parser, token@(CssTokSym symbol)) property =
-  case declarationValueAsEnum' symbol enums 0 of
+declValueAsEnum :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsEnum (parser, token@(CssTokSym symbol)) property =
+  case declValueAsEnum' symbol enums 0 of
     -1  -> ((parser, token), Nothing)
-    idx -> ((parser, token), Just idx)
+    idx -> ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeEnum, intVal = idx})
   where
     propInfo = cssPropertyInfo V.! property
     enums = tripletThrd propInfo
-declarationValueAsEnum (parser, token) property              = ((parser, token), Nothing)
-                                                            -- TODO: is this the right place to reject everything else other than symbol?
-                                                            -- Shouldn't we do it somewhere else?
+declValueAsEnum (parser, token) property                    = ((parser, token), Nothing)
+                                                                         -- TODO: is this the right place to reject everything else other than symbol?
+                                                                         -- Shouldn't we do it somewhere else?
 
 
 
 -- TODO: can't we use Data.List.elemIndex here?
-declarationValueAsEnum' :: T.Text -> [T.Text] -> Int -> Int
-declarationValueAsEnum' symbol []     idx = -1
-declarationValueAsEnum' symbol (x:xs) idx = if x == symbol
-                                            then idx
-                                            else declarationValueAsEnum' symbol xs (idx + 1)
+declValueAsEnum' :: T.Text -> [T.Text] -> Int -> Int
+declValueAsEnum' symbol []     idx = -1
+declValueAsEnum' symbol (x:xs) idx = if x == symbol
+                                     then idx
+                                     else declValueAsEnum' symbol xs (idx + 1)
 
 
 
 
-declarationValueAsMultiEnum :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe Int)
-declarationValueAsMultiEnum (parser, token@(CssTokSym symbol)) property = declarationValueAsMultiEnum' (parser, token) enums 0
+declValueAsMultiEnum :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsMultiEnum (parser, token@(CssTokSym symbol)) property = declValueAsMultiEnum' (parser, token) enums 0
   where
     propInfo = cssPropertyInfo V.! property
     enums = tripletThrd propInfo
-declarationValueAsMultiEnum (parser, token) property                    = ((parser, token), Nothing)
+declValueAsMultiEnum (parser, token) property                    = ((parser, token), Nothing)
                                                             -- TODO: is this the right place to reject everything else other than symbol?
                                                             -- Shouldn't we do it somewhere else?
 
 
 
 
-declarationValueAsMultiEnum' :: (CssParser, CssToken) -> [T.Text] -> Int -> ((CssParser, CssToken), Maybe Int)
-declarationValueAsMultiEnum' (parser, (CssTokSym symbol)) (enums) bits =
+declValueAsMultiEnum' :: (CssParser, CssToken) -> [T.Text] -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsMultiEnum' (parser, (CssTokSym symbol)) (enums) bits =
   case L.elemIndex symbol enums of -- TODO: this search should be case-insensitive
-    Just pos -> declarationValueAsMultiEnum' (newParser, newToken) enums (bits .|. (1  `shiftL` pos))
-    Nothing  -> declarationValueAsMultiEnum' (newParser, newToken) enums bits
+    Just pos -> declValueAsMultiEnum' (newParser, newToken) enums (bits .|. (1  `shiftL` pos))
+    Nothing  -> declValueAsMultiEnum' (newParser, newToken) enums bits
   where
     (newParser, newToken) = nextToken parser
-declarationValueAsMultiEnum' (parser, token) _ bits                    = ((parser, token), Just bits)
+declValueAsMultiEnum' (parser, token) _ bits                    = ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeMultiEnum, intVal = bits})
 -- TODO: we should probably handle in a different way a situation where one
 -- of tokens is not a symbol.
 --
@@ -690,71 +696,73 @@ declarationValueAsMultiEnum' (parser, token) _ bits                    = ((parse
 
 
 -- TODO: check value of symbol (case insensitive): it should be "auto".
-declarationValueAsAuto :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe Int)
-declarationValueAsAuto (parser, token@(CssTokSym symbol)) = (nextToken parser, Just cssLengthTypeAuto)
-declarationValueAsAuto (parser, token)                    = ((parser, token), Nothing)
+declValueAsAuto :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsAuto (parser, token@(CssTokSym symbol)) = ((nextToken parser), Just defaultValue{typeTag = cssDeclValueTypeAuto, intVal = cssLengthTypeAuto})
+declValueAsAuto (parser, token)                    = ((parser, token), Nothing)
 
 
 
 
-declarationValueAsLength :: (CssParser, CssToken) -> Int-> ((CssParser, CssToken), Maybe Int)
-declarationValueAsLength (parser, token@(CssTokI i)) valueType = declarationValueAsLength' (parser, token) (fromIntegral i) valueType
-declarationValueAsLength (parser, token@(CssTokF f)) valueType = declarationValueAsLength' (parser, token) f valueType
-declarationValueAsLength (parser, token) _                     = ((parser, token), Just invalidIntResult)
+declValueAsLength :: (CssParser, CssToken) -> CssDeclValueType -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsLength (parser, token@(CssTokI i)) valueType = declValueAsLength' (parser, token) (fromIntegral i) valueType
+declValueAsLength (parser, token@(CssTokF f)) valueType = declValueAsLength' (parser, token) f valueType
+declValueAsLength (parser, token) _                     = ((parser, token), Nothing)
 
 
 
-lengthValueToUnited :: Float -> T.Text -> (Float, Int)
-lengthValueToUnited fval unitStr | unitStr == "px" = (fval,               cssLengthTypePX)
-                                 | unitStr == "mm" = (fval,               cssLengthTypeMM)
-                                 | unitStr == "cm" = (fval * 10,          cssLengthTypeMM)
-                                 | unitStr == "in" = (fval * 25.4,        cssLengthTypeMM)
-                                 | unitStr == "pt" = (fval * (25.4/72.0), cssLengthTypeMM)
-                                 | unitStr == "pc" = (fval * (25.4/6.0),  cssLengthTypeMM)
-                                 | unitStr == "em" = (fval,               cssLengthTypeEM)
-                                 | unitStr == "ex" = (fval,               cssLengthTypeEX)
-                                 | otherwise       = (fval,               cssLengthTypeNone)
+lengthValueToValAndType :: Float -> T.Text -> (Float, Int)
+lengthValueToValAndType fval unitStr | unitStr == "px" = (fval,               cssLengthTypePX)
+                                     | unitStr == "mm" = (fval,               cssLengthTypeMM)
+                                     | unitStr == "cm" = (fval * 10,          cssLengthTypeMM)
+                                     | unitStr == "in" = (fval * 25.4,        cssLengthTypeMM)
+                                     | unitStr == "pt" = (fval * (25.4/72.0), cssLengthTypeMM)
+                                     | unitStr == "pc" = (fval * (25.4/6.0),  cssLengthTypeMM)
+                                     | unitStr == "em" = (fval,               cssLengthTypeEM)
+                                     | unitStr == "ex" = (fval,               cssLengthTypeEX)
+                                     | otherwise       = (fval,               cssLengthTypeNone)
 
 
 
 
-declarationValueAsLength' :: (CssParser, CssToken) -> Float -> Int -> ((CssParser, CssToken), Maybe Int)
-declarationValueAsLength' (parser, token) fval valueType = ((retParser, retToken), retInt)
+declValueAsLength' :: (CssParser, CssToken) -> Float -> CssDeclValueType -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsLength' (parser, token) fval valueType = ((retParser, retToken), retInt)
   where
     (retParser, retToken) = case retInt of
                               Just i  -> nextToken newParser
                               Nothing -> (newParser, CssTokNone)
-    retInt = if (snd united) == cssLengthTypeNone
-             then if (valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER || (fst united) == 0.0)
-                     -- Allow numbers without unit only for 0 or CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER
-                  then Just (cssCreateLength (fst united) (snd united))
+    retInt = if (snd valAndType) == cssLengthTypeNone
+             then if (valueType == cssDeclValueTypeLengthPercentNumber || (fst valAndType) == 0.0)
+                     -- Allow numbers without unit only for 0 or cssDeclValueTypeLengthPercentNumber
+                  then Just defaultValue{typeTag = valueType, intVal = (cssCreateLength (fst valAndType) (snd valAndType))}
                   else Nothing
-             else Just (cssCreateLength (fst united) (snd united))
-    (newParser, united) = case nextToken parser of
-                            (newParser, CssTokSym sym) -> if (not (spaceSeparated newParser))
-                                                          then (newParser, lengthValueToUnited fval (T.toLower sym))
-                                                          else (newParser, (fval, cssLengthTypeNone))
-                            (newParser, CssTokCh chr)  -> if ((not) (spaceSeparated newParser))
-                                                             && (valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE
-                                                                 || valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER)
-                                                             && chr == '%'
-                                                          then (newParser, (fval / 100.0, cssLengthTypePercentage))
-                                                          else (newParser, (fval, cssLengthTypeNone))
-                            (newParser, _)             -> (newParser, (fval, cssLengthTypeNone))
+             else Just defaultValue{typeTag = valueType, intVal = (cssCreateLength (fst valAndType) (snd valAndType))}
+    (newParser, valAndType) = case nextToken parser of
+                                (newParser, CssTokSym sym) -> if (not (spaceSeparated newParser))
+                                                              then (newParser, lengthValueToValAndType fval (T.toLower sym))
+                                                              else (newParser, (fval, cssLengthTypeNone))
+                                (newParser, CssTokCh chr)  -> if ((not) (spaceSeparated newParser))
+                                                                 && (valueType == cssDeclValueTypeLengthPercent
+                                                                     || valueType == cssDeclValueTypeLengthPercentNumber)
+                                                                 && chr == '%'
+                                                              then (newParser, (fval / 100.0, cssLengthTypePercentage))
+                                                              else (newParser, (fval, cssLengthTypeNone))
+                                (newParser, _)             -> (newParser, (fval, cssLengthTypeNone))
 
 
 
 
-declarationValueAsString' :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
-declarationValueAsString' (parser, (CssTokStr s)) = ((newParser, newToken), Just s)
+declValueAsString' :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsString' (parser, (CssTokStr s)) = ((newParser, newToken), Just defaultValue{typeTag = cssDeclValueTypeString, textVal = s})
   where (newParser, newToken) = nextToken parser
-declarationValueAsString' (parser, token)         = ((parser, token), Nothing)
+declValueAsString' (parser, token)         = ((parser, token), Nothing)
 
 
 
 
-declarationValueAsURI :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
-declarationValueAsURI = parseUrl
+declValueAsURI :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsURI (parser, token) = case parseUrl (parser, token) of
+                                   ((newParser, newToken), Just url) -> ((newParser, newToken), Just defaultValue{typeTag = cssDeclValueTypeURI, textVal = url})
+                                   ((newParser, newToken), Nothing)  -> ((newParser, newToken), Nothing)
 
 
 
@@ -783,21 +791,21 @@ parseUrl (parser, token)   = ((parser, token), Nothing)
 
 -- Read comma separated list of font family names.
 -- TODO: test the code for list of symbols separated by space or comma.
-declarationValueAsSymbol :: (CssParser, CssToken) -> T.Text -> ((CssParser, CssToken), Maybe T.Text)
-declarationValueAsSymbol (parser, (CssTokSym sym)) acc = declarationValueAsSymbol (nextToken parser) (T.append acc (separated parser sym))
-declarationValueAsSymbol (parser, (CssTokStr str)) acc = declarationValueAsSymbol (nextToken parser) (T.append acc (separated parser str))
-declarationValueAsSymbol (parser, (CssTokCh  ',')) acc = declarationValueAsSymbol (nextToken parser) (T.append acc (separated parser ","))
-declarationValueAsSymbol (parser, token) acc           = finalSymbol (parser, token) acc
+declValueAsSymbol :: (CssParser, CssToken) -> T.Text -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsSymbol (parser, (CssTokSym sym)) acc = declValueAsSymbol (nextToken parser) (T.append acc (separated parser sym))
+declValueAsSymbol (parser, (CssTokStr str)) acc = declValueAsSymbol (nextToken parser) (T.append acc (separated parser str))
+declValueAsSymbol (parser, (CssTokCh  ',')) acc = declValueAsSymbol (nextToken parser) (T.append acc (separated parser ","))
+declValueAsSymbol (parser, token) acc           = finalSymbol (parser, token) acc
 
 
 
 
-finalSymbol (parser, token) acc = if T.null acc
-                                  then ((parser, token), Nothing)
-                                  else ((parser, token), Just acc)
+finalSymbol (parser, token)  acc = if T.null acc
+                                   then ((parser, token), Nothing)
+                                   else ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeSymbol, textVal = acc})
 
 -- TODO: check if CSS code really needs this space. In some situations
--- symbols in text returned by declarationValueAsSymbol may be separated by
+-- symbols in text returned by declValueAsSymbol may be separated by
 -- comma AND space, which may be redundant.
 separated parser str = if spaceSeparated parser
                        then T.cons ' ' str
@@ -805,7 +813,7 @@ separated parser str = if spaceSeparated parser
 
 
 {-
-   case CssDeclarationValueTypeSYMBOL:
+   case CssDeclValueTypeSYMBOL:
 
       dstr = dStr_new("");
       while (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL || tokenizer.type == CSS_TOKEN_TYPE_STRING ||
@@ -828,11 +836,11 @@ separated parser str = if spaceSeparated parser
 -}
 
 
-declarationValueAsWeightInteger :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe Int)
-declarationValueAsWeightInteger (parser, token@(CssTokI i)) property = if i >= 100 && i <= 900
-                                                                       then ((parser, token), Just i)
-                                                                       else ((parser, token), Nothing)
-declarationValueAsWeightInteger (parser, token) property             = ((parser, token), Nothing)
+declValueAsFontWeightInteger :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsFontWeightInteger (parser, token@(CssTokI i)) property = if i >= 100 && i <= 900
+                                                                    then ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeFontWeight, intVal = i})
+                                                                    else ((parser, token), Nothing)
+declValueAsFontWeightInteger (parser, token) property             = ((parser, token), Nothing)
 
 
 
@@ -845,85 +853,85 @@ tokenMatchesProperty token property = tokenMatchesProperty' token acceptedValueT
     enums = tripletThrd propInfo
 
     tokenMatchesProperty' :: CssToken -> [Int] -> [T.Text] -> Maybe Int
-    tokenMatchesProperty' token (t:ts) enums        | t == cssDeclarationValueTypeENUM =
-                                                        case token of -- TODO: compare with similar code in in declarationValueAsEnum
-                                                          CssTokSym symbol -> case L.elemIndex symbol enums of -- TODO: this search should be case-insensitive
-                                                                                Just pos -> Just t
-                                                                                Nothing  -> tokenMatchesProperty' token ts enums
-                                                          _                -> tokenMatchesProperty' token ts enums
+    tokenMatchesProperty' token (t:ts) enums | t == cssDeclValueTypeEnum =
+                                                 case token of -- TODO: compare with similar code in in declValueAsEnum
+                                                   CssTokSym symbol -> case L.elemIndex symbol enums of -- TODO: this search should be case-insensitive
+                                                                         Just pos -> Just t
+                                                                         Nothing  -> tokenMatchesProperty' token ts enums
+                                                   _                -> tokenMatchesProperty' token ts enums
 
-                                                    | t == cssDeclarationValueTypeMULTI_ENUM =
-                                                        case token of
-                                                          CssTokSym symbol -> if symbol == "none"
-                                                                              then Just t
-                                                                              else case L.elemIndex symbol enums of -- TODO: this search should be case-insensitive
-                                                                                     Just pos -> Just t
-                                                                                     Nothing  -> tokenMatchesProperty' token ts enums
-                                                          _                -> tokenMatchesProperty' token ts enums
-                                                    | t == cssDeclarationValueTypeBACKGROUND_POSITION =
-                                                        case token of
-                                                          CssTokSym s -> if s == "center" || s == "left" || s == "right" || s == "top" || s == "bottom"
-                                                                         then Just t
-                                                                         else tokenMatchesProperty' token ts enums
-                                                          CssTokI i   -> Just t   -- TODO: here we should better handle numeric background positions
-                                                          CssTokF f   -> Just t
-                                                          _           -> tokenMatchesProperty' token ts enums
+                                             | t == cssDeclValueTypeMultiEnum =
+                                                 case token of
+                                                   CssTokSym symbol -> if symbol == "none"
+                                                                       then Just t
+                                                                       else case L.elemIndex symbol enums of -- TODO: this search should be case-insensitive
+                                                                              Just pos -> Just t
+                                                                              Nothing  -> tokenMatchesProperty' token ts enums
+                                                   _                -> tokenMatchesProperty' token ts enums
+                                             | t == cssDeclValueTypeBgPosition =
+                                                 case token of
+                                                   CssTokSym s -> if s == "center" || s == "left" || s == "right" || s == "top" || s == "bottom"
+                                                                  then Just t
+                                                                  else tokenMatchesProperty' token ts enums
+                                                   CssTokI i   -> Just t   -- TODO: here we should better handle numeric background positions
+                                                   CssTokF f   -> Just t
+                                                   _           -> tokenMatchesProperty' token ts enums
 
-                                                    | t == cssDeclarationValueTypeLENGTH_PERCENTAGE || t == cssDeclarationValueTypeLENGTH || t == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER =
-                                                        case token of
-                                                          CssTokF f -> if f < 0
-                                                                       then Nothing
-                                                                       else Just t
-                                                          CssTokI i -> if i < 0
-                                                                       then Nothing
-                                                                       else Just t
-                                                          _         -> Nothing
+                                             | t == cssDeclValueTypeLengthPercent || t == cssDeclValueTypeLength || t == cssDeclValueTypeLengthPercentNumber =
+                                                 case token of
+                                                   CssTokF f -> if f < 0
+                                                                then Nothing
+                                                                else Just t
+                                                   CssTokI i -> if i < 0
+                                                                then Nothing
+                                                                else Just t
+                                                   _         -> Nothing
 
-                                                    | t == cssDeclarationValueTypeSIGNED_LENGTH =
-                                                        case token of
-                                                          CssTokF _ -> Just t
-                                                          CssTokI _ -> Just t
-                                                          _         -> tokenMatchesProperty' token ts enums
+                                             | t == cssDeclValueTypeSignedLength =
+                                                 case token of
+                                                   CssTokF _ -> Just t
+                                                   CssTokI _ -> Just t
+                                                   _         -> tokenMatchesProperty' token ts enums
 
-                                                    | t == cssDeclarationValueTypeAUTO =
-                                                        case token of
-                                                          CssTokSym symbol -> if symbol == "auto"
+                                             | t == cssDeclValueTypeAuto =
+                                                 case token of
+                                                   CssTokSym symbol -> if symbol == "auto"
+                                                                       then Just t
+                                                                       else tokenMatchesProperty' token ts enums
+                                                   _                 -> tokenMatchesProperty' token ts enums
+                                             | t == cssDeclValueTypeColor =
+                                                 case token of
+                                                   CssTokCol c -> Just t -- We already know that the token is a valid color token
+                                                   CssTokSym s -> case colorsStringToColor s of
+                                                                    Just i -> Just t
+                                                                    _      -> if s == "rgb"
                                                                               then Just t
                                                                               else tokenMatchesProperty' token ts enums
-                                                          _                 -> tokenMatchesProperty' token ts enums
-                                                    | t == cssDeclarationValueTypeCOLOR =
-                                                        case token of
-                                                          CssTokCol c -> Just t -- We already know that the token is a valid color token
-                                                          CssTokSym s -> case colorsStringToColor s of
-                                                                          Just i -> Just t
-                                                                          _      -> if s == "rgb"
-                                                                                    then Just t
-                                                                                    else tokenMatchesProperty' token ts enums
-                                                          _           -> tokenMatchesProperty' token ts enums
-                                                    | t == cssDeclarationValueTypeSTRING =
-                                                        case token of
-                                                          CssTokStr s -> Just t
-                                                          _           -> tokenMatchesProperty' token ts enums
-                                                    | t == cssDeclarationValueTypeSYMBOL =
-                                                      case token of
-                                                        CssTokSym sym -> Just t
-                                                        CssTokStr str -> Just t
-                                                        _             -> tokenMatchesProperty' token ts enums
-                                                    | t == cssDeclarationValueTypeFONT_WEIGHT =
-                                                        case token of
-                                                          CssTokI i -> if i >= 100 && i <= 900 -- TODO: this test of range is repeated in this file
-                                                                       then Just t
-                                                                       else  tokenMatchesProperty' token ts enums
-                                                          _         -> tokenMatchesProperty' token ts enums
-                                                    | t == cssDeclarationValueTypeURI =
-                                                        case token of
-                                                          CssTokSym s -> if s == "url"
-                                                                         then Just t
-                                                                         else tokenMatchesProperty' token ts enums
-                                                          _           -> tokenMatchesProperty' token ts enums
-                                                    | t == cssDeclarationValueTypeINTEGER = tokenMatchesProperty' token ts enums
-                                                    | t == cssDeclarationValueTypeUNUSED = tokenMatchesProperty' token ts enums
-                                                    | otherwise = Nothing
+                                                   _           -> tokenMatchesProperty' token ts enums
+                                             | t == cssDeclValueTypeString =
+                                                 case token of
+                                                   CssTokStr s -> Just t
+                                                   _           -> tokenMatchesProperty' token ts enums
+                                             | t == cssDeclValueTypeSymbol =
+                                                 case token of
+                                                   CssTokSym sym -> Just t
+                                                   CssTokStr str -> Just t
+                                                   _             -> tokenMatchesProperty' token ts enums
+                                             | t == cssDeclValueTypeFontWeight =
+                                                 case token of
+                                                   CssTokI i -> if i >= 100 && i <= 900 -- TODO: this test of range is repeated in this file
+                                                                then Just t
+                                                                else tokenMatchesProperty' token ts enums
+                                                   _         -> tokenMatchesProperty' token ts enums
+                                             | t == cssDeclValueTypeURI =
+                                                 case token of
+                                                   CssTokSym s -> if s == "url"
+                                                                  then Just t
+                                                                  else tokenMatchesProperty' token ts enums
+                                                   _           -> tokenMatchesProperty' token ts enums
+                                             | t == cssDeclValueTypeInt = tokenMatchesProperty' token ts enums
+                                             | t == cssDeclValueTypeUnused = tokenMatchesProperty' token ts enums
+                                             | otherwise = Nothing
 
     tokenMatchesProperty' token [] _ = Nothing
 
@@ -1273,8 +1281,8 @@ removeSpaceTokens [] acc                             = acc
 
 
 
-data CssDeclarationValue = CssDeclarationValue {
-    typeTag :: Int
+data CssDeclValue = CssDeclValue {
+    typeTag :: CssDeclValueType
   , intVal  :: Int
   , textVal :: T.Text
   , important :: Bool
@@ -1299,8 +1307,8 @@ takePropertyTokens (parser, token) = takeNext (parser, token) []
 
 
 
-defaultValue = CssDeclarationValue {
-    typeTag = cssDeclarationValueTypeUNUSED
+defaultValue = CssDeclValue {
+    typeTag = cssDeclValueTypeUnused
   , intVal  = 0
   , textVal = ""
   , important = False
@@ -1309,11 +1317,10 @@ defaultValue = CssDeclarationValue {
 
 
 
-
-parseDeclarationProperty :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe Int)
-parseDeclarationProperty (parser, token) = if property >= 0
-                                           then ((newParser, newToken), Just property)
-                                           else ((parser, token), Nothing)
+parseDeclProperty :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe Int)
+parseDeclProperty (parser, token) = if property >= 0
+                                    then ((newParser, newToken), Just property)
+                                    else ((parser, token), Nothing)
   where
     ((newParser, newToken), propTokens) = takePropertyTokens (parser, token)
     property = case propTokens of
@@ -1322,10 +1329,10 @@ parseDeclarationProperty (parser, token) = if property >= 0
 
 
 
-parseDeclarationValue2 :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssDeclarationValue, Int)
-parseDeclarationValue2 (parser, token) property =
+parseDeclValue2 :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssDeclValue, Int)
+parseDeclValue2 (parser, token) property =
   case tokenMatchesProperty token property of
-    Just valueType  -> case parseDeclarationValue (parser, token) valueType property of
+    Just valueType  -> case parseDeclValue (parser, token) valueType property of
                          ((p, t), Just v)  -> ((p, t), Just v{important = imp}, property)
                          ((p, t), Nothing) -> ((p, t), Nothing, -2)
     Nothing -> ((parser, token), Nothing, -2)
@@ -1337,55 +1344,31 @@ parseDeclarationValue2 (parser, token) property =
 
 
 
-parseDeclarationNormal :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclarationValue, Int)
-parseDeclarationNormal (parser, token) = case parseDeclarationProperty (parser, token) of
-                                           ((newParser, newToken), Just property) -> parseDeclarationValue2 (newParser, newToken) property
-                                           ((newParser, newToken), Nothing)       -> ((parser, token), Nothing, -1)
+parseDeclNormal :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue, Int)
+parseDeclNormal (parser, token) = case parseDeclProperty (parser, token) of
+                                    ((newParser, newToken), Just property) -> parseDeclValue2 (newParser, newToken) property
+                                    ((newParser, newToken), Nothing)       -> ((parser, token), Nothing, -1)
 
 
 
 
-parseDeclarationValue :: (CssParser, CssToken) -> Int -> Int -> ((CssParser, CssToken), Maybe CssDeclarationValue)
-parseDeclarationValue (parser, token) valueType property | valueType == cssDeclarationValueTypeINTEGER             = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 1})
-                                                         | valueType == cssDeclarationValueTypeENUM                = case declarationValueAsEnum (parser, token) property of
-                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
-                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
-                                                         | valueType == cssDeclarationValueTypeMULTI_ENUM          = case declarationValueAsMultiEnum (parser, token) property of
-                                                                                                                       ((p, t), Just bits) -> ((p, t), Just defaultValue{typeTag = valueType, intVal = bits})
-                                                                                                                       ((p, t), Nothing)   -> ((p, t), Nothing)
+parseDeclValue :: (CssParser, CssToken) -> CssDeclValueType -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
+parseDeclValue (parser, token) valueType property | valueType == cssDeclValueTypeInt                 = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 0})
+                                                  | valueType == cssDeclValueTypeEnum                = declValueAsEnum (parser, token) property
+                                                  | valueType == cssDeclValueTypeMultiEnum           = declValueAsMultiEnum (parser, token) property
 
-                                                         | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE   = case declarationValueAsLength (parser, token) valueType of
-                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
-                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
-                                                         | valueType == cssDeclarationValueTypeLENGTH              = case declarationValueAsLength (parser, token) valueType of
-                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
-                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
-                                                         | valueType == cssDeclarationValueTypeSIGNED_LENGTH       = case declarationValueAsLength (parser, token) valueType of
-                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
-                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
-                                                         | valueType == cssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER = case declarationValueAsLength (parser, token) valueType of
-                                                                                                                            ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
-                                                                                                                            ((p, t), Nothing) -> ((p, t), Nothing)
+                                                  | valueType == cssDeclValueTypeLengthPercent       = declValueAsLength (parser, token) valueType
+                                                  | valueType == cssDeclValueTypeLength              = declValueAsLength (parser, token) valueType
+                                                  | valueType == cssDeclValueTypeSignedLength        = declValueAsLength (parser, token) valueType
+                                                  | valueType == cssDeclValueTypeLengthPercentNumber = declValueAsLength (parser, token) valueType
 
-                                                         | valueType == cssDeclarationValueTypeAUTO                = case declarationValueAsAuto (parser, token) of
-                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
-                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
-                                                         | valueType == cssDeclarationValueTypeCOLOR               = case declarationValueAsColor (parser, token) of
-                                                                                                                       ((p, t), Just c)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = c})
-                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
-                                                         | valueType == cssDeclarationValueTypeFONT_WEIGHT         = case declarationValueAsWeightInteger (parser, token) property of
-                                                                                                                       ((p, t), Just i)  -> ((p, t), Just defaultValue{typeTag = valueType, intVal = i})
-                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
-                                                         | valueType == cssDeclarationValueTypeSTRING              = case declarationValueAsString' (parser, token) of
-                                                                                                                       ((p, t), Just str)-> ((p, t), Just defaultValue{typeTag = valueType, textVal = str})
-                                                                                                                       ((p, t), Nothing) -> ((p, t), Nothing)
-                                                         | valueType == cssDeclarationValueTypeSYMBOL              = case declarationValueAsSymbol (parser, token) "" of
-                                                                                                                       ((p, t), Just sym) -> ((p, t), Just defaultValue{typeTag = valueType, textVal = sym})
-                                                                                                                       ((p, t), Nothing)  -> ((p, t), Nothing)
-                                                         | valueType == cssDeclarationValueTypeURI                 = case declarationValueAsURI (parser, token) of
-                                                                                                                       ((p, t), Just sym) -> ((p, t), Just defaultValue{typeTag = valueType, textVal = sym})
-                                                                                                                       ((p, t), Nothing)  -> ((p, t), Nothing)
-                                                         | valueType == cssDeclarationValueTypeBACKGROUND_POSITION = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 12}) -- TODO
-                                                         | valueType == cssDeclarationValueTypeUNUSED              = ((parser, token), Nothing)
-                                                         | otherwise                                               = ((parser, token), Nothing)
+                                                  | valueType == cssDeclValueTypeAuto                = declValueAsAuto (parser, token)
+                                                  | valueType == cssDeclValueTypeColor               = declValueAsColor (parser, token)
+                                                  | valueType == cssDeclValueTypeFontWeight          = declValueAsFontWeightInteger (parser, token) property
+                                                  | valueType == cssDeclValueTypeString              = declValueAsString' (parser, token)
+                                                  | valueType == cssDeclValueTypeSymbol              = declValueAsSymbol (parser, token) ""
+                                                  | valueType == cssDeclValueTypeURI                 = declValueAsURI (parser, token)
+                                                  | valueType == cssDeclValueTypeBgPosition          = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 12}) -- TODO
+                                                  | valueType == cssDeclValueTypeUnused              = ((parser, token), Nothing)
+                                                  | otherwise                                        = ((parser, token), Nothing)
 
