@@ -56,18 +56,21 @@ module CssParser(nextToken
                 , takeInt
                 , parseUrl
                 , cssParseWeight
-                , declValueAsURI
                 , CssParser (..)
                 , CssToken (..)
                 , tryTakingRgbFunction
                 , parseRgbFunction
                 , parseRgbFunctionInt
+
                 , declValueAsColor
                 , declValueAsString
                 , declValueAsEnum
                 , declValueAsEnum'
                 , declValueAsMultiEnum
                 , declValueAsFontWeightInteger
+                , declValueAsLength
+                , declValueAsURI
+
                 , tokenMatchesProperty
                 , cssPropertyInfoIdxByName
                 , cssPropertyNameString
@@ -76,6 +79,8 @@ module CssParser(nextToken
                 , cssCreateLength
 
                 , invalidIntResult
+
+                , takeLengthTokens
 
                 , defaultSimpleSelector
                 , defaultSelector
@@ -326,6 +331,7 @@ nextToken2 parser = (updatedParser{bufOffset = increasedBufOffset parser}, token
 
 
 
+
 -- This function is based on function with the same name from Real World
 -- Haskell, chapter 10.
 --
@@ -350,6 +356,7 @@ nextToken' parser = takeLeadingWhite parser >>?
                     takeString              >>?
                     takeColor               >>?
                     takeCharacter
+
 
 
 
@@ -460,8 +467,9 @@ takeLeadingWhite parser
 
 
 
--- This function does not return a token. Discarding meaningless data from
--- beginning of text would not create a valid token.
+
+-- This function may complete withouth returning a valid token. Discarding
+-- meaningless data from beginning of text would not create a valid token.
 takeLeadingWhite2 :: CssParser -> (CssParser, CssToken)
 takeLeadingWhite2 parser
   | T.null rem                 = (parser, CssTokEnd)
@@ -703,13 +711,6 @@ declValueAsAuto (parser, token)                    = ((parser, token), Nothing)
 
 
 
-declValueAsLength :: (CssParser, CssToken) -> CssDeclValueType -> ((CssParser, CssToken), Maybe CssDeclValue)
-declValueAsLength (parser, token@(CssTokI i)) valueType = declValueAsLength' (parser, token) (fromIntegral i) valueType
-declValueAsLength (parser, token@(CssTokF f)) valueType = declValueAsLength' (parser, token) f valueType
-declValueAsLength (parser, token) _                     = ((parser, token), Nothing)
-
-
-
 lengthValueToValAndType :: Float -> T.Text -> (Float, Int)
 lengthValueToValAndType fval unitStr | unitStr == "px" = (fval,               cssLengthTypePX)
                                      | unitStr == "mm" = (fval,               cssLengthTypeMM)
@@ -724,29 +725,71 @@ lengthValueToValAndType fval unitStr | unitStr == "px" = (fval,               cs
 
 
 
-declValueAsLength' :: (CssParser, CssToken) -> Float -> CssDeclValueType -> ((CssParser, CssToken), Maybe CssDeclValue)
-declValueAsLength' (parser, token) fval valueType = ((retParser, retToken), retInt)
+-- TODO: this function should handle multiple values per property, like here:
+-- "th{border-width:0 0 1px;".
+takeLengthTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
+takeLengthTokens (parser, token) = if isSpaceSeparated parser
+                                   then case token of
+                                          CssTokF _ -> (nextToken parser, [token])
+                                          CssTokI _ -> (nextToken parser, [token])
+                                          _         -> (nextToken parser, [])
+                                   else case token of
+                                          CssTokF _ -> numberWithSomething (parser, token)
+                                          CssTokI _ -> numberWithSomething (parser, token)
+                                          _         -> (nextToken parser, [])
+
   where
-    (retParser, retToken) = case retInt of
-                              Just i  -> nextToken newParser
-                              Nothing -> (newParser, CssTokNone)
-    retInt = if (snd valAndType) == cssLengthTypeNone
-             then if (valueType == cssDeclValueTypeLengthPercentNumber || (fst valAndType) == 0.0)
-                     -- Allow numbers without unit only for 0 or cssDeclValueTypeLengthPercentNumber
-                  then Just defaultValue{typeTag = valueType, intVal = (cssCreateLength (fst valAndType) (snd valAndType))}
-                  else Nothing
-             else Just defaultValue{typeTag = valueType, intVal = (cssCreateLength (fst valAndType) (snd valAndType))}
-    (newParser, valAndType) = case nextToken parser of
-                                (newParser, CssTokSym sym) -> if (not (spaceSeparated newParser))
-                                                              then (newParser, lengthValueToValAndType fval (T.toLower sym))
-                                                              else (newParser, (fval, cssLengthTypeNone))
-                                (newParser, CssTokCh chr)  -> if ((not) (spaceSeparated newParser))
-                                                                 && (valueType == cssDeclValueTypeLengthPercent
-                                                                     || valueType == cssDeclValueTypeLengthPercentNumber)
-                                                                 && chr == '%'
-                                                              then (newParser, (fval / 100.0, cssLengthTypePercentage))
-                                                              else (newParser, (fval, cssLengthTypeNone))
-                                (newParser, _)             -> (newParser, (fval, cssLengthTypeNone))
+    numberWithSomething (parser, numberToken) = case nextToken parser of
+                                                  pair@(p3, CssTokSym sym)  -> if unitStringIsValid sym
+                                                                               then (nextToken p3, [numberToken, snd pair])
+                                                                               else (nextToken p3, []) -- TODO: how to handle unrecognized symbol?
+                                                  pair@(p3, CssTokCh '%') -> (nextToken p3, [numberToken, snd pair])
+                                                  pair@(p3, CssTokCh ';') -> (pair, [numberToken])
+                                                  pair@(p3, CssTokCh '}') -> (pair, [numberToken])
+                                                  pair@(p3, CssTokEnd)    -> (pair, [numberToken])
+                                                  pair                    -> ((parser, token), [])
+
+    unitStringIsValid str = str == "px" || str == "mm" || str == "cm" || str == "in" || str == "pt" || str == "pc" || str == "em" || str == "ex"
+
+
+
+
+isSpaceSeparated parser = spaceSeparated newParser
+  where (newParser, newToken) = nextToken parser
+
+
+
+
+declValueAsLength :: (CssParser, CssToken) -> CssDeclValueType -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsLength (parser, token) valueType =
+  case tokens of
+    [CssTokF f, CssTokSym sym] -> ((newParser, newToken), unitValue sym valueType f)
+    [CssTokI i, CssTokSym sym] -> ((newParser, newToken), unitValue sym valueType (fromIntegral i))
+    [CssTokF f, CssTokCh '%']  -> ((newParser, newToken), percentValue valueType f)
+    [CssTokI i, CssTokCh '%']  -> ((newParser, newToken), percentValue valueType (fromIntegral i))
+    [CssTokF f]                -> ((newParser, newToken), unitlessValue valueType f)
+    [CssTokI i]                -> ((newParser, newToken), unitlessValue valueType (fromIntegral i))
+    _                          -> ((parser, token), Nothing)
+  where
+    ((newParser, newToken), tokens) = takeLengthTokens (parser, token)
+
+    percentValue :: CssDeclValueType -> Float -> Maybe CssDeclValue
+    percentValue valueType fval = Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
+      where
+        (val, t) = ((fval / 100.0), cssLengthTypePercentage)
+
+    unitValue :: T.Text -> CssDeclValueType -> Float -> Maybe CssDeclValue
+    unitValue unitString valueType fval = Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
+      where
+        (val, t) = lengthValueToValAndType fval (T.toLower unitString)
+
+    unitlessValue :: CssDeclValueType -> Float -> Maybe CssDeclValue
+    -- Allow numbers without unit only for 0 or cssDeclValueTypeLengthPercentNumber. TODO: why?
+    unitlessValue valueType fval = if (valueType == cssDeclValueTypeLengthPercentNumber || fval == 0.0)
+                                   then Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
+                                   else Nothing
+      where
+        (val, t) = (fval, cssLengthTypeNone)
 
 
 
