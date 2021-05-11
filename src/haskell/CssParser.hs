@@ -72,8 +72,11 @@ module CssParser(nextToken
                 , declValueAsURI
 
                 , tokenMatchesProperty
+
+                , cssShorthandInfoIdxByName
                 , cssPropertyInfoIdxByName
                 , cssPropertyNameString
+
                 , cssLengthType
                 , cssLengthValue
                 , cssCreateLength
@@ -221,6 +224,102 @@ cssDeclValueTypeUnused              = 14 -- Not yet used. Will itself get unused
 
 
 
+-- CssDeclarationProperty
+cssDeclPropertyEnd = -1
+cssDeclPropertyBackgroundAttachment = 0
+cssDeclPropertyBackgroundColor = 1
+cssDeclPropertyBackgroundImage = 2
+cssDeclPropertyBackgroundPosition = 3
+cssDeclPropertyBackgroundRepeat = 4
+cssDeclPropertyBorderBottomColor = 5
+cssDeclPropertyBorderBottomStyle = 6
+cssDeclPropertyBorderBottomWidth = 7
+cssDeclPropertyBorderCollapse = 8
+cssDeclPropertyBorderLeftColor = 9
+cssDeclPropertyBorderLeftStyle = 10
+cssDeclPropertyBorderLeftWidth = 11
+cssDeclPropertyBorderRightColor = 12
+cssDeclPropertyBorderRightStyle = 13
+cssDeclPropertyBorderRightWidth = 14
+cssDeclPropertyBorderSpacing = 15
+cssDeclPropertyBorderTopColor = 16
+cssDeclPropertyBorderTopStyle = 17
+cssDeclPropertyBorderTopWidth = 18
+cssDeclPropertyBottom = 19
+cssDeclPropertyCaptionSide = 20
+cssDeclPropertyClear = 21
+cssDeclPropertyClip = 22
+cssDeclPropertyColor = 23
+cssDeclPropertyContent = 24
+cssDeclPropertyCounterIncrement = 25
+cssDeclPropertyCounterReset = 26
+cssDeclPropertyCursor = 27
+cssDeclPropertyDirection = 28
+cssDeclPropertyDisplay = 29
+cssDeclPropertyEmptyCells = 30
+cssDeclPropertyFlaot = 31
+cssDeclPropertyFontFamily = 32
+cssDeclPropertyFontSize = 33
+cssDeclPropertyFontSizeAdjust = 34
+cssDeclPropertyFontStretch = 35
+cssDeclPropertyFontStyle = 36
+cssDeclPropertyFontVariant = 37
+cssDeclPropertyFontWeight = 38
+cssDeclPropertyHeight = 39
+cssDeclPropertyLeft = 40
+cssDeclPropertyLetterSpacing = 41
+cssDeclPropertyLineHeight = 42
+cssDeclPropertyListStyleImage = 43
+cssDeclPropertyListStylePosition = 44
+cssDeclPropertyListStyleType = 45
+cssDeclPropertyMarginBottom = 46
+cssDeclPropertyMarginLeft = 47
+cssDeclPropertyMarginRight = 48
+cssDeclPropertyMarginTop = 49
+cssDeclPropertyMarkerOffset = 50
+cssDeclPropertyMarks = 51
+cssDeclPropertyMaxHeight = 52
+cssDeclPropertyMaxWidth = 53
+cssDeclPropertyMinHeight = 54
+cssDeclPropertyMinWidth = 55
+cssDeclPropertyOutlineColor = 56
+cssDeclPropertyOutlineStyle = 57
+cssDeclPropertyOutlineWidth = 58
+cssDeclPropertyOverflow = 59
+cssDeclPropertyPaddingBottom = 60
+cssDeclPropertyPaddingLeft = 61
+cssDeclPropertyPaddingRight = 62
+cssDeclPropertyPaddingTop = 63
+cssDeclPropertyPosition = 64
+cssDeclPropertyQuotes = 65
+cssDeclPropertyRight = 66
+cssDeclPropertyTextAlign = 67
+cssDeclPropertyTextDecoration = 68
+cssDeclPropertyTextIndent = 69
+cssDeclPropertyTextShadow = 70
+cssDeclPropertyTextTransform = 71
+cssDeclPropertyTop = 72
+cssDeclPropertyUnicodeBiDi = 73
+cssDeclPropertyVerticalAlign = 74
+cssDeclPropertyVisibility = 75
+cssDeclPropertyWhitespace = 76
+cssDeclPropertyWidth = 77
+cssDeclPropertyWordSpacing = 78
+cssDeclPropertyZIndex = 79
+cssDeclPropertyXLink = 80
+cssDeclPropertyXColSpan = 81
+cssDeclPropertyXRowSpan = 82
+
+cssPropertyXLink = 83
+cssPropertyXLang = 84
+cssPropertyXImg = 85
+cssPropertyXTooltip = 86
+
+cssDeclProperty_LAST = 87
+
+
+
+
 cssPropertyInfo = V.fromList [
      ("background-attachment",  [ cssDeclValueTypeEnum ],                                             css_background_attachment_enum_vals)
    , ("background-color",       [ cssDeclValueTypeColor ],                                            [])
@@ -311,6 +410,57 @@ cssPropertyInfo = V.fromList [
    , ("x-rowspan",              [ cssDeclValueTypeInt ],                                              [])
    , ("last",                   [], [])
    ] :: V.Vector (T.Text, [CssDeclValueType], [T.Text])
+
+
+
+
+cssShorthandTypeMultiple   = 0 -- [ p1 || p2 || ...], the property pi is determined  by the type; array of properties must be terminated by CSS_PROPERTY_End.
+cssShorthandTypeDirections = 1 --  <t>{1,4}; array of properties must have length 4.
+cssShorthandTypeBorder     = 2 -- special, used for 'border'; array of properties must have length 12.
+cssShorthandTypeFont       = 3 -- special, used for 'font'
+
+
+
+
+cssShorthandInfo = V.fromList [
+    ("background",     cssShorthandTypeMultiple,      [ cssDeclPropertyBackgroundColor, cssDeclPropertyBackgroundImage, cssDeclPropertyBackgroundRepeat,
+                                                        cssDeclPropertyBackgroundAttachment, cssDeclPropertyBackgroundPosition, cssDeclPropertyEnd ])
+
+  , ("border",         cssShorthandTypeBorder,        [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderTopStyle,     cssDeclPropertyBorderTopColor,
+                                                        cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderBottomStyle,  cssDeclPropertyBorderBottomColor,
+                                                        cssDeclPropertyBorderLeftWidth,   cssDeclPropertyBorderLeftStyle,    cssDeclPropertyBorderLeftColor,
+                                                        cssDeclPropertyBorderRightWidth,  cssDeclPropertyBorderRightStyle,   cssDeclPropertyBorderRightColor ])
+
+  , ("border-bottom",  cssShorthandTypeMultiple,      [ cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderBottomStyle,  cssDeclPropertyBorderBottomColor, cssDeclPropertyEnd])
+  , ("border-color",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopColor,    cssDeclPropertyBorderBottomColor,  cssDeclPropertyBorderLeftColor,   cssDeclPropertyBorderRightColor])
+  , ("border-left",    cssShorthandTypeMultiple,      [ cssDeclPropertyBorderLeftWidth,   cssDeclPropertyBorderLeftStyle,    cssDeclPropertyBorderLeftColor,   cssDeclPropertyEnd])
+  , ("border-right",   cssShorthandTypeMultiple,      [ cssDeclPropertyBorderRightWidth,  cssDeclPropertyBorderRightStyle,   cssDeclPropertyBorderRightColor,  cssDeclPropertyEnd])
+  , ("border-style",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopStyle,    cssDeclPropertyBorderBottomStyle,  cssDeclPropertyBorderLeftStyle,   cssDeclPropertyBorderRightStyle])
+  , ("border-top",     cssShorthandTypeMultiple,      [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderTopStyle,     cssDeclPropertyBorderTopColor,    cssDeclPropertyEnd])
+
+  , ("border-width",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderLeftWidth,   cssDeclPropertyBorderRightWidth])
+
+  , ("font",           cssShorthandTypeFont,          [ cssDeclPropertyFontSize,  cssDeclPropertyFontStyle, cssDeclPropertyFontVariant, cssDeclPropertyFontWeight, cssDeclPropertyFontFamily, cssDeclPropertyEnd])
+
+  , ("list-style",     cssShorthandTypeMultiple,      [ cssDeclPropertyListStyleType, cssDeclPropertyListStylePosition, cssDeclPropertyListStyleImage, cssDeclPropertyEnd])
+  , ("margin",         cssShorthandTypeDirections,    [ cssDeclPropertyMarginTop, cssDeclPropertyMarginBottom, cssDeclPropertyMarginLeft, cssDeclPropertyMarginRight])
+  , ("outline",        cssShorthandTypeMultiple,      [ cssDeclPropertyOutlineColor, cssDeclPropertyOutlineStyle, cssDeclPropertyOutlineWidth, cssDeclPropertyEnd])
+
+  , ("padding",        cssShorthandTypeDirections,    [ cssDeclPropertyPaddingTop, cssDeclPropertyPaddingBottom, cssDeclPropertyPaddingLeft, cssDeclPropertyPaddingRight])
+  ] :: V.Vector (T.Text, Int, [Int])
+
+
+
+
+-- TODO: case-insensitive search
+cssShorthandInfoIdxByName :: T.Text -> Int
+cssShorthandInfoIdxByName shorthandName =
+  case V.findIndex p cssShorthandInfo of
+    Just idx -> idx
+    Nothing  -> -1
+  where
+    p :: (T.Text, Int, [Int]) -> Bool
+    p = (\t -> (tripletFst t) == shorthandName)
 
 
 
@@ -616,14 +766,14 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 
 declValueAsColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue)
 declValueAsColor (parser, token@(CssTokCol c)) = case colorsStringToColor c of -- TODO: we know here that color should have form #RRGGBB. Call function that accepts only this format.
-                                                   Just i  -> ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = i})
-                                                   Nothing -> ((parser, token), Nothing)
+                                                   Just i  -> (nextToken parser, Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = i})
+                                                   Nothing -> (nextToken parser, Nothing)
 declValueAsColor (parser, token@(CssTokSym s)) | s == "rgb" = case parseRgbFunctionInt parser of
                                                                 ((p, t), Just c)  -> ((p, t), Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = c})
                                                                 ((p, t), Nothing) -> ((p, t), Nothing)
                                                | otherwise = case colorsStringToColor s of
-                                                               Just i  -> ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = i})
-                                                               Nothing -> ((parser, token), Nothing)
+                                                               Just i  -> (nextToken parser, Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = i})
+                                                               Nothing -> (nextToken parser, Nothing)
 declValueAsColor (parser, token)               = ((parser, token), Nothing)
 
 
@@ -655,7 +805,7 @@ declValueAsEnum :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe
 declValueAsEnum (parser, token@(CssTokSym symbol)) property =
   case declValueAsEnum' symbol enums 0 of
     -1  -> ((parser, token), Nothing)
-    idx -> ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeEnum, intVal = idx})
+    idx -> (nextToken parser, Just defaultValue{typeTag = cssDeclValueTypeEnum, intVal = idx})
   where
     propInfo = cssPropertyInfo V.! property
     enums = tripletThrd propInfo
@@ -1134,6 +1284,7 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
 
 
 
+-- TODO: case-insensitive search
 cssPropertyInfoIdxByName :: T.Text -> Int
 cssPropertyInfoIdxByName propertyName =
   case V.findIndex p cssPropertyInfo of
@@ -1397,8 +1548,8 @@ parseDeclNormal (parser, token) = case parseDeclProperty (parser, token) of
 
 parseDeclValue :: (CssParser, CssToken) -> CssDeclValueType -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
 parseDeclValue (parser, token) valueType property | valueType == cssDeclValueTypeInt                 = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 0})
-                                                  | valueType == cssDeclValueTypeEnum                = declValueAsEnum (parser, token) property
-                                                  | valueType == cssDeclValueTypeMultiEnum           = declValueAsMultiEnum (parser, token) property
+                                                  | valueType == cssDeclValueTypeEnum                = trace ("shorthand parseDeclValue enum " ++ (show token)) declValueAsEnum (parser, token) property
+                                                  | valueType == cssDeclValueTypeMultiEnum           = trace ("shorthand parseDeclValue multi-enum " ++ (show token)) declValueAsMultiEnum (parser, token) property
 
                                                   | valueType == cssDeclValueTypeLengthPercent       = declValueAsLength (parser, token) valueType
                                                   | valueType == cssDeclValueTypeLength              = declValueAsLength (parser, token) valueType
@@ -1408,8 +1559,8 @@ parseDeclValue (parser, token) valueType property | valueType == cssDeclValueTyp
                                                   | valueType == cssDeclValueTypeAuto                = declValueAsAuto (parser, token)
                                                   | valueType == cssDeclValueTypeColor               = declValueAsColor (parser, token)
                                                   | valueType == cssDeclValueTypeFontWeight          = declValueAsFontWeightInteger (parser, token) property
-                                                  | valueType == cssDeclValueTypeString              = declValueAsString' (parser, token)
-                                                  | valueType == cssDeclValueTypeSymbol              = declValueAsSymbol (parser, token) ""
+                                                  | valueType == cssDeclValueTypeString              = trace ("shorthand parseDeclValue string " ++ (show token)) declValueAsString' (parser, token)
+                                                  | valueType == cssDeclValueTypeSymbol              = trace ("shorthand parseDeclValue symbol " ++ (show token)) declValueAsSymbol (parser, token) ""
                                                   | valueType == cssDeclValueTypeURI                 = declValueAsURI (parser, token)
                                                   | valueType == cssDeclValueTypeBgPosition          = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 12}) -- TODO
                                                   | valueType == cssDeclValueTypeUnused              = ((parser, token), Nothing)

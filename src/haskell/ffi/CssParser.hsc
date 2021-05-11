@@ -58,6 +58,7 @@ foreign export ccall "hll_cssParseWeight"  hll_cssParseWeight :: Ptr HelloCssPar
 
 foreign export ccall "hll_cssParseSelector" hll_cssParseSelector :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO (Ptr HelloCssSelector)
 
+foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
@@ -326,9 +327,18 @@ hll_cssCreateLength val t = do
 
 
 
+hll_cssShorthandInfoIdxByName :: CString -> IO Int
+hll_cssShorthandInfoIdxByName cShorthandName = do
+  shorthandName <- BSU.unsafePackCString $ cShorthandName
+  let idx = cssShorthandInfoIdxByName . T.E.decodeLatin1 $ shorthandName
+  return idx
+
+
+
+
 hll_cssPropertyInfoIdxByName :: CString -> IO Int
 hll_cssPropertyInfoIdxByName cPropertyName = do
-  propertyName       <- BSU.unsafePackCString $ cPropertyName
+  propertyName <- BSU.unsafePackCString $ cPropertyName
   let idx = cssPropertyInfoIdxByName . T.E.decodeLatin1 $ propertyName
   return idx
 

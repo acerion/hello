@@ -118,6 +118,7 @@ int hll_tokenMatchesProperty(c_css_token_t * token, int property);
 int hll_ignoreBlock(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
 int hll_ignoreStatement(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
 
+int hll_cssShorthandInfoIdxByName(const char * shorthandName);
 int hll_cssPropertyInfoIdxByName(const char * propertyName);
 const char * hll_cssPropertyNameString(int property);
 
