@@ -65,6 +65,8 @@ foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: In
 foreign export ccall "hll_parseDeclarationNormal" hll_parseDeclarationNormal :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDeclValue -> IO Int
 foreign export ccall "hll_parseDeclarationValue" hll_parseDeclarationValue :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> Ptr HelloCssDeclValue -> IO Int
 
+foreign export ccall "hll_parseDeclarationMultiple" hll_parseDeclarationMultiple :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr CInt -> Ptr HelloCssDeclValue -> IO Int
+foreign export ccall "hll_parseDeclarationDirections" hll_parseDeclarationDirections :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr CInt -> Ptr HelloCssDeclValue -> IO Int
 
 
 
@@ -330,8 +332,9 @@ hll_cssCreateLength val t = do
 hll_cssShorthandInfoIdxByName :: CString -> IO Int
 hll_cssShorthandInfoIdxByName cShorthandName = do
   shorthandName <- BSU.unsafePackCString $ cShorthandName
-  let idx = cssShorthandInfoIdxByName . T.E.decodeLatin1 $ shorthandName
-  return idx
+  case cssShorthandInfoIdxByName . T.E.decodeLatin1 $ shorthandName of
+    Just idx -> return idx
+    Nothing  -> return (-1)
 
 
 
@@ -339,8 +342,9 @@ hll_cssShorthandInfoIdxByName cShorthandName = do
 hll_cssPropertyInfoIdxByName :: CString -> IO Int
 hll_cssPropertyInfoIdxByName cPropertyName = do
   propertyName <- BSU.unsafePackCString $ cPropertyName
-  let idx = cssPropertyInfoIdxByName . T.E.decodeLatin1 $ propertyName
-  return idx
+  case cssPropertyInfoIdxByName . T.E.decodeLatin1 $ propertyName of
+    Just idx -> return idx
+    Nothing  -> return (-1)
 
 
 
@@ -495,7 +499,7 @@ hll_cssParseSelector ptrStructCssParser ptrStructCssToken cBuf = do
   case newSelector of
     Just sel -> do
       ptrStructSelector <- callocBytes #{size c_css_selector_t}
-      (setArrayOfPointers (simpleSelectorList sel) simpleSelectorToPtrStruct ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list))
+      setArrayOfPointers (simpleSelectorList sel) simpleSelectorToPtrStruct ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list)
       pokeByteOff ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ sel)
       return ptrStructSelector
     Nothing ->
@@ -613,3 +617,75 @@ hll_parseDeclarationNormal ptrStructCssParser ptrStructCssToken cBuf ptrStructCs
            return (-1)
   else return ret
 
+
+
+
+hll_parseDeclarationMultiple :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr CInt -> Ptr HelloCssDeclValue -> IO Int
+hll_parseDeclarationMultiple ptrStructCssParser ptrStructCssToken cBuf ptrArrayProperties ptrStructCssDeclValue = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
+
+  cProperties <- peekArray0 (-1) ptrArrayProperties -- Get array of arbitrary size, terminated by element of value -1 ( == CSS_PROPERTY_END)
+  let properties = fmap fromIntegral cProperties
+
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                            }
+
+  cToken   <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ cToken
+  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+
+  let ((newParser, newToken), values) = parseDeclarationMultiple (parser, token) properties []
+
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
+
+  putStrLn (show values)
+  updateValues ptrStructCssDeclValue values
+
+  return (length values)
+
+
+
+
+
+hll_parseDeclarationDirections :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr CInt -> Ptr HelloCssDeclValue -> IO Int
+hll_parseDeclarationDirections ptrStructCssParser ptrStructCssToken cBuf ptrArrayProperties ptrStructCssDeclValue = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
+
+  cProperties <- peekArray 4 ptrArrayProperties -- 4 == top/left/bottom/rigth
+  let properties = fmap fromIntegral cProperties
+
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                            }
+
+  cToken   <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ cToken
+  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+
+  let ((newParser, newToken), values) = parseDeclarationDirections (parser, token) properties
+
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
+
+  putStrLn ("VALUES are " ++ (show values))
+  updateValues ptrStructCssDeclValue values
+
+  return (length values)
+
+
+
+
+updateValues :: Ptr HelloCssDeclValue -> [CssDeclValue] -> IO ()
+updateValues ptr (v:vs) = do
+  ptrStr <- newCString . T.unpack . textVal $ v
+  poke ptr $ HelloCssDeclValue (fromIntegral . typeTag $ v) (fromIntegral . intVal $ v) ptrStr (if important v then 1 else 0)
+  updateValues (advancePtr ptr 1) vs
+updateValues ptr [] = return ()

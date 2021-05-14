@@ -83,6 +83,9 @@ module CssParser(nextToken
 
                 , invalidIntResult
 
+                , parseDeclarationMultiple
+                , parseDeclarationDirections
+
                 , takeLengthTokens
 
                 , defaultSimpleSelector
@@ -432,32 +435,29 @@ cssShorthandInfo = V.fromList [
                                                         cssDeclPropertyBorderRightWidth,  cssDeclPropertyBorderRightStyle,   cssDeclPropertyBorderRightColor ])
 
   , ("border-bottom",  cssShorthandTypeMultiple,      [ cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderBottomStyle,  cssDeclPropertyBorderBottomColor, cssDeclPropertyEnd])
-  , ("border-color",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopColor,    cssDeclPropertyBorderBottomColor,  cssDeclPropertyBorderLeftColor,   cssDeclPropertyBorderRightColor])
+  , ("border-color",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopColor,    cssDeclPropertyBorderRightColor,   cssDeclPropertyBorderBottomColor, cssDeclPropertyBorderLeftColor ])
   , ("border-left",    cssShorthandTypeMultiple,      [ cssDeclPropertyBorderLeftWidth,   cssDeclPropertyBorderLeftStyle,    cssDeclPropertyBorderLeftColor,   cssDeclPropertyEnd])
   , ("border-right",   cssShorthandTypeMultiple,      [ cssDeclPropertyBorderRightWidth,  cssDeclPropertyBorderRightStyle,   cssDeclPropertyBorderRightColor,  cssDeclPropertyEnd])
-  , ("border-style",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopStyle,    cssDeclPropertyBorderBottomStyle,  cssDeclPropertyBorderLeftStyle,   cssDeclPropertyBorderRightStyle])
+  , ("border-style",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopStyle,    cssDeclPropertyBorderRightStyle,   cssDeclPropertyBorderBottomStyle, cssDeclPropertyBorderLeftStyle ])
   , ("border-top",     cssShorthandTypeMultiple,      [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderTopStyle,     cssDeclPropertyBorderTopColor,    cssDeclPropertyEnd])
 
-  , ("border-width",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderLeftWidth,   cssDeclPropertyBorderRightWidth])
+  , ("border-width",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderRightWidth,   cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderLeftWidth ])
 
   , ("font",           cssShorthandTypeFont,          [ cssDeclPropertyFontSize,  cssDeclPropertyFontStyle, cssDeclPropertyFontVariant, cssDeclPropertyFontWeight, cssDeclPropertyFontFamily, cssDeclPropertyEnd])
 
   , ("list-style",     cssShorthandTypeMultiple,      [ cssDeclPropertyListStyleType, cssDeclPropertyListStylePosition, cssDeclPropertyListStyleImage, cssDeclPropertyEnd])
-  , ("margin",         cssShorthandTypeDirections,    [ cssDeclPropertyMarginTop, cssDeclPropertyMarginBottom, cssDeclPropertyMarginLeft, cssDeclPropertyMarginRight])
+  , ("margin",         cssShorthandTypeDirections,    [ cssDeclPropertyMarginTop,         cssDeclPropertyMarginRight,        cssDeclPropertyMarginBottom,      cssDeclPropertyMarginLeft ])
   , ("outline",        cssShorthandTypeMultiple,      [ cssDeclPropertyOutlineColor, cssDeclPropertyOutlineStyle, cssDeclPropertyOutlineWidth, cssDeclPropertyEnd])
 
-  , ("padding",        cssShorthandTypeDirections,    [ cssDeclPropertyPaddingTop, cssDeclPropertyPaddingBottom, cssDeclPropertyPaddingLeft, cssDeclPropertyPaddingRight])
+  , ("padding",        cssShorthandTypeDirections,    [ cssDeclPropertyPaddingTop,        cssDeclPropertyPaddingRight,       cssDeclPropertyPaddingBottom,     cssDeclPropertyPaddingLeft ])
   ] :: V.Vector (T.Text, Int, [Int])
 
 
 
 
 -- TODO: case-insensitive search
-cssShorthandInfoIdxByName :: T.Text -> Int
-cssShorthandInfoIdxByName shorthandName =
-  case V.findIndex p cssShorthandInfo of
-    Just idx -> idx
-    Nothing  -> -1
+cssShorthandInfoIdxByName :: T.Text -> Maybe Int
+cssShorthandInfoIdxByName shorthandName = V.findIndex p cssShorthandInfo
   where
     p :: (T.Text, Int, [Int]) -> Bool
     p = (\t -> (tripletFst t) == shorthandName)
@@ -1285,11 +1285,8 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
 
 
 -- TODO: case-insensitive search
-cssPropertyInfoIdxByName :: T.Text -> Int
-cssPropertyInfoIdxByName propertyName =
-  case V.findIndex p cssPropertyInfo of
-    Just idx -> idx
-    Nothing  -> -1
+cssPropertyInfoIdxByName :: T.Text -> Maybe Int
+cssPropertyInfoIdxByName propertyName = V.findIndex p cssPropertyInfo
   where
     p :: (T.Text, [Int], [T.Text]) -> Bool
     p = (\t -> (tripletFst t) == propertyName)
@@ -1512,14 +1509,14 @@ defaultValue = CssDeclValue {
 
 
 parseDeclProperty :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe Int)
-parseDeclProperty (parser, token) = if property >= 0
-                                    then ((newParser, newToken), Just property)
-                                    else ((parser, token), Nothing)
+parseDeclProperty (parser, token) = case property of
+                                      Just _  -> ((newParser, newToken), property)
+                                      Nothing ->   ((parser, token), Nothing)
   where
     ((newParser, newToken), propTokens) = takePropertyTokens (parser, token)
     property = case propTokens of
                  (CssTokSym sym:CssTokCh ':':[]) -> cssPropertyInfoIdxByName sym
-                 otherwise                       -> (-1)
+                 otherwise                       -> Nothing
 
 
 
@@ -1540,7 +1537,9 @@ parseDeclValue2 (parser, token) property =
 
 parseDeclNormal :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue, Int)
 parseDeclNormal (parser, token) = case parseDeclProperty (parser, token) of
-                                    ((newParser, newToken), Just property) -> parseDeclValue2 (newParser, newToken) property
+                                    ((newParser, newToken), Just property) -> if property >= 0
+                                                                              then parseDeclValue2 (newParser, newToken) property
+                                                                              else ((parser, token), Nothing, -1)
                                     ((newParser, newToken), Nothing)       -> ((parser, token), Nothing, -1)
 
 
@@ -1565,4 +1564,48 @@ parseDeclValue (parser, token) valueType property | valueType == cssDeclValueTyp
                                                   | valueType == cssDeclValueTypeBgPosition          = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 12}) -- TODO
                                                   | valueType == cssDeclValueTypeUnused              = ((parser, token), Nothing)
                                                   | otherwise                                        = ((parser, token), Nothing)
+
+
+
+
+-- TODO: this implementation can correctly parse all value tokens only when
+-- they appear in the same order as 'property' integers. The function should
+-- be able to handle the tokens in any order.
+parseDeclarationMultiple :: (CssParser, CssToken) -> [Int] -> [CssDeclValue] -> ((CssParser, CssToken), [CssDeclValue])
+parseDeclarationMultiple (parser, token) (prop:properties) values =
+  case tokenMatchesProperty token prop of
+    Just valueType -> case parseDeclValue (parser, token) valueType prop of
+                        ((p, t), Just v)  -> trace ("---- parsed as " ++ (show v)) parseDeclarationMultiple (p, t) properties (values ++ [v]) -- TODO: add setting 'important' member
+                        ((p, t), Nothing) -> parseDeclarationMultiple (p, t) properties values
+    Nothing        -> parseDeclarationMultiple (parser, token) properties values
+parseDeclarationMultiple (parser, token) [] values                = ((parser, token), values)
+
+
+
+
+
+parseDeclarationDirections :: (CssParser, CssToken) -> [Int] -> ((CssParser, CssToken), [CssDeclValue])
+parseDeclarationDirections (parser, token) properties = ((outParser, outToken), outVals)
+  where outVals = case vals of
+          all@(top:right:bottom:left:[]) -> all
+          (top:rl:bottom:[])             -> [top, rl, bottom, rl]
+          (tb:rl:[])                     -> [tb, rl, tb, rl]
+          (v:[])                         -> [v, v, v, v]
+          []                             -> []
+        ((outParser, outToken), vals) = matchOrderedTokens (parser, token) properties []
+
+
+
+
+-- Value tokens must be in proper order. Example: if property is
+-- "border-color", and there are four value tokens, then tokens must
+-- represent colors of "top","right","bottom","left" borders.
+matchOrderedTokens :: (CssParser, CssToken) -> [Int] -> [CssDeclValue] -> ((CssParser, CssToken), [CssDeclValue])
+matchOrderedTokens(parser, token) (prop:properties) values =
+  case tokenMatchesProperty token prop of
+    Just valueType -> case parseDeclValue (parser, token) valueType prop of
+                        ((p, t), Just v)  -> matchOrderedTokens (p, t) properties (values ++ [v]) -- TODO: add setting 'important' member
+                        ((p, t), Nothing) -> ((p, t), values)
+    Nothing        -> ((parser, token), values)
+matchOrderedTokens (parser, token) [] values               = ((parser, token), values)
 

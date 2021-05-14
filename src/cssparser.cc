@@ -91,6 +91,7 @@ void ignoreStatement(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 static void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
 static bool parseDeclarationNormal(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
 static void parseDeclarationMultiple(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant, const CssDeclarationProperty properties[12]);
+static void parseDeclarationDirections(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant, const CssDeclarationProperty properties[12]);
 static void parseDeclarationShorthands(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
 
 
@@ -456,42 +457,8 @@ void parseDeclarationShorthands(CssParser * parser, CssDeclartionList * declList
             parseDeclarationMultiple(parser, declList, declListImportant, shinfo->properties);
             break;
 
-         case CSS_SHORTHAND_DIRECTIONS: {
-            int n = 0;
-
-            CssDeclarationValue values[4];
-            CssDeclarationValueType types[4];
-            while (n < 4) {
-               CssDeclarationValue val;
-               CssDeclarationValueType type = tokenMatchesProperty(shinfo->properties[0], &parser->tokenizer.token);
-               if (type != CssDeclarationValueTypeUNUSED && parseDeclarationValue(parser, shinfo->properties[0], type, &val)) {
-                  values[n] = val;
-                  types[n] = type;
-                  n++;
-               } else
-                  break;
-            }
-
-            const bool weight = parser->parseWeight();
-            if (n > 0) {
-               int dir_set[4][4] = {
-                                    /* 1 value  */ {0, 0, 0, 0},
-                                    /* 2 values */ {0, 0, 1, 1},
-                                    /* 3 values */ {0, 2, 1, 1},
-                                    /* 4 values */ {0, 2, 3, 1}
-               };
-               for (int i = 0; i < 4; i++) {
-                  const int set_idx = dir_set[n - 1][i];
-                  values[set_idx].type = types[set_idx];
-
-                  if (weight)
-                     declarationListAddOrUpdateDeclaration(declListImportant, shinfo->properties[i], values[set_idx]);
-                  else
-                     declarationListAddOrUpdateDeclaration(declList, shinfo->properties[i], values[set_idx]);
-               }
-            } else
-               MSG_CSS("no values for shorthand property '%s'\n", shinfo->symbol);
-         }
+         case CSS_SHORTHAND_DIRECTIONS:
+            parseDeclarationDirections(parser, declList, declListImportant, shinfo->properties);
             break;
 
          case CSS_SHORTHAND_BORDER: {
@@ -550,6 +517,27 @@ typedef struct {
 
 static void parseDeclarationMultiple(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant, const CssDeclarationProperty properties[12])
 {
+#if 1
+   c_css_declaration_value_t * values = (c_css_declaration_value_t *) malloc(12 * sizeof (c_css_declaration_value_t));
+   int n = hll_parseDeclarationMultiple(&parser->hll_css_parser,
+                                        &parser->tokenizer.token,
+                                        parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
+                                        (int *) properties, values);
+
+   fprintf(stderr, "%d Multiple values\n", n);
+   for (int i = 0; i < n; i++) {
+      CssDeclarationValue val;
+      val.type   = (CssDeclarationValueType) values[i].c_type_tag;
+      val.intVal = values[i].c_int_val;
+      val.strVal = values[i].c_text_val;
+
+      if (values[i].c_important)
+         declarationListAddOrUpdateDeclaration(declListImportant, properties[i], val);
+      else
+         declarationListAddOrUpdateDeclaration(declList, properties[i], val);
+   }
+#else
+
    inter_t inter[12];
    memset(inter, 0, sizeof (inter));
    int inter_i = 0;
@@ -599,6 +587,65 @@ static void parseDeclarationMultiple(CssParser * parser, CssDeclartionList * dec
       else
          declarationListAddOrUpdateDeclaration(declList, inter[i].property, inter[i].value);
    }
+#endif
+}
+
+static void parseDeclarationDirections(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant, const CssDeclarationProperty properties[12])
+{
+#if 1
+   c_css_declaration_value_t * values = (c_css_declaration_value_t *) malloc(12 * sizeof (c_css_declaration_value_t));
+   int n = hll_parseDeclarationDirections(&parser->hll_css_parser,
+                                          &parser->tokenizer.token,
+                                          parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
+                                          (int *) properties, values);
+
+   fprintf(stderr, "%d Directions values\n", n);
+   for (int i = 0; i < n; i++) {
+      CssDeclarationValue val;
+      val.type   = (CssDeclarationValueType) values[i].c_type_tag;
+      val.intVal = values[i].c_int_val;
+      val.strVal = values[i].c_text_val;
+
+      if (false && values[i].c_important)
+         declarationListAddOrUpdateDeclaration(declListImportant, properties[i], val);
+      else
+         declarationListAddOrUpdateDeclaration(declList, properties[i], val);
+   }
+#else
+   int n = 0;
+
+   CssDeclarationValue values[4];
+   CssDeclarationValueType types[4];
+   while (n < 4) {
+      CssDeclarationValue val;
+      CssDeclarationValueType type = tokenMatchesProperty(properties[n], &parser->tokenizer.token);
+      if (type != CssDeclarationValueTypeUNUSED && parseDeclarationValue(parser, properties[n], type, &val)) {
+         values[n] = val;
+         types[n] = type;
+         n++;
+      } else
+         break;
+   }
+
+   const bool weight = parser->parseWeight();
+   if (n > 0) {
+      int dir_set[4][4] = {
+                           /* 1 value  */ {0, 0, 0, 0},
+                           /* 2 values */ {0, 0, 1, 1},
+                           /* 3 values */ {0, 2, 1, 1},
+                           /* 4 values */ {0, 2, 3, 1}
+      };
+      for (int i = 0; i < 4; i++) {
+         const int set_idx = dir_set[n - 1][i];
+         values[set_idx].type = types[set_idx];
+
+         if (weight)
+            declarationListAddOrUpdateDeclaration(declListImportant, properties[i], values[set_idx]);
+         else
+            declarationListAddOrUpdateDeclaration(declList, properties[i], values[set_idx]);
+      }
+   }
+#endif
 }
 
 c_css_selector_t * parseSelector(CssParser * cssParser)
