@@ -11,6 +11,8 @@ AC_CONFIG_HEADERS([config.h])
 
 sysconfdir=${sysconfdir}/${PACKAGE}
 
+CFLAGS=-O0
+
 dnl Options
 
 AC_ARG_WITH(jpeg-lib, [  --with-jpeg-lib=DIR     Specify where to find libjpeg], LIBJPEG_LIBDIR=$withval)

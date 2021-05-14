@@ -106,17 +106,17 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(sysconfdir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_dillo_OBJECTS = dillo.$(OBJEXT) paths.$(OBJEXT) tipwin.$(OBJEXT) \
 	ui.$(OBJEXT) uicmd.$(OBJEXT) bw.$(OBJEXT) cookies.$(OBJEXT) \
-	auth.$(OBJEXT) md5.$(OBJEXT) digest.$(OBJEXT) colors.$(OBJEXT) \
-	misc.$(OBJEXT) history.$(OBJEXT) prefs.$(OBJEXT) \
-	prefsparser.$(OBJEXT) keys.$(OBJEXT) url.$(OBJEXT) \
-	bitvec.$(OBJEXT) klist.$(OBJEXT) chain.$(OBJEXT) \
-	utf8.$(OBJEXT) timeout.$(OBJEXT) dialog.$(OBJEXT) \
-	web.$(OBJEXT) nav.$(OBJEXT) cache.$(OBJEXT) decode.$(OBJEXT) \
-	dicache.$(OBJEXT) capi.$(OBJEXT) domain.$(OBJEXT) \
-	css.$(OBJEXT) cssparser.$(OBJEXT) styleengine.$(OBJEXT) \
-	plain.$(OBJEXT) html.$(OBJEXT) form.$(OBJEXT) table.$(OBJEXT) \
-	bookmark.$(OBJEXT) dns.$(OBJEXT) gif.$(OBJEXT) jpeg.$(OBJEXT) \
-	png.$(OBJEXT) imgbuf.$(OBJEXT) image.$(OBJEXT) menu.$(OBJEXT) \
+	auth.$(OBJEXT) md5.$(OBJEXT) digest.$(OBJEXT) misc.$(OBJEXT) \
+	history.$(OBJEXT) prefs.$(OBJEXT) prefsparser.$(OBJEXT) \
+	keys.$(OBJEXT) url.$(OBJEXT) bitvec.$(OBJEXT) klist.$(OBJEXT) \
+	chain.$(OBJEXT) utf8.$(OBJEXT) timeout.$(OBJEXT) \
+	dialog.$(OBJEXT) web.$(OBJEXT) nav.$(OBJEXT) cache.$(OBJEXT) \
+	decode.$(OBJEXT) dicache.$(OBJEXT) capi.$(OBJEXT) \
+	domain.$(OBJEXT) css.$(OBJEXT) cssparser.$(OBJEXT) \
+	styleengine.$(OBJEXT) plain.$(OBJEXT) html.$(OBJEXT) \
+	form.$(OBJEXT) table.$(OBJEXT) bookmark.$(OBJEXT) \
+	dns.$(OBJEXT) gif.$(OBJEXT) jpeg.$(OBJEXT) png.$(OBJEXT) \
+	imgbuf.$(OBJEXT) image.$(OBJEXT) menu.$(OBJEXT) \
 	dpiapi.$(OBJEXT) findbar.$(OBJEXT) xembed.$(OBJEXT)
 dillo_OBJECTS = $(am_dillo_OBJECTS)
 dillo_DEPENDENCIES = $(top_builddir)/dlib/libDlib.a \
@@ -141,7 +141,7 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/auth.Po ./$(DEPDIR)/bitvec.Po \
 	./$(DEPDIR)/bookmark.Po ./$(DEPDIR)/bw.Po ./$(DEPDIR)/cache.Po \
-	./$(DEPDIR)/capi.Po ./$(DEPDIR)/chain.Po ./$(DEPDIR)/colors.Po \
+	./$(DEPDIR)/capi.Po ./$(DEPDIR)/chain.Po \
 	./$(DEPDIR)/cookies.Po ./$(DEPDIR)/css.Po \
 	./$(DEPDIR)/cssparser.Po ./$(DEPDIR)/decode.Po \
 	./$(DEPDIR)/dialog.Po ./$(DEPDIR)/dicache.Po \
@@ -620,7 +620,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cache.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/capi.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chain.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/colors.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cookies.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/css.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cssparser.Po@am__quote@ # am--include-marker
@@ -924,7 +923,6 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/cache.Po
 	-rm -f ./$(DEPDIR)/capi.Po
 	-rm -f ./$(DEPDIR)/chain.Po
-	-rm -f ./$(DEPDIR)/colors.Po
 	-rm -f ./$(DEPDIR)/cookies.Po
 	-rm -f ./$(DEPDIR)/css.Po
 	-rm -f ./$(DEPDIR)/cssparser.Po
@@ -1017,7 +1015,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/cache.Po
 	-rm -f ./$(DEPDIR)/capi.Po
 	-rm -f ./$(DEPDIR)/chain.Po
-	-rm -f ./$(DEPDIR)/colors.Po
 	-rm -f ./$(DEPDIR)/cookies.Po
 	-rm -f ./$(DEPDIR)/css.Po
 	-rm -f ./$(DEPDIR)/cssparser.Po
