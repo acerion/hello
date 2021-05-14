@@ -40,8 +40,6 @@ class CssParser {
       CssParser(CssContext *context, CssOrigin origin, const DilloUrl *baseUrl,
                 const char *buf, int buflen);
 
-      /* declarationProperty:declarationValue, e.g. color:#324156 */
-      bool parseWeight();
       char *parseUrl();
       void parseImport(DilloHtml *html);
       void parseMedia();

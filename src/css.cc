@@ -23,15 +23,27 @@ void printCssDeclaration(c_css_declaration_t * declaration, FILE * file)
    case CssDeclarationValueTypeSTRING:
    case CssDeclarationValueTypeSYMBOL:
    case CssDeclarationValueTypeURI:
-      fprintf (file, "            Rule: Declaration: property = '%s', value = [%s]\n", hll_cssPropertyNameString(declaration->c_property), declaration->c_value.strVal);
+      if (declaration->c_property == -1) {
+         fprintf(file, "ERROR: property == -1 (A)\n"); // TODO: unset property. Maybe this happens on parse error?
+      } else {
+         fprintf (file, "            Rule: Declaration: property = '%s', value = [%s]\n", hll_cssPropertyNameString(declaration->c_property), declaration->c_value.strVal);
+      }
       break;
    case CssDeclarationValueTypeBACKGROUND_POSITION:
-      fprintf (file, "            Rule: Declaration: property = '%s', posValue = %d / %d\n",
-               hll_cssPropertyNameString(declaration->c_property),
-               declaration->c_value.posVal.posX, declaration->c_value.posVal.posY);
+      if (declaration->c_property == -1) {
+         fprintf(file, "ERROR: property == -1 (B)\n"); // TODO: unset property. Maybe this happens on parse error?
+      } else {
+         fprintf (file, "            Rule: Declaration: property = '%s', posValue = %d / %d\n",
+                  hll_cssPropertyNameString(declaration->c_property),
+                  declaration->c_value.posVal.posX, declaration->c_value.posVal.posY);
+      }
       break;
    default:
-      fprintf (file, "            Rule: Declaration: property = '%s', value = %d\n", hll_cssPropertyNameString(declaration->c_property), declaration->c_value.intVal);
+      if (declaration->c_property == -1) {
+         fprintf(file, "ERROR: property == -1 (C)\n"); // TODO: unset property. Maybe this happens on parse error?
+      } else {
+         fprintf (file, "            Rule: Declaration: property = '%s', value = %d\n", hll_cssPropertyNameString(declaration->c_property), declaration->c_value.intVal);
+      }
       break;
    }
 }

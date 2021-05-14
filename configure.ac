@@ -11,7 +11,8 @@ AC_CONFIG_HEADERS([config.h])
 
 sysconfdir=${sysconfdir}/${PACKAGE}
 
-CFLAGS=-O0
+CFLAGS="-g -O0"
+CXXFLAGS="-g -O0"
 
 dnl Options
 

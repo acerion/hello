@@ -55,7 +55,6 @@ module CssParser(nextToken
                 , takeSymbol
                 , takeInt
                 , parseUrl
-                , cssParseWeight
                 , CssParser (..)
                 , CssToken (..)
                 , tryTakingRgbFunction
@@ -1483,6 +1482,7 @@ data CssDeclValue = CssDeclValue {
   , intVal  :: Int
   , textVal :: T.Text
   , important :: Bool
+  , property2 :: Int
   } deriving (Show)
 
 
@@ -1509,6 +1509,7 @@ defaultValue = CssDeclValue {
   , intVal  = 0
   , textVal = ""
   , important = False
+  , property2 = (-1) -- TODO: somewhere there is a code that does not set property2 field.
   }
 
 
@@ -1530,7 +1531,7 @@ parseDeclValue2 :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe
 parseDeclValue2 (parser, token) property =
   case tokenMatchesProperty token property of
     Just valueType  -> case parseDeclValue (parser, token) valueType property of
-                         ((p, t), Just v)  -> ((p, t), Just v{important = imp}, property)
+                         ((p, t), Just v)  -> ((p, t), Just v{important = imp, property2=property}, property)
                          ((p, t), Nothing) -> ((p, t), Nothing, -2)
     Nothing -> ((parser, token), Nothing, -2)
 
@@ -1581,7 +1582,7 @@ parseDeclarationMultiple :: (CssParser, CssToken) -> [Int] -> [CssDeclValue] -> 
 parseDeclarationMultiple (parser, token) (prop:properties) values =
   case tokenMatchesProperty token prop of
     Just valueType -> case parseDeclValue (parser, token) valueType prop of
-                        ((p, t), Just v)  -> trace ("---- parsed as " ++ (show v)) parseDeclarationMultiple (p, t) properties (values ++ [v]) -- TODO: add setting 'important' member
+                        ((p, t), Just v)  -> parseDeclarationMultiple (p, t) properties (values ++ [v]) -- TODO: add setting 'important' member
                         ((p, t), Nothing) -> parseDeclarationMultiple (p, t) properties values
     Nothing        -> parseDeclarationMultiple (parser, token) properties values
 parseDeclarationMultiple (parser, token) [] values                = ((parser, token), values)
@@ -1591,14 +1592,15 @@ parseDeclarationMultiple (parser, token) [] values                = ((parser, to
 
 
 parseDeclarationDirections :: (CssParser, CssToken) -> [Int] -> ((CssParser, CssToken), [CssDeclValue])
-parseDeclarationDirections (parser, token) properties = ((outParser, outToken), outVals)
+parseDeclarationDirections (parser, token) properties@(pt:pr:pb:pl:ps) = ((outParser, outToken), outVals)
   where outVals = case vals of
-          all@(top:right:bottom:left:[]) -> all
-          (top:rl:bottom:[])             -> [top, rl, bottom, rl]
-          (tb:rl:[])                     -> [tb, rl, tb, rl]
-          (v:[])                         -> [v, v, v, v]
-          []                             -> []
+          (top:right:bottom:left:[]) -> [top{property2=pt}, right{property2=pr}, bottom{property2=pb}, left{property2=pl}]
+          (top:rl:bottom:[])         -> [top{property2=pt}, rl   {property2=pr}, bottom{property2=pb}, rl  {property2=pl}]
+          (tb:rl:[])                 -> [tb {property2=pt}, rl   {property2=pr}, tb    {property2=pb}, rl  {property2=pl}]
+          (v:[])                     -> [v  {property2=pt}, v    {property2=pr}, v     {property2=pb}, v   {property2=pl}]
+          []                         -> []
         ((outParser, outToken), vals) = matchOrderedTokens (parser, token) properties []
+parseDeclarationDirections (parser, token) _ = ((parser, token), [])
 
 
 
@@ -1610,7 +1612,7 @@ matchOrderedTokens :: (CssParser, CssToken) -> [Int] -> [CssDeclValue] -> ((CssP
 matchOrderedTokens(parser, token) (prop:properties) values =
   case tokenMatchesProperty token prop of
     Just valueType -> case parseDeclValue (parser, token) valueType prop of
-                        ((p, t), Just v)  -> matchOrderedTokens (p, t) properties (values ++ [v]) -- TODO: add setting 'important' member
+                        ((p, t), Just v)  -> matchOrderedTokens (p, t) properties (values ++ [v{property2=prop}]) -- TODO: add setting 'important' member
                         ((p, t), Nothing) -> ((p, t), values)
     Nothing        -> ((parser, token), values)
 matchOrderedTokens (parser, token) [] values               = ((parser, token), values)
@@ -1626,7 +1628,10 @@ parseDeclarationBorder :: (CssParser, CssToken) -> [Int] -> [CssDeclValue] -> ((
 parseDeclarationBorder (parser, token) (top:right:bottom:left:properties) values =
   case tokenMatchesProperty token top of
     Just valueType -> case parseDeclValue (parser, token) valueType top of
-                        ((p, t), Just v)  -> parseDeclarationBorder (p, t) properties (values ++ [v, v, v, v]) -- Add the same value for top/right/bottom/left border
+                        ((p, t), Just v)  -> parseDeclarationBorder (p, t) properties (values ++ [ v{property2=top}
+                                                                                                 , v{property2=right}
+                                                                                                 , v{property2=bottom}
+                                                                                                 , v{property2=left}]) -- Add the same value for top/right/bottom/left border
                                                                                                                -- TODO: add setting 'important' member
                         ((p, t), Nothing) -> parseDeclarationBorder (p, t) properties values
     Nothing        -> parseDeclarationBorder (parser, token) properties values

@@ -64,12 +64,13 @@ typedef struct c_css_selector_t {
 
 
 
-typedef struct c_css_declaration_value_t {
+typedef struct c_css_declaration_ffi_t {
    int c_type_tag;
    int c_int_val;
    char * c_text_val;
    int c_important;
-} c_css_declaration_value_t;
+   int c_property;
+} c_css_declaration_ffi_t;
 
 
 typedef struct c_css_token_t {
@@ -123,8 +124,6 @@ int hll_cssPropertyInfoIdxByName(const char * propertyName);
 const char * hll_cssPropertyNameString(int property);
 
 
-int hll_cssParseWeight(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
-
 CssLengthType hll_cssLengthType(int cssLength);
 float hll_cssLengthValue(int cssLength);
 int hll_cssCreateLength(float val, CssLengthType t);
@@ -133,12 +132,12 @@ int hll_cssCreateLength(float val, CssLengthType t);
    Return NULL otherwise. */
 c_css_selector_t * hll_cssParseSelector(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
 
-int hll_parseDeclarationNormal(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_value_t * value);
+int hll_parseDeclarationNormal(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_ffi_t * declarations);
 
 // Return value is boolean
-int hll_parseDeclarationValue(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int declValueType, int declProperty, c_css_declaration_value_t * value);
+int hll_parseDeclarationValue(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int declValueType, int declProperty, c_css_declaration_ffi_t * declaration);
 
-int hll_parseDeclarationShorthand(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int * properties, c_css_declaration_value_t * values, int shorthand_type);
+int hll_parseDeclarationShorthand(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int * properties, c_css_declaration_ffi_t * declarations, int shorthand_type);
 
 
 #ifdef __cplusplus

@@ -88,8 +88,6 @@ void ignoreBlock(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 void ignoreStatement(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 
 static void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
-static bool parseDeclarationNormal(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
-static int parseDeclarationShorthands(CssParser * parser, c_css_declaration_value_t * values, const CssDeclarationProperty * properties, css_shorthand_t shorthand_type);
 
 
 const char * tokenizerGetTokenTypeStr(CssTokenizer * tokenizer)
@@ -205,20 +203,20 @@ bool parseDeclarationValue(CssParser * parser,
    case CssDeclarationValueTypeSYMBOL:
    case CssDeclarationValueTypeURI:
       {
-         c_css_declaration_value_t val;
-         memset(&val, 0, sizeof (val));
+         c_css_declaration_ffi_t declarations[1];
+         memset(&declarations, 0, sizeof (declarations));
 
          if (hll_parseDeclarationValue(&parser->hll_css_parser,
                                        &parser->tokenizer.token,
                                        parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
                                        valueType,
                                        property,
-                                       &val)) {
+                                       declarations)) {
 
             // Property found. Value found and valid. Declaration parsed.
-            value->type   = (CssDeclarationValueType) val.c_type_tag;
-            value->intVal = val.c_int_val;
-            value->strVal = val.c_text_val;
+            value->type   = (CssDeclarationValueType) declarations[0].c_type_tag;
+            value->intVal = declarations[0].c_int_val;
+            value->strVal = declarations[0].c_text_val;
             ret = true;
          }
 
@@ -344,128 +342,64 @@ bool parseDeclarationValue(CssParser * parser,
    return ret;
 }
 
-bool CssParser::parseWeight()
-{
-   int ival = hll_cssParseWeight(&this->hll_css_parser,
-                                 &tokenizer.token,
-                                 this->tokenizer.buf + this->hll_css_parser.c_buf_offset);
-   return ival;
-}
-
-
 void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant)
 {
-      if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_SYMBOL) {
-         int n = 0;
-         c_css_declaration_value_t * values = (c_css_declaration_value_t *) malloc(12 * sizeof (c_css_declaration_value_t));
-         const CssDeclarationProperty * properties = NULL;
-         if (!parseDeclarationNormal(parser, declList, declListImportant)) {
-            /* Try shorthands. */
-            const int sh_index = hll_cssShorthandInfoIdxByName(parser->tokenizer.token.c_value);
+   if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_SYMBOL) {
+      int n = 0;
+      c_css_declaration_ffi_t * declarations = (c_css_declaration_ffi_t *) malloc(12 * sizeof (c_css_declaration_ffi_t));
+      const CssDeclarationProperty * properties = NULL;
 
-            if (-1 != sh_index) {
-               const CssShorthandInfo * shinfo = &Css_shorthand_info[sh_index];
-               properties = shinfo->properties;
-               n = parseDeclarationShorthands(parser, values, properties, shinfo->type);
+      int rv = hll_parseDeclarationNormal(&parser->hll_css_parser,
+                                          &parser->tokenizer.token,
+                                          parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
+                                          declarations);
+      if (rv >= 0) {
+         // Property found. Value found and valid. Declaration parsed.
+         n = 1;
+      } else if (rv == -1) {
+         // Property not found. Try to find the property among shorthands.
+         const int sh_index = hll_cssShorthandInfoIdxByName(parser->tokenizer.token.c_value);
+
+         if (-1 != sh_index) {
+            const CssShorthandInfo * shinfo = &Css_shorthand_info[sh_index];
+            properties = shinfo->properties;
+
+            nextToken(&parser->tokenizer, &parser->hll_css_parser); // Skip ':' after property (before value)
+            if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == ':') {
+               nextToken(&parser->tokenizer, &parser->hll_css_parser);
+
+               n = hll_parseDeclarationShorthand(&parser->hll_css_parser,
+                                                 &parser->tokenizer.token,
+                                                 parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
+                                                 (int *) properties, declarations, shinfo->type);
             }
          }
-
-         for (int v = 0; v < n; v++) {
-            CssDeclarationValue val;
-            val.type   = (CssDeclarationValueType) values[v].c_type_tag;
-            val.intVal = values[v].c_int_val;
-            val.strVal = values[v].c_text_val;
-
-            if (false && values[v].c_important)
-               declarationListAddOrUpdateDeclaration(declListImportant, properties[v], val);
-            else
-               declarationListAddOrUpdateDeclaration(declList, properties[v], val);
-         }
+      } else {
+         // Property found, but some error occurred during parsing. Skip this declaration.
+         n = 0;
       }
 
-      /* Skip all tokens until the expected end. */
-      while (!(parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_END ||
+      for (int v = 0; v < n; v++) {
+         CssDeclarationValue val;
+         val.type   = (CssDeclarationValueType) declarations[v].c_type_tag;
+         val.intVal = declarations[v].c_int_val;
+         val.strVal = declarations[v].c_text_val;
+
+         if (declarations[v].c_important)
+            declarationListAddOrUpdateDeclaration(declListImportant, (CssDeclarationProperty) declarations[v].c_property, val);
+         else
+            declarationListAddOrUpdateDeclaration(declList, (CssDeclarationProperty) declarations[v].c_property, val);
+      }
+   }
+
+   /* Skip all tokens until the expected end. */
+   while (!(parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_END ||
             (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR &&
              (parser->tokenizer.token.c_value[0] == ';' || parser->tokenizer.token.c_value[0] == '}'))))
-         nextToken(&parser->tokenizer, &parser->hll_css_parser);
-
-      if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == ';')
-         nextToken(&parser->tokenizer, &parser->hll_css_parser);
-}
-
-bool parseDeclarationNormal(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant)
-{
-#if 1
-   c_css_declaration_value_t value;
-   memset(&value, 0, sizeof (value));
-   int rv = hll_parseDeclarationNormal(&parser->hll_css_parser,
-                                       &parser->tokenizer.token,
-                                       parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
-                                       &value);
-
-   if (rv >= 0) {
-      // Property found. Value found and valid. Declaration parsed.
-      CssDeclarationValue val;
-      val.type   = (CssDeclarationValueType) value.c_type_tag;
-      val.intVal = value.c_int_val;
-      val.strVal = value.c_text_val;
-
-      if (value.c_important) {
-         declarationListAddOrUpdateDeclaration(declListImportant, (CssDeclarationProperty) rv, val);
-      } else {
-         declarationListAddOrUpdateDeclaration(declList, (CssDeclarationProperty) rv, val);
-      }
-      return true;
-   } else if (rv == -1) {
-      // Property not found. Try to find the property among shortcuts.
-      return false;
-   } else {
-      // Property found, but some error occurred during parsing. Skip this declaration.
-      return true;
-   }
-#else
-   const int idx = hll_cssPropertyInfoIdxByName(parser->tokenizer.value_);
-   if (-1 != idx) {
-      CssDeclarationProperty property = (CssDeclarationProperty) idx;
-      nextToken(&parser->tokenizer, &parser->hll_css_parser);
-      if (parser->tokenizer.type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.value_[0] == ':') {
-         nextToken(&parser->tokenizer, &parser->hll_css_parser);
-
-         CssDeclarationValue val;
-         CssDeclarationValueType type = tokenMatchesProperty(property, parser->tokenizer.value_, parser->tokenizer.type);
-         if (CssDeclarationValueTypeUNUSED != type && parseDeclarationValue(parser, property, type, &val)) {
-
-            const bool weight = parser->parseWeight();
-
-            val.type = type;
-            if (weight)
-               declarationListAddOrUpdateDeclaration(declListImportant, property, val);
-            else
-               declarationListAddOrUpdateDeclaration(declList, property, val);
-         }
-      }
-      return true;
-   } else {
-      return false;
-   }
-#endif
-}
-
-int parseDeclarationShorthands(CssParser * parser, c_css_declaration_value_t * values, const CssDeclarationProperty * properties, css_shorthand_t shorthand_type)
-{
-   int n = 0;
-
-   nextToken(&parser->tokenizer, &parser->hll_css_parser); // Skip ':' after property (before value)
-   if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == ':') {
       nextToken(&parser->tokenizer, &parser->hll_css_parser);
 
-      n = hll_parseDeclarationShorthand(&parser->hll_css_parser,
-                                        &parser->tokenizer.token,
-                                        parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
-                                        (int *) properties, values, shorthand_type);
-   }
-
-   return n;
+   if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == ';')
+      nextToken(&parser->tokenizer, &parser->hll_css_parser);
 }
 
 c_css_selector_t * parseSelector(CssParser * cssParser)

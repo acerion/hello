@@ -6,8 +6,8 @@ all:
 	hsc2hs ffi/HtmlTag.hsc
 	hsc2hs ffi/CssParser.hsc
 
-	ghc -O2 -fPIC -c wrapper.c
-	ghc -O2 -dynamic -shared -fPIC -o libhello.so \
+	ghc -g -O0 -fPIC -c wrapper.c
+	ghc -g -O0 -dynamic -shared -fPIC -o libhello.so \
 		URL.hs cookies.hs \
 		Gif.hs              ffi/Gif.hs \
 		CssParser.hs        ffi/CssParser.hs \
