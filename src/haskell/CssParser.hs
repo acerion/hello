@@ -86,6 +86,12 @@ module CssParser(nextToken
                 , parseDeclarationMultiple
                 , parseDeclarationDirections
                 , parseDeclarationBorder
+                , parseDeclarationShorthand
+
+                , cssShorthandTypeMultiple
+                , cssShorthandTypeDirections
+                , cssShorthandTypeBorder
+                , cssShorthandTypeFont
 
                 , takeLengthTokens
 
@@ -1625,3 +1631,13 @@ parseDeclarationBorder (parser, token) (top:right:bottom:left:properties) values
                         ((p, t), Nothing) -> parseDeclarationBorder (p, t) properties values
     Nothing        -> parseDeclarationBorder (parser, token) properties values
 parseDeclarationBorder (parser, token) [] values                                 = ((parser, token), values)
+
+
+
+
+parseDeclarationShorthand :: (CssParser, CssToken) -> [Int] -> Int -> ((CssParser, CssToken), [CssDeclValue])
+parseDeclarationShorthand (parser, token) properties shorthandType | shorthandType == cssShorthandTypeMultiple   = parseDeclarationMultiple (parser, token) properties []
+                                                                   | shorthandType == cssShorthandTypeDirections = parseDeclarationDirections (parser, token) properties
+                                                                   | shorthandType == cssShorthandTypeBorder     = parseDeclarationBorder (parser, token) properties []
+                                                                   | shorthandType == cssShorthandTypeFont       = parseDeclarationMultiple (parser, token) properties []
+                                                                   | otherwise = ((parser, token), [])

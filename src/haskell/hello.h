@@ -138,9 +138,7 @@ int hll_parseDeclarationNormal(c_css_parser_t * hll_parser, c_css_token_t * toke
 // Return value is boolean
 int hll_parseDeclarationValue(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int declValueType, int declProperty, c_css_declaration_value_t * value);
 
-int hll_parseDeclarationMultiple(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int * properties, c_css_declaration_value_t * values);
-int hll_parseDeclarationDirections(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int * properties, c_css_declaration_value_t * values);
-int hll_parseDeclarationBorder(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int * properties, c_css_declaration_value_t * values);
+int hll_parseDeclarationShorthand(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int * properties, c_css_declaration_value_t * values, int shorthand_type);
 
 
 #ifdef __cplusplus
