@@ -67,6 +67,7 @@ foreign export ccall "hll_parseDeclarationValue" hll_parseDeclarationValue :: Pt
 
 foreign export ccall "hll_parseDeclarationMultiple" hll_parseDeclarationMultiple :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr CInt -> Ptr HelloCssDeclValue -> IO Int
 foreign export ccall "hll_parseDeclarationDirections" hll_parseDeclarationDirections :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr CInt -> Ptr HelloCssDeclValue -> IO Int
+foreign export ccall "hll_parseDeclarationBorder" hll_parseDeclarationBorder :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr CInt -> Ptr HelloCssDeclValue -> IO Int
 
 
 
@@ -675,7 +676,37 @@ hll_parseDeclarationDirections ptrStructCssParser ptrStructCssToken cBuf ptrArra
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
 
-  putStrLn ("VALUES are " ++ (show values))
+  updateValues ptrStructCssDeclValue values
+
+  return (length values)
+
+
+
+
+hll_parseDeclarationBorder :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr CInt -> Ptr HelloCssDeclValue -> IO Int
+hll_parseDeclarationBorder ptrStructCssParser ptrStructCssToken cBuf ptrArrayProperties ptrStructCssDeclValue = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
+
+  cProperties <- peekArray 12 ptrArrayProperties
+  let properties = fmap fromIntegral cProperties
+  putStrLn ("Properties are " ++ (show properties))
+
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                            }
+
+  cToken   <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ cToken
+  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+
+  let ((newParser, newToken), values) = parseDeclarationBorder (parser, token) properties []
+
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
+
   updateValues ptrStructCssDeclValue values
 
   return (length values)

@@ -85,6 +85,7 @@ module CssParser(nextToken
 
                 , parseDeclarationMultiple
                 , parseDeclarationDirections
+                , parseDeclarationBorder
 
                 , takeLengthTokens
 
@@ -429,10 +430,9 @@ cssShorthandInfo = V.fromList [
     ("background",     cssShorthandTypeMultiple,      [ cssDeclPropertyBackgroundColor, cssDeclPropertyBackgroundImage, cssDeclPropertyBackgroundRepeat,
                                                         cssDeclPropertyBackgroundAttachment, cssDeclPropertyBackgroundPosition, cssDeclPropertyEnd ])
 
-  , ("border",         cssShorthandTypeBorder,        [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderTopStyle,     cssDeclPropertyBorderTopColor,
-                                                        cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderBottomStyle,  cssDeclPropertyBorderBottomColor,
-                                                        cssDeclPropertyBorderLeftWidth,   cssDeclPropertyBorderLeftStyle,    cssDeclPropertyBorderLeftColor,
-                                                        cssDeclPropertyBorderRightWidth,  cssDeclPropertyBorderRightStyle,   cssDeclPropertyBorderRightColor ])
+  , ("border",         cssShorthandTypeBorder,        [ cssDeclPropertyBorderTopWidth, cssDeclPropertyBorderRightWidth, cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderLeftWidth,
+                                                        cssDeclPropertyBorderTopStyle, cssDeclPropertyBorderRightStyle, cssDeclPropertyBorderBottomStyle, cssDeclPropertyBorderLeftStyle,
+                                                        cssDeclPropertyBorderTopColor, cssDeclPropertyBorderRightColor, cssDeclPropertyBorderBottomColor, cssDeclPropertyBorderLeftColor])
 
   , ("border-bottom",  cssShorthandTypeMultiple,      [ cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderBottomStyle,  cssDeclPropertyBorderBottomColor, cssDeclPropertyEnd])
   , ("border-color",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopColor,    cssDeclPropertyBorderRightColor,   cssDeclPropertyBorderBottomColor, cssDeclPropertyBorderLeftColor ])
@@ -1609,3 +1609,19 @@ matchOrderedTokens(parser, token) (prop:properties) values =
     Nothing        -> ((parser, token), values)
 matchOrderedTokens (parser, token) [] values               = ((parser, token), values)
 
+
+
+
+
+-- TODO: this implementation can correctly parse all value tokens only when
+-- they appear in the same order as 'property' integers. The function should
+-- be able to handle the tokens in any order.
+parseDeclarationBorder :: (CssParser, CssToken) -> [Int] -> [CssDeclValue] -> ((CssParser, CssToken), [CssDeclValue])
+parseDeclarationBorder (parser, token) (top:right:bottom:left:properties) values =
+  case tokenMatchesProperty token top of
+    Just valueType -> case parseDeclValue (parser, token) valueType top of
+                        ((p, t), Just v)  -> parseDeclarationBorder (p, t) properties (values ++ [v, v, v, v]) -- Add the same value for top/right/bottom/left border
+                                                                                                               -- TODO: add setting 'important' member
+                        ((p, t), Nothing) -> parseDeclarationBorder (p, t) properties values
+    Nothing        -> parseDeclarationBorder (parser, token) properties values
+parseDeclarationBorder (parser, token) [] values                                 = ((parser, token), values)

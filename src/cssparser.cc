@@ -55,10 +55,9 @@ static const CssShorthandInfo Css_shorthand_info[] =
    {"background",     CSS_SHORTHAND_MULTIPLE,      { CSS_PROPERTY_BACKGROUND_COLOR, CSS_PROPERTY_BACKGROUND_IMAGE, CSS_PROPERTY_BACKGROUND_REPEAT,
                                                      CSS_PROPERTY_BACKGROUND_ATTACHMENT, CSS_PROPERTY_BACKGROUND_POSITION, CSS_PROPERTY_END } },
 
-   {"border",         CSS_SHORTHAND_BORDER,        { CSS_PROPERTY_BORDER_TOP_WIDTH,    CSS_PROPERTY_BORDER_TOP_STYLE,     CSS_PROPERTY_BORDER_TOP_COLOR,
-                                                     CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CSS_PROPERTY_BORDER_BOTTOM_STYLE,  CSS_PROPERTY_BORDER_BOTTOM_COLOR,
-                                                     CSS_PROPERTY_BORDER_LEFT_WIDTH,   CSS_PROPERTY_BORDER_LEFT_STYLE,    CSS_PROPERTY_BORDER_LEFT_COLOR,
-                                                     CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CSS_PROPERTY_BORDER_RIGHT_STYLE,   CSS_PROPERTY_BORDER_RIGHT_COLOR } },
+   {"border",         CSS_SHORTHAND_BORDER,        { CSS_PROPERTY_BORDER_TOP_WIDTH,    CSS_PROPERTY_BORDER_RIGHT_WIDTH,   CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CSS_PROPERTY_BORDER_LEFT_WIDTH,
+                                                     CSS_PROPERTY_BORDER_TOP_STYLE,    CSS_PROPERTY_BORDER_RIGHT_STYLE,   CSS_PROPERTY_BORDER_BOTTOM_STYLE, CSS_PROPERTY_BORDER_LEFT_STYLE,
+                                                     CSS_PROPERTY_BORDER_TOP_COLOR,    CSS_PROPERTY_BORDER_BOTTOM_COLOR,  CSS_PROPERTY_BORDER_RIGHT_COLOR,  CSS_PROPERTY_BORDER_LEFT_COLOR } },
 
    {"border-bottom",  CSS_SHORTHAND_MULTIPLE,      { CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CSS_PROPERTY_BORDER_BOTTOM_STYLE,  CSS_PROPERTY_BORDER_BOTTOM_COLOR, CSS_PROPERTY_END } },
    {"border-color",   CSS_SHORTHAND_DIRECTIONS,    { CSS_PROPERTY_BORDER_TOP_COLOR,    CSS_PROPERTY_BORDER_BOTTOM_COLOR,  CSS_PROPERTY_BORDER_LEFT_COLOR,   CSS_PROPERTY_BORDER_RIGHT_COLOR } },
@@ -92,6 +91,7 @@ static void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * decl
 static bool parseDeclarationNormal(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
 static void parseDeclarationMultiple(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant, const CssDeclarationProperty properties[12]);
 static void parseDeclarationDirections(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant, const CssDeclarationProperty properties[12]);
+static void parseDeclarationBorder(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant, const CssDeclarationProperty properties[12]);
 static void parseDeclarationShorthands(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
 
 
@@ -461,48 +461,8 @@ void parseDeclarationShorthands(CssParser * parser, CssDeclartionList * declList
             parseDeclarationDirections(parser, declList, declListImportant, shinfo->properties);
             break;
 
-         case CSS_SHORTHAND_BORDER: {
-            bool found;
-
-            fprintf(stderr, "shorthand: BORDER: token = '%s'\n", parser->tokenizer.token.c_value);
-
-            do {
-               int i = 0;
-               for (found = false, i = 0; !found && i < 3; i++) {
-                  fprintf(stderr, "shorthand: BORDER: i = %d\n", i);
-                  CssDeclarationValue val;
-                  CssDeclarationValueType type = tokenMatchesProperty(shinfo->properties[i], &parser->tokenizer.token);
-                  if (CssDeclarationValueTypeUNUSED != type) {
-                     fprintf(stderr, "shorthand: BORDER: token = '%s' matches property #%d = '%s'\n",
-                             parser->tokenizer.token.c_value,
-                             i,
-                             hll_cssPropertyNameString(shinfo->properties[i]));
-                     found = true;
-
-                     if (parseDeclarationValue(parser, shinfo->properties[i], type, &val)) {
-                        fprintf(stderr, "shorthand: BORDER: value parsed\n");
-                        const bool weight = parser->parseWeight();
-                        for (int j = 0; j < 4; j++) {
-
-                           val.type = type;
-                           if (weight)
-                              declarationListAddOrUpdateDeclaration(declListImportant, shinfo->properties[j * 3 + i], val);
-                           else
-                              declarationListAddOrUpdateDeclaration(declList, shinfo->properties[j * 3 + i], val);
-                        }
-                     } else {
-                        fprintf(stderr, "shorthand: BORDER: value not parsed\n");
-                     }
-
-                  } else {
-                     fprintf(stderr, "shorthand: BORDER: token = '%s' doesn't match property #%d = '%s'\n",
-                             parser->tokenizer.token.c_value,
-                             i,
-                             hll_cssPropertyNameString(shinfo->properties[i]));
-                  }
-               }
-            } while (found);
-         }
+         case CSS_SHORTHAND_BORDER:
+            parseDeclarationBorder(parser, declList, declListImportant, shinfo->properties);
             break;
          }
       }
@@ -645,6 +605,54 @@ static void parseDeclarationDirections(CssParser * parser, CssDeclartionList * d
             declarationListAddOrUpdateDeclaration(declList, properties[i], values[set_idx]);
       }
    }
+#endif
+}
+
+void parseDeclarationBorder(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant, const CssDeclarationProperty properties[12])
+{
+#if 1
+   c_css_declaration_value_t * values = (c_css_declaration_value_t *) malloc(12 * sizeof (c_css_declaration_value_t));
+   int n = hll_parseDeclarationBorder(&parser->hll_css_parser,
+                                      &parser->tokenizer.token,
+                                      parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
+                                      (int *) properties, values);
+
+   fprintf(stderr, "%d Border values\n", n);
+   for (int v = 0; v < n; v++) {
+      CssDeclarationValue val;
+      val.type   = (CssDeclarationValueType) values[v].c_type_tag;
+      val.intVal = values[v].c_int_val;
+      val.strVal = values[v].c_text_val;
+
+      if (false && values[v].c_important)
+         declarationListAddOrUpdateDeclaration(declListImportant, properties[v], val);
+      else
+         declarationListAddOrUpdateDeclaration(declList, properties[v], val);
+   }
+#else
+   bool found;
+   do {
+      int i = 0;
+      for (found = false, i = 0; !found && i < 3; i++) {
+         CssDeclarationValue val;
+         CssDeclarationValueType type = tokenMatchesProperty(properties[i], &parser->tokenizer.token);
+         if (CssDeclarationValueTypeUNUSED != type) {
+            found = true;
+
+            if (parseDeclarationValue(parser, properties[i], type, &val)) {
+               const bool weight = parser->parseWeight();
+               for (int j = 0; j < 4; j++) {
+
+                  val.type = type;
+                  if (weight)
+                     declarationListAddOrUpdateDeclaration(declListImportant, properties[j * 3 + i], val);
+                  else
+                     declarationListAddOrUpdateDeclaration(declList, properties[j * 3 + i], val);
+               }
+            }
+         }
+      }
+   } while (found);
 #endif
 }
 

@@ -140,6 +140,7 @@ int hll_parseDeclarationValue(c_css_parser_t * hll_parser, c_css_token_t * token
 
 int hll_parseDeclarationMultiple(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int * properties, c_css_declaration_value_t * values);
 int hll_parseDeclarationDirections(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int * properties, c_css_declaration_value_t * values);
+int hll_parseDeclarationBorder(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int * properties, c_css_declaration_value_t * values);
 
 
 #ifdef __cplusplus
