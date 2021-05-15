@@ -60,9 +60,7 @@ foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByNa
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
-foreign export ccall "hll_parseDeclarationNormal" hll_parseDeclarationNormal :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDecl -> IO Int
 foreign export ccall "hll_parseDeclarationValue" hll_parseDeclarationValue :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> Ptr HelloCssDecl -> IO Int
-foreign export ccall "hll_parseDeclarationShorthand" hll_parseDeclarationShorthand :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr CInt -> Ptr HelloCssDecl -> CInt -> IO Int
 
 foreign export ccall "hll_parseDeclarationWrapper" hll_parseDeclarationWrapper :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDecl -> IO Int
 
@@ -559,77 +557,6 @@ instance Storable HelloCssDecl where
     d <- #{peek c_css_declaration_ffi_t, c_important} ptr
     e <- #{peek c_css_declaration_ffi_t, c_property} ptr
     return (HelloCssDecl a b c d e)
-
-
-
-
-hll_parseDeclarationNormal :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDecl -> IO Int
-hll_parseDeclarationNormal ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDeclValue = do
-  buf     <- BSU.unsafePackCString $ cBuf
-  cParser <- peek ptrStructCssParser
-
-  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ cParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
-                            }
-
-  cToken   <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ cToken
-  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
-
-  let ((newParser, newToken), value, ret) = parseDeclNormal (parser, token)
-
-  updateParserStruct ptrStructCssParser newParser
-  updateTokenStruct ptrStructCssToken newToken
-
-  if ret >= 0
-  then case value of
-         Just v -> do
-           ptrStr <- newCString . T.unpack . textVal $ v
-           poke ptrStructCssDeclValue $ HelloCssDecl (fromIntegral . typeTag $ v) (fromIntegral . intVal $ v) ptrStr (if important v then 1 else 0) (fromIntegral . property2 $ v)
-           return ret
-         Nothing ->
-           return (-1)
-  else return ret
-
-
-
-
-hll_parseDeclarationShorthand :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr CInt -> Ptr HelloCssDecl -> CInt -> IO Int
-hll_parseDeclarationShorthand ptrStructCssParser ptrStructCssToken cBuf ptrArrayProperties ptrStructCssDeclValue cShorthandType = do
-  buf     <- BSU.unsafePackCString $ cBuf
-  cParser <- peek ptrStructCssParser
-
-  let shorthandType = fromIntegral cShorthandType
-
-  let cProperties | shorthandType == cssShorthandTypeMultiple = peekArray0 (-1) ptrArrayProperties -- Get array of arbitrary size, terminated by element of value -1 ( == CSS_PROPERTY_END)
-                  | shorthandType == cssShorthandTypeDirections = peekArray 4 ptrArrayProperties -- 4 == top/left/bottom/rigth
-                  | shorthandType == cssShorthandTypeBorder = peekArray 12 ptrArrayProperties
-                  | shorthandType == cssShorthandTypeFont = peekArray0 (-1) ptrArrayProperties -- Get array of arbitrary size, terminated by element of value -1 ( == CSS_PROPERTY_END)
-  cProperties2 <- cProperties
-  let properties = fmap fromIntegral cProperties2
-  putStrLn ("Properties are " ++ (show properties))
-
-  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ cParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
-                            }
-
-  cToken   <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ cToken
-  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
-
-  let ((newParser, newToken), values) = parseDeclarationShorthand (parser, token) properties shorthandType
-
-  putStrLn ("Values are " ++ (show values))
-
-  updateParserStruct ptrStructCssParser newParser
-  updateTokenStruct ptrStructCssToken newToken
-  updateValues ptrStructCssDeclValue values
-
-  return (length values)
 
 
 

@@ -132,12 +132,8 @@ int hll_cssCreateLength(float val, CssLengthType t);
    Return NULL otherwise. */
 c_css_selector_t * hll_cssParseSelector(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
 
-int hll_parseDeclarationNormal(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_ffi_t * declarations);
-
 // Return value is boolean
 int hll_parseDeclarationValue(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int declValueType, int declProperty, c_css_declaration_ffi_t * declaration);
-
-int hll_parseDeclarationShorthand(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int * properties, c_css_declaration_ffi_t * declarations, int shorthand_type);
 
 int hll_parseDeclarationWrapper(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_ffi_t * declarations);
 

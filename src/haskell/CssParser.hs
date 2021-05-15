@@ -80,8 +80,6 @@ module CssParser(nextToken
                 , cssLengthValue
                 , cssCreateLength
 
-                , invalidIntResult
-
                 , parseDeclarationMultiple
                 , parseDeclarationDirections
                 , parseDeclarationBorder
@@ -103,9 +101,7 @@ module CssParser(nextToken
                 , removeSpaceTokens
 
                 , CssDeclValue (..)
-                , parseDeclNormal
                 , parseDeclarationWrapper
-                , takePropertyTokens2
                 , takePropertyTokens
                 , parseDeclValue
 
@@ -177,8 +173,6 @@ cssLengthTypeRelative   = 6 -- This does not exist in CSS but is used in HTML
 cssLengthTypeAuto       = 7 -- This can be used as a simple value.
 
 
-
-invalidIntResult = 99999999
 
 
 css_background_attachment_enum_vals = ["scroll", "fixed"]
@@ -1489,22 +1483,6 @@ data CssDeclValue = CssDeclValue {
 
 
 
--- Returned list inclues ':' character that is after the property name.
-takePropertyTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
-takePropertyTokens (parser, token) = takeNext (parser, token) []
-  where
-    takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
-    takeNext (parser, token) tokens = case token of
-                                        CssTokCh ':' -> (nextToken2 parser, (tokens ++ [token]))
-                                        CssTokCh ';' -> ((parser, token), tokens)
-                                        CssTokCh '}' -> ((parser, token), tokens)
-                                        CssTokEnd    -> ((parser, token), tokens)
-                                        CssTokNone -> takeNext (nextToken2 parser) tokens -- This token can be used to 'kick-start' of parsing
-                                        otherwise  -> takeNext (nextToken2 parser) (tokens ++ [token])
-
-
-
-
 defaultValue = CssDeclValue {
     typeTag = cssDeclValueTypeUnused
   , intVal  = 0
@@ -1512,32 +1490,6 @@ defaultValue = CssDeclValue {
   , important = False
   , property2 = (-1) -- TODO: somewhere there is a code that does not set property2 field.
   }
-
-
-
-
-parseDeclProperty :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe Int)
-parseDeclProperty (parser, token) = case property of
-                                      Just _  -> ((newParser, newToken), property)
-                                      Nothing ->   ((parser, token), Nothing)
-  where
-    ((newParser, newToken), propTokens) = takePropertyTokens (parser, token)
-    property = case propTokens of
-                 (CssTokSym sym:CssTokCh ':':[]) -> cssPropertyInfoIdxByName sym
-                 otherwise                       -> Nothing
-
-
-
-parseDeclValue2 :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssDeclValue, Int)
-parseDeclValue2 (parser, token) property =
-  case tokenMatchesProperty token property of
-    Just valueType  -> case parseDeclValue (parser, token) valueType property of
-                         ((p, t), Just v)  -> ((p, t), Just v{important = imp, property2=property}, property)
-                         ((p, t), Nothing) -> ((p, t), Nothing, -2)
-    Nothing -> ((parser, token), Nothing, -2)
-
-  where
-    imp = False -- TODO: cssParseWeight
 
 
 
@@ -1556,21 +1508,10 @@ parseDeclValue3 (parser, token) property =
 
 
 
-
-parseDeclNormal :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue, Int)
-parseDeclNormal (parser, token) = case parseDeclProperty (parser, token) of
-                                    ((newParser, newToken), Just property) -> if property >= 0
-                                                                              then parseDeclValue2 (newParser, newToken) property
-                                                                              else ((parser, token), Nothing, -1)
-                                    ((newParser, newToken), Nothing)       -> ((parser, token), Nothing, -1)
-
-
-
-
 parseDeclValue :: (CssParser, CssToken) -> CssDeclValueType -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
 parseDeclValue (parser, token) valueType property | valueType == cssDeclValueTypeInt                 = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 0})
-                                                  | valueType == cssDeclValueTypeEnum                = trace ("shorthand parseDeclValue enum " ++ (show token)) declValueAsEnum (parser, token) property
-                                                  | valueType == cssDeclValueTypeMultiEnum           = trace ("shorthand parseDeclValue multi-enum " ++ (show token)) declValueAsMultiEnum (parser, token) property
+                                                  | valueType == cssDeclValueTypeEnum                = declValueAsEnum (parser, token) property
+                                                  | valueType == cssDeclValueTypeMultiEnum           = declValueAsMultiEnum (parser, token) property
 
                                                   | valueType == cssDeclValueTypeLengthPercent       = declValueAsLength (parser, token) valueType
                                                   | valueType == cssDeclValueTypeLength              = declValueAsLength (parser, token) valueType
@@ -1580,8 +1521,8 @@ parseDeclValue (parser, token) valueType property | valueType == cssDeclValueTyp
                                                   | valueType == cssDeclValueTypeAuto                = declValueAsAuto (parser, token)
                                                   | valueType == cssDeclValueTypeColor               = declValueAsColor (parser, token)
                                                   | valueType == cssDeclValueTypeFontWeight          = declValueAsFontWeightInteger (parser, token) property
-                                                  | valueType == cssDeclValueTypeString              = trace ("shorthand parseDeclValue string " ++ (show token)) declValueAsString' (parser, token)
-                                                  | valueType == cssDeclValueTypeSymbol              = trace ("shorthand parseDeclValue symbol " ++ (show token)) declValueAsSymbol (parser, token) ""
+                                                  | valueType == cssDeclValueTypeString              = declValueAsString' (parser, token)
+                                                  | valueType == cssDeclValueTypeSymbol              = declValueAsSymbol (parser, token) ""
                                                   | valueType == cssDeclValueTypeURI                 = declValueAsURI (parser, token)
                                                   | valueType == cssDeclValueTypeBgPosition          = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 12}) -- TODO
                                                   | valueType == cssDeclValueTypeUnused              = ((parser, token), Nothing)
@@ -1665,9 +1606,8 @@ parseDeclarationShorthand (parser, token) properties shorthandType | shorthandTy
 
 
 
--- TODO: there is already a takePropertyTokens function.
-takePropertyTokens2 :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
-takePropertyTokens2 (parser, token) =
+takePropertyTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
+takePropertyTokens (parser, token) =
   let (p2, t2) = nextToken parser
       (p3, t3) = nextToken p2
   in
@@ -1680,7 +1620,7 @@ takePropertyTokens2 (parser, token) =
 
 parseDeclarationWrapper :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclValue])
 parseDeclarationWrapper (parser, token) =
-  case takePropertyTokens2 (parser, token) of
+  case takePropertyTokens (parser, token) of
     ((p, t), [CssTokSym sym]) -> case cssPropertyInfoIdxByName sym of
                                    Just property -> if property >= 0
                                                     then parseDeclValue3 (p, t) property

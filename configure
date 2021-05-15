@@ -3343,7 +3343,6 @@ CXXFLAGS="-g -O0"
 
 
 
-
 # Check whether --with-jpeg-lib was given.
 if test "${with_jpeg_lib+set}" = set; then :
   withval=$with_jpeg_lib; LIBJPEG_LIBDIR=$withval
