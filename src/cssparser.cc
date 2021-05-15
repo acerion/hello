@@ -344,6 +344,24 @@ bool parseDeclarationValue(CssParser * parser,
 
 void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant)
 {
+#if 1
+   c_css_declaration_ffi_t * declarations = (c_css_declaration_ffi_t *) malloc(12 * sizeof (c_css_declaration_ffi_t));
+   int n = hll_parseDeclarationWrapper(&parser->hll_css_parser,
+                                       &parser->tokenizer.token,
+                                       parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
+                                       declarations);
+   for (int v = 0; v < n; v++) {
+      CssDeclarationValue val;
+      val.type   = (CssDeclarationValueType) declarations[v].c_type_tag;
+      val.intVal = declarations[v].c_int_val;
+      val.strVal = declarations[v].c_text_val;
+
+      if (declarations[v].c_important)
+         declarationListAddOrUpdateDeclaration(declListImportant, (CssDeclarationProperty) declarations[v].c_property, val);
+      else
+         declarationListAddOrUpdateDeclaration(declList, (CssDeclarationProperty) declarations[v].c_property, val);
+   }
+#else
    if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_SYMBOL) {
       int n = 0;
       c_css_declaration_ffi_t * declarations = (c_css_declaration_ffi_t *) malloc(12 * sizeof (c_css_declaration_ffi_t));
@@ -391,6 +409,7 @@ void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, C
             declarationListAddOrUpdateDeclaration(declList, (CssDeclarationProperty) declarations[v].c_property, val);
       }
    }
+#endif
 
    /* Skip all tokens until the expected end. */
    while (!(parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_END ||

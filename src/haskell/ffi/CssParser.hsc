@@ -64,6 +64,9 @@ foreign export ccall "hll_parseDeclarationNormal" hll_parseDeclarationNormal :: 
 foreign export ccall "hll_parseDeclarationValue" hll_parseDeclarationValue :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> Ptr HelloCssDecl -> IO Int
 foreign export ccall "hll_parseDeclarationShorthand" hll_parseDeclarationShorthand :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr CInt -> Ptr HelloCssDecl -> CInt -> IO Int
 
+foreign export ccall "hll_parseDeclarationWrapper" hll_parseDeclarationWrapper :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDecl -> IO Int
+
+
 
 
 #include "../hello.h"
@@ -628,6 +631,33 @@ hll_parseDeclarationShorthand ptrStructCssParser ptrStructCssToken cBuf ptrArray
 
   return (length values)
 
+
+
+
+hll_parseDeclarationWrapper :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDecl -> IO Int
+hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDeclValue = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
+
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                            }
+
+  cToken   <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ cToken
+  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+
+  let ((newParser, newToken), values) = parseDeclarationWrapper (parser, token)
+
+  putStrLn ("Values are " ++ (show values))
+
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
+  updateValues ptrStructCssDeclValue values
+
+  return (length values)
 
 
 

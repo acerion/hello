@@ -139,6 +139,7 @@ int hll_parseDeclarationValue(c_css_parser_t * hll_parser, c_css_token_t * token
 
 int hll_parseDeclarationShorthand(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int * properties, c_css_declaration_ffi_t * declarations, int shorthand_type);
 
+int hll_parseDeclarationWrapper(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_ffi_t * declarations);
 
 #ifdef __cplusplus
 }

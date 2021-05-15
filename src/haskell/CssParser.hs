@@ -104,6 +104,8 @@ module CssParser(nextToken
 
                 , CssDeclValue (..)
                 , parseDeclNormal
+                , parseDeclarationWrapper
+                , takePropertyTokens2
                 , takePropertyTokens
                 , parseDeclValue
 
@@ -234,7 +236,6 @@ cssDeclValueTypeUnused              = 14 -- Not yet used. Will itself get unused
 
 
 -- CssDeclarationProperty
-cssDeclPropertyEnd = -1
 cssDeclPropertyBackgroundAttachment = 0
 cssDeclPropertyBackgroundColor = 1
 cssDeclPropertyBackgroundImage = 2
@@ -433,26 +434,26 @@ cssShorthandTypeFont       = 3 -- special, used for 'font'
 
 cssShorthandInfo = V.fromList [
     ("background",     cssShorthandTypeMultiple,      [ cssDeclPropertyBackgroundColor, cssDeclPropertyBackgroundImage, cssDeclPropertyBackgroundRepeat,
-                                                        cssDeclPropertyBackgroundAttachment, cssDeclPropertyBackgroundPosition, cssDeclPropertyEnd ])
+                                                        cssDeclPropertyBackgroundAttachment, cssDeclPropertyBackgroundPosition ])
 
   , ("border",         cssShorthandTypeBorder,        [ cssDeclPropertyBorderTopWidth, cssDeclPropertyBorderRightWidth, cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderLeftWidth,
                                                         cssDeclPropertyBorderTopStyle, cssDeclPropertyBorderRightStyle, cssDeclPropertyBorderBottomStyle, cssDeclPropertyBorderLeftStyle,
                                                         cssDeclPropertyBorderTopColor, cssDeclPropertyBorderRightColor, cssDeclPropertyBorderBottomColor, cssDeclPropertyBorderLeftColor])
 
-  , ("border-bottom",  cssShorthandTypeMultiple,      [ cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderBottomStyle,  cssDeclPropertyBorderBottomColor, cssDeclPropertyEnd])
+  , ("border-bottom",  cssShorthandTypeMultiple,      [ cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderBottomStyle,  cssDeclPropertyBorderBottomColor ])
   , ("border-color",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopColor,    cssDeclPropertyBorderRightColor,   cssDeclPropertyBorderBottomColor, cssDeclPropertyBorderLeftColor ])
-  , ("border-left",    cssShorthandTypeMultiple,      [ cssDeclPropertyBorderLeftWidth,   cssDeclPropertyBorderLeftStyle,    cssDeclPropertyBorderLeftColor,   cssDeclPropertyEnd])
-  , ("border-right",   cssShorthandTypeMultiple,      [ cssDeclPropertyBorderRightWidth,  cssDeclPropertyBorderRightStyle,   cssDeclPropertyBorderRightColor,  cssDeclPropertyEnd])
+  , ("border-left",    cssShorthandTypeMultiple,      [ cssDeclPropertyBorderLeftWidth,   cssDeclPropertyBorderLeftStyle,    cssDeclPropertyBorderLeftColor ])
+  , ("border-right",   cssShorthandTypeMultiple,      [ cssDeclPropertyBorderRightWidth,  cssDeclPropertyBorderRightStyle,   cssDeclPropertyBorderRightColor ])
   , ("border-style",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopStyle,    cssDeclPropertyBorderRightStyle,   cssDeclPropertyBorderBottomStyle, cssDeclPropertyBorderLeftStyle ])
-  , ("border-top",     cssShorthandTypeMultiple,      [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderTopStyle,     cssDeclPropertyBorderTopColor,    cssDeclPropertyEnd])
+  , ("border-top",     cssShorthandTypeMultiple,      [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderTopStyle,     cssDeclPropertyBorderTopColor ])
 
   , ("border-width",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderRightWidth,   cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderLeftWidth ])
 
-  , ("font",           cssShorthandTypeFont,          [ cssDeclPropertyFontSize,  cssDeclPropertyFontStyle, cssDeclPropertyFontVariant, cssDeclPropertyFontWeight, cssDeclPropertyFontFamily, cssDeclPropertyEnd])
+  , ("font",           cssShorthandTypeFont,          [ cssDeclPropertyFontSize,  cssDeclPropertyFontStyle, cssDeclPropertyFontVariant, cssDeclPropertyFontWeight, cssDeclPropertyFontFamily ])
 
-  , ("list-style",     cssShorthandTypeMultiple,      [ cssDeclPropertyListStyleType, cssDeclPropertyListStylePosition, cssDeclPropertyListStyleImage, cssDeclPropertyEnd])
+  , ("list-style",     cssShorthandTypeMultiple,      [ cssDeclPropertyListStyleType, cssDeclPropertyListStylePosition, cssDeclPropertyListStyleImage ])
   , ("margin",         cssShorthandTypeDirections,    [ cssDeclPropertyMarginTop,         cssDeclPropertyMarginRight,        cssDeclPropertyMarginBottom,      cssDeclPropertyMarginLeft ])
-  , ("outline",        cssShorthandTypeMultiple,      [ cssDeclPropertyOutlineColor, cssDeclPropertyOutlineStyle, cssDeclPropertyOutlineWidth, cssDeclPropertyEnd])
+  , ("outline",        cssShorthandTypeMultiple,      [ cssDeclPropertyOutlineColor, cssDeclPropertyOutlineStyle, cssDeclPropertyOutlineWidth])
 
   , ("padding",        cssShorthandTypeDirections,    [ cssDeclPropertyPaddingTop,        cssDeclPropertyPaddingRight,       cssDeclPropertyPaddingBottom,     cssDeclPropertyPaddingLeft ])
   ] :: V.Vector (T.Text, Int, [Int])
@@ -1541,6 +1542,20 @@ parseDeclValue2 (parser, token) property =
 
 
 
+parseDeclValue3 :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), [CssDeclValue])
+parseDeclValue3 (parser, token) property =
+  case tokenMatchesProperty token property of
+    Just valueType  -> case parseDeclValue (parser, token) valueType property of
+                         ((p, t), Just v)  -> ((p, t), [v{important = imp, property2=property}])
+                         ((p, t), Nothing) -> ((p, t), [])
+    Nothing -> ((parser, token), [])
+
+  where
+    imp = False -- TODO: cssParseWeight
+
+
+
+
 
 parseDeclNormal :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue, Int)
 parseDeclNormal (parser, token) = case parseDeclProperty (parser, token) of
@@ -1646,3 +1661,38 @@ parseDeclarationShorthand (parser, token) properties shorthandType | shorthandTy
                                                                    | shorthandType == cssShorthandTypeBorder     = parseDeclarationBorder (parser, token) properties []
                                                                    | shorthandType == cssShorthandTypeFont       = parseDeclarationMultiple (parser, token) properties []
                                                                    | otherwise = ((parser, token), [])
+
+
+
+
+-- TODO: there is already a takePropertyTokens function.
+takePropertyTokens2 :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
+takePropertyTokens2 (parser, token) =
+  let (p2, t2) = nextToken parser
+      (p3, t3) = nextToken p2
+  in
+    case (token, t2) of
+      (CssTokSym _, CssTokCh ':') -> ((p3, t3), [token]) -- Don't return ':' token
+      _                           -> ((parser, token), [])
+
+
+
+
+parseDeclarationWrapper :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclValue])
+parseDeclarationWrapper (parser, token) =
+  case takePropertyTokens2 (parser, token) of
+    ((p, t), [CssTokSym sym]) -> case cssPropertyInfoIdxByName sym of
+                                   Just property -> if property >= 0
+                                                    then parseDeclValue3 (p, t) property
+                                                    else ((p, t), [])
+                                   Nothing -> case cssShorthandInfoIdxByName sym of
+                                     Just shorthandIdx -> if shorthandIdx >= 0
+                                                          then parseDeclarationShorthand (p, t) properties shorthandType
+                                                          else ((p, t), [])
+                                       where properties = tripletThrd $ cssShorthandInfo V.! shorthandIdx
+                                             shorthandType = tripletSnd $ cssShorthandInfo V.! shorthandIdx
+                                     Nothing -> ((p, t), [])
+    ((p, t), _)               -> ((p, t), [])
+
+
+
