@@ -135,7 +135,8 @@ c_css_selector_t * hll_cssParseSelector(c_css_parser_t * hll_parser, c_css_token
 // Return value is boolean
 int hll_parseDeclarationValue(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int declValueType, int declProperty, c_css_declaration_ffi_t * declaration);
 
-int hll_parseDeclarationWrapper(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_ffi_t * declarations);
+// Return count of declarations in @p declarations
+int hll_parseDeclaration(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_ffi_t * declarations);
 
 #ifdef __cplusplus
 }

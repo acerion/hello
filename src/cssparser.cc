@@ -282,10 +282,10 @@ bool parseDeclarationValue(CssParser * parser,
 void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant)
 {
    c_css_declaration_ffi_t * declarations = (c_css_declaration_ffi_t *) malloc(12 * sizeof (c_css_declaration_ffi_t));
-   int n = hll_parseDeclarationWrapper(&parser->hll_css_parser,
-                                       &parser->tokenizer.token,
-                                       parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
-                                       declarations);
+   int n = hll_parseDeclaration(&parser->hll_css_parser,
+                                &parser->tokenizer.token,
+                                parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
+                                declarations);
    for (int v = 0; v < n; v++) {
       CssDeclarationValue val;
       val.type   = (CssDeclarationValueType) declarations[v].c_type_tag;

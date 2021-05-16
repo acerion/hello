@@ -100,8 +100,9 @@ module CssParser(nextToken
                 , parseSelector
                 , removeSpaceTokens
 
-                , CssDeclValue (..)
-                , parseDeclarationWrapper
+                , CssValue (..)
+                , CssDeclaration (..)
+                , parseDeclaration
                 , takePropertyTokens
                 , parseDeclValue
 
@@ -201,7 +202,7 @@ css_word_spacing_enum_vals          = ["normal"]
 
 
 
-type CssDeclValueType = Int
+type CssValueType = Int
 
 cssDeclValueTypeInt                 =  0 -- This type is only used internally, for x-* properties.
 cssDeclValueTypeEnum                =  1 -- Value is i, if represented by enum_symbols[i].
@@ -413,7 +414,7 @@ cssPropertyInfo = V.fromList [
    , ("x-colspan",              [ cssDeclValueTypeInt ],                                              [])
    , ("x-rowspan",              [ cssDeclValueTypeInt ],                                              [])
    , ("last",                   [], [])
-   ] :: V.Vector (T.Text, [CssDeclValueType], [T.Text])
+   ] :: V.Vector (T.Text, [CssValueType], [T.Text])
 
 
 
@@ -764,7 +765,7 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 
 
 
-declValueAsColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsColor (parser, token@(CssTokCol c)) = case colorsStringToColor c of -- TODO: we know here that color should have form #RRGGBB. Call function that accepts only this format.
                                                    Just i  -> (nextToken parser, Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = i})
                                                    Nothing -> (nextToken parser, Nothing)
@@ -801,7 +802,7 @@ declValueAsString (parser, token) valueType property = case ((retParser, retToke
 
 
 
-declValueAsEnum :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsEnum :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsEnum (parser, token@(CssTokSym symbol)) property =
   case declValueAsEnum' symbol enums 0 of
     -1  -> ((parser, token), Nothing)
@@ -825,7 +826,7 @@ declValueAsEnum' symbol (x:xs) idx = if x == symbol
 
 
 
-declValueAsMultiEnum :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsMultiEnum :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsMultiEnum (parser, token@(CssTokSym symbol)) property = declValueAsMultiEnum' (parser, token) enums 0
   where
     propInfo = cssPropertyInfo V.! property
@@ -837,7 +838,7 @@ declValueAsMultiEnum (parser, token) property                    = ((parser, tok
 
 
 
-declValueAsMultiEnum' :: (CssParser, CssToken) -> [T.Text] -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsMultiEnum' :: (CssParser, CssToken) -> [T.Text] -> Int -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsMultiEnum' (parser, (CssTokSym symbol)) (enums) bits =
   case L.elemIndex symbol enums of -- TODO: this search should be case-insensitive
     Just pos -> declValueAsMultiEnum' (newParser, newToken) enums (bits .|. (1  `shiftL` pos))
@@ -854,7 +855,7 @@ declValueAsMultiEnum' (parser, token) _ bits                    = ((parser, toke
 
 
 -- TODO: check value of symbol (case insensitive): it should be "auto".
-declValueAsAuto :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsAuto :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsAuto (parser, token@(CssTokSym symbol)) = ((nextToken parser), Just defaultValue{typeTag = cssDeclValueTypeAuto, intVal = cssLengthTypeAuto})
 declValueAsAuto (parser, token)                    = ((parser, token), Nothing)
 
@@ -910,7 +911,7 @@ isSpaceSeparated parser = spaceSeparated newParser
 
 
 
-declValueAsLength :: (CssParser, CssToken) -> CssDeclValueType -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsLength :: (CssParser, CssToken) -> CssValueType -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsLength (parser, token) valueType =
   case tokens of
     [CssTokF f, CssTokSym sym] -> ((newParser, newToken), unitValue sym valueType f)
@@ -923,17 +924,17 @@ declValueAsLength (parser, token) valueType =
   where
     ((newParser, newToken), tokens) = takeLengthTokens (parser, token)
 
-    percentValue :: CssDeclValueType -> Float -> Maybe CssDeclValue
+    percentValue :: CssValueType -> Float -> Maybe CssValue
     percentValue valueType fval = Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
       where
         (val, t) = ((fval / 100.0), cssLengthTypePercentage)
 
-    unitValue :: T.Text -> CssDeclValueType -> Float -> Maybe CssDeclValue
+    unitValue :: T.Text -> CssValueType -> Float -> Maybe CssValue
     unitValue unitString valueType fval = Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
       where
         (val, t) = lengthValueToValAndType fval (T.toLower unitString)
 
-    unitlessValue :: CssDeclValueType -> Float -> Maybe CssDeclValue
+    unitlessValue :: CssValueType -> Float -> Maybe CssValue
     -- Allow numbers without unit only for 0 or cssDeclValueTypeLengthPercentNumber. TODO: why?
     unitlessValue valueType fval = if (valueType == cssDeclValueTypeLengthPercentNumber || fval == 0.0)
                                    then Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
@@ -944,7 +945,7 @@ declValueAsLength (parser, token) valueType =
 
 
 
-declValueAsString' :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsString' :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsString' (parser, (CssTokStr s)) = ((newParser, newToken), Just defaultValue{typeTag = cssDeclValueTypeString, textVal = s})
   where (newParser, newToken) = nextToken parser
 declValueAsString' (parser, token)         = ((parser, token), Nothing)
@@ -952,7 +953,7 @@ declValueAsString' (parser, token)         = ((parser, token), Nothing)
 
 
 
-declValueAsURI :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsURI :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsURI (parser, token) = case parseUrl (parser, token) of
                                    ((newParser, newToken), Just url) -> ((newParser, newToken), Just defaultValue{typeTag = cssDeclValueTypeURI, textVal = url})
                                    ((newParser, newToken), Nothing)  -> ((newParser, newToken), Nothing)
@@ -984,7 +985,7 @@ parseUrl (parser, token)   = ((parser, token), Nothing)
 
 -- Read comma separated list of font family names.
 -- TODO: test the code for list of symbols separated by space or comma.
-declValueAsSymbol :: (CssParser, CssToken) -> T.Text -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsSymbol :: (CssParser, CssToken) -> T.Text -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsSymbol (parser, (CssTokSym sym)) acc = declValueAsSymbol (nextToken parser) (T.append acc (separated parser sym))
 declValueAsSymbol (parser, (CssTokStr str)) acc = declValueAsSymbol (nextToken parser) (T.append acc (separated parser str))
 declValueAsSymbol (parser, (CssTokCh  ',')) acc = declValueAsSymbol (nextToken parser) (T.append acc (separated parser ","))
@@ -1006,7 +1007,7 @@ separated parser str = if spaceSeparated parser
 
 
 {-
-   case CssDeclValueTypeSYMBOL:
+   case CssValueTypeSYMBOL:
 
       dstr = dStr_new("");
       while (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL || tokenizer.type == CSS_TOKEN_TYPE_STRING ||
@@ -1029,7 +1030,7 @@ separated parser str = if spaceSeparated parser
 -}
 
 
-declValueAsFontWeightInteger :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
+declValueAsFontWeightInteger :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsFontWeightInteger (parser, token@(CssTokI i)) property = if i >= 100 && i <= 900
                                                                     then ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeFontWeight, intVal = i})
                                                                     else ((parser, token), Nothing)
@@ -1472,43 +1473,64 @@ removeSpaceTokens [] acc                             = acc
 
 
 
-data CssDeclValue = CssDeclValue {
-    typeTag :: CssDeclValueType
+data CssValue = CssValue {
+    typeTag :: CssValueType
   , intVal  :: Int
   , textVal :: T.Text
-  , important :: Bool
-  , property2 :: Int
   } deriving (Show)
 
 
 
 
-defaultValue = CssDeclValue {
+defaultValue = CssValue {
     typeTag = cssDeclValueTypeUnused
   , intVal  = 0
   , textVal = ""
-  , important = False
-  , property2 = (-1) -- TODO: somewhere there is a code that does not set property2 field.
   }
 
 
 
 
-parseDeclValue3 :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), [CssDeclValue])
-parseDeclValue3 (parser, token) property =
+data CssDeclaration = CssDeclaration
+  { property  :: Int
+  , value     :: CssValue
+
+  -- https://www.w3.org/TR/css-syntax-3
+  --
+  -- "If the last two non-<whitespace-token>s in the declaration’s value are
+  -- a <delim-token> with the value "!" followed by an <ident-token> with a
+  -- value that is an ASCII case-insensitive match for "important", remove
+  -- them from the declaration’s value and set the declaration’s important
+  -- flag to true."
+  --
+  -- So "important" is per-declaration flag.
+  , important :: Bool
+  } deriving (Show)
+
+
+
+
+defaultDeclaration = CssDeclaration
+  { property  = (-1) -- TODO: somewhere there is a code that does not set property2 field.
+  , value     = defaultValue
+  , important = False
+  }
+
+
+
+
+parseDeclarationNormal :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationNormal (parser, token) property =
   case tokenMatchesProperty token property of
     Just valueType  -> case parseDeclValue (parser, token) valueType property of
-                         ((p, t), Just v)  -> ((p, t), [v{important = imp, property2=property}])
+                         ((p, t), Just v)  -> ((p, t), [defaultDeclaration{property = property, value = v}])
                          ((p, t), Nothing) -> ((p, t), [])
     Nothing -> ((parser, token), [])
 
-  where
-    imp = False -- TODO: cssParseWeight
 
 
 
-
-parseDeclValue :: (CssParser, CssToken) -> CssDeclValueType -> Int -> ((CssParser, CssToken), Maybe CssDeclValue)
+parseDeclValue :: (CssParser, CssToken) -> CssValueType -> Int -> ((CssParser, CssToken), Maybe CssValue)
 parseDeclValue (parser, token) valueType property | valueType == cssDeclValueTypeInt                 = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 0})
                                                   | valueType == cssDeclValueTypeEnum                = declValueAsEnum (parser, token) property
                                                   | valueType == cssDeclValueTypeMultiEnum           = declValueAsMultiEnum (parser, token) property
@@ -1534,26 +1556,38 @@ parseDeclValue (parser, token) valueType property | valueType == cssDeclValueTyp
 -- TODO: this implementation can correctly parse all value tokens only when
 -- they appear in the same order as 'property' integers. The function should
 -- be able to handle the tokens in any order.
-parseDeclarationMultiple :: (CssParser, CssToken) -> [Int] -> [CssDeclValue] -> ((CssParser, CssToken), [CssDeclValue])
-parseDeclarationMultiple (parser, token) (prop:properties) values =
+parseDeclarationMultiple :: (CssParser, CssToken) -> [Int] -> [CssDeclaration] -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationMultiple (parser, token) (prop:properties) ds =
   case tokenMatchesProperty token prop of
     Just valueType -> case parseDeclValue (parser, token) valueType prop of
-                        ((p, t), Just v)  -> parseDeclarationMultiple (p, t) properties (values ++ [v]) -- TODO: add setting 'important' member
-                        ((p, t), Nothing) -> parseDeclarationMultiple (p, t) properties values
-    Nothing        -> parseDeclarationMultiple (parser, token) properties values
-parseDeclarationMultiple (parser, token) [] values                = ((parser, token), values)
+                        ((p, t), Just v)  -> parseDeclarationMultiple (p, t) properties (ds ++ [defaultDeclaration{property = prop, value = v}])
+                        ((p, t), Nothing) -> parseDeclarationMultiple (p, t) properties ds
+    Nothing        -> parseDeclarationMultiple (parser, token) properties ds
+parseDeclarationMultiple (parser, token) [] ds                = ((parser, token), ds)
 
 
 
 
 
-parseDeclarationDirections :: (CssParser, CssToken) -> [Int] -> ((CssParser, CssToken), [CssDeclValue])
-parseDeclarationDirections (parser, token) properties@(pt:pr:pb:pl:ps) = ((outParser, outToken), outVals)
-  where outVals = case vals of
-          (top:right:bottom:left:[]) -> [top{property2=pt}, right{property2=pr}, bottom{property2=pb}, left{property2=pl}]
-          (top:rl:bottom:[])         -> [top{property2=pt}, rl   {property2=pr}, bottom{property2=pb}, rl  {property2=pl}]
-          (tb:rl:[])                 -> [tb {property2=pt}, rl   {property2=pr}, tb    {property2=pb}, rl  {property2=pl}]
-          (v:[])                     -> [v  {property2=pt}, v    {property2=pr}, v     {property2=pb}, v   {property2=pl}]
+parseDeclarationDirections :: (CssParser, CssToken) -> [Int] -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationDirections (parser, token) properties@(pt:pr:pb:pl:ps) = ((outParser, outToken), ds)
+  where ds = case vals of
+          (top:right:bottom:left:[]) -> [ defaultDeclaration{property = pt, value = top}
+                                        , defaultDeclaration{property = pr, value = right}
+                                        , defaultDeclaration{property = pb, value = bottom}
+                                        , defaultDeclaration{property = pl, value = left}]
+          (top:rl:bottom:[])         -> [ defaultDeclaration{property = pt, value = top}
+                                        , defaultDeclaration{property = pr, value = rl}
+                                        , defaultDeclaration{property = pb, value = bottom}
+                                        , defaultDeclaration{property = pl, value = rl}]
+          (tb:rl:[])                 -> [ defaultDeclaration{property = pt, value = tb}
+                                        , defaultDeclaration{property = pr, value = rl}
+                                        , defaultDeclaration{property = pb, value = tb}
+                                        , defaultDeclaration{property = pl, value = rl}]
+          (v:[])                     -> [ defaultDeclaration{property = pt, value = v}
+                                        , defaultDeclaration{property = pr, value = v}
+                                        , defaultDeclaration{property = pb, value = v}
+                                        , defaultDeclaration{property = pl, value = v}]
           []                         -> []
         ((outParser, outToken), vals) = matchOrderedTokens (parser, token) properties []
 parseDeclarationDirections (parser, token) _ = ((parser, token), [])
@@ -1564,11 +1598,11 @@ parseDeclarationDirections (parser, token) _ = ((parser, token), [])
 -- Value tokens must be in proper order. Example: if property is
 -- "border-color", and there are four value tokens, then tokens must
 -- represent colors of "top","right","bottom","left" borders.
-matchOrderedTokens :: (CssParser, CssToken) -> [Int] -> [CssDeclValue] -> ((CssParser, CssToken), [CssDeclValue])
+matchOrderedTokens :: (CssParser, CssToken) -> [Int] -> [CssValue] -> ((CssParser, CssToken), [CssValue])
 matchOrderedTokens(parser, token) (prop:properties) values =
   case tokenMatchesProperty token prop of
     Just valueType -> case parseDeclValue (parser, token) valueType prop of
-                        ((p, t), Just v)  -> matchOrderedTokens (p, t) properties (values ++ [v{property2=prop}]) -- TODO: add setting 'important' member
+                        ((p, t), Just v)  -> matchOrderedTokens (p, t) properties (values ++ [v])
                         ((p, t), Nothing) -> ((p, t), values)
     Nothing        -> ((parser, token), values)
 matchOrderedTokens (parser, token) [] values               = ((parser, token), values)
@@ -1580,23 +1614,23 @@ matchOrderedTokens (parser, token) [] values               = ((parser, token), v
 -- TODO: this implementation can correctly parse all value tokens only when
 -- they appear in the same order as 'property' integers. The function should
 -- be able to handle the tokens in any order.
-parseDeclarationBorder :: (CssParser, CssToken) -> [Int] -> [CssDeclValue] -> ((CssParser, CssToken), [CssDeclValue])
-parseDeclarationBorder (parser, token) (top:right:bottom:left:properties) values =
+parseDeclarationBorder :: (CssParser, CssToken) -> [Int] -> [CssDeclaration] -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationBorder (parser, token) (top:right:bottom:left:properties) ds =
   case tokenMatchesProperty token top of
     Just valueType -> case parseDeclValue (parser, token) valueType top of
-                        ((p, t), Just v)  -> parseDeclarationBorder (p, t) properties (values ++ [ v{property2=top}
-                                                                                                 , v{property2=right}
-                                                                                                 , v{property2=bottom}
-                                                                                                 , v{property2=left}]) -- Add the same value for top/right/bottom/left border
-                                                                                                               -- TODO: add setting 'important' member
-                        ((p, t), Nothing) -> parseDeclarationBorder (p, t) properties values
-    Nothing        -> parseDeclarationBorder (parser, token) properties values
-parseDeclarationBorder (parser, token) [] values                                 = ((parser, token), values)
+                        ((p, t), Just v)  -> parseDeclarationBorder (p, t) properties (ds ++ [ defaultDeclaration{property = top,    value = v}
+                                                                                             , defaultDeclaration{property = right,  value = v}
+                                                                                             , defaultDeclaration{property = bottom, value = v}
+                                                                                             , defaultDeclaration{property = left,   value = v}])
+
+                        ((p, t), Nothing) -> parseDeclarationBorder (p, t) properties ds
+    Nothing        -> parseDeclarationBorder (parser, token) properties ds
+parseDeclarationBorder (parser, token) [] ds                                 = ((parser, token), ds)
 
 
 
 
-parseDeclarationShorthand :: (CssParser, CssToken) -> [Int] -> Int -> ((CssParser, CssToken), [CssDeclValue])
+parseDeclarationShorthand :: (CssParser, CssToken) -> [Int] -> Int -> ((CssParser, CssToken), [CssDeclaration])
 parseDeclarationShorthand (parser, token) properties shorthandType | shorthandType == cssShorthandTypeMultiple   = parseDeclarationMultiple (parser, token) properties []
                                                                    | shorthandType == cssShorthandTypeDirections = parseDeclarationDirections (parser, token) properties
                                                                    | shorthandType == cssShorthandTypeBorder     = parseDeclarationBorder (parser, token) properties []
@@ -1607,32 +1641,49 @@ parseDeclarationShorthand (parser, token) properties shorthandType | shorthandTy
 
 
 takePropertyTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
-takePropertyTokens (parser, token) =
-  let (p2, t2) = nextToken parser
-      (p3, t3) = nextToken p2
+takePropertyTokens (parser, nameToken) =
+  let (colonParser, colonToken) = nextToken parser
+      (retParser, retToken) = nextToken colonParser
   in
-    case (token, t2) of
-      (CssTokSym _, CssTokCh ':') -> ((p3, t3), [token]) -- Don't return ':' token
-      _                           -> ((parser, token), [])
+    case (nameToken, colonToken) of
+      (CssTokSym _, CssTokCh ':') -> ((retParser, retToken), [nameToken]) -- Don't return ':' token. Only 'property name' token is significant to caller.
+      _                           -> ((parser, nameToken), [])
 
 
 
 
-parseDeclarationWrapper :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclValue])
+-- The function returns a list of declarations because a line in CSS with a
+-- shorthand declaration will be translated in N corresponding "normal"
+-- declarations. E.g. "border-color: red" shorthand will be translated into a
+-- list of "normal" declarations that will look like this:
+-- ["border-top-color: red"; "border-right-color: red"; "border-bottom-color: red"; "border-left-color: red"]
+parseDeclarationWrapper :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 parseDeclarationWrapper (parser, token) =
   case takePropertyTokens (parser, token) of
     ((p, t), [CssTokSym sym]) -> case cssPropertyInfoIdxByName sym of
-                                   Just property -> if property >= 0
-                                                    then parseDeclValue3 (p, t) property
-                                                    else ((p, t), [])
+                                   Just property -> tryNormal (p, t) property
                                    Nothing -> case cssShorthandInfoIdxByName sym of
-                                     Just shorthandIdx -> if shorthandIdx >= 0
-                                                          then parseDeclarationShorthand (p, t) properties shorthandType
-                                                          else ((p, t), [])
-                                       where properties = tripletThrd $ cssShorthandInfo V.! shorthandIdx
-                                             shorthandType = tripletSnd $ cssShorthandInfo V.! shorthandIdx
+                                     Just shorthandIdx -> tryShorthand (p, t) shorthandIdx
                                      Nothing -> ((p, t), [])
     ((p, t), _)               -> ((p, t), [])
 
 
+
+
+tryNormal = parseDeclarationNormal
+
+
+
+
+tryShorthand (parser, token) shorthandIdx = parseDeclarationShorthand (parser, token) properties shorthandType
+  where
+    properties = tripletThrd $ cssShorthandInfo V.! shorthandIdx
+    shorthandType = tripletSnd $ cssShorthandInfo V.! shorthandIdx
+
+
+
+
+parseDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclaration (parser, token) = parseDeclarationWrapper (parser, token)
+  -- TODO: add setting 'important' field of declarations here
 

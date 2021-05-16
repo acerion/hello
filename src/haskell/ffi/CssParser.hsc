@@ -62,7 +62,7 @@ foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: In
 
 foreign export ccall "hll_parseDeclarationValue" hll_parseDeclarationValue :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> Ptr HelloCssDecl -> IO Int
 
-foreign export ccall "hll_parseDeclarationWrapper" hll_parseDeclarationWrapper :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDecl -> IO Int
+foreign export ccall "hll_parseDeclaration" hll_parseDeclaration :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDecl -> IO Int
 
 
 
@@ -197,7 +197,7 @@ hll_declarationValueAsString ptrStructCssParser ptrStructCssToken cBuf valueType
 
 
 hll_parseDeclarationValue :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> Ptr HelloCssDecl -> IO Int
-hll_parseDeclarationValue ptrStructCssParser ptrStructCssToken cBuf declValueType property ptrStructCssDeclValue = do
+hll_parseDeclarationValue ptrStructCssParser ptrStructCssToken cBuf declValueType property ptrStructCssValue = do
   buf     <- BSU.unsafePackCString $ cBuf
   cParser <- peek ptrStructCssParser
 
@@ -219,7 +219,7 @@ hll_parseDeclarationValue ptrStructCssParser ptrStructCssToken cBuf declValueTyp
   case value of
     Just v -> do
       ptrStr <- newCString . T.unpack . textVal $ v
-      poke ptrStructCssDeclValue $ HelloCssDecl (fromIntegral . typeTag $ v) (fromIntegral . intVal $ v) ptrStr (if important v then 1 else 0) (fromIntegral . property2 $ v)
+      poke ptrStructCssValue $ HelloCssDecl (fromIntegral . typeTag $ v) (fromIntegral . intVal $ v) ptrStr 0 {- TODO: 'important' field -} 0 {- TODO: 'property2' field -}
       return 1 -- True
     Nothing -> return 0 -- False
 
@@ -561,8 +561,8 @@ instance Storable HelloCssDecl where
 
 
 
-hll_parseDeclarationWrapper :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDecl -> IO Int
-hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDeclValue = do
+hll_parseDeclaration :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDecl -> IO Int
+hll_parseDeclaration ptrStructCssParser ptrStructCssToken cBuf ptrStructCssValue = do
   buf     <- BSU.unsafePackCString $ cBuf
   cParser <- peek ptrStructCssParser
 
@@ -576,21 +576,22 @@ hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken cBuf ptrStructC
   tokValue <- BSU.unsafePackCString . valueC $ cToken
   let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
 
-  let ((newParser, newToken), values) = parseDeclarationWrapper (parser, token)
+  let ((newParser, newToken), declarations) = parseDeclaration (parser, token)
 
-  putStrLn ("Values are " ++ (show values))
+  putStrLn ("Declarations are " ++ (show declarations))
 
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
-  updateValues ptrStructCssDeclValue values
+  updateDeclarations ptrStructCssValue declarations
 
-  return (length values)
+  return (length declarations)
 
 
 
-updateValues :: Ptr HelloCssDecl -> [CssDeclValue] -> IO ()
-updateValues ptr (v:vs) = do
-  ptrStr <- newCString . T.unpack . textVal $ v
-  poke ptr $ HelloCssDecl (fromIntegral . typeTag $ v) (fromIntegral . intVal $ v) ptrStr (if important v then 1 else 0) (fromIntegral . property2 $ v)
-  updateValues (advancePtr ptr 1) vs
-updateValues ptr [] = return ()
+
+updateDeclarations :: Ptr HelloCssDecl -> [CssDeclaration] -> IO ()
+updateDeclarations ptr (d:ds) = do
+  ptrStr <- newCString . T.unpack . textVal . value $ d
+  poke ptr $ HelloCssDecl (fromIntegral . typeTag . value $ d) (fromIntegral . intVal . value $ d) ptrStr (if important d then 1 else 0) (fromIntegral . property $ d)
+  updateDeclarations (advancePtr ptr 1) ds
+updateDeclarations ptr [] = return ()
