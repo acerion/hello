@@ -469,7 +469,9 @@ cssShorthandInfoIdxByName shorthandName = V.findIndex p cssShorthandInfo
 nextToken :: CssParser -> (CssParser, CssToken)
 nextToken parser = (updatedParser{bufOffset = increasedBufOffset parser}, token)
   where
-    (updatedParser, token) = nextToken' parser{spaceSeparated = False}
+    (updatedParser, token) = case nextToken' parser{spaceSeparated = False} of
+                               (p, Just t)  -> (p, t)
+                               (p, Nothing) -> (p, CssTokNone)
     increasedBufOffset parser = (bufOffset parser) + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
 
 
@@ -477,7 +479,9 @@ nextToken parser = (updatedParser{bufOffset = increasedBufOffset parser}, token)
 nextToken2 :: CssParser -> (CssParser, CssToken)
 nextToken2 parser = (updatedParser{bufOffset = increasedBufOffset parser}, token)
   where
-    (updatedParser, token) = nextToken2' parser{spaceSeparated = False}
+    (updatedParser, token) = case nextToken2' parser{spaceSeparated = False} of
+                               (p, Just t)  -> (p, t)
+                               (p, Nothing) -> (p, CssTokNone)
     increasedBufOffset parser = (bufOffset parser) + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
 
 
@@ -488,9 +492,9 @@ nextToken2 parser = (updatedParser{bufOffset = increasedBufOffset parser}, token
 --
 -- These lines are most awesome piece of code that I've written so far, in
 -- any project.
-(>>?) :: (CssParser, CssToken) -> (CssParser -> (CssParser, CssToken)) -> (CssParser, CssToken)
-(parser, CssTokNone) >>? f = f parser
-pair@(parser, _) >>? _     = pair
+(>>?) :: (CssParser, Maybe CssToken) -> (CssParser -> (CssParser, Maybe CssToken)) -> (CssParser, Maybe CssToken)
+(parser, Nothing) >>? f = f parser
+pair@(parser, _)  >>? _ = pair
 
 
 
@@ -499,7 +503,7 @@ pair@(parser, _) >>? _     = pair
 -- Try taking Float before trying to take Int, because otherwise you may take
 -- only an initial (integral) part of Float as an Int, and leave fractional
 -- part in remainder.
-nextToken' :: CssParser -> (CssParser, CssToken)
+nextToken' :: CssParser -> (CssParser, Maybe CssToken)
 nextToken' parser = takeLeadingWhite parser >>?
                     takeFloat               >>?
                     takeInt                 >>?
@@ -514,7 +518,7 @@ nextToken' parser = takeLeadingWhite parser >>?
 -- Try taking Float before trying to take Int, because otherwise you may take
 -- only an initial (integral) part of Float as an Int, and leave fractional
 -- part in remainder.
-nextToken2' :: CssParser -> (CssParser, CssToken)
+nextToken2' :: CssParser -> (CssParser, Maybe CssToken)
 nextToken2' parser = takeLeadingWhite2 parser >>?
                      takeFloat                >>?
                      takeInt                  >>?
@@ -533,10 +537,10 @@ nextToken2' parser = takeLeadingWhite2 parser >>?
 -- "-webkit-user-select") in a way that resulted in token without the leading
 -- '-' (so the resulting token was "webkit-user-select"). Haskell code keeps
 -- the leading '-' character.
-takeSymbol :: CssParser -> (CssParser, CssToken)
+takeSymbol :: CssParser -> (CssParser, Maybe CssToken)
 takeSymbol parser = if predNonNumeric . T.head . remainder $ parser
-                    then (parserAppend parser tok, CssTokSym tok)
-                    else (parser, CssTokNone)
+                    then (parserAppend parser tok, Just (CssTokSym tok))
+                    else (parser, Nothing)
   where tok = T.takeWhile pred (remainder parser)
         predNonNumeric = (\c -> D.C.isAlpha c || c == '_' || c == '-')
         pred = (\c -> D.C.isAlphaNum c || c == '_' || c == '-')
@@ -557,15 +561,15 @@ token: "Na 7Bywo", [4e 61 20 01 37 42 79 77 6f ]
 .icon--arrow-right:before{content:"\f107"}
 token  = "", [07 ]
 -}
-takeString :: CssParser -> (CssParser, CssToken)
+takeString :: CssParser -> (CssParser, Maybe CssToken)
 takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
                       (Just string, rem) -> parseString parser string rem
                       (Nothing, _) -> case HU.takeEnclosed (remainder parser) "'" "'" True of
                                        (Just string, rem) -> parseString parser string rem
-                                       (Nothing, _) -> (parser, CssTokNone)
+                                       (Nothing, _) -> (parser, Nothing)
   where
-    parseString :: CssParser -> T.Text -> T.Text -> (CssParser, CssToken)
-    parseString parser string rem = (parser{remainder = rem}, CssTokStr (escapedString string))
+    parseString :: CssParser -> T.Text -> T.Text -> (CssParser, Maybe CssToken)
+    parseString parser string rem = (parser{remainder = rem}, Just (CssTokStr (escapedString string)))
     escapedString str = case T.findIndex (== '\\') str of
                           Just i -> ""
                           Nothing -> str
@@ -575,15 +579,15 @@ takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
 
 -- TODO: think about performance of using isPrefixOf to get just one
 -- character, here and elsewhere.
-takeColor :: CssParser -> (CssParser, CssToken)
+takeColor :: CssParser -> (CssParser, Maybe CssToken)
 takeColor parser = if T.isPrefixOf "#" (remainder parser) && (inBlock parser)
                    then takeColor' parser
-                   else (parser, CssTokNone) -- Don't take the leading '#' if we are not in a block
+                   else (parser, Nothing) -- Don't take the leading '#' if we are not in a block
 
   where
-    takeColor' :: CssParser -> (CssParser, CssToken)
+    takeColor' :: CssParser -> (CssParser, Maybe CssToken)
     takeColor' parser = (parser{ remainder = newRem }
-                        , CssTokCol (T.concat ["#", newValue ]))
+                        , Just (CssTokCol (T.concat ["#", newValue ])))
                         -- TODO: verify if we really need the leading '#' in token.
                         -- TODO: what if there are no digits after '#'?
                         -- TODO: add better handling of '#' followed by non-hex string.
@@ -596,24 +600,24 @@ takeColor parser = if T.isPrefixOf "#" (remainder parser) && (inBlock parser)
 
 
 
-takeCharacter :: CssParser -> (CssParser, CssToken)
+takeCharacter :: CssParser -> (CssParser, Maybe CssToken)
 takeCharacter parser = if T.null . remainder $ parser
-                       then (parser, CssTokNone)
+                       then (parser, Nothing)
                        else (parserAppend parser (T.singleton . T.head . remainder $ parser),
-                             CssTokCh (T.head . remainder $ parser))
+                             Just (CssTokCh (T.head . remainder $ parser)))
 
 
 
 
 -- This function does not return a token. Discarding meaningless data from
 -- beginning of text would not create a valid token.
-takeLeadingWhite :: CssParser -> (CssParser, CssToken)
+takeLeadingWhite :: CssParser -> (CssParser, Maybe CssToken)
 takeLeadingWhite parser
-  | T.null rem                 = (parser, CssTokEnd)
+  | T.null rem                 = (parser, Just CssTokEnd)
   | D.C.isSpace . T.head $ rem = takeLeadingWhite parser { remainder = T.tail rem, spaceSeparated = True }
   | T.isPrefixOf "/*" rem      = takeLeadingWhite parser { remainder = HU.skipEnclosed rem "/*" "*/" }
   | T.isPrefixOf "<!--" rem    = takeLeadingWhite parser { remainder = HU.skipEnclosed rem "<!--" "-->" }
-  | otherwise                  = (parser, CssTokNone)
+  | otherwise                  = (parser, Nothing)
   where rem = remainder parser
 
 
@@ -621,15 +625,15 @@ takeLeadingWhite parser
 
 -- This function may complete withouth returning a valid token. Discarding
 -- meaningless data from beginning of text would not create a valid token.
-takeLeadingWhite2 :: CssParser -> (CssParser, CssToken)
+takeLeadingWhite2 :: CssParser -> (CssParser, Maybe CssToken)
 takeLeadingWhite2 parser
-  | T.null rem                 = (parser, CssTokEnd)
+  | T.null rem                 = (parser, Just CssTokEnd)
   | D.C.isSpace . T.head $ rem = takeLeadingWhite2 parser { remainder = T.tail rem, spaceSeparated = True }
   | T.isPrefixOf "/*" rem      = takeLeadingWhite2 parser { remainder = HU.skipEnclosed rem "/*" "*/" }
   | T.isPrefixOf "<!--" rem    = takeLeadingWhite2 parser { remainder = HU.skipEnclosed rem "<!--" "-->" }
   | otherwise                  = if (not . inBlock $ parser) && spaceSeparated parser
-                                 then (parser, CssTokWS)
-                                 else (parser, CssTokNone)
+                                 then (parser, Just CssTokWS)
+                                 else (parser, Nothing)
   where rem = remainder parser
 
 
@@ -646,16 +650,16 @@ parserAppend parser tok = parser { remainder = T.drop (T.length tok) (remainder 
 --
 -- T.R.rational is happy to interpret "100" as float, but we want to treat is
 -- as int. Therefore we have to search for '.' in taken sub-string :(
-takeFloat :: CssParser -> (CssParser, CssToken)
+takeFloat :: CssParser -> (CssParser, Maybe CssToken)
 takeFloat parser = case T.R.signed T.R.rational (remainder parser) of
                      Right pair -> case T.find (== '.') val of
-                                     Just c    -> (parserAppend parser val, CssTokF (fst pair))
-                                     otherwise -> (parser, CssTokNone)
+                                     Just c    -> (parserAppend parser val, Just (CssTokF (fst pair)))
+                                     otherwise -> (parser, Nothing)
                        where
                          val = T.take diff (remainder parser)
                          newRem = snd pair
                          diff = (T.length . remainder $ parser) - (T.length newRem)
-                     Left pair -> (parser, CssTokNone)
+                     Left pair -> (parser, Nothing)
 
 
 
@@ -664,14 +668,14 @@ takeFloat parser = case T.R.signed T.R.rational (remainder parser) of
 -- common function just yet. takeFloat will have to be updated to read all
 -- formats of float value, and that change may make it more complicated and
 -- less similar to takeInt.
-takeInt :: CssParser -> (CssParser, CssToken)
+takeInt :: CssParser -> (CssParser, Maybe CssToken)
 takeInt parser = case T.R.signed T.R.decimal (remainder parser) of
-                   Right pair -> (parserAppend parser val, CssTokI (fst pair))
+                   Right pair -> (parserAppend parser val, Just (CssTokI (fst pair)))
                      where
                        val = T.take diff (remainder parser)
                        newRem = snd pair
                        diff = (T.length . remainder $ parser) - (T.length newRem)
-                   Left pair -> (parser, CssTokNone)
+                   Left pair -> (parser, Nothing)
 
 
 
