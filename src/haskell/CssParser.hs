@@ -154,7 +154,7 @@ data CssToken =
   | CssTokWS          -- Whitespace
   | CssTokEnd         -- End of input. No new tokens will appear in input.
   | CssTokNone        -- No token was taken, proceed with parsing input data to try to take some token.
-  deriving (Show)
+  deriving (Show, Eq)
 
 
 
