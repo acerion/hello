@@ -129,13 +129,28 @@ import Debug.Trace
 
 
 
+
+-- Tokens listed in https://www.w3.org/TR/css-syntax-3/#tokenization, but not
+-- included in CssToken type (or not commented yet):
+--
+-- <ident-token>, <function-token>, <at-keyword-token>, <hash-token>,
+-- <string-token>, <bad-string-token>, <url-token>, <bad-url-token>,
+-- <delim-token>, <whitespace-token>, <CDO-token>, <CDC-token>,
+-- <colon-token>, <semicolon-token>, <comma-token>, <[-token>, <]-token>,
+-- <(-token>, <)-token>, <{-token>, and <}-token>.
+
+
 data CssToken =
-    CssTokI   Int
-  | CssTokF   Float
+    CssTokNumI Int              -- <number-token>
+  | CssTokNumF Float            -- <number-token>
+  | CssTokPercI Int             -- <percentage-token>, for integer values
+  | CssTokPercF Float           -- <percentage-token>, for float values
+  | CssTokDimI Int T.Text       -- <dimension-token>, for integer values
+  | CssTokDimF Float T.Text     -- <dimension-token>, for float values
   | CssTokCol T.Text
   | CssTokSym T.Text
   | CssTokStr T.Text
-  | CssTokCh  Char
+  | CssTokCh Char
   | CssTokWS          -- Whitespace
   | CssTokEnd         -- End of input. No new tokens will appear in input.
   | CssTokNone        -- No token was taken, proceed with parsing input data to try to take some token.
@@ -539,11 +554,24 @@ nextToken2' parser = takeLeadingWhite2 parser >>?
 -- the leading '-' character.
 takeSymbol :: CssParser -> (CssParser, Maybe CssToken)
 takeSymbol parser = if predNonNumeric . T.head . remainder $ parser
-                    then (parserAppend parser tok, Just (CssTokSym tok))
+                    then (parserMoveBy parser tok, Just $ CssTokSym tok)
                     else (parser, Nothing)
   where tok = T.takeWhile pred (remainder parser)
         predNonNumeric = (\c -> D.C.isAlpha c || c == '_' || c == '-')
         pred = (\c -> D.C.isAlphaNum c || c == '_' || c == '-')
+
+
+
+
+-- TODO: the function needs more work to be compliant with CSS spec
+takeIdent :: CssParser -> (CssParser, Maybe CssToken)
+takeIdent parser = if predNonNumeric . T.head . remainder $ parser
+                   then (parserMoveBy parser tok, Just $ CssTokSym tok)
+                   else (parser, Nothing)
+  where tok = T.takeWhile pred (remainder parser)
+        predNonNumeric = (\c -> D.C.isAlpha c || c == '_' || c == '-')
+        pred = (\c -> D.C.isAlphaNum c || c == '_' || c == '-')
+
 
 
 
@@ -569,7 +597,7 @@ takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
                                        (Nothing, _) -> (parser, Nothing)
   where
     parseString :: CssParser -> T.Text -> T.Text -> (CssParser, Maybe CssToken)
-    parseString parser string rem = (parser{remainder = rem}, Just (CssTokStr (escapedString string)))
+    parseString parser string rem = (parser{remainder = rem}, Just $ CssTokStr (escapedString string))
     escapedString str = case T.findIndex (== '\\') str of
                           Just i -> ""
                           Nothing -> str
@@ -603,8 +631,8 @@ takeColor parser = if T.isPrefixOf "#" (remainder parser) && (inBlock parser)
 takeCharacter :: CssParser -> (CssParser, Maybe CssToken)
 takeCharacter parser = if T.null . remainder $ parser
                        then (parser, Nothing)
-                       else (parserAppend parser (T.singleton . T.head . remainder $ parser),
-                             Just (CssTokCh (T.head . remainder $ parser)))
+                       else (parserMoveBy parser (T.singleton . T.head . remainder $ parser),
+                             Just $ CssTokCh (T.head . remainder $ parser))
 
 
 
@@ -639,44 +667,86 @@ takeLeadingWhite2 parser
 
 
 
-parserAppend :: CssParser -> T.Text -> CssParser
-parserAppend parser tok = parser { remainder = T.drop (T.length tok) (remainder parser) }
+-- Move parser's remainder by length of given string. Call this function when
+-- givne string has been consumed to token and now you want to remove it from
+-- front of parser's remainder.
+parserMoveBy :: CssParser -> T.Text -> CssParser
+parserMoveBy parser tok = parser { remainder = T.drop (T.length tok) (remainder parser) }
 
 
 
 
--- TODO: this function doesn't recognize some float formats that are valid in
--- CSS, e.g. ".5".
---
--- T.R.rational is happy to interpret "100" as float, but we want to treat is
--- as int. Therefore we have to search for '.' in taken sub-string :(
+-- Take string representing a number (either integer or float). Take a
+-- percent character or an identifier string following the number. Return
+-- percentage token or dimension token or number token.
+takeNum :: (CssParser -> (CssParser, Maybe CssToken)) -> CssParser -> (CssParser, Maybe CssToken)
+takeNum numTaker parser = case numTaker parser of
+                            pair@(parser, Just tokNumber) -> case takeIdent parser of
+                                                               (parser, Just tokIdent) -> (parser, Just $ numToDim tokNumber tokIdent)
+                                                               _                       -> case takeCharacter parser of
+                                                                                            (parser, Just (CssTokCh '%')) -> (parser, Just $ numToPerc tokNumber)
+                                                                                            -- We didn't catch neither "1.0px" nor "1.0%",
+                                                                                            -- so return initial parser and token "1.0".
+                                                                                            _ -> pair
+                            pair -> pair
+  where
+    -- Number token to dimension token.
+    --
+    -- TODO: second arg should be a string (ident) to make clear what the
+    -- order of args should be.
+    numToDim :: CssToken -> CssToken -> CssToken
+    numToDim (CssTokNumF f) (CssTokSym sym) = CssTokDimF f sym
+    numToDim (CssTokNumI i) (CssTokSym sym) = CssTokDimI i sym
+    numToDim tok _                          = tok
+
+    -- Number token to percentage token
+    numToPerc :: CssToken -> CssToken
+    numToPerc (CssTokNumF f) = CssTokPercF f
+    numToPerc (CssTokNumI i) = CssTokPercI i
+    numToPerc tok            = tok
+
+
+
+
+
 takeFloat :: CssParser -> (CssParser, Maybe CssToken)
-takeFloat parser = case T.R.signed T.R.rational (remainder parser) of
-                     Right pair -> case T.find (== '.') val of
-                                     Just c    -> (parserAppend parser val, Just (CssTokF (fst pair)))
-                                     otherwise -> (parser, Nothing)
-                       where
-                         val = T.take diff (remainder parser)
-                         newRem = snd pair
-                         diff = (T.length . remainder $ parser) - (T.length newRem)
-                     Left pair -> (parser, Nothing)
+takeFloat = takeNum takeFloat'
+  where
+    -- 'taker' function for takeNum
+    --
+    -- TODO: this function doesn't recognize some float formats that are
+    -- valid in CSS, e.g. ".5".
+    takeFloat' :: CssParser -> (CssParser, Maybe CssToken)
+    takeFloat' parser = case T.R.signed T.R.rational (remainder parser) of
+                          -- T.R.rational is happy to interpret "100" as
+                          -- float, but we want to treat is as int and reject
+                          -- it. Therefore we have to search for '.' in taken
+                          -- sub-string :( TODO: what about "4e10" float
+                          -- format that doesn't contain dot?
+                          Right (f, rem) -> case T.find (== '.') val of
+                                              Just c    -> (parser{remainder = rem}, Just $ CssTokNumF f)
+                                              otherwise -> (parser, Nothing)
+                            where
+                              val = T.take valLen $ remainder parser
+                              valLen = (T.length . remainder $ parser) - (T.length rem)
+                          Left _         -> (parser, Nothing)
 
 
 
 
--- This function is very similar to takeFloat, but I don't want to write a
--- common function just yet. takeFloat will have to be updated to read all
--- formats of float value, and that change may make it more complicated and
--- less similar to takeInt.
 takeInt :: CssParser -> (CssParser, Maybe CssToken)
-takeInt parser = case T.R.signed T.R.decimal (remainder parser) of
-                   Right pair -> (parserAppend parser val, Just (CssTokI (fst pair)))
-                     where
-                       val = T.take diff (remainder parser)
-                       newRem = snd pair
-                       diff = (T.length . remainder $ parser) - (T.length newRem)
-                   Left pair -> (parser, Nothing)
-
+takeInt = takeNum takeInt'
+  where
+    -- 'taker' function for takeNum
+    --
+    -- This function is very similar to takeFloat', but I don't want to write
+    -- a common function just yet. takeFloat will have to be updated to read
+    -- all formats of float value, and that change may make it more
+    -- complicated and less similar to takeInt.
+    takeInt' :: CssParser -> (CssParser, Maybe CssToken)
+    takeInt' parser = case T.R.signed T.R.decimal (remainder parser) of
+                        Right (i, rem) -> (parser{remainder = rem}, Just $ CssTokNumI i)
+                        Left _         -> (parser, Nothing)
 
 
 
@@ -713,20 +783,12 @@ parseRgbFunctionInt parser =
 
 parseRgbFunction :: CssParser -> (CssParser, Maybe (Int, Int, Int, T.Text, Bool))
 parseRgbFunction parser =
-  let fun = tryTakingRgbFunction $ parser
-      parser' = fst fun
-      tokens = snd fun :: [CssToken]
+  let (parser', tokens) = tryTakingRgbFunction $ parser
   in
-    case tokens of
-      (CssTokCh par2:CssTokCh perc3:CssTokI b:CssTokCh comma2:CssTokCh perc2:CssTokI g:CssTokCh comma1:CssTokCh perc1:CssTokI r:CssTokCh par1:[]) ->
-        if par1 == '(' && par2 == ')' && perc3 == '%' && perc2 == '%' && perc1 == '%' && comma2 == ',' && comma1 == ','
-        then (parser', Just (r, g, b, "%", True))
-        else (parser', Nothing)
-      (CssTokCh par2:CssTokI b:CssTokCh comma2:CssTokI g:CssTokCh comma1:CssTokI r:CssTokCh par1:[]) ->
-        if par1 == '(' && par2 == ')' && comma2 == ',' && comma1 == ','
-        then (parser', Just (r, g, b, "/100", False))
-        else (parser', Nothing)
-      otherwise -> (parser', Nothing)
+    case reverse tokens of
+      (CssTokCh '(':CssTokPercI r:CssTokCh ',':CssTokPercI g:CssTokCh ',':CssTokPercI b:CssTokCh ')':[]) -> (parser', Just (r, g, b, "%", True))
+      (CssTokCh '(':CssTokNumI r:CssTokCh ',':CssTokNumI g:CssTokCh ',':CssTokNumI b:CssTokCh ')':[])    -> (parser', Just (r, g, b, "/100", False))
+      otherwise                                                                                          -> (parser', Nothing)
 
 
 
@@ -883,29 +945,33 @@ lengthValueToValAndType fval unitStr | unitStr == "px" = (fval,               cs
 -- TODO: this function should handle multiple values per property, like here:
 -- "th{border-width:0 0 1px;".
 takeLengthTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
-takeLengthTokens (parser, token) = if isSpaceSeparated parser
-                                   then case token of
-                                          CssTokF _ -> (nextToken parser, [token])
-                                          CssTokI _ -> (nextToken parser, [token])
-                                          _         -> (nextToken parser, [])
-                                   else case token of
-                                          CssTokF _ -> numberWithSomething (parser, token)
-                                          CssTokI _ -> numberWithSomething (parser, token)
-                                          _         -> (nextToken parser, [])
+takeLengthTokens (parser, token) = case token of
+                                     CssTokNumI _   -> (nextToken parser, [token])
+                                     CssTokNumF _   -> (nextToken parser, [token])
+                                     CssTokPercI _  -> (nextToken parser, [token])
+                                     CssTokPercF _  -> (nextToken parser, [token])
+                                     CssTokDimI _ _ -> (nextToken parser, [token])
+                                     CssTokDimF _ _ -> (nextToken parser, [token])
+                                     CssTokCh ';'   -> ((parser, token), [])
+                                     CssTokCh '}'   -> ((parser, token), [])
+                                     CssTokEnd      -> ((parser, token), [])
+                                     _              -> ((parser, token), [])
 
+{-
   where
     numberWithSomething (parser, numberToken) = case nextToken parser of
                                                   pair@(p3, CssTokSym sym)  -> if unitStringIsValid sym
                                                                                then (nextToken p3, [numberToken, snd pair])
                                                                                else (nextToken p3, []) -- TODO: how to handle unrecognized symbol?
-                                                  pair@(p3, CssTokCh '%') -> (nextToken p3, [numberToken, snd pair])
-                                                  pair@(p3, CssTokCh ';') -> (pair, [numberToken])
-                                                  pair@(p3, CssTokCh '}') -> (pair, [numberToken])
-                                                  pair@(p3, CssTokEnd)    -> (pair, [numberToken])
-                                                  pair                    -> ((parser, token), [])
+                                                  pair@(p3, CssTokPercI i) -> (nextToken p3, [numberToken, snd pair])
+                                                  pair@(p3, CssTokPercF f) -> (nextToken p3, [numberToken, snd pair])
+                                                  pair@(p3, CssTokCh ';')  -> (pair, [numberToken])
+                                                  pair@(p3, CssTokCh '}')  -> (pair, [numberToken])
+                                                  pair@(p3, CssTokEnd)     -> (pair, [numberToken])
+                                                  pair                     -> ((parser, token), [])
 
     unitStringIsValid str = str == "px" || str == "mm" || str == "cm" || str == "in" || str == "pt" || str == "pc" || str == "em" || str == "ex"
-
+-}
 
 
 
@@ -918,13 +984,13 @@ isSpaceSeparated parser = spaceSeparated newParser
 declValueAsLength :: (CssParser, CssToken) -> CssValueType -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsLength (parser, token) valueType =
   case tokens of
-    [CssTokF f, CssTokSym sym] -> ((newParser, newToken), unitValue sym valueType f)
-    [CssTokI i, CssTokSym sym] -> ((newParser, newToken), unitValue sym valueType (fromIntegral i))
-    [CssTokF f, CssTokCh '%']  -> ((newParser, newToken), percentValue valueType f)
-    [CssTokI i, CssTokCh '%']  -> ((newParser, newToken), percentValue valueType (fromIntegral i))
-    [CssTokF f]                -> ((newParser, newToken), unitlessValue valueType f)
-    [CssTokI i]                -> ((newParser, newToken), unitlessValue valueType (fromIntegral i))
-    _                          -> ((parser, token), Nothing)
+    [CssTokDimF f ident] -> ((newParser, newToken), unitValue ident valueType f)
+    [CssTokDimI i ident] -> ((newParser, newToken), unitValue ident valueType (fromIntegral i))
+    [CssTokPercF f]      -> ((newParser, newToken), percentValue valueType f)
+    [CssTokPercI i]      -> ((newParser, newToken), percentValue valueType (fromIntegral i))
+    [CssTokNumF f]       -> ((newParser, newToken), unitlessValue valueType f)
+    [CssTokNumI i]       -> ((newParser, newToken), unitlessValue valueType (fromIntegral i))
+    _                    -> ((parser, token), Nothing)
   where
     ((newParser, newToken), tokens) = takeLengthTokens (parser, token)
 
@@ -1035,9 +1101,9 @@ separated parser str = if spaceSeparated parser
 
 
 declValueAsFontWeightInteger :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssValue)
-declValueAsFontWeightInteger (parser, token@(CssTokI i)) property = if i >= 100 && i <= 900
-                                                                    then ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeFontWeight, intVal = i})
-                                                                    else ((parser, token), Nothing)
+declValueAsFontWeightInteger (parser, token@(CssTokNumI i)) property = if i >= 100 && i <= 900
+                                                                       then ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeFontWeight, intVal = i})
+                                                                       else ((parser, token), Nothing)
 declValueAsFontWeightInteger (parser, token) property             = ((parser, token), Nothing)
 
 
@@ -1068,28 +1134,32 @@ tokenMatchesProperty token property = tokenMatchesProperty' token acceptedValueT
                                                    _                -> tokenMatchesProperty' token ts enums
                                              | t == cssDeclValueTypeBgPosition =
                                                  case token of
-                                                   CssTokSym s -> if s == "center" || s == "left" || s == "right" || s == "top" || s == "bottom"
-                                                                  then Just t
-                                                                  else tokenMatchesProperty' token ts enums
-                                                   CssTokI i   -> Just t   -- TODO: here we should better handle numeric background positions
-                                                   CssTokF f   -> Just t
-                                                   _           -> tokenMatchesProperty' token ts enums
+                                                   CssTokSym s  -> if s == "center" || s == "left" || s == "right" || s == "top" || s == "bottom"
+                                                                   then Just t
+                                                                   else tokenMatchesProperty' token ts enums
+                                                   CssTokNumI i -> Just t   -- TODO: here we should better handle numeric background positions
+                                                   CssTokNumF f -> Just t
+                                                   _            -> tokenMatchesProperty' token ts enums
 
                                              | t == cssDeclValueTypeLengthPercent || t == cssDeclValueTypeLength || t == cssDeclValueTypeLengthPercentNumber =
                                                  case token of
-                                                   CssTokF f -> if f < 0
-                                                                then Nothing
-                                                                else Just t
-                                                   CssTokI i -> if i < 0
-                                                                then Nothing
-                                                                else Just t
-                                                   _         -> Nothing
+                                                   CssTokNumF f   -> if f < 0 then Nothing else Just t
+                                                   CssTokNumI i   -> if i < 0 then Nothing else Just t
+                                                   CssTokPercF f  -> if f < 0 then Nothing else Just t
+                                                   CssTokPercI i  -> if i < 0 then Nothing else Just t
+                                                   CssTokDimF f _ -> if f < 0 then Nothing else Just t
+                                                   CssTokDimI i _ -> if i < 0 then Nothing else Just t
+                                                   _              -> Nothing
 
                                              | t == cssDeclValueTypeSignedLength =
                                                  case token of
-                                                   CssTokF _ -> Just t
-                                                   CssTokI _ -> Just t
-                                                   _         -> tokenMatchesProperty' token ts enums
+                                                   CssTokNumF _   -> Just t
+                                                   CssTokNumI _   -> Just t
+                                                   CssTokPercF _  -> Just t
+                                                   CssTokPercI _  -> Just t
+                                                   CssTokDimF _ _ -> Just t
+                                                   CssTokDimI _ _ -> Just t
+                                                   _              -> tokenMatchesProperty' token ts enums
 
                                              | t == cssDeclValueTypeAuto =
                                                  case token of
@@ -1117,10 +1187,10 @@ tokenMatchesProperty token property = tokenMatchesProperty' token acceptedValueT
                                                    _             -> tokenMatchesProperty' token ts enums
                                              | t == cssDeclValueTypeFontWeight =
                                                  case token of
-                                                   CssTokI i -> if i >= 100 && i <= 900 -- TODO: this test of range is repeated in this file
-                                                                then Just t
-                                                                else tokenMatchesProperty' token ts enums
-                                                   _         -> tokenMatchesProperty' token ts enums
+                                                   CssTokNumI i -> if i >= 100 && i <= 900 -- TODO: this test of range is repeated in this file
+                                                                   then Just t
+                                                                   else tokenMatchesProperty' token ts enums
+                                                   _            -> tokenMatchesProperty' token ts enums
                                              | t == cssDeclValueTypeURI =
                                                  case token of
                                                    CssTokSym s -> if s == "url"
