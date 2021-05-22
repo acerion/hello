@@ -20,11 +20,15 @@ all:
 distclean: clean
 
 clean:
-	rm -rf *.o *.a *.so *.hi *_stub.h *.out
-	rm -rf tests/*.o tests/*.hi
-	rm -rf tests_tools/*.o tests_tools/*.hi
-	rm -rf ffi/*.o ffi/*.hi ffi/*.h
-	rm ffi/Gif.hs
-	rm ffi/HtmlTag.hs
-	rm ffi/CssParser.hs
+	find ./ -name "*.hi"      | xargs rm -f
+	find ./ -name "*.a"       | xargs rm -f
+	find ./ -name "*.o"       | xargs rm -f
+	find ./ -name "*.so"      | xargs rm -f
+	find ./ -name "*.out"     | xargs rm -f
+	find ./ -name "*_stub.h"  | xargs rm -f
+
+	rm -f ffi/*.h
+	rm -f ffi/Gif.hs
+	rm -f ffi/HtmlTag.hs
+	rm -f ffi/CssParser.hs
 
