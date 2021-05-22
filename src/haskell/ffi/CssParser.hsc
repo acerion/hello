@@ -157,8 +157,8 @@ updateTokenStruct ptrStructCssToken token = do
 
 cstr :: CssToken -> IO CString
 cstr token = case token of
-    (CssTokNumI i)-> (newCString . show $ i)
-    (CssTokNumF f)-> (newCString . show $ f)
+    (CssTokNum (CssNumI i)) -> (newCString . show $ i)
+    (CssTokNum (CssNumF f)) -> (newCString . show $ f)
     (CssTokCol c) -> (newCString . T.unpack $ c)
     (CssTokSym s) -> (newCString . T.unpack $ s)
     (CssTokStr s) -> (newCString . T.unpack $ s)
@@ -265,8 +265,8 @@ hll_ignoreStatement ptrStructCssParser ptrStructCssToken cBuf = do
 -- We should add here CssTokDimX and CssTokPercX, but since the program seems
 -- to keep going quite well, and since this FFI code will sooner or later go
 -- away, then I will let it be as it is now.
-getTokenType (CssTokNumI _) = 0
-getTokenType (CssTokNumF _) = 1
+getTokenType (CssTokNum (CssNumI _)) = 0
+getTokenType (CssTokNum (CssNumF _)) = 1
 getTokenType (CssTokCol  _) = 2
 getTokenType (CssTokSym  _) = 3
 getTokenType (CssTokStr  _) = 4
@@ -279,11 +279,11 @@ getTokenType _              = 8
 
 
 getTokenADT tokType tokValue | tokType == 0 = case T.R.signed T.R.decimal tokValue of
-                                                Right pair -> CssTokNumI (fst pair)
-                                                Left  _    -> CssTokNumI 0
+                                                Right pair -> CssTokNum $ CssNumI (fst pair)
+                                                Left  _    -> CssTokNum $ CssNumI 0
                              | tokType == 1 = case T.R.signed T.R.rational tokValue of
-                                                Right pair -> CssTokNumF (fst pair)
-                                                Left  _    -> CssTokNumF 0.0
+                                                Right pair -> CssTokNum $ CssNumF (fst pair)
+                                                Left  _    -> CssTokNum $ CssNumF 0.0
                              | tokType == 2 = CssTokCol  tokValue
                              | tokType == 3 = CssTokSym  tokValue
                              | tokType == 4 = CssTokStr  tokValue

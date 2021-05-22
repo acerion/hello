@@ -27,71 +27,71 @@ tokenizerNumbersTestManualData = [
   -- parser's remainder before     expected token           parser's remainder after
 
   -- Tests of <number-token>
-    ( "0",                     CssTokNumI 0,                ""  )
-  , ( "0}",                    CssTokNumI 0,                "}" )
-  , ( "-0}",                   CssTokNumI 0,                "}" )
-  , ( "10}",                   CssTokNumI 10,               "}" )
-  , ( "+10}",                  CssTokNumI 10,               "}" )
-  , ( "-10}",                  CssTokNumI (-10),            "}" )
-  , ( "56298453554,",          CssTokNumI 56298453554,      "," )
-  , ( "512 dragons",           CssTokNumI 512,              " dragons" )
-  , ( "+512 dragons",          CssTokNumI 512,              " dragons" )
-  , ( "-512 dragons",          CssTokNumI (-512),           " dragons" )
+    ( "0",                     CssTokNum $ CssNumI 0,                ""  )
+  , ( "0}",                    CssTokNum $ CssNumI 0,                "}" )
+  , ( "-0}",                   CssTokNum $ CssNumI 0,                "}" )
+  , ( "10}",                   CssTokNum $ CssNumI 10,               "}" )
+  , ( "+10}",                  CssTokNum $ CssNumI 10,               "}" )
+  , ( "-10}",                  CssTokNum $ CssNumI (-10),            "}" )
+  , ( "56298453554,",          CssTokNum $ CssNumI 56298453554,      "," )
+  , ( "512 dragons",           CssTokNum $ CssNumI 512,              " dragons" )
+  , ( "+512 dragons",          CssTokNum $ CssNumI 512,              " dragons" )
+  , ( "-512 dragons",          CssTokNum $ CssNumI (-512),           " dragons" )
 
-  , ( "0.0",                   CssTokNumF 0.0,              ""  )
-  , ( "0.0}",                  CssTokNumF 0.0,              "}" )
-  , ( "+0.0}",                 CssTokNumF 0.0,              "}" )
-  , ( "-0.0}",                 CssTokNumF (-0.0),           "}" )
-  , ( "0.1}",                  CssTokNumF 0.1,              "}" )
-  , ( "+0.1}",                 CssTokNumF 0.1,              "}" )
-  , ( "-0.1}",                 CssTokNumF (-0.1),           "}" )
-  , ( "12.333}",               CssTokNumF 12.333,           "}" )
-  , ( "+12.333}",              CssTokNumF 12.333,           "}" )
-  , ( "-12.333}",              CssTokNumF (-12.333),        "}" )
-  , ( "12345.1,",              CssTokNumF 12345.1,          "," )
-  , ( "76.5 computers",        CssTokNumF 76.5,             " computers" )
-  , ( "44.2,",                 CssTokNumF 44.2,             "," )
-  -- , ( ".2,",                   CssTokNumF 0.2,              "," ) -- TODO: implement support for this format
-  -- , ( "10e2}",                 CssTokNumF 1000.0,           "}" ) -- TODO: implement support for this format
-  , ( "1.2e-3}",               CssTokNumF 0.0012,           "}" )
-  , ( "+1.2e-3}",              CssTokNumF 0.0012,           "}" )
-  , ( "-1.2e-3}",              CssTokNumF (-0.0012),        "}" )
+  , ( "0.0",                   CssTokNum $ CssNumF 0.0,              ""  )
+  , ( "0.0}",                  CssTokNum $ CssNumF 0.0,              "}" )
+  , ( "+0.0}",                 CssTokNum $ CssNumF 0.0,              "}" )
+  , ( "-0.0}",                 CssTokNum $ CssNumF (-0.0),           "}" )
+  , ( "0.1}",                  CssTokNum $ CssNumF 0.1,              "}" )
+  , ( "+0.1}",                 CssTokNum $ CssNumF 0.1,              "}" )
+  , ( "-0.1}",                 CssTokNum $ CssNumF (-0.1),           "}" )
+  , ( "12.333}",               CssTokNum $ CssNumF 12.333,           "}" )
+  , ( "+12.333}",              CssTokNum $ CssNumF 12.333,           "}" )
+  , ( "-12.333}",              CssTokNum $ CssNumF (-12.333),        "}" )
+  , ( "12345.1,",              CssTokNum $ CssNumF 12345.1,          "," )
+  , ( "76.5 computers",        CssTokNum $ CssNumF 76.5,             " computers" )
+  , ( "44.2,",                 CssTokNum $ CssNumF 44.2,             "," )
+  -- , ( ".2,",                   CssTokNum $ CssNumF 0.2,              "," ) -- TODO: implement support for this format
+  -- , ( "10e2}",                 CssTokNum $ CssNumF 1000.0,           "}" ) -- TODO: implement support for this format
+  , ( "1.2e-3}",               CssTokNum $ CssNumF 0.0012,           "}" )
+  , ( "+1.2e-3}",              CssTokNum $ CssNumF 0.0012,           "}" )
+  , ( "-1.2e-3}",              CssTokNum $ CssNumF (-0.0012),        "}" )
 
 
 
 
   -- Tests of <percentage-token>
-  , ( "13%;",                  CssTokPercI 13,              ";" )
-  , ( "-13%;",                 CssTokPercI (-13),           ";" )
-  , ( "+13%;",                 CssTokPercI 13,              ";" )
+  , ( "13%;",                  CssTokPerc $ CssNumI 13,              ";" )
+  , ( "-13%;",                 CssTokPerc $ CssNumI (-13),           ";" )
+  , ( "+13%;",                 CssTokPerc $ CssNumI 13,              ";" )
   -- This is a percentage followed immediately by some identifier
-  , ( "31%px",                 CssTokPercI 31,              "px" )
+  , ( "31%px",                 CssTokPerc $ CssNumI 31,              "px" )
 
-  , ( "99.9%;",                CssTokPercF 99.9,            ";" )
-  , ( "-99.9%;",               CssTokPercF (-99.9),         ";" )
-  , ( "+99.9%;",               CssTokPercF 99.9,            ";" )
+  , ( "99.9%;",                CssTokPerc $ CssNumF 99.9,            ";" )
+  , ( "-99.9%;",               CssTokPerc $ CssNumF (-99.9),         ";" )
+  , ( "+99.9%;",               CssTokPerc $ CssNumF 99.9,            ";" )
   -- This is a percentage followed immediately by some identifier
-  , ( "45.8%px",               CssTokPercF 45.8,            "px" )
+  , ( "45.8%px",               CssTokPerc $ CssNumF 45.8,            "px" )
 
 
 
 
   -- Tests of <dimension-token>
-  , ( "127px;",                CssTokDimI 127 "px",         ";" )
-  , ( "-1pt ",                 CssTokDimI (-1) "pt",        " " )
-  , ( "+1pt ",                 CssTokDimI 1 "pt",           " " )
+  , ( "127px;",                CssTokDim (CssNumI 127) "px",         ";" )
+  , ( "-1pt ",                 CssTokDim (CssNumI (-1)) "pt",        " " )
+  , ( "+1pt ",                 CssTokDim (CssNumI 1) "pt",           " " )
   -- Tokenizer doesn't validate correctness of units, it just appends
   -- identifier to number to get <dimension-token>. Verifying units is done
   -- by parser, not tokenizer.
-  , ( "15cars}",               CssTokDimI 15 "cars",        "}" )
+  , ( "15cars}",               CssTokDim (CssNumI 15) "cars",        "}" )
 
-  , ( "99.9mm;",               CssTokDimF 99.9 "mm",        ";" )
-  , ( "-15.5in ",              CssTokDimF (-15.5) "in",     " " )
-  , ( "+15.5in ",              CssTokDimF 15.5 "in",        " " )
+  , ( "99.9mm;",               CssTokDim (CssNumF 99.9) "mm",        ";" )
+  , ( "-15.5in ",              CssTokDim (CssNumF (-15.5)) "in",     " " )
+  , ( "+15.5in ",              CssTokDim (CssNumF 15.5) "in",        " " )
   -- Tokenizer doesn't validate correctness of units, it just appends
   -- identifier to number to get <dimension-token>. Verifying units is done
   -- by parser, not tokenizer.
-  , ( "64.22cars}",            CssTokDimF 64.22 "cars",     "}" )
+  , ( "64.22cars}",            CssTokDim (CssNumF 64.22) "cars",     "}" )
   ]
 
 

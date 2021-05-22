@@ -58,6 +58,7 @@ module CssParser(nextToken
                 , parseUrl
                 , CssParser (..)
                 , CssToken (..)
+                , CssNum (..)
                 , tryTakingRgbFunction
                 , parseRgbFunction
                 , parseRgbFunctionInt
@@ -130,6 +131,16 @@ import Debug.Trace
 
 
 
+data CssNum
+    = CssNumI Int
+    | CssNumF Float
+    deriving (Show, Eq)
+
+cssNumToFloat (CssNumF f) = f
+cssNumToFloat (CssNumI i) = fromIntegral i
+
+
+
 
 -- Tokens listed in https://www.w3.org/TR/css-syntax-3/#tokenization, but not
 -- included in CssToken type (or not commented yet):
@@ -142,12 +153,9 @@ import Debug.Trace
 
 
 data CssToken =
-    CssTokNumI Int              -- <number-token>
-  | CssTokNumF Float            -- <number-token>
-  | CssTokPercI Int             -- <percentage-token>, for integer values
-  | CssTokPercF Float           -- <percentage-token>, for float values
-  | CssTokDimI Int T.Text       -- <dimension-token>, for integer values
-  | CssTokDimF Float T.Text     -- <dimension-token>, for float values
+    CssTokNum CssNum            -- <number-token>
+  | CssTokPerc CssNum           -- <percentage-token>
+  | CssTokDim CssNum T.Text     -- <dimension-token>
   | CssTokIdent T.Text          -- <ident-token>. CSS3 spec says that text can be empty: "have a value composed of zero or more code points".
   | CssTokCol T.Text
   | CssTokSym T.Text
@@ -710,9 +718,9 @@ parserMoveBy parser tok = parser { remainder = T.drop (T.length tok) (remainder 
 
 
 
--- Take string representing a number (either integer or float). Take a
--- percent character or an identifier string following the number. Return
--- percentage token or dimension token or number token.
+-- Take string representing a number. Take a percent character or an
+-- identifier string following the number. Return percentage token or
+-- dimension token or number token.
 takeNum :: (CssParser -> (CssParser, Maybe CssToken)) -> CssParser -> (CssParser, Maybe CssToken)
 takeNum numTaker parser = case numTaker parser of
                             pair@(parser, Just tokNum) -> case takeIdent parser of
@@ -729,15 +737,13 @@ takeNum numTaker parser = case numTaker parser of
     -- TODO: perhaps second arg should be a string (ident) to make clear what
     -- the order of args should be.
     numToDim :: CssToken -> CssToken -> CssToken
-    numToDim (CssTokNumF f) (CssTokIdent ident) = CssTokDimF f ident
-    numToDim (CssTokNumI i) (CssTokIdent ident) = CssTokDimI i ident
-    numToDim tok _                              = tok
+    numToDim (CssTokNum n) (CssTokIdent ident) = CssTokDim n ident
+    numToDim tok _                             = tok
 
     -- <number-token> to <percentage-token>
     numToPerc :: CssToken -> CssToken
-    numToPerc (CssTokNumF f) = CssTokPercF f
-    numToPerc (CssTokNumI i) = CssTokPercI i
-    numToPerc tok            = tok
+    numToPerc (CssTokNum n) = CssTokPerc n
+    numToPerc tok           = tok
 
 
 
@@ -758,7 +764,7 @@ takeFloat = takeNum takeFloat'
                           -- sub-string :( TODO: what about "4e10" float
                           -- format that doesn't contain dot?
                           Right (f, rem) -> case T.find (== '.') val of
-                                              Just c    -> (parser{remainder = rem}, Just $ CssTokNumF f)
+                                              Just c    -> (parser{remainder = rem}, Just $ CssTokNum (CssNumF f))
                                               otherwise -> (parser, Nothing)
                             where
                               val = T.take valLen $ remainder parser
@@ -779,7 +785,7 @@ takeInt = takeNum takeInt'
     -- complicated and less similar to takeInt.
     takeInt' :: CssParser -> (CssParser, Maybe CssToken)
     takeInt' parser = case T.R.signed T.R.decimal (remainder parser) of
-                        Right (i, rem) -> (parser{remainder = rem}, Just $ CssTokNumI i)
+                        Right (i, rem) -> (parser{remainder = rem}, Just $ CssTokNum (CssNumI i))
                         Left _         -> (parser, Nothing)
 
 
@@ -820,9 +826,10 @@ parseRgbFunction parser =
   let (parser', tokens) = tryTakingRgbFunction $ parser
   in
     case reverse tokens of
-      (CssTokCh '(':CssTokPercI r:CssTokCh ',':CssTokPercI g:CssTokCh ',':CssTokPercI b:CssTokCh ')':[]) -> (parser', Just (r, g, b, "%", True))
-      (CssTokCh '(':CssTokNumI r:CssTokCh ',':CssTokNumI g:CssTokCh ',':CssTokNumI b:CssTokCh ')':[])    -> (parser', Just (r, g, b, "/100", False))
-      otherwise                                                                                          -> (parser', Nothing)
+      -- "either three integer values or three percentage values" in https://www.w3.org/TR/css-color-3/
+      (CssTokCh '(':CssTokPerc (CssNumI r):CssTokCh ',':CssTokPerc (CssNumI g):CssTokCh ',':CssTokPerc (CssNumI b):CssTokCh ')':[]) -> (parser', Just (r, g, b, "%", True))
+      (CssTokCh '(':CssTokNum (CssNumI r):CssTokCh ',':CssTokNum (CssNumI g):CssTokCh ',':CssTokNum (CssNumI b):CssTokCh ')':[])    -> (parser', Just (r, g, b, "/100", False))
+      otherwise                                                                                                                     -> (parser', Nothing)
 
 
 
@@ -980,12 +987,9 @@ lengthValueToValAndType fval unitStr | unitStr == "px" = (fval,               cs
 -- "th{border-width:0 0 1px;".
 takeLengthTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
 takeLengthTokens (parser, token) = case token of
-                                     CssTokNumI _   -> (nextToken parser, [token])
-                                     CssTokNumF _   -> (nextToken parser, [token])
-                                     CssTokPercI _  -> (nextToken parser, [token])
-                                     CssTokPercF _  -> (nextToken parser, [token])
-                                     CssTokDimI _ _ -> (nextToken parser, [token])
-                                     CssTokDimF _ _ -> (nextToken parser, [token])
+                                     CssTokNum  _   -> (nextToken parser, [token])
+                                     CssTokPerc  _  -> (nextToken parser, [token])
+                                     CssTokDim  _ _ -> (nextToken parser, [token])
                                      CssTokCh ';'   -> ((parser, token), [])
                                      CssTokCh '}'   -> ((parser, token), [])
                                      CssTokEnd      -> ((parser, token), [])
@@ -1018,32 +1022,32 @@ isSpaceSeparated parser = spaceSeparated newParser
 declValueAsLength :: (CssParser, CssToken) -> CssValueType -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsLength (parser, token) valueType =
   case tokens of
-    [CssTokDimF f ident] -> ((newParser, newToken), unitValue ident valueType f)
-    [CssTokDimI i ident] -> ((newParser, newToken), unitValue ident valueType (fromIntegral i))
-    [CssTokPercF f]      -> ((newParser, newToken), percentValue valueType f)
-    [CssTokPercI i]      -> ((newParser, newToken), percentValue valueType (fromIntegral i))
-    [CssTokNumF f]       -> ((newParser, newToken), unitlessValue valueType f)
-    [CssTokNumI i]       -> ((newParser, newToken), unitlessValue valueType (fromIntegral i))
-    _                    -> ((parser, token), Nothing)
+    [CssTokDim cssNum ident] -> ((newParser, newToken), unitValue valueType cssNum ident)
+    [CssTokPerc cssNum]      -> ((newParser, newToken), percentValue valueType cssNum)
+    [CssTokNum cssNum]       -> ((newParser, newToken), unitlessValue valueType cssNum)
+    _                        -> ((parser, token), Nothing)
   where
     ((newParser, newToken), tokens) = takeLengthTokens (parser, token)
 
-    percentValue :: CssValueType -> Float -> Maybe CssValue
-    percentValue valueType fval = Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
+    percentValue :: CssValueType -> CssNum -> Maybe CssValue
+    percentValue valueType cssNum = Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
       where
+        fval = cssNumToFloat cssNum
         (val, t) = ((fval / 100.0), cssLengthTypePercentage)
 
-    unitValue :: T.Text -> CssValueType -> Float -> Maybe CssValue
-    unitValue unitString valueType fval = Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
+    unitValue :: CssValueType -> CssNum -> T.Text -> Maybe CssValue
+    unitValue valueType cssNum unitString = Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
       where
+        fval = cssNumToFloat cssNum
         (val, t) = lengthValueToValAndType fval (T.toLower unitString)
 
-    unitlessValue :: CssValueType -> Float -> Maybe CssValue
+    unitlessValue :: CssValueType -> CssNum -> Maybe CssValue
     -- Allow numbers without unit only for 0 or cssDeclValueTypeLengthPercentNumber. TODO: why?
-    unitlessValue valueType fval = if (valueType == cssDeclValueTypeLengthPercentNumber || fval == 0.0)
-                                   then Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
-                                   else Nothing
+    unitlessValue valueType cssNum = if (valueType == cssDeclValueTypeLengthPercentNumber || fval == 0.0)
+                                     then Just defaultValue{typeTag = valueType, intVal = (cssCreateLength val t)}
+                                     else Nothing
       where
+        fval = cssNumToFloat cssNum
         (val, t) = (fval, cssLengthTypeNone)
 
 
@@ -1135,10 +1139,10 @@ separated parser str = if spaceSeparated parser
 
 
 declValueAsFontWeightInteger :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), Maybe CssValue)
-declValueAsFontWeightInteger (parser, token@(CssTokNumI i)) property = if i >= 100 && i <= 900
-                                                                       then ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeFontWeight, intVal = i})
-                                                                       else ((parser, token), Nothing)
-declValueAsFontWeightInteger (parser, token) property             = ((parser, token), Nothing)
+declValueAsFontWeightInteger (parser, token@(CssTokNum (CssNumI i))) property = if i >= 100 && i <= 900
+                                                                                then ((parser, token), Just defaultValue{typeTag = cssDeclValueTypeFontWeight, intVal = i})
+                                                                                else ((parser, token), Nothing)
+declValueAsFontWeightInteger (parser, token) property                         = ((parser, token), Nothing)
 
 
 
@@ -1168,32 +1172,28 @@ tokenMatchesProperty token property = tokenMatchesProperty' token acceptedValueT
                                                    _                -> tokenMatchesProperty' token ts enums
                                              | t == cssDeclValueTypeBgPosition =
                                                  case token of
-                                                   CssTokSym s  -> if s == "center" || s == "left" || s == "right" || s == "top" || s == "bottom"
-                                                                   then Just t
-                                                                   else tokenMatchesProperty' token ts enums
-                                                   CssTokNumI i -> Just t   -- TODO: here we should better handle numeric background positions
-                                                   CssTokNumF f -> Just t
-                                                   _            -> tokenMatchesProperty' token ts enums
+                                                   CssTokSym s -> if s == "center" || s == "left" || s == "right" || s == "top" || s == "bottom"
+                                                                  then Just t
+                                                                  else tokenMatchesProperty' token ts enums
+                                                   CssTokNum n -> Just t   -- TODO: here we should better handle numeric background positions
+                                                   _           -> tokenMatchesProperty' token ts enums
 
                                              | t == cssDeclValueTypeLengthPercent || t == cssDeclValueTypeLength || t == cssDeclValueTypeLengthPercentNumber =
                                                  case token of
-                                                   CssTokNumF f   -> if f < 0 then Nothing else Just t
-                                                   CssTokNumI i   -> if i < 0 then Nothing else Just t
-                                                   CssTokPercF f  -> if f < 0 then Nothing else Just t
-                                                   CssTokPercI i  -> if i < 0 then Nothing else Just t
-                                                   CssTokDimF f _ -> if f < 0 then Nothing else Just t
-                                                   CssTokDimI i _ -> if i < 0 then Nothing else Just t
+                                                   CssTokNum (CssNumF f)   -> if f < 0 then Nothing else Just t
+                                                   CssTokNum (CssNumI i)   -> if i < 0 then Nothing else Just t
+                                                   CssTokPerc (CssNumF f)  -> if f < 0 then Nothing else Just t
+                                                   CssTokPerc (CssNumI i)  -> if i < 0 then Nothing else Just t
+                                                   CssTokDim (CssNumF f) _ -> if f < 0 then Nothing else Just t
+                                                   CssTokDim (CssNumI i) _ -> if i < 0 then Nothing else Just t
                                                    _              -> Nothing
 
                                              | t == cssDeclValueTypeSignedLength =
                                                  case token of
-                                                   CssTokNumF _   -> Just t
-                                                   CssTokNumI _   -> Just t
-                                                   CssTokPercF _  -> Just t
-                                                   CssTokPercI _  -> Just t
-                                                   CssTokDimF _ _ -> Just t
-                                                   CssTokDimI _ _ -> Just t
-                                                   _              -> tokenMatchesProperty' token ts enums
+                                                   CssTokNum _   -> Just t
+                                                   CssTokPerc _  -> Just t
+                                                   CssTokDim _ _ -> Just t
+                                                   _             -> tokenMatchesProperty' token ts enums
 
                                              | t == cssDeclValueTypeAuto =
                                                  case token of
@@ -1221,10 +1221,10 @@ tokenMatchesProperty token property = tokenMatchesProperty' token acceptedValueT
                                                    _             -> tokenMatchesProperty' token ts enums
                                              | t == cssDeclValueTypeFontWeight =
                                                  case token of
-                                                   CssTokNumI i -> if i >= 100 && i <= 900 -- TODO: this test of range is repeated in this file
-                                                                   then Just t
-                                                                   else tokenMatchesProperty' token ts enums
-                                                   _            -> tokenMatchesProperty' token ts enums
+                                                   CssTokNum (CssNumI i) -> if i >= 100 && i <= 900 -- TODO: this test of range is repeated in this file
+                                                                            then Just t
+                                                                            else tokenMatchesProperty' token ts enums
+                                                   _                     -> tokenMatchesProperty' token ts enums
                                              | t == cssDeclValueTypeURI =
                                                  case token of
                                                    CssTokSym s -> if s == "url"
