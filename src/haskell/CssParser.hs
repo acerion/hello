@@ -54,7 +54,7 @@ module CssParser(nextToken
                 , ignoreStatement
                 , takeSymbol
                 , takeInt
-                , takeIdent
+                , takeIdentToken
                 , parseUrl
                 , CssParser (..)
                 , CssToken (..)
@@ -525,32 +525,24 @@ pair@(parser, _)  >>? _ = pair
 
 
 
--- Try taking Float before trying to take Int, because otherwise you may take
--- only an initial (integral) part of Float as an Int, and leave fractional
--- part in remainder.
 nextToken' :: CssParser -> (CssParser, Maybe CssToken)
 nextToken' parser = takeLeadingWhite parser >>?
-                    takeFloat               >>?
-                    takeInt                 >>?
+                    takeNumPercDimToken     >>?
                     takeSymbol              >>?
                     takeString              >>?
                     takeColor               >>?
-                    takeCharacter
+                    takeCharToken
 
 
 
 
--- Try taking Float before trying to take Int, because otherwise you may take
--- only an initial (integral) part of Float as an Int, and leave fractional
--- part in remainder.
 nextToken2' :: CssParser -> (CssParser, Maybe CssToken)
 nextToken2' parser = takeLeadingWhite2 parser >>?
-                     takeFloat                >>?
-                     takeInt                  >>?
+                     takeNumPercDimToken      >>?
                      takeSymbol               >>?
                      takeString               >>?
                      takeColor                >>?
-                     takeCharacter
+                     takeCharToken
 
 
 
@@ -579,22 +571,22 @@ takeSymbol parser = if predNonNumeric . T.head . remainder $ parser
 --
 -- This implementation is not very pretty. It closely resembles algorithm
 -- rescribed in CSS3 spec.
-takeIdent :: CssParser -> (CssParser, Maybe CssToken)
-takeIdent parser = if isValidStartOfIdentifier . remainder $ parser
-                   then (parserMoveBy parser ident, Just $ CssTokIdent ident)
-                   else (parser, Nothing)
+takeIdentToken :: CssParser -> (CssParser, Maybe CssToken)
+takeIdentToken parser = if isValidStartOfIdentifier . remainder $ parser
+                        then (parserMoveBy parser ident, Just $ CssTokIdent ident)
+                        else (parser, Nothing)
   where
-    ident = T.reverse $ takeIdent' (remainder parser) ""
+    ident = T.reverse $ takeIdent (remainder parser) ""
 
-    takeIdent' :: T.Text -> T.Text -> T.Text
-    takeIdent' buffer acc = case T.uncons buffer of
-                              Just (c, rem) | isNameCodePoint c -> takeIdent' rem (T.cons c acc)
-                                            | c == '\\'         -> acc -- TODO: properly handle an escape
-                                            | otherwise         -> acc
-                              -- At this point, after isValidStartOfIdentifier
-                              -- returned true, acc can't be empty, so return
-                              -- it as idendifier.
-                              Nothing -> acc
+    takeIdent :: T.Text -> T.Text -> T.Text
+    takeIdent buffer acc = case T.uncons buffer of
+                             Just (c, rem) | isNameCodePoint c -> takeIdent rem (T.cons c acc)
+                                           | c == '\\'         -> acc -- TODO: properly handle an escape
+                                           | otherwise         -> acc
+                             -- At this point, after isValidStartOfIdentifier
+                             -- returned true, acc can't be empty, so return
+                             -- it as idendifier.
+                             Nothing -> acc
 
     isValidStartOfIdentifier buffer = case T.uncons buffer of
                                         Just (c, rem) | c == '-'               -> False -- TODO: properly handle identifier starting with '-'
@@ -670,8 +662,8 @@ takeColor parser = if T.isPrefixOf "#" (remainder parser) && (inBlock parser)
 
 
 
-takeCharacter :: CssParser -> (CssParser, Maybe CssToken)
-takeCharacter parser = if T.null . remainder $ parser
+takeCharToken :: CssParser -> (CssParser, Maybe CssToken)
+takeCharToken parser = if T.null . remainder $ parser
                        then (parser, Nothing)
                        else (parserMoveBy parser (T.singleton . T.head . remainder $ parser),
                              Just $ CssTokCh (T.head . remainder $ parser))
@@ -718,75 +710,95 @@ parserMoveBy parser tok = parser { remainder = T.drop (T.length tok) (remainder 
 
 
 
--- Take string representing a number. Take a percent character or an
--- identifier string following the number. Return percentage token or
--- dimension token or number token.
-takeNum :: (CssParser -> (CssParser, Maybe CssToken)) -> CssParser -> (CssParser, Maybe CssToken)
-takeNum numTaker parser = case numTaker parser of
-                            pair@(parser, Just tokNum) -> case takeIdent parser of
-                                                            (parser, Just tokIdent) -> (parser, Just $ numToDim tokNum tokIdent)
-                                                            _                       -> case takeCharacter parser of
-                                                                                         (parser, Just (CssTokCh '%')) -> (parser, Just $ numToPerc tokNum)
-                                                                                         -- We didn't catch neither "1.0px" nor "1.0%",
-                                                                                         -- so return initial parser and token "1.0".
-                                                                                         _ -> pair
-                            pair -> pair
+-- Try to interpret what comes after a <number-token> as <percentage-token>
+-- or <dimension-token>.
+tryTakingPercOrDim :: CssParser -> CssNum -> (CssParser, Maybe CssToken)
+tryTakingPercOrDim numParser cssNum | (parser, Just (CssTokCh '%'))      <- takeCharToken numParser  = (parser, Just $ CssTokPerc cssNum)
+                                    | (parser, Just (CssTokIdent ident)) <- takeIdentToken numParser = (parser, Just $ CssTokDim cssNum ident)
+                                    | otherwise                                                      = (numParser, Nothing)
+
+
+
+
+-- Take <number-token>, then try and see if what comes next in input string
+-- allows to convert the <number-token> into <percentage-token> or
+-- <dimension-token>. Return one of the three token types.
+--
+-- Try taking Float before trying to take Int, because otherwise you may take
+-- only an initial (integral) part of Float as an Int, and leave fractional
+-- part in remainder.
+takeNumPercDimToken :: CssParser -> (CssParser, Maybe CssToken)
+takeNumPercDimToken parser | (numParser, Just cssNum) <- takeFloat parser = numTokenOrMore numParser cssNum
+                           | (numParser, Just cssNum) <- takeInt parser   = numTokenOrMore numParser cssNum
+                           | otherwise                                    = (parser, Nothing)
+
   where
-    -- <number-token> to <dimension-token>.
-    --
-    -- TODO: perhaps second arg should be a string (ident) to make clear what
-    -- the order of args should be.
-    numToDim :: CssToken -> CssToken -> CssToken
-    numToDim (CssTokNum n) (CssTokIdent ident) = CssTokDim n ident
-    numToDim tok _                             = tok
-
-    -- <number-token> to <percentage-token>
-    numToPerc :: CssToken -> CssToken
-    numToPerc (CssTokNum n) = CssTokPerc n
-    numToPerc tok           = tok
+    -- Use given CssNum to either create <number-token>, or (if data in
+    -- parser allows it) to create <percentage-token> or <dimension-token>.
+    numTokenOrMore :: CssParser -> CssNum -> (CssParser, Maybe CssToken)
+    numTokenOrMore numParser cssNum = case tryTakingPercOrDim numParser cssNum of
+                                        pair@(parser, Just token) -> pair
+                                        -- Data in parser didn't allow creating other token, so just return <number-token>.
+                                        (_, Nothing)              -> (numParser, Just $ CssTokNum cssNum)
 
 
 
 
-
-takeFloat :: CssParser -> (CssParser, Maybe CssToken)
-takeFloat = takeNum takeFloat'
+-- Alternative implementation of takeNumPercDimToken. I like it less because
+-- it *feels* like there is too much constructing compared to first version.
+takeNumPercDimToken2 :: CssParser -> (CssParser, Maybe CssToken)
+takeNumPercDimToken2 parser = (tupleParser, tupleToToken tuple)
   where
-    -- 'taker' function for takeNum
-    --
-    -- TODO: this function doesn't recognize some float formats that are
-    -- valid in CSS, e.g. ".5".
-    takeFloat' :: CssParser -> (CssParser, Maybe CssToken)
-    takeFloat' parser = case T.R.signed T.R.rational (remainder parser) of
-                          -- T.R.rational is happy to interpret "100" as
-                          -- float, but we want to treat is as int and reject
-                          -- it. Therefore we have to search for '.' in taken
-                          -- sub-string :( TODO: what about "4e10" float
-                          -- format that doesn't contain dot?
-                          Right (f, rem) -> case T.find (== '.') val of
-                                              Just c    -> (parser{remainder = rem}, Just $ CssTokNum (CssNumF f))
-                                              otherwise -> (parser, Nothing)
-                            where
-                              val = T.take valLen $ remainder parser
-                              valLen = (T.length . remainder $ parser) - (T.length rem)
-                          Left _         -> (parser, Nothing)
+    -- A final <number/percentage/dimension-token> can be built from one or
+    -- two tokens that are in a tuple.
+    tupleToToken :: (Maybe CssToken, Maybe CssToken) -> Maybe CssToken
+    tupleToToken (Just (CssTokNum cssNum), Nothing)                  = Just $ CssTokNum cssNum
+    tupleToToken (Just (CssTokNum cssNum), Just (CssTokCh '%'))      = Just $ CssTokPerc cssNum
+    tupleToToken (Just (CssTokNum cssNum), Just (CssTokIdent ident)) = Just $ CssTokDim cssNum ident
+    tupleToToken _                                                   = Nothing
+
+    -- Try taking Float before trying to take Int, because otherwise you may
+    -- take only an initial (integral) part of Float as an Int, and leave
+    -- fractional part in remainder.
+    (tupleParser, tuple) | (numParser, Just cssNum) <- takeFloat parser = takeT2 numParser (Just $ CssTokNum cssNum, Nothing)
+                         | (numParser, Just cssNum) <- takeInt parser   = takeT2 numParser (Just $ CssTokNum cssNum, Nothing)
+                         | otherwise                                    = (parser, (Nothing, Nothing))
+
+    takeT2 p1 (t1, _) | pair@(p2, Just (CssTokCh '%'))      <- takeCharToken p1  = (p2, (t1, snd pair))
+                      | pair@(p2, Just (CssTokIdent ident)) <- takeIdentToken p1 = (p2, (t1, snd pair))
+                      | otherwise                                                = (p1, (t1, Nothing))
 
 
 
 
-takeInt :: CssParser -> (CssParser, Maybe CssToken)
-takeInt = takeNum takeInt'
-  where
-    -- 'taker' function for takeNum
-    --
-    -- This function is very similar to takeFloat', but I don't want to write
-    -- a common function just yet. takeFloat will have to be updated to read
-    -- all formats of float value, and that change may make it more
-    -- complicated and less similar to takeInt.
-    takeInt' :: CssParser -> (CssParser, Maybe CssToken)
-    takeInt' parser = case T.R.signed T.R.decimal (remainder parser) of
-                        Right (i, rem) -> (parser{remainder = rem}, Just $ CssTokNum (CssNumI i))
-                        Left _         -> (parser, Nothing)
+-- TODO: this function doesn't recognize some float formats that are
+-- valid in CSS, e.g. ".5".
+takeFloat :: CssParser -> (CssParser, Maybe CssNum)
+takeFloat parser = case T.R.signed T.R.rational (remainder parser) of
+                     -- T.R.rational is happy to interpret "100" as
+                     -- float, but we want to treat is as int and reject
+                     -- it. Therefore we have to search for '.' in taken
+                     -- sub-string :( TODO: what about "4e10" float
+                     -- format that doesn't contain dot?
+                     Right (f, rem) -> case T.find (== '.') val of
+                                         Just c    -> (parser{remainder = rem}, Just $ CssNumF f)
+                                         otherwise -> (parser, Nothing)
+                       where
+                         val = T.take valLen $ remainder parser
+                         valLen = (T.length . remainder $ parser) - (T.length rem)
+                     Left _         -> (parser, Nothing)
+
+
+
+
+-- This function is very similar to takeFloat, but I don't want to write
+-- a common function just yet. takeFloat will have to be updated to read
+-- all formats of float value, and that change may make it more
+-- complicated and less similar to takeInt.
+takeInt :: CssParser -> (CssParser, Maybe CssNum)
+takeInt parser = case T.R.signed T.R.decimal (remainder parser) of
+                   Right (i, rem) -> (parser{remainder = rem}, Just $ CssNumI i)
+                   Left _         -> (parser, Nothing)
 
 
 
