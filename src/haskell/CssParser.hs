@@ -54,6 +54,7 @@ module CssParser(nextToken
                 , ignoreStatement
                 , takeSymbol
                 , takeInt
+                , takeIdent
                 , parseUrl
                 , CssParser (..)
                 , CssToken (..)
@@ -133,7 +134,7 @@ import Debug.Trace
 -- Tokens listed in https://www.w3.org/TR/css-syntax-3/#tokenization, but not
 -- included in CssToken type (or not commented yet):
 --
--- <ident-token>, <function-token>, <at-keyword-token>, <hash-token>,
+-- <function-token>, <at-keyword-token>, <hash-token>,
 -- <string-token>, <bad-string-token>, <url-token>, <bad-url-token>,
 -- <delim-token>, <whitespace-token>, <CDO-token>, <CDC-token>,
 -- <colon-token>, <semicolon-token>, <comma-token>, <[-token>, <]-token>,
@@ -147,6 +148,7 @@ data CssToken =
   | CssTokPercF Float           -- <percentage-token>, for float values
   | CssTokDimI Int T.Text       -- <dimension-token>, for integer values
   | CssTokDimF Float T.Text     -- <dimension-token>, for float values
+  | CssTokIdent T.Text          -- <ident-token>. CSS3 spec says that text can be empty: "have a value composed of zero or more code points".
   | CssTokCol T.Text
   | CssTokSym T.Text
   | CssTokStr T.Text
@@ -552,6 +554,8 @@ nextToken2' parser = takeLeadingWhite2 parser >>?
 -- "-webkit-user-select") in a way that resulted in token without the leading
 -- '-' (so the resulting token was "webkit-user-select"). Haskell code keeps
 -- the leading '-' character.
+--
+-- TODO: the function uses T.head on a string that can be empty.
 takeSymbol :: CssParser -> (CssParser, Maybe CssToken)
 takeSymbol parser = if predNonNumeric . T.head . remainder $ parser
                     then (parserMoveBy parser tok, Just $ CssTokSym tok)
@@ -563,15 +567,45 @@ takeSymbol parser = if predNonNumeric . T.head . remainder $ parser
 
 
 
--- TODO: the function needs more work to be compliant with CSS spec
+-- Take <ident-token> from a string.
+--
+-- This implementation is not very pretty. It closely resembles algorithm
+-- rescribed in CSS3 spec.
 takeIdent :: CssParser -> (CssParser, Maybe CssToken)
-takeIdent parser = if predNonNumeric . T.head . remainder $ parser
-                   then (parserMoveBy parser tok, Just $ CssTokSym tok)
+takeIdent parser = if isValidStartOfIdentifier . remainder $ parser
+                   then (parserMoveBy parser ident, Just $ CssTokIdent ident)
                    else (parser, Nothing)
-  where tok = T.takeWhile pred (remainder parser)
-        predNonNumeric = (\c -> D.C.isAlpha c || c == '_' || c == '-')
-        pred = (\c -> D.C.isAlphaNum c || c == '_' || c == '-')
+  where
+    ident = T.reverse $ takeIdent' (remainder parser) ""
 
+    takeIdent' :: T.Text -> T.Text -> T.Text
+    takeIdent' buffer acc = case T.uncons buffer of
+                              Just (c, rem) | isNameCodePoint c -> takeIdent' rem (T.cons c acc)
+                                            | c == '\\'         -> acc -- TODO: properly handle an escape
+                                            | otherwise         -> acc
+                              -- At this point, after isValidStartOfIdentifier
+                              -- returned true, acc can't be empty, so return
+                              -- it as idendifier.
+                              Nothing -> acc
+
+    isValidStartOfIdentifier buffer = case T.uncons buffer of
+                                        Just (c, rem) | c == '-'               -> False -- TODO: properly handle identifier starting with '-'
+                                                      | isNameStartCodePoint c -> True
+                                                      | c == '\\'              -> False -- TODO: properly handle an escape
+                                                      | otherwise              -> False
+                                        Nothing -> False
+
+
+
+
+isNameStartCodePoint :: Char -> Bool
+isNameStartCodePoint c = (D.C.isAlpha c && D.C.isAscii c) || D.C.ord c >= 0x80 || c == '_'
+
+
+
+
+isNameCodePoint :: Char -> Bool
+isNameCodePoint c = isNameStartCodePoint c || D.C.isDigit c || c == '-'
 
 
 
@@ -681,25 +715,25 @@ parserMoveBy parser tok = parser { remainder = T.drop (T.length tok) (remainder 
 -- percentage token or dimension token or number token.
 takeNum :: (CssParser -> (CssParser, Maybe CssToken)) -> CssParser -> (CssParser, Maybe CssToken)
 takeNum numTaker parser = case numTaker parser of
-                            pair@(parser, Just tokNumber) -> case takeIdent parser of
-                                                               (parser, Just tokIdent) -> (parser, Just $ numToDim tokNumber tokIdent)
-                                                               _                       -> case takeCharacter parser of
-                                                                                            (parser, Just (CssTokCh '%')) -> (parser, Just $ numToPerc tokNumber)
-                                                                                            -- We didn't catch neither "1.0px" nor "1.0%",
-                                                                                            -- so return initial parser and token "1.0".
-                                                                                            _ -> pair
+                            pair@(parser, Just tokNum) -> case takeIdent parser of
+                                                            (parser, Just tokIdent) -> (parser, Just $ numToDim tokNum tokIdent)
+                                                            _                       -> case takeCharacter parser of
+                                                                                         (parser, Just (CssTokCh '%')) -> (parser, Just $ numToPerc tokNum)
+                                                                                         -- We didn't catch neither "1.0px" nor "1.0%",
+                                                                                         -- so return initial parser and token "1.0".
+                                                                                         _ -> pair
                             pair -> pair
   where
-    -- Number token to dimension token.
+    -- <number-token> to <dimension-token>.
     --
-    -- TODO: second arg should be a string (ident) to make clear what the
-    -- order of args should be.
+    -- TODO: perhaps second arg should be a string (ident) to make clear what
+    -- the order of args should be.
     numToDim :: CssToken -> CssToken -> CssToken
-    numToDim (CssTokNumF f) (CssTokSym sym) = CssTokDimF f sym
-    numToDim (CssTokNumI i) (CssTokSym sym) = CssTokDimI i sym
-    numToDim tok _                          = tok
+    numToDim (CssTokNumF f) (CssTokIdent ident) = CssTokDimF f ident
+    numToDim (CssTokNumI i) (CssTokIdent ident) = CssTokDimI i ident
+    numToDim tok _                              = tok
 
-    -- Number token to percentage token
+    -- <number-token> to <percentage-token>
     numToPerc :: CssToken -> CssToken
     numToPerc (CssTokNumF f) = CssTokPercF f
     numToPerc (CssTokNumI i) = CssTokPercI i

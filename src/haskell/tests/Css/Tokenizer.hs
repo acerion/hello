@@ -27,8 +27,8 @@ tokenizerNumbersTestManualData = [
   -- parser's remainder before     expected token           parser's remainder after
 
   -- Tests of <number-token>
-  --( "0",                     CssTokNumI 0,                ""  ) -- TODO: enable this test and see what breaks
-    ( "0}",                    CssTokNumI 0,                "}" )
+    ( "0",                     CssTokNumI 0,                ""  )
+  , ( "0}",                    CssTokNumI 0,                "}" )
   , ( "-0}",                   CssTokNumI 0,                "}" )
   , ( "10}",                   CssTokNumI 10,               "}" )
   , ( "+10}",                  CssTokNumI 10,               "}" )
@@ -38,7 +38,7 @@ tokenizerNumbersTestManualData = [
   , ( "+512 dragons",          CssTokNumI 512,              " dragons" )
   , ( "-512 dragons",          CssTokNumI (-512),           " dragons" )
 
-  -- , ( "0",                     CssTokNumI 0,                ""  ) -- TODO: enable this test and see what breaks
+  , ( "0.0",                   CssTokNumF 0.0,              ""  )
   , ( "0.0}",                  CssTokNumF 0.0,              "}" )
   , ( "+0.0}",                 CssTokNumF 0.0,              "}" )
   , ( "-0.0}",                 CssTokNumF (-0.0),           "}" )
