@@ -6,6 +6,25 @@ import datetime as dt
 
 
 
+# Stats about line counts in hello project, without sh and perl, for almost
+# entire project (src, dpid, dpic dirs etc.)
+
+# Haskell numbers don't include code in these dirs:
+# src/haskell/tests
+# src/haskell/tests_tools
+# src/haskell/ffi
+
+# C/C++ numbers don't include code in these dirs/files:
+# src/haskell/hello.h
+
+
+
+
+# Line counts generated using David A. Wheeler's 'SLOCCount'.
+
+
+
+
 #         date           cpp          c    haskell
 arr = np.array((
     ["2021-01-05",     33629,     19428,         0],
@@ -24,6 +43,7 @@ arr = np.array((
     ["2021-04-24",     33192,     19082,      1568],
     ["2021-05-07",     33090,     19082,      1622],
     ["2021-05-15",     32750,     19091,      1869],
+    ["2021-05-23",     32596,     19019,      1982],
 ))
 
 
