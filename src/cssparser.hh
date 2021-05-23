@@ -38,7 +38,6 @@ class CssParser {
       CssParser(CssContext *context, CssOrigin origin, const DilloUrl *baseUrl,
                 const char *buf, int buflen);
 
-      char *parseUrl();
       void parseImport(DilloHtml *html);
       void parseMedia();
 
@@ -52,6 +51,5 @@ class CssParser {
 
 void parseDeclaration(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
 void parseRuleset(CssParser * parser, CssContext * context);
-c_css_selector_t * parseSelector(CssParser * cssParser);
 
 #endif

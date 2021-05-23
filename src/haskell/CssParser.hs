@@ -1626,12 +1626,15 @@ updateSimpleSelector simpleSelector selectorType sym =
 -- Function always consumes the group of tokens, regardless of
 -- success/failure of the parsing.
 parseSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssSelector)
-parseSelector (parser, token) =
-  case parseSelectorTokens (removeSpaceTokens selectorTokens []) [defaultSimpleSelector] of
-    Just simpleSelectors -> ((newParser, newToken), Just defaultSelector{simpleSelectorList = reverse simpleSelectors})
-    Nothing              -> ((newParser, newToken), Nothing)
+parseSelector (parser, token) = ((outParser, outToken), selector)
 
   where
+    (outParser, outToken) = consumeRestOfSelector (p2, t2)
+    ((p2, t2), selector) = case parseSelectorTokens (removeSpaceTokens selectorTokens []) [defaultSimpleSelector] of
+                             Just simpleSelectors -> ((newParser, newToken), Just defaultSelector{simpleSelectorList = reverse simpleSelectors})
+                             Nothing              -> ((newParser, newToken), Nothing)
+
+
     ((newParser, newToken), selectorTokens) = takeSelectorTokens (parser, token)
 
     parseSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
@@ -1647,6 +1650,16 @@ parseSelector (parser, token) =
 
     parseSelectorTokens [] simSels = Just simSels
     parseSelectorTokens _  simSels = Nothing
+
+
+
+
+-- Find end of current selector (probably needed only if something goes wrong
+-- during parsign of current selector).
+consumeRestOfSelector pair@(parser, CssTokEnd)    = pair
+consumeRestOfSelector pair@(parser, CssTokCh '{') = pair
+consumeRestOfSelector pair@(parser, CssTokCh ',') = pair
+consumeRestOfSelector (parser, _)                 = consumeRestOfSelector . nextToken $ parser
 
 
 
@@ -1911,6 +1924,20 @@ tryShorthand (parser, token) shorthandIdx = parseDeclarationShorthand (parser, t
 
 
 parseDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-parseDeclaration (parser, token) = parseDeclarationWrapper (parser, token)
+parseDeclaration (parser, token) = ((outParser, outToken), declarations)
   -- TODO: add setting 'important' field of declarations here
+  where
+    ((p2, t2), declarations) = parseDeclarationWrapper (parser, token)
+    (outParser, outToken) = consumeRestOfDeclaration (p2, t2)
+
+
+
+
+-- Find end of current declaration (probably needed only if something goes
+-- wrong during parsign of current declaration).
+consumeRestOfDeclaration pair@(parser, CssTokEnd)    = pair
+consumeRestOfDeclaration pair@(parser, CssTokCh '}') = pair -- '}' is not a part of declaration, so don't go past it. Return '}' as current token.
+consumeRestOfDeclaration (parser, CssTokCh ';')      = nextToken parser
+consumeRestOfDeclaration (parser, _)                 = consumeRestOfDeclaration . nextToken $ parser
+
 

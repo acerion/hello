@@ -101,29 +101,6 @@ void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, C
       else
          declarationListAddOrUpdateDeclaration(declList, (CssDeclarationProperty) declarations[v].c_property, val);
    }
-
-   /* Skip all tokens until the expected end. */
-   while (!(parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_END ||
-            (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR &&
-             (parser->tokenizer.token.c_value[0] == ';' || parser->tokenizer.token.c_value[0] == '}'))))
-      nextToken(&parser->tokenizer, &parser->hll_css_parser);
-
-   if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == ';')
-      nextToken(&parser->tokenizer, &parser->hll_css_parser);
-}
-
-c_css_selector_t * parseSelector(CssParser * cssParser)
-{
-   c_css_selector_t * selector = hll_cssParseSelector(&cssParser->hll_css_parser,
-                                                      &cssParser->tokenizer.token,
-                                                      cssParser->tokenizer.buf + cssParser->hll_css_parser.c_buf_offset);
-
-   while (cssParser->tokenizer.token.c_type != CSS_TOKEN_TYPE_END &&
-          (cssParser->tokenizer.token.c_type != CSS_TOKEN_TYPE_CHAR ||
-           (cssParser->tokenizer.token.c_value[0] != ',' && cssParser->tokenizer.token.c_value[0] != '{')))
-         nextToken(&cssParser->tokenizer, &cssParser->hll_css_parser);
-
-   return selector;
 }
 
 void parseRuleset(CssParser * parser, CssContext * context)
@@ -132,7 +109,9 @@ void parseRuleset(CssParser * parser, CssContext * context)
    int selectors_count = 0;
 
    while (true) {
-      c_css_selector_t * selector = parseSelector(parser);
+      c_css_selector_t * selector = hll_cssParseSelector(&parser->hll_css_parser,
+                                                         &parser->tokenizer.token,
+                                                         parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset);
       if (nullptr != selector) {
          selectors[selectors_count] = selector;
          selectors_count++;
@@ -200,15 +179,6 @@ void parseRuleset(CssParser * parser, CssContext * context)
       nextToken(&parser->tokenizer, &parser->hll_css_parser);
 }
 
-char * CssParser::parseUrl()
-{
-   char * str = hll_declarationValueAsString(&this->hll_css_parser,
-                                             &tokenizer.token,
-                                             this->tokenizer.buf + this->hll_css_parser.c_buf_offset,
-                                             0, 0);
-   return str;
-}
-
 void CssParser::parseImport(DilloHtml *html)
 {
    char *urlStr = NULL;
@@ -220,7 +190,10 @@ void CssParser::parseImport(DilloHtml *html)
 
    if (tokenizer.token.c_type == CSS_TOKEN_TYPE_SYMBOL &&
        dStrAsciiCasecmp(tokenizer.token.c_value, "url") == 0)
-      urlStr = parseUrl();
+      urlStr = hll_declarationValueAsString(&this->hll_css_parser,
+                                            &tokenizer.token,
+                                            this->tokenizer.buf + this->hll_css_parser.c_buf_offset,
+                                            0, 0);
    else if (tokenizer.token.c_type == CSS_TOKEN_TYPE_STRING)
       urlStr = dStrdup (tokenizer.token.c_value);
 
