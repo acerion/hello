@@ -229,34 +229,19 @@ hll_ignoreStatement ptrStructCssParser ptrStructCssToken cBuf = do
 
 
 
--- We should add here CssTokDimX and CssTokPercX, but since the program seems
--- to keep going quite well, and since this FFI code will sooner or later go
--- away, then I will let it be as it is now.
-getTokenType (CssTokNum (CssNumI _)) = 0
-getTokenType (CssTokNum (CssNumF _)) = 1
-getTokenType (CssTokCol  _) = 2
-getTokenType (CssTokSym  _) = 3
-getTokenType (CssTokStr  _) = 4
-getTokenType (CssTokCh   _) = 5
-getTokenType (CssTokWS)     = 6
-getTokenType (CssTokEnd)    = 7
-getTokenType _              = 8
+getTokenType (CssTokSym  _) = 0
+getTokenType (CssTokStr  _) = 1
+getTokenType (CssTokCh   _) = 2
+getTokenType (CssTokEnd)    = 3
+getTokenType _              = 4
 
 
 
 
-getTokenADT tokType tokValue | tokType == 0 = case T.R.signed T.R.decimal tokValue of
-                                                Right pair -> CssTokNum $ CssNumI (fst pair)
-                                                Left  _    -> CssTokNum $ CssNumI 0
-                             | tokType == 1 = case T.R.signed T.R.rational tokValue of
-                                                Right pair -> CssTokNum $ CssNumF (fst pair)
-                                                Left  _    -> CssTokNum $ CssNumF 0.0
-                             | tokType == 2 = CssTokCol  tokValue
-                             | tokType == 3 = CssTokSym  tokValue
-                             | tokType == 4 = CssTokStr  tokValue
-                             | tokType == 5 = CssTokCh   (T.head tokValue)
-                             | tokType == 6 = CssTokWS
-                             | tokType == 7 = CssTokEnd
+getTokenADT tokType tokValue | tokType == 0 = CssTokSym tokValue
+                             | tokType == 1 = CssTokStr tokValue
+                             | tokType == 2 = CssTokCh  (T.head tokValue)
+                             | tokType == 3 = CssTokEnd
 
 
 

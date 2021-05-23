@@ -7,14 +7,10 @@
 class DilloHtml;
 
 typedef enum {
-              CSS_TOKEN_TYPE_DECINT,   // [-1em]   -> [-1]       [60%;]  -> [60]      [1;]       -> [1]          [0,0,0,.8)] -> [0]
-              CSS_TOKEN_TYPE_FLOAT,    // [-0.4em] -> [-0.4]     [-.5em] -> [-.5]     [4.1667%;] -> [4.1667]
-              CSS_TOKEN_TYPE_COLOR,    // [#999;border] -> [#999]    [#E6E6E6;] -> [#E6E6E6]    [#000\9}] -> [#000]      [rgba(0,0,0,.8)] is split into sub-tokens
-              CSS_TOKEN_TYPE_SYMBOL,   //
-              CSS_TOKEN_TYPE_STRING,   // ['#00000000',] -> [#00000000] (quoted (') text)     ["\25B8";] -> [¸] (quoted (") text)       [ "";}DIV] -> [] (empty)
-              CSS_TOKEN_TYPE_CHAR,
-              CSS_TOKEN_TYPE_WHITESPACE,
-              CSS_TOKEN_TYPE_END       // End of input, no new tokens.
+              CSS_TOKEN_TYPE_SYMBOL = 0,
+              CSS_TOKEN_TYPE_STRING = 1,   // ['#00000000',] -> [#00000000] (quoted (') text)     ["\25B8";] -> [¸] (quoted (") text)       [ "";}DIV] -> [] (empty)
+              CSS_TOKEN_TYPE_CHAR   = 2,
+              CSS_TOKEN_TYPE_END    = 3
 } CssTokenType;
 
 
