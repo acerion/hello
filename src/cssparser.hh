@@ -51,7 +51,6 @@ class CssParser {
 };
 
 void parseDeclaration(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
-bool parseDeclarationValue(CssParser * parser, CssDeclarationProperty property, CssDeclarationValueType type, CssDeclarationValue * val);
 void parseRuleset(CssParser * parser, CssContext * context);
 c_css_selector_t * parseSelector(CssParser * cssParser);
 

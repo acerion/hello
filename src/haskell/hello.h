@@ -115,7 +115,6 @@ char * hll_nextToken(c_css_parser_t * hll_parser, c_css_token_t * token, const c
 //int hll_parseRgbFunction(c_css_parser_t * hll_parser, const char * remainder);
 
 char * hll_declarationValueAsString(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int valueType, int property);
-int hll_tokenMatchesProperty(c_css_token_t * token, int property);
 int hll_ignoreBlock(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
 int hll_ignoreStatement(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
 
@@ -131,9 +130,6 @@ int hll_cssCreateLength(float val, CssLengthType t);
 /* Return allocated selector parsing succeeded.
    Return NULL otherwise. */
 c_css_selector_t * hll_cssParseSelector(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
-
-// Return value is boolean
-int hll_parseDeclarationValue(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int declValueType, int declProperty, c_css_declaration_ffi_t * declaration);
 
 // Return count of declarations in @p declarations
 int hll_parseDeclaration(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_ffi_t * declarations);

@@ -74,6 +74,8 @@ module CssParser(nextToken
 
                 , tokenMatchesProperty
 
+                , takeBgTokens
+
                 , cssShorthandInfoIdxByName
                 , cssPropertyInfoIdxByName
                 , cssPropertyNameString
@@ -122,6 +124,7 @@ import qualified Data.Text.IO as T.IO
 import qualified HelloUtils as HU
 import qualified Data.Vector as V
 import qualified Data.List as L
+import qualified Data.Map as M
 import Data.Bits
 import Colors
 import HelloUtils
@@ -1101,6 +1104,103 @@ parseUrl (parser, token)   = ((parser, token), Nothing)
 
 
 
+declValueAsBgPosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValue)
+declValueAsBgPosition (parser, token) = ((outParser, outToken), value)
+  where
+    ((outParser, outToken), tokens) = takeBgTokens (parser, token)
+    value = Just defaultValue{typeTag = cssDeclValueTypeBgPosition, intVal = 12}
+    -- TODO: right now the original dillo doesn't seem to display background
+    -- images at all, so I will stop the work on this function for now.
+    -- Later, as I get to know dillo better, I will resume work on this
+    -- functionality. Look at "case CSS_TYPE_BACKGROUND_POSITION" in
+    -- src/cssparser.cc in original dillo code.
+    --
+    -- This functionality will require adding posX/posY fields to CssValue.
+
+
+
+
+takeBgTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
+takeBgTokens (parser, token) = ((outParser, outToken), outTokens)
+
+  where
+    ((outParser, outToken), tokens) = takeBgTokens' (parser, token) []
+    outTokens = remapToken <$> (reorderTokens tokens)
+
+    -- Make sure that list of tokens always contains two tokens that are
+    -- properly ordered: [horiz, vert].
+    reorderTokens :: [CssToken] -> [CssToken]
+    reorderTokens tokens@[CssTokSym "top", _]    = reverse tokens -- First token should be horiz, second should be vert.
+    reorderTokens tokens@[CssTokSym "bottom", _] = reverse tokens -- First token should be horiz, second should be vert.
+    reorderTokens tokens@[CssTokSym "initial"]   = tokens -- Handle single-element "initial" first, before other single-element lists.
+    reorderTokens tokens@[CssTokSym "inherit"]   = tokens -- Handle single-element "inherit" first, before other single-element lists.
+    -- After "initial" and "inherit" are handled, you can now add 50% as
+    -- missing second element. Also call reorderTokens recursively to handle
+    -- this input string correctly: "top;".
+    -- You have to ensure two things for this case:
+    -- 1. output list has two members: one of them is the "top" and the other
+    --    is default "50%"), therefore we add "50%" token
+    -- 2. horiz/vert tokens are in proper order (horiz first, vert second),
+    --    therefore we do recursive call to reorderTokens.
+    reorderTokens [tok1]                            = reorderTokens [tok1, CssTokPerc $ CssNumI 50]
+    reorderTokens tokens@[tok1, tok2]               = tokens
+    reorderTokens _                                 = [] -- TODO: Perhas this is not needed and we should trust that caller will pass non-empty list?
+
+
+    -- Change CssTokSym tokens for top/left/center etc. into <percentage-token>s.
+    -- TODO: this function doesn't handle "initial" and "inherit" - what do we do with them?
+    remapToken :: CssToken -> CssToken
+    remapToken tok@(CssTokSym sym) = case M.lookup sym posMap of
+                                       Just percToken -> percToken
+                                       Nothing        -> tok -- TODO: this will happen for "initial" and "inherit" tokens, which aren't really handled here.
+      where posMap = M.fromList [ ("left",   CssTokPerc $ CssNumI 0)
+                                , ("right",  CssTokPerc $ CssNumI 100)
+                                , ("top",    CssTokPerc $ CssNumI 0)
+                                , ("bottom", CssTokPerc $ CssNumI 100)
+                                , ("center", CssTokPerc $ CssNumI 50) ]
+    remapToken tok@(CssTokPerc cssNum)      = tok
+    remapToken tok@(CssTokDim cssNum ident) = tok
+
+
+
+
+takeBgTokens' :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
+takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
+
+  where
+    ((outParser, outToken), outTokens) = if doContinue tokens token
+                                         then case token of
+                                                CssTokNone -> takeBgTokens' (nextToken parser) tokens -- Take the token, but don't append it to result
+                                                _          -> takeBgTokens' (nextToken parser) (tokens ++ [token])
+                                         else if tokensValid tokens
+                                              then ((parser, token), tokens)
+                                              else ((parser, token), [])
+
+
+
+    doContinue tokens token = length tokens < 2 && tokValid token
+
+    tokValid (CssTokNone)             = True -- used to kick-start parsing of stream
+    tokValid (CssTokSym sym)          = elem sym horizVals || elem sym vertVals || elem sym otherVals || sym == "center"
+    tokValid (CssTokNum cssNum)       = True
+    tokValid (CssTokDim cssNum ident) = True
+    tokValid (CssTokPerc cssNum)      = True
+    tokValid _                        = False
+
+    horizVals = ["left", "right"]
+    vertVals  = ["top", "bottom"]
+    otherVals = ["initial", "inherit"]
+
+    tokensValid [CssTokSym sym1, CssTokSym sym2] = cond1 && cond2 && cond3
+      where
+        cond1 = not (elem sym1 otherVals && elem sym2 otherVals) -- "initial" or "inherit" isn't used twice.
+        cond2 = not (elem sym1 horizVals && elem sym2 horizVals) -- Both symbols aren't from the same list of horizontal tokens.
+        cond3 = not (elem sym1 vertVals  && elem sym2 vertVals)  -- Both symbols aren't from the same list of vertical tokens.
+    tokensValid [tok1, tok2] = True
+    tokensValid [tok1]       = True -- Single-token list is valid: token's value will be used as X, and Y will be set to 50%.
+    tokensValid _            = False
+
+
 
 
 -- Read comma separated list of font family names.
@@ -1652,6 +1752,9 @@ parseDeclarationNormal (parser, token) property =
 
 parseDeclValue :: (CssParser, CssToken) -> CssValueType -> Int -> ((CssParser, CssToken), Maybe CssValue)
 parseDeclValue (parser, token) valueType property | valueType == cssDeclValueTypeInt                 = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 0})
+                                                  -- C++ code in dillo commented "Int" with "Not used for parser values."
+                                                  -- TODO: investigate it.
+
                                                   | valueType == cssDeclValueTypeEnum                = declValueAsEnum (parser, token) property
                                                   | valueType == cssDeclValueTypeMultiEnum           = declValueAsMultiEnum (parser, token) property
 
@@ -1666,9 +1769,13 @@ parseDeclValue (parser, token) valueType property | valueType == cssDeclValueTyp
                                                   | valueType == cssDeclValueTypeString              = declValueAsString' (parser, token)
                                                   | valueType == cssDeclValueTypeSymbol              = declValueAsSymbol (parser, token) ""
                                                   | valueType == cssDeclValueTypeURI                 = declValueAsURI (parser, token)
-                                                  | valueType == cssDeclValueTypeBgPosition          = ((parser, token), Just defaultValue{typeTag = valueType, intVal = 12}) -- TODO
+                                                  | valueType == cssDeclValueTypeBgPosition          = declValueAsBgPosition (parser, token)
+
                                                   | valueType == cssDeclValueTypeUnused              = ((parser, token), Nothing)
+                                                  -- TODO: investigate if Unused should appear here, or anywhere in the code.
+
                                                   | otherwise                                        = ((parser, token), Nothing)
+                                                  -- TODO: there should be no "otherwise" case: all types should be explicitly listed in this guard list.
 
 
 
