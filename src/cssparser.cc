@@ -36,7 +36,6 @@ using namespace dw::core::style;
 #define DEBUG_LEVEL 10
 
 
-const char * tokenizerGetTokenTypeStr(CssTokenizer * tokenizer);
 void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 void ignoreBlock(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 void ignoreStatement(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
@@ -44,42 +43,6 @@ void ignoreStatement(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 static void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
 
 
-const char * tokenizerGetTokenTypeStr(CssTokenizer * tokenizer)
-{
-   const char * typeStr = NULL;
-
-   switch (tokenizer->token.c_type) {
-   case CSS_TOKEN_TYPE_DECINT:
-      typeStr = "decint";
-      break;
-   case CSS_TOKEN_TYPE_FLOAT:
-      typeStr = "float";
-      break;
-   case CSS_TOKEN_TYPE_COLOR:
-      typeStr = "color";
-      break;
-   case CSS_TOKEN_TYPE_SYMBOL:
-      typeStr = "symbol";
-      break;
-   case CSS_TOKEN_TYPE_STRING:
-      typeStr = "string";
-      break;
-   case CSS_TOKEN_TYPE_CHAR:
-      typeStr = "char";
-      break;
-   case CSS_TOKEN_TYPE_WHITESPACE:
-      typeStr = "whitespace";
-      break;
-   case CSS_TOKEN_TYPE_END:
-      typeStr = "end";
-      break;
-   default:
-      typeStr = "unknown";
-      break;
-      }
-
-   return typeStr;
-}
 
 /* ----------------------------------------------------------------------
  *    Parsing
