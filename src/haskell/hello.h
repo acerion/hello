@@ -127,9 +127,8 @@ CssLengthType hll_cssLengthType(int cssLength);
 float hll_cssLengthValue(int cssLength);
 int hll_cssCreateLength(float val, CssLengthType t);
 
-/* Return allocated selector parsing succeeded.
-   Return NULL otherwise. */
-c_css_selector_t * hll_cssParseSelector(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
+// Return count of selectors in @p selectors
+int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_selector_t * selectors);
 
 // Return count of declarations in @p declarations
 int hll_parseDeclaration(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_ffi_t * declarations);

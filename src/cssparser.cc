@@ -105,31 +105,11 @@ void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, C
 
 void parseRuleset(CssParser * parser, CssContext * context)
 {
-   c_css_selector_t * selectors[100] = { 0 };
-   int selectors_count = 0;
-
-   while (true) {
-      c_css_selector_t * selector = hll_cssParseSelector(&parser->hll_css_parser,
-                                                         &parser->tokenizer.token,
-                                                         parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset);
-      if (nullptr != selector) {
-         selectors[selectors_count] = selector;
-         selectors_count++;
-      }
-
-      // \todo dump whole ruleset in case of parse error as required by CSS 2.1
-      //       however make sure we don't dump it if only dillo fails to parse
-      //       valid CSS.
-
-      if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == ',')
-         /* To read the next selector. */
-         nextToken(&parser->tokenizer, &parser->hll_css_parser);
-      else
-         /* No more selectors. */
-         break;
-   }
-
-   DEBUG_MSG(DEBUG_PARSE_LEVEL, "end of %s\n", "selectors");
+   c_css_selector_t * selectors = (c_css_selector_t *) calloc(100, sizeof (c_css_selector_t));
+   int selectors_count = hll_cssParseSelectors(&parser->hll_css_parser,
+                                               &parser->tokenizer.token,
+                                               parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
+                                               selectors);
 
    CssDeclartionList * declList = new CssDeclartionList();
    CssDeclartionList * declListImportant = new CssDeclartionList();
@@ -146,14 +126,16 @@ void parseRuleset(CssParser * parser, CssContext * context)
    }
 
    for (int i = 0; i < selectors_count; i++) {
-      c_css_selector_t * sel = selectors[i];
+      c_css_selector_t * sel = &selectors[i];
 
-      if (parser->origin == CSS_ORIGIN_USER_AGENT) {
+      switch (parser->origin) {
+      case CSS_ORIGIN_USER_AGENT:
          if (declList->declarations_count > 0) {
             CssRule * rule = new CssRule(sel, declList, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_USER_AGENT);
          }
-      } else if (parser->origin == CSS_ORIGIN_USER) {
+         break;
+      case CSS_ORIGIN_USER:
          if (declList->declarations_count > 0) {
             CssRule * rule = new CssRule(sel, declList, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_USER);
@@ -162,7 +144,8 @@ void parseRuleset(CssParser * parser, CssContext * context)
             CssRule * rule = new CssRule(sel, declListImportant, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_USER_IMPORTANT);
          }
-      } else if (parser->origin == CSS_ORIGIN_AUTHOR) {
+         break;
+      case CSS_ORIGIN_AUTHOR:
          if (declList->declarations_count > 0) {
             CssRule * rule = new CssRule(sel, declList, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_AUTHOR);
@@ -171,9 +154,11 @@ void parseRuleset(CssParser * parser, CssContext * context)
             CssRule * rule = new CssRule(sel, declListImportant, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_AUTHOR_IMPORTANT);
          }
+         break;
+      default:
+         break;
       }
    }
-
 
    if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == '}')
       nextToken(&parser->tokenizer, &parser->hll_css_parser);

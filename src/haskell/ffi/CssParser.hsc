@@ -53,7 +53,7 @@ foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Int -> IO Int
 foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
 foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
 
-foreign export ccall "hll_cssParseSelector" hll_cssParseSelector :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO (Ptr HelloCssSelector)
+foreign export ccall "hll_cssParseSelectors" hll_cssParseSelectors :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssSelector -> IO Int
 
 foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
@@ -417,6 +417,48 @@ hll_cssParseSelector ptrStructCssParser ptrStructCssToken cBuf = do
       return ptrStructSelector
     Nothing ->
       return nullPtr
+
+
+
+hll_cssParseSelectors :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssSelector -> IO Int
+hll_cssParseSelectors ptrStructCssParser ptrStructCssToken cBuf ptrStructCssSelector = do
+  buf     <- BSU.unsafePackCString $ cBuf
+  cParser <- peek ptrStructCssParser
+
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ cParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                            }
+
+  cToken   <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ cToken
+  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+
+  let ((newParser, newToken), selectors) = parseSelectors (parser, token)
+
+  putStrLn ("Selectors are " ++ (show selectors))
+
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
+  updateSelectors ptrStructCssSelector selectors
+
+  return (length selectors)
+
+
+
+
+updateSelectors :: Ptr HelloCssSelector -> [CssSelector] -> IO ()
+updateSelectors ptr (s:ss) = do
+
+  setArrayOfPointers (simpleSelectorList s) simpleSelectorToPtrStruct ptr (#offset c_css_selector_t, c_simple_selector_list)
+  pokeByteOff ptr (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ s)
+
+  -- ptrStr <- newCString . T.unpack . textVal . value $ s
+  -- poke ptr $ HelloCssDecl (fromIntegral . typeTag . value $ s) (fromIntegral . intVal . value $ s) ptrStr (if important s then 1 else 0) (fromIntegral . property $ d)
+  updateSelectors (advancePtr ptr 1) ss
+updateSelectors ptr [] = return ()
+
 
 
 

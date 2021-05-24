@@ -102,6 +102,7 @@ module CssParser(nextToken
                 , CssSelector (..)
                 , takeSelectorTokens
                 , parseSelector
+                , parseSelectors
                 , removeSpaceTokens
 
                 , CssValue (..)
@@ -1654,6 +1655,26 @@ parseSelector (parser, token) = ((outParser, outToken), selector)
 
 
 
+-- Parse entire list of selectors that are separated with comma.
+--
+-- Note from dillo:
+--
+-- TODO: dump whole ruleset in case of parse error as required by CSS 2.1
+-- however make sure we don't dump it if only dillo fails to parse valid CSS.
+parseSelectors :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssSelector])
+parseSelectors (parser, token) = parseSelectorWrapper (parser, token) []
+  where
+    parseSelectorWrapper (parser, token) acc =
+      case parseSelector (parser, token) of
+        ((parser, token), Just selector) -> case token of
+                                              CssTokCh ',' -> parseSelectorWrapper (nextToken parser) (acc ++ [selector])
+                                              otherwise    -> ((parser, token), acc ++ [selector])
+        _                                -> ((parser, token), acc)
+
+
+
+
+
 -- Find end of current selector (probably needed only if something goes wrong
 -- during parsign of current selector).
 consumeRestOfSelector pair@(parser, CssTokEnd)    = pair
@@ -1923,6 +1944,10 @@ tryShorthand (parser, token) shorthandIdx = parseDeclarationShorthand (parser, t
 
 
 
+
+-- For non-shorthand declaration, this function should produce one-element
+-- list. But a shorthand declaration translates into two or more regular
+-- declarations, hence the return type contains a list of declarations.
 parseDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 parseDeclaration (parser, token) = ((outParser, outToken), declarations)
   -- TODO: add setting 'important' field of declarations here
