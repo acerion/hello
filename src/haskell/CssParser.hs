@@ -39,6 +39,8 @@ Take a look at value of 'content' in this part of css:
 a.navmenu::after { content: " â–¶"; }font.logo, font.logobl, img.logo {display: none;}img.sslogo
 The line comes from https://lwn.net/CSS/pure-lwn, and the value would lead to
 "libEval.so: Cannot decode byte '\xb6': Data.Text.Internal.Encoding.decodeUtf8: Invalid UTF-8 stream" error.
+
+TODO: think about performance of using isPrefixOf to get just one character.
 -}
 
 
@@ -54,7 +56,10 @@ module CssParser(nextToken
                 , ignoreStatement
                 , takeSymbol
                 , takeInt
+
                 , takeIdentToken
+                , takeHashToken
+
                 , parseUrl
                 , CssParser (..)
                 , CssToken (..)
@@ -111,6 +116,8 @@ module CssParser(nextToken
                 , takePropertyTokens
                 , parseDeclValue
 
+                , readName
+
                 , defaultParser) where
 
 
@@ -149,7 +156,7 @@ cssNumToFloat (CssNumI i) = fromIntegral i
 -- Tokens listed in https://www.w3.org/TR/css-syntax-3/#tokenization, but not
 -- included in CssToken type (or not commented yet):
 --
--- <function-token>, <at-keyword-token>, <hash-token>,
+-- <function-token>, <at-keyword-token>, ,
 -- <string-token>, <bad-string-token>, <url-token>, <bad-url-token>,
 -- <delim-token>, <whitespace-token>, <CDO-token>, <CDC-token>,
 -- <colon-token>, <semicolon-token>, <comma-token>, <[-token>, <]-token>,
@@ -160,8 +167,8 @@ data CssToken =
     CssTokNum CssNum            -- <number-token>
   | CssTokPerc CssNum           -- <percentage-token>
   | CssTokDim CssNum T.Text     -- <dimension-token>
-  | CssTokIdent T.Text          -- <ident-token>. CSS3 spec says that text can be empty: "have a value composed of zero or more code points".
-  | CssTokCol T.Text
+  | CssTokIdent T.Text          -- <ident-token>; CSS3 spec says that text can be empty: "have a value composed of zero or more code points".
+  | CssTokHash T.Text           -- <hash-token>; T.Text value is not prefixed by '#'.
   | CssTokSym T.Text
   | CssTokStr T.Text
   | CssTokCh Char
@@ -534,7 +541,7 @@ nextToken' parser = takeLeadingWhite parser >>?
                     takeNumPercDimToken     >>?
                     takeSymbol              >>?
                     takeString              >>?
-                    takeColor               >>?
+                    takeHashToken           >>?
                     takeCharToken
 
 
@@ -545,7 +552,7 @@ nextToken2' parser = takeLeadingWhite2 parser >>?
                      takeNumPercDimToken      >>?
                      takeSymbol               >>?
                      takeString               >>?
-                     takeColor                >>?
+                     takeHashToken            >>?
                      takeCharToken
 
 
@@ -580,32 +587,29 @@ takeIdentToken parser = if isValidStartOfIdentifier . remainder $ parser
                         then (parserMoveBy parser ident, Just $ CssTokIdent ident)
                         else (parser, Nothing)
   where
-    ident = T.reverse $ takeIdent (remainder parser) ""
+    (ident, n) = readName (remainder parser) "" 0
 
-    takeIdent :: T.Text -> T.Text -> T.Text
-    takeIdent buffer acc = case T.uncons buffer of
-                             Just (c, rem) | isNameCodePoint c -> takeIdent rem (T.cons c acc)
-                                           | c == '\\'         -> acc -- TODO: properly handle an escape
-                                           | otherwise         -> acc
-                             -- At this point, after isValidStartOfIdentifier
-                             -- returned true, acc can't be empty, so return
-                             -- it as idendifier.
-                             Nothing -> acc
 
-    isValidStartOfIdentifier buffer = case T.uncons buffer of
-                                        Just (c, rem) | c == '-'               -> False -- TODO: properly handle identifier starting with '-'
-                                                      | isNameStartCodePoint c -> True
-                                                      | c == '\\'              -> False -- TODO: properly handle an escape
-                                                      | otherwise              -> False
-                                        Nothing -> False
+
+
+-- https://www.w3.org/TR/css-syntax-3/#check-if-three-code-points-would-start-an-identifier
+isValidStartOfIdentifier buffer = case T.uncons buffer of
+                                    Just (c, rem) | c == '-'               -> False -- TODO: properly handle identifier starting with '-'
+                                                  | isNameStartCodePoint c -> True
+                                                  | c == '\\'              -> False -- TODO: properly handle an escape
+                                                  | otherwise              -> False
+                                    Nothing -> False
 
 
 
 
 isNameStartCodePoint :: Char -> Bool
-isNameStartCodePoint c = (D.C.isAlpha c && D.C.isAscii c) || D.C.ord c >= 0x80 || c == '_'
+isNameStartCodePoint c = (D.C.isAlpha c && D.C.isAscii c) || isNonAscii c || c == '_'
 
 
+-- https://www.w3.org/TR/css-syntax-3/#non-ascii-code-point
+isNonAscii :: Char -> Bool
+isNonAscii c = D.C.ord c >= 0x80
 
 
 isNameCodePoint :: Char -> Bool
@@ -643,25 +647,37 @@ takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
 
 
 
--- TODO: think about performance of using isPrefixOf to get just one
--- character, here and elsewhere.
-takeColor :: CssParser -> (CssParser, Maybe CssToken)
-takeColor parser = if T.isPrefixOf "#" (remainder parser) && (inBlock parser)
-                   then takeColor' parser
-                   else (parser, Nothing) -- Don't take the leading '#' if we are not in a block
+-- TODO: the function probably should return <delim-token> in some situations.
+-- TODO: what if there are no characters after '#'?
+--
+-- TODO: do we still need to use inBlock here? After the function has been
+-- changed from takeColor to takeHashToken, it could be used to take ID
+-- selector tokens. The function can be now very well used outside of block.
+takeHashToken :: CssParser -> (CssParser, Maybe CssToken)
+takeHashToken parser = if not $ inBlock parser
+                       then (parser, Nothing) -- Don't take the leading '#' if we are not in a block;
+                       else
+                         case T.uncons $ remainder parser of
+                           Just ('#', rem) -> (parser { remainder = T.drop (n + 1) $ remainder parser}, Just $ CssTokHash value)
+                             -- TODO: That +1 for '#' above doesn't seem too clean. What if there are no valid characters after '#'?
+                             where
+                               (value, n) = readName rem "" 0
+                           Just (c, rem)   -> (parser, Nothing)
+                           Nothing         -> (parser, Nothing)
 
-  where
-    takeColor' :: CssParser -> (CssParser, Maybe CssToken)
-    takeColor' parser = (parser{ remainder = newRem }
-                        , Just (CssTokCol (T.concat ["#", newValue ])))
-                        -- TODO: verify if we really need the leading '#' in token.
-                        -- TODO: what if there are no digits after '#'?
-                        -- TODO: add better handling of '#' followed by non-hex string.
 
-      where
-        newValue = T.takeWhile D.C.isHexDigit digitsString
-        newRem = T.dropWhile D.C.isHexDigit digitsString
-        digitsString = T.drop 1 (remainder parser)
+
+
+-- https://www.w3.org/TR/css-syntax-3/#consume-a-name
+--
+-- Returns pair (name, count), where count is a number of consumed code
+-- points.
+readName :: T.Text -> T.Text -> Int -> (T.Text, Int)
+readName buffer acc n = case T.uncons buffer of
+                          Just (c, rem) | isNameCodePoint c -> readName rem (T.snoc acc c) (n + 1)
+                                        | c == '\\'         -> (acc, n) -- TODO: properly handle an escape
+                                        | otherwise         -> (acc, n)
+                          Nothing -> (acc, n)
 
 
 
@@ -889,9 +905,9 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 
 
 declValueAsColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValue)
-declValueAsColor (parser, token@(CssTokCol c)) = case colorsStringToColor c of -- TODO: we know here that color should have form #RRGGBB. Call function that accepts only this format.
-                                                   Just i  -> (nextToken parser, Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = i})
-                                                   Nothing -> (nextToken parser, Nothing)
+declValueAsColor (parser, token@(CssTokHash str)) = case colorsHexStringToColor str of
+                                                      Just i  -> (nextToken parser, Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = i})
+                                                      Nothing -> (nextToken parser, Nothing)
 declValueAsColor (parser, token@(CssTokSym s)) | s == "rgb" = case parseRgbFunctionInt parser of
                                                                 ((p, t), Just c)  -> ((p, t), Just defaultValue{typeTag = cssDeclValueTypeColor, intVal = c})
                                                                 ((p, t), Nothing) -> ((p, t), Nothing)
@@ -1316,7 +1332,9 @@ tokenMatchesProperty token property = tokenMatchesProperty' token acceptedValueT
                                                    _                 -> tokenMatchesProperty' token ts enums
                                              | t == cssDeclValueTypeColor =
                                                  case token of
-                                                   CssTokCol c -> Just t -- We already know that the token is a valid color token
+                                                   CssTokHash str -> if T.all D.C.isHexDigit str
+                                                                     then Just t
+                                                                     else tokenMatchesProperty' token ts enums
                                                    CssTokSym s -> case colorsStringToColor s of
                                                                     Just i -> Just t
                                                                     _      -> if s == "rgb"

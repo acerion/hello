@@ -156,7 +156,7 @@ cstr :: CssToken -> IO CString
 cstr token = case token of
     (CssTokNum (CssNumI i)) -> (newCString . show $ i)
     (CssTokNum (CssNumF f)) -> (newCString . show $ f)
-    (CssTokCol c) -> (newCString . T.unpack $ c)
+    (CssTokHash c) -> (newCString . T.unpack $ c)
     (CssTokSym s) -> (newCString . T.unpack $ s)
     (CssTokStr s) -> (newCString . T.unpack $ s)
     (CssTokCh c)  -> (newCString . T.unpack . T.singleton $ c)

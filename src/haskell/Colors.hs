@@ -31,6 +31,7 @@ Copyright (C) 2000-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 module Colors( colorsStringToColor
              , colorsStringToColorWithDefault
+             , colorsHexStringToColor
 
                -- Only for tests
              , colorsVisitedColor
@@ -245,8 +246,8 @@ Don't pass strings with prefixes ("#RRGGBB" or "0xRGB"). Even tough
 T.R.hexadecimal can handle "0x" prefix, for simlicity's sake this function
 doesn't support it.
 --}
-colorsParseHex :: T.Text -> Maybe Int
-colorsParseHex text =
+colorsHexStringToColor :: T.Text -> Maybe Int
+colorsHexStringToColor text =
   case T.R.hexadecimal text of
     Right pair -> parseByHexFormat (fst pair) (snd pair) text
     Left pair  -> Nothing
@@ -292,11 +293,11 @@ TODO: add returning of "err" flag
 colorsStringToColor :: T.Text -> Maybe Int
 colorsStringToColor text
   | T.length colorName < T.length "red"                        = Nothing -- Shortest bare string with just color name
-  | T.index colorName 0 == '#'                                 = colorsParseHex (T.drop 1 colorName)
-  | T.isPrefixOf "0x" colorName || T.isPrefixOf "0X" colorName = colorsParseHex (T.drop 2 colorName)
+  | T.index colorName 0 == '#'                                 = colorsHexStringToColor (T.drop 1 colorName)
+  | T.isPrefixOf "0x" colorName || T.isPrefixOf "0X" colorName = colorsHexStringToColor (T.drop 2 colorName)
   | otherwise = case colorsTableSearchName colorsTable colorName of
       Just val -> Just val
-      Nothing  -> colorsParseHex colorName -- Try for RRGGBB lacking the leading '#'.
+      Nothing  -> colorsHexStringToColor colorName -- Try for RRGGBB lacking the leading '#'.
   where colorName = T.strip text -- TODO: move the stripping up the call chain.
 
 

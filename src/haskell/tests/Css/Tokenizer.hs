@@ -113,12 +113,48 @@ tokenizerNumbersTest (x:xs) = if expectedToken /= token || remainderAfter /= (re
 
 
 
+
+-- Tests for parsing strings as <hash-token> (CssTokHash).
+--
+-- This array is called "Manual" because these tests were written manually.
+-- Perhaps in the future I will write some generator of test data.
+tokenizerHashTestManualData = [
+  -- parser's remainder before     expected token           parser's remainder after
+
+    ( "#0",                    CssTokHash "0",                        ""  )
+  , ( "#02553}",               CssTokHash "02553",                    "}" )
+  , ( "#name+",                CssTokHash "name",                     "+" )
+  , ( "#aD-9_1%",              CssTokHash "aD-9_1",                   "%" )
+  ]
+
+
+
+
+-- On success return empty string. On failure return string representation of
+-- remainder string in a row, for which test failed.
+tokenizerHashTest :: [(T.Text, CssToken, T.Text)] -> T.Text
+tokenizerHashTest []     = ""
+tokenizerHashTest (x:xs) = if expectedToken /= token || remainderAfter /= (remainder parser)
+                           then remainderBefore
+                           else tokenizerHashTest xs
+  where
+    remainderBefore = tripletFst x
+    expectedToken   = tripletSnd x
+    remainderAfter  = tripletThrd x
+    (parser, token) = nextToken defaultParser{remainder = remainderBefore, inBlock = True}
+
+
+
+
 tokenizerTestCases = [
   -- If some error is found, test function returns non-empty string with
   -- representation of token from first column in a row, for which the test
   -- failed.
-    TestCase (do
+     TestCase (do
                  assertEqual "manual tests of numbers" "" (tokenizerNumbersTest tokenizerNumbersTestManualData))
+
+   , TestCase (do
+                 assertEqual "manual tests of hash"  "" (tokenizerHashTest tokenizerHashTestManualData))
   ]
 
 
