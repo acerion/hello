@@ -37,6 +37,7 @@ import qualified Data.Text.Encoding.Error as T.E.E
 import qualified Data.Text.IO as T.IO
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
+import qualified Data.Vector as V
 import Control.Applicative
 import Control.Monad -- when
 import CssParser
@@ -181,7 +182,7 @@ hll_declarationValueAsString ptrStructCssParser ptrStructCssToken cBuf valueType
   tokValue <- BSU.unsafePackCString . valueC $ cToken
   let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
 
-  let pair@((newParser, newToken), textVal) = declValueAsString (parser, token) valueType property
+  let pair@((newParser, newToken), textVal) = declValueAsString (parser, token) (cssPropertyInfo V.! property) (toCssValueType valueType)
 
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
@@ -576,6 +577,50 @@ hll_parseDeclaration ptrStructCssParser ptrStructCssToken cBuf ptrStructCssValue
 updateDeclarations :: Ptr HelloCssDecl -> [CssDeclaration] -> IO ()
 updateDeclarations ptr (d:ds) = do
   ptrStr <- newCString . T.unpack . textVal . value $ d
-  poke ptr $ HelloCssDecl (fromIntegral . typeTag . value $ d) (fromIntegral . intVal . value $ d) ptrStr (if important d then 1 else 0) (fromIntegral . property $ d)
+  let t = cssValueTypeToInt . typeTag . value $ d
+  poke ptr $ HelloCssDecl (fromIntegral t) (fromIntegral . intVal . value $ d) ptrStr (if important d then 1 else 0) (fromIntegral . property $ d)
   updateDeclarations (advancePtr ptr 1) ds
 updateDeclarations ptr [] = return ()
+
+
+
+
+cssValueTypeToInt valueType = case valueType of
+                                CssValueTypeInt                 ->  0
+                                CssValueTypeEnum                ->  1
+                                CssValueTypeMultiEnum           ->  2
+                                CssValueTypeLengthPercent       ->  3
+                                CssValueTypeLength              ->  4
+                                CssValueTypeSignedLength        ->  5
+                                CssValueTypeLengthPercentNumber ->  6
+                                CssValueTypeAuto                ->  7
+                                CssValueTypeColor               ->  8
+                                CssValueTypeFontWeight          ->  9
+                                CssValueTypeString              -> 10
+                                CssValueTypeSymbol              -> 11
+                                CssValueTypeURI                 -> 12
+                                CssValueTypeBgPosition          -> 13
+                                CssValueTypeUnused              -> 14
+
+
+
+
+toCssValueType :: Int -> CssValueType
+toCssValueType i | i ==  0 = CssValueTypeInt
+                 | i ==  1 = CssValueTypeEnum
+                 | i ==  2 = CssValueTypeMultiEnum
+                 | i ==  3 = CssValueTypeLengthPercent
+                 | i ==  4 = CssValueTypeLength
+                 | i ==  5 = CssValueTypeSignedLength
+                 | i ==  6 = CssValueTypeLengthPercentNumber
+                 | i ==  7 = CssValueTypeAuto
+                 | i ==  8 = CssValueTypeColor
+                 | i ==  9 = CssValueTypeFontWeight
+                 | i == 10 = CssValueTypeString
+                 | i == 11 = CssValueTypeSymbol
+                 | i == 12 = CssValueTypeURI
+                 | i == 13 = CssValueTypeBgPosition
+                 | i == 14 = CssValueTypeUnused
+
+
+
