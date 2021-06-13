@@ -146,15 +146,145 @@ tokenizerHashTest (x:xs) = if expectedToken /= token || remainderAfter /= (remai
 
 
 
+-- Notice that this is a record for functions that don't need CssValueType as
+-- first arg.
+data AsTestData = AsTestData {
+    testedFunction   :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+  , valueType        :: CssValueType
+  , token            :: CssToken
+  , enums            :: [T.Text]
+  , expectedCssValue :: Maybe CssValue
+  }
+
+
+
+
+-- Tests for tokenAsValue* functions
+--
+-- This array is called "Manual" because these tests were written manually.
+-- Perhaps in the future I will write some generator of test data.
+tokenAsValueTestManualData = [
+
+  -- Success
+    AsTestData { testedFunction = tokensAsValueEnum
+               , valueType = CssValueTypeEnum
+               , token = CssTokSym "something"
+               , enums = ["something", "other", "auto"]
+               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeEnum, intVal = 0}
+               }
+  , AsTestData { testedFunction = tokensAsValueEnum
+               , valueType = CssValueTypeEnum
+               , token = CssTokSym "fifth"
+               , enums = ["zeroth", "first", "second", "third", "fourth", "fifth"]
+               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeEnum, intVal = 5}
+               }
+  -- Atypical data: empty list of enums.
+  , AsTestData { testedFunction = tokensAsValueEnum
+               , valueType = CssValueTypeEnum
+               , token = CssTokSym "auto"
+               , enums = []
+               , expectedCssValue = Nothing
+               }
+  -- Atypical data: empty string in token.
+  , AsTestData { testedFunction = tokensAsValueEnum
+               , valueType = CssValueTypeEnum
+               , token = CssTokSym ""
+               , enums = ["sun", "stars", "moon"]
+               , expectedCssValue = Nothing
+               }
+
+  -- Failure: no such string on list of enums
+  , AsTestData { testedFunction = tokensAsValueEnum
+               , valueType = CssValueTypeEnum
+               , token = CssTokSym "elephant"
+               , enums = ["red", "blue", "orange"]
+               , expectedCssValue = Nothing
+               }
+
+
+
+  -- Success
+  , AsTestData { testedFunction = tokensAsValueColor
+               , valueType = CssValueTypeColor
+               , token = CssTokHash "fb5"  -- fb5 interpreted as rgb should be expanded to rrggbb in form of ffbb55
+               , enums = []
+               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xffbb55}
+               }
+  , AsTestData { testedFunction = tokensAsValueColor
+               , valueType = CssValueTypeColor
+               , token = CssTokHash "12de56"
+               , enums = []
+               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0x12de56}
+               }
+  , AsTestData { testedFunction = tokensAsValueColor
+               , valueType = CssValueTypeColor
+               , token = CssTokSym "red" -- Simple name
+               , enums = []
+               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xff0000}
+               }
+  , AsTestData { testedFunction = tokensAsValueColor
+               , valueType = CssValueTypeColor
+               , token = CssTokSym "antiquewhite" -- "Sophisticated" name
+               , enums = []
+               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xfaebd7}
+               }
+
+  -- Failure, not a hex-digit string.
+  , AsTestData { testedFunction = tokensAsValueColor
+               , valueType = CssValueTypeColor
+               , token = CssTokHash "ident" -- This is a valid hash token, but can't be converted to color.
+               , enums = []
+               , expectedCssValue = Nothing
+               }
+  -- Failure, incorrect count of hex characters.
+  , AsTestData { testedFunction = tokensAsValueColor
+               , valueType = CssValueTypeColor
+               , token = CssTokHash "abcd" -- Color should have format rgb or rrggbb, so either 3 or 6 digits.
+               , enums = []
+               , expectedCssValue = Nothing
+               }
+  -- Failure, empty hash string.
+  , AsTestData { testedFunction = tokensAsValueColor
+               , valueType = CssValueTypeColor
+               , token = CssTokHash ""
+               , enums = []
+               , expectedCssValue = Nothing
+               }
+  -- Failure, empty symbol string.
+  , AsTestData { testedFunction = tokensAsValueColor
+               , valueType = CssValueTypeColor
+               , token = CssTokSym ""
+               , enums = []
+               , expectedCssValue = Nothing
+               }
+  ]
+
+
+
+
+-- On success return Nothing. On failure return Just index of failed test.
+tokenAsValueTest :: Int -> [AsTestData] -> Maybe Int
+tokenAsValueTest _ []       = Nothing
+tokenAsValueTest idx (x:xs) = if (expectedCssValue x) /= value
+                              then Just idx
+                              else tokenAsValueTest (idx + 1) xs
+  where
+    ((_, _), value) = (testedFunction x) (defaultParser, token x) (enums x)
+
+
+
+
 tokenizerTestCases = [
-  -- If some error is found, test function returns non-empty string with
-  -- representation of token from first column in a row, for which the test
-  -- failed.
+  -- If some error is found, test function returns some data (e.g. non-empty
+  -- string or test index) which can help identify which test failed.
      TestCase (do
                  assertEqual "manual tests of numbers" "" (tokenizerNumbersTest tokenizerNumbersTestManualData))
 
    , TestCase (do
                  assertEqual "manual tests of hash"  "" (tokenizerHashTest tokenizerHashTestManualData))
+
+   , TestCase (do
+                 assertEqual "manual tests of tokenAsValue"  Nothing (tokenAsValueTest 0 tokenAsValueTestManualData))
   ]
 
 
