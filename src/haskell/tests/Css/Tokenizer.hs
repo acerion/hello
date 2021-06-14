@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BinaryLiterals #-} -- For specifying expected integer values of CssValueTypeMultiEnum.
 
 
 
@@ -146,14 +147,27 @@ tokenizerHashTest (x:xs) = if expectedToken /= token || remainderAfter /= (remai
 
 
 
--- Notice that this is a record for functions that don't need CssValueType as
--- first arg.
-data AsTestData = AsTestData {
-    testedFunction   :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-  , valueType        :: CssValueType
-  , token            :: CssToken
-  , enums            :: [T.Text]
-  , expectedCssValue :: Maybe CssValue
+-- Data type for functions that don't need CssValueType as first arg.
+data AsTestData1 = AsTestData1 {
+    testedFunction1   :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+  , enums1            :: [T.Text] -- Enumeration of texts to match tokens against.
+  , tokenBefore1      :: CssToken -- Current token in (p, t) pair passed to tested function.
+  , expectedCssValue1 :: Maybe CssValue
+  }
+
+
+
+
+-- Data type for functions that don't need CssValueType as first arg.
+-- Data type with parser's remainder.
+data AsTestData2 = AsTestData2 {
+    testedFunction2   :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+  , enums2            :: [T.Text]  -- Enumeration of texts to match tokens against.
+  , tokenBefore2      :: CssToken  -- Current token in (p, t) pair passed to tested function.
+  , remainderBefore2  :: T.Text    -- 'remainder' field of parser in (p, t) pair passed to tested function.
+  , remainderAfter2   :: T.Text    -- 'remainder' field of parser in (p, t) pair returned by tested function.
+  , tokenAfter2       :: CssToken  -- Current token in (p, t) pair returned by tested function.
+  , expectedCssValue2 :: Maybe CssValue
   }
 
 
@@ -161,115 +175,224 @@ data AsTestData = AsTestData {
 
 -- Tests for tokenAsValue* functions
 --
+-- These test cases don't specify parser's remainder before and after parsing.
+--
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
-tokenAsValueTestManualData = [
+tokenAsValueTestManualData1 = [
 
   -- Success
-    AsTestData { testedFunction = tokensAsValueEnum
-               , valueType = CssValueTypeEnum
-               , token = CssTokSym "something"
-               , enums = ["something", "other", "auto"]
-               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeEnum, intVal = 0}
-               }
-  , AsTestData { testedFunction = tokensAsValueEnum
-               , valueType = CssValueTypeEnum
-               , token = CssTokSym "fifth"
-               , enums = ["zeroth", "first", "second", "third", "fourth", "fifth"]
-               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeEnum, intVal = 5}
-               }
+    AsTestData1 { testedFunction1 = tokensAsValueEnum
+                , enums1 = ["something", "other", "auto"]
+                , tokenBefore1 = CssTokSym "something"
+                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeEnum, intVal = 0}
+                }
+  , AsTestData1 { testedFunction1 = tokensAsValueEnum
+                , enums1 = ["zeroth", "first", "second", "third", "fourth", "fifth"]
+                , tokenBefore1 = CssTokSym "fifth"
+                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeEnum, intVal = 5}
+                }
   -- Atypical data: empty list of enums.
-  , AsTestData { testedFunction = tokensAsValueEnum
-               , valueType = CssValueTypeEnum
-               , token = CssTokSym "auto"
-               , enums = []
-               , expectedCssValue = Nothing
-               }
+  , AsTestData1 { testedFunction1 = tokensAsValueEnum
+                , enums1 = []
+                , tokenBefore1 = CssTokSym "auto"
+                , expectedCssValue1 = Nothing
+                }
   -- Atypical data: empty string in token.
-  , AsTestData { testedFunction = tokensAsValueEnum
-               , valueType = CssValueTypeEnum
-               , token = CssTokSym ""
-               , enums = ["sun", "stars", "moon"]
-               , expectedCssValue = Nothing
-               }
+  , AsTestData1 { testedFunction1 = tokensAsValueEnum
+                , enums1 = ["sun", "stars", "moon"]
+                , tokenBefore1 = CssTokSym ""
+                , expectedCssValue1 = Nothing
+                }
 
   -- Failure: no such string on list of enums
-  , AsTestData { testedFunction = tokensAsValueEnum
-               , valueType = CssValueTypeEnum
-               , token = CssTokSym "elephant"
-               , enums = ["red", "blue", "orange"]
-               , expectedCssValue = Nothing
-               }
+  , AsTestData1 { testedFunction1 = tokensAsValueEnum
+                , enums1 = ["red", "blue", "orange"]
+                , tokenBefore1 = CssTokSym "elephant"
+                , expectedCssValue1 = Nothing
+                }
 
 
 
   -- Success
-  , AsTestData { testedFunction = tokensAsValueColor
-               , valueType = CssValueTypeColor
-               , token = CssTokHash "fb5"  -- fb5 interpreted as rgb should be expanded to rrggbb in form of ffbb55
-               , enums = []
-               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xffbb55}
-               }
-  , AsTestData { testedFunction = tokensAsValueColor
-               , valueType = CssValueTypeColor
-               , token = CssTokHash "12de56"
-               , enums = []
-               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0x12de56}
-               }
-  , AsTestData { testedFunction = tokensAsValueColor
-               , valueType = CssValueTypeColor
-               , token = CssTokSym "red" -- Simple name
-               , enums = []
-               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xff0000}
-               }
-  , AsTestData { testedFunction = tokensAsValueColor
-               , valueType = CssValueTypeColor
-               , token = CssTokSym "antiquewhite" -- "Sophisticated" name
-               , enums = []
-               , expectedCssValue = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xfaebd7}
-               }
+  , AsTestData1 { testedFunction1 = tokensAsValueColor
+                , tokenBefore1 = CssTokHash "fb5"  -- fb5 interpreted as rgb should be expanded to rrggbb in form of ffbb55
+                , enums1 = []
+                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xffbb55}
+                }
+  , AsTestData1 { testedFunction1 = tokensAsValueColor
+                , tokenBefore1 = CssTokHash "12de56"
+                , enums1 = []
+                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0x12de56}
+                }
+  , AsTestData1 { testedFunction1 = tokensAsValueColor
+                , tokenBefore1 = CssTokSym "red" -- Simple name
+                , enums1 = []
+                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xff0000}
+                }
+  , AsTestData1 { testedFunction1 = tokensAsValueColor
+                , tokenBefore1 = CssTokSym "antiquewhite" -- "Sophisticated" name
+                , enums1 = []
+                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xfaebd7}
+                }
 
   -- Failure, not a hex-digit string.
-  , AsTestData { testedFunction = tokensAsValueColor
-               , valueType = CssValueTypeColor
-               , token = CssTokHash "ident" -- This is a valid hash token, but can't be converted to color.
-               , enums = []
-               , expectedCssValue = Nothing
-               }
+  , AsTestData1 { testedFunction1 = tokensAsValueColor
+                , tokenBefore1 = CssTokHash "ident" -- This is a valid hash token, but can't be converted to color.
+                , enums1 = []
+                , expectedCssValue1 = Nothing
+                }
   -- Failure, incorrect count of hex characters.
-  , AsTestData { testedFunction = tokensAsValueColor
-               , valueType = CssValueTypeColor
-               , token = CssTokHash "abcd" -- Color should have format rgb or rrggbb, so either 3 or 6 digits.
-               , enums = []
-               , expectedCssValue = Nothing
-               }
+  , AsTestData1 { testedFunction1 = tokensAsValueColor
+                , enums1 = []
+                , tokenBefore1 = CssTokHash "abcd" -- Color should have format rgb or rrggbb, so either 3 or 6 digits.
+                , expectedCssValue1 = Nothing
+                }
   -- Failure, empty hash string.
-  , AsTestData { testedFunction = tokensAsValueColor
-               , valueType = CssValueTypeColor
-               , token = CssTokHash ""
-               , enums = []
-               , expectedCssValue = Nothing
-               }
+  , AsTestData1 { testedFunction1 = tokensAsValueColor
+                , enums1 = []
+                , tokenBefore1 = CssTokHash ""
+                , expectedCssValue1 = Nothing
+                }
   -- Failure, empty symbol string.
-  , AsTestData { testedFunction = tokensAsValueColor
-               , valueType = CssValueTypeColor
-               , token = CssTokSym ""
-               , enums = []
-               , expectedCssValue = Nothing
-               }
+  , AsTestData1 { testedFunction1 = tokensAsValueColor
+                , enums1 = []
+                , tokenBefore1 = CssTokSym ""
+                , expectedCssValue1 = Nothing
+                }
   ]
 
 
 
 
+-- Tests for tokenAsValueMultiEnum function
+--
+-- These test cases specify parser's remainder before and after parsing.
+--
+-- This array is called "Manual" because these tests were written manually.
+-- Perhaps in the future I will write some generator of test data.
+tokenAsValueMultiEnumTestManualData = [
+
+  -- Success
+      AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
+                  , enums2 = ["zeroth", "first", "second", "third"]
+                  , tokenBefore2 = CssTokSym "zeroth"
+                  -- Declaration value ends with ';' here. Tokenizer will take
+                  -- the char but tested function will keep it as current
+                  -- token.
+                  , remainderBefore2 = "first second third; next-property"
+                  , remainderAfter2  = " next-property"
+                  , tokenAfter2 = CssTokCh ';'
+                  , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeMultiEnum, intVal = 0b1111}
+                  }
+    , AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
+                  , enums2 = ["zeroth", "first", "second", "third"]
+                  , tokenBefore2 = CssTokSym "zeroth"
+                  -- Declaration value ends with '}' here. Tokenizer will take
+                    -- the char but tested function will keep it as current
+                  -- token.
+                  , remainderBefore2 = "first third}selector"
+                  , remainderAfter2  = "selector"
+                  , tokenAfter2 = CssTokCh '}'
+                  , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeMultiEnum, intVal = 0b1011}
+                  }
+    -- Tokens in stream appear in order that does not match order of enums.
+    -- Tested function should not care about the order.
+    , AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
+                  , enums2 = ["zeroth", "first", "second", "third", "fourth"]
+                  , tokenBefore2 = CssTokSym "second"
+                  -- Declaration value ends with EOF..
+                  , remainderBefore2 = "fourth zeroth"
+                  , remainderAfter2  = ""
+                  , tokenAfter2 = CssTokEnd
+                  , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeMultiEnum, intVal = 0b10101}
+                  }
+
+
+    -- Remainder tokens with values not on list of enums should lead to Nothing.
+    , AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
+                  , enums2 = ["zeroth", "first", "second", "third"]
+                  , tokenBefore2 = CssTokSym "third"
+                  , remainderBefore2 = "gummi bears"
+                  , remainderAfter2  = "gummi bears"
+                  , tokenAfter2 = CssTokSym "third"
+                  , expectedCssValue2 = Nothing
+                }
+    -- Current token with value not on list of enums should also lead to Nothing.
+    , AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
+                  , enums2 = ["water", "tea", "coffe", "pop"]
+                  , tokenBefore2 = CssTokSym "candy"
+                  -- Since the current token won't be matched, we expect the function to return unmodified (p, t) pair.
+                  , remainderBefore2 = "water tea coffe"
+                  , remainderAfter2  = "water tea coffe"
+                  , tokenAfter2 = CssTokSym "candy"
+                  , expectedCssValue2 = Nothing
+                  }
+    -- TODO: add test with input remainder containing something other than
+    -- symbols/strings/identifiers, e.g. color or integer. This should fail
+    -- for the same reason as above.
+    ]
+
+
+-- Tests for tokenAsValueMultiEnum function
+--
+-- These test cases specify parser's remainder before and after parsing.
+--
+-- This array is called "Manual" because these tests were written manually.
+-- Perhaps in the future I will write some generator of test data.
+tokenAsValueAutoTestManualData = [
+
+  -- Success
+      AsTestData2 { testedFunction2 = tokensAsValueAuto
+                  , enums2 = [] -- Doesn't matter for this tested function.
+                  , tokenBefore2 = CssTokSym "auto"
+                  , remainderBefore2 = "oxygen; next-property"
+                  , remainderAfter2  = "; next-property"
+                  , tokenAfter2 = CssTokSym "oxygen"
+                  , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeAuto, intVal = cssLengthTypeAuto}
+                  }
+    , AsTestData2 { testedFunction2 = tokensAsValueAuto
+                  , enums2 = [] -- Doesn't matter for this tested function.
+                  , tokenBefore2 = CssTokSym "AUto"
+                  , remainderBefore2 = "nitro}"
+                  , remainderAfter2  = "}"
+                  , tokenAfter2 = CssTokSym "nitro"
+                  , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeAuto, intVal = cssLengthTypeAuto}
+                  }
+
+    -- Failure. Current token is not "auto".
+    , AsTestData2 { testedFunction2 = tokensAsValueAuto
+                  , enums2 = [] -- Doesn't matter for this tested function.
+                  , tokenBefore2 = CssTokSym "gemini"
+                  , remainderBefore2 = "taurus}"
+                  , remainderAfter2  = "taurus}"
+                  , tokenAfter2 = CssTokSym "gemini"
+                  , expectedCssValue2 = Nothing
+                  }
+      ]
+
+
+
 -- On success return Nothing. On failure return Just index of failed test.
-tokenAsValueTest :: Int -> [AsTestData] -> Maybe Int
-tokenAsValueTest _ []       = Nothing
-tokenAsValueTest idx (x:xs) = if (expectedCssValue x) /= value
-                              then Just idx
-                              else tokenAsValueTest (idx + 1) xs
+tokenAsValueTest1 :: Int -> [AsTestData1] -> Maybe Int
+tokenAsValueTest1 _ []       = Nothing
+tokenAsValueTest1 idx (x:xs) = if (expectedCssValue1 x) /= value
+                               then Just idx
+                               else tokenAsValueTest1 (idx + 1) xs
   where
-    ((_, _), value) = (testedFunction x) (defaultParser, token x) (enums x)
+    ((_, _), value) = (testedFunction1 x) (defaultParser, tokenBefore1 x) (enums1 x)
+
+
+
+
+-- On success return Nothing. On failure return Just index of failed test.
+tokenAsValueTest2 :: Int -> [AsTestData2] -> Maybe Int
+tokenAsValueTest2 _ []       = Nothing
+tokenAsValueTest2 idx (x:xs) = if (expectedCssValue2 x) /= value || (remainderAfter2 x /= remainder p) || (tokenAfter2 x /= t)
+                               then Just idx
+                               else tokenAsValueTest2 (idx + 1) xs
+  where
+    ((p, t), value) = (testedFunction2 x) (defaultParser{remainder = remainderBefore2 x}, tokenBefore2 x) (enums2 x)
 
 
 
@@ -284,7 +407,13 @@ tokenizerTestCases = [
                  assertEqual "manual tests of hash"  "" (tokenizerHashTest tokenizerHashTestManualData))
 
    , TestCase (do
-                 assertEqual "manual tests of tokenAsValue"  Nothing (tokenAsValueTest 0 tokenAsValueTestManualData))
+                 assertEqual "manual tests of tokenAsValue 1"  Nothing (tokenAsValueTest1 0 tokenAsValueTestManualData1))
+
+   , TestCase (do
+                 assertEqual "manual tests of tokenAsValueMultiEnum"  Nothing (tokenAsValueTest2 0 tokenAsValueMultiEnumTestManualData))
+
+   , TestCase (do
+                 assertEqual "manual tests of tokenAsValueAuto"  Nothing (tokenAsValueTest2 0 tokenAsValueAutoTestManualData))
   ]
 
 
