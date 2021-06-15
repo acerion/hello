@@ -597,7 +597,7 @@ cssValueTypeToInt valueType = case valueType of
                                 CssValueTypeColor               ->  8
                                 CssValueTypeFontWeight          ->  9
                                 CssValueTypeString              -> 10
-                                CssValueTypeSymbol              -> 11
+                                CssValueTypeStringList          -> 11
                                 CssValueTypeURI                 -> 12
                                 CssValueTypeBgPosition          -> 13
                                 CssValueTypeUnused              -> 14
@@ -617,7 +617,7 @@ toCssValueType i | i ==  0 = CssValueTypeInt
                  | i ==  8 = CssValueTypeColor
                  | i ==  9 = CssValueTypeFontWeight
                  | i == 10 = CssValueTypeString
-                 | i == 11 = CssValueTypeSymbol
+                 | i == 11 = CssValueTypeStringList
                  | i == 12 = CssValueTypeURI
                  | i == 13 = CssValueTypeBgPosition
                  | i == 14 = CssValueTypeUnused

@@ -75,6 +75,7 @@ module CssParser(nextToken
                 , tokensAsValueEnum
                 , tokensAsValueMultiEnum
                 , tokensAsValueAuto
+                , tokensAsValueStringList
                 , declValueAsFontWeightInteger
                 , declValueAsLength
                 , declValueAsURI
@@ -259,10 +260,14 @@ data CssValueType =
   | CssValueTypeColor               -- Represented as integer.
   | CssValueTypeFontWeight          -- This very special and only used by 'font-weight'
   | CssValueTypeString              -- <string>
-  | CssValueTypeSymbol              -- Symbols, which are directly copied (as
-                                    -- opposed to CSS_PROPERTY_DATA_TYPE_ENUM
-                                    -- and CSS_PROPERTY_DATA_TYPE_MULTI_ENUM).
-                                    -- Used for 'font-family'.
+  | CssValueTypeStringList          -- List of symbols, which are directly
+                                    -- copied (as opposed to
+                                    -- CSS_PROPERTY_DATA_TYPE_ENUM and
+                                    -- CSS_PROPERTY_DATA_TYPE_MULTI_ENUM).
+                                    -- Used for 'font-family'. TODO: this
+                                    -- should really be a Haskell list. No
+                                    -- need to deconstruct the string to a
+                                    -- list later.
   | CssValueTypeURI                 -- <uri>
   | CssValueTypeBgPosition          --
   | CssValueTypeUnused              -- Not yet used. Will itself get unused some day.
@@ -400,7 +405,7 @@ cssPropertyInfo = V.fromList [
    , ("display",                [ tokensAsValueEnum ],                                                css_display_enum_vals)
    , ("empty-cells",            [],                                                                   [])
    , ("float",                  [],                                                                   [])
-   , ("font-family",            [ declValueAsSymbol CssValueTypeSymbol ],                                           [])
+   , ("font-family",            [ tokensAsValueStringList ],                                          [])
    , ("font-size",              [ tokensAsValueEnum, declValueAsLength CssValueTypeLengthPercent ],   css_font_size_enum_vals)
    , ("font-size-adjust",       [],                                                                   [])
    , ("font-stretch",           [],                                                                   [])
@@ -944,17 +949,8 @@ declValueAsString (parser, token) propInfo valueType = case ((retParser, retToke
                                                          ((p, t), Nothing) -> ((p, t), Nothing)
   where
     ((retParser, retToken), value) | valueType == CssValueTypeString = declValueAsString' valueType (parser, token) []
-                                   | valueType == CssValueTypeSymbol = declValueAsSymbol' (parser, token) ""
                                    | valueType == CssValueTypeURI    = declValueAsURI valueType (parser, token) []
-                                   | otherwise                           = ((parser, token), Nothing)
-
-{-
-  | valueType ==Int                  = (parser, Nothing)
-
-  | valueType ==BgPosition      = (parser, Nothing)
-  | valueType ==Unused                   = (parser, Nothing)
--}
-
+                                   | otherwise                       = ((parser, token), Nothing)
 
 
 
@@ -1274,33 +1270,42 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
 
 
+-- Interpret current CssTokSym/CssTokStr token (and possibly more following
+-- CssTokSym and CssTokStr tokens) as list value (value of type
+-- CssValueTypeStringList). The tokens should be separated by comma tokens.
+-- Returned value is a string of items separated by commas.
+--
+-- TODO: how we should handle list separated by spaces instead of commas? How
+-- should we handle multiple consecutive commas?
+--
+-- TODO: all tokens in declaration's value should be
+-- strings/symbols/commas/spaces. There can be no other tokens (e.g. numeric
+-- or hash). Such declaration should be rejected:
+-- 'font-family: "URW Gothic L", "Courier New", monospace, 90mph'
+-- Rationale: behaviour of FF and Chromium.
+--
+-- Read comma-separated list of items, e.g. font family names. The items can
+-- be strings with spaces, therefore the function consumes both CssTokSym and
+-- CssTokStr tokens. TODO: test the code for list of symbols separated by
+-- space or comma.
+tokensAsValueStringList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+tokensAsValueStringList (parser, token) enums = asList (parser, token) []
+  where
+    asList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+    asList (p, (CssTokSym sym)) acc  = asList (nextToken p) (sym:acc)
+    asList (p, (CssTokStr str)) acc  = asList (nextToken p) (str:acc)
+    asList (p, (CssTokCh  ',')) acc  = asList (nextToken p) (",":acc)
+    asList (p, t@(CssTokCh ';')) acc = final (p, t) acc
+    asList (p, t@(CssTokCh '}')) acc = final (p, t) acc
+    asList (p, t@(CssTokEnd)) acc    = final (p, t) acc
+    asList (p, t) acc                = ((parser, token), Nothing) -- TODO: this implmentation does not allow for final "!important" token.
 
-declValueAsSymbol :: CssValueType -> (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-declValueAsSymbol typeValue (parser, token) enums = declValueAsSymbol' (parser, token) ""
+    final (p, t) acc = if 0 == length acc
+                       then ((p, t), Nothing)
+                       else ((p, t), Just defaultValue{ typeTag = CssValueTypeStringList
+                                                      , textVal = T.concat . reverse $ acc})
 
 
-
--- Read comma separated list of font family names.
--- TODO: test the code for list of symbols separated by space or comma.
-declValueAsSymbol' :: (CssParser, CssToken) -> T.Text -> ((CssParser, CssToken), Maybe CssValue)
-declValueAsSymbol' (parser, (CssTokSym sym)) acc = declValueAsSymbol' (nextToken parser) (T.append acc (separated parser sym))
-declValueAsSymbol' (parser, (CssTokStr str)) acc = declValueAsSymbol' (nextToken parser) (T.append acc (separated parser str))
-declValueAsSymbol' (parser, (CssTokCh  ',')) acc = declValueAsSymbol' (nextToken parser) (T.append acc (separated parser ","))
-declValueAsSymbol' (parser, token) acc           = finalSymbol (parser, token) acc
-
-
-
-
-finalSymbol (parser, token)  acc = if T.null acc
-                                   then ((parser, token), Nothing)
-                                   else ((parser, token), Just defaultValue{typeTag = CssValueTypeSymbol, textVal = acc})
-
--- TODO: check if CSS code really needs this space. In some situations
--- symbols in text returned by declValueAsSymbol' may be separated by
--- comma AND space, which may be redundant.
-separated parser str = if spaceSeparated parser
-                       then T.cons ' ' str
-                       else str
 
 
 {-
@@ -1373,11 +1378,6 @@ tokenMatchesProperty token propInfo = tokenMatchesProperty' token acceptedValueT
                                                  case token of
                                                    CssTokStr s -> Just t
                                                    _           -> tokenMatchesProperty' token ts enums
-                                             | t == CssValueTypeSymbol =
-                                                 case token of
-                                                   CssTokSym sym -> Just t
-                                                   CssTokStr str -> Just t
-                                                   _             -> tokenMatchesProperty' token ts enums
                                              | t == CssValueTypeFontWeight =
                                                  case token of
                                                    CssTokNum (CssNumI i) -> if i >= 100 && i <= 900 -- TODO: this test of range is repeated in this file

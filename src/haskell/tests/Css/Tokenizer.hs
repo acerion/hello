@@ -334,7 +334,7 @@ tokenAsValueMultiEnumTestManualData = [
     ]
 
 
--- Tests for tokenAsValueMultiEnum function
+-- Tests for tokenAsValueAuto function
 --
 -- These test cases specify parser's remainder before and after parsing.
 --
@@ -370,6 +370,56 @@ tokenAsValueAutoTestManualData = [
                   , expectedCssValue2 = Nothing
                   }
       ]
+
+
+
+-- Tests for tokenAsValueStringList function
+--
+-- These test cases specify parser's remainder before and after parsing.
+--
+-- This array is called "Manual" because these tests were written manually.
+-- Perhaps in the future I will write some generator of test data.
+tokenAsValueStringListTestManualData = [
+
+  -- Success
+    AsTestData2 { testedFunction2 = tokensAsValueStringList
+                , enums2 = [] -- Doesn't matter for this tested function.
+                , tokenBefore2 = CssTokSym "monday"
+                , remainderBefore2 = ",tuesday, wednesday , thursday; next-property"
+                , remainderAfter2  = " next-property"
+                , tokenAfter2 = CssTokCh ';'
+                , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeStringList, textVal = "monday,tuesday,wednesday,thursday"}
+                }
+  , AsTestData2 { testedFunction2 = tokensAsValueStringList
+                , enums2 = [] -- Doesn't matter for this tested function.
+                , tokenBefore2 = CssTokSym "monday"
+                , remainderBefore2 = "; next-property"
+                , remainderAfter2  = " next-property"
+                , tokenAfter2 = CssTokCh ';'
+                , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeStringList, textVal = "monday"}
+                }
+
+  -- Hash token won't be interpreted as valid token for a list, and none of
+  -- following tokens will.
+  , AsTestData2 { testedFunction2 = tokensAsValueStringList
+                , enums2 = [] -- Doesn't matter for this tested function.
+                , tokenBefore2 = CssTokHash "monday"
+                , remainderBefore2 = "tuesday; next-property"
+                , remainderAfter2  = "tuesday; next-property"
+                , tokenAfter2 = CssTokHash "monday"
+                , expectedCssValue2 = Nothing
+                }
+  -- Numeric tokens should also lead to invalid parsing.
+  , AsTestData2 { testedFunction2 = tokensAsValueStringList
+                , enums2 = [] -- Doesn't matter for this tested function.
+                , tokenBefore2 = CssTokSym "monday"
+                , remainderBefore2 = "tuesday, 99redbaloons, wednesday; next-property"
+                , remainderAfter2  = "tuesday, 99redbaloons, wednesday; next-property"
+                , tokenAfter2 = CssTokSym "monday"
+                , expectedCssValue2 = Nothing
+                }
+      ]
+
 
 
 
@@ -414,6 +464,9 @@ tokenizerTestCases = [
 
    , TestCase (do
                  assertEqual "manual tests of tokenAsValueAuto"  Nothing (tokenAsValueTest2 0 tokenAsValueAutoTestManualData))
+
+   , TestCase (do
+                 assertEqual "manual tests of tokenAsValueStringList"  Nothing (tokenAsValueTest2 0 tokenAsValueStringListTestManualData))
   ]
 
 
