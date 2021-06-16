@@ -76,6 +76,8 @@ module CssParser(nextToken
                 , tokensAsValueMultiEnum
                 , tokensAsValueAuto
                 , tokensAsValueStringList
+                , tokensAsValueBgPosition
+                , tokensAsValueString
                 , declValueAsFontWeightInteger
                 , declValueAsLength
                 , declValueAsURI
@@ -376,7 +378,7 @@ cssPropertyInfo = V.fromList [
      ("background-attachment",  [ tokensAsValueEnum ],                                                css_background_attachment_enum_vals)
    , ("background-color",       [ tokensAsValueColor ],                                               [])
    , ("background-image",       [ declValueAsURI CssValueTypeURI ],                                              [])
-   , ("background-position",    [ declValueAsBgPosition CssValueTypeBgPosition ],                                       [])
+   , ("background-position",    [ tokensAsValueBgPosition ],                                          [])
    , ("background-repeat",      [ tokensAsValueEnum ],                                                css_background_repeat_enum_vals)
    , ("border-bottom-color",    [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals)
    , ("border-bottom-style",    [ tokensAsValueEnum ],                                                css_border_style_enum_vals)
@@ -397,7 +399,7 @@ cssPropertyInfo = V.fromList [
    , ("clear",                  [],                                                                   [])
    , ("clip",                   [],                                                                   [])
    , ("color",                  [ tokensAsValueColor ],                                               [])
-   , ("content",                [ declValueAsString' CssValueTypeString ],                                           [])
+   , ("content",                [ tokensAsValueString ],                                              [])
    , ("counter-increment",      [],                                                                   [])
    , ("counter-reset",          [],                                                                   [])
    , ("cursor",                 [ tokensAsValueEnum ],                                                css_cursor_enum_vals)
@@ -948,7 +950,7 @@ declValueAsString (parser, token) propInfo valueType = case ((retParser, retToke
                                                          ((p, t), Just v)  -> ((p, t), Just (textVal v))
                                                          ((p, t), Nothing) -> ((p, t), Nothing)
   where
-    ((retParser, retToken), value) | valueType == CssValueTypeString = declValueAsString' valueType (parser, token) []
+    ((retParser, retToken), value) | valueType == CssValueTypeString = tokensAsValueString (parser, token) []
                                    | valueType == CssValueTypeURI    = declValueAsURI valueType (parser, token) []
                                    | otherwise                       = ((parser, token), Nothing)
 
@@ -1135,10 +1137,14 @@ declValueAsLength valueType (parser, token) enums =
 
 
 
-declValueAsString' :: CssValueType -> (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-declValueAsString' valueType (parser, (CssTokStr s)) _ = ((newParser, newToken), Just defaultValue{typeTag = valueType, textVal = s})
-  where (newParser, newToken) = nextToken parser
-declValueAsString' _ (parser, token) _                 = ((parser, token), Nothing)
+-- Interpret current token as "string" value (value of type CssValueTypeString).
+--
+-- In case of "string" value there is no need to consume more than current
+-- token to build the String, but for consistency with other similar
+-- functions the function is still called "tokensAs...".
+tokensAsValueString :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+tokensAsValueString (p, (CssTokStr s)) _ = (nextToken p, Just defaultValue{typeTag = CssValueTypeString, textVal = s})
+tokensAsValueString (p, t) _             = ((p, t), Nothing)
 
 
 
@@ -1171,11 +1177,11 @@ parseUrl (parser, token)   = ((parser, token), Nothing)
 
 
 
-declValueAsBgPosition :: CssValueType -> (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-declValueAsBgPosition typeValue (parser, token) _ = ((outParser, outToken), value)
+tokensAsValueBgPosition :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+tokensAsValueBgPosition (parser, token) _ = ((outParser, outToken), value)
   where
     ((outParser, outToken), tokens) = takeBgTokens (parser, token)
-    value = Just defaultValue{typeTag = typeValue, intVal = 12}
+    value = Just defaultValue{typeTag = CssValueTypeBgPosition, intVal = 12}
     -- TODO: right now the original dillo doesn't seem to display background
     -- images at all, so I will stop the work on this function for now.
     -- Later, as I get to know dillo better, I will resume work on this
@@ -1374,10 +1380,6 @@ tokenMatchesProperty token propInfo = tokenMatchesProperty' token acceptedValueT
                                                    CssTokDim _ _ -> Just t
                                                    _             -> tokenMatchesProperty' token ts enums
 
-                                             | t == CssValueTypeString =
-                                                 case token of
-                                                   CssTokStr s -> Just t
-                                                   _           -> tokenMatchesProperty' token ts enums
                                              | t == CssValueTypeFontWeight =
                                                  case token of
                                                    CssTokNum (CssNumI i) -> if i >= 100 && i <= 900 -- TODO: this test of range is repeated in this file
@@ -1390,11 +1392,6 @@ tokenMatchesProperty token propInfo = tokenMatchesProperty' token acceptedValueT
                                                                   then Just t
                                                                   else tokenMatchesProperty' token ts enums
                                                    _           -> tokenMatchesProperty' token ts enums
-                                             | t == CssValueTypeInt = tokenMatchesProperty' token ts enums
-                                             | t == CssValueTypeUnused = tokenMatchesProperty' token ts enums
-                                             | otherwise = Nothing
-
-    tokenMatchesProperty' token [] _ = Nothing
 -}
 
 
