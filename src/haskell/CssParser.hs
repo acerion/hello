@@ -54,10 +54,10 @@ TODO: think about performance of using isPrefixOf to get just one character.
 module CssParser(nextToken
                 , ignoreBlock
                 , ignoreStatement
-                , takeSymbol
                 , takeInt
 
                 , takeIdentToken
+                , takeIdentLikeToken
                 , takeHashToken
 
                 , cssPropertyInfo
@@ -122,7 +122,7 @@ module CssParser(nextToken
                 , parseDeclaration
                 , takePropertyTokens
 
-                , readName
+                , consumeName
 
                 , defaultParser) where
 
@@ -162,20 +162,23 @@ cssNumToFloat (CssNumI i) = fromIntegral i
 -- Tokens listed in https://www.w3.org/TR/css-syntax-3/#tokenization, but not
 -- included in CssToken type (or not commented yet):
 --
--- <function-token>, <at-keyword-token>, ,
--- <string-token>, <bad-string-token>, <url-token>, <bad-url-token>,
+-- <at-keyword-token>, <string-token>, <bad-string-token>,
 -- <delim-token>, <whitespace-token>, <CDO-token>, <CDC-token>,
 -- <colon-token>, <semicolon-token>, <comma-token>, <[-token>, <]-token>,
 -- <(-token>, <)-token>, <{-token>, and <}-token>.
-
 
 data CssToken =
     CssTokNum CssNum            -- <number-token>
   | CssTokPerc CssNum           -- <percentage-token>
   | CssTokDim CssNum T.Text     -- <dimension-token>
+
+  -- Ident-like-tokens (https://www.w3.org/TR/css-syntax-3/#consume-ident-like-token):
   | CssTokIdent T.Text          -- <ident-token>; CSS3 spec says that text can be empty: "have a value composed of zero or more code points".
+  | CssTokFunc T.Text           -- <function-token>
+  | CssTokUrl T.Text            -- <url-token>
+  | CssTokBadUrl                -- <bad-url-token>
+
   | CssTokHash T.Text           -- <hash-token>; T.Text value is not prefixed by '#'.
-  | CssTokSym T.Text
   | CssTokStr T.Text
   | CssTokCh Char
   | CssTokWS          -- Whitespace
@@ -558,7 +561,7 @@ pair@(parser, _)  >>? _ = pair
 nextToken' :: CssParser -> (CssParser, Maybe CssToken)
 nextToken' parser = takeLeadingWhite parser >>?
                     takeNumPercDimToken     >>?
-                    takeSymbol              >>?
+                    takeIdentLikeToken      >>?
                     takeString              >>?
                     takeHashToken           >>?
                     takeCharToken
@@ -569,14 +572,14 @@ nextToken' parser = takeLeadingWhite parser >>?
 nextToken2' :: CssParser -> (CssParser, Maybe CssToken)
 nextToken2' parser = takeLeadingWhite2 parser >>?
                      takeNumPercDimToken      >>?
-                     takeSymbol               >>?
+                     takeIdentLikeToken       >>?
                      takeString               >>?
                      takeHashToken            >>?
                      takeCharToken
 
 
 
-
+{-
 -- Symbol must not start with a digit, therefore we have to have some kind of
 -- test at the beginning. TODO: can we do the test in a better way?
 --
@@ -593,7 +596,7 @@ takeSymbol parser = if predNonNumeric . T.head . remainder $ parser
   where tok = T.takeWhile pred (remainder parser)
         predNonNumeric = (\c -> D.C.isAlpha c || c == '_' || c == '-')
         pred = (\c -> D.C.isAlphaNum c || c == '_' || c == '-')
-
+-}
 
 
 
@@ -606,7 +609,7 @@ takeIdentToken parser = if isValidStartOfIdentifier . remainder $ parser
                         then (parserMoveBy parser ident, Just $ CssTokIdent ident)
                         else (parser, Nothing)
   where
-    (ident, n) = readName (remainder parser) "" 0
+    (ident, n) = consumeName (remainder parser) "" 0
 
 
 
@@ -634,6 +637,35 @@ isNonAscii c = D.C.ord c >= 0x80
 isNameCodePoint :: Char -> Bool
 isNameCodePoint c = isNameStartCodePoint c || D.C.isDigit c || c == '-'
 
+
+
+
+takeIdentLikeToken :: CssParser -> (CssParser, Maybe CssToken)
+takeIdentLikeToken p1 = case takeIdentToken p1 of
+                          (_, Nothing)                      -> (p1, Nothing)
+                          (p2, Just t2@(CssTokIdent ident)) -> case takeCharToken p2 of
+                                                                 (_, Nothing)              -> (p2, Just t2)
+                                                                 (p3, Just (CssTokCh '(')) -> if ident == "url"
+                                                                                              then consumeUrlToken p3
+                                                                                              else (p3, Just $ CssTokFunc ident)
+                                                                 (p3, _)                   -> (p2, Just t2)
+
+
+
+consumeUrlToken p1 = if T.length text > 0 && T.last text == ')'
+                     then (p2, Just $ CssTokUrl $ T.take (n - 1) text) -- Don't include closing paren.
+                     else (p2, Just $ CssTokBadUrl)
+  where
+    p2 = p1 {remainder = T.drop n $ remainder p1}
+    text = T.pack . reverse $ f (remainder p1) []
+    n = T.length text
+
+    f :: T.Text -> [Char] -> String
+    f buffer acc = case T.uncons buffer of
+                 Just (c, rem) | c == ')'  -> (c:acc) -- Include the paren here to recognize valid URL.
+                               | otherwise -> f rem (c:acc)
+                               -- TODO: these conditions for taking chars should be improved.
+                 Nothing -> acc
 
 
 
@@ -680,7 +712,7 @@ takeHashToken parser = if not $ inBlock parser
                            Just ('#', rem) -> (parser { remainder = T.drop (n + 1) $ remainder parser}, Just $ CssTokHash value)
                              -- TODO: That +1 for '#' above doesn't seem too clean. What if there are no valid characters after '#'?
                              where
-                               (value, n) = readName rem "" 0
+                               (value, n) = consumeName rem "" 0
                            Just (c, rem)   -> (parser, Nothing)
                            Nothing         -> (parser, Nothing)
 
@@ -691,12 +723,12 @@ takeHashToken parser = if not $ inBlock parser
 --
 -- Returns pair (name, count), where count is a number of consumed code
 -- points.
-readName :: T.Text -> T.Text -> Int -> (T.Text, Int)
-readName buffer acc n = case T.uncons buffer of
-                          Just (c, rem) | isNameCodePoint c -> readName rem (T.snoc acc c) (n + 1)
-                                        | c == '\\'         -> (acc, n) -- TODO: properly handle an escape
-                                        | otherwise         -> (acc, n)
-                          Nothing -> (acc, n)
+consumeName :: T.Text -> T.Text -> Int -> (T.Text, Int)
+consumeName buffer acc n = case T.uncons buffer of
+                             Just (c, rem) | isNameCodePoint c -> consumeName rem (T.snoc acc c) (n + 1)
+                                           | c == '\\'         -> (acc, n) -- TODO: properly handle an escape
+                                           | otherwise         -> (acc, n)
+                             Nothing -> (acc, n)
 
 
 
@@ -933,12 +965,12 @@ tokensAsValueColor :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken
 tokensAsValueColor (parser, token@(CssTokHash str)) _ = case colorsHexStringToColor str of
                                                                     Just i  -> (nextToken parser, Just defaultValue{typeTag = CssValueTypeColor, intVal = i})
                                                                     Nothing -> (nextToken parser, Nothing)
-tokensAsValueColor (parser, token@(CssTokSym s)) _ | s == "rgb" = case parseRgbFunctionInt parser of
-                                                                              ((p, t), Just c)  -> ((p, t), Just defaultValue{typeTag = CssValueTypeColor, intVal = c})
-                                                                              ((p, t), Nothing) -> ((p, t), Nothing)
-                                                             | otherwise = case colorsStringToColor s of
-                                                                             Just i  -> (nextToken parser, Just defaultValue{typeTag = CssValueTypeColor, intVal = i})
-                                                                             Nothing -> (nextToken parser, Nothing)
+tokensAsValueColor (parser, token@(CssTokIdent s)) _ | s == "rgb" = case parseRgbFunctionInt parser of
+                                                                      ((p, t), Just c)  -> ((p, t), Just defaultValue{typeTag = CssValueTypeColor, intVal = c})
+                                                                      ((p, t), Nothing) -> ((p, t), Nothing)
+                                                     | otherwise = case colorsStringToColor s of
+                                                                     Just i  -> (nextToken parser, Just defaultValue{typeTag = CssValueTypeColor, intVal = i})
+                                                                     Nothing -> (nextToken parser, Nothing)
 tokensAsValueColor (parser, token) _               = ((parser, token), Nothing)
 
 
@@ -963,7 +995,7 @@ declValueAsString (parser, token) propInfo valueType = case ((retParser, retToke
 -- to build the Enum, but for consistency with other similar functions the
 -- function is still called "tokensAs...".
 tokensAsValueEnum :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueEnum (parser, token@(CssTokSym sym)) enums =
+tokensAsValueEnum (parser, token@(CssTokIdent sym)) enums =
   case L.elemIndex (T.toLower sym) enums of -- TODO: should we use toLower when putting string in token or can we use it here?
     Just idx -> (nextToken parser, Just defaultValue{typeTag = CssValueTypeEnum, intVal = idx})
     Nothing  -> ((parser, token), Nothing)
@@ -975,23 +1007,23 @@ tokensAsValueEnum (parser, token) _                     = ((parser, token), Noth
 
 
 
--- Interpret current CssTokSym token (and possibly more following CssTokSym
+-- Interpret current CssTokIdent token (and possibly more following CssTokIdent
 -- tokens) as multi-enum value (value of type CssValueTypeEnum). Returned
 -- integer is a bit vector with bits set for enums which were matched with
 -- tokens.
 --
--- In case of multi-enum value it's possible that consecutive CssTokSym
--- tokens after current CssTokSym token will be taken and perhaps matched
+-- In case of multi-enum value it's possible that consecutive CssTokIdent
+-- tokens after current CssTokIdent token will be taken and perhaps matched
 -- agains given enumeration of recognized values.
 --
--- If input stream contains CssTokSym tokens with values not present in the
+-- If input stream contains CssTokIdent tokens with values not present in the
 -- enumeration (perhaps they come from newer version of standard or perhaps
 -- contain typos), then the function returns Nothing. Rationale: Firefox 78
 -- and Chromium 90 don't apply this style:
 -- "text-decoration: overline underline frog line-through;"
 --
 -- TODO: the function should be even stricter: the function should return
--- Nothing if any token in 'value' part of declaration *is not a CssTokSym
+-- Nothing if any token in 'value' part of declaration *is not a CssTokIdent
 -- token*. In such case entired declaration should be rejected. This is
 -- suggested by behaviour of FF and Chromium. Perhaps we should take a list
 -- of tokens until end of value (until '}', ';' or EOF) and parse it as a
@@ -1008,15 +1040,15 @@ tokensAsValueEnum (parser, token) _                     = ((parser, token), Noth
 -- "none" value. Original C++ code indicates that "none" was treated in
 -- special way.
 tokensAsValueMultiEnum :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueMultiEnum pair@(_, CssTokSym sym) enums = case matchSymbolTokensWithListRigid pair enums 0x00 of
-                                                         ((_, _), 0x00)  -> (pair, Nothing) -- None of input tokens were matched agains list of enums.
-                                                         ((p2, t2), val) -> ((p2, t2), Just defaultValue{typeTag = CssValueTypeMultiEnum, intVal = val})
-tokensAsValueMultiEnum (p, t) _                      = ((p, t), Nothing)
+tokensAsValueMultiEnum pair@(_, CssTokIdent sym) enums = case matchSymbolTokensWithListRigid pair enums 0x00 of
+                                                           ((_, _), 0x00)  -> (pair, Nothing) -- None of input tokens were matched agains list of enums.
+                                                           ((p2, t2), val) -> ((p2, t2), Just defaultValue{typeTag = CssValueTypeMultiEnum, intVal = val})
+tokensAsValueMultiEnum (p, t) _                        = ((p, t), Nothing)
 
 
 
 
--- Match current CssTokSym token and any following CssTokSym tokens against
+-- Match current CssTokIdent token and any following CssTokIdent tokens against
 -- list of strings (enums). Each enum that had matching token is marked with
 -- a bit set to '1' in bit vector.
 --
@@ -1031,7 +1063,7 @@ tokensAsValueMultiEnum (p, t) _                      = ((p, t), Nothing)
 -- enough, but if this function becomes more widely used, then it will
 -- deserve its own tests set.
 matchSymbolTokensWithListRigid :: (CssParser, CssToken) -> [T.Text] -> Int -> ((CssParser, CssToken), Int)
-matchSymbolTokensWithListRigid (p, t@(CssTokSym sym)) enums bits =
+matchSymbolTokensWithListRigid (p, t@(CssTokIdent sym)) enums bits =
   case L.elemIndex sym enums of -- TODO: should we use toLower when putting string in token or can we use it here?
     Just idx -> matchSymbolTokensWithListRigid (nextToken p) enums (bits .|. (1  `shiftL` idx))
     Nothing  -> ((p, t), 0x0) -- Given token does not match enumeration of allowed strings.
@@ -1046,8 +1078,8 @@ matchSymbolTokensWithListRigid (p, t) _ bits                   = ((p, t), bits)
 -- token to build the Auto, but for consistency with other similar functions
 -- the function is still called "tokensAs...".
 tokensAsValueAuto :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueAuto (p, t@(CssTokSym sym)) _ | T.toLower sym == "auto" = ((nextToken p), Just defaultValue{typeTag = CssValueTypeAuto, intVal = cssLengthTypeAuto})
-                                           | otherwise               = ((p, t), Nothing)
+tokensAsValueAuto (p, t@(CssTokIdent sym)) _ | T.toLower sym == "auto" = ((nextToken p), Just defaultValue{typeTag = CssValueTypeAuto, intVal = cssLengthTypeAuto})
+                                             | otherwise               = ((p, t), Nothing)
 tokensAsValueAuto (p, t) _                 = ((p, t), Nothing)
 
 
@@ -1082,7 +1114,7 @@ takeLengthTokens (parser, token) = case token of
 {-
   where
     numberWithSomething (parser, numberToken) = case nextToken parser of
-                                                  pair@(p3, CssTokSym sym)  -> if unitStringIsValid sym
+                                                  pair@(p3, CssTokIdent sym)  -> if unitStringIsValid sym
                                                                                then (nextToken p3, [numberToken, snd pair])
                                                                                else (nextToken p3, []) -- TODO: how to handle unrecognized symbol?
                                                   pair@(p3, CssTokPercI i) -> (nextToken p3, [numberToken, snd pair])
@@ -1158,7 +1190,7 @@ declValueAsURI valueType (parser, token) enums = case parseUrl (parser, token) o
 
 
 parseUrl :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
-parseUrl (parser, token@(CssTokSym "url")) = (outParser, outUrl)
+parseUrl (parser, token@(CssTokIdent "url")) = (outParser, outUrl)
   where
     outUrl = case partialUrl of
       Nothing  -> Nothing
@@ -1167,11 +1199,11 @@ parseUrl (parser, token@(CssTokSym "url")) = (outParser, outUrl)
                                 (newParser, newToken@(CssTokCh '(')) -> appendToUrl (newParser, newToken) ""
                                 (newParser, newToken)                -> ((parser, token), Nothing)
     appendToUrl (parser, token) acc = case nextToken parser of
-                                        pair@(newParser, CssTokCh ')')  -> (pair, Just acc)
-                                        pair@(newParser, CssTokCh ch)   -> appendToUrl pair (T.snoc acc ch)
-                                        pair@(newParser, CssTokStr str) -> appendToUrl pair (T.concat [acc, str])
-                                        pair@(newParser, CssTokSym str) -> appendToUrl pair (T.concat [acc, str])
-                                        pair@(newParser, _)             -> (pair, Nothing) -- TODO: This is a BAD URL situation
+                                        pair@(newParser, CssTokCh ')')    -> (pair, Just acc)
+                                        pair@(newParser, CssTokCh ch)     -> appendToUrl pair (T.snoc acc ch)
+                                        pair@(newParser, CssTokStr str)   -> appendToUrl pair (T.concat [acc, str])
+                                        pair@(newParser, CssTokIdent str) -> appendToUrl pair (T.concat [acc, str])
+                                        pair@(newParser, _)               -> (pair, Nothing) -- TODO: This is a BAD URL situation
 parseUrl (parser, token)   = ((parser, token), Nothing)
 
 
@@ -1203,10 +1235,10 @@ takeBgTokens (parser, token) = ((outParser, outToken), outTokens)
     -- Make sure that list of tokens always contains two tokens that are
     -- properly ordered: [horiz, vert].
     reorderTokens :: [CssToken] -> [CssToken]
-    reorderTokens tokens@[CssTokSym "top", _]    = reverse tokens -- First token should be horiz, second should be vert.
-    reorderTokens tokens@[CssTokSym "bottom", _] = reverse tokens -- First token should be horiz, second should be vert.
-    reorderTokens tokens@[CssTokSym "initial"]   = tokens -- Handle single-element "initial" first, before other single-element lists.
-    reorderTokens tokens@[CssTokSym "inherit"]   = tokens -- Handle single-element "inherit" first, before other single-element lists.
+    reorderTokens tokens@[CssTokIdent "top", _]    = reverse tokens -- First token should be horiz, second should be vert.
+    reorderTokens tokens@[CssTokIdent "bottom", _] = reverse tokens -- First token should be horiz, second should be vert.
+    reorderTokens tokens@[CssTokIdent "initial"]   = tokens -- Handle single-element "initial" first, before other single-element lists.
+    reorderTokens tokens@[CssTokIdent "inherit"]   = tokens -- Handle single-element "inherit" first, before other single-element lists.
     -- After "initial" and "inherit" are handled, you can now add 50% as
     -- missing second element. Also call reorderTokens recursively to handle
     -- this input string correctly: "top;".
@@ -1220,12 +1252,12 @@ takeBgTokens (parser, token) = ((outParser, outToken), outTokens)
     reorderTokens _                                 = [] -- TODO: Perhas this is not needed and we should trust that caller will pass non-empty list?
 
 
-    -- Change CssTokSym tokens for top/left/center etc. into <percentage-token>s.
+    -- Change CssTokIdent tokens for top/left/center etc. into <percentage-token>s.
     -- TODO: this function doesn't handle "initial" and "inherit" - what do we do with them?
     remapToken :: CssToken -> CssToken
-    remapToken tok@(CssTokSym sym) = case M.lookup sym posMap of
-                                       Just percToken -> percToken
-                                       Nothing        -> tok -- TODO: this will happen for "initial" and "inherit" tokens, which aren't really handled here.
+    remapToken tok@(CssTokIdent sym) = case M.lookup sym posMap of
+                                         Just percToken -> percToken
+                                         Nothing        -> tok -- TODO: this will happen for "initial" and "inherit" tokens, which aren't really handled here.
       where posMap = M.fromList [ ("left",   CssTokPerc $ CssNumI 0)
                                 , ("right",  CssTokPerc $ CssNumI 100)
                                 , ("top",    CssTokPerc $ CssNumI 0)
@@ -1254,7 +1286,7 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
     doContinue tokens token = length tokens < 2 && tokValid token
 
     tokValid (CssTokNone)             = True -- used to kick-start parsing of stream
-    tokValid (CssTokSym sym)          = elem sym horizVals || elem sym vertVals || elem sym otherVals || sym == "center"
+    tokValid (CssTokIdent ident)      = elem ident horizVals || elem ident vertVals || elem ident otherVals || ident == "center" -- TODO: or $ map (elem ident) [horizVals, vertVals, otherVals, ["center"]]
     tokValid (CssTokNum cssNum)       = True
     tokValid (CssTokDim cssNum ident) = True
     tokValid (CssTokPerc cssNum)      = True
@@ -1264,7 +1296,7 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
     vertVals  = ["top", "bottom"]
     otherVals = ["initial", "inherit"]
 
-    tokensValid [CssTokSym sym1, CssTokSym sym2] = cond1 && cond2 && cond3
+    tokensValid [CssTokIdent sym1, CssTokIdent sym2] = cond1 && cond2 && cond3
       where
         cond1 = not (elem sym1 otherVals && elem sym2 otherVals) -- "initial" or "inherit" isn't used twice.
         cond2 = not (elem sym1 horizVals && elem sym2 horizVals) -- Both symbols aren't from the same list of horizontal tokens.
@@ -1276,8 +1308,8 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
 
 
--- Interpret current CssTokSym/CssTokStr token (and possibly more following
--- CssTokSym and CssTokStr tokens) as list value (value of type
+-- Interpret current CssTokIdent/CssTokStr token (and possibly more following
+-- CssTokIdent and CssTokStr tokens) as list value (value of type
 -- CssValueTypeStringList). The tokens should be separated by comma tokens.
 -- Returned value is a string of items separated by commas.
 --
@@ -1291,20 +1323,20 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 -- Rationale: behaviour of FF and Chromium.
 --
 -- Read comma-separated list of items, e.g. font family names. The items can
--- be strings with spaces, therefore the function consumes both CssTokSym and
+-- be strings with spaces, therefore the function consumes both CssTokIdent and
 -- CssTokStr tokens. TODO: test the code for list of symbols separated by
 -- space or comma.
 tokensAsValueStringList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
 tokensAsValueStringList (parser, token) enums = asList (parser, token) []
   where
     asList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-    asList (p, (CssTokSym sym)) acc  = asList (nextToken p) (sym:acc)
-    asList (p, (CssTokStr str)) acc  = asList (nextToken p) (str:acc)
-    asList (p, (CssTokCh  ',')) acc  = asList (nextToken p) (",":acc)
-    asList (p, t@(CssTokCh ';')) acc = final (p, t) acc
-    asList (p, t@(CssTokCh '}')) acc = final (p, t) acc
-    asList (p, t@(CssTokEnd)) acc    = final (p, t) acc
-    asList (p, t) acc                = ((parser, token), Nothing) -- TODO: this implmentation does not allow for final "!important" token.
+    asList (p, (CssTokIdent sym)) acc = asList (nextToken p) (sym:acc)
+    asList (p, (CssTokStr str)) acc   = asList (nextToken p) (str:acc)
+    asList (p, (CssTokCh  ',')) acc   = asList (nextToken p) (",":acc)
+    asList (p, t@(CssTokCh ';')) acc  = final (p, t) acc
+    asList (p, t@(CssTokCh '}')) acc  = final (p, t) acc
+    asList (p, t@(CssTokEnd)) acc     = final (p, t) acc
+    asList (p, t) acc                 = ((parser, token), Nothing) -- TODO: this implmentation does not allow for final "!important" token.
 
     final (p, t) acc = if 0 == length acc
                        then ((p, t), Nothing)
@@ -1318,7 +1350,7 @@ tokensAsValueStringList (parser, token) enums = asList (parser, token) []
    case CssValueTypeSYMBOL:
 
       dstr = dStr_new("");
-      while (tokenizer.type == CSS_TOKEN_TYPE_SYMBOL || tokenizer.type == CSS_TOKEN_TYPE_STRING ||
+      while (tokenizer.type == CSS_TOKEN_TYPE_IDENT || tokenizer.type == CSS_TOKEN_TYPE_STRING ||
              (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == ',')) {
          if (this->hll_css_parser.spaceSeparatedC)
             dStr_append_c(dstr, ' ');
@@ -1357,7 +1389,7 @@ tokenMatchesProperty token propInfo = tokenMatchesProperty' token acceptedValueT
     tokenMatchesProperty' token (t:ts) enums
                                              | t == CssValueTypeBgPosition =
                                                  case token of
-                                                   CssTokSym s -> if s == "center" || s == "left" || s == "right" || s == "top" || s == "bottom"
+                                                   CssTokIdent s -> if s == "center" || s == "left" || s == "right" || s == "top" || s == "bottom"
                                                                   then Just t
                                                                   else tokenMatchesProperty' token ts enums
                                                    CssTokNum n -> Just t   -- TODO: here we should better handle numeric background positions
@@ -1388,7 +1420,7 @@ tokenMatchesProperty token propInfo = tokenMatchesProperty' token acceptedValueT
                                                    _                     -> tokenMatchesProperty' token ts enums
                                              | t == CssValueTypeURI =
                                                  case token of
-                                                   CssTokSym s -> if s == "url"
+                                                   CssTokIdent s -> if s == "url"
                                                                   then Just t
                                                                   else tokenMatchesProperty' token ts enums
                                                    _           -> tokenMatchesProperty' token ts enums
@@ -1567,8 +1599,8 @@ cssPropertyNameString property = tripletFst (cssPropertyInfo V.! property) -- TO
 
 cssParseWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Bool)
 cssParseWeight (parser, CssTokCh '!') = case nextToken parser of
-                                          (newParser, CssTokSym "important") -> (nextToken newParser, True)
-                                          (newParser, tok)                   -> ((newParser, tok), False)
+                                          (newParser, CssTokIdent "important") -> (nextToken newParser, True)
+                                          (newParser, tok)                     -> ((newParser, tok), False)
 cssParseWeight (parser, tok)          = ((parser, tok), False)
 
 
@@ -1682,11 +1714,11 @@ parseSelector (parser, token) = ((outParser, outToken), selector)
     ((newParser, newToken), selectorTokens) = takeSelectorTokens (parser, token)
 
     parseSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
-    parseSelectorTokens (CssTokSym sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorElement = htmlTagIndex sym}):simSels)
+    parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorElement = htmlTagIndex sym}):simSels)
 
-    parseSelectorTokens (CssTokCh '#':CssTokSym sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID sym):simSels)
-    parseSelectorTokens (CssTokCh '.':CssTokSym sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
-    parseSelectorTokens (CssTokCh ':':CssTokSym sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
+    parseSelectorTokens (CssTokCh '#':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID sym):simSels)
+    parseSelectorTokens (CssTokCh '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
+    parseSelectorTokens (CssTokCh ':':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
 
     parseSelectorTokens (CssTokCh '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorChild}:simSels)
     parseSelectorTokens (CssTokCh '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorAdjacentSibling}:simSels)
@@ -1945,8 +1977,8 @@ takePropertyTokens (parser, nameToken) =
       (retParser, retToken) = nextToken colonParser
   in
     case (nameToken, colonToken) of
-      (CssTokSym _, CssTokCh ':') -> ((retParser, retToken), [nameToken]) -- Don't return ':' token. Only 'property name' token is significant to caller.
-      _                           -> ((parser, nameToken), [])
+      (CssTokIdent _, CssTokCh ':') -> ((retParser, retToken), [nameToken]) -- Don't return ':' token. Only 'property name' token is significant to caller.
+      _                             -> ((parser, nameToken), [])
 
 
 
@@ -1959,12 +1991,12 @@ takePropertyTokens (parser, nameToken) =
 parseDeclarationWrapper :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 parseDeclarationWrapper (parser, token) =
   case takePropertyTokens (parser, token) of
-    ((p, t), [CssTokSym sym]) -> case cssPropertyInfoIdxByName sym of
-                                   Just property -> tryNormal (p, t) property
-                                   Nothing -> case cssShorthandInfoIdxByName sym of
-                                     Just shorthandIdx -> tryShorthand (p, t) shorthandIdx
-                                     Nothing -> ((p, t), [])
-    ((p, t), _)               -> ((p, t), [])
+    ((p, t), [CssTokIdent sym]) -> case cssPropertyInfoIdxByName sym of
+                                     Just property -> tryNormal (p, t) property
+                                     Nothing -> case cssShorthandInfoIdxByName sym of
+                                                  Just shorthandIdx -> tryShorthand (p, t) shorthandIdx
+                                                  Nothing -> ((p, t), [])
+    ((p, t), _)                 -> ((p, t), [])
 
 
 

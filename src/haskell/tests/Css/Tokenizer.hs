@@ -184,31 +184,31 @@ tokenAsValueTestManualData1 = [
   -- Success
     AsTestData1 { testedFunction1 = tokensAsValueEnum
                 , enums1 = ["something", "other", "auto"]
-                , tokenBefore1 = CssTokSym "something"
+                , tokenBefore1 = CssTokIdent "something"
                 , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeEnum, intVal = 0}
                 }
   , AsTestData1 { testedFunction1 = tokensAsValueEnum
                 , enums1 = ["zeroth", "first", "second", "third", "fourth", "fifth"]
-                , tokenBefore1 = CssTokSym "fifth"
+                , tokenBefore1 = CssTokIdent "fifth"
                 , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeEnum, intVal = 5}
                 }
   -- Atypical data: empty list of enums.
   , AsTestData1 { testedFunction1 = tokensAsValueEnum
                 , enums1 = []
-                , tokenBefore1 = CssTokSym "auto"
+                , tokenBefore1 = CssTokIdent "auto"
                 , expectedCssValue1 = Nothing
                 }
   -- Atypical data: empty string in token.
   , AsTestData1 { testedFunction1 = tokensAsValueEnum
                 , enums1 = ["sun", "stars", "moon"]
-                , tokenBefore1 = CssTokSym ""
+                , tokenBefore1 = CssTokIdent ""
                 , expectedCssValue1 = Nothing
                 }
 
   -- Failure: no such string on list of enums
   , AsTestData1 { testedFunction1 = tokensAsValueEnum
                 , enums1 = ["red", "blue", "orange"]
-                , tokenBefore1 = CssTokSym "elephant"
+                , tokenBefore1 = CssTokIdent "elephant"
                 , expectedCssValue1 = Nothing
                 }
 
@@ -226,12 +226,12 @@ tokenAsValueTestManualData1 = [
                 , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0x12de56}
                 }
   , AsTestData1 { testedFunction1 = tokensAsValueColor
-                , tokenBefore1 = CssTokSym "red" -- Simple name
+                , tokenBefore1 = CssTokIdent "red" -- Simple name
                 , enums1 = []
                 , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xff0000}
                 }
   , AsTestData1 { testedFunction1 = tokensAsValueColor
-                , tokenBefore1 = CssTokSym "antiquewhite" -- "Sophisticated" name
+                , tokenBefore1 = CssTokIdent "antiquewhite" -- "Sophisticated" name
                 , enums1 = []
                 , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xfaebd7}
                 }
@@ -257,7 +257,7 @@ tokenAsValueTestManualData1 = [
   -- Failure, empty symbol string.
   , AsTestData1 { testedFunction1 = tokensAsValueColor
                 , enums1 = []
-                , tokenBefore1 = CssTokSym ""
+                , tokenBefore1 = CssTokIdent ""
                 , expectedCssValue1 = Nothing
                 }
   ]
@@ -276,7 +276,7 @@ tokenAsValueMultiEnumTestManualData = [
   -- Success
       AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
                   , enums2 = ["zeroth", "first", "second", "third"]
-                  , tokenBefore2 = CssTokSym "zeroth"
+                  , tokenBefore2 = CssTokIdent "zeroth"
                   -- Declaration value ends with ';' here. Tokenizer will take
                   -- the char but tested function will keep it as current
                   -- token.
@@ -287,7 +287,7 @@ tokenAsValueMultiEnumTestManualData = [
                   }
     , AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
                   , enums2 = ["zeroth", "first", "second", "third"]
-                  , tokenBefore2 = CssTokSym "zeroth"
+                  , tokenBefore2 = CssTokIdent "zeroth"
                   -- Declaration value ends with '}' here. Tokenizer will take
                     -- the char but tested function will keep it as current
                   -- token.
@@ -300,7 +300,7 @@ tokenAsValueMultiEnumTestManualData = [
     -- Tested function should not care about the order.
     , AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
                   , enums2 = ["zeroth", "first", "second", "third", "fourth"]
-                  , tokenBefore2 = CssTokSym "second"
+                  , tokenBefore2 = CssTokIdent "second"
                   -- Declaration value ends with EOF..
                   , remainderBefore2 = "fourth zeroth"
                   , remainderAfter2  = ""
@@ -312,20 +312,20 @@ tokenAsValueMultiEnumTestManualData = [
     -- Remainder tokens with values not on list of enums should lead to Nothing.
     , AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
                   , enums2 = ["zeroth", "first", "second", "third"]
-                  , tokenBefore2 = CssTokSym "third"
+                  , tokenBefore2 = CssTokIdent "third"
                   , remainderBefore2 = "gummi bears"
                   , remainderAfter2  = "gummi bears"
-                  , tokenAfter2 = CssTokSym "third"
+                  , tokenAfter2 = CssTokIdent "third"
                   , expectedCssValue2 = Nothing
                 }
     -- Current token with value not on list of enums should also lead to Nothing.
     , AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
                   , enums2 = ["water", "tea", "coffe", "pop"]
-                  , tokenBefore2 = CssTokSym "candy"
+                  , tokenBefore2 = CssTokIdent "candy"
                   -- Since the current token won't be matched, we expect the function to return unmodified (p, t) pair.
                   , remainderBefore2 = "water tea coffe"
                   , remainderAfter2  = "water tea coffe"
-                  , tokenAfter2 = CssTokSym "candy"
+                  , tokenAfter2 = CssTokIdent "candy"
                   , expectedCssValue2 = Nothing
                   }
     -- TODO: add test with input remainder containing something other than
@@ -345,28 +345,28 @@ tokenAsValueAutoTestManualData = [
   -- Success
       AsTestData2 { testedFunction2 = tokensAsValueAuto
                   , enums2 = [] -- Doesn't matter for this tested function.
-                  , tokenBefore2 = CssTokSym "auto"
+                  , tokenBefore2 = CssTokIdent "auto"
                   , remainderBefore2 = "oxygen; next-property"
                   , remainderAfter2  = "; next-property"
-                  , tokenAfter2 = CssTokSym "oxygen"
+                  , tokenAfter2 = CssTokIdent "oxygen"
                   , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeAuto, intVal = cssLengthTypeAuto}
                   }
     , AsTestData2 { testedFunction2 = tokensAsValueAuto
                   , enums2 = [] -- Doesn't matter for this tested function.
-                  , tokenBefore2 = CssTokSym "AUto"
+                  , tokenBefore2 = CssTokIdent "AUto"
                   , remainderBefore2 = "nitro}"
                   , remainderAfter2  = "}"
-                  , tokenAfter2 = CssTokSym "nitro"
+                  , tokenAfter2 = CssTokIdent "nitro"
                   , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeAuto, intVal = cssLengthTypeAuto}
                   }
 
     -- Failure. Current token is not "auto".
     , AsTestData2 { testedFunction2 = tokensAsValueAuto
                   , enums2 = [] -- Doesn't matter for this tested function.
-                  , tokenBefore2 = CssTokSym "gemini"
+                  , tokenBefore2 = CssTokIdent "gemini"
                   , remainderBefore2 = "taurus}"
                   , remainderAfter2  = "taurus}"
-                  , tokenAfter2 = CssTokSym "gemini"
+                  , tokenAfter2 = CssTokIdent "gemini"
                   , expectedCssValue2 = Nothing
                   }
       ]
@@ -384,7 +384,7 @@ tokenAsValueStringListTestManualData = [
   -- Success
     AsTestData2 { testedFunction2 = tokensAsValueStringList
                 , enums2 = [] -- Doesn't matter for this tested function.
-                , tokenBefore2 = CssTokSym "monday"
+                , tokenBefore2 = CssTokIdent "monday"
                 , remainderBefore2 = ",tuesday, wednesday , thursday; next-property"
                 , remainderAfter2  = " next-property"
                 , tokenAfter2 = CssTokCh ';'
@@ -392,7 +392,7 @@ tokenAsValueStringListTestManualData = [
                 }
   , AsTestData2 { testedFunction2 = tokensAsValueStringList
                 , enums2 = [] -- Doesn't matter for this tested function.
-                , tokenBefore2 = CssTokSym "monday"
+                , tokenBefore2 = CssTokIdent "monday"
                 , remainderBefore2 = "; next-property"
                 , remainderAfter2  = " next-property"
                 , tokenAfter2 = CssTokCh ';'
@@ -412,10 +412,10 @@ tokenAsValueStringListTestManualData = [
   -- Numeric tokens should also lead to invalid parsing.
   , AsTestData2 { testedFunction2 = tokensAsValueStringList
                 , enums2 = [] -- Doesn't matter for this tested function.
-                , tokenBefore2 = CssTokSym "monday"
+                , tokenBefore2 = CssTokIdent "monday"
                 , remainderBefore2 = "tuesday, 99redbaloons, wednesday; next-property"
                 , remainderAfter2  = "tuesday, 99redbaloons, wednesday; next-property"
-                , tokenAfter2 = CssTokSym "monday"
+                , tokenAfter2 = CssTokIdent "monday"
                 , expectedCssValue2 = Nothing
                 }
       ]

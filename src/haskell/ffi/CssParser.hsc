@@ -158,7 +158,7 @@ cstr token = case token of
     (CssTokNum (CssNumI i)) -> (newCString . show $ i)
     (CssTokNum (CssNumF f)) -> (newCString . show $ f)
     (CssTokHash c) -> (newCString . T.unpack $ c)
-    (CssTokSym s) -> (newCString . T.unpack $ s)
+    (CssTokIdent s) -> (newCString . T.unpack $ s)
     (CssTokStr s) -> (newCString . T.unpack $ s)
     (CssTokCh c)  -> (newCString . T.unpack . T.singleton $ c)
     CssTokWS      -> (newCString " ")
@@ -230,7 +230,7 @@ hll_ignoreStatement ptrStructCssParser ptrStructCssToken cBuf = do
 
 
 
-getTokenType (CssTokSym  _) = 0
+getTokenType (CssTokIdent  _) = 0
 getTokenType (CssTokStr  _) = 1
 getTokenType (CssTokCh   _) = 2
 getTokenType (CssTokEnd)    = 3
@@ -239,7 +239,7 @@ getTokenType _              = 4
 
 
 
-getTokenADT tokType tokValue | tokType == 0 = CssTokSym tokValue
+getTokenADT tokType tokValue | tokType == 0 = CssTokIdent tokValue
                              | tokType == 1 = CssTokStr tokValue
                              | tokType == 2 = CssTokCh  (T.head tokValue)
                              | tokType == 3 = CssTokEnd

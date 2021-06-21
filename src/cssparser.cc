@@ -173,7 +173,7 @@ void CssParser::parseImport(DilloHtml *html)
 
    nextToken(&this->tokenizer, &this->hll_css_parser);
 
-   if (tokenizer.token.c_type == CSS_TOKEN_TYPE_SYMBOL &&
+   if (tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT &&
        dStrAsciiCasecmp(tokenizer.token.c_value, "url") == 0)
       urlStr = hll_declarationValueAsString(&this->hll_css_parser,
                                             &tokenizer.token,
@@ -185,10 +185,10 @@ void CssParser::parseImport(DilloHtml *html)
    nextToken(&this->tokenizer, &this->hll_css_parser);
 
    /* parse a comma-separated list of media */
-   if (tokenizer.token.c_type == CSS_TOKEN_TYPE_SYMBOL) {
+   if (tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT) {
       mediaSyntaxIsOK = false;
       mediaIsSelected = false;
-      while (tokenizer.token.c_type == CSS_TOKEN_TYPE_SYMBOL) {
+      while (tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT) {
          if (dStrAsciiCasecmp(tokenizer.token.c_value, "all") == 0 ||
              dStrAsciiCasecmp(tokenizer.token.c_value, "screen") == 0)
             mediaIsSelected = true;
@@ -230,7 +230,7 @@ void CssParser::parseMedia()
    nextToken(&this->tokenizer, &this->hll_css_parser);
 
    /* parse a comma-separated list of media */
-   while (tokenizer.token.c_type == CSS_TOKEN_TYPE_SYMBOL) {
+   while (tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT) {
       if (dStrAsciiCasecmp(tokenizer.token.c_value, "all") == 0 ||
           dStrAsciiCasecmp(tokenizer.token.c_value, "screen") == 0)
          mediaIsSelected = true;
@@ -287,7 +287,7 @@ void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
       if (parser.tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR &&
           parser.tokenizer.token.c_value[0] == '@') {
          nextToken(&parser.tokenizer, &parser.hll_css_parser);
-         if (parser.tokenizer.token.c_type == CSS_TOKEN_TYPE_SYMBOL) {
+         if (parser.tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT) {
             if (dStrAsciiCasecmp(parser.tokenizer.token.c_value, "import") == 0 &&
                 html != NULL &&
                 importsAreAllowed) {

@@ -7,7 +7,7 @@
 class DilloHtml;
 
 typedef enum {
-              CSS_TOKEN_TYPE_SYMBOL = 0,
+              CSS_TOKEN_TYPE_IDENT  = 0,
               CSS_TOKEN_TYPE_STRING = 1,   // ['#00000000',] -> [#00000000] (quoted (') text)     ["\25B8";] -> [¸] (quoted (") text)       [ "";}DIV] -> [] (empty)
               CSS_TOKEN_TYPE_CHAR   = 2,
               CSS_TOKEN_TYPE_END    = 3
