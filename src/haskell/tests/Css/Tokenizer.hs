@@ -211,11 +211,21 @@ tokenAsValueTestManualData1 = [
                 , tokenBefore1 = CssTokIdent "elephant"
                 , expectedCssValue1 = Nothing
                 }
+  ]
 
 
+
+
+-- Tests for tokenAsValueColor function
+--
+-- These test cases specify parser's remainder before and after parsing.
+--
+-- This array is called "Manual" because these tests were written manually.
+-- Perhaps in the future I will write some generator of test data.
+tokenAsValueColorHashTestManualData = [
 
   -- Success
-  , AsTestData1 { testedFunction1 = tokensAsValueColor
+    AsTestData1 { testedFunction1 = tokensAsValueColor
                 , tokenBefore1 = CssTokHash "fb5"  -- fb5 interpreted as rgb should be expanded to rrggbb in form of ffbb55
                 , enums1 = []
                 , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xffbb55}
@@ -261,6 +271,51 @@ tokenAsValueTestManualData1 = [
                 , expectedCssValue1 = Nothing
                 }
   ]
+
+
+
+
+tokenAsValueColorRgbTestManualData = [
+
+  -- Success
+    AsTestData2 { testedFunction2 = tokensAsValueColor
+                , enums2 = [] -- Doesn't matter for this tested function.
+                , tokenBefore2 = CssTokFunc "rgb"
+                , remainderBefore2 = "15,50,200); next-property"
+                , remainderAfter2  = " next-property"
+                , tokenAfter2 = CssTokCh ';'
+                , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0x0f32c8}
+                }
+  , AsTestData2 { testedFunction2 = tokensAsValueColor
+                , enums2 = [] -- Doesn't matter for this tested function.
+                , tokenBefore2 = CssTokFunc "rgb"
+                , remainderBefore2 = "90%,20%,0%); next-property"
+                , remainderAfter2  = " next-property"
+                , tokenAfter2 = CssTokCh ';'
+                , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xe63300}
+                }
+
+  -- Percentage values over 100% or under 0% should be clipped.
+  , AsTestData2 { testedFunction2 = tokensAsValueColor
+                , enums2 = [] -- Doesn't matter for this tested function.
+                , tokenBefore2 = CssTokFunc "rgb"
+                , remainderBefore2 = "120%,-20%,15%); next-property" -- -> 100%,0%,15% -> 0xff0026
+                , remainderAfter2  = " next-property"
+                , tokenAfter2 = CssTokCh ';'
+                , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xff0026}
+                }
+
+
+  -- Mix of dimensionless values and percentages should be rejected.
+  , AsTestData2 { testedFunction2 = tokensAsValueColor
+                , enums2 = [] -- Doesn't matter for this tested function.
+                , tokenBefore2 = CssTokFunc "rgb"
+                , remainderBefore2 = "90%,20,0%); next-property"
+                , remainderAfter2  = " next-property"
+                , tokenAfter2 = CssTokCh ';'
+                , expectedCssValue2 = Nothing
+                }
+      ]
 
 
 
@@ -373,6 +428,7 @@ tokenAsValueAutoTestManualData = [
 
 
 
+
 -- Tests for tokenAsValueStringList function
 --
 -- These test cases specify parser's remainder before and after parsing.
@@ -467,6 +523,12 @@ tokenizerTestCases = [
 
    , TestCase (do
                  assertEqual "manual tests of tokenAsValueStringList"  Nothing (tokenAsValueTest2 0 tokenAsValueStringListTestManualData))
+
+   , TestCase (do
+                 assertEqual "manual tests of tokenAsValueColor - hash"  Nothing (tokenAsValueTest1 0 tokenAsValueColorHashTestManualData))
+
+   , TestCase (do
+                 assertEqual "manual tests of tokenAsValueColor - rgb"  Nothing (tokenAsValueTest2 0 tokenAsValueColorRgbTestManualData))
   ]
 
 

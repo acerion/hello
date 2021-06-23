@@ -66,9 +66,10 @@ module CssParser(nextToken
                 , CssParser (..)
                 , CssToken (..)
                 , CssNum (..)
-                , tryTakingRgbFunction
-                , parseRgbFunction
-                , parseRgbFunctionInt
+
+                , consumeFunctionTokens
+                , interpretRgbFunctionTokens
+                , rgbFunctionToColor
 
                 , tokensAsValueColor
                 , declValueAsString
@@ -873,67 +874,79 @@ takeInt parser = case T.R.signed T.R.decimal (remainder parser) of
 
 
 
-{-
-takeAllTokens :: (CssParser, CssToken) -> IO CssParser
-takeAllTokens (parser,token) = do
-  T.IO.putStrLn (remainder parser)
-  let (p, t) = nextToken parser
-  if cssTokenType t == CssTokEnd
-    then return p
-    else takeAllTokens . nextToken $ p
--}
 
-
-
-
-parseRgbFunctionInt :: CssParser -> ((CssParser, CssToken), Maybe Int)
-parseRgbFunctionInt parser =
-  case parseRgbFunction parser of
-    (parser', Nothing) -> ((parser', CssTokNone), Nothing) -- TODO: return real token here
-    (parser', Just (tr, tg, tb, ta, isPercent)) -> ((parser', CssTokNone), Just color) -- TODO: return real token here
-      where
-        color = (r `shiftL` 16) .|. (g `shiftL` 8) .|. b
-        r = getInt tr isPercent
-        g = getInt tg isPercent
-        b = getInt tb isPercent
-
-        -- TODO: make sure that r/g/b values are in range 0-255.
-        getInt :: Int -> Bool -> Int
-        getInt i isPercent = if isPercent then (i * 255) `div` 100 else i
-
-
-
-
-parseRgbFunction :: CssParser -> (CssParser, Maybe (Int, Int, Int, T.Text, Bool))
-parseRgbFunction parser =
-  let (parser', tokens) = tryTakingRgbFunction $ parser
+-- Return integer representing a color. The color is built from body of "rgb"
+-- function.
+rgbFunctionToColor :: CssParser -> ((CssParser, CssToken), Maybe Int)
+rgbFunctionToColor p1 = let
+  consumeRgbFunctionTokens = consumeFunctionTokens 5 -- 5 == count of tokens in "10%,20%,30%)", excluding closing paren.
+  ((p2, t2), tokens) = consumeRgbFunctionTokens p1
   in
-    case reverse tokens of
-      -- "either three integer values or three percentage values" in https://www.w3.org/TR/css-color-3/
-      (CssTokCh '(':CssTokPerc (CssNumI r):CssTokCh ',':CssTokPerc (CssNumI g):CssTokCh ',':CssTokPerc (CssNumI b):CssTokCh ')':[]) -> (parser', Just (r, g, b, "%", True))
-      (CssTokCh '(':CssTokNum (CssNumI r):CssTokCh ',':CssTokNum (CssNumI g):CssTokCh ',':CssTokNum (CssNumI b):CssTokCh ')':[])    -> (parser', Just (r, g, b, "/100", False))
-      otherwise                                                                                                                     -> (parser', Nothing)
+    case interpretRgbFunctionTokens tokens of
+      Nothing                            -> ((p2, t2), Nothing)
+      Just (red, green, blue, isPercent) -> ((p2, t2), Just color)
+        where
+          color = (r `shiftL` 16) .|. (g `shiftL` 8) .|. b
+          r = toColorComponent isPercent (fromIntegral red)
+          g = toColorComponent isPercent (fromIntegral green)
+          b = toColorComponent isPercent (fromIntegral blue)
+
+          -- Convert given float (which may or may not be a percentage) into
+          -- an integer in range 0x00-0xFF.
+          toColorComponent :: Bool -> Float -> Int
+          toColorComponent True  = clipFF . round . (\x -> ((x * 255.0) / 100.0))
+          toColorComponent False = clipFF . round
+
+          -- Ensure that given integer is in range 0x00-0xFF. Clip values that
+          -- are outside of this range.
+          clipFF :: Int -> Int
+          clipFF x | x > 0xFF  = 0xFF
+                   | x < 0     = 0
+                   | otherwise = x
 
 
 
 
-tryTakingRgbFunction :: CssParser -> (CssParser, [CssToken])
-tryTakingRgbFunction parser = takeNext parser []
+-- Interpret list of tokens in body of rgb functions. Extract r/g/b values
+-- from the body. Let caller know if the values are in percents (0-100 range)
+-- or not (0-255 range).
+--
+-- The last token in the list should be a paren that closes the function's
+-- body - this is paren is used to recognize valid end of valid body of a
+-- function.
+--
+-- "100%,90%,0%)" -> Just (r, g, b, True)
+-- "255,14,91)"   -> Just (r, g, b, False)
+interpretRgbFunctionTokens :: [CssToken] -> Maybe (Int, Int, Int, Bool)
+interpretRgbFunctionTokens tokens =
+  case tokens of
+    -- "either three integer values or three percentage values" in https://www.w3.org/TR/css-color-3/
+    (CssTokPerc (CssNumI r):CssTokCh ',':CssTokPerc (CssNumI g):CssTokCh ',':CssTokPerc (CssNumI b):CssTokCh ')':[]) -> Just (r, g, b, True)
+    (CssTokNum (CssNumI r):CssTokCh ',':CssTokNum (CssNumI g):CssTokCh ',':CssTokNum (CssNumI b):CssTokCh ')':[])    -> Just (r, g, b, False)
+    otherwise                                                                                                        -> Nothing
+
+
+
+
+-- Take all tokens (after initial "function-name(" tokens) that belong to
+-- function's body. Closing paren is added to output list (if it was present
+-- in input stream) - with the closing paren you can recognize if the body is
+-- complete.
+--
+-- https://www.w3.org/TR/css-syntax-3/#consume-function
+--
+-- If `limit` is non-zero, take up to `limit` tokens (excluding closing
+-- paren). This is a safety feature to avoid problems with malformed input.
+consumeFunctionTokens :: Int -> CssParser -> ((CssParser, CssToken), [CssToken])
+consumeFunctionTokens limit p1 = ((p2, t2), reverse list)
   where
-    takeNext :: CssParser -> [CssToken] -> (CssParser, [CssToken])
-    takeNext parser list@(CssTokCh c:xs) = if length list == 10 || (c == ')' && length list == 7)
-                                           then (nextParser, list)
-                                           else takeNext nextParser (tok:list)
-      where (nextParser, tok) = nextToken parser
-
-    takeNext parser []        = takeNext nextParser [tok]
-      where (nextParser, tok) = nextToken parser
-
-    takeNext parser list                 = if length list == 10
-                                           then (nextParser, list)
-                                           else takeNext nextParser (tok:list)
-      where (nextParser, tok) = nextToken parser
--- TODO: handle invalid token type here
+    ((p2, t2), list) = takeNext (nextToken p1) []
+    takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
+    takeNext (p2, t2@(CssTokCh ')')) list = (nextToken p2, t2:list) -- Add closing paren to result, it will be used to check if function body is valid.
+    takeNext (p2, CssTokEnd) list         = ((p2, CssTokEnd), list) -- https://www.w3.org/TR/css-syntax-3/#consume-function: "This is a parse error".
+    takeNext (p2, t2) list                = if (limit > 0 && length list >= limit)
+                                            then ((p2, t2), list)
+                                            else takeNext (nextToken p2) (t2:list)
 
 
 
@@ -962,16 +975,16 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 -- (TODO) take as many tokens as necessary to build, parse and convert the
 -- function into color value.
 tokensAsValueColor :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueColor (parser, token@(CssTokHash str)) _ = case colorsHexStringToColor str of
-                                                                    Just i  -> (nextToken parser, Just defaultValue{typeTag = CssValueTypeColor, intVal = i})
-                                                                    Nothing -> (nextToken parser, Nothing)
-tokensAsValueColor (parser, token@(CssTokIdent s)) _ | s == "rgb" = case parseRgbFunctionInt parser of
-                                                                      ((p, t), Just c)  -> ((p, t), Just defaultValue{typeTag = CssValueTypeColor, intVal = c})
-                                                                      ((p, t), Nothing) -> ((p, t), Nothing)
-                                                     | otherwise = case colorsStringToColor s of
-                                                                     Just i  -> (nextToken parser, Just defaultValue{typeTag = CssValueTypeColor, intVal = i})
-                                                                     Nothing -> (nextToken parser, Nothing)
-tokensAsValueColor (parser, token) _               = ((parser, token), Nothing)
+tokensAsValueColor (p1, (CssTokHash str)) _    = case colorsHexStringToColor str of
+                                                   Just i  -> (nextToken p1, Just defaultValue{typeTag = CssValueTypeColor, intVal = i})
+                                                   Nothing -> (nextToken p1, Nothing)
+tokensAsValueColor (p1, (CssTokFunc "rgb")) _  = case rgbFunctionToColor p1 of
+                                                   ((p2, t2), Just i)  -> ((p2, t2), Just defaultValue{typeTag = CssValueTypeColor, intVal = i})
+                                                   ((p2, t2), Nothing) -> ((p2, t2), Nothing)
+tokensAsValueColor (p1, (CssTokIdent ident)) _ = case colorsStringToColor ident of
+                                                   Just i  -> (nextToken p1, Just defaultValue{typeTag = CssValueTypeColor, intVal = i})
+                                                   Nothing -> (nextToken p1, Nothing)
+tokensAsValueColor (p1, t1) _                  = ((p1, t1), Nothing)
 
 
 
@@ -1344,30 +1357,6 @@ tokensAsValueStringList (parser, token) enums = asList (parser, token) []
                                                       , textVal = T.concat . reverse $ acc})
 
 
-
-
-{-
-   case CssValueTypeSYMBOL:
-
-      dstr = dStr_new("");
-      while (tokenizer.type == CSS_TOKEN_TYPE_IDENT || tokenizer.type == CSS_TOKEN_TYPE_STRING ||
-             (tokenizer.type == CSS_TOKEN_TYPE_CHAR && tokenizer.value[0] == ',')) {
-         if (this->hll_css_parser.spaceSeparatedC)
-            dStr_append_c(dstr, ' ');
-         dStr_append(dstr, tokenizer.value);
-         ret = true;
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-      }
-
-      if (ret) {
-         value->strVal = dStrstrip(dstr->str);
-         dStr_free(dstr, 0);
-      } else {
-         dStr_free(dstr, 1);
-      }
-      break;
-
--}
 
 
 declValueAsFontWeightInteger :: CssValueType -> (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
@@ -2036,3 +2025,15 @@ consumeRestOfDeclaration (parser, CssTokCh ';')      = nextToken parser
 consumeRestOfDeclaration (parser, _)                 = consumeRestOfDeclaration . nextToken $ parser
 
 
+
+
+
+{-
+takeAllTokens :: (CssParser, CssToken) -> IO CssParser
+takeAllTokens (parser,token) = do
+  T.IO.putStrLn (remainder parser)
+  let (p, t) = nextToken parser
+  if cssTokenType t == CssTokEnd
+    then return p
+    else takeAllTokens . nextToken $ p
+-}
