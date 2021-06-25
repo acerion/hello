@@ -20,9 +20,9 @@ class StyleEngine;
 class StyleEngine {
    private:
       struct Node {
-         CssDeclartionList * declList;
-         CssDeclartionList * declListImportant;
-         CssDeclartionList * declListNonCss;
+         c_css_declaration_list_t * declList;
+         c_css_declaration_list_t * declListImportant;
+         c_css_declaration_list_t * declListNonCss;
          dw::core::style::Style *style;
          dw::core::style::Style *wordStyle;
          dw::core::style::Style *backgroundStyle;
@@ -43,19 +43,19 @@ class StyleEngine {
       void buildUserStyle ();
       dw::core::style::Style *getStyle0 (int i, BrowserWindow *bw);
       dw::core::style::Style *getWordStyle0 (BrowserWindow *bw);
-      inline void setNonCssHintOfProperty(CssDeclarationProperty property, CssDeclarationValue value, CssDeclarationValueType type) {
+      inline void setNonCssHintOfProperty(CssDeclarationProperty property, c_css_value_t value, CssDeclarationValueType type) {
          Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
 
          if (!n->declListNonCss)
-            n->declListNonCss = new CssDeclartionList();
+            n->declListNonCss = new c_css_declaration_list_t();
 
-         value.type = type;
+         value.c_type_tag = type;
          declarationListAddOrUpdateDeclaration(n->declListNonCss, property, value);
       }
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void apply (int i, dw::core::style::StyleAttrs *attrs,
-                  CssDeclartionList * declList, BrowserWindow *bw);
+                  c_css_declaration_list_t * declList, BrowserWindow *bw);
       bool computeAbsoluteLengthValue (int *dest, CssLength value, dw::core::style::Font *font);
       bool computeAbsoluteLengthValue (int *dest, CssLength value, dw::core::style::Font *font, int percentageBase);
       bool computeLength (dw::core::style::Length *dest, CssLength value, dw::core::style::Font *font);
@@ -84,18 +84,18 @@ class StyleEngine {
       void setPseudoLink ();
       void setPseudoVisited ();
       inline void setNonCssHintOfCurrentNode(CssDeclarationProperty property, CssDeclarationValueType type, int value) {
-         CssDeclarationValue v;
-         v.intVal = value;
+         c_css_value_t v;
+         v.c_int_val = value;
          setNonCssHintOfProperty(property, v, type);
       }
       inline void setNonCssHintOfCurrentNode(CssDeclarationProperty property, CssDeclarationValueType type, const char *value) {
-         CssDeclarationValue v;
-         v.strVal = dStrdup(value);
+         c_css_value_t v;
+         v.c_text_val = dStrdup(value);
          setNonCssHintOfProperty(property, v, type);
       }
       inline void setNonCssHintOfCurrentNode(CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength) {
-         CssDeclarationValue v;
-         v.intVal = cssLength.bits;
+         c_css_value_t v;
+         v.c_int_val = cssLength.bits;
          setNonCssHintOfProperty(property, v, type);
       }
       void inheritNonCssHints ();

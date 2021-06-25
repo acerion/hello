@@ -63,15 +63,26 @@ typedef struct c_css_selector_t {
 } c_css_selector_t;
 
 
+typedef struct c_css_background_pos_t {
+   int32_t c_pos_x;
+   int32_t c_pos_y;
+} c_css_background_pos_t;
 
-typedef struct c_css_declaration_ffi_t {
+typedef struct c_css_value_t {
    int c_type_tag;
    int c_int_val;
    char * c_text_val;
-   int c_important;
-   int c_property;
-} c_css_declaration_ffi_t;
+   c_css_background_pos_t c_bg_pos;
+} c_css_value_t;
 
+/**
+ * \brief This class holds a CSS declaration: a pair of property and value.
+ */
+typedef struct c_css_declaration_t {
+   int c_property;
+   c_css_value_t * c_value;
+   int c_important;
+} c_css_declaration_t;
 
 typedef struct c_css_token_t {
    int c_type;
@@ -131,7 +142,7 @@ int hll_cssCreateLength(float val, CssLengthType t);
 int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_selector_t * selectors);
 
 // Return count of declarations in @p declarations
-int hll_parseDeclaration(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_ffi_t * declarations);
+int hll_parseDeclaration(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_t * declarations);
 
 #ifdef __cplusplus
 }

@@ -60,7 +60,7 @@ foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByNa
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
-foreign export ccall "hll_parseDeclaration" hll_parseDeclaration :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDecl -> IO Int
+foreign export ccall "hll_parseDeclaration" hll_parseDeclaration :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr FfiCssDeclaration -> IO Int
 
 
 
@@ -513,10 +513,8 @@ setArrayOfPointers (x:xs) f ptrParent byteOffset = do
 
 
 
-data HelloCssDecl = HelloCssDecl {
-    typeTagC   :: CInt
-  , intValC    :: CInt
-  , textValC   :: CString
+data FfiCssDeclaration = FfiCssDeclaration {
+    ptrValueC  :: Ptr FfiCssValue
   , importantC :: CInt
   , propertyC  :: CInt
   } deriving (Show)
@@ -524,29 +522,50 @@ data HelloCssDecl = HelloCssDecl {
 
 
 
-instance Storable HelloCssDecl where
-  sizeOf    _ = #{size c_css_declaration_ffi_t}
-  alignment _ = #{alignment c_css_declaration_ffi_t}
+data FfiCssValue = FfiCssValue {
+    typeTagC   :: CInt
+  , intValC    :: CInt
+  , textValC   :: CString
+  } deriving (Show)
 
-  poke ptr (HelloCssDecl argTypeTag argIntVal argTextVal argImportant argProperty) = do
-    #{poke c_css_declaration_ffi_t, c_type_tag}  ptr argTypeTag
-    #{poke c_css_declaration_ffi_t, c_int_val}   ptr argIntVal
-    #{poke c_css_declaration_ffi_t, c_text_val}  ptr argTextVal
-    #{poke c_css_declaration_ffi_t, c_important} ptr argImportant
-    #{poke c_css_declaration_ffi_t, c_property}  ptr argProperty
+
+
+instance Storable FfiCssDeclaration where
+  sizeOf    _ = #{size c_css_declaration_t}
+  alignment _ = #{alignment c_css_declaration_t}
+
+  poke ptr (FfiCssDeclaration argPtrStructValue argImportant argProperty ) = do
+    #{poke c_css_declaration_t, c_value}     ptr argPtrStructValue
+    #{poke c_css_declaration_t, c_important} ptr argImportant
+    #{poke c_css_declaration_t, c_property}  ptr argProperty
 
   peek ptr = do
-    a <- #{peek c_css_declaration_ffi_t, c_type_tag}  ptr
-    b <- #{peek c_css_declaration_ffi_t, c_int_val}   ptr
-    c <- #{peek c_css_declaration_ffi_t, c_text_val}  ptr
-    d <- #{peek c_css_declaration_ffi_t, c_important} ptr
-    e <- #{peek c_css_declaration_ffi_t, c_property} ptr
-    return (HelloCssDecl a b c d e)
+    a <- #{peek c_css_declaration_t, c_value}     ptr
+    b <- #{peek c_css_declaration_t, c_important} ptr
+    c <- #{peek c_css_declaration_t, c_property}  ptr
+    return (FfiCssDeclaration a b c)
+
+
+
+instance Storable FfiCssValue where
+  sizeOf    _ = #{size c_css_value_t}
+  alignment _ = #{alignment c_css_value_t}
+
+  poke ptr (FfiCssValue argTypeTag argIntVal argTextVal) = do
+    #{poke c_css_value_t, c_type_tag} ptr argTypeTag
+    #{poke c_css_value_t, c_int_val}  ptr argIntVal
+    #{poke c_css_value_t, c_text_val} ptr argTextVal
+
+  peek ptr = do
+    a <- #{peek c_css_value_t, c_type_tag} ptr
+    b <- #{peek c_css_value_t, c_int_val}  ptr
+    c <- #{peek c_css_value_t, c_text_val} ptr
+    return (FfiCssValue a b c)
 
 
 
 
-hll_parseDeclaration :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssDecl -> IO Int
+hll_parseDeclaration :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr FfiCssDeclaration -> IO Int
 hll_parseDeclaration ptrStructCssParser ptrStructCssToken cBuf ptrStructCssValue = do
   buf     <- BSU.unsafePackCString $ cBuf
   cParser <- peek ptrStructCssParser
@@ -574,13 +593,17 @@ hll_parseDeclaration ptrStructCssParser ptrStructCssToken cBuf ptrStructCssValue
 
 
 
-updateDeclarations :: Ptr HelloCssDecl -> [CssDeclaration] -> IO ()
-updateDeclarations ptr (d:ds) = do
-  ptrStr <- newCString . T.unpack . textVal . value $ d
+updateDeclarations :: Ptr FfiCssDeclaration -> [CssDeclaration] -> IO ()
+updateDeclarations ptrStructDeclaration (d:ds) = do
+  ptrString <- newCString . T.unpack . textVal . value $ d
   let t = cssValueTypeToInt . typeTag . value $ d
-  poke ptr $ HelloCssDecl (fromIntegral t) (fromIntegral . intVal . value $ d) ptrStr (if important d then 1 else 0) (fromIntegral . property $ d)
-  updateDeclarations (advancePtr ptr 1) ds
-updateDeclarations ptr [] = return ()
+  ptrStructCssValue <- callocBytes #{size c_css_value_t}
+  poke ptrStructCssValue $ FfiCssValue (fromIntegral t) (fromIntegral . intVal . value $ d) ptrString
+
+  poke ptrStructDeclaration $ FfiCssDeclaration ptrStructCssValue (if important d then 1 else 0) (fromIntegral . property $ d)
+
+  updateDeclarations (advancePtr ptrStructDeclaration 1) ds
+updateDeclarations ptrStructDeclaration [] = return ()
 
 
 

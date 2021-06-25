@@ -40,7 +40,7 @@ void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 void ignoreBlock(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 void ignoreStatement(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 
-static void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant);
+static void parseDeclarationWrapper(CssParser * parser, c_css_declaration_list_t * declList, c_css_declaration_list_t * declListImportant);
 
 
 
@@ -83,23 +83,19 @@ void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
 #endif
 }
 
-void parseDeclarationWrapper(CssParser * parser, CssDeclartionList * declList, CssDeclartionList * declListImportant)
+void parseDeclarationWrapper(CssParser * parser, c_css_declaration_list_t * declList, c_css_declaration_list_t * declListImportant)
 {
-   c_css_declaration_ffi_t * declarations = (c_css_declaration_ffi_t *) malloc(12 * sizeof (c_css_declaration_ffi_t));
+   c_css_declaration_t * declarations = (c_css_declaration_t *) calloc(12, sizeof (c_css_declaration_t));
    int n = hll_parseDeclaration(&parser->hll_css_parser,
                                 &parser->tokenizer.token,
                                 parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
                                 declarations);
    for (int v = 0; v < n; v++) {
-      CssDeclarationValue val;
-      val.type   = (CssDeclarationValueType) declarations[v].c_type_tag;
-      val.intVal = declarations[v].c_int_val;
-      val.strVal = declarations[v].c_text_val;
-
-      if (declarations[v].c_important)
-         declarationListAddOrUpdateDeclaration(declListImportant, (CssDeclarationProperty) declarations[v].c_property, val);
-      else
-         declarationListAddOrUpdateDeclaration(declList, (CssDeclarationProperty) declarations[v].c_property, val);
+      if (declarations[v].c_important) {
+         declarationListAddOrUpdateDeclaration(declListImportant, &declarations[v]);
+      } else {
+         declarationListAddOrUpdateDeclaration(declList, &declarations[v]);
+      }
    }
 }
 
@@ -111,8 +107,8 @@ void parseRuleset(CssParser * parser, CssContext * context)
                                                parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
                                                selectors);
 
-   CssDeclartionList * declList = new CssDeclartionList();
-   CssDeclartionList * declListImportant = new CssDeclartionList();
+   c_css_declaration_list_t * declList = declarationListNew();
+   c_css_declaration_list_t * declListImportant = declarationListNew();
 
    /* Read block. ('{' has already been read.) */
    if (parser->tokenizer.token.c_type != CSS_TOKEN_TYPE_END) {
@@ -130,27 +126,27 @@ void parseRuleset(CssParser * parser, CssContext * context)
 
       switch (parser->origin) {
       case CSS_ORIGIN_USER_AGENT:
-         if (declList->declarations_count > 0) {
+         if (declList->c_declarations_count > 0) {
             CssRule * rule = new CssRule(sel, declList, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_USER_AGENT);
          }
          break;
       case CSS_ORIGIN_USER:
-         if (declList->declarations_count > 0) {
+         if (declList->c_declarations_count > 0) {
             CssRule * rule = new CssRule(sel, declList, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_USER);
          }
-         if (declListImportant->declarations_count > 0) {
+         if (declListImportant->c_declarations_count > 0) {
             CssRule * rule = new CssRule(sel, declListImportant, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_USER_IMPORTANT);
          }
          break;
       case CSS_ORIGIN_AUTHOR:
-         if (declList->declarations_count > 0) {
+         if (declList->c_declarations_count > 0) {
             CssRule * rule = new CssRule(sel, declList, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_AUTHOR);
          }
-         if (declListImportant->declarations_count > 0) {
+         if (declListImportant->c_declarations_count > 0) {
             CssRule * rule = new CssRule(sel, declListImportant, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_AUTHOR_IMPORTANT);
          }
@@ -311,8 +307,8 @@ void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
    contains value of "style" attribute of a html element. */
 void CssParser::parseElementStyleAttribute(const DilloUrl *baseUrl,
                                            const char * cssStyleAttribute, int buflen,
-                                           CssDeclartionList * declList,
-                                           CssDeclartionList * declListImportant)
+                                           c_css_declaration_list_t * declList,
+                                           c_css_declaration_list_t * declListImportant)
 {
    CssParser parser(NULL, CSS_ORIGIN_AUTHOR, baseUrl, cssStyleAttribute, buflen);
 
