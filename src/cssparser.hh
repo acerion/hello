@@ -39,13 +39,13 @@ class CssParser {
 
       static void parseElementStyleAttribute(const DilloUrl *baseUrl,
                                              const char * cssStyleAttribute, int buflen,
-                                             c_css_declaration_list_t * declList,
-                                             c_css_declaration_list_t * declListImportant);
+                                             c_css_declaration_set_t * declList,
+                                             c_css_declaration_set_t * declListImportant);
       static void parse(DilloHtml *html, const DilloUrl *baseUrl, CssContext *context,
                         const char *buf, int buflen, CssOrigin origin);
 };
 
-void parseDeclaration(CssParser * parser, c_css_declaration_list_t * declList, c_css_declaration_list_t * declListImportant);
+void parseDeclaration(CssParser * parser, c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant);
 void parseRuleset(CssParser * parser, CssContext * context);
 
 #endif

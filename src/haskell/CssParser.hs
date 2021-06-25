@@ -1811,7 +1811,7 @@ defaultValue = CssValue {
 
 data CssDeclaration = CssDeclaration
   { property  :: Int
-  , value     :: CssValue
+  , declValue :: CssValue
 
   -- https://www.w3.org/TR/css-syntax-3
   --
@@ -1830,7 +1830,7 @@ data CssDeclaration = CssDeclaration
 
 defaultDeclaration = CssDeclaration
   { property  = (-1) -- TODO: somewhere there is a code that does not set property2 field.
-  , value     = defaultValue
+  , declValue = defaultValue
   , important = False
   }
 
@@ -1840,7 +1840,7 @@ defaultDeclaration = CssDeclaration
 parseDeclarationNormal :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), [CssDeclaration])
 parseDeclarationNormal (parser, token) property =
   case parseDeclValue (parser, token) enums functions  of
-    ((p, t), Just v)  -> ((p, t), [defaultDeclaration{property = property, value = v}])
+    ((p, t), Just v)  -> ((p, t), [defaultDeclaration{property = property, declValue = v}])
     ((p, t), Nothing) -> ((p, t), [])
   where
     propInfo = (cssPropertyInfo V.! property)
@@ -1874,7 +1874,7 @@ declValueAsInt valueType (parser, token) enums = ((parser, token), Just defaultV
 parseDeclarationMultiple :: (CssParser, CssToken) -> [Int] -> [CssDeclaration] -> ((CssParser, CssToken), [CssDeclaration])
 parseDeclarationMultiple (parser, token) (prop:properties) ds =
   case parseDeclValue (parser, token) enums functions of
-    ((p, t), Just v)  -> parseDeclarationMultiple (p, t) properties (ds ++ [defaultDeclaration{property = prop, value = v}])
+    ((p, t), Just v)  -> parseDeclarationMultiple (p, t) properties (ds ++ [defaultDeclaration{property = prop, declValue = v}])
     ((p, t), Nothing) -> parseDeclarationMultiple (p, t) properties ds
   where
     propInfo = (cssPropertyInfo V.! prop)
@@ -1888,22 +1888,22 @@ parseDeclarationMultiple (parser, token) [] ds                = ((parser, token)
 parseDeclarationDirections :: (CssParser, CssToken) -> [Int] -> ((CssParser, CssToken), [CssDeclaration])
 parseDeclarationDirections (parser, token) properties@(pt:pr:pb:pl:ps) = ((outParser, outToken), ds)
   where ds = case vals of
-          (top:right:bottom:left:[]) -> [ defaultDeclaration{property = pt, value = top}
-                                        , defaultDeclaration{property = pr, value = right}
-                                        , defaultDeclaration{property = pb, value = bottom}
-                                        , defaultDeclaration{property = pl, value = left}]
-          (top:rl:bottom:[])         -> [ defaultDeclaration{property = pt, value = top}
-                                        , defaultDeclaration{property = pr, value = rl}
-                                        , defaultDeclaration{property = pb, value = bottom}
-                                        , defaultDeclaration{property = pl, value = rl}]
-          (tb:rl:[])                 -> [ defaultDeclaration{property = pt, value = tb}
-                                        , defaultDeclaration{property = pr, value = rl}
-                                        , defaultDeclaration{property = pb, value = tb}
-                                        , defaultDeclaration{property = pl, value = rl}]
-          (v:[])                     -> [ defaultDeclaration{property = pt, value = v}
-                                        , defaultDeclaration{property = pr, value = v}
-                                        , defaultDeclaration{property = pb, value = v}
-                                        , defaultDeclaration{property = pl, value = v}]
+          (top:right:bottom:left:[]) -> [ defaultDeclaration{property = pt, declValue = top}
+                                        , defaultDeclaration{property = pr, declValue = right}
+                                        , defaultDeclaration{property = pb, declValue = bottom}
+                                        , defaultDeclaration{property = pl, declValue = left}]
+          (top:rl:bottom:[])         -> [ defaultDeclaration{property = pt, declValue = top}
+                                        , defaultDeclaration{property = pr, declValue = rl}
+                                        , defaultDeclaration{property = pb, declValue = bottom}
+                                        , defaultDeclaration{property = pl, declValue = rl}]
+          (tb:rl:[])                 -> [ defaultDeclaration{property = pt, declValue = tb}
+                                        , defaultDeclaration{property = pr, declValue = rl}
+                                        , defaultDeclaration{property = pb, declValue = tb}
+                                        , defaultDeclaration{property = pl, declValue = rl}]
+          (v:[])                     -> [ defaultDeclaration{property = pt, declValue = v}
+                                        , defaultDeclaration{property = pr, declValue = v}
+                                        , defaultDeclaration{property = pb, declValue = v}
+                                        , defaultDeclaration{property = pl, declValue = v}]
           []                         -> []
         ((outParser, outToken), vals) = matchOrderedTokens (parser, token) properties []
 parseDeclarationDirections (parser, token) _ = ((parser, token), [])
@@ -1935,10 +1935,10 @@ matchOrderedTokens (parser, token) [] values               = ((parser, token), v
 parseDeclarationBorder :: (CssParser, CssToken) -> [Int] -> [CssDeclaration] -> ((CssParser, CssToken), [CssDeclaration])
 parseDeclarationBorder (parser, token) (top:right:bottom:left:properties) ds =
   case parseDeclValue (parser, token) enums functions  of
-    ((p, t), Just v)  -> parseDeclarationBorder (p, t) properties (ds ++ [ defaultDeclaration{property = top,    value = v}
-                                                                         , defaultDeclaration{property = right,  value = v}
-                                                                         , defaultDeclaration{property = bottom, value = v}
-                                                                         , defaultDeclaration{property = left,   value = v}])
+    ((p, t), Just v)  -> parseDeclarationBorder (p, t) properties (ds ++ [ defaultDeclaration{property = top,    declValue = v}
+                                                                         , defaultDeclaration{property = right,  declValue = v}
+                                                                         , defaultDeclaration{property = bottom, declValue = v}
+                                                                         , defaultDeclaration{property = left,   declValue = v}])
 
     ((p, t), Nothing) -> parseDeclarationBorder (p, t) properties ds
   where

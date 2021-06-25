@@ -217,7 +217,7 @@ void StyleEngine::inheritNonCssHints()
 
    if (pn->declListNonCss) {
       Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
-      c_css_declaration_list_t * origDeclListNonCss = n->declListNonCss;
+      c_css_declaration_set_t * origDeclListNonCss = n->declListNonCss;
 
       n->declListNonCss = declarationListNew(pn->declListNonCss); // NOTICE: copy constructor
 
@@ -353,9 +353,9 @@ void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
 }
 
 /**
- * \brief Make changes to StyleAttrs attrs according to c_css_declaration_list_t props.
+ * \brief Make changes to StyleAttrs attrs according to c_css_declaration_set_t props.
  */
-void StyleEngine::apply(int i, StyleAttrs *attrs, c_css_declaration_list_t * declList,
+void StyleEngine::apply(int i, StyleAttrs *attrs, c_css_declaration_set_t * declList,
                          BrowserWindow *bw) {
    FontAttrs fontAttrs = *attrs->font;
    Font *parentFont = styleNodesStack->get(i - 1).style->font;
@@ -877,12 +877,12 @@ Style * StyleEngine::getStyle0 (int i, BrowserWindow *bw) {
    attrs.resetValues ();
    preprocessAttrs (&attrs);
 
-   c_css_declaration_list_t * declList          = styleNodesStack->getRef(i)->declList;
-   c_css_declaration_list_t * declListImportant = styleNodesStack->getRef(i)->declListImportant;
-   c_css_declaration_list_t * declListNonCss    = styleNodesStack->getRef(i)->declListNonCss;
+   c_css_declaration_set_t * declList          = styleNodesStack->getRef(i)->declList;
+   c_css_declaration_set_t * declListImportant = styleNodesStack->getRef(i)->declListImportant;
+   c_css_declaration_set_t * declListNonCss    = styleNodesStack->getRef(i)->declListNonCss;
 
    // merge style information
-   c_css_declaration_list_t mergedDeclList;
+   c_css_declaration_set_t mergedDeclList;
    memset(&mergedDeclList, 0, sizeof (mergedDeclList));
    cssContext->apply_css_context(&mergedDeclList, doctree, styleNodesStack->getRef(i)->doctreeNode,
                                  declList,

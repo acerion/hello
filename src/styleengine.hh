@@ -20,9 +20,9 @@ class StyleEngine;
 class StyleEngine {
    private:
       struct Node {
-         c_css_declaration_list_t * declList;
-         c_css_declaration_list_t * declListImportant;
-         c_css_declaration_list_t * declListNonCss;
+         c_css_declaration_set_t * declList;
+         c_css_declaration_set_t * declListImportant;
+         c_css_declaration_set_t * declListNonCss;
          dw::core::style::Style *style;
          dw::core::style::Style *wordStyle;
          dw::core::style::Style *backgroundStyle;
@@ -47,7 +47,7 @@ class StyleEngine {
          Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
 
          if (!n->declListNonCss)
-            n->declListNonCss = (c_css_declaration_list_t *) calloc(1, sizeof (c_css_declaration_list_t));
+            n->declListNonCss = (c_css_declaration_set_t *) calloc(1, sizeof (c_css_declaration_set_t));
 
          value.c_type_tag = type;
          declarationListAddOrUpdateDeclaration(n->declListNonCss, property, value);
@@ -55,7 +55,7 @@ class StyleEngine {
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void apply (int i, dw::core::style::StyleAttrs *attrs,
-                  c_css_declaration_list_t * declList, BrowserWindow *bw);
+                  c_css_declaration_set_t * declList, BrowserWindow *bw);
       bool computeAbsoluteLengthValue (int *dest, CssLength value, dw::core::style::Font *font);
       bool computeAbsoluteLengthValue (int *dest, CssLength value, dw::core::style::Font *font, int percentageBase);
       bool computeLength (dw::core::style::Length *dest, CssLength value, dw::core::style::Font *font);

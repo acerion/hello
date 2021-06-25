@@ -45,29 +45,29 @@ import CssParser
 
 
 
-foreign export ccall "hll_nextToken" hll_nextToken :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO CString
-foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> IO CString
-foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO Int
-foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO Int
+foreign export ccall "hll_nextToken" hll_nextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO CString
+foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Int -> Int -> IO CString
+foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO Int
+foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO Int
 
 foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Int -> IO Int
 foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
 foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
 
-foreign export ccall "hll_cssParseSelectors" hll_cssParseSelectors :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssSelector -> IO Int
+foreign export ccall "hll_cssParseSelectors" hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssSelector -> IO Int
 
 foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
-foreign export ccall "hll_parseDeclaration" hll_parseDeclaration :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr FfiCssDeclaration -> IO Int
+foreign export ccall "hll_parseDeclaration" hll_parseDeclaration :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssDeclaration -> IO Int
 
-foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarations -> Ptr FfiCssDeclaration -> IO Int
+foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
 
 
 #include "../hello.h"
 
-data HelloCssParser = HelloCssParser {
+data FfiCssParser = FfiCssParser {
     spaceSeparatedC :: CInt
   , bufOffsetC      :: CInt
   , inBlockC        :: CInt
@@ -76,7 +76,7 @@ data HelloCssParser = HelloCssParser {
 
 
 
-data HelloCssToken = HelloCssToken {
+data FfiCssToken = FfiCssToken {
     typeC  :: CInt
   , valueC :: CString
   } deriving (Show)
@@ -84,11 +84,11 @@ data HelloCssToken = HelloCssToken {
 
 
 
-instance Storable HelloCssParser where
+instance Storable FfiCssParser where
   sizeOf    _ = #{size c_css_parser_t}
   alignment _ = #{alignment c_css_parser_t}
 
-  poke ptr (HelloCssParser argSpaceSeparated argBufOffset argInBlock) = do
+  poke ptr (FfiCssParser argSpaceSeparated argBufOffset argInBlock) = do
     #{poke c_css_parser_t, c_space_separated} ptr argSpaceSeparated
     #{poke c_css_parser_t, c_buf_offset}      ptr argBufOffset
     #{poke c_css_parser_t, c_in_block}        ptr argInBlock
@@ -97,36 +97,36 @@ instance Storable HelloCssParser where
     a <- #{peek c_css_parser_t, c_space_separated} ptr
     b <- #{peek c_css_parser_t, c_buf_offset}      ptr
     c <- #{peek c_css_parser_t, c_in_block}        ptr
-    return (HelloCssParser a b c)
+    return (FfiCssParser a b c)
 
 
 
 
-instance Storable HelloCssToken where
+instance Storable FfiCssToken where
   sizeOf    _ = #{size c_css_token_t}
   alignment _ = #{alignment c_css_token_t}
 
-  poke ptr (HelloCssToken argType argValue) = do
+  poke ptr (FfiCssToken argType argValue) = do
     #{poke c_css_token_t, c_type}  ptr argType
     #{poke c_css_token_t, c_value} ptr argValue
 
   peek ptr = do
     a <- #{peek c_css_token_t, c_type}  ptr
     b <- #{peek c_css_token_t, c_value} ptr
-    return (HelloCssToken a b)
+    return (FfiCssToken a b)
 
 
 
 
-hll_nextToken :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO CString
+hll_nextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO CString
 hll_nextToken ptrStructCssParser ptrStructCssToken cBuf = do
-  buf     <- BSU.unsafePackCString cBuf
-  cParser <- peek ptrStructCssParser
+  buf       <- BSU.unsafePackCString cBuf
+  ffiParser <- peek ptrStructCssParser
 
   let (newParser, newToken) = nextToken defaultParser{ remainder = T.E.decodeLatin1 buf
-                                                     , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
-                                                     , bufOffset = fromIntegral . bufOffsetC $ cParser
-                                                     , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                                                     , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
+                                                     , bufOffset = fromIntegral . bufOffsetC $ ffiParser
+                                                     , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
                                                      }
 
   updateParserStruct ptrStructCssParser newParser
@@ -137,18 +137,18 @@ hll_nextToken ptrStructCssParser ptrStructCssToken cBuf = do
 
 
 -- Set fields in pointer to struct passed from C code.
-updateParserStruct :: Ptr HelloCssParser -> CssParser -> IO ()
+updateParserStruct :: Ptr FfiCssParser -> CssParser -> IO ()
 updateParserStruct ptrStructCssParser parser = do
-  poke ptrStructCssParser $ HelloCssParser (if spaceSeparated parser then 1 else 0) (fromIntegral . bufOffset $ parser) (if inBlock parser then 1 else 0)
+  poke ptrStructCssParser $ FfiCssParser (if spaceSeparated parser then 1 else 0) (fromIntegral . bufOffset $ parser) (if inBlock parser then 1 else 0)
 
 
 
 
 -- Set fields in pointer to struct passed from C code.
-updateTokenStruct :: Ptr HelloCssToken-> CssToken -> IO ()
+updateTokenStruct :: Ptr FfiCssToken-> CssToken -> IO ()
 updateTokenStruct ptrStructCssToken token = do
   s <- cstr token
-  poke ptrStructCssToken $ HelloCssToken (getTokenType token) s
+  poke ptrStructCssToken $ FfiCssToken (getTokenType token) s
 
 
 
@@ -167,20 +167,20 @@ cstr token = case token of
 
 
 
-hll_declarationValueAsString :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Int -> Int -> IO CString
+hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Int -> Int -> IO CString
 hll_declarationValueAsString ptrStructCssParser ptrStructCssToken cBuf valueType property = do
-  buf     <- BSU.unsafePackCString $ cBuf
-  cParser <- peek ptrStructCssParser
+  buf       <- BSU.unsafePackCString $ cBuf
+  ffiParser <- peek ptrStructCssParser
 
   let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
-                            , inBlock     = (fromIntegral . inBlockC $ cParser) /= 0
-                            , bufOffset   = fromIntegral . bufOffsetC $ cParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                            , inBlock     = (fromIntegral . inBlockC $ ffiParser) /= 0
+                            , bufOffset   = fromIntegral . bufOffsetC $ ffiParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
                             }
 
-  cToken   <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ cToken
-  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+  ffiToken <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
+  let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
 
   let pair@((newParser, newToken), textVal) = declValueAsString (parser, token) (cssPropertyInfo V.! property) (toCssValueType valueType)
 
@@ -194,14 +194,14 @@ hll_declarationValueAsString ptrStructCssParser ptrStructCssToken cBuf valueType
 
 
 
-hll_ignoreBlock :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO Int
+hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO Int
 hll_ignoreBlock ptrStructCssParser ptrStructCssToken cBuf = do
-  buf     <- BSU.unsafePackCString $ cBuf
-  cParser <- peek ptrStructCssParser
+  buf       <- BSU.unsafePackCString $ cBuf
+  ffiParser <- peek ptrStructCssParser
   let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ cParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
                             }
 
   let (newParser, newToken) = ignoreBlock parser -- TODO: shouldn't we pass current token to the function?
@@ -212,14 +212,14 @@ hll_ignoreBlock ptrStructCssParser ptrStructCssToken cBuf = do
 
 
 
-hll_ignoreStatement :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO Int
+hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO Int
 hll_ignoreStatement ptrStructCssParser ptrStructCssToken cBuf = do
-  buf     <- BSU.unsafePackCString $ cBuf
-  cParser <- peek ptrStructCssParser
+  buf       <- BSU.unsafePackCString $ cBuf
+  ffiParser <- peek ptrStructCssParser
   let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ cParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
                             }
 
   let (newParser, newToken) = ignoreBlock parser -- TODO: shouldn't we pass current token to the function?
@@ -297,7 +297,7 @@ hll_cssPropertyNameString property = do
 
 
 
-data HelloCssSimpleSelector = HelloCssSimpleSelector {
+data FfiCssSimpleSelector = FfiCssSimpleSelector {
     selectorClassC           :: CString
   , selectorClassSizeC       :: CInt
 
@@ -313,7 +313,7 @@ data HelloCssSimpleSelector = HelloCssSimpleSelector {
 
 
 
-instance Storable HelloCssSimpleSelector where
+instance Storable FfiCssSimpleSelector where
   sizeOf    _ = #{size c_css_simple_selector_t}
   alignment _ = #{alignment c_css_simple_selector_t}
 
@@ -325,10 +325,10 @@ instance Storable HelloCssSimpleSelector where
     e <- #{peek c_css_simple_selector_t, c_selector_id} ptr
     f <- #{peek c_css_simple_selector_t, c_selector_element} ptr
     g <- #{peek c_css_simple_selector_t, c_combinator} ptr
-    return (HelloCssSimpleSelector a b c d e f g)
+    return (FfiCssSimpleSelector a b c d e f g)
 
 
-  poke ptr (HelloCssSimpleSelector selectorClassI selector_class_size_I selector_pseudo_class_I selector_pseudo_class_size_I selector_id_I selector_element_I combinator_I) = do
+  poke ptr (FfiCssSimpleSelector selectorClassI selector_class_size_I selector_pseudo_class_I selector_pseudo_class_size_I selector_id_I selector_element_I combinator_I) = do
     #{poke c_css_simple_selector_t, c_selector_class}             ptr selectorClassI
     #{poke c_css_simple_selector_t, c_selector_class_size}        ptr selector_class_size_I
     #{poke c_css_simple_selector_t, c_selector_pseudo_class}      ptr selector_pseudo_class_I
@@ -340,16 +340,16 @@ instance Storable HelloCssSimpleSelector where
 
 
 
-data HelloCssSelector = HelloCssSelector {
+data FfiCssSelector = FfiCssSelector {
     matchCaseOffsetC         :: CInt
-  , simpleSelectorListC      :: Ptr HelloCssSimpleSelector
+  , simpleSelectorListC      :: Ptr FfiCssSimpleSelector
   , simpleSelectorListSizeC  :: CInt
   } deriving (Show)
 
 
 
 
-instance Storable HelloCssSelector where
+instance Storable FfiCssSelector where
   sizeOf    _ = #{size c_css_selector_t}
   alignment _ = #{alignment c_css_selector_t}
 
@@ -357,10 +357,10 @@ instance Storable HelloCssSelector where
     a <- #{peek c_css_selector_t, c_match_case_offset} ptr
     b <- #{peek c_css_selector_t, c_simple_selector_list} ptr
     c <- #{peek c_css_selector_t, c_simple_selector_list_size} ptr
-    return (HelloCssSelector a b c)
+    return (FfiCssSelector a b c)
 
 
-  poke ptr (HelloCssSelector inMatchCaseOffset inSimpleSelectorList inSimpleSelectorListSize) = do
+  poke ptr (FfiCssSelector inMatchCaseOffset inSimpleSelectorList inSimpleSelectorListSize) = do
     #{poke c_css_selector_t, c_match_case_offset}          ptr inMatchCaseOffset
     #{poke c_css_selector_t, c_simple_selector_list}       ptr inSimpleSelectorList
     #{poke c_css_selector_t, c_simple_selector_list_size}  ptr inSimpleSelectorListSize
@@ -370,7 +370,7 @@ instance Storable HelloCssSelector where
 
 -- Save given Haskell simple selector to C simple selector.
 -- https://downloads.haskell.org/~ghc/7.0.3/docs/html/users_guide/hsc2hs.html
-setSimpleSelector :: Ptr HelloCssSimpleSelector -> CssSimpleSelector -> IO ()
+setSimpleSelector :: Ptr FfiCssSimpleSelector -> CssSimpleSelector -> IO ()
 setSimpleSelector ptrStructSimpleSelector simpleSelector = do
   cStringPtrSelId <- if T.null . selectorId $ simpleSelector
                      then return nullPtr
@@ -390,20 +390,20 @@ setSimpleSelector ptrStructSimpleSelector simpleSelector = do
 
 
 
-hll_cssParseSelector :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> IO (Ptr HelloCssSelector)
+hll_cssParseSelector :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO (Ptr FfiCssSelector)
 hll_cssParseSelector ptrStructCssParser ptrStructCssToken cBuf = do
-  buf     <- BSU.unsafePackCString $ cBuf
-  cParser <- peek ptrStructCssParser
+  buf       <- BSU.unsafePackCString $ cBuf
+  ffiParser <- peek ptrStructCssParser
 
   let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ cParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
                             }
 
-  cToken   <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ cToken
-  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+  ffiToken <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
+  let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
 
   let ((newParser, newToken), newSelector) = parseSelector (parser, token)
 
@@ -421,24 +421,22 @@ hll_cssParseSelector ptrStructCssParser ptrStructCssToken cBuf = do
 
 
 
-hll_cssParseSelectors :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr HelloCssSelector -> IO Int
+hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssSelector -> IO Int
 hll_cssParseSelectors ptrStructCssParser ptrStructCssToken cBuf ptrStructCssSelector = do
-  buf     <- BSU.unsafePackCString $ cBuf
-  cParser <- peek ptrStructCssParser
+  buf       <- BSU.unsafePackCString $ cBuf
+  ffiParser <- peek ptrStructCssParser
 
   let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ cParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
                             }
 
-  cToken   <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ cToken
-  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+  ffiToken <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
+  let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
 
   let ((newParser, newToken), selectors) = parseSelectors (parser, token)
-
-  putStrLn ("Selectors are " ++ (show selectors))
 
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
@@ -449,14 +447,12 @@ hll_cssParseSelectors ptrStructCssParser ptrStructCssToken cBuf ptrStructCssSele
 
 
 
-updateSelectors :: Ptr HelloCssSelector -> [CssSelector] -> IO ()
+updateSelectors :: Ptr FfiCssSelector -> [CssSelector] -> IO ()
 updateSelectors ptr (s:ss) = do
 
   setArrayOfPointers (simpleSelectorList s) simpleSelectorToPtrStruct ptr (#offset c_css_selector_t, c_simple_selector_list)
   pokeByteOff ptr (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ s)
 
-  -- ptrStr <- newCString . T.unpack . textVal . value $ s
-  -- poke ptr $ HelloCssDecl (fromIntegral . typeTag . value $ s) (fromIntegral . intVal . value $ s) ptrStr (if important s then 1 else 0) (fromIntegral . property $ d)
   updateSelectors (advancePtr ptr 1) ss
 updateSelectors ptr [] = return ()
 
@@ -470,7 +466,7 @@ updateSelectors ptr [] = return ()
 -- This function allocates memory, but since the goal of this project is to
 -- replace C/C++ code with Haskell code, the allocation will be eventually
 -- removed. So I don't care about deallocating the memory.
-simpleSelectorToPtrStruct :: CssSimpleSelector -> IO (Ptr HelloCssSimpleSelector)
+simpleSelectorToPtrStruct :: CssSimpleSelector -> IO (Ptr FfiCssSimpleSelector)
 simpleSelectorToPtrStruct simSel = do
   ptrStructSimpleSelector <- callocBytes #{size c_css_simple_selector_t}
   setSimpleSelector ptrStructSimpleSelector simSel
@@ -567,7 +563,7 @@ instance Storable FfiCssValue where
 
 
 
-data FfiCssDeclarations = FfiCssDeclarations {
+data FfiCssDeclarationSet = FfiCssDeclarationSet {
     isSafeC            :: CInt
   , declarationsCountC :: CInt
   , declarationsC      :: Ptr FfiCssDeclaration
@@ -576,46 +572,44 @@ data FfiCssDeclarations = FfiCssDeclarations {
 
 
 
-instance Storable FfiCssDeclarations where
-  sizeOf    _ = #{size c_css_declaration_list_t}
-  alignment _ = #{alignment c_css_declaration_list_t}
+instance Storable FfiCssDeclarationSet where
+  sizeOf    _ = #{size c_css_declaration_set_t}
+  alignment _ = #{alignment c_css_declaration_set_t}
 
-  poke ptr (FfiCssDeclarations argIsSafe argDeclarationsCount argDeclarations ) = do
-    #{poke c_css_declaration_list_t, c_is_safe}            ptr argIsSafe
-    #{poke c_css_declaration_list_t, c_declarations_count} ptr argDeclarationsCount
-    #{poke c_css_declaration_list_t, c_declarations}  ptr argDeclarations
+  poke ptr (FfiCssDeclarationSet argIsSafe argDeclarationsCount argDeclarations ) = do
+    #{poke c_css_declaration_set_t, c_is_safe}            ptr argIsSafe
+    #{poke c_css_declaration_set_t, c_declarations_count} ptr argDeclarationsCount
+    #{poke c_css_declaration_set_t, c_declarations}       ptr argDeclarations
 
   peek ptr = do
-    a <- #{peek c_css_declaration_list_t, c_is_safe}            ptr
-    b <- #{peek c_css_declaration_list_t, c_declarations_count} ptr
-    c <- #{peek c_css_declaration_list_t, c_declarations}       ptr
-    return (FfiCssDeclarations a b c)
+    a <- #{peek c_css_declaration_set_t, c_is_safe}            ptr
+    b <- #{peek c_css_declaration_set_t, c_declarations_count} ptr
+    c <- #{peek c_css_declaration_set_t, c_declarations}       ptr
+    return (FfiCssDeclarationSet a b c)
 
 
 
 
-hll_parseDeclaration :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr FfiCssDeclaration -> IO Int
-hll_parseDeclaration ptrStructCssParser ptrStructCssToken cBuf ptrStructCssValue = do
-  buf     <- BSU.unsafePackCString $ cBuf
-  cParser <- peek ptrStructCssParser
+hll_parseDeclaration :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssDeclaration -> IO Int
+hll_parseDeclaration ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDeclaration = do
+  buf       <- BSU.unsafePackCString $ cBuf
+  ffiParser <- peek ptrStructCssParser
 
   let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ cParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ cParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ cParser) /= 0
+                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
                             }
 
-  cToken   <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ cToken
-  let token = getTokenADT (typeC cToken) (T.E.decodeLatin1 tokValue)
+  ffiToken <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
+  let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
 
   let ((newParser, newToken), declarations) = parseDeclaration (parser, token)
 
-  putStrLn ("Declarations are " ++ (show declarations))
-
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
-  updateDeclarations ptrStructCssValue declarations
+  updateDeclarations ptrStructCssDeclaration declarations
 
   return (length declarations)
 
@@ -632,38 +626,38 @@ updateDeclarations ptrStructDeclaration [] = return ()
 
 pokeSingleDeclaration :: Ptr FfiCssDeclaration -> CssDeclaration -> IO ()
 pokeSingleDeclaration ptrStructDeclaration declaration = do
-  ptrString <- newCString . T.unpack . textVal . value $ declaration
-  let t = cssValueTypeToInt . typeTag . value $ declaration
+  ptrString <- newCString . T.unpack . textVal . declValue $ declaration
+  let t = cssValueTypeToInt . typeTag . declValue $ declaration
   ptrStructCssValue <- callocBytes #{size c_css_value_t}
-  poke ptrStructCssValue $ FfiCssValue (fromIntegral t) (fromIntegral . intVal . value $ declaration) ptrString
+  poke ptrStructCssValue $ FfiCssValue (fromIntegral t) (fromIntegral . intVal . declValue $ declaration) ptrString
   poke ptrStructDeclaration $ FfiCssDeclaration ptrStructCssValue (if important declaration then 1 else 0) (fromIntegral . property $ declaration)
   return ()
 
 
 
-hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarations -> Ptr FfiCssDeclaration -> IO Int
-hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationList ptrStructDeclaration = do
-  declaration :: FfiCssDeclaration    <- peek ptrStructDeclaration
-  declarations :: FfiCssDeclarations  <- peek ptrStructDeclarationList
+hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
+hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDeclaration = do
+  decl    :: FfiCssDeclaration    <- peek ptrStructDeclaration
+  declSet :: FfiCssDeclarationSet <- peek ptrStructDeclarationSet
 
-  let isSafe = isSafeC declarations
-  let count = declarationsCountC declarations
+  let isSafe = isSafeC declSet
+  let count = declarationsCountC declSet
 
-  let v = ptrValueC declaration
-  let i = importantC declaration
-  let p = propertyC declaration
+  let v = ptrValueC decl
+  let i = importantC decl
+  let p = propertyC decl
 
-  let ptrStructDeclaration :: Ptr FfiCssDeclaration = declarationsC declarations
+  let ptrStructDeclaration :: Ptr FfiCssDeclaration = declarationsC declSet
   -- First non-occupied slot in the array, where we want to "Add" new
   -- declaration (the declaration passed to this function).
   let ptrStructDeclarationEmpty = advancePtr ptrStructDeclaration (fromIntegral count)
 
-  newDeclaration <- callocBytes #{size c_css_declaration_t}
-  poke newDeclaration $ FfiCssDeclaration v i p
+  newDecl <- callocBytes #{size c_css_declaration_t}
+  poke newDecl $ FfiCssDeclaration v i p
 
-  pokeByteOff ptrStructDeclarationList ((#offset c_css_declaration_list_t, c_declarations) + (((fromIntegral count)) * 8)) newDeclaration
-  pokeByteOff ptrStructDeclarationList (#offset c_css_declaration_list_t, c_is_safe) isSafe
-  pokeByteOff ptrStructDeclarationList (#offset c_css_declaration_list_t, c_declarations_count) (count + 1)
+  pokeByteOff ptrStructDeclarationSet ((#offset c_css_declaration_set_t, c_declarations) + ((fromIntegral count) * 8)) newDecl
+  pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_is_safe) isSafe
+  pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_declarations_count) (count + 1)
 
   return 0
 

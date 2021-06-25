@@ -40,7 +40,7 @@ void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 void ignoreBlock(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 void ignoreStatement(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 
-static void parseDeclarationWrapper(CssParser * parser, c_css_declaration_list_t * declList, c_css_declaration_list_t * declListImportant);
+static void parseDeclarationWrapper(CssParser * parser, c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant);
 
 
 
@@ -83,7 +83,7 @@ void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
 #endif
 }
 
-void parseDeclarationWrapper(CssParser * parser, c_css_declaration_list_t * declList, c_css_declaration_list_t * declListImportant)
+void parseDeclarationWrapper(CssParser * parser, c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant)
 {
    c_css_declaration_t * declarations = (c_css_declaration_t *) calloc(12, sizeof (c_css_declaration_t));
    int n = hll_parseDeclaration(&parser->hll_css_parser,
@@ -107,8 +107,8 @@ void parseRuleset(CssParser * parser, CssContext * context)
                                                parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
                                                selectors);
 
-   c_css_declaration_list_t * declList = declarationListNew();
-   c_css_declaration_list_t * declListImportant = declarationListNew();
+   c_css_declaration_set_t * declList = declarationListNew();
+   c_css_declaration_set_t * declListImportant = declarationListNew();
 
    /* Read block. ('{' has already been read.) */
    if (parser->tokenizer.token.c_type != CSS_TOKEN_TYPE_END) {
@@ -307,8 +307,8 @@ void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
    contains value of "style" attribute of a html element. */
 void CssParser::parseElementStyleAttribute(const DilloUrl *baseUrl,
                                            const char * cssStyleAttribute, int buflen,
-                                           c_css_declaration_list_t * declList,
-                                           c_css_declaration_list_t * declListImportant)
+                                           c_css_declaration_set_t * declList,
+                                           c_css_declaration_set_t * declListImportant)
 {
    CssParser parser(NULL, CSS_ORIGIN_AUTHOR, baseUrl, cssStyleAttribute, buflen);
 

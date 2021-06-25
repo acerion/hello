@@ -180,13 +180,13 @@ typedef enum {
 void printCssDeclaration(c_css_declaration_t * declaration, FILE * file);
 
 
-c_css_declaration_list_t * declarationListNew(void);
-c_css_declaration_list_t * declarationListNew(const c_css_declaration_list_t * declList);
+c_css_declaration_set_t * declarationListNew(void);
+c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * declList);
 
-void declarationListPrint(c_css_declaration_list_t * declList, FILE * file);
-void declarationListAddOrUpdateDeclaration(c_css_declaration_list_t * declList, CssDeclarationProperty property, c_css_value_t value);
-void declarationListAddOrUpdateDeclaration(c_css_declaration_list_t * declList, c_css_declaration_t * decl);
-void declarationListAppend(const c_css_declaration_list_t * declList, c_css_declaration_list_t * targetDeclList);
+void declarationListPrint(c_css_declaration_set_t * declList, FILE * file);
+void declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, CssDeclarationProperty property, c_css_value_t value);
+void declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * decl);
+void declarationListAppend(const c_css_declaration_set_t * declList, c_css_declaration_set_t * targetDeclList);
 
 enum class CssSelectorType {
    NONE,
@@ -240,20 +240,20 @@ void printCssSelector(c_css_selector_t * selector, FILE * file);
 
 
 /**
- * \brief A c_css_selector_t c_css_declaration_list_t pair.
+ * \brief A c_css_selector_t c_css_declaration_set_t pair.
  *
- *  The c_css_declaration_list_t is applied if the c_css_selector_t matches.
+ *  The c_css_declaration_set_t is applied if the c_css_selector_t matches.
  */
 class CssRule {
    public:
       c_css_selector_t *selector;
       int specificity;
       int position;
-      c_css_declaration_list_t * declList = nullptr;
+      c_css_declaration_set_t * declList = nullptr;
 
-      CssRule(c_css_selector_t *selector, c_css_declaration_list_t * declList, int rulePosition);
+      CssRule(c_css_selector_t *selector, c_css_declaration_set_t * declList, int rulePosition);
 
-      void apply_css_rule(FILE * file, c_css_declaration_list_t * outDeclList, Doctree *docTree,
+      void apply_css_rule(FILE * file, c_css_declaration_set_t * outDeclList, Doctree *docTree,
                           const DoctreeNode *node, MatchCache *matchCache) const;
       inline bool isSafe() {
          return !selectorChecksPseudoClass(selector) || declList->c_is_safe;
@@ -302,7 +302,7 @@ class CssStyleSheet {
    public:
       CssStyleSheet () { requiredMatchCache = 0; }
       void addRule (CssRule *rule);
-      void apply_style_sheet(FILE * file, c_css_declaration_list_t * declList, Doctree *docTree,
+      void apply_style_sheet(FILE * file, c_css_declaration_set_t * declList, Doctree *docTree,
                   const DoctreeNode *node, MatchCache *matchCache) const;
       int getRequiredMatchCache () { return requiredMatchCache; }
 };
@@ -320,11 +320,11 @@ class CssContext {
 
       CssContext();
 
-      void apply_css_context(c_css_declaration_list_t * mergedDeclList,
+      void apply_css_context(c_css_declaration_set_t * mergedDeclList,
                              Doctree *docTree, DoctreeNode *node,
-                             c_css_declaration_list_t * declList,
-                             c_css_declaration_list_t * declListImportant,
-                             c_css_declaration_list_t * declListNonCss);
+                             c_css_declaration_set_t * declList,
+                             c_css_declaration_set_t * declListImportant,
+                             c_css_declaration_set_t * declListNonCss);
 };
 
 

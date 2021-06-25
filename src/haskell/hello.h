@@ -87,11 +87,11 @@ typedef struct c_css_declaration_t {
 /**
  * \brief A list of c_css_declaration_t objects.
  */
-typedef struct c_css_declaration_list_t {
+typedef struct c_css_declaration_set_t {
    bool c_is_safe; // TODO: this should be true by default
    int c_declarations_count;
    c_css_declaration_t * c_declarations[100];
-} c_css_declaration_list_t;
+} c_css_declaration_set_t;
 
 typedef struct c_css_token_t {
    int c_type;
@@ -153,7 +153,7 @@ int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, co
 // Return count of declarations in @p declarations
 int hll_parseDeclaration(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_t * declarations);
 
-int hll_declarationListAddOrUpdateDeclaration(c_css_declaration_list_t * declList, c_css_declaration_t * declaration);
+int hll_declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * declaration);
 
 #ifdef __cplusplus
 }

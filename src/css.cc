@@ -52,16 +52,16 @@ void printCssDeclaration(c_css_declaration_t * declaration, FILE * file)
 }
 
 
-c_css_declaration_list_t * declarationListNew(void)
+c_css_declaration_set_t * declarationListNew(void)
 {
-   c_css_declaration_list_t * list = (c_css_declaration_list_t *) calloc(1, sizeof (c_css_declaration_list_t));
+   c_css_declaration_set_t * list = (c_css_declaration_set_t *) calloc(1, sizeof (c_css_declaration_set_t));
    list->c_is_safe = true;
    return list;
 }
 
-c_css_declaration_list_t * declarationListNew(const c_css_declaration_list_t * inDeclList)
+c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * inDeclList)
 {
-   c_css_declaration_list_t * out = (c_css_declaration_list_t *) calloc(1, sizeof (c_css_declaration_list_t));
+   c_css_declaration_set_t * out = (c_css_declaration_set_t *) calloc(1, sizeof (c_css_declaration_set_t));
 
    memcpy(out->c_declarations, inDeclList->c_declarations, sizeof (out->c_declarations));
    out->c_is_safe = inDeclList->c_is_safe;
@@ -81,7 +81,7 @@ c_css_declaration_list_t * declarationListNew(const c_css_declaration_list_t * i
    return out;
 }
 
-void declarationListAddOrUpdateDeclaration(c_css_declaration_list_t * declList, CssDeclarationProperty property, c_css_value_t value)
+void declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, CssDeclarationProperty property, c_css_value_t value)
 {
    c_css_declaration_t * decl = new c_css_declaration_t;
    decl->c_property = property;
@@ -106,7 +106,7 @@ void cssValueCopy(c_css_value_t * dest, c_css_value_t * src)
 /**
  * \brief Set property to a given name and type.
  */
-void declarationListAddOrUpdateDeclaration(c_css_declaration_list_t * declList, c_css_declaration_t * in)
+void declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * in)
 {
    if (in->c_property == CSS_PROPERTY_DISPLAY || in->c_property == CSS_PROPERTY_BACKGROUND_IMAGE)
       declList->c_is_safe = false;
@@ -126,7 +126,7 @@ void declarationListAddOrUpdateDeclaration(c_css_declaration_list_t * declList, 
 /**
  * \brief Merge properties into argument property list.
  */
-void declarationListAppend(const c_css_declaration_list_t * declList, c_css_declaration_list_t * targetDeclList) {
+void declarationListAppend(const c_css_declaration_set_t * declList, c_css_declaration_set_t * targetDeclList) {
    for (int i = 0; i < declList->c_declarations_count; i++) {
       c_css_declaration_t * existing_decl = declList->c_declarations[i];
 
@@ -139,7 +139,7 @@ void declarationListAppend(const c_css_declaration_list_t * declList, c_css_decl
    }
 }
 
-void declarationListPrint(c_css_declaration_list_t * declList, FILE * file)
+void declarationListPrint(c_css_declaration_set_t * declList, FILE * file)
 {
    for (int i = 0; i < declList->c_declarations_count; i++)
       printCssDeclaration(declList->c_declarations[i], file);
@@ -347,7 +347,7 @@ void printCssSimpleSelector(c_css_simple_selector_t * selector, FILE * file)
    }
 }
 
-CssRule::CssRule(c_css_selector_t * selector, c_css_declaration_list_t * declList, int rulePosition)
+CssRule::CssRule(c_css_selector_t * selector, c_css_declaration_set_t * declList, int rulePosition)
 {
    assert (selector->c_simple_selector_list_size > 0);
 
@@ -357,7 +357,7 @@ CssRule::CssRule(c_css_selector_t * selector, c_css_declaration_list_t * declLis
    this->specificity = selectorSpecificity(selector);
 }
 
-void CssRule::apply_css_rule(FILE * file, c_css_declaration_list_t * outDeclList, Doctree *docTree,
+void CssRule::apply_css_rule(FILE * file, c_css_declaration_set_t * outDeclList, Doctree *docTree,
                      const DoctreeNode *node, MatchCache *matchCache) const {
    if (selector_full_selector_submatches(selector, docTree, node, matchCache))
       declarationListAppend(this->declList, outDeclList);
@@ -449,7 +449,7 @@ void CssStyleSheet::addRule (CssRule *rule) {
  * The declarations (list property+value) are set as defined by the rules in
  * the stylesheet that match at the given node in the document tree.
  */
-void CssStyleSheet::apply_style_sheet(FILE * file, c_css_declaration_list_t * declList, Doctree *docTree,
+void CssStyleSheet::apply_style_sheet(FILE * file, c_css_declaration_set_t * declList, Doctree *docTree,
                                       const DoctreeNode *node, MatchCache *matchCache) const {
    static const int maxLists = 32;
    const RuleList *ruleList[maxLists];
@@ -535,11 +535,11 @@ CssContext::CssContext () {
  * by previous stylesheets.
  * This allows e.g. user styles to overwrite author styles.
  */
-void CssContext::apply_css_context(c_css_declaration_list_t * mergedDeclList, Doctree *docTree,
+void CssContext::apply_css_context(c_css_declaration_set_t * mergedDeclList, Doctree *docTree,
                                    DoctreeNode * node,
-                                   c_css_declaration_list_t * declList,
-                                   c_css_declaration_list_t * declListImportant,
-                                   c_css_declaration_list_t * declListNonCss) {
+                                   c_css_declaration_set_t * declList,
+                                   c_css_declaration_set_t * declListImportant,
+                                   c_css_declaration_set_t * declListNonCss) {
 
    static int i = 0;
    char path[20] = { 0 };
