@@ -883,6 +883,7 @@ Style * StyleEngine::getStyle0 (int i, BrowserWindow *bw) {
 
    // merge style information
    c_css_declaration_list_t mergedDeclList;
+   memset(&mergedDeclList, 0, sizeof (mergedDeclList));
    cssContext->apply_css_context(&mergedDeclList, doctree, styleNodesStack->getRef(i)->doctreeNode,
                                  declList,
                                  declListImportant,

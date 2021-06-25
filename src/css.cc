@@ -120,13 +120,7 @@ void declarationListAddOrUpdateDeclaration(c_css_declaration_list_t * declList, 
       }
    }
 
-   c_css_declaration_t * decl = new c_css_declaration_t;
-   decl->c_property = in->c_property;
-   decl->c_value = (c_css_value_t *) calloc(1, sizeof (c_css_value_t));
-   cssValueCopy(decl->c_value, in->c_value);
-
-   declList->c_declarations[declList->c_declarations_count] = decl;
-   declList->c_declarations_count++;
+   hll_declarationListAddOrUpdateDeclaration(declList, in);
 }
 
 /**

@@ -180,15 +180,6 @@ typedef enum {
 void printCssDeclaration(c_css_declaration_t * declaration, FILE * file);
 
 
-/**
- * \brief A list of c_css_declaration_t objects.
- */
-typedef struct c_css_declaration_list_t {
-   bool c_is_safe;
-   c_css_declaration_t * c_declarations[100] = { 0 };
-   int c_declarations_count = 0;
-} c_css_declaration_list_t;
-
 c_css_declaration_list_t * declarationListNew(void);
 c_css_declaration_list_t * declarationListNew(const c_css_declaration_list_t * declList);
 

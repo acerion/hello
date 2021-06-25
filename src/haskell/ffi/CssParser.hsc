@@ -18,7 +18,7 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 -}
 
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
 
 module CssParserFFI() where
@@ -62,7 +62,7 @@ foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: In
 
 foreign export ccall "hll_parseDeclaration" hll_parseDeclaration :: Ptr HelloCssParser -> Ptr HelloCssToken -> CString -> Ptr FfiCssDeclaration -> IO Int
 
-
+foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarations -> Ptr FfiCssDeclaration -> IO Int
 
 
 #include "../hello.h"
@@ -522,14 +522,6 @@ data FfiCssDeclaration = FfiCssDeclaration {
 
 
 
-data FfiCssValue = FfiCssValue {
-    typeTagC   :: CInt
-  , intValC    :: CInt
-  , textValC   :: CString
-  } deriving (Show)
-
-
-
 instance Storable FfiCssDeclaration where
   sizeOf    _ = #{size c_css_declaration_t}
   alignment _ = #{alignment c_css_declaration_t}
@@ -547,6 +539,16 @@ instance Storable FfiCssDeclaration where
 
 
 
+
+data FfiCssValue = FfiCssValue {
+    typeTagC   :: CInt
+  , intValC    :: CInt
+  , textValC   :: CString
+  } deriving (Show)
+
+
+
+
 instance Storable FfiCssValue where
   sizeOf    _ = #{size c_css_value_t}
   alignment _ = #{alignment c_css_value_t}
@@ -561,6 +563,33 @@ instance Storable FfiCssValue where
     b <- #{peek c_css_value_t, c_int_val}  ptr
     c <- #{peek c_css_value_t, c_text_val} ptr
     return (FfiCssValue a b c)
+
+
+
+
+data FfiCssDeclarations = FfiCssDeclarations {
+    isSafeC            :: CInt
+  , declarationsCountC :: CInt
+  , declarationsC      :: Ptr FfiCssDeclaration
+  } deriving (Show)
+
+
+
+
+instance Storable FfiCssDeclarations where
+  sizeOf    _ = #{size c_css_declaration_list_t}
+  alignment _ = #{alignment c_css_declaration_list_t}
+
+  poke ptr (FfiCssDeclarations argIsSafe argDeclarationsCount argDeclarations ) = do
+    #{poke c_css_declaration_list_t, c_is_safe}            ptr argIsSafe
+    #{poke c_css_declaration_list_t, c_declarations_count} ptr argDeclarationsCount
+    #{poke c_css_declaration_list_t, c_declarations}  ptr argDeclarations
+
+  peek ptr = do
+    a <- #{peek c_css_declaration_list_t, c_is_safe}            ptr
+    b <- #{peek c_css_declaration_list_t, c_declarations_count} ptr
+    c <- #{peek c_css_declaration_list_t, c_declarations}       ptr
+    return (FfiCssDeclarations a b c)
 
 
 
@@ -595,17 +624,48 @@ hll_parseDeclaration ptrStructCssParser ptrStructCssToken cBuf ptrStructCssValue
 
 updateDeclarations :: Ptr FfiCssDeclaration -> [CssDeclaration] -> IO ()
 updateDeclarations ptrStructDeclaration (d:ds) = do
-  ptrString <- newCString . T.unpack . textVal . value $ d
-  let t = cssValueTypeToInt . typeTag . value $ d
-  ptrStructCssValue <- callocBytes #{size c_css_value_t}
-  poke ptrStructCssValue $ FfiCssValue (fromIntegral t) (fromIntegral . intVal . value $ d) ptrString
-
-  poke ptrStructDeclaration $ FfiCssDeclaration ptrStructCssValue (if important d then 1 else 0) (fromIntegral . property $ d)
-
+  pokeSingleDeclaration ptrStructDeclaration d
   updateDeclarations (advancePtr ptrStructDeclaration 1) ds
 updateDeclarations ptrStructDeclaration [] = return ()
 
 
+
+pokeSingleDeclaration :: Ptr FfiCssDeclaration -> CssDeclaration -> IO ()
+pokeSingleDeclaration ptrStructDeclaration declaration = do
+  ptrString <- newCString . T.unpack . textVal . value $ declaration
+  let t = cssValueTypeToInt . typeTag . value $ declaration
+  ptrStructCssValue <- callocBytes #{size c_css_value_t}
+  poke ptrStructCssValue $ FfiCssValue (fromIntegral t) (fromIntegral . intVal . value $ declaration) ptrString
+  poke ptrStructDeclaration $ FfiCssDeclaration ptrStructCssValue (if important declaration then 1 else 0) (fromIntegral . property $ declaration)
+  return ()
+
+
+
+hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarations -> Ptr FfiCssDeclaration -> IO Int
+hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationList ptrStructDeclaration = do
+  declaration :: FfiCssDeclaration    <- peek ptrStructDeclaration
+  declarations :: FfiCssDeclarations  <- peek ptrStructDeclarationList
+
+  let isSafe = isSafeC declarations
+  let count = declarationsCountC declarations
+
+  let v = ptrValueC declaration
+  let i = importantC declaration
+  let p = propertyC declaration
+
+  let ptrStructDeclaration :: Ptr FfiCssDeclaration = declarationsC declarations
+  -- First non-occupied slot in the array, where we want to "Add" new
+  -- declaration (the declaration passed to this function).
+  let ptrStructDeclarationEmpty = advancePtr ptrStructDeclaration (fromIntegral count)
+
+  newDeclaration <- callocBytes #{size c_css_declaration_t}
+  poke newDeclaration $ FfiCssDeclaration v i p
+
+  pokeByteOff ptrStructDeclarationList ((#offset c_css_declaration_list_t, c_declarations) + (((fromIntegral count)) * 8)) newDeclaration
+  pokeByteOff ptrStructDeclarationList (#offset c_css_declaration_list_t, c_is_safe) isSafe
+  pokeByteOff ptrStructDeclarationList (#offset c_css_declaration_list_t, c_declarations_count) (count + 1)
+
+  return 0
 
 
 cssValueTypeToInt valueType = case valueType of
