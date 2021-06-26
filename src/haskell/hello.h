@@ -152,6 +152,9 @@ int hll_parseDeclaration(c_css_parser_t * hll_parser, c_css_token_t * token, con
 
 int hll_declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * declaration);
 
+void hll_parseDeclarationWrapper(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder,
+                                 c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

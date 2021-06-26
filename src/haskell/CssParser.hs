@@ -121,6 +121,7 @@ module CssParser(nextToken
                 , CssValueType (..)
                 , CssDeclaration (..)
                 , parseDeclaration
+                , parseDeclarationWrapper2
                 , takePropertyTokens
                 , defaultDeclaration
 
@@ -2031,11 +2032,32 @@ tryShorthand (parser, token) shorthandIdx = parseDeclarationShorthand (parser, t
 -- list. But a shorthand declaration translates into two or more regular
 -- declarations, hence the return type contains a list of declarations.
 parseDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-parseDeclaration (parser, token) = ((outParser, outToken), declarations)
-  -- TODO: add setting 'important' field of declarations here
+parseDeclaration (p1, t1) = ((outParser, outToken), declarationsWithImportant)
   where
-    ((p2, t2), declarations) = parseDeclarationWrapper (parser, token)
-    (outParser, outToken) = consumeRestOfDeclaration (p2, t2)
+    ((p2, t2), declarations) = parseDeclarationWrapper (p1, t1)
+    ((p3, t3), important) = cssParseWeight (p2, t2)
+    declarationsWithImportant = if important
+                                then markAsImportant <$> declarations
+                                else declarations
+    (outParser, outToken) = consumeRestOfDeclaration (p3, t3)
+
+    markAsImportant inDecl = inDecl{important = True}
+
+
+
+
+
+parseDeclarationWrapper2 :: (CssParser, CssToken) -> (CssDeclarationSet, CssDeclarationSet) -> ((CssParser, CssToken), (CssDeclarationSet, CssDeclarationSet))
+parseDeclarationWrapper2 (p1, t1) (inSet, inSetImp) = ((p2, t2), (outSet, outSetImp))
+  where
+    ((p2, t2), declarations) = parseDeclaration (p1, t1)
+    (outSet, outSetImp) = appendDeclarations declarations inSet inSetImp
+
+    appendDeclarations :: [CssDeclaration] -> CssDeclarationSet -> CssDeclarationSet -> (CssDeclarationSet, CssDeclarationSet)
+    appendDeclarations [] set setImp     = (set, setImp)
+    appendDeclarations (d:ds) set setImp = if important d
+                                           then appendDeclarations ds set (declarationSetUpdateOrAdd setImp d)
+                                           else appendDeclarations ds (declarationSetUpdateOrAdd set d) setImp
 
 
 

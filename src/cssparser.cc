@@ -40,9 +40,6 @@ void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 void ignoreBlock(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 void ignoreStatement(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
 
-static void parseDeclarationWrapper(CssParser * parser, c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant);
-
-
 
 /* ----------------------------------------------------------------------
  *    Parsing
@@ -83,22 +80,6 @@ void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
 #endif
 }
 
-void parseDeclarationWrapper(CssParser * parser, c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant)
-{
-   c_css_declaration_t * declarations = (c_css_declaration_t *) calloc(12, sizeof (c_css_declaration_t));
-   int n = hll_parseDeclaration(&parser->hll_css_parser,
-                                &parser->tokenizer.token,
-                                parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
-                                declarations);
-   for (int v = 0; v < n; v++) {
-      if (declarations[v].c_important) {
-         hll_declarationListAddOrUpdateDeclaration(declListImportant, &declarations[v]);
-      } else {
-         hll_declarationListAddOrUpdateDeclaration(declList, &declarations[v]);
-      }
-   }
-}
-
 void parseRuleset(CssParser * parser, CssContext * context)
 {
    c_css_selector_t * selectors = (c_css_selector_t *) calloc(100, sizeof (c_css_selector_t));
@@ -115,9 +96,9 @@ void parseRuleset(CssParser * parser, CssContext * context)
       parser->hll_css_parser.c_in_block = true;
       nextToken(&parser->tokenizer, &parser->hll_css_parser);
       do {
-         parseDeclarationWrapper(parser, declList, declListImportant);
-      } while (!(parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_END ||
-               (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == '}')));
+         hll_parseDeclarationWrapper(&parser->hll_css_parser, &parser->tokenizer.token, parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
+                                     declList, declListImportant);
+      } while (!(parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_END || (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == '}')));
       parser->hll_css_parser.c_in_block = false;
    }
 
@@ -315,7 +296,8 @@ void CssParser::parseElementStyleAttribute(const DilloUrl *baseUrl,
    parser.hll_css_parser.c_in_block = true;
 
    do {
-      parseDeclarationWrapper(&parser, declList, declListImportant);
+      hll_parseDeclarationWrapper(&parser.hll_css_parser, &parser.tokenizer.token, parser.tokenizer.buf + parser.hll_css_parser.c_buf_offset,
+                                  declList, declListImportant);
    } while (!(parser.tokenizer.token.c_type == CSS_TOKEN_TYPE_END || (parser.tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser.tokenizer.token.c_value[0] == '}')));
 }
 

@@ -21,6 +21,9 @@ void cssValueCopy(c_css_value_t * dest, c_css_value_t * src);
 
 void printCssDeclaration(c_css_declaration_t * declaration, FILE * file)
 {
+   if (declaration->c_important) {
+      fprintf(file, "important = true\n");
+   }
    switch (declaration->c_value->c_type_tag) {
    case CssDeclarationValueTypeSTRING:
    case CssDeclarationValueTypeSYMBOL:
@@ -117,6 +120,7 @@ void declarationListAppend(const c_css_declaration_set_t * declList, c_css_decla
       c_css_declaration_t * existing_decl = &declList->c_declarations[i];
 
       c_css_declaration_t * new_decl = new c_css_declaration_t;
+      new_decl->c_important = existing_decl->c_important;
       new_decl->c_property = existing_decl->c_property;
       new_decl->c_value = (c_css_value_t *) calloc(1, sizeof (c_css_value_t));
       cssValueCopy(new_decl->c_value, existing_decl->c_value);

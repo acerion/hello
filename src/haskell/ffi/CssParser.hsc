@@ -64,6 +64,7 @@ foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
 foreign export ccall "hll_parseDeclaration" hll_parseDeclaration :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssDeclaration -> IO Int
+foreign export ccall "hll_parseDeclarationWrapper" hll_parseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 
 foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
 
@@ -625,6 +626,43 @@ hll_parseDeclaration ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDecla
 
 
 
+
+hll_parseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDeclarationSet ptrStructCssDeclarationSetImp = do
+  buf       <- BSU.unsafePackCString $ cBuf
+  ffiParser <- peek ptrStructCssParser
+
+  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
+                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
+                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
+                            }
+
+  ffiToken <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
+  let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
+
+  ffiDeclSet :: FfiCssDeclarationSet <- peek ptrStructCssDeclarationSet
+  declSet    :: CssDeclarationSet <- ffiDeclarationSetToDeclarationSet ffiDeclSet
+
+  ffiDeclSetImp :: FfiCssDeclarationSet <- peek ptrStructCssDeclarationSetImp
+  declSetImp    :: CssDeclarationSet <- ffiDeclarationSetToDeclarationSet ffiDeclSetImp
+
+  let ((newParser, newToken), (newDeclSet, newDeclSetImp)) = parseDeclarationWrapper2 (parser, token) (declSet, declSetImp)
+
+  updateParserStruct ptrStructCssParser newParser
+  updateTokenStruct ptrStructCssToken newToken
+
+  updateDeclartionsSet ptrStructCssDeclarationSet ffiDeclSet newDeclSet
+  updateDeclartionsSet ptrStructCssDeclarationSetImp ffiDeclSetImp newDeclSetImp
+
+  when ((length . items $ newDeclSetImp) > 0) (putStrLn ("important decl set = " ++ (show newDeclSetImp)))
+
+  return ()
+
+
+
+
 updateDeclarationsArray :: Ptr FfiCssDeclaration -> [CssDeclaration] -> IO ()
 updateDeclarationsArray ptrStructDeclaration (d:ds) = do
   when (ptrStructDeclaration == nullPtr) (trace ("Error: argument is null pointer in updateDeclarationsArray") putStr (""))
@@ -665,14 +703,21 @@ hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDecla
   let newDeclSet = declarationSetUpdateOrAdd declSet decl
   --putStrLn ("Declaration set after update = " ++ (show newDeclSet))
 
+  updateDeclartionsSet ptrStructDeclarationSet ffiDeclSet newDeclSet
+
+  return 0
+
+
+
+updateDeclartionsSet :: Ptr FfiCssDeclarationSet -> FfiCssDeclarationSet -> CssDeclarationSet -> IO ()
+updateDeclartionsSet ptrStructDeclarationSet ffiDeclSet newDeclSet = do
   updateDeclarationsArray (ptrDeclarationsC ffiDeclSet) (Foldable.toList . items $ newDeclSet)
 
   let cIsSafe :: CInt = if isSafe newDeclSet then 1 else 0
   let cCount  :: CInt = fromIntegral . length . items $ newDeclSet
   poke ptrStructDeclarationSet $ FfiCssDeclarationSet cIsSafe cCount (ptrDeclarationsC ffiDeclSet)
 
-  return 0
-
+  return ()
 
 
 
