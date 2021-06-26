@@ -92,9 +92,9 @@ void parseDeclarationWrapper(CssParser * parser, c_css_declaration_set_t * declL
                                 declarations);
    for (int v = 0; v < n; v++) {
       if (declarations[v].c_important) {
-         declarationListAddOrUpdateDeclaration(declListImportant, &declarations[v]);
+         hll_declarationListAddOrUpdateDeclaration(declListImportant, &declarations[v]);
       } else {
-         declarationListAddOrUpdateDeclaration(declList, &declarations[v]);
+         hll_declarationListAddOrUpdateDeclaration(declList, &declarations[v]);
       }
    }
 }

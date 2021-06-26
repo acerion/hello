@@ -38,9 +38,12 @@ import qualified Data.Text.IO as T.IO
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Vector as V
+import qualified Data.Sequence as S
+import qualified Data.Foldable as Foldable
 import Control.Applicative
 import Control.Monad -- when
 import CssParser
+import Debug.Trace
 
 
 
@@ -510,9 +513,9 @@ setArrayOfPointers (x:xs) f ptrParent byteOffset = do
 
 
 data FfiCssDeclaration = FfiCssDeclaration {
-    ptrValueC  :: Ptr FfiCssValue
-  , importantC :: CInt
+    importantC :: CInt
   , propertyC  :: CInt
+  , ptrValueC  :: Ptr FfiCssValue
   } deriving (Show)
 
 
@@ -522,24 +525,26 @@ instance Storable FfiCssDeclaration where
   sizeOf    _ = #{size c_css_declaration_t}
   alignment _ = #{alignment c_css_declaration_t}
 
-  poke ptr (FfiCssDeclaration argPtrStructValue argImportant argProperty ) = do
-    #{poke c_css_declaration_t, c_value}     ptr argPtrStructValue
+  poke ptr (FfiCssDeclaration argImportant argProperty argPtrStructValue) = do
     #{poke c_css_declaration_t, c_important} ptr argImportant
     #{poke c_css_declaration_t, c_property}  ptr argProperty
+    #{poke c_css_declaration_t, c_value}     ptr argPtrStructValue
 
   peek ptr = do
-    a <- #{peek c_css_declaration_t, c_value}     ptr
-    b <- #{peek c_css_declaration_t, c_important} ptr
-    c <- #{peek c_css_declaration_t, c_property}  ptr
+    a <- #{peek c_css_declaration_t, c_important} ptr
+    b <- #{peek c_css_declaration_t, c_property}  ptr
+    c <- #{peek c_css_declaration_t, c_value}     ptr
     return (FfiCssDeclaration a b c)
 
 
 
 
 data FfiCssValue = FfiCssValue {
-    typeTagC   :: CInt
-  , intValC    :: CInt
-  , textValC   :: CString
+    typeTagC    :: CInt
+  , intValC     :: CInt
+  , posXC       :: CInt
+  , posYC       :: CInt
+  , ptrTextValC :: CString
   } deriving (Show)
 
 
@@ -549,16 +554,20 @@ instance Storable FfiCssValue where
   sizeOf    _ = #{size c_css_value_t}
   alignment _ = #{alignment c_css_value_t}
 
-  poke ptr (FfiCssValue argTypeTag argIntVal argTextVal) = do
+  poke ptr (FfiCssValue argTypeTag argIntVal argX argY argTextVal) = do
     #{poke c_css_value_t, c_type_tag} ptr argTypeTag
     #{poke c_css_value_t, c_int_val}  ptr argIntVal
+    #{poke c_css_value_t, c_bg_pos_x} ptr argX
+    #{poke c_css_value_t, c_bg_pos_y} ptr argY
     #{poke c_css_value_t, c_text_val} ptr argTextVal
 
   peek ptr = do
     a <- #{peek c_css_value_t, c_type_tag} ptr
     b <- #{peek c_css_value_t, c_int_val}  ptr
-    c <- #{peek c_css_value_t, c_text_val} ptr
-    return (FfiCssValue a b c)
+    c <- #{peek c_css_value_t, c_bg_pos_x} ptr
+    d <- #{peek c_css_value_t, c_bg_pos_y} ptr
+    e <- #{peek c_css_value_t, c_text_val} ptr
+    return (FfiCssValue a b c d e)
 
 
 
@@ -566,7 +575,7 @@ instance Storable FfiCssValue where
 data FfiCssDeclarationSet = FfiCssDeclarationSet {
     isSafeC            :: CInt
   , declarationsCountC :: CInt
-  , declarationsC      :: Ptr FfiCssDeclaration
+  , ptrDeclarationsC   :: Ptr FfiCssDeclaration
   } deriving (Show)
 
 
@@ -576,7 +585,7 @@ instance Storable FfiCssDeclarationSet where
   sizeOf    _ = #{size c_css_declaration_set_t}
   alignment _ = #{alignment c_css_declaration_set_t}
 
-  poke ptr (FfiCssDeclarationSet argIsSafe argDeclarationsCount argDeclarations ) = do
+  poke ptr (FfiCssDeclarationSet argIsSafe argDeclarationsCount argDeclarations) = do
     #{poke c_css_declaration_set_t, c_is_safe}            ptr argIsSafe
     #{poke c_css_declaration_set_t, c_declarations_count} ptr argDeclarationsCount
     #{poke c_css_declaration_set_t, c_declarations}       ptr argDeclarations
@@ -609,57 +618,123 @@ hll_parseDeclaration ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDecla
 
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
-  updateDeclarations ptrStructCssDeclaration declarations
+  updateDeclarationsArray ptrStructCssDeclaration declarations
 
   return (length declarations)
 
 
 
 
-updateDeclarations :: Ptr FfiCssDeclaration -> [CssDeclaration] -> IO ()
-updateDeclarations ptrStructDeclaration (d:ds) = do
+updateDeclarationsArray :: Ptr FfiCssDeclaration -> [CssDeclaration] -> IO ()
+updateDeclarationsArray ptrStructDeclaration (d:ds) = do
+  when (ptrStructDeclaration == nullPtr) (trace ("Error: argument is null pointer in updateDeclarationsArray") putStr (""))
   pokeSingleDeclaration ptrStructDeclaration d
-  updateDeclarations (advancePtr ptrStructDeclaration 1) ds
-updateDeclarations ptrStructDeclaration [] = return ()
+  updateDeclarationsArray (advancePtr ptrStructDeclaration 1) ds
+updateDeclarationsArray ptrStructDeclaration [] = return ()
 
 
 
 pokeSingleDeclaration :: Ptr FfiCssDeclaration -> CssDeclaration -> IO ()
 pokeSingleDeclaration ptrStructDeclaration declaration = do
   ptrString <- newCString . T.unpack . textVal . declValue $ declaration
-  let t = cssValueTypeToInt . typeTag . declValue $ declaration
+  let t :: CInt = fromIntegral . cssValueTypeToInt . typeTag . declValue $ declaration
+  let i :: CInt = fromIntegral . intVal . declValue $ declaration
   ptrStructCssValue <- callocBytes #{size c_css_value_t}
-  poke ptrStructCssValue $ FfiCssValue (fromIntegral t) (fromIntegral . intVal . declValue $ declaration) ptrString
-  poke ptrStructDeclaration $ FfiCssDeclaration ptrStructCssValue (if important declaration then 1 else 0) (fromIntegral . property $ declaration)
+  poke ptrStructCssValue $ FfiCssValue t i 0 0 ptrString
+
+  let imp :: CInt = if important declaration then 1 else 0
+  let prop :: CInt = fromIntegral . property $ declaration
+  poke ptrStructDeclaration $ FfiCssDeclaration imp prop ptrStructCssValue
+
   return ()
 
 
 
 hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
 hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDeclaration = do
-  decl    :: FfiCssDeclaration    <- peek ptrStructDeclaration
-  declSet :: FfiCssDeclarationSet <- peek ptrStructDeclarationSet
 
-  let isSafe = isSafeC declSet
-  let count = declarationsCountC declSet
+  when (ptrStructDeclarationSet == nullPtr) (trace ("Error: first arg to declarationListAddOrUpdateDeclaration is null pointer") putStr (""))
 
-  let v = ptrValueC decl
-  let i = importantC decl
-  let p = propertyC decl
+  ffiDeclSet :: FfiCssDeclarationSet <- peek ptrStructDeclarationSet
+  declSet    :: CssDeclarationSet <- ffiDeclarationSetToDeclarationSet ffiDeclSet
 
-  let ptrStructDeclaration :: Ptr FfiCssDeclaration = declarationsC declSet
-  -- First non-occupied slot in the array, where we want to "Add" new
-  -- declaration (the declaration passed to this function).
-  let ptrStructDeclarationEmpty = advancePtr ptrStructDeclaration (fromIntegral count)
+  ffiDecl :: FfiCssDeclaration    <- peek ptrStructDeclaration
+  decl    :: CssDeclaration       <- ffiDeclarationToDeclaration ffiDecl
 
-  newDecl <- callocBytes #{size c_css_declaration_t}
-  poke newDecl $ FfiCssDeclaration v i p
+  --putStrLn ("Declaration set before update = " ++ (show declSet))
+  let newDeclSet = declarationSetUpdateOrAdd declSet decl
+  --putStrLn ("Declaration set after update = " ++ (show newDeclSet))
 
-  pokeByteOff ptrStructDeclarationSet ((#offset c_css_declaration_set_t, c_declarations) + ((fromIntegral count) * 8)) newDecl
-  pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_is_safe) isSafe
-  pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_declarations_count) (count + 1)
+  updateDeclarationsArray (ptrDeclarationsC ffiDeclSet) (Foldable.toList . items $ newDeclSet)
+
+  let cIsSafe :: CInt = if isSafe newDeclSet then 1 else 0
+  let cCount  :: CInt = fromIntegral . length . items $ newDeclSet
+  poke ptrStructDeclarationSet $ FfiCssDeclarationSet cIsSafe cCount (ptrDeclarationsC ffiDeclSet)
 
   return 0
+
+
+
+
+-- TODO: necessity to have this function is probably a sign of bad style.
+flipIoArray :: [IO a] -> [a] -> IO [a]
+flipIoArray list acc = do
+  if length list > 0
+    then do
+    c <- (head list)
+    flipIoArray (tail list) (acc ++ [c])
+    else return acc
+
+
+
+
+ffiDeclarationSetToDeclarationSet :: FfiCssDeclarationSet -> IO CssDeclarationSet
+ffiDeclarationSetToDeclarationSet ffiDeclSet = do
+
+  when (ptrDeclarationsC ffiDeclSet == nullPtr) (trace ("Error: null pointer inside of declaration set") putStr (""))
+
+  let len = (fromIntegral . declarationsCountC $ ffiDeclSet)
+  let ptr :: Ptr FfiCssDeclaration = ptrDeclarationsC ffiDeclSet
+  ffiArray <- peekArray len ptr
+  let ioArray :: [IO CssDeclaration] = ffiDeclarationToDeclaration <$> ffiArray
+  array <- flipIoArray ioArray []
+  return CssDeclarationSet{ isSafe = isSafeC ffiDeclSet > 0
+                          , items = S.fromList array
+                          }
+
+
+
+
+ffiCssValueToCssValue :: FfiCssValue -> IO CssValue
+ffiCssValueToCssValue ffiCssValue = do
+  --when (ptrTextValC ffiCssValue == nullPtr) (trace ("Error: ffiCssValueToCssValue: null pointer inside of css value") putStr (""))
+
+  let e = ptrTextValC ffiCssValue == nullPtr
+  emptyString <- newCString ""
+
+  buf :: BS.ByteString <- BSU.unsafePackCString (if e then emptyString else ptrTextValC ffiCssValue)
+  let v = CssValue{ typeTag = toCssValueType. fromIntegral . typeTagC $ ffiCssValue
+                  , intVal = fromIntegral . intValC $ ffiCssValue
+                  , textVal = T.E.decodeLatin1 $ buf
+                  }
+  return v
+
+
+
+
+ffiDeclarationToDeclaration :: FfiCssDeclaration -> IO CssDeclaration
+ffiDeclarationToDeclaration ffiDecl = do
+
+  when (ptrValueC ffiDecl == nullPtr) (trace ("Error: null pointer inside of declaration") putStr (""))
+
+  ffiCssValue :: FfiCssValue <- peek . ptrValueC $ ffiDecl
+  cssValue <- ffiCssValueToCssValue ffiCssValue
+
+  return defaultDeclaration{ property = fromIntegral . propertyC $ ffiDecl
+                           , declValue = cssValue
+                           , important = importantC ffiDecl > 0}
+
+
 
 
 cssValueTypeToInt valueType = case valueType of

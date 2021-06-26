@@ -37,8 +37,8 @@ void printCssDeclaration(c_css_declaration_t * declaration, FILE * file)
       } else {
          fprintf (file, "            Rule: Declaration: property = '%s', posValue = %d / %d\n",
                   hll_cssPropertyNameString(declaration->c_property),
-                  declaration->c_value->c_bg_pos.c_pos_x,
-                  declaration->c_value->c_bg_pos.c_pos_y);
+                  declaration->c_value->c_bg_pos_x,
+                  declaration->c_value->c_bg_pos_y);
       }
       break;
    default:
@@ -54,20 +54,25 @@ void printCssDeclaration(c_css_declaration_t * declaration, FILE * file)
 
 c_css_declaration_set_t * declarationListNew(void)
 {
-   c_css_declaration_set_t * list = (c_css_declaration_set_t *) calloc(1, sizeof (c_css_declaration_set_t));
-   list->c_is_safe = true;
-   return list;
+   c_css_declaration_set_t * set = (c_css_declaration_set_t *) calloc(1, sizeof (c_css_declaration_set_t));
+   set->c_is_safe = true;
+   set->c_declarations = (c_css_declaration_t *) calloc(DECLARATIONS_COUNT_IN_SET, sizeof (c_css_declaration_t));
+   for (int i = 0; i < DECLARATIONS_COUNT_IN_SET; i++) {
+      set->c_declarations[i].c_value = (c_css_value_t *) calloc(1, sizeof (c_css_value_t));
+   }
+
+   return set;
 }
 
 c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * inDeclList)
 {
-   c_css_declaration_set_t * out = (c_css_declaration_set_t *) calloc(1, sizeof (c_css_declaration_set_t));
+   c_css_declaration_set_t * out = declarationListNew();
 
-   memcpy(out->c_declarations, inDeclList->c_declarations, sizeof (out->c_declarations));
+   memcpy(out->c_declarations, inDeclList->c_declarations, DECLARATIONS_COUNT_IN_SET * sizeof (c_css_declaration_set_t));
    out->c_is_safe = inDeclList->c_is_safe;
 
    for (int i = 0; i < out->c_declarations_count; i++) {
-      c_css_declaration_t * decl = out->c_declarations[i];
+      c_css_declaration_t * decl = &out->c_declarations[i];
       switch (decl->c_value->c_type_tag) {
       case CssDeclarationValueTypeSTRING:
       case CssDeclarationValueTypeSYMBOL:
@@ -88,7 +93,7 @@ void declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, C
    decl->c_value = (c_css_value_t *) calloc(1, sizeof (c_css_value_t));
    cssValueCopy(decl->c_value, &value);
 
-   declarationListAddOrUpdateDeclaration(declList, decl);
+   hll_declarationListAddOrUpdateDeclaration(declList, decl);
 }
 
 
@@ -96,7 +101,8 @@ void cssValueCopy(c_css_value_t * dest, c_css_value_t * src)
 {
    dest->c_type_tag = src->c_type_tag;
    dest->c_int_val  = src->c_int_val;
-   dest->c_bg_pos   = src->c_bg_pos;
+   dest->c_bg_pos_x = src->c_bg_pos_x;
+   dest->c_bg_pos_y = src->c_bg_pos_y;
    if (src->c_type_tag == CssDeclarationValueTypeSTRING || src->c_type_tag == CssDeclarationValueTypeSYMBOL) {
       dest->c_text_val = strdup(src->c_text_val);
    }
@@ -104,45 +110,25 @@ void cssValueCopy(c_css_value_t * dest, c_css_value_t * src)
 
 
 /**
- * \brief Set property to a given name and type.
- */
-void declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * in)
-{
-   if (in->c_property == CSS_PROPERTY_DISPLAY || in->c_property == CSS_PROPERTY_BACKGROUND_IMAGE)
-      declList->c_is_safe = false;
-
-   for (int i = 0; i < declList->c_declarations_count; i++) {
-      c_css_declaration_t * decl = declList->c_declarations[i];
-
-      if (decl->c_property == in->c_property) {
-         decl->c_value = in->c_value;
-         return;
-      }
-   }
-
-   hll_declarationListAddOrUpdateDeclaration(declList, in);
-}
-
-/**
  * \brief Merge properties into argument property list.
  */
 void declarationListAppend(const c_css_declaration_set_t * declList, c_css_declaration_set_t * targetDeclList) {
    for (int i = 0; i < declList->c_declarations_count; i++) {
-      c_css_declaration_t * existing_decl = declList->c_declarations[i];
+      c_css_declaration_t * existing_decl = &declList->c_declarations[i];
 
       c_css_declaration_t * new_decl = new c_css_declaration_t;
       new_decl->c_property = existing_decl->c_property;
       new_decl->c_value = (c_css_value_t *) calloc(1, sizeof (c_css_value_t));
       cssValueCopy(new_decl->c_value, existing_decl->c_value);
 
-      declarationListAddOrUpdateDeclaration(targetDeclList, new_decl);
+      hll_declarationListAddOrUpdateDeclaration(targetDeclList, new_decl);
    }
 }
 
 void declarationListPrint(c_css_declaration_set_t * declList, FILE * file)
 {
    for (int i = 0; i < declList->c_declarations_count; i++)
-      printCssDeclaration(declList->c_declarations[i], file);
+      printCssDeclaration(&declList->c_declarations[i], file);
 }
 
 /**

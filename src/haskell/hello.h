@@ -63,34 +63,31 @@ typedef struct c_css_selector_t {
 } c_css_selector_t;
 
 
-typedef struct c_css_background_pos_t {
-   int32_t c_pos_x;
-   int32_t c_pos_y;
-} c_css_background_pos_t;
-
 typedef struct c_css_value_t {
    int c_type_tag;
    int c_int_val;
+   int32_t c_bg_pos_x;
+   int32_t c_bg_pos_y;
    char * c_text_val;
-   c_css_background_pos_t c_bg_pos;
 } c_css_value_t;
 
 /**
  * \brief This class holds a CSS declaration: a pair of property and value.
  */
 typedef struct c_css_declaration_t {
+   int c_important;
    int c_property;
    c_css_value_t * c_value;
-   int c_important;
 } c_css_declaration_t;
 
 /**
  * \brief A list of c_css_declaration_t objects.
  */
+#define DECLARATIONS_COUNT_IN_SET 100
 typedef struct c_css_declaration_set_t {
-   bool c_is_safe; // TODO: this should be true by default
+   int c_is_safe; // TODO: this should be true by default
    int c_declarations_count;
-   c_css_declaration_t * c_declarations[100];
+   c_css_declaration_t * c_declarations;
 } c_css_declaration_set_t;
 
 typedef struct c_css_token_t {

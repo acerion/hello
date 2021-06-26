@@ -122,6 +122,11 @@ module CssParser(nextToken
                 , CssDeclaration (..)
                 , parseDeclaration
                 , takePropertyTokens
+                , defaultDeclaration
+
+                , declarationSetUpdateOrAdd
+                , CssDeclarationSet (..)
+                , defaultCssDeclarationSet
 
                 , consumeName
 
@@ -140,6 +145,7 @@ import qualified HelloUtils as HU
 import qualified Data.Vector as V
 import qualified Data.List as L
 import qualified Data.Map as M
+import qualified Data.Sequence as S
 import Data.Bits
 import Colors
 import HelloUtils
@@ -1791,6 +1797,7 @@ removeSpaceTokens [] acc                             = acc
 
 
 
+-- TODO: add background position fields (x/y).
 data CssValue = CssValue {
     typeTag :: CssValueType
   , intVal  :: Int
@@ -1834,6 +1841,22 @@ defaultDeclaration = CssDeclaration
   , important = False
   }
 
+
+
+
+-- The isSafe flag compilcates this data type. I have to declare a new "Set"
+-- type that is a wrapper around list of declarations + that one boolean
+-- flag.
+data CssDeclarationSet = CssDeclarationSet
+  { isSafe :: Bool
+  , items  :: S.Seq CssDeclaration
+  } deriving (Show)
+
+
+defaultCssDeclarationSet = CssDeclarationSet
+  { isSafe = True
+  , items  = S.fromList []
+  }
 
 
 
@@ -2037,3 +2060,21 @@ takeAllTokens (parser,token) = do
     then return p
     else takeAllTokens . nextToken $ p
 -}
+
+
+
+
+declarationSetUpdateOrAdd :: CssDeclarationSet -> CssDeclaration -> CssDeclarationSet
+declarationSetUpdateOrAdd declSet decl =
+  case S.findIndexL pred seq of
+    Just idx -> CssDeclarationSet {items = S.update idx decl seq, isSafe = newSafe declSet decl}
+    Nothing  -> CssDeclarationSet {items = seq S.|> decl, isSafe = newSafe declSet decl}
+  where
+    pred :: CssDeclaration -> Bool
+    pred x = property x == property decl
+
+    seq = items declSet
+
+    newSafe :: CssDeclarationSet -> CssDeclaration -> Bool
+    newSafe declSet decl = (isSafe declSet)
+                           && (not $ elem (property decl) [cssDeclPropertyDisplay, cssDeclPropertyBackgroundImage])

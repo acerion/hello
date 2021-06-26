@@ -365,7 +365,7 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, c_css_declaration_set_t * decl
 
    /* Determine font first so it can be used to resolve relative lengths. */
    for (int j = 0; j < declList->c_declarations_count; j++) {
-      c_css_declaration_t * decl = declList->c_declarations[j];
+      c_css_declaration_t * decl = &declList->c_declarations[j];
 
       switch (decl->c_property) {
          case CSS_PROPERTY_FONT_FAMILY:
@@ -513,7 +513,7 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, c_css_declaration_set_t * decl
    attrs->font = Font::create (layout, &fontAttrs);
 
    for (int j = 0; j < declList->c_declarations_count; j++) {
-      c_css_declaration_t * decl = declList->c_declarations[j];
+      c_css_declaration_t * decl = &declList->c_declarations[j];
 
       switch (decl->c_property) {
          /* \todo missing cases */
@@ -534,9 +534,9 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, c_css_declaration_set_t * decl
             break;
          case CSS_PROPERTY_BACKGROUND_POSITION:
             CssLength cssLength;
-            cssLength.bits = decl->c_value->c_bg_pos.c_pos_x;
+            cssLength.bits = decl->c_value->c_bg_pos_x;
             computeLength (&attrs->backgroundPositionX, cssLength, attrs->font);
-            cssLength.bits = decl->c_value->c_bg_pos.c_pos_y;
+            cssLength.bits = decl->c_value->c_bg_pos_y;
             computeLength (&attrs->backgroundPositionY, cssLength, attrs->font);
             break;
          case CSS_PROPERTY_BACKGROUND_REPEAT:
@@ -882,15 +882,14 @@ Style * StyleEngine::getStyle0 (int i, BrowserWindow *bw) {
    c_css_declaration_set_t * declListNonCss    = styleNodesStack->getRef(i)->declListNonCss;
 
    // merge style information
-   c_css_declaration_set_t mergedDeclList;
-   memset(&mergedDeclList, 0, sizeof (mergedDeclList));
-   cssContext->apply_css_context(&mergedDeclList, doctree, styleNodesStack->getRef(i)->doctreeNode,
+   c_css_declaration_set_t * mergedDeclList = declarationListNew();
+   cssContext->apply_css_context(mergedDeclList, doctree, styleNodesStack->getRef(i)->doctreeNode,
                                  declList,
                                  declListImportant,
                                  declListNonCss);
 
    // apply style
-   apply(i, &attrs, &mergedDeclList, bw);
+   apply(i, &attrs, mergedDeclList, bw);
 
    postprocessAttrs(&attrs);
 

@@ -47,7 +47,7 @@ class StyleEngine {
          Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
 
          if (!n->declListNonCss)
-            n->declListNonCss = (c_css_declaration_set_t *) calloc(1, sizeof (c_css_declaration_set_t));
+            n->declListNonCss = declarationListNew();
 
          value.c_type_tag = type;
          declarationListAddOrUpdateDeclaration(n->declListNonCss, property, value);
