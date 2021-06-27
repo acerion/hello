@@ -93,6 +93,16 @@ void parseRuleset(CssParser * parser, CssContext * context)
 
    /* Read block. ('{' has already been read.) */
    if (parser->tokenizer.token.c_type != CSS_TOKEN_TYPE_END) {
+
+#if 0
+      if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR) {
+         fprintf(stderr, "++++++++++++++++ char '%c'\n", parser->tokenizer.token.c_value[0]);
+      } else if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT) {
+         fprintf(stderr, "++++++++++++++++ ident '%s'\n", parser->tokenizer.token.c_value);
+      } else {
+         fprintf(stderr, "++++++++++++++++ unknown '%d'\n", parser->tokenizer.token.c_type);
+      }
+#endif
       parser->hll_css_parser.c_in_block = true;
       nextToken(&parser->tokenizer, &parser->hll_css_parser);
       do {
@@ -283,21 +293,3 @@ void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
       }
    }
 }
-
-/* Parse CSS style information contained in "cssStyleAttribute". The buffer
-   contains value of "style" attribute of a html element. */
-void CssParser::parseElementStyleAttribute(const DilloUrl *baseUrl,
-                                           const char * cssStyleAttribute, int buflen,
-                                           c_css_declaration_set_t * declList,
-                                           c_css_declaration_set_t * declListImportant)
-{
-   CssParser parser(NULL, CSS_ORIGIN_AUTHOR, baseUrl, cssStyleAttribute, buflen);
-
-   parser.hll_css_parser.c_in_block = true;
-
-   do {
-      hll_parseDeclarationWrapper(&parser.hll_css_parser, &parser.tokenizer.token, parser.tokenizer.buf + parser.hll_css_parser.c_buf_offset,
-                                  declList, declListImportant);
-   } while (!(parser.tokenizer.token.c_type == CSS_TOKEN_TYPE_END || (parser.tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser.tokenizer.token.c_value[0] == '}')));
-}
-

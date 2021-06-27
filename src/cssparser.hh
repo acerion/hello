@@ -37,10 +37,6 @@ class CssParser {
       void parseImport(DilloHtml *html);
       void parseMedia();
 
-      static void parseElementStyleAttribute(const DilloUrl *baseUrl,
-                                             const char * cssStyleAttribute, int buflen,
-                                             c_css_declaration_set_t * declList,
-                                             c_css_declaration_set_t * declListImportant);
       static void parse(DilloHtml *html, const DilloUrl *baseUrl, CssContext *context,
                         const char *buf, int buflen, CssOrigin origin);
 };

@@ -124,6 +124,8 @@ module CssParser(nextToken
                 , parseDeclarationWrapper2
                 , takePropertyTokens
                 , defaultDeclaration
+                , parseElementStyleAttribute
+                , parseAllDeclarations
 
                 , declarationsSetUpdateOrAdd
                 , declarationsSetAppend
@@ -198,6 +200,7 @@ data CssToken =
 
 
 
+-- TODO: add baseUrl and Origin fields.
 data CssParser = CssParser {
     remainder      :: T.Text
   , spaceSeparated :: Bool
@@ -2154,3 +2157,44 @@ declarationsSetAppend target source = if S.null . items $ source
                                       else declarationsSetAppend
                                            (declarationsSetUpdateOrAdd target (S.index (items source) 0))
                                            source{items = S.drop 1 (items source)}
+
+
+
+
+{-
+Parse CSS style information contained in "cssStyleAttribute". The buffer
+contains value of "style" attribute of a html element.
+
+import qualified Data.Sequence as S
+let declSet    = CssDeclarationSet {isSafe = True, items = S.fromList []}
+let declSetImp = CssDeclarationSet {isSafe = True, items = S.fromList []}
+let cssStyleAttribute = "color: red !important; font-weight: bold"
+parseElementStyleAttribute "" cssStyleAttribute (declSet, declSetImp)
+-}
+parseElementStyleAttribute :: T.Text -> T.Text -> (CssDeclarationSet, CssDeclarationSet) -> (CssDeclarationSet, CssDeclarationSet)
+parseElementStyleAttribute baseUrl cssStyleAttribute (declSet, declSetImp) = (outDeclSet, outDeclSetImp)
+  where
+    ((p2, t2), (outDeclSet, outDeclSetImp)) = parseAllDeclarations ((p1, t1), (declSet, declSetImp))
+    (p1, t1) = nextToken parser -- Kick-off the parsing
+
+    {-
+      TODO: in original C++ code the parser was initialized like this:
+      CssParser parser(NULL,              -- CssContext object
+                       CSS_ORIGIN_AUTHOR, -- CssOrigin enum
+                       baseUrl, cssStyleAttribute, buflen);
+      Be sure to recreate this in final Haskell code.
+    -}
+    parser = CssParser{ remainder      = cssStyleAttribute
+                      , spaceSeparated = False
+                      , inBlock        = True -- There is no block enclosed in {}. but parser needs to behave as if we were in the block.
+                      , bufOffset      = 0
+                      }
+
+
+
+
+parseAllDeclarations :: ((CssParser, CssToken), (CssDeclarationSet, CssDeclarationSet)) -> ((CssParser, CssToken), (CssDeclarationSet, CssDeclarationSet))
+parseAllDeclarations ((p1, t1), (declSet, declSetImp)) | t1 == CssTokEnd    = ((p1, t1), (declSet, declSetImp))
+                                                       | t1 == CssTokCh '}' = ((p1, t1), (declSet, declSetImp))
+                                                       | otherwise = parseAllDeclarations (parseDeclarationWrapper2 (p1, t1) (declSet, declSetImp))
+

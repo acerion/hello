@@ -157,6 +157,9 @@ void hll_parseDeclarationWrapper(c_css_parser_t * hll_parser, c_css_token_t * to
 
 void hll_declarationListAppend(c_css_declaration_set_t * target, const c_css_declaration_set_t * source);
 
+void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const char * cssStyleAttribute, int buflen, c_css_declaration_set_t * declSet, c_css_declaration_set_t * declSetImp);
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

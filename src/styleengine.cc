@@ -201,8 +201,8 @@ void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
       n->declList = declarationListNew();
       n->declListImportant = declarationListNew();
 
-      CssParser::parseElementStyleAttribute(baseUrl, cssStyleAttribute, strlen (cssStyleAttribute),
-                                            n->declList, n->declListImportant);
+      hll_cssParseElementStyleAttribute(baseUrl, cssStyleAttribute, strlen (cssStyleAttribute),
+                                        n->declList, n->declListImportant);
    }
 }
 

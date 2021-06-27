@@ -69,7 +69,7 @@ foreign export ccall "hll_parseDeclarationWrapper" hll_parseDeclarationWrapper :
 foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
 
 foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-
+foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 
 #include "../hello.h"
 
@@ -796,6 +796,24 @@ ffiDeclarationToDeclaration ffiDecl = do
                            , important = importantC ffiDecl > 0}
 
 
+
+hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+hll_cssParseElementStyleAttribute ptrBaseUrl ptrStringCssStyleAttribute buflen ptrStructDeclSet ptrStructDeclSetImp = do
+
+  cssStyleAttribute <- BSU.unsafePackCStringLen (ptrStringCssStyleAttribute, fromIntegral buflen)
+
+  ffiDeclSet :: FfiCssDeclarationSet <- peek ptrStructDeclSet
+  declSet    :: CssDeclarationSet <- ffiDeclarationSetToDeclarationSet ffiDeclSet
+
+  ffiDeclSetImp :: FfiCssDeclarationSet <- peek ptrStructDeclSetImp
+  declSetImp    :: CssDeclarationSet <- ffiDeclarationSetToDeclarationSet ffiDeclSetImp
+
+  let (newDeclSet, newDeclSetImp) = parseElementStyleAttribute "" (T.E.decodeLatin1 cssStyleAttribute) (declSet, declSetImp)
+
+  updateDeclartionsSet ptrStructDeclSet ffiDeclSet newDeclSet
+  updateDeclartionsSet ptrStructDeclSetImp ffiDeclSetImp newDeclSetImp
+
+  return ()
 
 
 cssValueTypeToInt valueType = case valueType of
