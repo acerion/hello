@@ -155,6 +155,8 @@ int hll_declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList
 void hll_parseDeclarationWrapper(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder,
                                  c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant);
 
+void hll_declarationListAppend(c_css_declaration_set_t * target, const c_css_declaration_set_t * source);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

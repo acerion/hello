@@ -222,7 +222,7 @@ void StyleEngine::inheritNonCssHints()
       n->declListNonCss = declarationListNew(pn->declListNonCss); // NOTICE: copy constructor
 
       if (origDeclListNonCss) // original declListNonCss have precedence
-         declarationListAppend(origDeclListNonCss, n->declListNonCss);
+         hll_declarationListAppend(n->declListNonCss, origDeclListNonCss);
 
       delete origDeclListNonCss;
    }

@@ -125,7 +125,8 @@ module CssParser(nextToken
                 , takePropertyTokens
                 , defaultDeclaration
 
-                , declarationSetUpdateOrAdd
+                , declarationsSetUpdateOrAdd
+                , declarationsSetAppend
                 , CssDeclarationSet (..)
                 , defaultCssDeclarationSet
 
@@ -2056,8 +2057,8 @@ parseDeclarationWrapper2 (p1, t1) (inSet, inSetImp) = ((p2, t2), (outSet, outSet
     appendDeclarations :: [CssDeclaration] -> CssDeclarationSet -> CssDeclarationSet -> (CssDeclarationSet, CssDeclarationSet)
     appendDeclarations [] set setImp     = (set, setImp)
     appendDeclarations (d:ds) set setImp = if important d
-                                           then appendDeclarations ds set (declarationSetUpdateOrAdd setImp d)
-                                           else appendDeclarations ds (declarationSetUpdateOrAdd set d) setImp
+                                           then appendDeclarations ds set (declarationsSetUpdateOrAdd setImp d)
+                                           else appendDeclarations ds (declarationsSetUpdateOrAdd set d) setImp
 
 
 
@@ -2086,11 +2087,11 @@ takeAllTokens (parser,token) = do
 
 
 
-declarationSetUpdateOrAdd :: CssDeclarationSet -> CssDeclaration -> CssDeclarationSet
-declarationSetUpdateOrAdd declSet decl =
+declarationsSetUpdateOrAdd :: CssDeclarationSet -> CssDeclaration -> CssDeclarationSet
+declarationsSetUpdateOrAdd declSet decl =
   case S.findIndexL pred seq of
     Just idx -> CssDeclarationSet {items = S.update idx decl seq, isSafe = newSafe declSet decl}
-    Nothing  -> CssDeclarationSet {items = seq S.|> decl, isSafe = newSafe declSet decl}
+    Nothing  -> CssDeclarationSet {items = seq S.|> decl,         isSafe = newSafe declSet decl}
   where
     pred :: CssDeclaration -> Bool
     pred x = property x == property decl
@@ -2100,3 +2101,56 @@ declarationSetUpdateOrAdd declSet decl =
     newSafe :: CssDeclarationSet -> CssDeclaration -> Bool
     newSafe declSet decl = (isSafe declSet)
                            && (not $ elem (property decl) [cssDeclPropertyDisplay, cssDeclPropertyBackgroundImage])
+
+
+
+
+{-
+Merge two disjoint sequences:
+
+:set +m
+import qualified Data.Sequence as S
+
+let target = CssDeclarationSet {isSafe = True, items = S.fromList [
+CssDeclaration {property = 1, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 11, textVal = "111"}, important = True},
+CssDeclaration {property = 3, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 33, textVal = "222"}, important = False},
+CssDeclaration {property = 4, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 44, textVal = "444"}, important = True}]}
+
+let source = CssDeclarationSet {isSafe = True, items = S.fromList [
+CssDeclaration {property = 7, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 77, textVal = "777"}, important = False},
+CssDeclaration {property = 8, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 88, textVal = "888"}, important = True},
+CssDeclaration {property = 9, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 99, textVal = "999"}, important = False}]}
+
+let merged = declarationsSetAppend target source
+
+
+
+Merge two sequences where the second one contains a property existing in first one (with the same value of 'property' field).
+
+:set +m
+import qualified Data.Sequence as S
+
+let target = CssDeclarationSet {isSafe = True, items = S.fromList [
+CssDeclaration {property = 1, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 11, textVal = "111"}, important = True},
+CssDeclaration {property = 3, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 33, textVal = "333"}, important = False},
+CssDeclaration {property = 4, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 44, textVal = "444"}, important = True}]}
+
+let source = CssDeclarationSet {isSafe = True, items = S.fromList [
+CssDeclaration {property = 7, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 77, textVal = "777"}, important = False},
+CssDeclaration {property = 3, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 3333, textVal = "3333"}, important = True},
+CssDeclaration {property = 9, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 99, textVal = "999"}, important = False}]}
+
+let merged = declarationsSetAppend target source
+-}
+{-
+Concatenate values from source to target, return result of concatenation.
+
+I can't use a concatenation operator because the concatenation is not that
+simple: it has to use declarationsSetUpdateOrAdd function.
+-}
+declarationsSetAppend :: CssDeclarationSet -> CssDeclarationSet -> CssDeclarationSet
+declarationsSetAppend target source = if S.null . items $ source
+                                      then target
+                                      else declarationsSetAppend
+                                           (declarationsSetUpdateOrAdd target (S.index (items source) 0))
+                                           source{items = S.drop 1 (items source)}

@@ -112,23 +112,6 @@ void cssValueCopy(c_css_value_t * dest, c_css_value_t * src)
 }
 
 
-/**
- * \brief Merge properties into argument property list.
- */
-void declarationListAppend(const c_css_declaration_set_t * declList, c_css_declaration_set_t * targetDeclList) {
-   for (int i = 0; i < declList->c_declarations_count; i++) {
-      c_css_declaration_t * existing_decl = &declList->c_declarations[i];
-
-      c_css_declaration_t * new_decl = new c_css_declaration_t;
-      new_decl->c_important = existing_decl->c_important;
-      new_decl->c_property = existing_decl->c_property;
-      new_decl->c_value = (c_css_value_t *) calloc(1, sizeof (c_css_value_t));
-      cssValueCopy(new_decl->c_value, existing_decl->c_value);
-
-      hll_declarationListAddOrUpdateDeclaration(targetDeclList, new_decl);
-   }
-}
-
 void declarationListPrint(c_css_declaration_set_t * declList, FILE * file)
 {
    for (int i = 0; i < declList->c_declarations_count; i++)
@@ -350,7 +333,7 @@ CssRule::CssRule(c_css_selector_t * selector, c_css_declaration_set_t * declList
 void CssRule::apply_css_rule(FILE * file, c_css_declaration_set_t * outDeclList, Doctree *docTree,
                      const DoctreeNode *node, MatchCache *matchCache) const {
    if (selector_full_selector_submatches(selector, docTree, node, matchCache))
-      declarationListAppend(this->declList, outDeclList);
+      hll_declarationListAppend(outDeclList, this->declList);
 
    this->printCssRule(file);
 }
@@ -543,19 +526,19 @@ void CssContext::apply_css_context(c_css_declaration_set_t * mergedDeclList, Doc
    sheet[CSS_PRIMARY_USER].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
 
    if (declListNonCss)
-      declarationListAppend(declListNonCss, mergedDeclList);
+      hll_declarationListAppend(mergedDeclList, declListNonCss);
 
    fprintf(file, "CSS_PRIMARY_AUTHOR\n");
    sheet[CSS_PRIMARY_AUTHOR].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
 
    if (declList)
-      declarationListAppend(declList, mergedDeclList);
+      hll_declarationListAppend(mergedDeclList, declList);
 
    fprintf(file, "CSS_PRIMARY_AUTHOR_IMPORTANT\n");
    sheet[CSS_PRIMARY_AUTHOR_IMPORTANT].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
 
    if (declListImportant)
-      declarationListAppend(declListImportant, mergedDeclList);
+      hll_declarationListAppend(mergedDeclList, declListImportant);
 
    fprintf(file, "CSS_PRIMARY_USER_IMPORTANT\n");
    sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);

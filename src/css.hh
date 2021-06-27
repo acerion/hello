@@ -185,7 +185,6 @@ c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * dec
 
 void declarationListPrint(c_css_declaration_set_t * declList, FILE * file);
 void declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, CssDeclarationProperty property, c_css_value_t value);
-void declarationListAppend(const c_css_declaration_set_t * declList, c_css_declaration_set_t * targetDeclList);
 
 enum class CssSelectorType {
    NONE,

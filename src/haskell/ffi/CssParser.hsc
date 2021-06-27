@@ -68,6 +68,8 @@ foreign export ccall "hll_parseDeclarationWrapper" hll_parseDeclarationWrapper :
 
 foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
 
+foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+
 
 #include "../hello.h"
 
@@ -700,13 +702,27 @@ hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDecla
   decl    :: CssDeclaration       <- ffiDeclarationToDeclaration ffiDecl
 
   --putStrLn ("Declaration set before update = " ++ (show declSet))
-  let newDeclSet = declarationSetUpdateOrAdd declSet decl
+  let newDeclSet = declarationsSetUpdateOrAdd declSet decl
   --putStrLn ("Declaration set after update = " ++ (show newDeclSet))
 
   updateDeclartionsSet ptrStructDeclarationSet ffiDeclSet newDeclSet
 
   return 0
 
+
+
+hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+hll_declarationListAppend ptrStructTarget ptrStructSource = do
+
+  ffiSource :: FfiCssDeclarationSet <- peek ptrStructSource
+  source    :: CssDeclarationSet    <- ffiDeclarationSetToDeclarationSet ffiSource
+  ffiTarget :: FfiCssDeclarationSet <- peek ptrStructTarget
+  target    :: CssDeclarationSet    <- ffiDeclarationSetToDeclarationSet ffiTarget
+
+  let merged = declarationsSetAppend target source
+  updateDeclartionsSet ptrStructTarget ffiTarget merged
+
+  return ()
 
 
 updateDeclartionsSet :: Ptr FfiCssDeclarationSet -> FfiCssDeclarationSet -> CssDeclarationSet -> IO ()
