@@ -253,24 +253,26 @@ getTokenADT tokType tokValue | tokType == 0 = CssTokIdent tokValue
 
 
 
-
 hll_cssLengthType :: Int -> IO Int
-hll_cssLengthType len = do
-  return (cssLengthType len)
+hll_cssLengthType word = do
+  return (word .&. 7)
 
 
 
 
 hll_cssLengthValue :: Int -> IO Float
-hll_cssLengthValue len = do
-  return (cssLengthValue len)
+hll_cssLengthValue word = do
+  let v = word
+  let t = word .&. 7
+  return (cssLengthValue $ CssLength v t)
 
 
 
 
 hll_cssCreateLength :: Float -> Int -> IO Int
-hll_cssCreateLength val t = do
-  return (cssCreateLength val t)
+hll_cssCreateLength f t = do
+  case cssCreateLength f t of
+    CssLength word _ -> return word
 
 
 
@@ -683,17 +685,17 @@ pokeSingleDeclaration ptrStructDeclaration declaration = do
                   otherwise                -> ""
 
   let intVal = case declValue declaration of
-                 CssValueTypeInt i                 -> i
-                 CssValueTypeEnum i                -> i
-                 CssValueTypeMultiEnum i           -> i
-                 CssValueTypeLengthPercent i       -> i
-                 CssValueTypeLength i              -> i
-                 CssValueTypeSignedLength i        -> i
-                 CssValueTypeLengthPercentNumber i -> i
-                 CssValueTypeAuto i                -> i
-                 CssValueTypeColor i               -> i
-                 CssValueTypeFontWeight i          -> i
-                 otherwise                         -> 0
+                 CssValueTypeInt i                                  -> i
+                 CssValueTypeEnum i                                 -> i
+                 CssValueTypeMultiEnum i                            -> i
+                 CssValueTypeLengthPercent (CssLength word _)       -> word
+                 CssValueTypeLength (CssLength word _)              -> word
+                 CssValueTypeSignedLength (CssLength word _)        -> word
+                 CssValueTypeLengthPercentNumber (CssLength word _) -> word
+                 CssValueTypeAuto (CssLength word _)                -> word
+                 CssValueTypeColor i                                -> i
+                 CssValueTypeFontWeight i                           -> i
+                 otherwise                                          -> 0
 
   ptrString <- newCString . T.unpack $ textVal
   let t :: CInt = fromIntegral . cssValueToTypeTag . declValue $ declaration
@@ -799,11 +801,11 @@ ffiCssValueToCssValue ffiCssValue = do
   let v | t ==  0 = CssValueTypeInt intVal
         | t ==  1 = CssValueTypeEnum intVal
         | t ==  2 = CssValueTypeMultiEnum intVal
-        | t ==  3 = CssValueTypeLengthPercent intVal
-        | t ==  4 = CssValueTypeLength intVal
-        | t ==  5 = CssValueTypeSignedLength intVal
-        | t ==  6 = CssValueTypeLengthPercentNumber intVal
-        | t ==  7 = CssValueTypeAuto intVal
+        | t ==  3 = CssValueTypeLengthPercent $ CssLength intVal t
+        | t ==  4 = CssValueTypeLength $ CssLength intVal t
+        | t ==  5 = CssValueTypeSignedLength $ CssLength intVal t
+        | t ==  6 = CssValueTypeLengthPercentNumber $ CssLength intVal t
+        | t ==  7 = CssValueTypeAuto $ CssLength intVal t
         | t ==  8 = CssValueTypeColor intVal
         | t ==  9 = CssValueTypeFontWeight intVal
         | t == 10 = CssValueTypeString textVal

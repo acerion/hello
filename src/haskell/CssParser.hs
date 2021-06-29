@@ -94,6 +94,7 @@ module CssParser(nextToken
                 , cssLengthType
                 , cssLengthValue
                 , cssCreateLength
+                , CssLength (..)
 
                 , parseDeclarationMultiple
                 , parseDeclarationDirections
@@ -219,6 +220,10 @@ defaultParser = CssParser {
 
 
 
+data CssLength = CssLength Int Int -- word (with LSB bits indicating type) + type
+  deriving (Show, Eq)
+
+
 cssLengthTypeNone       = 0
 cssLengthTypePX         = 1
 cssLengthTypeMM         = 2 -- "cm", "in", "pt" and "pc" are converted into millimeters.
@@ -261,17 +266,17 @@ data CssValue =
     CssValueTypeInt Int             -- This type is only used internally, for x-* properties.
   | CssValueTypeEnum Int            -- Value is i, if represented by enum_symbols[i].
   | CssValueTypeMultiEnum Int       -- For all enum_symbols[i], 1 << i are combined.
-  | CssValueTypeLengthPercent Int   -- <length> or <percentage>. Represented by CssLength.
-  | CssValueTypeLength Int          -- <length>, represented as CssLength.
+  | CssValueTypeLengthPercent CssLength   -- <length> or <percentage>. Represented by CssLength.
+  | CssValueTypeLength CssLength          -- <length>, represented as CssLength.
                                     -- Note: In some cases, CSS_TYPE_LENGTH
                                     -- is used instead of
                                     -- CSS_TYPE_LENGTH_PERCENTAGE, only
                                     -- because Dw cannot handle percentages
                                     -- in this particular case (e.g.
                                     -- 'margin-*-width').
-  | CssValueTypeSignedLength Int    -- As CSS_TYPE_LENGTH but may be negative.
-  | CssValueTypeLengthPercentNumber Int -- <length> or <percentage>, or <number>
-  | CssValueTypeAuto Int            -- Represented as CssLength of type cssLengthTypeAuto
+  | CssValueTypeSignedLength CssLength    -- As CSS_TYPE_LENGTH but may be negative.
+  | CssValueTypeLengthPercentNumber CssLength -- <length> or <percentage>, or <number>
+  | CssValueTypeAuto CssLength            -- Represented as CssLength of type cssLengthTypeAuto
   | CssValueTypeColor Int           -- Represented as integer.
   | CssValueTypeFontWeight Int      -- This very special and only used by 'font-weight'
   | CssValueTypeString T.Text       -- <string>
@@ -1100,7 +1105,7 @@ matchSymbolTokensWithListRigid (p, t) _ bits                   = ((p, t), bits)
 -- token to build the Auto, but for consistency with other similar functions
 -- the function is still called "tokensAs...".
 tokensAsValueAuto :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueAuto (p, t@(CssTokIdent sym)) _ | T.toLower sym == "auto" = ((nextToken p), Just (CssValueTypeAuto cssLengthTypeAuto))
+tokensAsValueAuto (p, t@(CssTokIdent sym)) _ | T.toLower sym == "auto" = ((nextToken p), Just (CssValueTypeAuto (CssLength cssLengthTypeAuto cssLengthTypeAuto)))
                                              | otherwise               = ((p, t), Nothing)
 tokensAsValueAuto (p, t) _                 = ((p, t), Nothing)
 
@@ -1164,7 +1169,7 @@ declValueAsLengthPercentNumber (parser, token) enums = declValueAsLength' CssVal
 declValueAsLength :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsLength (parser, token) enums = declValueAsLength' CssValueTypeLength (parser, token) enums
 
-declValueAsLength' :: (Int -> CssValue) -> (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+declValueAsLength' :: (CssLength -> CssValue) -> (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsLength' ctor (parser, token) enums =
   case tokens of
     [CssTokDim cssNum ident] -> ((newParser, newToken), Just (ctor (unitValue cssNum ident)))
@@ -1176,21 +1181,21 @@ declValueAsLength' ctor (parser, token) enums =
   where
     ((newParser, newToken), tokens) = takeLengthTokens (parser, token)
 
-    percentValue :: CssNum -> Int
+    percentValue :: CssNum -> CssLength
     percentValue cssNum = cssCreateLength val t
       where
         fval = cssNumToFloat cssNum
         (val, t) = ((fval / 100.0), cssLengthTypePercentage)
 
-    unitValue :: CssNum -> T.Text -> Int
+    unitValue :: CssNum -> T.Text -> CssLength
     unitValue cssNum unitString = cssCreateLength val t
       where
         fval = cssNumToFloat cssNum
         (val, t) = lengthValueToValAndType fval (T.toLower unitString)
 
-    unitlessValue :: CssNum -> Maybe Int
+    unitlessValue :: CssNum -> Maybe CssLength
     -- Allow numbers without unit only for 0 or LengthPercentNumber. TODO: why?
-    unitlessValue cssNum = if (ctor 1 == CssValueTypeLengthPercentNumber 1 || fval == 0.0) -- TODO: is this the best way to compare data ctors?
+    unitlessValue cssNum = if (ctor (CssLength 1 cssLengthTypeNone) == CssValueTypeLengthPercentNumber (CssLength 1 cssLengthTypeNone) || fval == 0.0) -- TODO: is this the best way to compare data ctors?
                            then Just (cssCreateLength val t)
                            else Nothing
       where
@@ -1459,30 +1464,29 @@ take.
 -}
 
 
-cssLengthType :: Int -> Int
-cssLengthType length = length .&. 7
+cssLengthType :: CssLength -> Int
+cssLengthType (CssLength word t) = t
 
 
 
 
-cssLengthValue :: Int -> Float
-cssLengthValue len | t == cssLengthTypePX = let
-                       z = (len `shiftR` 3)
-                       in
-                         if (0xf0000000 .&. len) == 0xf0000000
-                         then fromIntegral ((-1) * ((4294967295 - len) `shiftR` 3) - 1)
-                         else fromIntegral z
-                   | t == cssLengthTypeNone
-                     || t == cssLengthTypeMM
-                     || t == cssLengthTypeEM
-                     || t == cssLengthTypeEX
-                     || t == cssLengthTypePercentage
-                     || t == cssLengthTypeRelative =
-                     (fromIntegral (up2 len)) / (fromIntegral down2)
-                   | t == cssLengthTypeAuto = 0.0
-                   | otherwise = 0.0
+cssLengthValue :: CssLength -> Float
+cssLengthValue (CssLength word t) | t == cssLengthTypePX = let
+                                      z = (word `shiftR` 3)
+                                    in
+                                      if (0xf0000000 .&. word) == 0xf0000000
+                                      then fromIntegral ((-1) * ((4294967295 - word) `shiftR` 3) - 1)
+                                      else fromIntegral z
+                                  | t == cssLengthTypeNone
+                                    || t == cssLengthTypeMM
+                                    || t == cssLengthTypeEM
+                                    || t == cssLengthTypeEX
+                                    || t == cssLengthTypePercentage
+                                    || t == cssLengthTypeRelative =
+                                      (fromIntegral (up2 word)) / (fromIntegral down2)
+                                  | t == cssLengthTypeAuto = 0.0
+                                  | otherwise = 0.0
   where
-    t = cssLengthType len
     up2 lenA = let
       z = lenA .&. (complement 0x00000007) :: Int
       in
@@ -1498,19 +1502,21 @@ cssLengthValue len | t == cssLengthTypePX = let
 css_LENGTH_FRAC_MAX = (1 `shiftL` (32 - 15 - 1)) - 1 :: Int
 css_LENGTH_INT_MAX  = (1 `shiftL` (32 - 4)) - 1 :: Int
 
-cssCreateLength :: Float -> Int -> Int
-cssCreateLength val t | t == cssLengthTypePX = ((asInt1 (round (val))) `shiftL` 3) .|. t
-                      | t == cssLengthTypeNone
-                        || t == cssLengthTypeMM
-                        || t == cssLengthTypeEM
-                        || t == cssLengthTypeEX
-                        || t == cssLengthTypePercentage
-                        || t == cssLengthTypeRelative = ((round ((asInt2 val) * (fromIntegral shift15L))) .&. (complement 7)) .|. t
-
-                      | t == cssLengthTypeAuto = t
-                      | otherwise = cssLengthTypeAuto
+cssCreateLength :: Float -> Int -> CssLength
+cssCreateLength f t | t == cssLengthTypePX = CssLength word1 t
+                    | t == cssLengthTypeNone
+                      || t == cssLengthTypeMM
+                      || t == cssLengthTypeEM
+                      || t == cssLengthTypeEX
+                      || t == cssLengthTypePercentage
+                      || t == cssLengthTypeRelative = CssLength word2 t
+                    | t == cssLengthTypeAuto = CssLength t t
+                    | otherwise = CssLength cssLengthTypeAuto cssLengthTypeAuto
 
   where
+    word1 = (((asInt1 (round f)) `shiftL` 3) .|. t)
+    word2 = (((round ((asInt2 f) * (fromIntegral shift15L))) .&. (complement 7)) .|. t)
+
     shift15L = (1 `shiftL` 15) :: Int
 
     asInt1 :: Int -> Int
