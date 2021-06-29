@@ -185,12 +185,12 @@ tokenAsValueTestManualData1 = [
     AsTestData1 { testedFunction1 = tokensAsValueEnum
                 , enums1 = ["something", "other", "auto"]
                 , tokenBefore1 = CssTokIdent "something"
-                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeEnum, intVal = 0}
+                , expectedCssValue1 = Just (CssValueTypeEnum 0)
                 }
   , AsTestData1 { testedFunction1 = tokensAsValueEnum
                 , enums1 = ["zeroth", "first", "second", "third", "fourth", "fifth"]
                 , tokenBefore1 = CssTokIdent "fifth"
-                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeEnum, intVal = 5}
+                , expectedCssValue1 = Just (CssValueTypeEnum 5)
                 }
   -- Atypical data: empty list of enums.
   , AsTestData1 { testedFunction1 = tokensAsValueEnum
@@ -228,22 +228,22 @@ tokenAsValueColorHashTestManualData = [
     AsTestData1 { testedFunction1 = tokensAsValueColor
                 , tokenBefore1 = CssTokHash "fb5"  -- fb5 interpreted as rgb should be expanded to rrggbb in form of ffbb55
                 , enums1 = []
-                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xffbb55}
+                , expectedCssValue1 = Just (CssValueTypeColor 0xffbb55)
                 }
   , AsTestData1 { testedFunction1 = tokensAsValueColor
                 , tokenBefore1 = CssTokHash "12de56"
                 , enums1 = []
-                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0x12de56}
+                , expectedCssValue1 = Just (CssValueTypeColor 0x12de56)
                 }
   , AsTestData1 { testedFunction1 = tokensAsValueColor
                 , tokenBefore1 = CssTokIdent "red" -- Simple name
                 , enums1 = []
-                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xff0000}
+                , expectedCssValue1 = Just (CssValueTypeColor 0xff0000)
                 }
   , AsTestData1 { testedFunction1 = tokensAsValueColor
                 , tokenBefore1 = CssTokIdent "antiquewhite" -- "Sophisticated" name
                 , enums1 = []
-                , expectedCssValue1 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xfaebd7}
+                , expectedCssValue1 = Just (CssValueTypeColor 0xfaebd7)
                 }
 
   -- Failure, not a hex-digit string.
@@ -284,7 +284,7 @@ tokenAsValueColorRgbTestManualData = [
                 , remainderBefore2 = "15,50,200); next-property"
                 , remainderAfter2  = " next-property"
                 , tokenAfter2 = CssTokCh ';'
-                , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0x0f32c8}
+                , expectedCssValue2 = Just (CssValueTypeColor 0x0f32c8)
                 }
   , AsTestData2 { testedFunction2 = tokensAsValueColor
                 , enums2 = [] -- Doesn't matter for this tested function.
@@ -292,7 +292,7 @@ tokenAsValueColorRgbTestManualData = [
                 , remainderBefore2 = "90%,20%,0%); next-property"
                 , remainderAfter2  = " next-property"
                 , tokenAfter2 = CssTokCh ';'
-                , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xe63300}
+                , expectedCssValue2 = Just (CssValueTypeColor 0xe63300)
                 }
 
   -- Percentage values over 100% or under 0% should be clipped.
@@ -302,7 +302,7 @@ tokenAsValueColorRgbTestManualData = [
                 , remainderBefore2 = "120%,-20%,15%); next-property" -- -> 100%,0%,15% -> 0xff0026
                 , remainderAfter2  = " next-property"
                 , tokenAfter2 = CssTokCh ';'
-                , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeColor, intVal = 0xff0026}
+                , expectedCssValue2 = Just (CssValueTypeColor 0xff0026)
                 }
 
 
@@ -338,7 +338,7 @@ tokenAsValueMultiEnumTestManualData = [
                   , remainderBefore2 = "first second third; next-property"
                   , remainderAfter2  = " next-property"
                   , tokenAfter2 = CssTokCh ';'
-                  , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeMultiEnum, intVal = 0b1111}
+                  , expectedCssValue2 = Just (CssValueTypeMultiEnum 0b1111)
                   }
     , AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
                   , enums2 = ["zeroth", "first", "second", "third"]
@@ -349,7 +349,7 @@ tokenAsValueMultiEnumTestManualData = [
                   , remainderBefore2 = "first third}selector"
                   , remainderAfter2  = "selector"
                   , tokenAfter2 = CssTokCh '}'
-                  , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeMultiEnum, intVal = 0b1011}
+                  , expectedCssValue2 = Just (CssValueTypeMultiEnum 0b1011)
                   }
     -- Tokens in stream appear in order that does not match order of enums.
     -- Tested function should not care about the order.
@@ -360,7 +360,7 @@ tokenAsValueMultiEnumTestManualData = [
                   , remainderBefore2 = "fourth zeroth"
                   , remainderAfter2  = ""
                   , tokenAfter2 = CssTokEnd
-                  , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeMultiEnum, intVal = 0b10101}
+                  , expectedCssValue2 = Just (CssValueTypeMultiEnum 0b10101)
                   }
 
 
@@ -404,7 +404,7 @@ tokenAsValueAutoTestManualData = [
                   , remainderBefore2 = "oxygen; next-property"
                   , remainderAfter2  = "; next-property"
                   , tokenAfter2 = CssTokIdent "oxygen"
-                  , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeAuto, intVal = cssLengthTypeAuto}
+                  , expectedCssValue2 = Just (CssValueTypeAuto cssLengthTypeAuto)
                   }
     , AsTestData2 { testedFunction2 = tokensAsValueAuto
                   , enums2 = [] -- Doesn't matter for this tested function.
@@ -412,7 +412,7 @@ tokenAsValueAutoTestManualData = [
                   , remainderBefore2 = "nitro}"
                   , remainderAfter2  = "}"
                   , tokenAfter2 = CssTokIdent "nitro"
-                  , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeAuto, intVal = cssLengthTypeAuto}
+                  , expectedCssValue2 = Just (CssValueTypeAuto cssLengthTypeAuto)
                   }
 
     -- Failure. Current token is not "auto".
@@ -444,7 +444,7 @@ tokenAsValueStringListTestManualData = [
                 , remainderBefore2 = ",tuesday, wednesday , thursday; next-property"
                 , remainderAfter2  = " next-property"
                 , tokenAfter2 = CssTokCh ';'
-                , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeStringList, textVal = "monday,tuesday,wednesday,thursday"}
+                , expectedCssValue2 = Just (CssValueTypeStringList "monday,tuesday,wednesday,thursday")
                 }
   , AsTestData2 { testedFunction2 = tokensAsValueStringList
                 , enums2 = [] -- Doesn't matter for this tested function.
@@ -452,7 +452,7 @@ tokenAsValueStringListTestManualData = [
                 , remainderBefore2 = "; next-property"
                 , remainderAfter2  = " next-property"
                 , tokenAfter2 = CssTokCh ';'
-                , expectedCssValue2 = Just defaultValue{typeTag = CssValueTypeStringList, textVal = "monday"}
+                , expectedCssValue2 = Just (CssValueTypeStringList "monday")
                 }
 
   -- Hash token won't be interpreted as valid token for a list, and none of

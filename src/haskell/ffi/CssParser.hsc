@@ -188,7 +188,7 @@ hll_declarationValueAsString ptrStructCssParser ptrStructCssToken cBuf valueType
   tokValue <- BSU.unsafePackCString . valueC $ ffiToken
   let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
 
-  let pair@((newParser, newToken), textVal) = declValueAsString (parser, token) (cssPropertyInfo V.! property) (toCssValueType valueType)
+  let pair@((newParser, newToken), textVal) = declValueAsString valueType (parser, token) (cssPropertyInfo V.! property)
 
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
@@ -676,9 +676,28 @@ updateDeclarationsArray ptrStructDeclaration [] = return ()
 
 pokeSingleDeclaration :: Ptr FfiCssDeclaration -> CssDeclaration -> IO ()
 pokeSingleDeclaration ptrStructDeclaration declaration = do
-  ptrString <- newCString . T.unpack . textVal . declValue $ declaration
-  let t :: CInt = fromIntegral . cssValueTypeToInt . typeTag . declValue $ declaration
-  let i :: CInt = fromIntegral . intVal . declValue $ declaration
+  let textVal = case declValue declaration of
+                  CssValueTypeString t     -> t
+                  CssValueTypeStringList t -> t
+                  CssValueTypeURI t        -> t
+                  otherwise                -> ""
+
+  let intVal = case declValue declaration of
+                 CssValueTypeInt i                 -> i
+                 CssValueTypeEnum i                -> i
+                 CssValueTypeMultiEnum i           -> i
+                 CssValueTypeLengthPercent i       -> i
+                 CssValueTypeLength i              -> i
+                 CssValueTypeSignedLength i        -> i
+                 CssValueTypeLengthPercentNumber i -> i
+                 CssValueTypeAuto i                -> i
+                 CssValueTypeColor i               -> i
+                 CssValueTypeFontWeight i          -> i
+                 otherwise                         -> 0
+
+  ptrString <- newCString . T.unpack $ textVal
+  let t :: CInt = fromIntegral . cssValueToTypeTag . declValue $ declaration
+  let i :: CInt = fromIntegral $ intVal
   ptrStructCssValue <- callocBytes #{size c_css_value_t}
   poke ptrStructCssValue $ FfiCssValue t i 0 0 ptrString
 
@@ -774,10 +793,25 @@ ffiCssValueToCssValue ffiCssValue = do
   emptyString <- newCString ""
 
   buf :: BS.ByteString <- BSU.unsafePackCString (if e then emptyString else ptrTextValC ffiCssValue)
-  let v = CssValue{ typeTag = toCssValueType. fromIntegral . typeTagC $ ffiCssValue
-                  , intVal = fromIntegral . intValC $ ffiCssValue
-                  , textVal = T.E.decodeLatin1 $ buf
-                  }
+  let t = fromIntegral . typeTagC $ ffiCssValue
+  let intVal = fromIntegral . intValC $ ffiCssValue
+  let textVal = T.E.decodeLatin1 $ buf
+  let v | t ==  0 = CssValueTypeInt intVal
+        | t ==  1 = CssValueTypeEnum intVal
+        | t ==  2 = CssValueTypeMultiEnum intVal
+        | t ==  3 = CssValueTypeLengthPercent intVal
+        | t ==  4 = CssValueTypeLength intVal
+        | t ==  5 = CssValueTypeSignedLength intVal
+        | t ==  6 = CssValueTypeLengthPercentNumber intVal
+        | t ==  7 = CssValueTypeAuto intVal
+        | t ==  8 = CssValueTypeColor intVal
+        | t ==  9 = CssValueTypeFontWeight intVal
+        | t == 10 = CssValueTypeString textVal
+        | t == 11 = CssValueTypeStringList textVal
+        | t == 12 = CssValueTypeURI textVal
+        | t == 13 = CssValueTypeBgPosition
+        | otherwise = CssValueTypeUnused
+
   return v
 
 
@@ -816,42 +850,23 @@ hll_cssParseElementStyleAttribute ptrBaseUrl ptrStringCssStyleAttribute buflen p
   return ()
 
 
-cssValueTypeToInt valueType = case valueType of
-                                CssValueTypeInt                 ->  0
-                                CssValueTypeEnum                ->  1
-                                CssValueTypeMultiEnum           ->  2
-                                CssValueTypeLengthPercent       ->  3
-                                CssValueTypeLength              ->  4
-                                CssValueTypeSignedLength        ->  5
-                                CssValueTypeLengthPercentNumber ->  6
-                                CssValueTypeAuto                ->  7
-                                CssValueTypeColor               ->  8
-                                CssValueTypeFontWeight          ->  9
-                                CssValueTypeString              -> 10
-                                CssValueTypeStringList          -> 11
-                                CssValueTypeURI                 -> 12
-                                CssValueTypeBgPosition          -> 13
-                                CssValueTypeUnused              -> 14
 
 
-
-
-toCssValueType :: Int -> CssValueType
-toCssValueType i | i ==  0 = CssValueTypeInt
-                 | i ==  1 = CssValueTypeEnum
-                 | i ==  2 = CssValueTypeMultiEnum
-                 | i ==  3 = CssValueTypeLengthPercent
-                 | i ==  4 = CssValueTypeLength
-                 | i ==  5 = CssValueTypeSignedLength
-                 | i ==  6 = CssValueTypeLengthPercentNumber
-                 | i ==  7 = CssValueTypeAuto
-                 | i ==  8 = CssValueTypeColor
-                 | i ==  9 = CssValueTypeFontWeight
-                 | i == 10 = CssValueTypeString
-                 | i == 11 = CssValueTypeStringList
-                 | i == 12 = CssValueTypeURI
-                 | i == 13 = CssValueTypeBgPosition
-                 | i == 14 = CssValueTypeUnused
-
+cssValueToTypeTag value = case value of
+                            CssValueTypeInt _                 ->  0
+                            CssValueTypeEnum _                ->  1
+                            CssValueTypeMultiEnum _           ->  2
+                            CssValueTypeLengthPercent _       ->  3
+                            CssValueTypeLength _              ->  4
+                            CssValueTypeSignedLength _        ->  5
+                            CssValueTypeLengthPercentNumber _ ->  6
+                            CssValueTypeAuto _                ->  7
+                            CssValueTypeColor _               ->  8
+                            CssValueTypeFontWeight _          ->  9
+                            CssValueTypeString _              -> 10
+                            CssValueTypeStringList _          -> 11
+                            CssValueTypeURI _                 -> 12
+                            CssValueTypeBgPosition            -> 13
+                            CssValueTypeUnused                -> 14
 
 
