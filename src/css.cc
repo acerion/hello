@@ -121,7 +121,7 @@ void declarationListPrint(c_css_declaration_set_t * declList, FILE * file)
 /**
  * \brief Return whether selector matches at a given node in the document tree.
  */
-bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *docTree, const c_doctree_node_t * dtn, int simSelIdx, Combinator comb, MatchCache *matchCache) {
+bool selector_matches(c_css_selector_t * selector, Doctree *docTree, const c_doctree_node_t * dtn, int simSelIdx, Combinator comb, MatchCache *matchCache) {
    assert (dtn);
 
    if (simSelIdx < 0) {
@@ -153,7 +153,7 @@ bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *docTre
 
             for (const c_doctree_node_t *n = dtn; n && n->c_unique_num > *matchCacheEntry; n = docTree->parent (n)) {
                if (hll_simpleSelectorMatches(simpleSelector, n)
-                   && selector_full_selector_matches(selector, docTree, n, simSelIdx - 1, (Combinator) simpleSelector->c_combinator, matchCache)) {
+                   && selector_matches(selector, docTree, n, simSelIdx - 1, (Combinator) simpleSelector->c_combinator, matchCache)) {
                   return true;
                }
             }
@@ -177,7 +177,7 @@ bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *docTre
    }
 
    // tail recursion should be optimized by the compiler
-   return selector_full_selector_matches(selector, docTree, dtn, simSelIdx - 1, (Combinator) simpleSelector->c_combinator, matchCache);
+   return selector_matches(selector, docTree, dtn, simSelIdx - 1, (Combinator) simpleSelector->c_combinator, matchCache);
 }
 
 bool selectorChecksPseudoClass(c_css_selector_t * selector) {
@@ -190,11 +190,6 @@ bool selectorChecksPseudoClass(c_css_selector_t * selector) {
 c_css_simple_selector_t * selectorGetTopSimpleSelector(c_css_selector_t * selector)
 {
    return selector->c_simple_selector_list[selector->c_simple_selector_list_size - 1];
-}
-
-bool selector_full_selector_submatches(c_css_selector_t * selector, Doctree *dt, const c_doctree_node_t * dtn, MatchCache *matchCache)
-{
-   return selector_full_selector_matches(selector, dt, dtn, selector->c_simple_selector_list_size - 1, CssSelectorCombinatorNone, matchCache);
 }
 
 void selectorSetMatchCacheOffset(c_css_selector_t * selector, int mo)
@@ -316,8 +311,9 @@ CssRule::CssRule(c_css_selector_t * selector, c_css_declaration_set_t * declList
 }
 
 void CssRule::apply_css_rule(FILE * file, c_css_declaration_set_t * outDeclList, Doctree *docTree, const c_doctree_node_t * dtn, MatchCache *matchCache) const {
-   if (selector_full_selector_submatches(selector, docTree, dtn, matchCache))
+   if (selector_matches(selector, docTree, dtn, selector->c_simple_selector_list_size - 1, CssSelectorCombinatorNone, matchCache)) {
       hll_declarationListAppend(outDeclList, this->declList);
+   }
 
    this->printCssRule(file);
 }
