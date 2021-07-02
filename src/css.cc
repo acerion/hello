@@ -17,6 +17,7 @@
 
 using namespace dw::core::style;
 
+static bool simple_selector_matches(c_css_simple_selector_t * selector, const c_doctree_node_t * dtn);
 void cssValueCopy(c_css_value_t * dest, c_css_value_t * src);
 
 void printCssDeclaration(c_css_declaration_t * declaration, FILE * file)
@@ -121,48 +122,56 @@ void declarationListPrint(c_css_declaration_set_t * declList, FILE * file)
 /**
  * \brief Return whether selector matches at a given node in the document tree.
  */
-bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *docTree, const DoctreeNode *node, int i, Combinator comb, MatchCache *matchCache) {
-   int *matchCacheEntry;
-   assert (node);
+bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *docTree, const c_doctree_node_t * dtn, int simSelIdx, Combinator comb, MatchCache *matchCache) {
+   assert (dtn);
 
-   if (i < 0)
+   if (simSelIdx < 0) {
       return true;
+   }
 
-   struct c_css_simple_selector_t *simpleSelector = selector->c_simple_selector_list[i];
+   struct c_css_simple_selector_t *simpleSelector = selector->c_simple_selector_list[simSelIdx];
 
    switch (comb) {
       case CssSelectorCombinatorNone:
          break;
       case CssSelectorCombinatorChild:
-         node = docTree->parent (node);
+         dtn = docTree->parent(dtn);
          break;
       case CssSelectorCombinatorAdjacentSibling:
-         node = docTree->sibling (node);
+         dtn = docTree->sibling(dtn);
          break;
       case CssSelectorCombinatorDescendant:
-         node = docTree->parent (node);
-         matchCacheEntry = matchCache->getRef(selector->c_match_case_offset + i);
+         {
+            dtn = docTree->parent(dtn);
+            int *matchCacheEntry = &matchCache->arr[selector->c_match_case_offset + simSelIdx];
 
-         for (const DoctreeNode *n = node;
-              n && n->num > *matchCacheEntry; n = docTree->parent (n))
-            if (simple_selector_matches(simpleSelector, n) &&
-                selector_full_selector_matches(selector, docTree, n, i - 1, (Combinator) simpleSelector->c_combinator, matchCache))
-               return true;
+            for (size_t z = 0; z < matchCache->size; z++) {
+               fprintf(stderr, "matchCache->arr[%zd] = %d\n", z, matchCache->arr[z]);
+            }
 
-         if (node) // remember that it didn't match to avoid future tests
-            *matchCacheEntry = node->num;
+            for (const c_doctree_node_t *n = dtn; n && n->c_unique_num > *matchCacheEntry; n = docTree->parent (n)) {
+               if (simple_selector_matches(simpleSelector, n) &&
+                   selector_full_selector_matches(selector, docTree, n, simSelIdx - 1, (Combinator) simpleSelector->c_combinator, matchCache)) {
+                  return true;
+               }
+            }
+            fprintf(stderr, "\n");
 
-         return false;
+            if (dtn) // remember that it didn't match to avoid future tests
+               *matchCacheEntry = dtn->c_unique_num;
+
+            return false;
+         }
          break;
       default:
          return false; // \todo implement other combinators
    }
 
-   if (!node || !simple_selector_matches(simpleSelector, node))
+   if (!dtn || !simple_selector_matches(simpleSelector, dtn))
       return false;
 
    // tail recursion should be optimized by the compiler
-   return selector_full_selector_matches(selector, docTree, node, i - 1, (Combinator) simpleSelector->c_combinator, matchCache);
+   return selector_full_selector_matches(selector, docTree, dtn, simSelIdx - 1, (Combinator) simpleSelector->c_combinator, matchCache);
 }
 
 bool selectorChecksPseudoClass(c_css_selector_t * selector) {
@@ -177,9 +186,9 @@ c_css_simple_selector_t * selectorGetTopSimpleSelector(c_css_selector_t * select
    return selector->c_simple_selector_list[selector->c_simple_selector_list_size - 1];
 }
 
-bool selector_full_selector_submatches(c_css_selector_t * selector, Doctree *dt, const DoctreeNode *node, MatchCache *matchCache)
+bool selector_full_selector_submatches(c_css_selector_t * selector, Doctree *dt, const c_doctree_node_t * dtn, MatchCache *matchCache)
 {
-   return selector_full_selector_matches(selector, dt, node, selector->c_simple_selector_list_size - 1, CssSelectorCombinatorNone, matchCache);
+   return selector_full_selector_matches(selector, dt, dtn, selector->c_simple_selector_list_size - 1, CssSelectorCombinatorNone, matchCache);
 }
 
 void selectorSetMatchCacheOffset(c_css_selector_t * selector, int mo)
@@ -242,27 +251,31 @@ void printCssSelector(c_css_selector_t * selector, FILE * file) {
  * \brief Return whether simple selector matches at a given node of
  *        the document tree.
  */
-bool simple_selector_matches(c_css_simple_selector_t * selector, const DoctreeNode *n) {
-   assert (n);
-   if (selector->c_selector_element != CssSimpleSelectorElementAny && selector->c_selector_element != n->html_element_idx)
+static bool simple_selector_matches(c_css_simple_selector_t * selector, const c_doctree_node_t * dtn)
+{
+   assert (dtn);
+
+   if (selector->c_selector_element != CssSimpleSelectorElementAny && selector->c_selector_element != dtn->c_html_element_idx)
       return false;
+
    if (selector->c_selector_pseudo_class_size > 0 &&
-       (n->pseudo == NULL || dStrAsciiCasecmp (selector->c_selector_pseudo_class[0], n->pseudo) != 0)) // C/C++ code can use only first pseudo class
+       (dtn->c_element_selector_pseudo_class == NULL || dStrAsciiCasecmp (selector->c_selector_pseudo_class[0], dtn->c_element_selector_pseudo_class) != 0)) // C/C++ code can use only first pseudo class
       return false;
-   if (selector->c_selector_id != NULL && (n->element_id == NULL || dStrAsciiCasecmp (selector->c_selector_id, n->element_id) != 0))
+
+   if (selector->c_selector_id != NULL && (dtn->c_element_selector_id == NULL || dStrAsciiCasecmp (selector->c_selector_id, dtn->c_element_selector_id) != 0))
       return false;
+
    for (int i = 0; i < selector->c_selector_class_size; i++) {
       bool found = false;
-      if (n->element_class != NULL) {
-         for (int j = 0; j < n->element_class->size (); j++) {
-            if (dStrAsciiCasecmp (selector->c_selector_class[i], n->element_class->get(j)) == 0) {
-               found = true;
-               break;
-            }
+      for (int j = 0; j < dtn->c_element_selector_class_size; j++) {
+         if (dStrAsciiCasecmp (selector->c_selector_class[i], dtn->c_element_selector_class[j]) == 0) {
+            found = true;
+            break;
          }
       }
-      if (! found)
+      if (!found) {
          return false;
+      }
    }
 
    return true;
@@ -330,9 +343,8 @@ CssRule::CssRule(c_css_selector_t * selector, c_css_declaration_set_t * declList
    this->specificity = selectorSpecificity(selector);
 }
 
-void CssRule::apply_css_rule(FILE * file, c_css_declaration_set_t * outDeclList, Doctree *docTree,
-                     const DoctreeNode *node, MatchCache *matchCache) const {
-   if (selector_full_selector_submatches(selector, docTree, node, matchCache))
+void CssRule::apply_css_rule(FILE * file, c_css_declaration_set_t * outDeclList, Doctree *docTree, const c_doctree_node_t * dtn, MatchCache *matchCache) const {
+   if (selector_full_selector_submatches(selector, docTree, dtn, matchCache))
       hll_declarationListAppend(outDeclList, this->declList);
 
    this->printCssRule(file);
@@ -422,36 +434,33 @@ void CssStyleSheet::addRule (CssRule *rule) {
  * The declarations (list property+value) are set as defined by the rules in
  * the stylesheet that match at the given node in the document tree.
  */
-void CssStyleSheet::apply_style_sheet(FILE * file, c_css_declaration_set_t * declList, Doctree *docTree,
-                                      const DoctreeNode *node, MatchCache *matchCache) const {
+void CssStyleSheet::apply_style_sheet(FILE * file, c_css_declaration_set_t * declList, Doctree *docTree, const c_doctree_node_t *dtn, MatchCache *matchCache) const {
    static const int maxLists = 32;
    const RuleList *ruleList[maxLists];
    int numLists = 0, index[maxLists] = {0};
 
-   if (node->element_id) {
-      lout::object::ConstString idString (node->element_id);
+   if (dtn->c_element_selector_id) {
+      lout::object::ConstString idString (dtn->c_element_selector_id);
 
       ruleList[numLists] = idTable.get (&idString);
       if (ruleList[numLists])
          numLists++;
    }
 
-   if (node->element_class) {
-      for (int i = 0; i < node->element_class->size (); i++) {
-         if (i >= maxLists - 4) {
-            MSG_WARN("Maximum number of classes per element exceeded.\n");
-            break;
-         }
-
-         lout::object::ConstString classString (node->element_class->get(i));
-
-         ruleList[numLists] = classTable.get (&classString);
-         if (ruleList[numLists])
-            numLists++;
+   for (int i = 0; i < dtn->c_element_selector_class_size; i++) {
+      if (i >= maxLists - 4) {
+         MSG_WARN("Maximum number of classes per element exceeded.\n");
+         break;
       }
+
+      lout::object::ConstString classString (dtn->c_element_selector_class[i]);
+
+      ruleList[numLists] = classTable.get (&classString);
+      if (ruleList[numLists])
+         numLists++;
    }
 
-   ruleList[numLists] = &elementTable[node->html_element_idx];
+   ruleList[numLists] = &elementTable[dtn->c_html_element_idx];
    if (ruleList[numLists])
       numLists++;
 
@@ -484,7 +493,7 @@ void CssStyleSheet::apply_style_sheet(FILE * file, c_css_declaration_set_t * dec
 
       if (minSpecIndex >= 0) {
          CssRule *rule = ruleList[minSpecIndex]->get (index[minSpecIndex]);
-         rule->apply_css_rule(file, declList, docTree, node, matchCache);
+         rule->apply_css_rule(file, declList, docTree, dtn, matchCache);
          index[minSpecIndex]++;
       } else {
          break;
@@ -496,7 +505,7 @@ CssStyleSheet CssContext::userAgentSheet;
 
 CssContext::CssContext () {
    rulePosition = 0;
-   matchCache.setSize (userAgentSheet.getRequiredMatchCache (), -1);
+   matchCacheSetSize(&this->matchCache, userAgentSheet.requiredMatchCache);
 }
 
 /**
@@ -509,39 +518,40 @@ CssContext::CssContext () {
  * This allows e.g. user styles to overwrite author styles.
  */
 void CssContext::apply_css_context(c_css_declaration_set_t * mergedDeclList, Doctree *docTree,
-                                   DoctreeNode * node,
+                                   c_doctree_node_t * dtn,
                                    c_css_declaration_set_t * declList,
                                    c_css_declaration_set_t * declListImportant,
                                    c_css_declaration_set_t * declListNonCss) {
 
+   CssContext * context = this;
    static int i = 0;
    char path[20] = { 0 };
    snprintf(path, sizeof (path), "/tmp/css_rules_%04d", i);
    FILE * file = fopen(path, "w");
    i++;
 
-   userAgentSheet.apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
+   userAgentSheet.apply_style_sheet(file, mergedDeclList, docTree, dtn, &context->matchCache);
 
    fprintf(file, "CSS_PRIMARY_USER\n");
-   sheet[CSS_PRIMARY_USER].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
+   sheet[CSS_PRIMARY_USER].apply_style_sheet(file, mergedDeclList, docTree, dtn, &context->matchCache);
 
    if (declListNonCss)
       hll_declarationListAppend(mergedDeclList, declListNonCss);
 
    fprintf(file, "CSS_PRIMARY_AUTHOR\n");
-   sheet[CSS_PRIMARY_AUTHOR].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
+   sheet[CSS_PRIMARY_AUTHOR].apply_style_sheet(file, mergedDeclList, docTree, dtn, &context->matchCache);
 
    if (declList)
       hll_declarationListAppend(mergedDeclList, declList);
 
    fprintf(file, "CSS_PRIMARY_AUTHOR_IMPORTANT\n");
-   sheet[CSS_PRIMARY_AUTHOR_IMPORTANT].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
+   sheet[CSS_PRIMARY_AUTHOR_IMPORTANT].apply_style_sheet(file, mergedDeclList, docTree, dtn, &context->matchCache);
 
    if (declListImportant)
       hll_declarationListAppend(mergedDeclList, declListImportant);
 
    fprintf(file, "CSS_PRIMARY_USER_IMPORTANT\n");
-   sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(file, mergedDeclList, docTree, node, &matchCache);
+   sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(file, mergedDeclList, docTree, dtn, &context->matchCache);
 
    fclose(file);
 }
@@ -551,9 +561,10 @@ void addRuleToContext(CssContext * context, CssRule * rule, CssPrimaryOrder orde
    if ((order == CSS_PRIMARY_AUTHOR || order == CSS_PRIMARY_AUTHOR_IMPORTANT) && !rule->isSafe ()) {
       MSG_WARN ("Ignoring unsafe author style that might reveal browsing history\n");
    } else {
-      selectorSetMatchCacheOffset(rule->selector, context->matchCache.size ());
-      if (selectorGetRequiredMatchCache(rule->selector) > context->matchCache.size ())
-         context->matchCache.setSize(selectorGetRequiredMatchCache(rule->selector), -1);
+      selectorSetMatchCacheOffset(rule->selector, context->matchCache.size);
+      const size_t newSize = selectorGetRequiredMatchCache(rule->selector);
+      if (newSize > context->matchCache.size)
+         matchCacheSetSize(&context->matchCache, newSize);
 
       if (order == CSS_PRIMARY_USER_AGENT) {
          context->userAgentSheet.addRule (rule);
@@ -579,4 +590,45 @@ CssLengthType cssLengthType(CssLength cssLength)
 float cssLengthValue(CssLength cssLength)
 {
    return hll_cssLengthValue(cssLength.bits);
+}
+
+
+void matchCacheSetSize(MatchCache * matchCache, size_t newSize)
+{
+   for (size_t i = matchCache->size; i < newSize; i++) {
+      matchCache->arr[i] = -1;
+   }
+   matchCache->size = newSize;
+}
+
+
+void printStringArrayWithLenFlat(FILE * file, char * const * arr, int size, const char * name)
+{
+   fprintf(file, "%s size = %d, ", name, size);
+   fprintf(file, "%s = [", name);
+   for (int i = 0; i < size; i++) {
+      fprintf(file, "%s ", arr[i]);
+   }
+   fprintf(file, "], ");
+
+
+}
+
+void printCssSimpleSelectorFlat(FILE * file, const c_css_simple_selector_t * sim_sel)
+{
+   fprintf(file, "C: simSel: ");
+   printStringArrayWithLenFlat(file,
+                               sim_sel->c_selector_pseudo_class,
+                               sim_sel->c_selector_pseudo_class_size,
+                               "pseudo class");
+   fprintf(file, "id = '%s', ", sim_sel->c_selector_id);
+   printStringArrayWithLenFlat(file,
+                               sim_sel->c_selector_class,
+                               sim_sel->c_selector_class_size,
+                               "class");
+   fprintf(file, "element = %d, ", sim_sel->c_selector_element);
+   fprintf(file, "combinator = %d", sim_sel->c_combinator);
+   fprintf(file, "\n");
+
+   return;
 }

@@ -28,20 +28,20 @@ class StyleEngine {
          dw::core::style::Style *backgroundStyle;
          bool inheritBackgroundColor;
          bool displayNone;
-         DoctreeNode *doctreeNode;
+         c_doctree_node_t *doctreeNode;
       };
 
       dw::core::Layout *layout;
       lout::misc::SimpleVector <Node> *styleNodesStack;
       CssContext *cssContext;
-      Doctree *doctree;
+      Doctree * doctree;
       int importDepth;
       DilloUrl *pageUrl, *baseUrl;
 
       void stackPush ();
       void stackPop ();
       void buildUserStyle ();
-      dw::core::style::Style *getStyle0 (int i, BrowserWindow *bw);
+      dw::core::style::Style *getStyle0 (int some_idx, BrowserWindow *bw);
       dw::core::style::Style *getWordStyle0 (BrowserWindow *bw);
       inline void setNonCssHintOfProperty(CssDeclarationProperty property, c_css_value_t value, CssDeclarationValueType type) {
          Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
@@ -54,8 +54,7 @@ class StyleEngine {
       }
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
-      void apply (int i, dw::core::style::StyleAttrs *attrs,
-                  c_css_declaration_set_t * declList, BrowserWindow *bw);
+      void apply(int some_idx, dw::core::style::StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw);
       bool computeAbsoluteLengthValue (int *dest, CssLength value, dw::core::style::Font *font);
       bool computeAbsoluteLengthValue (int *dest, CssLength value, dw::core::style::Font *font, int percentageBase);
       bool computeLength (dw::core::style::Length *dest, CssLength value, dw::core::style::Font *font);
@@ -75,7 +74,7 @@ class StyleEngine {
       void endElement (int tag);
 
       void setElementId(const char *id);
-      const char * getElementId() { return doctree->top ()->element_id; };
+      const char * getElementId() { return doctree->top()->c_element_selector_id; };
 
       void setElementClass(const char * element_class);
 

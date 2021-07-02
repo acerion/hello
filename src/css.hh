@@ -214,19 +214,21 @@ enum {
 };
 
 void printCssSimpleSelector(c_css_simple_selector_t * selector, FILE * file);
-bool simple_selector_matches(c_css_simple_selector_t * selector, const DoctreeNode *node);
+/* Print simple selector in one line. Fields are printed in the same order as
+   in Haskell record. */
+void printCssSimpleSelectorFlat(FILE * file, const c_css_simple_selector_t * sim_sel);
+
 int cssSimpleSelectorSpecificity(c_css_simple_selector_t * selector);
 
 
+typedef struct MatchCache {
+   int arr[10];
+   size_t size;
+} MatchCache;
+void matchCacheSetSize(MatchCache * matchCache, size_t newSize);
 
-
-class MatchCache : public lout::misc::SimpleVector <int> {
-   public:
-      MatchCache() : lout::misc::SimpleVector <int> (0) {};
-};
-
-bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *dt, const DoctreeNode *node, int i, Combinator comb,  MatchCache *matchCache);
-bool selector_full_selector_submatches(c_css_selector_t * selector, Doctree *dt, const DoctreeNode *node, MatchCache *matchCache);
+bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *dt, const c_doctree_node_t * dtn, int simSelIdx, Combinator comb, MatchCache *matchCache);
+bool selector_full_selector_submatches(c_css_selector_t * selector, Doctree *dt, const c_doctree_node_t * dtn, MatchCache *matchCache);
 
 c_css_simple_selector_t * selectorGetTopSimpleSelector(c_css_selector_t * selector);
 void selectorSetMatchCacheOffset(c_css_selector_t * selector, int mo);
@@ -252,7 +254,7 @@ class CssRule {
       CssRule(c_css_selector_t *selector, c_css_declaration_set_t * declList, int rulePosition);
 
       void apply_css_rule(FILE * file, c_css_declaration_set_t * outDeclList, Doctree *docTree,
-                          const DoctreeNode *node, MatchCache *matchCache) const;
+                          const c_doctree_node_t * dtn, MatchCache *matchCache) const;
       inline bool isSafe() {
          return !selectorChecksPseudoClass(selector) || declList->c_is_safe;
       };
@@ -295,14 +297,13 @@ class CssStyleSheet {
       RuleList elementTable[ntags];
       RuleList anyTable;
       RuleMap idTable, classTable;
-      int requiredMatchCache;
 
    public:
       CssStyleSheet () { requiredMatchCache = 0; }
       void addRule (CssRule *rule);
       void apply_style_sheet(FILE * file, c_css_declaration_set_t * declList, Doctree *docTree,
-                  const DoctreeNode *node, MatchCache *matchCache) const;
-      int getRequiredMatchCache () { return requiredMatchCache; }
+                  const c_doctree_node_t * dtn, MatchCache *matchCache) const;
+      int requiredMatchCache;
 };
 
 /**
@@ -319,7 +320,7 @@ class CssContext {
       CssContext();
 
       void apply_css_context(c_css_declaration_set_t * mergedDeclList,
-                             Doctree *docTree, DoctreeNode *node,
+                             Doctree *docTree, c_doctree_node_t * dtn,
                              c_css_declaration_set_t * declList,
                              c_css_declaration_set_t * declListImportant,
                              c_css_declaration_set_t * declListNonCss);

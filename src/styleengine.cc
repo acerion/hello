@@ -97,7 +97,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
 
 StyleEngine::~StyleEngine () {
    while (doctree->top ())
-      endElement (doctree->top ()->html_element_idx);
+      endElement (doctree->top()->c_html_element_idx);
 
    stackPop (); // dummy node on the bottom of the stack
    assert (styleNodesStack->size () == 0);
@@ -143,7 +143,7 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    Node *n = styleNodesStack->getLastRef();
 
    n->doctreeNode = doctree->push();
-   n->doctreeNode->html_element_idx = html_element_idx;
+   n->doctreeNode->c_html_element_idx = html_element_idx;
 
    if (styleNodesStack->size() > 1)
       n->displayNone = styleNodesStack->getRef(styleNodesStack->size() - 2)->displayNone;
@@ -154,40 +154,25 @@ void StyleEngine::startElement (const char *tagname, BrowserWindow *bw) {
 }
 
 void StyleEngine::setElementId (const char *id) {
-   DoctreeNode *dn =  doctree->top ();
-   assert (dn->element_id == NULL);
-   dn->element_id = dStrdup (id);
-}
-
-/**
- * \brief split a string at sep chars and return a SimpleVector of strings
- */
-static lout::misc::SimpleVector<char *> *splitStr (const char *str, char sep) {
-   const char *p1 = NULL;
-   lout::misc::SimpleVector<char *> *list =
-      new lout::misc::SimpleVector<char *> (1);
-
-   for (;; str++) {
-      if (*str != '\0' && *str != sep) {
-         if (!p1)
-            p1 = str;
-      } else if (p1) {
-         list->increase ();
-         list->set (list->size () - 1, dStrndup (p1, str - p1));
-         p1 = NULL;
-      }
-
-      if (*str == '\0')
-         break;
-   }
-
-   return list;
+   c_doctree_node_t * dtn =  doctree->top ();
+   assert (dtn->c_element_selector_id == NULL);
+   dtn->c_element_selector_id = strdup (id);
 }
 
 void StyleEngine::setElementClass(const char * element_class) {
-   DoctreeNode *dn = doctree->top ();
-   assert (dn->element_class == NULL);
-   dn->element_class = splitStr(element_class, ' ');
+   c_doctree_node_t * dtn = doctree->top ();
+   assert (dtn->c_element_selector_class_size == 0);
+
+   char * saveptr = NULL;
+   const char * sep = " ";
+   char * in = strdup(element_class);
+   int i = 0;
+   for (char * tok = strtok_r(in, sep, &saveptr); tok; tok = strtok_r(NULL, sep, &saveptr)) {
+      dtn->c_element_selector_class[i] = strdup(tok);
+      i++;
+   }
+   dtn->c_element_selector_class_size = i;
+   free(in);
 }
 
 // 'cssStyleAttribute' is contents of element's "style" attribute, describing CSS
@@ -281,23 +266,23 @@ dw::core::style::StyleImage *StyleEngine::getBackgroundImage
  * \brief set the CSS pseudo class :link.
  */
 void StyleEngine::setPseudoLink () {
-   DoctreeNode *dn = doctree->top ();
-   dn->pseudo = "link";
+   c_doctree_node_t * dtn = doctree->top ();
+   dtn->c_element_selector_pseudo_class = "link";
 }
 
 /**
  * \brief set the CSS pseudo class :visited.
  */
 void StyleEngine::setPseudoVisited () {
-   DoctreeNode *dn = doctree->top ();
-   dn->pseudo = "visited";
+   c_doctree_node_t * dtn = doctree->top ();
+   dtn->c_element_selector_pseudo_class = "visited";
 }
 
 /**
  * \brief tell the styleEngine that a html element has ended.
  */
 void StyleEngine::endElement (int element) {
-   assert (element == doctree->top ()->html_element_idx);
+   assert (element == doctree->top ()->c_html_element_idx);
 
    stackPop ();
    doctree->pop ();
@@ -355,17 +340,17 @@ void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
 /**
  * \brief Make changes to StyleAttrs attrs according to c_css_declaration_set_t props.
  */
-void StyleEngine::apply(int i, StyleAttrs *attrs, c_css_declaration_set_t * declList,
-                         BrowserWindow *bw) {
+void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw)
+{
    FontAttrs fontAttrs = *attrs->font;
-   Font *parentFont = styleNodesStack->get(i - 1).style->font;
+   Font *parentFont = styleNodesStack->get(some_idx - 1).style->font;
    char *c, *fontName;
    int lineHeight;
    DilloUrl *imgUrl = NULL;
 
    /* Determine font first so it can be used to resolve relative lengths. */
-   for (int j = 0; j < declList->c_declarations_count; j++) {
-      c_css_declaration_t * decl = &declList->c_declarations[j];
+   for (int d_idx = 0; d_idx < declList->c_declarations_count; d_idx++) {
+      c_css_declaration_t * decl = &declList->c_declarations[d_idx];
 
       switch (decl->c_property) {
          case CSS_PROPERTY_FONT_FAMILY:
@@ -600,7 +585,7 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, c_css_declaration_set_t * decl
          case CSS_PROPERTY_DISPLAY:
             attrs->display = (DisplayType) decl->c_value->c_int_val;
             if (attrs->display == DISPLAY_NONE)
-               styleNodesStack->getRef (i)->displayNone = true;
+               styleNodesStack->getRef(some_idx)->displayNone = true;
             break;
          case CSS_PROPERTY_LINE_HEIGHT:
             if (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) { //only valid enum value is "normal"
@@ -727,7 +712,7 @@ void StyleEngine::apply(int i, StyleAttrs *attrs, c_css_declaration_set_t * decl
    }
 
    if (imgUrl && prefs.load_background_images &&
-       !styleNodesStack->getRef(i)->displayNone &&
+       !styleNodesStack->getRef(some_idx)->displayNone &&
        !(URL_FLAGS(pageUrl) & URL_SpamSafe))
    {
       attrs->backgroundImage = StyleImage::create();
@@ -860,10 +845,10 @@ Style * StyleEngine::getBackgroundStyle (BrowserWindow *bw) {
  * HTML elements and the declListNonCss that have been set.
  * This method is private. Call style() to get a current style object.
  */
-Style * StyleEngine::getStyle0 (int i, BrowserWindow *bw) {
+Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
 
    // get previous style from the stack
-   StyleAttrs attrs = * styleNodesStack->getRef(i - 1)->style;
+   StyleAttrs attrs = * styleNodesStack->getRef(some_idx - 1)->style;
 
    // Ensure that StyleEngine::style0() has not been called before for
    // this element.
@@ -871,31 +856,31 @@ Style * StyleEngine::getStyle0 (int i, BrowserWindow *bw) {
    // If this assertion is hit, you need to rearrange the code that is
    // doing styleEngine calls to call setNonCssHintOfCurrentNode() before calling
    // style() or wordStyle() for each new element.
-   assert (styleNodesStack->getRef(i)->style == NULL);
+   assert (styleNodesStack->getRef(some_idx)->style == NULL);
 
    // reset values that are not inherited according to CSS
    attrs.resetValues ();
    preprocessAttrs (&attrs);
 
-   c_css_declaration_set_t * declList          = styleNodesStack->getRef(i)->declList;
-   c_css_declaration_set_t * declListImportant = styleNodesStack->getRef(i)->declListImportant;
-   c_css_declaration_set_t * declListNonCss    = styleNodesStack->getRef(i)->declListNonCss;
+   c_css_declaration_set_t * declList          = styleNodesStack->getRef(some_idx)->declList;
+   c_css_declaration_set_t * declListImportant = styleNodesStack->getRef(some_idx)->declListImportant;
+   c_css_declaration_set_t * declListNonCss    = styleNodesStack->getRef(some_idx)->declListNonCss;
 
    // merge style information
    c_css_declaration_set_t * mergedDeclList = declarationListNew();
-   cssContext->apply_css_context(mergedDeclList, doctree, styleNodesStack->getRef(i)->doctreeNode,
+   cssContext->apply_css_context(mergedDeclList, doctree, styleNodesStack->getRef(some_idx)->doctreeNode,
                                  declList,
                                  declListImportant,
                                  declListNonCss);
 
    // apply style
-   apply(i, &attrs, mergedDeclList, bw);
+   apply(some_idx, &attrs, mergedDeclList, bw);
 
    postprocessAttrs(&attrs);
 
-   styleNodesStack->getRef(i)->style = Style::create(&attrs);
+   styleNodesStack->getRef(some_idx)->style = Style::create(&attrs);
 
-   return styleNodesStack->getRef(i)->style;
+   return styleNodesStack->getRef(some_idx)->style;
 }
 
 Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
@@ -925,8 +910,8 @@ Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
  * Note that restyle() does not change any styles in the widget tree.
  */
 void StyleEngine::restyle (BrowserWindow *bw) {
-   for (int i = 1; i < styleNodesStack->size(); i++) {
-      Node *n = styleNodesStack->getRef (i);
+   for (int some_idx = 1; some_idx < styleNodesStack->size(); some_idx++) {
+      Node *n = styleNodesStack->getRef (some_idx);
       if (n->style) {
          n->style->unref ();
          n->style = NULL;
@@ -940,7 +925,7 @@ void StyleEngine::restyle (BrowserWindow *bw) {
          n->backgroundStyle = NULL;
       }
 
-      getStyle0 (i, bw);
+      getStyle0 (some_idx, bw);
    }
 }
 

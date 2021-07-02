@@ -89,6 +89,7 @@ dillo_SOURCES = \
 	css.hh \
 	cssparser.cc \
 	cssparser.hh \
+	doctree.cc \
 	doctree.hh \
 	styleengine.cc \
 	styleengine.hh \
