@@ -5,12 +5,15 @@ all:
 	hsc2hs ffi/Gif.hsc
 	hsc2hs ffi/HtmlTag.hsc
 	hsc2hs ffi/CssParser.hsc
+	hsc2hs ffi/Css.hsc
 
 	ghc -g -O0 -fPIC -c wrapper.c
 	ghc -g -O0 -dynamic -shared -fPIC -o libhello.so \
 		URL.hs cookies.hs \
 		Gif.hs              ffi/Gif.hs \
+		Css.hs \
 		CssParser.hs        ffi/CssParser.hs \
+		                    ffi/Css.hs \
 		Colors.hs           ffi/Colors.hs \
 		HtmlEntity.hs \
 		HtmlTag.hs          ffi/HtmlTag.hs \
@@ -31,4 +34,5 @@ clean:
 	rm -f ffi/Gif.hs
 	rm -f ffi/HtmlTag.hs
 	rm -f ffi/CssParser.hs
+	rm -f ffi/Css.hs
 

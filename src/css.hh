@@ -227,7 +227,7 @@ typedef struct MatchCache {
 } MatchCache;
 void matchCacheSetSize(MatchCache * matchCache, size_t newSize);
 
-bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *dt, const c_doctree_node_t * dtn, int simSelIdx, Combinator comb, MatchCache *matchCache);
+bool selector_matches(c_css_selector_t * selector, Doctree *dt, const c_doctree_node_t * dtn, int simSelIdx, Combinator comb, MatchCache *matchCache);
 bool selector_full_selector_submatches(c_css_selector_t * selector, Doctree *dt, const c_doctree_node_t * dtn, MatchCache *matchCache);
 
 c_css_simple_selector_t * selectorGetTopSimpleSelector(c_css_selector_t * selector);

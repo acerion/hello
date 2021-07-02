@@ -62,6 +62,8 @@ module CssParser(nextToken
 
                 , cssPropertyInfo
 
+                , cssSimpleSelectorElementAny
+
                 , parseUrl
                 , CssParser (..)
                 , CssToken (..)

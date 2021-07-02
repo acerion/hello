@@ -21,7 +21,9 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
 
-module CssParserFFI() where
+module CssParserFFI( FfiCssSimpleSelector (..)
+                   )
+  where
 
 
 

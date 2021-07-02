@@ -17,7 +17,6 @@
 
 using namespace dw::core::style;
 
-static bool simple_selector_matches(c_css_simple_selector_t * selector, const c_doctree_node_t * dtn);
 void cssValueCopy(c_css_value_t * dest, c_css_value_t * src);
 
 void printCssDeclaration(c_css_declaration_t * declaration, FILE * file)
@@ -145,17 +144,19 @@ bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *docTre
             dtn = docTree->parent(dtn);
             int *matchCacheEntry = &matchCache->arr[selector->c_match_case_offset + simSelIdx];
 
+#if 0
             for (size_t z = 0; z < matchCache->size; z++) {
                fprintf(stderr, "matchCache->arr[%zd] = %d\n", z, matchCache->arr[z]);
             }
+            fprintf(stderr, "\n");
+#endif
 
             for (const c_doctree_node_t *n = dtn; n && n->c_unique_num > *matchCacheEntry; n = docTree->parent (n)) {
-               if (simple_selector_matches(simpleSelector, n) &&
-                   selector_full_selector_matches(selector, docTree, n, simSelIdx - 1, (Combinator) simpleSelector->c_combinator, matchCache)) {
+               if (hll_simpleSelectorMatches(simpleSelector, n)
+                   && selector_full_selector_matches(selector, docTree, n, simSelIdx - 1, (Combinator) simpleSelector->c_combinator, matchCache)) {
                   return true;
                }
             }
-            fprintf(stderr, "\n");
 
             if (dtn) // remember that it didn't match to avoid future tests
                *matchCacheEntry = dtn->c_unique_num;
@@ -167,8 +168,13 @@ bool selector_full_selector_matches(c_css_selector_t * selector, Doctree *docTre
          return false; // \todo implement other combinators
    }
 
-   if (!dtn || !simple_selector_matches(simpleSelector, dtn))
+   if (!dtn) {
       return false;
+   } else {
+      if (!hll_simpleSelectorMatches(simpleSelector, dtn)) {
+         return false;
+      }
+   }
 
    // tail recursion should be optimized by the compiler
    return selector_full_selector_matches(selector, docTree, dtn, simSelIdx - 1, (Combinator) simpleSelector->c_combinator, matchCache);
@@ -245,40 +251,6 @@ void printCssSelector(c_css_selector_t * selector, FILE * file) {
    //fprintf(file, "        Rule SelectorList: --------\n");
 
    //fprintf (file, "\n");
-}
-
-/**
- * \brief Return whether simple selector matches at a given node of
- *        the document tree.
- */
-static bool simple_selector_matches(c_css_simple_selector_t * selector, const c_doctree_node_t * dtn)
-{
-   assert (dtn);
-
-   if (selector->c_selector_element != CssSimpleSelectorElementAny && selector->c_selector_element != dtn->c_html_element_idx)
-      return false;
-
-   if (selector->c_selector_pseudo_class_size > 0 &&
-       (dtn->c_element_selector_pseudo_class == NULL || dStrAsciiCasecmp (selector->c_selector_pseudo_class[0], dtn->c_element_selector_pseudo_class) != 0)) // C/C++ code can use only first pseudo class
-      return false;
-
-   if (selector->c_selector_id != NULL && (dtn->c_element_selector_id == NULL || dStrAsciiCasecmp (selector->c_selector_id, dtn->c_element_selector_id) != 0))
-      return false;
-
-   for (int i = 0; i < selector->c_selector_class_size; i++) {
-      bool found = false;
-      for (int j = 0; j < dtn->c_element_selector_class_size; j++) {
-         if (dStrAsciiCasecmp (selector->c_selector_class[i], dtn->c_element_selector_class[j]) == 0) {
-            found = true;
-            break;
-         }
-      }
-      if (!found) {
-         return false;
-      }
-   }
-
-   return true;
 }
 
 /**
@@ -611,21 +583,15 @@ void printStringArrayWithLenFlat(FILE * file, char * const * arr, int size, cons
    }
    fprintf(file, "], ");
 
-
+   return;
 }
 
 void printCssSimpleSelectorFlat(FILE * file, const c_css_simple_selector_t * sim_sel)
 {
    fprintf(file, "C: simSel: ");
-   printStringArrayWithLenFlat(file,
-                               sim_sel->c_selector_pseudo_class,
-                               sim_sel->c_selector_pseudo_class_size,
-                               "pseudo class");
+   printStringArrayWithLenFlat(file, sim_sel->c_selector_pseudo_class, sim_sel->c_selector_pseudo_class_size, "pseudo class");
    fprintf(file, "id = '%s', ", sim_sel->c_selector_id);
-   printStringArrayWithLenFlat(file,
-                               sim_sel->c_selector_class,
-                               sim_sel->c_selector_class_size,
-                               "class");
+   printStringArrayWithLenFlat(file, sim_sel->c_selector_class, sim_sel->c_selector_class_size, "class");
    fprintf(file, "element = %d, ", sim_sel->c_selector_element);
    fprintf(file, "combinator = %d", sim_sel->c_combinator);
    fprintf(file, "\n");

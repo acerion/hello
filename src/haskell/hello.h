@@ -180,6 +180,15 @@ void hll_declarationListAppend(c_css_declaration_set_t * target, const c_css_dec
 void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const char * cssStyleAttribute, int buflen, c_css_declaration_set_t * declSet, c_css_declaration_set_t * declSetImp);
 
 
+
+
+/* Css.hsc */
+
+/* Function returns boolean. */
+int hll_simpleSelectorMatches(const c_css_simple_selector_t * simSel, const c_doctree_node_t * dtn);
+
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
