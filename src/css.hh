@@ -239,45 +239,33 @@ void printCssSelector(c_css_selector_t * selector, FILE * file);
 
 
 
-/**
- * \brief A c_css_selector_t c_css_declaration_set_t pair.
- *
- *  The c_css_declaration_set_t is applied if the c_css_selector_t matches.
- */
-class CssRule {
-   public:
-      c_css_selector_t *selector;
-      int specificity;
-      int position;
-      c_css_declaration_set_t * declList = nullptr;
+/* c_css_rule_t methods. */
+void css_rule_print(FILE * file, const c_css_rule_t * rule);
+bool css_rule_is_safe(const c_css_rule_t * rule);
+c_css_rule_t * css_rule_new(c_css_selector_t * selector, c_css_declaration_set_t * decl_set, int rule_position);
 
-      CssRule(c_css_selector_t *selector, c_css_declaration_set_t * declList, int rulePosition);
 
-      void apply_css_rule(FILE * file, c_css_declaration_set_t * outDeclList, Doctree *docTree,
-                          const c_doctree_node_t * dtn, MatchCache *matchCache) const;
-      inline bool isSafe() {
-         return !selectorChecksPseudoClass(selector) || declList->c_is_safe;
-      };
-      void printCssRule(FILE * file) const;
-};
+
 
 /**
- * \brief A list of CssRules.
+ * \brief A list of c_css_rule_t rules.
  *
  * In apply_style_sheet() all matching rules are applied.
  */
 class CssStyleSheet {
    private:
-      class RuleList : public lout::misc::SimpleVector <CssRule*>,
-                       public lout::object::Object {
+      class RuleList : public lout::object::Object {
          public:
-            RuleList () : lout::misc::SimpleVector <CssRule*> (1) {};
+            RuleList() {}
 
-            void insert (CssRule *rule);
+            void insert_rule(c_css_rule_t * rule);
             inline bool equals (lout::object::Object *other) {
                return this == other;
             };
             inline int hashValue () { return (intptr_t) this; };
+
+            c_css_rule_t * rules[256] = { 0 };
+            int rules_count = 0;
       };
 
       class RuleMap : public lout::container::typed::HashTable
@@ -300,7 +288,7 @@ class CssStyleSheet {
 
    public:
       CssStyleSheet () { requiredMatchCache = 0; }
-      void addRule (CssRule *rule);
+      void addRule(c_css_rule_t * rule);
       void apply_style_sheet(FILE * file, c_css_declaration_set_t * declList, Doctree *docTree,
                   const c_doctree_node_t * dtn, MatchCache *matchCache) const;
       int requiredMatchCache;
@@ -330,6 +318,6 @@ class CssContext {
 CssLengthType cssLengthType(CssLength len);
 float cssLengthValue(CssLength len);
 CssLength cssCreateLength(float val, CssLengthType t);
-void addRuleToContext(CssContext * context, CssRule * rule, CssPrimaryOrder order);
+void addRuleToContext(CssContext * context, c_css_rule_t * rule, CssPrimaryOrder order);
 
 #endif

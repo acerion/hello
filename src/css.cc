@@ -300,37 +300,38 @@ void printCssSimpleSelector(c_css_simple_selector_t * selector, FILE * file)
    }
 }
 
-CssRule::CssRule(c_css_selector_t * selector, c_css_declaration_set_t * declList, int rulePosition)
+c_css_rule_t * css_rule_new(c_css_selector_t * selector, c_css_declaration_set_t * decl_set, int rule_position)
 {
    assert (selector->c_simple_selector_list_size > 0);
 
-   this->selector = selector;
-   this->declList = declList;
-   this->position = rulePosition;
-   this->specificity = selectorSpecificity(selector);
+   c_css_rule_t * rule = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
+
+   rule->c_selector = selector;
+   rule->c_decl_set = decl_set;
+   rule->c_position = rule_position;
+   rule->c_specificity = selectorSpecificity(selector);
+
+   return rule;
 }
 
-void CssRule::apply_css_rule(FILE * file, c_css_declaration_set_t * outDeclList, Doctree *docTree, const c_doctree_node_t * dtn, MatchCache *matchCache) const {
-   if (selector_matches(selector, docTree, dtn, selector->c_simple_selector_list_size - 1, CssSelectorCombinatorNone, matchCache)) {
-      hll_declarationListAppend(outDeclList, this->declList);
-   }
-
-   this->printCssRule(file);
-}
-
-void CssRule::printCssRule (FILE * file) const {
-
+void css_rule_print(FILE * file, const c_css_rule_t * rule)
+{
    fprintf(file, "    Rule: Begin\n");
-   printCssSelector(selector, file);
-   if (nullptr != this->declList) {
-      fprintf(file, "        Rule Declarations (%d) {\n", declList->c_declarations_count);
-      declarationListPrint(declList, file);
+   printCssSelector(rule->c_selector, file);
+   if (nullptr != rule->c_decl_set) {
+      fprintf(file, "        Rule Declarations (%d) {\n", rule->c_decl_set->c_declarations_count);
+      declarationListPrint(rule->c_decl_set, file);
    } else {
          fprintf(file, "        Rule Declarations (0) {\n");
    }
    fprintf(file, "        Rule Declarations }\n");
    fprintf(file, "    Rule: End\n");
    fprintf(file, "    Rule: ---------------------------\n");
+}
+
+bool css_rule_is_safe(const c_css_rule_t * rule)
+{
+   return !selectorChecksPseudoClass(rule->c_selector) || rule->c_decl_set->c_is_safe;
 }
 
 /*
@@ -340,16 +341,19 @@ void CssRule::printCssRule (FILE * file) const {
  * will be added behind the others.
  * This gives later added rules more weight.
  */
-void CssStyleSheet::RuleList::insert (CssRule *rule) {
-   increase ();
-   int i = size () - 1;
+void CssStyleSheet::RuleList::insert_rule(c_css_rule_t * rule)
+{
+   this->rules[this->rules_count] = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
+   this->rules_count++;
 
-   while (i > 0 && rule->specificity < get (i - 1)->specificity) {
-      *getRef (i) = get (i - 1);
+   int i = this->rules_count - 1;
+
+   while (i > 0 && rule->c_specificity < this->rules[i - 1]->c_specificity) {
+      this->rules[i] = this->rules[i - 1];
       i--;
    }
 
-   *getRef (i) = rule;
+   this->rules[i] = rule;
 }
 
 /**
@@ -358,8 +362,9 @@ void CssStyleSheet::RuleList::insert (CssRule *rule) {
  * To improve matching performance the rules are organized into
  * rule lists based on the topmost simple selector of their selector.
  */
-void CssStyleSheet::addRule (CssRule *rule) {
-   c_css_simple_selector_t *top = selectorGetTopSimpleSelector(rule->selector);
+void CssStyleSheet::addRule (c_css_rule_t * rule)
+{
+   c_css_simple_selector_t *top = selectorGetTopSimpleSelector(rule->c_selector);
    RuleList *ruleList = NULL;
    lout::object::ConstString *string;
 
@@ -388,9 +393,9 @@ void CssStyleSheet::addRule (CssRule *rule) {
    }
 
    if (ruleList) {
-      ruleList->insert (rule);
-      if (selectorGetRequiredMatchCache(rule->selector) > requiredMatchCache)
-         requiredMatchCache = selectorGetRequiredMatchCache(rule->selector);
+      ruleList->insert_rule(rule);
+      if (selectorGetRequiredMatchCache(rule->c_selector) > requiredMatchCache)
+         requiredMatchCache = selectorGetRequiredMatchCache(rule->c_selector);
    } else {
       assert (top->c_selector_element == CssSimpleSelectorElementNone);
    }
@@ -448,20 +453,27 @@ void CssStyleSheet::apply_style_sheet(FILE * file, c_css_declaration_set_t * dec
       for (int i = 0; i < numLists; i++) {
          const RuleList *rl = ruleList[i];
 
-         if (rl && rl->size () > index[i] &&
-            (rl->get(index[i])->specificity < minSpec ||
-             (rl->get(index[i])->specificity == minSpec &&
-              rl->get(index[i])->position < minPos))) {
+         if (rl && rl->rules_count > index[i] &&
+            (rl->rules[index[i]]->c_specificity < minSpec ||
+             (rl->rules[index[i]]->c_specificity == minSpec &&
+              rl->rules[index[i]]->c_position < minPos))) {
 
-            minSpec = rl->get(index[i])->specificity;
-            minPos = rl->get(index[i])->position;
+            minSpec = rl->rules[index[i]]->c_specificity;
+            minPos = rl->rules[index[i]]->c_position;
             minSpecIndex = i;
          }
       }
 
       if (minSpecIndex >= 0) {
-         CssRule *rule = ruleList[minSpecIndex]->get (index[minSpecIndex]);
-         rule->apply_css_rule(file, declList, docTree, dtn, matchCache);
+         c_css_rule_t * rule = ruleList[minSpecIndex]->rules[index[minSpecIndex]];
+
+         /* Apply CSS rule. */
+         if (selector_matches(rule->c_selector, docTree, dtn, rule->c_selector->c_simple_selector_list_size - 1, CssSelectorCombinatorNone, matchCache)) {
+            hll_declarationListAppend(declList, rule->c_decl_set);
+         }
+
+         css_rule_print(file, rule);
+
          index[minSpecIndex]++;
       } else {
          break;
@@ -524,13 +536,13 @@ void CssContext::apply_css_context(c_css_declaration_set_t * mergedDeclList, Doc
    fclose(file);
 }
 
-void addRuleToContext(CssContext * context, CssRule * rule, CssPrimaryOrder order)
+void addRuleToContext(CssContext * context, c_css_rule_t * rule, CssPrimaryOrder order)
 {
-   if ((order == CSS_PRIMARY_AUTHOR || order == CSS_PRIMARY_AUTHOR_IMPORTANT) && !rule->isSafe ()) {
+   if ((order == CSS_PRIMARY_AUTHOR || order == CSS_PRIMARY_AUTHOR_IMPORTANT) && !css_rule_is_safe(rule)) {
       MSG_WARN ("Ignoring unsafe author style that might reveal browsing history\n");
    } else {
-      selectorSetMatchCacheOffset(rule->selector, context->matchCache.size);
-      const size_t newSize = selectorGetRequiredMatchCache(rule->selector);
+      selectorSetMatchCacheOffset(rule->c_selector, context->matchCache.size);
+      const size_t newSize = selectorGetRequiredMatchCache(rule->c_selector);
       if (newSize > context->matchCache.size)
          matchCacheSetSize(&context->matchCache, newSize);
 

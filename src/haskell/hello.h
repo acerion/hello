@@ -116,6 +116,18 @@ typedef struct c_css_token_t {
 } c_css_token_t;
 
 
+/**
+ * \brief A pair of CSS selector and CSS declarations set.
+ *
+ *  The c_css_declaration_set_t is applied if the c_css_selector_t matches.
+ */
+typedef struct c_css_rule_t {
+      c_css_selector_t * c_selector;
+      c_css_declaration_set_t * c_decl_set;
+      int c_specificity;
+      int c_position;
+} c_css_rule_t;
+
 
 /* URL */
 bool hll_hostIsIP(const char * hostname);

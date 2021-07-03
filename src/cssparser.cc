@@ -118,27 +118,27 @@ void parseRuleset(CssParser * parser, CssContext * context)
       switch (parser->origin) {
       case CSS_ORIGIN_USER_AGENT:
          if (declList->c_declarations_count > 0) {
-            CssRule * rule = new CssRule(sel, declList, context->rulePosition++);
+            c_css_rule_t * rule = css_rule_new(sel, declList, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_USER_AGENT);
          }
          break;
       case CSS_ORIGIN_USER:
          if (declList->c_declarations_count > 0) {
-            CssRule * rule = new CssRule(sel, declList, context->rulePosition++);
+            c_css_rule_t * rule = css_rule_new(sel, declList, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_USER);
          }
          if (declListImportant->c_declarations_count > 0) {
-            CssRule * rule = new CssRule(sel, declListImportant, context->rulePosition++);
+            c_css_rule_t * rule = css_rule_new(sel, declListImportant, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_USER_IMPORTANT);
          }
          break;
       case CSS_ORIGIN_AUTHOR:
          if (declList->c_declarations_count > 0) {
-            CssRule * rule = new CssRule(sel, declList, context->rulePosition++);
+            c_css_rule_t * rule = css_rule_new(sel, declList, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_AUTHOR);
          }
          if (declListImportant->c_declarations_count > 0) {
-            CssRule * rule = new CssRule(sel, declListImportant, context->rulePosition++);
+            c_css_rule_t * rule = css_rule_new(sel, declListImportant, context->rulePosition++);
             addRuleToContext(context, rule, CSS_PRIMARY_AUTHOR_IMPORTANT);
          }
          break;
