@@ -177,14 +177,14 @@ typedef enum {
 } CssWordSpacingExtensions;
 
 
-void printCssDeclaration(c_css_declaration_t * declaration, FILE * file);
+void css_declaration_print(FILE * file, c_css_declaration_t * declaration);
 
 
 c_css_declaration_set_t * declarationListNew(void);
 c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * declList);
 
-void declarationListPrint(c_css_declaration_set_t * declList, FILE * file);
-void declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, CssDeclarationProperty property, c_css_value_t value);
+void css_declaration_set_print(FILE * file, c_css_declaration_set_t * decl_set);
+void css_declaration_set_add_or_update_declaration(c_css_declaration_set_t * decl_set, CssDeclarationProperty property, c_css_value_t value);
 
 enum class CssSelectorType {
    NONE,
@@ -213,29 +213,36 @@ enum {
       CssSimpleSelectorElementAny = -2,
 };
 
-void printCssSimpleSelector(c_css_simple_selector_t * selector, FILE * file);
-/* Print simple selector in one line. Fields are printed in the same order as
-   in Haskell record. */
-void printCssSimpleSelectorFlat(FILE * file, const c_css_simple_selector_t * sim_sel);
-
-int cssSimpleSelectorSpecificity(c_css_simple_selector_t * selector);
 
 
 typedef struct MatchCache {
    int arr[10];
-   size_t size;
+   int size;
 } MatchCache;
-void matchCacheSetSize(MatchCache * matchCache, size_t newSize);
+void match_cache_set_size(MatchCache * match_cache, int new_size);
 
-bool selector_matches(c_css_selector_t * selector, Doctree *dt, const c_doctree_node_t * dtn, int simSelIdx, Combinator comb, MatchCache *matchCache);
-bool selector_full_selector_submatches(c_css_selector_t * selector, Doctree *dt, const c_doctree_node_t * dtn, MatchCache *matchCache);
 
-c_css_simple_selector_t * selectorGetTopSimpleSelector(c_css_selector_t * selector);
-void selectorSetMatchCacheOffset(c_css_selector_t * selector, int mo);
-int selectorGetRequiredMatchCache(c_css_selector_t * selector);
-bool selectorChecksPseudoClass(c_css_selector_t * selector);
-int selectorSpecificity(c_css_selector_t * selector);
-void printCssSelector(c_css_selector_t * selector, FILE * file);
+
+
+/* c_css_simple_selector_t methods. */
+void css_simple_selector_print(FILE * file, c_css_simple_selector_t * selector);
+/* Print simple selector in one line. Fields are printed in the same order as
+   in Haskell record. */
+void css_simple_selector_print_flat(FILE * file, const c_css_simple_selector_t * sim_sel);
+int css_simple_selector_specificity(c_css_simple_selector_t * selector);
+
+
+
+
+/* c_css_selector_t methods. */
+bool css_selector_matches(c_css_selector_t * selector, Doctree * dt, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, MatchCache * match_cache);
+c_css_simple_selector_t * css_selector_get_top_simple_selector(c_css_selector_t * selector);
+void css_selector_set_match_cache_offset(c_css_selector_t * selector, int offset);
+int css_selector_get_required_match_cache(c_css_selector_t * selector);
+bool css_selector_has_pseudo_class(c_css_selector_t * selector);
+int css_selector_specificity(c_css_selector_t * selector);
+void css_selector_print(FILE * file, c_css_selector_t * selector);
+
 
 
 
@@ -256,7 +263,9 @@ class CssStyleSheet {
    private:
       class RuleList : public lout::object::Object {
          public:
-            RuleList() {}
+            RuleList() {
+               this->rules[0] = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
+            }
 
             void insert_rule(c_css_rule_t * rule);
             inline bool equals (lout::object::Object *other) {
@@ -290,7 +299,7 @@ class CssStyleSheet {
       CssStyleSheet () { requiredMatchCache = 0; }
       void addRule(c_css_rule_t * rule);
       void apply_style_sheet(FILE * file, c_css_declaration_set_t * declList, Doctree *docTree,
-                  const c_doctree_node_t * dtn, MatchCache *matchCache) const;
+                  const c_doctree_node_t * dtn, MatchCache * match_cache) const;
       int requiredMatchCache;
 };
 
@@ -301,9 +310,8 @@ class CssContext {
    public:
       static CssStyleSheet userAgentSheet;
       CssStyleSheet sheet[CSS_PRIMARY_USER_IMPORTANT + 1];
-      MatchCache matchCache;
+      MatchCache match_cache;
       int rulePosition;
-
 
       CssContext();
 
@@ -318,6 +326,6 @@ class CssContext {
 CssLengthType cssLengthType(CssLength len);
 float cssLengthValue(CssLength len);
 CssLength cssCreateLength(float val, CssLengthType t);
-void addRuleToContext(CssContext * context, c_css_rule_t * rule, CssPrimaryOrder order);
+void css_context_add_rule(CssContext * context, c_css_rule_t * rule, CssPrimaryOrder order);
 
 #endif

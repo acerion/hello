@@ -50,7 +50,7 @@ class StyleEngine {
             n->declListNonCss = declarationListNew();
 
          value.c_type_tag = type;
-         declarationListAddOrUpdateDeclaration(n->declListNonCss, property, value);
+         css_declaration_set_add_or_update_declaration(n->declListNonCss, property, value);
       }
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
