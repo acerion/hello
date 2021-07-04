@@ -404,7 +404,7 @@ tokenAsValueAutoTestManualData = [
                   , remainderBefore2 = "oxygen; next-property"
                   , remainderAfter2  = "; next-property"
                   , tokenAfter2 = CssTokIdent "oxygen"
-                  , expectedCssValue2 = Just (CssValueTypeAuto cssLengthTypeAuto)
+                  , expectedCssValue2 = Just (CssValueTypeAuto (CssLength cssLengthTypeAuto cssLengthTypeAuto))
                   }
     , AsTestData2 { testedFunction2 = tokensAsValueAuto
                   , enums2 = [] -- Doesn't matter for this tested function.
@@ -412,7 +412,7 @@ tokenAsValueAutoTestManualData = [
                   , remainderBefore2 = "nitro}"
                   , remainderAfter2  = "}"
                   , tokenAfter2 = CssTokIdent "nitro"
-                  , expectedCssValue2 = Just (CssValueTypeAuto cssLengthTypeAuto)
+                  , expectedCssValue2 = Just (CssValueTypeAuto (CssLength cssLengthTypeAuto cssLengthTypeAuto))
                   }
 
     -- Failure. Current token is not "auto".
