@@ -43,6 +43,7 @@ import qualified Data.Sequence as S
 import qualified Data.Foldable as Foldable
 import Control.Applicative
 import Control.Monad -- when
+import Text.Printf
 import Debug.Trace
 import CssParserFFI
 import CssParser
@@ -104,19 +105,8 @@ instance Storable FfiDoctreeNode where
 
 
 foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
+foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
 
-
-
-
--- Convert array of C strings to list of text. The size of array is n.
--- char * array[n] -> n -> acc -> result.
-cStringArrayLenToTextList :: Ptr CString -> Int -> [T.Text] -> IO [T.Text]
-cStringArrayLenToTextList cStringArray 0 acc = return acc
-cStringArrayLenToTextList cStringArray n acc = do
-  s :: CString <- peekElemOff cStringArray (n - 1)
-  bs <- BSU.unsafePackCString s
-  let t = T.E.decodeLatin1 bs
-  cStringArrayLenToTextList cStringArray (n - 1) (t : acc)
 
 
 
@@ -165,17 +155,6 @@ ffiCssSimpleSelectorToCssSimpleSelector ptrStructSimpleSelector = do
 
 
 
-cStringToText :: CString -> IO T.Text
-cStringToText ptr = do
-  if nullPtr == ptr
-    then return ""
-    else do
-    bs :: BS.ByteString <- BSU.unsafePackCString ptr
-    return (T.E.decodeLatin1 bs)
-
-
-
-
 ffiDoctreeNodeToDoctreeNode :: Ptr FfiDoctreeNode -> IO DoctreeNode
 ffiDoctreeNodeToDoctreeNode ptrStructDoctreeNode = do
 
@@ -199,4 +178,12 @@ ffiDoctreeNodeToDoctreeNode ptrStructDoctreeNode = do
                     , lastChild = undefined
                     }
 
+
+
+
+hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
+hll_selectorSpecificity ptrStructCssSelector = do
+  ffiSel <- peek ptrStructCssSelector
+  sel <- ffiCssSelectorToCssSelector ptrStructCssSelector
+  return . selectorSpecificity $ sel
 

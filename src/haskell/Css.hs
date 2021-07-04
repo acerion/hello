@@ -24,6 +24,7 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 module Css( DoctreeNode (..)
           , simpleSelectorMatches
+          , selectorSpecificity
           )
   where
 
@@ -32,8 +33,9 @@ module Css( DoctreeNode (..)
 
 import qualified Data.Text as T
 import qualified Data.List as L
-import CssParser
+import Data.Bits
 import Debug.Trace
+import CssParser
 
 
 
@@ -104,4 +106,28 @@ simpleSelectorMatches simSel dtn | mismatchOnElement simSel dtn     = False
     -- }
 
 
+
+{-
+Return the specificity of the selector.
+
+The specificity of a CSS selector is defined in
+http://www.w3.org/TR/CSS21/cascade.html#specificity
+-}
+selectorSpecificity :: CssSelector -> Int
+selectorSpecificity sel = selectorSpecificity' (simpleSelectorList sel) 0
+  where
+    selectorSpecificity' (x:xs) acc = selectorSpecificity' xs (acc + (simpleSelectorSpecificity x))
+    selectorSpecificity' []     acc = acc
+
+
+
+
+-- Return the specificity of the simple selector
+simpleSelectorSpecificity :: CssSimpleSelector -> Int
+simpleSelectorSpecificity simSel = fromId + fromClass + fromPseudoClass + fromElement
+  where
+    fromId          = if (not . T.null . selectorId $ simSel) then (1 `shiftL` 20) else 0
+    fromClass       = (length . selectorClass $ simSel) `shiftL` 10
+    fromPseudoClass = if (not . null . selectorPseudoClass $ simSel) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
+    fromElement     = if ((selectorElement simSel) /= cssSimpleSelectorElementAny) then 1 else 0
 

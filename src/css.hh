@@ -247,7 +247,6 @@ void css_selector_print(FILE * file, c_css_selector_t * selector);
 
 
 /* c_css_rule_t methods. */
-void css_rule_print(FILE * file, const c_css_rule_t * rule);
 bool css_rule_is_safe(const c_css_rule_t * rule);
 c_css_rule_t * css_rule_new(c_css_selector_t * selector, c_css_declaration_set_t * decl_set, int rule_position);
 

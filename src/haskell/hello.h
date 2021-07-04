@@ -78,7 +78,7 @@ typedef struct c_css_simple_selector_t {
 
 typedef struct c_css_selector_t {
    int c_match_case_offset;
-   struct c_css_simple_selector_t * c_simple_selector_list[10];
+   c_css_simple_selector_t * c_simple_selector_list[10];
    int c_simple_selector_list_size;
 } c_css_selector_t;
 
@@ -198,7 +198,7 @@ void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const
 
 /* Function returns boolean. */
 int hll_simpleSelectorMatches(const c_css_simple_selector_t * simSel, const c_doctree_node_t * dtn);
-
+int hll_selectorSpecificity(const c_css_selector_t * selector);
 
 
 #ifdef __cplusplus

@@ -1,6 +1,7 @@
 ghci -fobject-code \
      -XOverloadedStrings \
      ./CssParser.hs           ./tests/Css/Tokenizer.hs \
+     ./Css.hs                 ./tests/Css/Css.hs       ./tests/Css/CssTestData.hs \
      ./cookies.hs             ./tests/TestsCookies.hs \
      ./Colors.hs              ./tests/TestsColors.hs \
      ./Gif.hs                 ./tests/TestsGif.hs ./tests/TestsGif2.hs \

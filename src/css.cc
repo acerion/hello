@@ -18,8 +18,17 @@
 using namespace dw::core::style;
 
 static void css_value_copy(c_css_value_t * dest, c_css_value_t * src);
+static bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, MatchCache * match_cache);
 
-void css_declaration_print(FILE * file, c_css_declaration_t * declaration)
+static void css_rule_print_pretty(FILE * file, const c_css_rule_t * rule);
+
+static void css_simple_selector_print_compact(FILE * file, const c_css_simple_selector_t * sim_sel);
+static void css_simple_selector_print_pretty(FILE * file, c_css_simple_selector_t * selector);
+
+static void css_selector_print_compact(FILE * file, const c_css_selector_t * selector);
+static void css_selector_print_pretty(FILE * file, c_css_selector_t * selector);
+
+void css_declaration_print_pretty(FILE * file, c_css_declaration_t * declaration)
 {
    if (declaration->c_important) {
       fprintf(file, "important = true\n");
@@ -112,10 +121,10 @@ void css_value_copy(c_css_value_t * dest, c_css_value_t * src)
 }
 
 
-void css_declaration_set_print(FILE * file, c_css_declaration_set_t * decl_set)
+void css_declaration_set_print_pretty(FILE * file, c_css_declaration_set_t * decl_set)
 {
    for (int i = 0; i < decl_set->c_declarations_count; i++) {
-      css_declaration_print(file, &decl_set->c_declarations[i]);
+      css_declaration_print_pretty(file, &decl_set->c_declarations[i]);
    }
 }
 
@@ -128,8 +137,6 @@ bool css_selector_matches(c_css_selector_t * selector, Doctree * docTree, const 
       return true;
    }
 
-   struct c_css_simple_selector_t * sim_sel = selector->c_simple_selector_list[sim_sel_idx];
-
    switch (comb) {
       case CssSelectorCombinatorNone:
          break;
@@ -140,44 +147,41 @@ bool css_selector_matches(c_css_selector_t * selector, Doctree * docTree, const 
          dtn = docTree->sibling(dtn);
          break;
       case CssSelectorCombinatorDescendant:
-         {
-            dtn = docTree->parent(dtn);
-            int * matchCacheEntry = &match_cache->arr[selector->c_match_case_offset + sim_sel_idx];
-
-#if 0
-            for (size_t z = 0; z < match_cache->size; z++) {
-               fprintf(stderr, "match_cache->arr[%zd] = %d\n", z, match_cache->arr[z]);
-            }
-            fprintf(stderr, "\n");
-#endif
-
-            for (const c_doctree_node_t *n = dtn; n && n->c_unique_num > *matchCacheEntry; n = docTree->parent (n)) {
-               if (hll_simpleSelectorMatches(sim_sel, n)
-                   && css_selector_matches(selector, docTree, n, sim_sel_idx - 1, (Combinator) sim_sel->c_combinator, match_cache)) {
-                  return true;
-               }
-            }
-
-            if (dtn) // remember that it didn't match to avoid future tests
-               *matchCacheEntry = dtn->c_unique_num;
-
-            return false;
-         }
-         break;
+         dtn = docTree->parent(dtn);
+         return on_combinator_descendant(selector, docTree, dtn, sim_sel_idx, comb, match_cache);
       default:
          return false; // \todo implement other combinators
    }
 
+   struct c_css_simple_selector_t * sim_sel = selector->c_simple_selector_list[sim_sel_idx];
    if (!dtn) {
       return false;
-   } else {
-      if (!hll_simpleSelectorMatches(sim_sel, dtn)) {
-         return false;
-      }
+   }
+   if (!hll_simpleSelectorMatches(sim_sel, dtn)) {
+      return false;
    }
 
    // tail recursion should be optimized by the compiler
    return css_selector_matches(selector, docTree, dtn, sim_sel_idx - 1, (Combinator) sim_sel->c_combinator, match_cache);
+}
+
+bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, MatchCache * match_cache)
+{
+   int * match_cache_entry = &match_cache->arr[selector->c_match_case_offset + sim_sel_idx];
+   struct c_css_simple_selector_t * sim_sel = selector->c_simple_selector_list[sim_sel_idx];
+
+   for (const c_doctree_node_t * dtn2 = dtn; dtn2 && dtn2->c_unique_num > *match_cache_entry; dtn2 = docTree->parent(dtn2)) {
+      if (hll_simpleSelectorMatches(sim_sel, dtn2)
+          && css_selector_matches(selector, docTree, dtn2, sim_sel_idx - 1, (Combinator) sim_sel->c_combinator, match_cache)) {
+         return true;
+      }
+   }
+
+   if (dtn) { // remember that it didn't match to avoid future tests
+      *match_cache_entry = dtn->c_unique_num;
+   }
+
+   return false;
 }
 
 bool css_selector_has_pseudo_class(c_css_selector_t * selector)
@@ -205,29 +209,12 @@ int css_selector_get_required_match_cache(c_css_selector_t * selector)
    return selector->c_match_case_offset + selector->c_simple_selector_list_size;
 }
 
-/**
- * \brief Return the specificity of the selector.
- *
- * The specificity of a CSS selector is defined in
- * http://www.w3.org/TR/CSS21/cascade.html#specificity
- */
-int css_selector_specificity(c_css_selector_t * selector)
-{
-   int spec = 0;
-
-   for (int i = 0; i < selector->c_simple_selector_list_size; i++) {
-      spec += css_simple_selector_specificity(selector->c_simple_selector_list[i]);
-   }
-
-   return spec;
-}
-
-void css_selector_print(FILE * file, c_css_selector_t * selector)
+void css_selector_print_pretty(FILE * file, c_css_selector_t * selector)
 {
    //fprintf(file, "        Rule SelectorList: Begin\n");
    fprintf(file, "        Rule SelectorList: %d simple selectors\n", selector->c_simple_selector_list_size);
    for (int i = 0; i < selector->c_simple_selector_list_size; i++) {
-      css_simple_selector_print(file, selector->c_simple_selector_list[i]);
+      css_simple_selector_print_pretty(file, selector->c_simple_selector_list[i]);
 
       if (i < selector->c_simple_selector_list_size - 1) {
          switch (selector->c_simple_selector_list[i + 1]->c_combinator) {
@@ -252,30 +239,7 @@ void css_selector_print(FILE * file, c_css_selector_t * selector)
    //fprintf (file, "\n");
 }
 
-/**
- * \brief Return the specificity of the simple selector.
- *
- * The result is used in CssSelector::specificity ().
- */
-int css_simple_selector_specificity(c_css_simple_selector_t * sim_sel)
-{
-   int spec = 0;
-
-   if (sim_sel->c_selector_id) {
-      spec += 1 << 20;
-   }
-   spec += sim_sel->c_selector_class_size << 10;
-   if (sim_sel->c_selector_pseudo_class_size > 0) { // Remember that C/C++ code can use only first pseudo code.
-      spec += 1 << 10;
-   }
-   if (sim_sel->c_selector_element != CssSimpleSelectorElementAny) {
-      spec += 1;
-   }
-
-   return spec;
-}
-
-void css_simple_selector_print(FILE * file, c_css_simple_selector_t * selector)
+void css_simple_selector_print_pretty(FILE * file, c_css_simple_selector_t * selector)
 {
    fprintf(file, "            Rule SimpleSelector: ");
 
@@ -316,24 +280,34 @@ c_css_rule_t * css_rule_new(c_css_selector_t * selector, c_css_declaration_set_t
    rule->c_selector = selector;
    rule->c_decl_set = decl_set;
    rule->c_position = rule_position;
-   rule->c_specificity = css_selector_specificity(selector);
+   rule->c_specificity = hll_selectorSpecificity(selector);
 
    return rule;
 }
 
-void css_rule_print(FILE * file, const c_css_rule_t * rule)
+void css_rule_print_pretty(FILE * file, const c_css_rule_t * rule)
 {
    fprintf(file, "    Rule: Begin\n");
-   css_selector_print(file, rule->c_selector);
+   css_selector_print_pretty(file, rule->c_selector);
    if (nullptr != rule->c_decl_set) {
       fprintf(file, "        Rule Declarations (%d) {\n", rule->c_decl_set->c_declarations_count);
-      css_declaration_set_print(file, rule->c_decl_set);
+      css_declaration_set_print_pretty(file, rule->c_decl_set);
    } else {
          fprintf(file, "        Rule Declarations (0) {\n");
    }
    fprintf(file, "        Rule Declarations }\n");
    fprintf(file, "    Rule: End\n");
    fprintf(file, "    Rule: ---------------------------\n");
+}
+
+
+void css_selector_print_compact(FILE * file, const c_css_selector_t * selector)
+{
+   fprintf(file, "C: Selector:\n");
+   fprintf(file, "simple selectors count: %d\n", selector->c_simple_selector_list_size);
+   for (int i = 0; i < selector->c_simple_selector_list_size; i++) {
+      css_simple_selector_print_compact(file, selector->c_simple_selector_list[i]);
+   }
 }
 
 bool css_rule_is_safe(const c_css_rule_t * rule)
@@ -483,7 +457,7 @@ void CssStyleSheet::apply_style_sheet(FILE * file, c_css_declaration_set_t * dec
             hll_declarationListAppend(declList, rule->c_decl_set);
          }
 
-         css_rule_print(file, rule);
+         css_rule_print_pretty(file, rule);
 
          index[minSpecIndex]++;
       } else {
@@ -598,14 +572,34 @@ void match_cache_set_size(MatchCache * match_cache, int new_size)
 }
 
 
-void printStringArrayWithLenFlat(FILE * file, char * const * arr, int size, const char * name)
+void print_string_array_with_len_flat(FILE * file, char * const * arr, int size, const char * name)
 {
-   fprintf(file, "%s size = %d, ", name, size);
+   fprintf(file, "%s size = %d, array ptr = %p, ", name, size, arr);
    fprintf(file, "%s = [", name);
    for (int i = 0; i < size; i++) {
-      fprintf(file, "%s ", arr[i]);
+      fprintf(file, "arr ptr %p = %s", arr[i], arr[i]);
    }
    fprintf(file, "], ");
+
+   return;
+}
+
+void print_string_array_with_len(FILE * file, char * const * arr, int size, const char * name)
+{
+   fprintf(file, "%s = [", name);
+   for (int i = 0; i < size; i++) {
+      fprintf(file, "%s%s", arr[i], i > 0 ? " " : "");
+   }
+   fprintf(file, "]\n");
+   fprintf(file, "%s size = %d\n", name, size);
+
+#if 1
+   fprintf(file, "    array ptr = %p, [", arr);
+   for (int i = 0; i < size; i++) {
+      fprintf(file, "%p%s", arr[i], i > 0 ? " " : "");
+   }
+   fprintf(file, "]\n");
+#endif
 
    return;
 }
@@ -613,11 +607,25 @@ void printStringArrayWithLenFlat(FILE * file, char * const * arr, int size, cons
 void css_simple_selector_print_flat(FILE * file, const c_css_simple_selector_t * sim_sel)
 {
    fprintf(file, "C: simSel: ");
-   printStringArrayWithLenFlat(file, sim_sel->c_selector_pseudo_class, sim_sel->c_selector_pseudo_class_size, "pseudo class");
+   print_string_array_with_len_flat(file, sim_sel->c_selector_pseudo_class, sim_sel->c_selector_pseudo_class_size, "pseudo class");
    fprintf(file, "id = '%s', ", sim_sel->c_selector_id);
-   printStringArrayWithLenFlat(file, sim_sel->c_selector_class, sim_sel->c_selector_class_size, "class");
+   print_string_array_with_len_flat(file, sim_sel->c_selector_class, sim_sel->c_selector_class_size, "class");
    fprintf(file, "element = %d, ", sim_sel->c_selector_element);
    fprintf(file, "combinator = %d", sim_sel->c_combinator);
+   fprintf(file, "\n");
+
+   return;
+}
+
+
+void css_simple_selector_print_compact(FILE * file, const c_css_simple_selector_t * sim_sel)
+{
+   fprintf(file, "C: simSel:\n");
+   print_string_array_with_len(file, sim_sel->c_selector_pseudo_class, sim_sel->c_selector_pseudo_class_size, "pseudo class");
+   fprintf(file, "id = '%s'\n", sim_sel->c_selector_id);
+   print_string_array_with_len(file, sim_sel->c_selector_class, sim_sel->c_selector_class_size, "class");
+   fprintf(file, "element = %d\n", sim_sel->c_selector_element);
+   fprintf(file, "combinator = %d\n", sim_sel->c_combinator);
    fprintf(file, "\n");
 
    return;
