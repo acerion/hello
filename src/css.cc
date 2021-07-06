@@ -277,10 +277,14 @@ c_css_rule_t * css_rule_new(c_css_selector_t * selector, c_css_declaration_set_t
 
    c_css_rule_t * rule = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
 
+   //css_selector_print_compact(stderr, selector);
+
    rule->c_selector = selector;
    rule->c_decl_set = decl_set;
    rule->c_position = rule_position;
    rule->c_specificity = hll_selectorSpecificity(selector);
+
+   //fprintf(stderr, "\n\n\n");
 
    return rule;
 }
@@ -577,7 +581,8 @@ void print_string_array_with_len_flat(FILE * file, char * const * arr, int size,
    fprintf(file, "%s size = %d, array ptr = %p, ", name, size, arr);
    fprintf(file, "%s = [", name);
    for (int i = 0; i < size; i++) {
-      fprintf(file, "arr ptr %p = %s", arr[i], arr[i]);
+      const bool comma = size > 0 && i < size - 1;
+      fprintf(file, "arr ptr[%d] %p = %s%s", i, arr[i], arr[i], comma ? ", " : "");
    }
    fprintf(file, "], ");
 
@@ -588,7 +593,8 @@ void print_string_array_with_len(FILE * file, char * const * arr, int size, cons
 {
    fprintf(file, "%s = [", name);
    for (int i = 0; i < size; i++) {
-      fprintf(file, "%s%s", arr[i], i > 0 ? " " : "");
+      const bool comma = size > 0 && i < size - 1;
+      fprintf(file, "%s%s", arr[i], comma ? ", " : "");
    }
    fprintf(file, "]\n");
    fprintf(file, "%s size = %d\n", name, size);
@@ -596,7 +602,8 @@ void print_string_array_with_len(FILE * file, char * const * arr, int size, cons
 #if 1
    fprintf(file, "    array ptr = %p, [", arr);
    for (int i = 0; i < size; i++) {
-      fprintf(file, "%p%s", arr[i], i > 0 ? " " : "");
+      const bool comma = size > 0 && i < size - 1;
+      fprintf(file, "%p%s", arr[i], comma ? ", " : "");
    }
    fprintf(file, "]\n");
 #endif

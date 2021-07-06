@@ -14,6 +14,7 @@ all:
 		Css.hs \
 		CssParser.hs        ffi/CssParser.hs \
 		                    ffi/Css.hs \
+		                    ../Hello/Ffi/Utils.hs \
 		Colors.hs           ffi/Colors.hs \
 		HtmlEntity.hs \
 		HtmlTag.hs          ffi/HtmlTag.hs \
@@ -29,6 +30,9 @@ clean:
 	find ./ -name "*.so"      | xargs rm -f
 	find ./ -name "*.out"     | xargs rm -f
 	find ./ -name "*_stub.h"  | xargs rm -f
+
+	find ../Hello -name "*.hi" | xargs rm -f
+	find ../Hello -name "*.o"  | xargs rm -f
 
 	rm -f ffi/*.h
 	rm -f ffi/Gif.hs

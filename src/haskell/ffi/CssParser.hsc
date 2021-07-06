@@ -18,14 +18,18 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 -}
 
 
+
+
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
 
+
+
 module CssParserFFI( FfiCssSimpleSelector (..)
+                   , ffiCssSimpleSelectorToCssSimpleSelector
+
                    , FfiCssSelector (..)
                    , ffiCssSelectorToCssSelector
-                   , cStringToText
-                   , cStringArrayLenToTextList
                    )
   where
 
@@ -50,6 +54,7 @@ import Control.Applicative
 import Control.Monad -- when
 import CssParser
 import Debug.Trace
+import Hello.Ffi.Utils
 
 
 
@@ -315,7 +320,7 @@ data FfiCssSimpleSelector = FfiCssSimpleSelector {
     selectorClassC           :: Ptr CString
   , selectorClassSizeC       :: CInt
 
-  , selectorPseudoClassC     :: Ptr CString
+  , selectorPseudoClassC     :: Ptr (Ptr CChar) -- == <char * c_selector_class[10]> == <char ** c_selector_class>
   , selectorPseudoClassSizeC :: CInt
 
   , selectorIdC              :: CString
@@ -332,9 +337,9 @@ instance Storable FfiCssSimpleSelector where
   alignment _ = #{alignment c_css_simple_selector_t}
 
   peek ptr = do
-    a <- #{peek c_css_simple_selector_t, c_selector_class} ptr
+    let a = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_simple_selector_t, c_selector_class}) ptr
     b <- #{peek c_css_simple_selector_t, c_selector_class_size} ptr
-    c <- #{peek c_css_simple_selector_t, c_selector_pseudo_class} ptr
+    let c = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_simple_selector_t, c_selector_pseudo_class}) ptr
     d <- #{peek c_css_simple_selector_t, c_selector_pseudo_class_size} ptr
     e <- #{peek c_css_simple_selector_t, c_selector_id} ptr
     f <- #{peek c_css_simple_selector_t, c_selector_element} ptr
@@ -354,9 +359,36 @@ instance Storable FfiCssSimpleSelector where
 
 
 
+ffiCssSimpleSelectorToCssSimpleSelector :: Ptr FfiCssSimpleSelector -> IO CssSimpleSelector
+ffiCssSimpleSelectorToCssSimpleSelector ptrStructSimpleSelector = do
+
+  ffiSimSel <- peek ptrStructSimpleSelector
+
+  let pcStringArray :: Ptr CString = (selectorPseudoClassC ffiSimSel)
+  pc <- cArrayLenToList pcStringArray (fromIntegral . selectorPseudoClassSizeC $ ffiSimSel) ptrCCharToText
+
+  selId <- ptrCCharToText . selectorIdC $ ffiSimSel
+
+  let cStringArray :: Ptr CString = (selectorClassC ffiSimSel)
+  c <- cArrayLenToList cStringArray (fromIntegral . selectorClassSizeC $ ffiSimSel) ptrCCharToText
+
+  return CssSimpleSelector{ selectorPseudoClass = pc
+                          , selectorId          = selId
+                          , selectorClass       = c
+                          , selectorElement     = fromIntegral . selectorElementC $ ffiSimSel
+                          , combinator          = fromIntegral . combinatorC $ ffiSimSel
+                          }
+
+
+
+
 data FfiCssSelector = FfiCssSelector {
     matchCaseOffsetC         :: CInt
-  , simpleSelectorListC      :: Ptr FfiCssSimpleSelector
+
+    --    <c_css_simple_selector_t * c_simple_selector_list[10]>
+    -- == <c_css_simple_selector_t ** c_simple_selector_list>
+    -- == pointer to pointer(s) to simple selector struct
+  , simpleSelectorListC      :: Ptr (Ptr FfiCssSimpleSelector)
   , simpleSelectorListSizeC  :: CInt
   } deriving (Show)
 
@@ -369,15 +401,36 @@ instance Storable FfiCssSelector where
 
   peek ptr = do
     a <- #{peek c_css_selector_t, c_match_case_offset} ptr
-    b <- #{peek c_css_selector_t, c_simple_selector_list} ptr
+    -- b <- #{peek c_css_selector_t, c_simple_selector_list} ptr
+    let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_selector_t, c_simple_selector_list}) ptr
     c <- #{peek c_css_selector_t, c_simple_selector_list_size} ptr
     return (FfiCssSelector a b c)
-
 
   poke ptr (FfiCssSelector inMatchCaseOffset inSimpleSelectorList inSimpleSelectorListSize) = do
     #{poke c_css_selector_t, c_match_case_offset}          ptr inMatchCaseOffset
     #{poke c_css_selector_t, c_simple_selector_list}       ptr inSimpleSelectorList
     #{poke c_css_selector_t, c_simple_selector_list_size}  ptr inSimpleSelectorListSize
+
+
+
+
+ffiCssSelectorToCssSelector :: Ptr FfiCssSelector -> IO CssSelector
+ffiCssSelectorToCssSelector ptrStructCssSelector = do
+
+  ffiSel <- peek ptrStructCssSelector
+
+  {- This would also work:
+  let offset = #{offset c_css_selector_t, c_simple_selector_list}
+  let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = plusPtr ptrStructCssSelector offset
+  -}
+  let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = simpleSelectorListC ffiSel
+
+  let simSelCount = fromIntegral . simpleSelectorListSizeC $ ffiSel
+  simSels <- cArrayLenToList ptrSimSelArray simSelCount ffiCssSimpleSelectorToCssSimpleSelector
+
+  return CssSelector{ matchCaseOffset = fromIntegral . matchCaseOffsetC $ ffiSel
+                    , simpleSelectorList = simSels
+                    }
 
 
 
@@ -390,10 +443,10 @@ setSimpleSelector ptrStructSimpleSelector simpleSelector = do
                      then return nullPtr
                      else newCString . T.unpack . selectorId $ simpleSelector
 
-  setArrayOfPointers (selectorClass simpleSelector) textToPtrString ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class)
+  setArrayOfPointers (selectorClass simpleSelector) textToPtrCChar ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class)
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class_size) (length . selectorClass $ simpleSelector)
 
-  setArrayOfPointers (selectorPseudoClass simpleSelector) textToPtrString ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class)
+  setArrayOfPointers (selectorPseudoClass simpleSelector) textToPtrCChar ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class)
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class_size) (length . selectorPseudoClass $ simpleSelector)
 
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_id) cStringPtrSelId
@@ -435,6 +488,7 @@ hll_cssParseSelector ptrStructCssParser ptrStructCssToken cBuf = do
 
 
 
+
 hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssSelector -> IO Int
 hll_cssParseSelectors ptrStructCssParser ptrStructCssToken cBuf ptrStructCssSelector = do
   buf       <- BSU.unsafePackCString $ cBuf
@@ -473,65 +527,6 @@ updateSelectors ptr [] = return ()
 
 
 
-ffiCssSelectorToCssSelector :: Ptr FfiCssSelector -> IO CssSelector
-ffiCssSelectorToCssSelector ptrStructCssSelector = do
-
-  ffiSel <- peek ptrStructCssSelector
-  let simSelCount = fromIntegral . simpleSelectorListSizeC $ ffiSel
-
-  let offset = #{offset c_css_selector_t, c_simple_selector_list}
-  let size = #{size c_css_simple_selector_t}
-  let ptrSimSelArray :: Ptr FfiCssSimpleSelector = plusPtr ptrStructCssSelector offset
-
-  simSels <- arrayOfPointersToList ptrSimSelArray 0 simSelCount []
-
-  --putStrLn ("FFI: simSels = " ++ (show simSels) ++ "\n\n")
-
-  return CssSelector{ matchCaseOffset = fromIntegral . matchCaseOffsetC $ ffiSel
-                    , simpleSelectorList = simSels
-                    }
-
-
-
-
-ffiCssSimpleSelectorToCssSimpleSelector :: Ptr FfiCssSimpleSelector -> IO CssSimpleSelector
-ffiCssSimpleSelectorToCssSimpleSelector ptrStructSimpleSelector = do
-
-  ffiSimSel <- peek ptrStructSimpleSelector
-
-  let pcOffset = #{offset c_css_simple_selector_t, c_selector_pseudo_class}
-  let pcStringArray :: Ptr CString = plusPtr ptrStructSimpleSelector pcOffset
-  pc <- cStringArrayLenToTextList pcStringArray (fromIntegral . selectorPseudoClassSizeC $ ffiSimSel) []
-
-  selId <- cStringToText . selectorIdC $ ffiSimSel
-
-  let cOffset = #{offset c_css_simple_selector_t, c_selector_class}
-  let cStringArray :: Ptr CString = plusPtr ptrStructSimpleSelector cOffset
-  c <- cStringArrayLenToTextList cStringArray (fromIntegral . selectorClassSizeC $ ffiSimSel) []
-
-  return CssSimpleSelector{ selectorPseudoClass = pc
-                          , selectorId          = selId
-                          , selectorClass       = c
-                          , selectorElement     = fromIntegral . selectorElementC $ ffiSimSel
-                          , combinator          = fromIntegral . combinatorC $ ffiSimSel
-                          }
-
-
-
-
-arrayOfPointersToList :: Ptr FfiCssSimpleSelector -> Int -> Int -> [CssSimpleSelector] -> IO [CssSimpleSelector]
-arrayOfPointersToList simSelArray i n acc = do
-  if (i == n)
-    then return . reverse $ acc
-    else do
-
-    ptr :: Ptr FfiCssSimpleSelector <- peekByteOff simSelArray 0
-    simSel <- ffiCssSimpleSelectorToCssSimpleSelector ptr
-
-    arrayOfPointersToList (plusPtr simSelArray 8) (i + 1) n (simSel : acc)
-
-
-
 
 -- Get pointer to newly allocated pointer to C structure representing given
 -- simple selector.
@@ -544,18 +539,6 @@ simpleSelectorToPtrStruct simSel = do
   ptrStructSimpleSelector <- callocBytes #{size c_css_simple_selector_t}
   setSimpleSelector ptrStructSimpleSelector simSel
   return ptrStructSimpleSelector
-
-
-
-
--- Get pointer to newly allocated pointer to C string representing given
--- text.
---
--- This function allocates memory, but since the goal of this project is to
--- replace C/C++ code with Haskell code, the allocation will be eventually
--- removed. So I don't care about deallocating the memory.
-textToPtrString :: T.Text -> IO CString
-textToPtrString = newCString . T.unpack
 
 
 
@@ -935,30 +918,4 @@ cssValueToTypeTag value = case value of
                             CssValueTypeURI _                 -> 12
                             CssValueTypeBgPosition            -> 13
                             CssValueTypeUnused                -> 14
-
-
-
-
-
-cStringToText :: CString -> IO T.Text
-cStringToText ptr = do
-  if nullPtr == ptr
-    then return ""
-    else do
-    bs :: BS.ByteString <- BSU.unsafePackCString ptr
-    return (T.E.decodeLatin1 bs)
-
-
-
-
--- Convert array of C strings to list of text. The size of array is n.
--- char * array[n] -> n -> acc -> result.
-cStringArrayLenToTextList :: Ptr CString -> Int -> [T.Text] -> IO [T.Text]
-cStringArrayLenToTextList cStringArray 0 acc = return acc -- The function iterates array from end, so we don't have to reverse the list.
-cStringArrayLenToTextList cStringArray n acc = do
-  s :: CString <- peekElemOff cStringArray (n - 1)
-  bs <- BSU.unsafePackCString s
-  let t = T.E.decodeLatin1 bs
-  cStringArrayLenToTextList cStringArray (n - 1) (t : acc)
-
 

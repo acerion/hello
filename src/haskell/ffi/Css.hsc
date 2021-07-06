@@ -48,6 +48,7 @@ import Debug.Trace
 import CssParserFFI
 import CssParser
 import Css
+import Hello.Ffi.Utils
 
 
 
@@ -130,41 +131,17 @@ hll_simpleSelectorMatches ptrStructSimpleSelector ptrStructDoctreeNode = do
 
 
 
-ffiCssSimpleSelectorToCssSimpleSelector :: Ptr FfiCssSimpleSelector -> IO CssSimpleSelector
-ffiCssSimpleSelectorToCssSimpleSelector ptrStructSimpleSelector = do
-
-  ffiSimSel :: FfiCssSimpleSelector <- peek ptrStructSimpleSelector
-
-  i <- cStringToText . selectorIdC $ ffiSimSel
-
-  let pcOffset = (#offset c_css_simple_selector_t, c_selector_pseudo_class)
-  let pcStringArray :: Ptr CString = plusPtr ptrStructSimpleSelector pcOffset
-  pc <- cStringArrayLenToTextList pcStringArray (fromIntegral . selectorPseudoClassSizeC $ ffiSimSel) []
-
-  let cOffset = (#offset c_css_simple_selector_t, c_selector_class)
-  let cStringArray :: Ptr CString = plusPtr ptrStructSimpleSelector cOffset
-  c  <- cStringArrayLenToTextList cStringArray (fromIntegral . selectorClassSizeC $ ffiSimSel) []
-
-  return CssSimpleSelector{selectorPseudoClass = pc
-                          , selectorId         = i
-                          , selectorClass      = c
-                          , selectorElement    = fromIntegral . selectorElementC $ ffiSimSel
-                          , combinator         = fromIntegral . combinatorC $ ffiSimSel
-                          }
-
-
-
 
 ffiDoctreeNodeToDoctreeNode :: Ptr FfiDoctreeNode -> IO DoctreeNode
 ffiDoctreeNodeToDoctreeNode ptrStructDoctreeNode = do
 
   ffiDtn <- peek ptrStructDoctreeNode
-  pc <- cStringToText . elementSelectorPseudoClassC $ ffiDtn
-  i  <- cStringToText . elementSelectorIdC $ ffiDtn
+  pc <- ptrCCharToText . elementSelectorPseudoClassC $ ffiDtn
+  i  <- ptrCCharToText . elementSelectorIdC $ ffiDtn
 
   let cOffset = (#offset c_doctree_node_t, c_element_selector_class)
   let cStringArray :: Ptr CString = plusPtr ptrStructDoctreeNode cOffset
-  c  <- cStringArrayLenToTextList cStringArray (fromIntegral . elementSelectorClassSizeC $ ffiDtn) []
+  c  <- cArrayLenToList cStringArray (fromIntegral . elementSelectorClassSizeC $ ffiDtn) ptrCCharToText
 
   return DoctreeNode{ uniqueNum = fromIntegral . uniqueNumC $ ffiDtn
 
@@ -185,5 +162,6 @@ hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
 hll_selectorSpecificity ptrStructCssSelector = do
   ffiSel <- peek ptrStructCssSelector
   sel <- ffiCssSelectorToCssSelector ptrStructCssSelector
+  putStrLn ("FFI: Sel = " ++ (show sel))
   return . selectorSpecificity $ sel
 
