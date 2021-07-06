@@ -13,6 +13,7 @@ import datetime as dt
 # src/haskell/tests
 # src/haskell/tests_tools
 # src/haskell/ffi
+# src/Hello/Ffi
 
 # C/C++ numbers don't include code in these dirs/files:
 # src/haskell/hello.h
@@ -46,6 +47,7 @@ arr = np.array((
     ["2021-05-23",     32596,     19019,      1982],
     ["2021-06-15",     32564,     19019,      1920],
     ["2021-06-26",     32543,     19019,      1980],
+    ["2021-07-06",     32558,     19125,      2054],
 ))
 
 
