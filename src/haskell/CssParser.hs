@@ -47,7 +47,7 @@ TODO: think about performance of using isPrefixOf to get just one character.
 
 
 {-# LANGUAGE OverloadedStrings #-}
-
+{-# LANGUAGE ScopedTypeVariables #-}
 
 
 
@@ -63,6 +63,7 @@ module CssParser(nextToken
                 , cssPropertyInfo
 
                 , cssSimpleSelectorElementAny
+                , cssSimpleSelectorElementNone
 
                 , parseUrl
                 , CssParser (..)
@@ -118,6 +119,8 @@ module CssParser(nextToken
                 , parseSelector
                 , parseSelectors
                 , removeSpaceTokens
+
+                , CssCombinator (..)
 
                 , CssValue (..)
                 , CssDeclaration (..)
@@ -1625,8 +1628,8 @@ data CssSimpleSelector = CssSimpleSelector {
   , selectorId          :: T.Text
   , selectorClass       :: [T.Text]
   , selectorElement     :: Int
-  , combinator          :: Int
-  } deriving (Show)
+  , combinator          :: CssCombinator
+  } deriving (Show, Eq)
 
 
 
@@ -1634,22 +1637,23 @@ data CssSimpleSelector = CssSimpleSelector {
 data CssSelector = CssSelector {
     matchCaseOffset      :: Int
   , simpleSelectorList   :: [CssSimpleSelector]
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 
 
 
-cssSimpleSelectorElementNone = (-1)
-cssSimpleSelectorElementAny  = (-2)
+cssSimpleSelectorElementNone :: Int = (-1)
+cssSimpleSelectorElementAny  :: Int  = (-2)
 
 
 
 
--- TODO: convert to data.
-cssSelectorCombinatorNone            = 0
-cssSelectorCombinatorDescendant      = 1   -- ' '
-cssSelectorCombinatorChild           = 2   -- '>'
-cssSelectorCombinatorAdjacentSibling = 3   -- '+'
+data CssCombinator =
+    CssCombinatorNone
+  | CssCombinatorDescendant        -- ' '
+  | CssCombinatorChild             -- '>'
+  | CssCombinatorAdjacentSibling   -- '+'
+  deriving (Show, Eq)
 
 
 
@@ -1663,7 +1667,7 @@ defaultSimpleSelector = CssSimpleSelector {
   -- Combinator that combines this simple selector and the previous one. For
   -- a simple selector that is first on the list (or the only on the list),
   -- the combinator will be None.
-  , combinator          = cssSelectorCombinatorNone
+  , combinator          = CssCombinatorNone
   }
 
 
@@ -1702,14 +1706,6 @@ updateSimpleSelector simpleSelector selectorType sym =
 
 
 
-
---parseSelector (defaultParser{remainder="h1>h2+h3 h4 {something}"}, CssTokNone)
--- parseSelector (defaultParser{remainder="h1, h2, h3, h4, h5, h6, b, strong {font-weight: bolder}"}, CssTokNone)
--- parseSelector (defaultParser{remainder="address, article, aside, center, div, figure, figcaption, footer, h1, h2, h3, h4, h5, h6, header, nav, ol, p, pre, section, ul {display: block}i, em, cite, address, var"}, CssTokNone)
-
-
-
-
 -- Create a selector from a group of tokens that is terminated by ',' or '{'
 -- character.
 --
@@ -1734,9 +1730,9 @@ parseSelector (parser, token) = ((outParser, outToken), selector)
     parseSelectorTokens (CssTokCh '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
     parseSelectorTokens (CssTokCh ':':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
 
-    parseSelectorTokens (CssTokCh '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorChild}:simSels)
-    parseSelectorTokens (CssTokCh '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorAdjacentSibling}:simSels)
-    parseSelectorTokens (CssTokWS:tokens)     simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = cssSelectorCombinatorDescendant}:simSels)
+    parseSelectorTokens (CssTokCh '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorChild}:simSels)
+    parseSelectorTokens (CssTokCh '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorAdjacentSibling}:simSels)
+    parseSelectorTokens (CssTokWS:tokens)     simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorDescendant}:simSels)
 
     parseSelectorTokens [] simSels = Just simSels
     parseSelectorTokens _  simSels = Nothing

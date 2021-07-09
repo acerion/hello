@@ -379,7 +379,7 @@ ffiCssSimpleSelectorToCssSimpleSelector ptrStructSimpleSelector = do
                           , selectorId          = selId
                           , selectorClass       = c
                           , selectorElement     = fromIntegral . selectorElementC $ ffiSimSel
-                          , combinator          = fromIntegral . combinatorC $ ffiSimSel
+                          , combinator          = cssCombinatorIntToData . fromIntegral . combinatorC $ ffiSimSel
                           }
 
 
@@ -457,7 +457,8 @@ setSimpleSelector ptrStructSimpleSelector simpleSelector = do
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_id) cStringPtrSelId
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_element) (selectorElement simpleSelector)
 
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_combinator) (combinator simpleSelector)
+  let comb :: CInt = cssCombinatorDataToInt . combinator $ simpleSelector
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_combinator) comb
 
 
 
@@ -879,3 +880,17 @@ cssValueToTypeTag value = case value of
                             CssValueTypeBgPosition            -> 13
                             CssValueTypeUnused                -> 14
 
+
+
+cssCombinatorIntToData i = case i of
+                             0 -> CssCombinatorNone
+                             1 -> CssCombinatorDescendant
+                             2 -> CssCombinatorChild
+                             3 -> CssCombinatorAdjacentSibling
+                             _ -> CssCombinatorNone
+
+cssCombinatorDataToInt d = case d of
+                             CssCombinatorNone            -> 0
+                             CssCombinatorDescendant      -> 1
+                             CssCombinatorChild           -> 2
+                             CssCombinatorAdjacentSibling -> 3

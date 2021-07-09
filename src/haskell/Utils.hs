@@ -29,6 +29,11 @@ module HelloUtils (
     tripletFst
   , tripletSnd
   , tripletThrd
+
+  , triplet1st
+  , triplet2nd
+  , triplet3rd
+
   , takeEnclosed
   , skipEnclosed
   ) where
@@ -41,9 +46,13 @@ import qualified Data.Text as T
 
 
 
-tripletFst  (x, _, _) = x
-tripletSnd  (_, y, _) = y
-tripletThrd (_, _, z) = z
+triplet1st (x, _, _) = x
+triplet2nd (_, y, _) = y
+triplet3rd (_, _, z) = z
+
+tripletFst  = triplet1st
+tripletSnd  = triplet2nd
+tripletThrd = triplet3rd
 
 
 
