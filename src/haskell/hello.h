@@ -106,8 +106,8 @@ typedef struct c_css_declaration_t {
 #define DECLARATIONS_COUNT_IN_SET 100
 typedef struct c_css_declaration_set_t {
    int c_is_safe; // TODO: this should be true by default
-   int c_declarations_count;
    c_css_declaration_t * c_declarations;
+   int c_declarations_size;
 } c_css_declaration_set_t;
 
 typedef struct c_css_token_t {
@@ -178,9 +178,6 @@ int hll_cssCreateLength(float val, CssLengthType t);
 
 // Return count of selectors in @p selectors
 int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_selector_t * selectors);
-
-// Return count of declarations in @p declarations
-int hll_parseDeclaration(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_declaration_t * declarations);
 
 int hll_declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * declaration);
 

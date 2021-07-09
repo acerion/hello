@@ -28,7 +28,8 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 module Hello.Ffi.Utils( ptrCCharToText
                       , textToPtrCChar
 
-                      , cArrayLenToList
+                      , peekArrayOfPointers
+                      , pokeArrayOfPointers
                       )
   where
 
@@ -72,16 +73,39 @@ textToPtrCChar = newCString . T.unpack
 -- Convert array of pointers to C objects to list of Haskell objects.
 --
 -- Example: "char * array[n]" -> n -> acc -> conversionFun -> [T.Text].
-cArrayLenToList :: (Storable a) => Ptr (Ptr a) -> Int -> (Ptr a -> IO b) -> IO [b]
-cArrayLenToList array n f = if nullPtr == array
-                            then return []
-                            else cArrayLenToList' array n f []
+peekArrayOfPointers :: (Storable a) => Ptr (Ptr a) -> Int -> (Ptr a -> IO b) -> IO [b]
+peekArrayOfPointers array n f = if nullPtr == array
+                                then return []
+                                else peekArrayOfPointers' array n f []
   where
-    cArrayLenToList' :: (Storable a) => Ptr (Ptr a) -> Int -> (Ptr a -> IO b) -> [b] -> IO [b]
-    cArrayLenToList' array 0 f acc = return acc -- The function iterates array from end, so we don't have to reverse the list.
-    cArrayLenToList' array n f acc = do
+    peekArrayOfPointers' :: (Storable a) => Ptr (Ptr a) -> Int -> (Ptr a -> IO b) -> [b] -> IO [b]
+    peekArrayOfPointers' array 0 f acc = return acc -- The function iterates array from end, so we don't have to reverse the list.
+    peekArrayOfPointers' array n f acc = do
       ptr :: Ptr a <- peekElemOff array (n - 1)
       x <- f ptr
-      cArrayLenToList' array (n - 1) f (x : acc)
+      peekArrayOfPointers' array (n - 1) f (x : acc)
+
+
+
+
+-- Save given list of Haskell objects [a] into C array of pointers to objects 'b'.
+-- The pointers are allocated by this function.
+-- The pointers are stored in an array given by third arg.
+--
+-- 'f' converts input items into pointers to allocated memory. The pointers
+-- will be read and interpreted by C code. This can be a function that e.g.
+-- converts Data.Text into char* strings.
+pokeArrayOfPointers :: (Storable b) => [a] -> (a -> IO (Ptr b)) -> Ptr (Ptr b) -> IO ()
+pokeArrayOfPointers xs f array = pokeArrayOfPointers' xs f array 0
+  where
+    pokeArrayOfPointers' :: (Storable b) => [a] -> (a -> IO (Ptr b)) -> Ptr (Ptr b) -> Int -> IO ()
+    pokeArrayOfPointers' [] f array _ = do
+      return ()
+    pokeArrayOfPointers' (x:xs) f array idx = do
+      ptr :: Ptr b <- f x
+      pokeElemOff array idx ptr
+      pokeArrayOfPointers' xs f array (idx + 1)
+
+
 
 

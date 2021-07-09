@@ -141,7 +141,7 @@ ffiDoctreeNodeToDoctreeNode ptrStructDoctreeNode = do
 
   let cOffset = (#offset c_doctree_node_t, c_element_selector_class)
   let cStringArray :: Ptr CString = plusPtr ptrStructDoctreeNode cOffset
-  c  <- cArrayLenToList cStringArray (fromIntegral . elementSelectorClassSizeC $ ffiDtn) ptrCCharToText
+  c  <- peekArrayOfPointers cStringArray (fromIntegral . elementSelectorClassSizeC $ ffiDtn) ptrCCharToText
 
   return DoctreeNode{ uniqueNum = fromIntegral . uniqueNumC $ ffiDtn
 

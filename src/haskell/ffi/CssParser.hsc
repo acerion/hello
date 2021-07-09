@@ -74,7 +74,6 @@ foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByNa
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
-foreign export ccall "hll_parseDeclaration" hll_parseDeclaration :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssDeclaration -> IO Int
 foreign export ccall "hll_parseDeclarationWrapper" hll_parseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 
 foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
@@ -317,10 +316,14 @@ hll_cssPropertyNameString property = do
 
 
 data FfiCssSimpleSelector = FfiCssSimpleSelector {
-    selectorClassC           :: Ptr CString
+  -- equals to <char * c_selector_class[10]>,
+  -- which equals to <char ** c_selector_class>
+    selectorClassC           :: Ptr (Ptr CChar)
   , selectorClassSizeC       :: CInt
 
-  , selectorPseudoClassC     :: Ptr (Ptr CChar) -- == <char * c_selector_class[10]> == <char ** c_selector_class>
+  -- equals to <char * c_pseudo_selector_class[10]>,
+  -- which equals to <char ** c_pseudo_selector_class>
+  , selectorPseudoClassC     :: Ptr (Ptr CChar)
   , selectorPseudoClassSizeC :: CInt
 
   , selectorIdC              :: CString
@@ -365,12 +368,12 @@ ffiCssSimpleSelectorToCssSimpleSelector ptrStructSimpleSelector = do
   ffiSimSel <- peek ptrStructSimpleSelector
 
   let pcStringArray :: Ptr CString = (selectorPseudoClassC ffiSimSel)
-  pc <- cArrayLenToList pcStringArray (fromIntegral . selectorPseudoClassSizeC $ ffiSimSel) ptrCCharToText
+  pc <- peekArrayOfPointers pcStringArray (fromIntegral . selectorPseudoClassSizeC $ ffiSimSel) ptrCCharToText
 
   selId <- ptrCCharToText . selectorIdC $ ffiSimSel
 
   let cStringArray :: Ptr CString = (selectorClassC ffiSimSel)
-  c <- cArrayLenToList cStringArray (fromIntegral . selectorClassSizeC $ ffiSimSel) ptrCCharToText
+  c <- peekArrayOfPointers cStringArray (fromIntegral . selectorClassSizeC $ ffiSimSel) ptrCCharToText
 
   return CssSimpleSelector{ selectorPseudoClass = pc
                           , selectorId          = selId
@@ -426,7 +429,7 @@ ffiCssSelectorToCssSelector ptrStructCssSelector = do
   let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = simpleSelectorListC ffiSel
 
   let simSelCount = fromIntegral . simpleSelectorListSizeC $ ffiSel
-  simSels <- cArrayLenToList ptrSimSelArray simSelCount ffiCssSimpleSelectorToCssSimpleSelector
+  simSels <- peekArrayOfPointers ptrSimSelArray simSelCount ffiCssSimpleSelectorToCssSimpleSelector
 
   return CssSelector{ matchCaseOffset = fromIntegral . matchCaseOffsetC $ ffiSel
                     , simpleSelectorList = simSels
@@ -443,10 +446,12 @@ setSimpleSelector ptrStructSimpleSelector simpleSelector = do
                      then return nullPtr
                      else newCString . T.unpack . selectorId $ simpleSelector
 
-  setArrayOfPointers (selectorClass simpleSelector) textToPtrCChar ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class)
+  ffiSimSel <- peek ptrStructSimpleSelector
+
+  pokeArrayOfPointers (selectorClass simpleSelector) textToPtrCChar (selectorClassC ffiSimSel)
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class_size) (length . selectorClass $ simpleSelector)
 
-  setArrayOfPointers (selectorPseudoClass simpleSelector) textToPtrCChar ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class)
+  pokeArrayOfPointers (selectorPseudoClass simpleSelector) textToPtrCChar (selectorPseudoClassC ffiSimSel)
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class_size) (length . selectorPseudoClass $ simpleSelector)
 
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_id) cStringPtrSelId
@@ -480,7 +485,8 @@ hll_cssParseSelector ptrStructCssParser ptrStructCssToken cBuf = do
   case newSelector of
     Just sel -> do
       ptrStructSelector <- callocBytes #{size c_css_selector_t}
-      setArrayOfPointers (simpleSelectorList sel) simpleSelectorToPtrStruct ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list)
+      ffiSel <- peek ptrStructSelector
+      pokeArrayOfPointers (simpleSelectorList sel)  simpleSelectorToPtrStruct (simpleSelectorListC ffiSel)
       pokeByteOff ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ sel)
       return ptrStructSelector
     Nothing ->
@@ -518,7 +524,9 @@ hll_cssParseSelectors ptrStructCssParser ptrStructCssToken cBuf ptrStructCssSele
 updateSelectors :: Ptr FfiCssSelector -> [CssSelector] -> IO ()
 updateSelectors ptr (s:ss) = do
 
-  setArrayOfPointers (simpleSelectorList s) simpleSelectorToPtrStruct ptr (#offset c_css_selector_t, c_simple_selector_list)
+  ffiSel <- peek ptr
+
+  pokeArrayOfPointers (simpleSelectorList s) simpleSelectorToPtrStruct (simpleSelectorListC ffiSel)
   pokeByteOff ptr (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ s)
 
   updateSelectors (advancePtr ptr 1) ss
@@ -539,28 +547,6 @@ simpleSelectorToPtrStruct simSel = do
   ptrStructSimpleSelector <- callocBytes #{size c_css_simple_selector_t}
   setSimpleSelector ptrStructSimpleSelector simSel
   return ptrStructSimpleSelector
-
-
-
-
--- Save given array of items 'a' as array of pointers to objects 'b'.
--- The pointers are allocated by this function.
--- The pointers are stored in a structure given by second arg.
--- Byte Offset to beginning of the array of pointers (to first cell) is given by fourth arg.
---
--- 'c' is a parent object, of which the array is a member.
---
--- 'f' converts input items into pointers to allocated memory. The pointers
--- will be read and interpreted by C code. This can be a function that e.g.
--- converts Data.Text into char* strings.
-setArrayOfPointers :: (Storable b) => [a] -> (a -> IO b) -> Ptr c -> Int -> IO ()
-setArrayOfPointers [] f ptrParent byteOffset = do
-  return ()
-setArrayOfPointers (x:xs) f ptrParent byteOffset = do
-  let pointerSize = 8 -- TODO: hardcoded value.
-  ptr <- f x
-  pokeByteOff ptrParent byteOffset ptr
-  setArrayOfPointers xs f ptrParent (byteOffset + pointerSize)
 
 
 
@@ -626,9 +612,9 @@ instance Storable FfiCssValue where
 
 
 data FfiCssDeclarationSet = FfiCssDeclarationSet {
-    isSafeC            :: CInt
-  , declarationsCountC :: CInt
-  , ptrDeclarationsC   :: Ptr FfiCssDeclaration
+    isSafeC           :: CInt
+  , ptrDeclarationsC  :: Ptr FfiCssDeclaration
+  , declarationsSizeC :: CInt
   } deriving (Show)
 
 
@@ -638,43 +624,16 @@ instance Storable FfiCssDeclarationSet where
   sizeOf    _ = #{size c_css_declaration_set_t}
   alignment _ = #{alignment c_css_declaration_set_t}
 
-  poke ptr (FfiCssDeclarationSet argIsSafe argDeclarationsCount argDeclarations) = do
-    #{poke c_css_declaration_set_t, c_is_safe}            ptr argIsSafe
-    #{poke c_css_declaration_set_t, c_declarations_count} ptr argDeclarationsCount
-    #{poke c_css_declaration_set_t, c_declarations}       ptr argDeclarations
+  poke ptr (FfiCssDeclarationSet argIsSafe argDeclarations argDeclarationsSize) = do
+    #{poke c_css_declaration_set_t, c_is_safe}           ptr argIsSafe
+    #{poke c_css_declaration_set_t, c_declarations}      ptr argDeclarations
+    #{poke c_css_declaration_set_t, c_declarations_size} ptr argDeclarationsSize
 
   peek ptr = do
-    a <- #{peek c_css_declaration_set_t, c_is_safe}            ptr
-    b <- #{peek c_css_declaration_set_t, c_declarations_count} ptr
-    c <- #{peek c_css_declaration_set_t, c_declarations}       ptr
+    a <- #{peek c_css_declaration_set_t, c_is_safe}           ptr
+    b <- #{peek c_css_declaration_set_t, c_declarations}      ptr
+    c <- #{peek c_css_declaration_set_t, c_declarations_size} ptr
     return (FfiCssDeclarationSet a b c)
-
-
-
-
-hll_parseDeclaration :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssDeclaration -> IO Int
-hll_parseDeclaration ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDeclaration = do
-  buf       <- BSU.unsafePackCString $ cBuf
-  ffiParser <- peek ptrStructCssParser
-
-  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
-                            }
-
-  ffiToken <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
-  let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
-
-  let ((newParser, newToken), declarations) = parseDeclaration (parser, token)
-
-  updateParserStruct ptrStructCssParser newParser
-  updateTokenStruct ptrStructCssToken newToken
-  updateDeclarationsArray ptrStructCssDeclaration declarations
-
-  return (length declarations)
-
 
 
 
@@ -721,6 +680,7 @@ updateDeclarationsArray ptrStructDeclaration (d:ds) = do
   pokeSingleDeclaration ptrStructDeclaration d
   updateDeclarationsArray (advancePtr ptrStructDeclaration 1) ds
 updateDeclarationsArray ptrStructDeclaration [] = return ()
+
 
 
 
@@ -800,7 +760,7 @@ updateDeclartionsSet ptrStructDeclarationSet ffiDeclSet newDeclSet = do
 
   let cIsSafe :: CInt = if isSafe newDeclSet then 1 else 0
   let cCount  :: CInt = fromIntegral . length . items $ newDeclSet
-  poke ptrStructDeclarationSet $ FfiCssDeclarationSet cIsSafe cCount (ptrDeclarationsC ffiDeclSet)
+  poke ptrStructDeclarationSet $ FfiCssDeclarationSet cIsSafe (ptrDeclarationsC ffiDeclSet) cCount
 
   return ()
 
@@ -823,7 +783,7 @@ ffiDeclarationSetToDeclarationSet ffiDeclSet = do
 
   when (ptrDeclarationsC ffiDeclSet == nullPtr) (trace ("Error: null pointer inside of declaration set") putStr (""))
 
-  let len = (fromIntegral . declarationsCountC $ ffiDeclSet)
+  let len = (fromIntegral . declarationsSizeC $ ffiDeclSet)
   let ptr :: Ptr FfiCssDeclaration = ptrDeclarationsC ffiDeclSet
   ffiArray <- peekArray len ptr
   let ioArray :: [IO CssDeclaration] = ffiDeclarationToDeclaration <$> ffiArray

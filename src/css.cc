@@ -83,7 +83,7 @@ c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * inD
    memcpy(out->c_declarations, inDeclList->c_declarations, DECLARATIONS_COUNT_IN_SET * sizeof (c_css_declaration_set_t));
    out->c_is_safe = inDeclList->c_is_safe;
 
-   for (int i = 0; i < out->c_declarations_count; i++) {
+   for (int i = 0; i < out->c_declarations_size; i++) {
       c_css_declaration_t * decl = &out->c_declarations[i];
       switch (decl->c_value->c_type_tag) {
       case CssDeclarationValueTypeSTRING:
@@ -123,7 +123,7 @@ void css_value_copy(c_css_value_t * dest, c_css_value_t * src)
 
 void css_declaration_set_print_pretty(FILE * file, c_css_declaration_set_t * decl_set)
 {
-   for (int i = 0; i < decl_set->c_declarations_count; i++) {
+   for (int i = 0; i < decl_set->c_declarations_size; i++) {
       css_declaration_print_pretty(file, &decl_set->c_declarations[i]);
    }
 }
@@ -294,7 +294,7 @@ void css_rule_print_pretty(FILE * file, const c_css_rule_t * rule)
    fprintf(file, "    Rule: Begin\n");
    css_selector_print_pretty(file, rule->c_selector);
    if (nullptr != rule->c_decl_set) {
-      fprintf(file, "        Rule Declarations (%d) {\n", rule->c_decl_set->c_declarations_count);
+      fprintf(file, "        Rule Declarations (%d) {\n", rule->c_decl_set->c_declarations_size);
       css_declaration_set_print_pretty(file, rule->c_decl_set);
    } else {
          fprintf(file, "        Rule Declarations (0) {\n");
