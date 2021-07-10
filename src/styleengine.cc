@@ -350,7 +350,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 
    /* Determine font first so it can be used to resolve relative lengths. */
    for (int d_idx = 0; d_idx < declList->c_declarations_size; d_idx++) {
-      c_css_declaration_t * decl = &declList->c_declarations[d_idx];
+      c_css_declaration_t * decl = declList->c_declarations[d_idx];
 
       switch (decl->c_property) {
          case CSS_PROPERTY_FONT_FAMILY:
@@ -498,7 +498,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    attrs->font = Font::create (layout, &fontAttrs);
 
    for (int j = 0; j < declList->c_declarations_size; j++) {
-      c_css_declaration_t * decl = &declList->c_declarations[j];
+      c_css_declaration_t * decl = declList->c_declarations[j];
 
       switch (decl->c_property) {
          /* \todo missing cases */

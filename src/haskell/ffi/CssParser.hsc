@@ -25,12 +25,12 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
-module CssParserFFI( FfiCssSimpleSelector (..)
-                   , ffiCssSimpleSelectorToCssSimpleSelector
+module Hello.Ffi.Css.Parser( FfiCssSimpleSelector (..)
+                           , peekCssSimpleSelector
 
-                   , FfiCssSelector (..)
-                   , ffiCssSelectorToCssSelector
-                   )
+                           , FfiCssSelector (..)
+                           , peekCssSelector
+                           )
   where
 
 
@@ -52,8 +52,9 @@ import qualified Data.Sequence as S
 import qualified Data.Foldable as Foldable
 import Control.Applicative
 import Control.Monad -- when
-import CssParser
 import Debug.Trace
+
+import CssParser
 import Hello.Ffi.Utils
 
 
@@ -362,8 +363,8 @@ instance Storable FfiCssSimpleSelector where
 
 
 
-ffiCssSimpleSelectorToCssSimpleSelector :: Ptr FfiCssSimpleSelector -> IO CssSimpleSelector
-ffiCssSimpleSelectorToCssSimpleSelector ptrStructSimpleSelector = do
+peekCssSimpleSelector :: Ptr FfiCssSimpleSelector -> IO CssSimpleSelector
+peekCssSimpleSelector ptrStructSimpleSelector = do
 
   ffiSimSel <- peek ptrStructSimpleSelector
 
@@ -381,6 +382,21 @@ ffiCssSimpleSelectorToCssSimpleSelector ptrStructSimpleSelector = do
                           , selectorElement     = fromIntegral . selectorElementC $ ffiSimSel
                           , combinator          = cssCombinatorIntToData . fromIntegral . combinatorC $ ffiSimSel
                           }
+
+
+
+
+-- Get pointer to newly allocated pointer to C structure representing given
+-- simple selector.
+--
+-- This function allocates memory, but since the goal of this project is to
+-- replace C/C++ code with Haskell code, the allocation will be eventually
+-- removed. So I don't care about deallocating the memory.
+pokeCssSimpleSelector :: CssSimpleSelector -> IO (Ptr FfiCssSimpleSelector)
+pokeCssSimpleSelector simSel = do
+  ptrStructSimpleSelector <- callocBytes #{size c_css_simple_selector_t}
+  setSimpleSelector ptrStructSimpleSelector simSel
+  return ptrStructSimpleSelector
 
 
 
@@ -417,8 +433,8 @@ instance Storable FfiCssSelector where
 
 
 
-ffiCssSelectorToCssSelector :: Ptr FfiCssSelector -> IO CssSelector
-ffiCssSelectorToCssSelector ptrStructCssSelector = do
+peekCssSelector :: Ptr FfiCssSelector -> IO CssSelector
+peekCssSelector ptrStructCssSelector = do
 
   ffiSel <- peek ptrStructCssSelector
 
@@ -429,7 +445,7 @@ ffiCssSelectorToCssSelector ptrStructCssSelector = do
   let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = simpleSelectorListC ffiSel
 
   let simSelCount = fromIntegral . simpleSelectorListSizeC $ ffiSel
-  simSels <- peekArrayOfPointers ptrSimSelArray simSelCount ffiCssSimpleSelectorToCssSimpleSelector
+  simSels <- peekArrayOfPointers ptrSimSelArray simSelCount peekCssSimpleSelector
 
   return CssSelector{ matchCaseOffset = fromIntegral . matchCaseOffsetC $ ffiSel
                     , simpleSelectorList = simSels
@@ -487,7 +503,7 @@ hll_cssParseSelector ptrStructCssParser ptrStructCssToken cBuf = do
     Just sel -> do
       ptrStructSelector <- callocBytes #{size c_css_selector_t}
       ffiSel <- peek ptrStructSelector
-      pokeArrayOfPointers (simpleSelectorList sel)  simpleSelectorToPtrStruct (simpleSelectorListC ffiSel)
+      pokeArrayOfPointers (simpleSelectorList sel) pokeCssSimpleSelector (simpleSelectorListC ffiSel)
       pokeByteOff ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ sel)
       return ptrStructSelector
     Nothing ->
@@ -527,27 +543,11 @@ updateSelectors ptr (s:ss) = do
 
   ffiSel <- peek ptr
 
-  pokeArrayOfPointers (simpleSelectorList s) simpleSelectorToPtrStruct (simpleSelectorListC ffiSel)
+  pokeArrayOfPointers (simpleSelectorList s) pokeCssSimpleSelector (simpleSelectorListC ffiSel)
   pokeByteOff ptr (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ s)
 
   updateSelectors (advancePtr ptr 1) ss
 updateSelectors ptr [] = return ()
-
-
-
-
-
--- Get pointer to newly allocated pointer to C structure representing given
--- simple selector.
---
--- This function allocates memory, but since the goal of this project is to
--- replace C/C++ code with Haskell code, the allocation will be eventually
--- removed. So I don't care about deallocating the memory.
-simpleSelectorToPtrStruct :: CssSimpleSelector -> IO (Ptr FfiCssSimpleSelector)
-simpleSelectorToPtrStruct simSel = do
-  ptrStructSimpleSelector <- callocBytes #{size c_css_simple_selector_t}
-  setSimpleSelector ptrStructSimpleSelector simSel
-  return ptrStructSimpleSelector
 
 
 
@@ -575,6 +575,60 @@ instance Storable FfiCssDeclaration where
     b <- #{peek c_css_declaration_t, c_property}  ptr
     c <- #{peek c_css_declaration_t, c_value}     ptr
     return (FfiCssDeclaration a b c)
+
+
+
+
+peekCssDeclaration :: Ptr FfiCssDeclaration -> IO CssDeclaration
+peekCssDeclaration ptr = do
+
+  ffiDecl <- peek ptr
+
+  when (ptrValueC ffiDecl == nullPtr) (trace ("Error: null pointer inside of declaration") putStr (""))
+
+  ffiCssValue :: FfiCssValue <- peek . ptrValueC $ ffiDecl
+  cssValue <- peekCssValue ffiCssValue
+
+  return defaultDeclaration{ property = fromIntegral . propertyC $ ffiDecl
+                           , declValue = cssValue
+                           , important = importantC ffiDecl > 0}
+
+
+
+
+pokeCssDeclaration :: CssDeclaration -> IO (Ptr FfiCssDeclaration)
+pokeCssDeclaration declaration = do
+  let textVal = case declValue declaration of
+                  CssValueTypeString t     -> t
+                  CssValueTypeStringList t -> t
+                  CssValueTypeURI t        -> t
+                  otherwise                -> ""
+
+  let intVal = case declValue declaration of
+                 CssValueTypeInt i                                  -> i
+                 CssValueTypeEnum i                                 -> i
+                 CssValueTypeMultiEnum i                            -> i
+                 CssValueTypeLengthPercent (CssLength word _)       -> word
+                 CssValueTypeLength (CssLength word _)              -> word
+                 CssValueTypeSignedLength (CssLength word _)        -> word
+                 CssValueTypeLengthPercentNumber (CssLength word _) -> word
+                 CssValueTypeAuto (CssLength word _)                -> word
+                 CssValueTypeColor i                                -> i
+                 CssValueTypeFontWeight i                           -> i
+                 otherwise                                          -> 0
+
+  ptrString <- newCString . T.unpack $ textVal
+  let t :: CInt = fromIntegral . cssValueToTypeTag . declValue $ declaration
+  let i :: CInt = fromIntegral $ intVal
+  ptrStructCssValue <- callocBytes #{size c_css_value_t}
+  poke ptrStructCssValue $ FfiCssValue t i 0 0 ptrString
+
+  let imp :: CInt = if important declaration then 1 else 0
+  let prop :: CInt = fromIntegral . property $ declaration
+  ptrStructDeclaration :: Ptr FfiCssDeclaration <- callocBytes #{size c_css_declaration_t}
+  poke ptrStructDeclaration $ FfiCssDeclaration imp prop ptrStructCssValue
+
+  return ptrStructDeclaration
 
 
 
@@ -614,7 +668,7 @@ instance Storable FfiCssValue where
 
 data FfiCssDeclarationSet = FfiCssDeclarationSet {
     isSafeC           :: CInt
-  , ptrDeclarationsC  :: Ptr FfiCssDeclaration
+  , ptrDeclarationsC  :: Ptr (Ptr FfiCssDeclaration)
   , declarationsSizeC :: CInt
   } deriving (Show)
 
@@ -632,9 +686,44 @@ instance Storable FfiCssDeclarationSet where
 
   peek ptr = do
     a <- #{peek c_css_declaration_set_t, c_is_safe}           ptr
-    b <- #{peek c_css_declaration_set_t, c_declarations}      ptr
+    let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_declaration_set_t, c_declarations}) ptr
     c <- #{peek c_css_declaration_set_t, c_declarations_size} ptr
     return (FfiCssDeclarationSet a b c)
+
+
+
+
+peekCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO CssDeclarationSet
+peekCssDeclarationSet ptrStructDeclarationSet = do
+
+  ffiDeclSet <- peek ptrStructDeclarationSet
+
+  when (ptrDeclarationsC ffiDeclSet == nullPtr) (trace ("Error: null pointer inside of declaration set") putStr (""))
+
+  let len = (fromIntegral . declarationsSizeC $ ffiDeclSet)
+  let array :: Ptr (Ptr FfiCssDeclaration) = ptrDeclarationsC ffiDeclSet
+  decls <- peekArrayOfPointers array len peekCssDeclaration
+  return CssDeclarationSet{ isSafe = isSafeC ffiDeclSet > 0
+                          , items = S.fromList decls
+                          }
+
+
+
+
+pokeCssDeclarationSet :: Ptr FfiCssDeclarationSet -> CssDeclarationSet -> IO ()
+pokeCssDeclarationSet ptrStructDeclarationSet newDeclSet = do
+
+  ffiDeclSet <- peek ptrStructDeclarationSet
+
+  let cIsSafe :: CInt = if isSafe newDeclSet then 1 else 0
+  let cCount  :: CInt = fromIntegral . length . items $ newDeclSet
+
+  pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_is_safe) cIsSafe
+  pokeArrayOfPointers (Foldable.toList . items $ newDeclSet) pokeCssDeclaration (ptrDeclarationsC ffiDeclSet)
+  pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_declarations_size) cCount
+  --poke ptrStructDeclarationSet $ FfiCssDeclarationSet cIsSafe (ptrDeclarationsC ffiDeclSet) cCount -- TODO: why setting "array of pointers" field doesn't work?
+
+  return ()
 
 
 
@@ -654,19 +743,16 @@ hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken cBuf ptrStructC
   tokValue <- BSU.unsafePackCString . valueC $ ffiToken
   let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
 
-  ffiDeclSet :: FfiCssDeclarationSet <- peek ptrStructCssDeclarationSet
-  declSet    :: CssDeclarationSet <- ffiDeclarationSetToDeclarationSet ffiDeclSet
-
-  ffiDeclSetImp :: FfiCssDeclarationSet <- peek ptrStructCssDeclarationSetImp
-  declSetImp    :: CssDeclarationSet <- ffiDeclarationSetToDeclarationSet ffiDeclSetImp
+  declSet    :: CssDeclarationSet <- peekCssDeclarationSet ptrStructCssDeclarationSet
+  declSetImp :: CssDeclarationSet <- peekCssDeclarationSet ptrStructCssDeclarationSetImp
 
   let ((newParser, newToken), (newDeclSet, newDeclSetImp)) = parseDeclarationWrapper2 (parser, token) (declSet, declSetImp)
 
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
 
-  updateDeclartionsSet ptrStructCssDeclarationSet ffiDeclSet newDeclSet
-  updateDeclartionsSet ptrStructCssDeclarationSetImp ffiDeclSetImp newDeclSetImp
+  pokeCssDeclarationSet ptrStructCssDeclarationSet newDeclSet
+  pokeCssDeclarationSet ptrStructCssDeclarationSetImp newDeclSetImp
 
   when ((length . items $ newDeclSetImp) > 0) (putStrLn ("important decl set = " ++ (show newDeclSetImp)))
 
@@ -675,67 +761,17 @@ hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken cBuf ptrStructC
 
 
 
-updateDeclarationsArray :: Ptr FfiCssDeclaration -> [CssDeclaration] -> IO ()
-updateDeclarationsArray ptrStructDeclaration (d:ds) = do
-  when (ptrStructDeclaration == nullPtr) (trace ("Error: argument is null pointer in updateDeclarationsArray") putStr (""))
-  pokeSingleDeclaration ptrStructDeclaration d
-  updateDeclarationsArray (advancePtr ptrStructDeclaration 1) ds
-updateDeclarationsArray ptrStructDeclaration [] = return ()
-
-
-
-
-pokeSingleDeclaration :: Ptr FfiCssDeclaration -> CssDeclaration -> IO ()
-pokeSingleDeclaration ptrStructDeclaration declaration = do
-  let textVal = case declValue declaration of
-                  CssValueTypeString t     -> t
-                  CssValueTypeStringList t -> t
-                  CssValueTypeURI t        -> t
-                  otherwise                -> ""
-
-  let intVal = case declValue declaration of
-                 CssValueTypeInt i                                  -> i
-                 CssValueTypeEnum i                                 -> i
-                 CssValueTypeMultiEnum i                            -> i
-                 CssValueTypeLengthPercent (CssLength word _)       -> word
-                 CssValueTypeLength (CssLength word _)              -> word
-                 CssValueTypeSignedLength (CssLength word _)        -> word
-                 CssValueTypeLengthPercentNumber (CssLength word _) -> word
-                 CssValueTypeAuto (CssLength word _)                -> word
-                 CssValueTypeColor i                                -> i
-                 CssValueTypeFontWeight i                           -> i
-                 otherwise                                          -> 0
-
-  ptrString <- newCString . T.unpack $ textVal
-  let t :: CInt = fromIntegral . cssValueToTypeTag . declValue $ declaration
-  let i :: CInt = fromIntegral $ intVal
-  ptrStructCssValue <- callocBytes #{size c_css_value_t}
-  poke ptrStructCssValue $ FfiCssValue t i 0 0 ptrString
-
-  let imp :: CInt = if important declaration then 1 else 0
-  let prop :: CInt = fromIntegral . property $ declaration
-  poke ptrStructDeclaration $ FfiCssDeclaration imp prop ptrStructCssValue
-
-  return ()
-
-
-
 hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
 hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDeclaration = do
 
   when (ptrStructDeclarationSet == nullPtr) (trace ("Error: first arg to declarationListAddOrUpdateDeclaration is null pointer") putStr (""))
 
-  ffiDeclSet :: FfiCssDeclarationSet <- peek ptrStructDeclarationSet
-  declSet    :: CssDeclarationSet <- ffiDeclarationSetToDeclarationSet ffiDeclSet
+  declSet :: CssDeclarationSet <- peekCssDeclarationSet ptrStructDeclarationSet
+  decl    :: CssDeclaration    <- peekCssDeclaration ptrStructDeclaration
 
-  ffiDecl :: FfiCssDeclaration    <- peek ptrStructDeclaration
-  decl    :: CssDeclaration       <- ffiDeclarationToDeclaration ffiDecl
-
-  --putStrLn ("Declaration set before update = " ++ (show declSet))
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
-  --putStrLn ("Declaration set after update = " ++ (show newDeclSet))
 
-  updateDeclartionsSet ptrStructDeclarationSet ffiDeclSet newDeclSet
+  pokeCssDeclarationSet ptrStructDeclarationSet newDeclSet
 
   return 0
 
@@ -744,61 +780,20 @@ hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDecla
 hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 hll_declarationListAppend ptrStructTarget ptrStructSource = do
 
-  ffiSource :: FfiCssDeclarationSet <- peek ptrStructSource
-  source    :: CssDeclarationSet    <- ffiDeclarationSetToDeclarationSet ffiSource
-  ffiTarget :: FfiCssDeclarationSet <- peek ptrStructTarget
-  target    :: CssDeclarationSet    <- ffiDeclarationSetToDeclarationSet ffiTarget
+  source :: CssDeclarationSet <- peekCssDeclarationSet ptrStructSource
+  target :: CssDeclarationSet <- peekCssDeclarationSet ptrStructTarget
 
   let merged = declarationsSetAppend target source
-  updateDeclartionsSet ptrStructTarget ffiTarget merged
-
-  return ()
-
-
-updateDeclartionsSet :: Ptr FfiCssDeclarationSet -> FfiCssDeclarationSet -> CssDeclarationSet -> IO ()
-updateDeclartionsSet ptrStructDeclarationSet ffiDeclSet newDeclSet = do
-  updateDeclarationsArray (ptrDeclarationsC ffiDeclSet) (Foldable.toList . items $ newDeclSet)
-
-  let cIsSafe :: CInt = if isSafe newDeclSet then 1 else 0
-  let cCount  :: CInt = fromIntegral . length . items $ newDeclSet
-  poke ptrStructDeclarationSet $ FfiCssDeclarationSet cIsSafe (ptrDeclarationsC ffiDeclSet) cCount
+  pokeCssDeclarationSet ptrStructTarget merged
 
   return ()
 
 
 
--- TODO: necessity to have this function is probably a sign of bad style.
-flipIoArray :: [IO a] -> [a] -> IO [a]
-flipIoArray list acc = do
-  if length list > 0
-    then do
-    c <- (head list)
-    flipIoArray (tail list) (acc ++ [c])
-    else return acc
 
-
-
-
-ffiDeclarationSetToDeclarationSet :: FfiCssDeclarationSet -> IO CssDeclarationSet
-ffiDeclarationSetToDeclarationSet ffiDeclSet = do
-
-  when (ptrDeclarationsC ffiDeclSet == nullPtr) (trace ("Error: null pointer inside of declaration set") putStr (""))
-
-  let len = (fromIntegral . declarationsSizeC $ ffiDeclSet)
-  let ptr :: Ptr FfiCssDeclaration = ptrDeclarationsC ffiDeclSet
-  ffiArray <- peekArray len ptr
-  let ioArray :: [IO CssDeclaration] = ffiDeclarationToDeclaration <$> ffiArray
-  array <- flipIoArray ioArray []
-  return CssDeclarationSet{ isSafe = isSafeC ffiDeclSet > 0
-                          , items = S.fromList array
-                          }
-
-
-
-
-ffiCssValueToCssValue :: FfiCssValue -> IO CssValue
-ffiCssValueToCssValue ffiCssValue = do
-  --when (ptrTextValC ffiCssValue == nullPtr) (trace ("Error: ffiCssValueToCssValue: null pointer inside of css value") putStr (""))
+peekCssValue :: FfiCssValue -> IO CssValue
+peekCssValue ffiCssValue = do
+  --when (ptrTextValC ffiCssValue == nullPtr) (trace ("Error: peekCssValue: null pointer inside of css value") putStr (""))
 
   let e = ptrTextValC ffiCssValue == nullPtr
   emptyString <- newCString ""
@@ -828,35 +823,18 @@ ffiCssValueToCssValue ffiCssValue = do
 
 
 
-ffiDeclarationToDeclaration :: FfiCssDeclaration -> IO CssDeclaration
-ffiDeclarationToDeclaration ffiDecl = do
-
-  when (ptrValueC ffiDecl == nullPtr) (trace ("Error: null pointer inside of declaration") putStr (""))
-
-  ffiCssValue :: FfiCssValue <- peek . ptrValueC $ ffiDecl
-  cssValue <- ffiCssValueToCssValue ffiCssValue
-
-  return defaultDeclaration{ property = fromIntegral . propertyC $ ffiDecl
-                           , declValue = cssValue
-                           , important = importantC ffiDecl > 0}
-
-
-
 hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 hll_cssParseElementStyleAttribute ptrBaseUrl ptrStringCssStyleAttribute buflen ptrStructDeclSet ptrStructDeclSetImp = do
 
   cssStyleAttribute <- BSU.unsafePackCStringLen (ptrStringCssStyleAttribute, fromIntegral buflen)
 
-  ffiDeclSet :: FfiCssDeclarationSet <- peek ptrStructDeclSet
-  declSet    :: CssDeclarationSet <- ffiDeclarationSetToDeclarationSet ffiDeclSet
-
-  ffiDeclSetImp :: FfiCssDeclarationSet <- peek ptrStructDeclSetImp
-  declSetImp    :: CssDeclarationSet <- ffiDeclarationSetToDeclarationSet ffiDeclSetImp
+  declSet    :: CssDeclarationSet <- peekCssDeclarationSet ptrStructDeclSet
+  declSetImp :: CssDeclarationSet <- peekCssDeclarationSet ptrStructDeclSetImp
 
   let (newDeclSet, newDeclSetImp) = parseElementStyleAttribute "" (T.E.decodeLatin1 cssStyleAttribute) (declSet, declSetImp)
 
-  updateDeclartionsSet ptrStructDeclSet ffiDeclSet newDeclSet
-  updateDeclartionsSet ptrStructDeclSetImp ffiDeclSetImp newDeclSetImp
+  pokeCssDeclarationSet ptrStructDeclSet newDeclSet
+  pokeCssDeclarationSet ptrStructDeclSetImp newDeclSetImp
 
   return ()
 

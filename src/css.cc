@@ -68,9 +68,9 @@ c_css_declaration_set_t * declarationListNew(void)
 {
    c_css_declaration_set_t * set = (c_css_declaration_set_t *) calloc(1, sizeof (c_css_declaration_set_t));
    set->c_is_safe = true;
-   set->c_declarations = (c_css_declaration_t *) calloc(DECLARATIONS_COUNT_IN_SET, sizeof (c_css_declaration_t));
    for (int i = 0; i < DECLARATIONS_COUNT_IN_SET; i++) {
-      set->c_declarations[i].c_value = (c_css_value_t *) calloc(1, sizeof (c_css_value_t));
+      set->c_declarations[i] = (c_css_declaration_t *) calloc(1, sizeof (c_css_declaration_t));
+      set->c_declarations[i]->c_value = (c_css_value_t *) calloc(1, sizeof (c_css_value_t));
    }
 
    return set;
@@ -84,7 +84,7 @@ c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * inD
    out->c_is_safe = inDeclList->c_is_safe;
 
    for (int i = 0; i < out->c_declarations_size; i++) {
-      c_css_declaration_t * decl = &out->c_declarations[i];
+      c_css_declaration_t * decl = out->c_declarations[i];
       switch (decl->c_value->c_type_tag) {
       case CssDeclarationValueTypeSTRING:
       case CssDeclarationValueTypeSYMBOL:
@@ -124,7 +124,7 @@ void css_value_copy(c_css_value_t * dest, c_css_value_t * src)
 void css_declaration_set_print_pretty(FILE * file, c_css_declaration_set_t * decl_set)
 {
    for (int i = 0; i < decl_set->c_declarations_size; i++) {
-      css_declaration_print_pretty(file, &decl_set->c_declarations[i]);
+      css_declaration_print_pretty(file, decl_set->c_declarations[i]);
    }
 }
 

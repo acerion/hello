@@ -32,8 +32,9 @@ References:
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module GifFFI( hll_parseExtension
-             ) where
+module Hello.Ffi.Gif( hll_parseExtension
+                    )
+  where
 
 import Prelude
 import Foreign.C.String

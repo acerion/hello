@@ -106,7 +106,7 @@ typedef struct c_css_declaration_t {
 #define DECLARATIONS_COUNT_IN_SET 100
 typedef struct c_css_declaration_set_t {
    int c_is_safe; // TODO: this should be true by default
-   c_css_declaration_t * c_declarations;
+   c_css_declaration_t * c_declarations[DECLARATIONS_COUNT_IN_SET];
    int c_declarations_size;
 } c_css_declaration_set_t;
 

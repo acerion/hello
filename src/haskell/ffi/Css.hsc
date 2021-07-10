@@ -21,7 +21,7 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
 
-module CssFfi() where
+module Hello.Ffi.Css.Misc() where
 
 
 
@@ -45,9 +45,10 @@ import Control.Applicative
 import Control.Monad -- when
 import Text.Printf
 import Debug.Trace
-import CssParserFFI
+
 import CssParser
 import Css
+import Hello.Ffi.Css.Parser
 import Hello.Ffi.Utils
 
 
@@ -105,35 +106,8 @@ instance Storable FfiDoctreeNode where
 
 
 
-foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
-foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
-
-
-
-
-
-hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
-hll_simpleSelectorMatches ptrStructSimpleSelector ptrStructDoctreeNode = do
-
-  simSel :: CssSimpleSelector <- ffiCssSimpleSelectorToCssSimpleSelector ptrStructSimpleSelector
-  dtn    :: DoctreeNode <- ffiDoctreeNodeToDoctreeNode ptrStructDoctreeNode
-{-
-  putStrLn ("FFI: simSel: " ++ show simSel)
-  putStrLn ("FFI: dtn: "
-            ++ "htmlElementIdx = " ++ (show $ htmlElementIdx dtn)
-            ++ ", selPseudoClass = " ++ (show $ selPseudoClass dtn)
-            ++ ", selId = " ++ (show $ selId dtn)
-            ++ ", selClass = " ++ (show $ selClass dtn))
--}
-  if simpleSelectorMatches simSel dtn
-    then return 1 -- True
-    else return 0 -- False
-
-
-
-
-ffiDoctreeNodeToDoctreeNode :: Ptr FfiDoctreeNode -> IO DoctreeNode
-ffiDoctreeNodeToDoctreeNode ptrStructDoctreeNode = do
+peekDoctreeNode :: Ptr FfiDoctreeNode -> IO DoctreeNode
+peekDoctreeNode ptrStructDoctreeNode = do
 
   ffiDtn <- peek ptrStructDoctreeNode
   pc <- ptrCCharToText . elementSelectorPseudoClassC $ ffiDtn
@@ -158,10 +132,35 @@ ffiDoctreeNodeToDoctreeNode ptrStructDoctreeNode = do
 
 
 
+foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
+foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
+
+
+
+
+
+hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
+hll_simpleSelectorMatches ptrStructSimpleSelector ptrStructDoctreeNode = do
+
+  simSel :: CssSimpleSelector <- peekCssSimpleSelector ptrStructSimpleSelector
+  dtn    :: DoctreeNode       <- peekDoctreeNode ptrStructDoctreeNode
+{-
+  putStrLn ("FFI: simSel: " ++ show simSel)
+  putStrLn ("FFI: dtn: "
+            ++ "htmlElementIdx = " ++ (show $ htmlElementIdx dtn)
+            ++ ", selPseudoClass = " ++ (show $ selPseudoClass dtn)
+            ++ ", selId = " ++ (show $ selId dtn)
+            ++ ", selClass = " ++ (show $ selClass dtn))
+-}
+  if simpleSelectorMatches simSel dtn
+    then return 1 -- True
+    else return 0 -- False
+
+
+
+
 hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
 hll_selectorSpecificity ptrStructCssSelector = do
-  ffiSel <- peek ptrStructCssSelector
-  sel <- ffiCssSelectorToCssSelector ptrStructCssSelector
-  putStrLn ("FFI: Sel = " ++ (show sel))
+  sel <- peekCssSelector ptrStructCssSelector
   return . selectorSpecificity $ sel
 

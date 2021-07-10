@@ -30,8 +30,9 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 
 
-module HtmlTagFFI(hll_getAttrValue
-                 ) where
+module Hello.Ffi.Html.Tag (hll_getAttrValue
+                          )
+where
 
 
 
