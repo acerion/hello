@@ -28,6 +28,12 @@ static void css_simple_selector_print_pretty(FILE * file, c_css_simple_selector_
 static void css_selector_print_compact(FILE * file, const c_css_selector_t * selector);
 static void css_selector_print_pretty(FILE * file, c_css_selector_t * selector);
 
+static void css_declaration_print_pretty(FILE * file, c_css_declaration_t * declaration);
+
+static void css_declaration_set_print_pretty(FILE * file, c_css_declaration_set_t * decl_set);
+
+static c_css_rules_list_t * css_rules_map_get_list(const c_css_rules_map_t * map, const char * string);
+static void css_rules_map_put_list(c_css_rules_map_t * map, const char * string, c_css_rules_list_t * list);
 
 c_css_declaration_set_t * declarationListNew(void)
 {
@@ -197,61 +203,55 @@ bool css_rule_is_safe(const c_css_rule_t * rule)
  * will be added behind the others.
  * This gives later added rules more weight.
  */
-void CssStyleSheet::RuleList::insert_rule(c_css_rule_t * rule)
+void css_rules_list_insert_rule(c_css_rules_list_t * list, c_css_rule_t * rule)
 {
-   this->rules[this->rules_count] = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
-   this->rules_count++;
+   list->c_rules[list->c_rules_size] = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
+   list->c_rules_size++;
 
-   int i = this->rules_count - 1;
+   int i = list->c_rules_size - 1;
 
-   while (i > 0 && rule->c_specificity < this->rules[i - 1]->c_specificity) {
-      this->rules[i] = this->rules[i - 1];
+   while (i > 0 && rule->c_specificity < list->c_rules[i - 1]->c_specificity) {
+      list->c_rules[i] = list->c_rules[i - 1];
       i--;
    }
 
-   this->rules[i] = rule;
+   list->c_rules[i] = rule;
 }
 
 /**
- * \brief Insert a rule into CssStyleSheet.
+ * \brief Insert a rule into style sheet.
  *
  * To improve matching performance the rules are organized into
  * rule lists based on the topmost simple selector of their selector.
  */
-void CssStyleSheet::addRule (c_css_rule_t * rule)
+void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule)
 {
    c_css_simple_selector_t * top = css_selector_get_top_simple_selector(rule->c_selector);
-   RuleList *ruleList = NULL;
-   lout::object::ConstString *string;
+   c_css_rules_list_t * rules_list = NULL;
 
    if (nullptr != top->c_selector_id) {
-      string = new lout::object::ConstString(top->c_selector_id);
-      ruleList = idTable.get (string);
-      if (ruleList == NULL) {
-         ruleList = new RuleList ();
-         idTable.put (string, ruleList);
-      } else {
-         delete string;
+      rules_list = css_rules_map_get_list(&style_sheet->c_id_rules, top->c_selector_id);
+      if (rules_list == NULL) {
+         rules_list = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
+         css_rules_map_put_list(&style_sheet->c_id_rules, top->c_selector_id, rules_list);
       }
    } else if (top->c_selector_class_size > 0) {
-      string = new lout::object::ConstString (top->c_selector_class[0]);
-      ruleList = classTable.get (string);
-      if (ruleList == NULL) {
-         ruleList = new RuleList;
-         classTable.put (string, ruleList);
-      } else {
-         delete string;
+      rules_list = css_rules_map_get_list(&style_sheet->c_class_rules, top->c_selector_class[0]);
+      if (rules_list == NULL) {
+         rules_list = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
+         css_rules_map_put_list(&style_sheet->c_class_rules, top->c_selector_class[0], rules_list);
       }
-   } else if (top->c_selector_element >= 0 && top->c_selector_element < ntags) {
-      ruleList = &elementTable[top->c_selector_element];
+   } else if (top->c_selector_element >= 0 && top->c_selector_element < css_style_sheet_n_tags) {
+      rules_list = &style_sheet->c_element_rules[top->c_selector_element];
    } else if (top->c_selector_element == CssSimpleSelectorElementAny) {
-      ruleList = &anyTable;
+      rules_list = &style_sheet->c_any_element_rules;
    }
 
-   if (ruleList) {
-      ruleList->insert_rule(rule);
-      if (css_selector_get_required_match_cache(rule->c_selector) > requiredMatchCache)
-         requiredMatchCache = css_selector_get_required_match_cache(rule->c_selector);
+   if (rules_list) {
+      css_rules_list_insert_rule(rules_list, rule);
+      if (css_selector_get_required_match_cache(rule->c_selector) > style_sheet->c_required_match_cache) {
+         style_sheet->c_required_match_cache = css_selector_get_required_match_cache(rule->c_selector);
+      }
    } else {
       assert (top->c_selector_element == CssSimpleSelectorElementNone);
    }
@@ -263,18 +263,18 @@ void CssStyleSheet::addRule (c_css_rule_t * rule)
  * The declarations (list property+value) are set as defined by the rules in
  * the stylesheet that match at the given node in the document tree.
  */
-void CssStyleSheet::apply_style_sheet(FILE * file, c_css_declaration_set_t * declList, Doctree *docTree, const c_doctree_node_t *dtn, MatchCache * match_cache) const
+void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE * file, c_css_declaration_set_t * decl_set, Doctree *docTree, const c_doctree_node_t *dtn, MatchCache * match_cache)
 {
    static const int maxLists = 32;
-   const RuleList *ruleList[maxLists];
-   int numLists = 0, index[maxLists] = {0};
+   const c_css_rules_list_t * rules_lists[maxLists];
+   int numLists = 0;
+   int index[maxLists] = {0};
 
    if (dtn->c_element_selector_id) {
-      lout::object::ConstString idString (dtn->c_element_selector_id);
-
-      ruleList[numLists] = idTable.get (&idString);
-      if (ruleList[numLists])
+      rules_lists[numLists] = css_rules_map_get_list(&style_sheet->c_id_rules, dtn->c_element_selector_id);
+      if (rules_lists[numLists]) {
          numLists++;
+      }
    }
 
    for (int i = 0; i < dtn->c_element_selector_class_size; i++) {
@@ -283,53 +283,52 @@ void CssStyleSheet::apply_style_sheet(FILE * file, c_css_declaration_set_t * dec
          break;
       }
 
-      lout::object::ConstString classString (dtn->c_element_selector_class[i]);
-
-      ruleList[numLists] = classTable.get (&classString);
-      if (ruleList[numLists])
+      rules_lists[numLists] = css_rules_map_get_list(&style_sheet->c_class_rules, dtn->c_element_selector_class[i]);
+      if (rules_lists[numLists]) {
          numLists++;
+      }
    }
 
-   ruleList[numLists] = &elementTable[dtn->c_html_element_idx];
-   if (ruleList[numLists])
+   rules_lists[numLists] = &style_sheet->c_element_rules[dtn->c_html_element_idx];
+   if (rules_lists[numLists])
       numLists++;
 
-   ruleList[numLists] = &anyTable;
-   if (ruleList[numLists])
+   rules_lists[numLists] = &style_sheet->c_any_element_rules;
+   if (rules_lists[numLists])
       numLists++;
 
-   // Apply potentially matching rules from ruleList[0-numLists] with
+   // Apply potentially matching rules from rules_lists[0-numLists] with
    // ascending specificity.
    // If specificity is equal, rules are applied in order of appearance.
-   //  Each ruleList is sorted already.
+   //  Each rules_list is sorted already.
    while (true) {
       int minSpec = 1 << 30;
       int minPos = 1 << 30;
       int minSpecIndex = -1;
 
       for (int i = 0; i < numLists; i++) {
-         const RuleList *rl = ruleList[i];
+         const c_css_rules_list_t *rl = rules_lists[i];
 
-         if (rl && rl->rules_count > index[i] &&
-            (rl->rules[index[i]]->c_specificity < minSpec ||
-             (rl->rules[index[i]]->c_specificity == minSpec &&
-              rl->rules[index[i]]->c_position < minPos))) {
+         if (rl && rl->c_rules_size > index[i] &&
+            (rl->c_rules[index[i]]->c_specificity < minSpec ||
+             (rl->c_rules[index[i]]->c_specificity == minSpec &&
+              rl->c_rules[index[i]]->c_position < minPos))) {
 
-            minSpec = rl->rules[index[i]]->c_specificity;
-            minPos = rl->rules[index[i]]->c_position;
+            minSpec = rl->c_rules[index[i]]->c_specificity;
+            minPos = rl->c_rules[index[i]]->c_position;
             minSpecIndex = i;
          }
       }
 
       if (minSpecIndex >= 0) {
-         c_css_rule_t * rule = ruleList[minSpecIndex]->rules[index[minSpecIndex]];
+         c_css_rule_t * rule = rules_lists[minSpecIndex]->c_rules[index[minSpecIndex]];
 
          /* Apply CSS rule. */
          /* Guessing time: since we are using the last simple selector on a
             list, there is no other simple selector after it to combine with,
             so the combinator is None (probably that's the logic). */
          if (css_selector_matches(rule->c_selector, docTree, dtn, rule->c_selector->c_simple_selector_list_size - 1, CssSelectorCombinatorNone, match_cache)) {
-            hll_declarationListAppend(declList, rule->c_decl_set);
+            hll_declarationListAppend(decl_set, rule->c_decl_set);
          }
 
          css_rule_print_pretty(file, rule);
@@ -341,12 +340,13 @@ void CssStyleSheet::apply_style_sheet(FILE * file, c_css_declaration_set_t * dec
    }
 }
 
-CssStyleSheet CssContext::userAgentSheet;
+c_css_style_sheet_t CssContext::userAgentSheet;
 
 CssContext::CssContext () {
    rulePosition = 0;
    memset(&this->match_cache, 0, sizeof (this->match_cache));
-   match_cache_set_size(&this->match_cache, userAgentSheet.requiredMatchCache);
+   match_cache_set_size(&this->match_cache, userAgentSheet.c_required_match_cache);
+   memset(this->sheet, 0, sizeof (this->sheet));
 }
 
 /**
@@ -371,28 +371,28 @@ void CssContext::apply_css_context(c_css_declaration_set_t * mergedDeclList, Doc
    FILE * file = fopen(path, "w");
    i++;
 
-   userAgentSheet.apply_style_sheet(file, mergedDeclList, docTree, dtn, &context->match_cache);
+   css_style_sheet_apply_style_sheet(&userAgentSheet, file, mergedDeclList, docTree, dtn, &context->match_cache);
 
    fprintf(file, "CSS_PRIMARY_USER\n");
-   sheet[CSS_PRIMARY_USER].apply_style_sheet(file, mergedDeclList, docTree, dtn, &context->match_cache);
+   css_style_sheet_apply_style_sheet(&sheet[CSS_PRIMARY_USER], file, mergedDeclList, docTree, dtn, &context->match_cache);
 
    if (declListNonCss)
       hll_declarationListAppend(mergedDeclList, declListNonCss);
 
    fprintf(file, "CSS_PRIMARY_AUTHOR\n");
-   sheet[CSS_PRIMARY_AUTHOR].apply_style_sheet(file, mergedDeclList, docTree, dtn, &context->match_cache);
+   css_style_sheet_apply_style_sheet(&sheet[CSS_PRIMARY_AUTHOR], file, mergedDeclList, docTree, dtn, &context->match_cache);
 
    if (declList)
       hll_declarationListAppend(mergedDeclList, declList);
 
    fprintf(file, "CSS_PRIMARY_AUTHOR_IMPORTANT\n");
-   sheet[CSS_PRIMARY_AUTHOR_IMPORTANT].apply_style_sheet(file, mergedDeclList, docTree, dtn, &context->match_cache);
+   css_style_sheet_apply_style_sheet(&sheet[CSS_PRIMARY_AUTHOR_IMPORTANT], file, mergedDeclList, docTree, dtn, &context->match_cache);
 
    if (declListImportant)
       hll_declarationListAppend(mergedDeclList, declListImportant);
 
    fprintf(file, "CSS_PRIMARY_USER_IMPORTANT\n");
-   sheet[CSS_PRIMARY_USER_IMPORTANT].apply_style_sheet(file, mergedDeclList, docTree, dtn, &context->match_cache);
+   css_style_sheet_apply_style_sheet(&sheet[CSS_PRIMARY_USER_IMPORTANT], file, mergedDeclList, docTree, dtn, &context->match_cache);
 
    fclose(file);
 }
@@ -412,9 +412,9 @@ void css_context_add_rule(CssContext * context, c_css_rule_t * rule, CssPrimaryO
          match_cache_set_size(&context->match_cache, new_size);
 
       if (order == CSS_PRIMARY_USER_AGENT) {
-         context->userAgentSheet.addRule (rule);
+         css_style_sheet_add_rule(&context->userAgentSheet, rule);
       } else {
-         context->sheet[order].addRule (rule);
+         css_style_sheet_add_rule(&context->sheet[order], rule);
       }
    }
 }
@@ -441,6 +441,36 @@ void match_cache_set_size(MatchCache * match_cache, int new_size)
       match_cache->arr[i] = -1;
    }
    match_cache->size = new_size;
+}
+
+c_css_rules_list_t * css_rules_map_get_list(const c_css_rules_map_t * map, const char * string)
+{
+   for (int i = 0; i < map->c_rl_size; i++) {
+      if (!map->c_strings[i]) {
+         return NULL;
+      }
+      if (0 == strcmp(string, map->c_strings[i])) {
+         return map->c_rl[i];
+      }
+   }
+
+   return NULL;
+}
+
+void css_rules_map_put_list(c_css_rules_map_t * map, const char * string, c_css_rules_list_t * list)
+{
+   for (int i = 0; i < map->c_rl_size; i++) {
+      if (0 == strcmp(map->c_strings[i], string)) {
+         /* Replace existing item (this is what dillo did). */
+         map->c_rl[i] = list;
+         return;
+      }
+   }
+   /* Add item at the end. */
+   map->c_strings[map->c_rl_size] = strdup(string);
+   map->c_rl[map->c_rl_size] = list;
+   map->c_rl_size++;
+   return;
 }
 
 
@@ -525,7 +555,7 @@ void css_rule_print_pretty(FILE * file, const c_css_rule_t * rule)
 }
 
 
-void css_selector_print_compact(FILE * file, const c_css_selector_t * selector)
+__attribute__((unused)) void css_selector_print_compact(FILE * file, const c_css_selector_t * selector)
 {
    fprintf(file, "C: Selector:\n");
    fprintf(file, "simple selectors count: %d\n", selector->c_simple_selector_list_size);

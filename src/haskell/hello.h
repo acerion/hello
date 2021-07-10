@@ -129,6 +129,47 @@ typedef struct c_css_rule_t {
 } c_css_rule_t;
 
 
+typedef struct c_css_rules_list_t {
+   c_css_rule_t * c_rules[256];
+   int c_rules_size;
+} c_css_rules_list_t;
+
+
+/* Hash map: key: string, value: rules list */
+typedef struct c_css_rules_map_t {
+   char * c_strings[256];
+   c_css_rules_list_t * c_rl[256];
+   int c_rl_size;
+} c_css_rules_map_t;
+
+
+/*
+  TODO: don't hardcode the value.
+
+  90 is the full number of html4 elements, including those which we have
+  implemented. From html5, let's add: article, header, footer, mark, nav,
+  section, aside, figure, figcaption, wbr, audio, video, source, embed.
+*/
+static const int css_style_sheet_n_tags = 90 + 14;
+
+
+/**
+ * \brief A list of c_css_rule_t rules.
+ *
+ * In apply_style_sheet() all matching rules are applied.
+ */
+typedef struct c_css_style_sheet_t {
+   /* These containers seem to be for rules, which selectors *start with*
+      either element, or are for any, or with id or with class. */
+   c_css_rules_list_t c_element_rules[90 + 14 /* css_style_sheet_n_tags */];
+   c_css_rules_list_t c_any_element_rules;
+   c_css_rules_map_t c_id_rules;
+   c_css_rules_map_t c_class_rules;
+
+   int c_required_match_cache;
+} c_css_style_sheet_t;
+
+
 /* URL */
 bool hll_hostIsIP(const char * hostname);
 

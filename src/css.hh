@@ -253,62 +253,27 @@ c_css_rule_t * css_rule_new(c_css_selector_t * selector, c_css_declaration_set_t
 
 
 
-/**
- * \brief A list of c_css_rule_t rules.
- *
- * In apply_style_sheet() all matching rules are applied.
- */
-class CssStyleSheet {
-   private:
-      class RuleList : public lout::object::Object {
-         public:
-            RuleList() {
-               this->rules[0] = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
-            }
+/* c_css_rules_list_t methods. */
+void css_rules_list_insert_rule(c_css_rules_list_t * list, c_css_rule_t * rule);
 
-            void insert_rule(c_css_rule_t * rule);
-            inline bool equals (lout::object::Object *other) {
-               return this == other;
-            };
-            inline int hashValue () { return (intptr_t) this; };
 
-            c_css_rule_t * rules[256] = { 0 };
-            int rules_count = 0;
-      };
 
-      class RuleMap : public lout::container::typed::HashTable
-                             <lout::object::ConstString, RuleList > {
-         public:
-            RuleMap () : lout::container::typed::HashTable
-               <lout::object::ConstString, RuleList > (true, true, 256) {};
-      };
 
-      static const int ntags = 90 + 14; // \todo don't hardcode
-      /* 90 is the full number of html4 elements, including those which we have
-       * implemented. From html5, let's add: article, header, footer, mark,
-       * nav, section, aside, figure, figcaption, wbr, audio, video, source,
-       * embed.
-       */
+/* c_css_style_sheet_t methods. */
+void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule);
+void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE * file, c_css_declaration_set_t * decl_set, Doctree * docTree,
+                                       const c_doctree_node_t * dtn, MatchCache * match_cache);
 
-      RuleList elementTable[ntags];
-      RuleList anyTable;
-      RuleMap idTable, classTable;
 
-   public:
-      CssStyleSheet () { requiredMatchCache = 0; }
-      void addRule(c_css_rule_t * rule);
-      void apply_style_sheet(FILE * file, c_css_declaration_set_t * declList, Doctree *docTree,
-                  const c_doctree_node_t * dtn, MatchCache * match_cache) const;
-      int requiredMatchCache;
-};
+
 
 /**
- * \brief A set of CssStyleSheets.
+ * \brief A set of c_css_style_sheet_t sheets
  */
 class CssContext {
    public:
-      static CssStyleSheet userAgentSheet;
-      CssStyleSheet sheet[CSS_PRIMARY_USER_IMPORTANT + 1];
+      static c_css_style_sheet_t userAgentSheet;
+      c_css_style_sheet_t sheet[CSS_PRIMARY_USER_IMPORTANT + 1];
       MatchCache match_cache;
       int rulePosition;
 
