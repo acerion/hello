@@ -42,6 +42,7 @@ import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Vector as V
 import qualified Data.Sequence as S
 import qualified Data.Foldable as Foldable
+import qualified Data.Map as M
 import Control.Applicative
 import Control.Monad -- when
 import Text.Printf
@@ -137,8 +138,7 @@ foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Pt
 foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_rulesMapPutList" hll_rulesMapPutList :: Ptr FfiCssRulesMap -> CString -> Ptr FfiCssRulesList -> IO ()
-foreign export ccall "hll_findRuleListForInsertion" hll_findRuleListForInsertion :: Ptr FfiCssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO (Ptr FfiCssRulesList)
-foreign export ccall "hll_rulesListInsertRuleBySpecificity" hll_rulesListInsertRuleBySpecificity :: Ptr FfiCssRulesList -> Ptr FfiCssRule -> IO ()
+foreign export ccall "hll_insertRuleToStyleSheet" hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO CInt
 
 
 
@@ -202,6 +202,7 @@ peekCssRulesList ptrStructRulesList = do
   let size  :: Int                  = fromIntegral . rulesSizeC $ ffiRulesList
 
   rules <- peekArrayOfPointers array size peekCssRule
+
   return rules
 
 
@@ -214,6 +215,15 @@ pokeCssRulesList ptrStructRulesList list = do
 
   pokeArrayOfPointers list pokeCssRule array
   pokeByteOff ptrStructRulesList (#offset c_css_rules_list_t, c_rules_size) (length list)
+
+
+
+
+aPokeCssRulesList :: [CssRule] -> IO (Ptr FfiCssRulesList)
+aPokeCssRulesList list = do
+  ptrStructCssRulesList <- callocBytes #{size c_css_rules_list_t}
+  pokeCssRulesList ptrStructCssRulesList list
+  return ptrStructCssRulesList
 
 
 
@@ -313,6 +323,40 @@ instance Storable FfiCssRulesMap where
 
 
 
+peekCssRulesMap :: Ptr FfiCssRulesMap -> IO CssRulesMap
+peekCssRulesMap ptrStructRulesMap = do
+  ffiRulesMap <- peek ptrStructRulesMap
+
+  let size :: Int = fromIntegral . rulesMapSizeC $ ffiRulesMap
+  keys   <- peekArrayOfPointers (stringsC ffiRulesMap) size ptrCCharToText
+  values <- peekArrayOfPointers (rulesListC ffiRulesMap) size peekCssRulesList
+
+  let map = M.fromList $ zip keys values
+
+  -- putStrLn ("FFI: map = " ++ (show map))
+
+  return map
+
+
+
+
+pokeCssRulesMap :: Ptr FfiCssRulesMap -> CssRulesMap -> IO ()
+pokeCssRulesMap ptrStructRulesMap map = do
+  ffiRulesMap <- peek ptrStructRulesMap
+
+  let keys = M.keys map
+  let values = M.elems map
+  let len :: CInt = (fromIntegral . length $ keys)
+
+  pokeArrayOfPointers keys textToPtrCChar (stringsC ffiRulesMap)
+  pokeArrayOfPointers values aPokeCssRulesList (rulesListC ffiRulesMap)
+  pokeByteOff ptrStructRulesMap (#offset c_css_rules_map_t, c_rules_map_size) len
+
+  return ()
+
+
+
+
 hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 hll_rulesMapGetList ptrStructRulesMap cStringKey = do
   ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
@@ -398,25 +442,90 @@ hll_rulesMapPutList2 ptrStructRulesMap key ptrStructRulesList = do
 
 
 
-hll_findRuleListForInsertion :: Ptr FfiCssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO (Ptr FfiCssRulesList)
-hll_findRuleListForInsertion ptrStructSimSel ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList = do
+
+
+
+hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO CInt
+hll_insertRuleToStyleSheet ptrStructCssRule ptrStructSimSel ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList = do
   topSimSel <- peekCssSimpleSelector ptrStructSimSel
-  findRuleListForInsertion topSimSel ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList
+  rule      <- peekCssRule ptrStructCssRule
 
+  mapId  <- peekCssRulesMap ptrStructIdRulesMap
+  mapC   <- peekCssRulesMap ptrStructClassRulesMap
+  listAE <- peekCssRulesList ptrStructAnyElementRulesList
 
-
-
-findRuleListForInsertion :: CssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO (Ptr FfiCssRulesList)
-findRuleListForInsertion topSimSel ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList = do
   let element :: Int = selectorElement topSimSel
-  let ptr = case selectTargetRulesList topSimSel of
-              1 -> existingOrNewList ptrStructIdRulesMap (selectorId topSimSel)
-              2 -> existingOrNewList ptrStructClassRulesMap (head . selectorClass $ topSimSel)
-              3 -> do return $ plusPtr ptrStructElementRulesList (element * #{size c_css_rules_list_t})
-              4 -> do return ptrStructAnyElementRulesList
-              _ -> do return nullPtr
-  ptr
+  inListOfLists :: [[CssRule]] <- getList ptrStructElementRulesList [] 0 (90 + 14)
+  let inPtrListOfRules = (plusPtr ptrStructElementRulesList (element * #{size c_css_rules_list_t}))
 
+  let elementCount :: Int = (90 + 14)
+  inListOfRules <- if element >= 0 && element < elementCount
+                   then peekCssRulesList inPtrListOfRules
+                   else return []
+
+  let styleSheet = (Just mapId, Just mapC, Just (inListOfLists, inListOfRules), Just listAE)
+
+  case insertRuleToStyleSheet topSimSel rule styleSheet of
+    (Just map, Nothing, Nothing, Nothing) -> do
+      pokeCssRulesMap ptrStructIdRulesMap map
+      return 1
+    (Nothing, Just map, Nothing, Nothing) -> do
+      pokeCssRulesMap ptrStructClassRulesMap map
+      return 1
+    (Nothing, Nothing, Just (listOfLists, listOfRules), Nothing) -> do
+      pokeCssRulesList inPtrListOfRules listOfRules
+      return 1
+    (Nothing, Nothing, Nothing, Just list) -> do
+      pokeCssRulesList ptrStructAnyElementRulesList list
+      return 1
+    _                                      -> return 0
+
+
+
+
+type CssStyleSheet = (Maybe CssRulesMap, Maybe CssRulesMap, Maybe ([[CssRule]], [CssRule]), Maybe [CssRule])
+
+
+
+
+insertRuleToStyleSheet :: CssSimpleSelector -> CssRule -> CssStyleSheet -> CssStyleSheet
+insertRuleToStyleSheet topSimSel rule (Just mapId, Just mapC, Just (inListOfLists, inListOfRules), Just listAE) =
+  case selectTargetRulesList topSimSel of
+    1 -> (Just map2, Nothing, Nothing, Nothing)
+      where
+        map2 = updateMap mapId (selectorId topSimSel) rule
+    2 -> (Nothing, Just map2, Nothing, Nothing)
+      where
+        map2 = updateMap mapC (head . selectorClass $ topSimSel) rule
+    3 -> (Nothing, Nothing, Just (updatedListOfLists, updatedListOfRules), Nothing)
+      where
+        element :: Int = selectorElement topSimSel
+        updatedListOfRules = rulesListInsertRuleBySpecificity inListOfRules rule
+        updatedListOfLists = listReplace inListOfLists updatedListOfRules element -- TODO: list of lists to be replaced vector indexed by element
+    4 -> (Nothing, Nothing, Nothing, Just list2)
+      where
+        list2 = rulesListInsertRuleBySpecificity listAE rule
+    _ -> (Nothing, Nothing, Nothing, Nothing)
+
+
+
+
+listReplace :: [a] -> a -> Int -> [a]
+listReplace list new idx = concat [front, [new], back]
+  where
+    front = take idx list
+    back  = drop (idx + 1) list
+
+
+
+getList :: Ptr FfiCssRulesList -> [[CssRule]] -> Int -> Int -> IO [[CssRule]]
+getList table acc idx count = do
+  if idx == count
+    then return acc
+    else do
+    let ptrList = (plusPtr table (idx * #{size c_css_rules_list_t}))
+    listOfRules <- peekCssRulesList ptrList
+    getList table (listOfRules:acc) (idx + 1) count
 
 
 
@@ -433,15 +542,10 @@ selectTargetRulesList topSimSel | not . T.null . selectorId $ topSimSel  = 1
 
 
 
-existingOrNewList :: Ptr FfiCssRulesMap -> T.Text -> IO (Ptr FfiCssRulesList)
-existingOrNewList map key = do
-  list <- hll_rulesMapGetList2 map key
-  if nullPtr == list
-    then do
-    newRulesList <- callocBytes #{size c_css_rules_list_t}
-    hll_rulesMapPutList2 map key newRulesList
-    return newRulesList
-    else return list
+updateMap :: CssRulesMap -> T.Text -> CssRule -> CssRulesMap
+updateMap map key rule = case M.lookup key map of
+                           Just list -> M.insert key (rulesListInsertRuleBySpecificity list rule) map
+                           Nothing   -> M.insert key (rulesListInsertRuleBySpecificity []   rule) map
 
 
 
@@ -452,19 +556,3 @@ findString array size string = do
   case elemIndex string list of
     Just i  -> return i
     Nothing -> return (-1)
-
-
-
-
-
-hll_rulesListInsertRuleBySpecificity :: Ptr FfiCssRulesList -> Ptr FfiCssRule -> IO ()
-hll_rulesListInsertRuleBySpecificity ptrStructRulesList ptrStructCssRule = do
-
-  list <- peekCssRulesList ptrStructRulesList
-  rule <- peekCssRule ptrStructCssRule
-
-  let newList = rulesListInsertRuleBySpecificity list rule
-
-  pokeCssRulesList ptrStructRulesList newList
-
-  return ()

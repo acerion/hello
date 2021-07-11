@@ -193,32 +193,6 @@ bool css_rule_is_safe(const c_css_rule_t * rule)
    return !css_selector_has_pseudo_class(rule->c_selector) || rule->c_decl_set->c_is_safe;
 }
 
-/*
- * \brief Insert rule with increasing specificity.
- *
- * If two rules have the same specificity, the one that was added later
- * will be added behind the others.
- * This gives later added rules more weight.
- */
-void css_rules_list_insert_rule_by_specificity(c_css_rules_list_t * list, c_css_rule_t * rule)
-{
-#if 1
-   hll_rulesListInsertRuleBySpecificity(list, rule);
-#else
-   list->c_rules[list->c_rules_size] = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
-   list->c_rules_size++;
-
-   int i = list->c_rules_size - 1;
-
-   while (i > 0 && rule->c_specificity < list->c_rules[i - 1]->c_specificity) {
-      list->c_rules[i] = list->c_rules[i - 1];
-      i--;
-   }
-
-   list->c_rules[i] = rule;
-#endif
-}
-
 /**
  * \brief Insert a rule into style sheet.
  *
@@ -228,14 +202,14 @@ void css_rules_list_insert_rule_by_specificity(c_css_rules_list_t * list, c_css_
 void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule)
 {
    c_css_simple_selector_t * top = css_selector_get_top_simple_selector(rule->c_selector);
-   c_css_rules_list_t * rules_list = hll_findRuleListForInsertion(top,
-                                                                  &style_sheet->c_id_rules,
-                                                                  &style_sheet->c_class_rules,
-                                                                  style_sheet->c_element_rules,
-                                                                  &style_sheet->c_any_element_rules);
+   int inserted = hll_insertRuleToStyleSheet(rule,
+                                             top,
+                                             &style_sheet->c_id_rules,
+                                             &style_sheet->c_class_rules,
+                                             style_sheet->c_element_rules,
+                                             &style_sheet->c_any_element_rules);
 
-   if (rules_list) {
-      css_rules_list_insert_rule_by_specificity(rules_list, rule);
+   if (inserted) {
       if (css_selector_get_required_match_cache(rule->c_selector) > style_sheet->c_required_match_cache) {
          style_sheet->c_required_match_cache = css_selector_get_required_match_cache(rule->c_selector);
       }

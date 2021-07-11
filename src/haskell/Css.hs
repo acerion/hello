@@ -26,6 +26,8 @@ module Css( DoctreeNode (..)
           , simpleSelectorMatches
           , selectorSpecificity
           , rulesListInsertRuleBySpecificity
+
+          , CssRulesMap (..)
           )
   where
 
@@ -34,6 +36,7 @@ module Css( DoctreeNode (..)
 
 import qualified Data.Text as T
 import qualified Data.List as L
+import qualified Data.Map as M
 import Data.Bits
 import Debug.Trace
 import CssParser
@@ -157,3 +160,8 @@ rulesListInsertRuleBySpecificity :: [CssRule] -> CssRule -> [CssRule]
 rulesListInsertRuleBySpecificity list rule = L.concat [smallerOrEqual, [rule], larger]
   where
     (smallerOrEqual, larger) = L.span (\r -> (specificity rule) >= (specificity r)) list
+
+
+
+
+type CssRulesMap = M.Map T.Text [CssRule]

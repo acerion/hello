@@ -241,15 +241,15 @@ int hll_selectorSpecificity(const c_css_selector_t * selector);
 
 c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);
 void hll_rulesMapPutList(c_css_rules_map_t * rules_map, const char * key, c_css_rules_list_t * list);
-c_css_rules_list_t * hll_findRuleListForInsertion(c_css_simple_selector_t * sim_sel,
-                                                  c_css_rules_map_t * id_rules_map,
-                                                  c_css_rules_map_t * class_rules_map,
-                                                  c_css_rules_list_t * element_rules_list,
-                                                  c_css_rules_list_t * any_element_rules_list);
+
+int hll_insertRuleToStyleSheet(c_css_rule_t * rule,
+                               c_css_simple_selector_t * sim_sel,
+                               c_css_rules_map_t * id_rules_map,
+                               c_css_rules_map_t * class_rules_map,
+                               c_css_rules_list_t * element_rules_list,
+                               c_css_rules_list_t * any_element_rules_list);
 
 
-
-void hll_rulesListInsertRuleBySpecificity(c_css_rules_list_t * rules_list, c_css_rule_t * rule);
 
 #ifdef __cplusplus
 }
