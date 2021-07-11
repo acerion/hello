@@ -332,6 +332,24 @@ hll_rulesMapGetList ptrStructRulesMap cStringKey = do
 
 
 
+hll_rulesMapGetList2 :: Ptr FfiCssRulesMap -> T.Text -> IO (Ptr FfiCssRulesList)
+hll_rulesMapGetList2 ptrStructRulesMap key = do
+  ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
+
+  let stringsArray      = stringsC ffiRulesMap
+  let listsOfRulesArray = rulesListC ffiRulesMap
+  let size :: Int       = fromIntegral . rulesMapSizeC $ ffiRulesMap
+
+  idx <- findString stringsArray size key
+  case idx of
+    (-1) -> return nullPtr
+    _    -> do
+      e <- peekElemOff listsOfRulesArray idx
+      return e
+
+
+
+
 hll_rulesMapPutList :: Ptr FfiCssRulesMap -> CString -> Ptr FfiCssRulesList -> IO ()
 hll_rulesMapPutList ptrStructRulesMap cStringKey ptrStructRulesList = do
   ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
@@ -357,42 +375,73 @@ hll_rulesMapPutList ptrStructRulesMap cStringKey ptrStructRulesList = do
 
 
 
+hll_rulesMapPutList2 :: Ptr FfiCssRulesMap -> T.Text -> Ptr FfiCssRulesList -> IO ()
+hll_rulesMapPutList2 ptrStructRulesMap key ptrStructRulesList = do
+  ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
+
+  let stringsArray      = stringsC ffiRulesMap
+  let listsOfRulesArray = rulesListC ffiRulesMap
+  let oldSize :: Int    = fromIntegral . rulesMapSizeC $ ffiRulesMap
+
+  idx <- findString stringsArray oldSize key
+  case idx of
+    (-1) -> do
+      let newSize :: CInt = (fromIntegral oldSize) + 1
+      pokeElemOff listsOfRulesArray oldSize ptrStructRulesList
+      newCStringKey <- textToPtrCChar key -- textToPtrCChar serves as strdup()
+      pokeElemOff stringsArray oldSize newCStringKey
+      pokeByteOff ptrStructRulesMap (#offset c_css_rules_map_t, c_rules_map_size) newSize
+      return ()
+    _    -> do
+      pokeElemOff listsOfRulesArray idx ptrStructRulesList -- replace old element
+      return ()
+
+
+
 hll_findRuleListForInsertion :: Ptr FfiCssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO (Ptr FfiCssRulesList)
 hll_findRuleListForInsertion ptrStructSimSel ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList = do
-  ffiSimSel <- peek ptrStructSimSel
+  topSimSel <- peekCssSimpleSelector ptrStructSimSel
+  findRuleListForInsertion topSimSel ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList
 
-  let elementCount :: Int = (90 + 14)
-  let element :: Int = fromIntegral . selectorElementC $ ffiSimSel
 
-  let selectorId :: CString = selectorIdC ffiSimSel
 
-  let ptr   | nullPtr /= selectorId = do
-                list <- hll_rulesMapGetList ptrStructIdRulesMap selectorId
-                if nullPtr == list
-                  then do
-                  newRulesList <- callocBytes #{size c_css_rules_list_t}
-                  hll_rulesMapPutList ptrStructIdRulesMap selectorId newRulesList
-                  return newRulesList
-                  else return list
 
-            | (fromIntegral . selectorClassSizeC $ ffiSimSel) > 0 = do
-                let array = selectorClassC ffiSimSel
-                elem0 :: CString <- peekElemOff array 0
-                list <- hll_rulesMapGetList ptrStructClassRulesMap elem0
-                if nullPtr == list
-                  then do
-                  newRulesList <- callocBytes #{size c_css_rules_list_t}
-                  hll_rulesMapPutList ptrStructClassRulesMap elem0 newRulesList
-                  return newRulesList
-                  else return list
-
-            | element >= 0 && element < elementCount = do
-                let offset = element * #{size c_css_rules_list_t}
-                return $ plusPtr ptrStructElementRulesList offset
-
-            | element == cssSimpleSelectorElementAny = do return ptrStructAnyElementRulesList
-            | otherwise                              = do return nullPtr
+findRuleListForInsertion :: CssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO (Ptr FfiCssRulesList)
+findRuleListForInsertion topSimSel ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList = do
+  let element :: Int = selectorElement topSimSel
+  let ptr = case selectTargetRulesList topSimSel of
+              1 -> existingOrNewList ptrStructIdRulesMap (selectorId topSimSel)
+              2 -> existingOrNewList ptrStructClassRulesMap (head . selectorClass $ topSimSel)
+              3 -> do return $ plusPtr ptrStructElementRulesList (element * #{size c_css_rules_list_t})
+              4 -> do return ptrStructAnyElementRulesList
+              _ -> do return nullPtr
   ptr
+
+
+
+
+selectTargetRulesList :: CssSimpleSelector -> Int
+selectTargetRulesList topSimSel | not . T.null . selectorId $ topSimSel  = 1
+                                | not . null . selectorClass $ topSimSel = 2
+                                | element >= 0 && element < elementCount = 3
+                                | element == cssSimpleSelectorElementAny = 4
+                                | otherwise                              = 5
+  where
+    elementCount :: Int = (90 + 14)
+    element :: Int = selectorElement topSimSel
+
+
+
+
+existingOrNewList :: Ptr FfiCssRulesMap -> T.Text -> IO (Ptr FfiCssRulesList)
+existingOrNewList map key = do
+  list <- hll_rulesMapGetList2 map key
+  if nullPtr == list
+    then do
+    newRulesList <- callocBytes #{size c_css_rules_list_t}
+    hll_rulesMapPutList2 map key newRulesList
+    return newRulesList
+    else return list
 
 
 
@@ -419,20 +468,3 @@ hll_rulesListInsertRuleBySpecificity ptrStructRulesList ptrStructCssRule = do
   pokeCssRulesList ptrStructRulesList newList
 
   return ()
-
-  {-
-void css_rules_list_insert_rule_by_specificity(c_css_rules_list_t * list, c_css_rule_t * rule)
-{
-   list->c_rules[list->c_rules_size] = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
-   list->c_rules_size++;
-
-   int i = list->c_rules_size - 1;
-
-   while (i > 0 && rule->c_specificity < list->c_rules[i - 1]->c_specificity) {
-      list->c_rules[i] = list->c_rules[i - 1];
-      i--;
-   }
-
-   list->c_rules[i] = rule;
-}
--}
