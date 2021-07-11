@@ -30,6 +30,11 @@ module Hello.Ffi.Css.Parser( FfiCssSimpleSelector (..)
 
                            , FfiCssSelector (..)
                            , peekCssSelector
+                           , updateSelectors
+
+                           , FfiCssDeclarationSet (..)
+                           , peekCssDeclarationSet
+                           , pokeCssDeclarationSet
                            )
   where
 
@@ -450,6 +455,8 @@ peekCssSelector ptrStructCssSelector = do
   return CssSelector{ matchCaseOffset = fromIntegral . matchCaseOffsetC $ ffiSel
                     , simpleSelectorList = simSels
                     }
+
+
 
 
 

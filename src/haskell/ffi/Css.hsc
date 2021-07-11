@@ -31,6 +31,7 @@ import Foreign
 import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Marshal.Array
+import Data.List
 import qualified Data.Text as T
 import qualified Data.Text.Read as T.R
 import qualified Data.Text.Encoding as T.E
@@ -134,8 +135,10 @@ peekDoctreeNode ptrStructDoctreeNode = do
 
 foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
 foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
-
-
+foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
+foreign export ccall "hll_rulesMapPutList" hll_rulesMapPutList :: Ptr FfiCssRulesMap -> CString -> Ptr FfiCssRulesList -> IO ()
+foreign export ccall "hll_findRuleListForInsertion" hll_findRuleListForInsertion :: Ptr FfiCssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO (Ptr FfiCssRulesList)
+foreign export ccall "hll_rulesListInsertRuleBySpecificity" hll_rulesListInsertRuleBySpecificity :: Ptr FfiCssRulesList -> Ptr FfiCssRule -> IO ()
 
 
 
@@ -164,3 +167,272 @@ hll_selectorSpecificity ptrStructCssSelector = do
   sel <- peekCssSelector ptrStructCssSelector
   return . selectorSpecificity $ sel
 
+
+
+
+
+data FfiCssRulesList = FfiCssRulesList {
+    rulesC     :: Ptr (Ptr FfiCssRule)
+  , rulesSizeC :: CInt
+  } deriving (Show)
+
+
+
+instance Storable FfiCssRulesList where
+  sizeOf    _ = #{size c_css_rules_list_t}
+  alignment _ = #{alignment c_css_rules_list_t}
+
+  peek ptr = do
+    let a = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_rules_list_t, c_rules}) ptr
+    b <- #{peek c_css_rules_list_t, c_rules_size} ptr
+    return (FfiCssRulesList a b)
+
+  poke ptr (FfiCssRulesList a b) = do
+    #{poke c_css_rules_list_t, c_rules}      ptr a
+    #{poke c_css_rules_list_t, c_rules_size} ptr b
+
+
+
+
+peekCssRulesList :: Ptr FfiCssRulesList -> IO [CssRule]
+peekCssRulesList ptrStructRulesList = do
+  ffiRulesList <- peek ptrStructRulesList
+
+  let array :: Ptr (Ptr FfiCssRule) = rulesC ffiRulesList
+  let size  :: Int                  = fromIntegral . rulesSizeC $ ffiRulesList
+
+  rules <- peekArrayOfPointers array size peekCssRule
+  return rules
+
+
+
+pokeCssRulesList :: Ptr FfiCssRulesList -> [CssRule] -> IO ()
+pokeCssRulesList ptrStructRulesList list = do
+  ffiRulesList <- peek ptrStructRulesList
+
+  let array :: Ptr (Ptr FfiCssRule) = rulesC ffiRulesList
+
+  pokeArrayOfPointers list pokeCssRule array
+  pokeByteOff ptrStructRulesList (#offset c_css_rules_list_t, c_rules_size) (length list)
+
+
+
+
+data FfiCssRule = FfiCssRule {
+    selectorC       :: Ptr FfiCssSelector
+  , declarationSetC :: Ptr FfiCssDeclarationSet
+  , specificityC    :: CInt
+  , positionC       :: CInt
+  } deriving (Show)
+
+
+
+instance Storable FfiCssRule where
+  sizeOf    _ = #{size c_css_value_t}
+  alignment _ = #{alignment c_css_value_t}
+
+  poke ptr (FfiCssRule a b c d) = do
+    #{poke c_css_rule_t, c_selector}    ptr a
+    #{poke c_css_rule_t, c_decl_set}    ptr b
+    #{poke c_css_rule_t, c_specificity} ptr c
+    #{poke c_css_rule_t, c_position}    ptr d
+
+  peek ptr = do
+    a <- #{peek c_css_rule_t, c_selector}    ptr
+    b <- #{peek c_css_rule_t, c_decl_set}    ptr
+    c <- #{peek c_css_rule_t, c_specificity} ptr
+    d <- #{peek c_css_rule_t, c_position}    ptr
+    return (FfiCssRule a b c d)
+
+
+
+peekCssRule :: Ptr FfiCssRule -> IO CssRule
+peekCssRule ptrStructCssRule = do
+
+  ffiCssRule <- peek ptrStructCssRule
+
+  sel     <- peekCssSelector (selectorC ffiCssRule)
+  declSet <- peekCssDeclarationSet (declarationSetC ffiCssRule)
+
+  return CssRule { selector       = sel
+                 , declarationSet = declSet
+                 , specificity    = fromIntegral . specificityC $ ffiCssRule
+                 , position       = fromIntegral . positionC $ ffiCssRule
+                 }
+
+
+
+
+pokeCssRule :: CssRule -> IO (Ptr FfiCssRule)
+pokeCssRule rule = do
+
+  ptrStructCssRule <- callocBytes #{size c_css_rule_t}
+
+  ptrSelector <- callocBytes #{size c_css_selector_t}
+  updateSelectors ptrSelector [(selector rule)]
+  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_selector} ptrSelector
+
+  ptrDeclSet <- callocBytes #{size c_css_declaration_set_t}
+  pokeCssDeclarationSet ptrDeclSet (declarationSet rule)
+  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_decl_set} ptrDeclSet
+
+  let spec :: CInt = fromIntegral . specificity $ rule
+  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_specificity} spec
+
+  let pos :: CInt = fromIntegral . position $ rule
+  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_position} pos
+
+  return ptrStructCssRule
+
+
+
+data FfiCssRulesMap = FfiCssRulesMap {
+    stringsC      :: Ptr (Ptr CChar)
+  , rulesListC    :: Ptr (Ptr FfiCssRulesList)
+  , rulesMapSizeC :: CInt
+  } deriving (Show)
+
+
+
+
+instance Storable FfiCssRulesMap where
+  sizeOf    _ = #{size c_css_rules_map_t}
+  alignment _ = #{alignment c_css_rules_map_t}
+
+  peek ptr = do
+    let a = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_rules_map_t, c_strings}) ptr
+    let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_rules_map_t, c_rl})      ptr
+    c <- #{peek c_css_rules_map_t, c_rules_map_size} ptr
+    return (FfiCssRulesMap a b c)
+
+  poke ptr (FfiCssRulesMap a b c) = do
+    #{poke c_css_rules_map_t, c_strings}        ptr a
+    #{poke c_css_rules_map_t, c_rl}             ptr b
+    #{poke c_css_rules_map_t, c_rules_map_size} ptr c
+
+
+
+
+hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
+hll_rulesMapGetList ptrStructRulesMap cStringKey = do
+  ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
+  key :: T.Text                 <- ptrCCharToText cStringKey
+
+  let stringsArray      = stringsC ffiRulesMap
+  let listsOfRulesArray = rulesListC ffiRulesMap
+  let size :: Int       = fromIntegral . rulesMapSizeC $ ffiRulesMap
+
+  idx <- findString stringsArray size key
+  case idx of
+    (-1) -> return nullPtr
+    _    -> do
+      e <- peekElemOff listsOfRulesArray idx
+      return e
+
+
+
+
+hll_rulesMapPutList :: Ptr FfiCssRulesMap -> CString -> Ptr FfiCssRulesList -> IO ()
+hll_rulesMapPutList ptrStructRulesMap cStringKey ptrStructRulesList = do
+  ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
+  key :: T.Text                 <- ptrCCharToText cStringKey
+
+  let stringsArray      = stringsC ffiRulesMap
+  let listsOfRulesArray = rulesListC ffiRulesMap
+  let oldSize :: Int    = fromIntegral . rulesMapSizeC $ ffiRulesMap
+
+  idx <- findString stringsArray oldSize key
+  case idx of
+    (-1) -> do
+      let newSize :: CInt = (fromIntegral oldSize) + 1
+      pokeElemOff listsOfRulesArray oldSize ptrStructRulesList
+      newCStringKey <- textToPtrCChar key -- textToPtrCChar serves as strdup()
+      pokeElemOff stringsArray oldSize newCStringKey
+      pokeByteOff ptrStructRulesMap (#offset c_css_rules_map_t, c_rules_map_size) newSize
+      return ()
+    _    -> do
+      pokeElemOff listsOfRulesArray idx ptrStructRulesList -- replace old element
+      return ()
+
+
+
+
+hll_findRuleListForInsertion :: Ptr FfiCssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO (Ptr FfiCssRulesList)
+hll_findRuleListForInsertion ptrStructSimSel ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList = do
+  ffiSimSel <- peek ptrStructSimSel
+
+  let elementCount :: Int = (90 + 14)
+  let element :: Int = fromIntegral . selectorElementC $ ffiSimSel
+
+  let selectorId :: CString = selectorIdC ffiSimSel
+
+  let ptr   | nullPtr /= selectorId = do
+                list <- hll_rulesMapGetList ptrStructIdRulesMap selectorId
+                if nullPtr == list
+                  then do
+                  newRulesList <- callocBytes #{size c_css_rules_list_t}
+                  hll_rulesMapPutList ptrStructIdRulesMap selectorId newRulesList
+                  return newRulesList
+                  else return list
+
+            | (fromIntegral . selectorClassSizeC $ ffiSimSel) > 0 = do
+                let array = selectorClassC ffiSimSel
+                elem0 :: CString <- peekElemOff array 0
+                list <- hll_rulesMapGetList ptrStructClassRulesMap elem0
+                if nullPtr == list
+                  then do
+                  newRulesList <- callocBytes #{size c_css_rules_list_t}
+                  hll_rulesMapPutList ptrStructClassRulesMap elem0 newRulesList
+                  return newRulesList
+                  else return list
+
+            | element >= 0 && element < elementCount = do
+                let offset = element * #{size c_css_rules_list_t}
+                return $ plusPtr ptrStructElementRulesList offset
+
+            | element == cssSimpleSelectorElementAny = do return ptrStructAnyElementRulesList
+            | otherwise                              = do return nullPtr
+  ptr
+
+
+
+
+findString :: Ptr (Ptr CChar) -> Int -> T.Text -> IO Int
+findString array size string = do
+  list <- peekArrayOfPointers array size ptrCCharToText
+  case elemIndex string list of
+    Just i  -> return i
+    Nothing -> return (-1)
+
+
+
+
+
+hll_rulesListInsertRuleBySpecificity :: Ptr FfiCssRulesList -> Ptr FfiCssRule -> IO ()
+hll_rulesListInsertRuleBySpecificity ptrStructRulesList ptrStructCssRule = do
+
+  list <- peekCssRulesList ptrStructRulesList
+  rule <- peekCssRule ptrStructCssRule
+
+  let newList = rulesListInsertRuleBySpecificity list rule
+
+  pokeCssRulesList ptrStructRulesList newList
+
+  return ()
+
+  {-
+void css_rules_list_insert_rule_by_specificity(c_css_rules_list_t * list, c_css_rule_t * rule)
+{
+   list->c_rules[list->c_rules_size] = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
+   list->c_rules_size++;
+
+   int i = list->c_rules_size - 1;
+
+   while (i > 0 && rule->c_specificity < list->c_rules[i - 1]->c_specificity) {
+      list->c_rules[i] = list->c_rules[i - 1];
+      i--;
+   }
+
+   list->c_rules[i] = rule;
+}
+-}

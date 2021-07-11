@@ -25,6 +25,7 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 module Css( DoctreeNode (..)
           , simpleSelectorMatches
           , selectorSpecificity
+          , rulesListInsertRuleBySpecificity
           )
   where
 
@@ -131,3 +132,28 @@ simpleSelectorSpecificity simSel = fromId + fromClass + fromPseudoClass + fromEl
     fromPseudoClass = if (not . null . selectorPseudoClass $ simSel) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
     fromElement     = if ((selectorElement simSel) /= cssSimpleSelectorElementAny) then 1 else 0
 
+
+
+
+{-
+Insert rule with increasing specificity.
+
+If two rules have the same specificity, the one that was added later will be
+added behind the others. This gives later added rules more weight.
+
+TODO:
+The goal of proper ordering of rules where newer rules go at the end of slice
+of rules with the same specificity can be achieved also with this
+implementation:
+
+rulesListInsertRuleBySpecificity2 list rule = reverse $ L.insertBy ord rule (reverse list)
+  where ord r2 r1 = compare (specificity r1) (specificity r2)
+
+But I don't know which version is more effective: with two reverses or with
+span + concat.
+
+-}
+rulesListInsertRuleBySpecificity :: [CssRule] -> CssRule -> [CssRule]
+rulesListInsertRuleBySpecificity list rule = L.concat [smallerOrEqual, [rule], larger]
+  where
+    (smallerOrEqual, larger) = L.span (\r -> (specificity rule) >= (specificity r)) list

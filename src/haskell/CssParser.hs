@@ -136,6 +136,9 @@ module CssParser(nextToken
                 , CssDeclarationSet (..)
                 , defaultCssDeclarationSet
 
+                , CssRule (..)
+
+
                 , consumeName
 
                 , defaultParser) where
@@ -2188,4 +2191,16 @@ parseAllDeclarations :: ((CssParser, CssToken), (CssDeclarationSet, CssDeclarati
 parseAllDeclarations ((p1, t1), (declSet, declSetImp)) | t1 == CssTokEnd    = ((p1, t1), (declSet, declSetImp))
                                                        | t1 == CssTokCh '}' = ((p1, t1), (declSet, declSetImp))
                                                        | otherwise = parseAllDeclarations (parseDeclarationWrapper2 (p1, t1) (declSet, declSetImp))
+
+
+
+
+data CssRule = CssRule {
+    selector       :: CssSelector
+  , declarationSet :: CssDeclarationSet
+  , specificity    :: Int
+  , position       :: Int
+  } deriving (Show)
+
+
 
