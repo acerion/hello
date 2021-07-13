@@ -25,7 +25,7 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
-module HelloUtils (
+module Hello.Utils (
     tripletFst
   , tripletSnd
   , tripletThrd
@@ -36,6 +36,8 @@ module HelloUtils (
 
   , takeEnclosed
   , skipEnclosed
+
+  , listReplaceElem
   ) where
 
 
@@ -74,6 +76,16 @@ takeEnclosed text opening closing omitDelimiters = if T.isPrefixOf opening text
 skipEnclosed :: T.Text -> T.Text -> T.Text -> T.Text
 skipEnclosed text opening closing = snd $ takeEnclosed text opening closing True
 
+
+
+
+
+
+listReplaceElem :: [a] -> a -> Int -> [a]
+listReplaceElem list new idx = concat [front, [new], back]
+  where
+    front = take idx list
+    back  = drop (idx + 1) list
 
 
 

@@ -240,7 +240,6 @@ int hll_selectorSpecificity(const c_css_selector_t * selector);
 
 
 c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);
-void hll_rulesMapPutList(c_css_rules_map_t * rules_map, const char * key, c_css_rules_list_t * list);
 
 int hll_insertRuleToStyleSheet(c_css_rule_t * rule,
                                c_css_simple_selector_t * sim_sel,

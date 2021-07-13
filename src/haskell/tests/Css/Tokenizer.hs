@@ -14,7 +14,7 @@ import qualified Data.Text as T
 import Test.HUnit
 import System.Exit
 import CssParser
-import HelloUtils
+import Hello.Utils
 
 
 

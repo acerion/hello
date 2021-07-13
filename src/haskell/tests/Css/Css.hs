@@ -16,7 +16,7 @@ import System.Exit
 import CssParser
 import Css
 import TestsCssData
-import HelloUtils
+import Hello.Utils
 
 
 

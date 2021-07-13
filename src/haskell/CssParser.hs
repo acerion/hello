@@ -152,14 +152,14 @@ import qualified Data.Char as D.C
 import qualified Data.Text as T
 import qualified Data.Text.Read as T.R
 import qualified Data.Text.IO as T.IO
-import qualified HelloUtils as HU
+import qualified Hello.Utils as HU
 import qualified Data.Vector as V
 import qualified Data.List as L
 import qualified Data.Map as M
 import qualified Data.Sequence as S
 import Data.Bits
 import Colors
-import HelloUtils
+import Hello.Utils
 import HtmlTag
 import Debug.Trace
 

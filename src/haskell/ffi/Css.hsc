@@ -33,23 +33,16 @@ import Foreign.C.Types
 import Foreign.Marshal.Array
 import Data.List
 import qualified Data.Text as T
-import qualified Data.Text.Read as T.R
-import qualified Data.Text.Encoding as T.E
-import qualified Data.Text.Encoding.Error as T.E.E
-import qualified Data.Text.IO as T.IO
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Vector as V
-import qualified Data.Sequence as S
-import qualified Data.Foldable as Foldable
 import qualified Data.Map as M
-import Control.Applicative
 import Control.Monad -- when
-import Text.Printf
 import Debug.Trace
 
 import CssParser
 import Css
+import Hello.Css.StyleSheet
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Utils
 
@@ -137,7 +130,6 @@ peekDoctreeNode ptrStructDoctreeNode = do
 foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
 foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
-foreign export ccall "hll_rulesMapPutList" hll_rulesMapPutList :: Ptr FfiCssRulesMap -> CString -> Ptr FfiCssRulesList -> IO ()
 foreign export ccall "hll_insertRuleToStyleSheet" hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO CInt
 
 
@@ -376,75 +368,6 @@ hll_rulesMapGetList ptrStructRulesMap cStringKey = do
 
 
 
-hll_rulesMapGetList2 :: Ptr FfiCssRulesMap -> T.Text -> IO (Ptr FfiCssRulesList)
-hll_rulesMapGetList2 ptrStructRulesMap key = do
-  ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
-
-  let stringsArray      = stringsC ffiRulesMap
-  let listsOfRulesArray = rulesListC ffiRulesMap
-  let size :: Int       = fromIntegral . rulesMapSizeC $ ffiRulesMap
-
-  idx <- findString stringsArray size key
-  case idx of
-    (-1) -> return nullPtr
-    _    -> do
-      e <- peekElemOff listsOfRulesArray idx
-      return e
-
-
-
-
-hll_rulesMapPutList :: Ptr FfiCssRulesMap -> CString -> Ptr FfiCssRulesList -> IO ()
-hll_rulesMapPutList ptrStructRulesMap cStringKey ptrStructRulesList = do
-  ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
-  key :: T.Text                 <- ptrCCharToText cStringKey
-
-  let stringsArray      = stringsC ffiRulesMap
-  let listsOfRulesArray = rulesListC ffiRulesMap
-  let oldSize :: Int    = fromIntegral . rulesMapSizeC $ ffiRulesMap
-
-  idx <- findString stringsArray oldSize key
-  case idx of
-    (-1) -> do
-      let newSize :: CInt = (fromIntegral oldSize) + 1
-      pokeElemOff listsOfRulesArray oldSize ptrStructRulesList
-      newCStringKey <- textToPtrCChar key -- textToPtrCChar serves as strdup()
-      pokeElemOff stringsArray oldSize newCStringKey
-      pokeByteOff ptrStructRulesMap (#offset c_css_rules_map_t, c_rules_map_size) newSize
-      return ()
-    _    -> do
-      pokeElemOff listsOfRulesArray idx ptrStructRulesList -- replace old element
-      return ()
-
-
-
-
-hll_rulesMapPutList2 :: Ptr FfiCssRulesMap -> T.Text -> Ptr FfiCssRulesList -> IO ()
-hll_rulesMapPutList2 ptrStructRulesMap key ptrStructRulesList = do
-  ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
-
-  let stringsArray      = stringsC ffiRulesMap
-  let listsOfRulesArray = rulesListC ffiRulesMap
-  let oldSize :: Int    = fromIntegral . rulesMapSizeC $ ffiRulesMap
-
-  idx <- findString stringsArray oldSize key
-  case idx of
-    (-1) -> do
-      let newSize :: CInt = (fromIntegral oldSize) + 1
-      pokeElemOff listsOfRulesArray oldSize ptrStructRulesList
-      newCStringKey <- textToPtrCChar key -- textToPtrCChar serves as strdup()
-      pokeElemOff stringsArray oldSize newCStringKey
-      pokeByteOff ptrStructRulesMap (#offset c_css_rules_map_t, c_rules_map_size) newSize
-      return ()
-    _    -> do
-      pokeElemOff listsOfRulesArray idx ptrStructRulesList -- replace old element
-      return ()
-
-
-
-
-
-
 hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO CInt
 hll_insertRuleToStyleSheet ptrStructCssRule ptrStructSimSel ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList = do
   topSimSel <- peekCssSimpleSelector ptrStructSimSel
@@ -455,10 +378,10 @@ hll_insertRuleToStyleSheet ptrStructCssRule ptrStructSimSel ptrStructIdRulesMap 
   listAE <- peekCssRulesList ptrStructAnyElementRulesList
 
   let element :: Int = selectorElement topSimSel
-  inListOfLists :: [[CssRule]] <- getList ptrStructElementRulesList [] 0 (90 + 14)
+  let elementCount :: Int = (90 + 14)
+  inListOfLists :: [[CssRule]] <- getList ptrStructElementRulesList [] 0 elementCount
   let inPtrListOfRules = (plusPtr ptrStructElementRulesList (element * #{size c_css_rules_list_t}))
 
-  let elementCount :: Int = (90 + 14)
   inListOfRules <- if element >= 0 && element < elementCount
                    then peekCssRulesList inPtrListOfRules
                    else return []
@@ -483,41 +406,6 @@ hll_insertRuleToStyleSheet ptrStructCssRule ptrStructSimSel ptrStructIdRulesMap 
 
 
 
-type CssStyleSheet = (Maybe CssRulesMap, Maybe CssRulesMap, Maybe ([[CssRule]], [CssRule]), Maybe [CssRule])
-
-
-
-
-insertRuleToStyleSheet :: CssSimpleSelector -> CssRule -> CssStyleSheet -> CssStyleSheet
-insertRuleToStyleSheet topSimSel rule (Just mapId, Just mapC, Just (inListOfLists, inListOfRules), Just listAE) =
-  case selectTargetRulesList topSimSel of
-    1 -> (Just map2, Nothing, Nothing, Nothing)
-      where
-        map2 = updateMap mapId (selectorId topSimSel) rule
-    2 -> (Nothing, Just map2, Nothing, Nothing)
-      where
-        map2 = updateMap mapC (head . selectorClass $ topSimSel) rule
-    3 -> (Nothing, Nothing, Just (updatedListOfLists, updatedListOfRules), Nothing)
-      where
-        element :: Int = selectorElement topSimSel
-        updatedListOfRules = rulesListInsertRuleBySpecificity inListOfRules rule
-        updatedListOfLists = listReplace inListOfLists updatedListOfRules element -- TODO: list of lists to be replaced vector indexed by element
-    4 -> (Nothing, Nothing, Nothing, Just list2)
-      where
-        list2 = rulesListInsertRuleBySpecificity listAE rule
-    _ -> (Nothing, Nothing, Nothing, Nothing)
-
-
-
-
-listReplace :: [a] -> a -> Int -> [a]
-listReplace list new idx = concat [front, [new], back]
-  where
-    front = take idx list
-    back  = drop (idx + 1) list
-
-
-
 getList :: Ptr FfiCssRulesList -> [[CssRule]] -> Int -> Int -> IO [[CssRule]]
 getList table acc idx count = do
   if idx == count
@@ -526,27 +414,6 @@ getList table acc idx count = do
     let ptrList = (plusPtr table (idx * #{size c_css_rules_list_t}))
     listOfRules <- peekCssRulesList ptrList
     getList table (listOfRules:acc) (idx + 1) count
-
-
-
-selectTargetRulesList :: CssSimpleSelector -> Int
-selectTargetRulesList topSimSel | not . T.null . selectorId $ topSimSel  = 1
-                                | not . null . selectorClass $ topSimSel = 2
-                                | element >= 0 && element < elementCount = 3
-                                | element == cssSimpleSelectorElementAny = 4
-                                | otherwise                              = 5
-  where
-    elementCount :: Int = (90 + 14)
-    element :: Int = selectorElement topSimSel
-
-
-
-
-updateMap :: CssRulesMap -> T.Text -> CssRule -> CssRulesMap
-updateMap map key rule = case M.lookup key map of
-                           Just list -> M.insert key (rulesListInsertRuleBySpecificity list rule) map
-                           Nothing   -> M.insert key (rulesListInsertRuleBySpecificity []   rule) map
-
 
 
 

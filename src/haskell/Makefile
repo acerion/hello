@@ -9,6 +9,7 @@ all:
 
 	ghc -g -O0 -fPIC -c wrapper.c
 	ghc -g -O0 -dynamic -shared -fPIC -o libhello.so \
+		../Hello/Css/StyleSheet.hs \
 		URL.hs cookies.hs \
 		Gif.hs              ffi/Gif.hs \
 		Css.hs \
