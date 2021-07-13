@@ -24,7 +24,8 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 
 
-module Hello.Css.StyleSheet( CssStyleSheet
+module Hello.Css.StyleSheet( CssStyleSheet (..)
+                           , CssRulesMap (..)
                            , insertRuleToStyleSheet
                            ) where
 
@@ -34,12 +35,8 @@ module Hello.Css.StyleSheet( CssStyleSheet
 import Prelude
 import Data.List
 import qualified Data.Text as T
-import qualified Data.Text.Read as T.R
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Map as M
-import Control.Applicative
-import Control.Monad -- when
+import qualified Data.List as L
 import Debug.Trace
 
 import CssParser
@@ -48,48 +45,99 @@ import Hello.Utils
 
 
 
-type CssStyleSheet = (Maybe CssRulesMap, Maybe CssRulesMap, Maybe ([[CssRule]], [CssRule]), Maybe [CssRule])
+
+type CssRulesMap = M.Map T.Text [CssRule]
 
 
 
 
-insertRuleToStyleSheet :: CssSimpleSelector -> CssRule -> CssStyleSheet -> CssStyleSheet
-insertRuleToStyleSheet topSimSel rule (Just mapId, Just mapC, Just (inListOfLists, inListOfRules), Just listAE) =
-  case selectTargetRulesList topSimSel of
-    1 -> (Just map2, Nothing, Nothing, Nothing)
-      where
-        map2 = updateMap mapId (selectorId topSimSel) rule
-    2 -> (Nothing, Just map2, Nothing, Nothing)
-      where
-        map2 = updateMap mapC (head . selectorClass $ topSimSel) rule
-    3 -> (Nothing, Nothing, Just (updatedListOfLists, updatedListOfRules), Nothing)
-      where
-        element = selectorElement topSimSel
-        updatedListOfRules = rulesListInsertRuleBySpecificity inListOfRules rule
-        updatedListOfLists = listReplaceElem inListOfLists updatedListOfRules element -- TODO: list of lists to be replaced with vector indexed by element
-    4 -> (Nothing, Nothing, Nothing, Just list2)
-      where
-        list2 = rulesListInsertRuleBySpecificity listAE rule
-    _ -> (Nothing, Nothing, Nothing, Nothing)
+data CssStyleSheet = CssStyleSheet {
+    mapId          :: CssRulesMap
+  , mapClass       :: CssRulesMap
+  -- TODO: list of lists to be replaced with vector indexed by element.
+  -- This field needs to be a tuple because of FFI code.
+  , vectorElement  :: ([[CssRule]], [CssRule])
+  , listElementAny :: [CssRule]
+  } deriving (Show)
 
 
 
 
-selectTargetRulesList :: CssSimpleSelector -> Int
-selectTargetRulesList topSimSel | not . T.null . selectorId $ topSimSel  = 1
-                                | not . null . selectorClass $ topSimSel = 2
-                                | element >= 0 && element < elementCount = 3
-                                | element == cssSimpleSelectorElementAny = 4
-                                | otherwise                              = 5
+{-
+The returned int value is needed only in FFI code, so that the FFI code knows
+which field of style sheet has changed and which input/output pointer to
+poke.
+-}
+insertRuleToStyleSheet :: CssRule -> CssStyleSheet -> (Int, CssStyleSheet)
+insertRuleToStyleSheet rule sheet
+  -- Put a rule in a bucket. Decide which bucket to choose by looking at
+  -- topmost Simple Selector of the rule.
+  | not . T.null . selectorId $ topSimSel  = (1, sheet { mapId          = updatedMapId })
+  | not . null . selectorClass $ topSimSel = (2, sheet { mapClass       = updatedMapC })
+  | element >= 0 && element < elementCount = (3, sheet { vectorElement  = (updatedListOfLists, updatedListOfRules) })
+  | element == cssSimpleSelectorElementAny = (4, sheet { listElementAny = updatedListEA })
+  | otherwise                              = (0, sheet)
+    -- TODO: for "otherwise" case C code asserts that "element =
+    -- cssSimpleSelectorElementNone". Do something similar in Haskell.
+
   where
-    elementCount = (90 + 14)
-    element = selectorElement topSimSel
+    topSimSel = L.last . simpleSelectorList. selector $ rule -- Top simple selector
+
+    element      = selectorElement topSimSel
+    elementCount = (90 + 14) -- TODO: make it a constant imported from other module
+
+    updatedMapId = updateMapOfLists (mapId sheet) (selectorId topSimSel) rule
+    updatedMapC  = updateMapOfLists (mapClass sheet) (head . selectorClass $ topSimSel) rule
+
+    listOfRules = snd . vectorElement $ sheet
+    listOfLists = fst . vectorElement $ sheet
+    updatedListOfRules = insertRuleInListOfRules listOfRules rule
+    updatedListOfLists = listReplaceElem listOfLists updatedListOfRules element
+
+    updatedListEA = insertRuleInListOfRules (listElementAny sheet) rule
 
 
 
 
-updateMap :: CssRulesMap -> T.Text -> CssRule -> CssRulesMap
-updateMap map key rule = case M.lookup key map of
-                           Just list -> M.insert key (rulesListInsertRuleBySpecificity list rule) map
-                           Nothing   -> M.insert key (rulesListInsertRuleBySpecificity []   rule) map
+{-
+Update map of lists of rules (update by inserting the rule into specific
+list).
+
+A map can be indexed by either CSS ID or CSS class.
+
+Value of a map, associated with the index (map key) is a list of rules, each
+of the rules having given id/class in topmost Simple Selector.
+-}
+updateMapOfLists :: CssRulesMap -> T.Text -> CssRule -> CssRulesMap
+updateMapOfLists map key rule = case M.lookup key map of
+                                  Just list -> M.insert key (insertRuleInListOfRules list rule) map
+                                  Nothing   -> M.insert key (insertRuleInListOfRules []   rule) map
+
+
+
+
+{-
+Insert rule with increasing specificity.
+
+If two rules have the same specificity, the one that was added later will be
+added behind the others. This gives later added rules more weight.
+
+TODO:
+The goal of proper ordering of rules where newer rules go at the end of slice
+of rules with the same specificity can be achieved also with this
+implementation:
+
+insertRuleInListOfRules list rule = reverse $ L.insertBy ord rule (reverse list)
+  where ord r2 r1 = compare (specificity r1) (specificity r2)
+
+But I don't know which version is more effective: with two reverses or with
+span + concat.
+-}
+insertRuleInListOfRules :: [CssRule] -> CssRule -> [CssRule]
+insertRuleInListOfRules list rule = L.concat [smallerOrEqual, [rule], larger]
+  where
+    (smallerOrEqual, larger) = L.span (\r -> (specificity rule) >= (specificity r)) list
+
+
+
 

@@ -37,6 +37,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Vector as V
 import qualified Data.Map as M
+import qualified Data.List as L
 import Control.Monad -- when
 import Debug.Trace
 
@@ -130,7 +131,7 @@ peekDoctreeNode ptrStructDoctreeNode = do
 foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
 foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
-foreign export ccall "hll_insertRuleToStyleSheet" hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO CInt
+foreign export ccall "hll_insertRuleToStyleSheet" hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO CInt
 
 
 
@@ -368,15 +369,14 @@ hll_rulesMapGetList ptrStructRulesMap cStringKey = do
 
 
 
-hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssSimpleSelector -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO CInt
-hll_insertRuleToStyleSheet ptrStructCssRule ptrStructSimSel ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList = do
-  topSimSel <- peekCssSimpleSelector ptrStructSimSel
-  rule      <- peekCssRule ptrStructCssRule
-
-  mapId  <- peekCssRulesMap ptrStructIdRulesMap
+hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO CInt
+hll_insertRuleToStyleSheet ptrStructCssRule ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList = do
+  rule   <- peekCssRule ptrStructCssRule
+  mapI   <- peekCssRulesMap ptrStructIdRulesMap
   mapC   <- peekCssRulesMap ptrStructClassRulesMap
-  listAE <- peekCssRulesList ptrStructAnyElementRulesList
+  listEA <- peekCssRulesList ptrStructAnyElementRulesList
 
+  let topSimSel = L.last . simpleSelectorList. selector $ rule
   let element :: Int = selectorElement topSimSel
   let elementCount :: Int = (90 + 14)
   inListOfLists :: [[CssRule]] <- getList ptrStructElementRulesList [] 0 elementCount
@@ -386,22 +386,26 @@ hll_insertRuleToStyleSheet ptrStructCssRule ptrStructSimSel ptrStructIdRulesMap 
                    then peekCssRulesList inPtrListOfRules
                    else return []
 
-  let styleSheet = (Just mapId, Just mapC, Just (inListOfLists, inListOfRules), Just listAE)
+  let styleSheet = CssStyleSheet { mapId          = mapI
+                                 , mapClass       = mapC
+                                 , vectorElement  = (inListOfLists, inListOfRules)
+                                 , listElementAny = listEA
+                                 }
 
-  case insertRuleToStyleSheet topSimSel rule styleSheet of
-    (Just map, Nothing, Nothing, Nothing) -> do
-      pokeCssRulesMap ptrStructIdRulesMap map
+  case insertRuleToStyleSheet rule styleSheet of
+    (1, sheet) -> do
+      pokeCssRulesMap ptrStructIdRulesMap (mapId sheet)
       return 1
-    (Nothing, Just map, Nothing, Nothing) -> do
-      pokeCssRulesMap ptrStructClassRulesMap map
+    (2, sheet) -> do
+      pokeCssRulesMap ptrStructClassRulesMap (mapClass sheet)
       return 1
-    (Nothing, Nothing, Just (listOfLists, listOfRules), Nothing) -> do
-      pokeCssRulesList inPtrListOfRules listOfRules
+    (3, sheet) -> do
+      pokeCssRulesList inPtrListOfRules (snd . vectorElement $ sheet)
       return 1
-    (Nothing, Nothing, Nothing, Just list) -> do
-      pokeCssRulesList ptrStructAnyElementRulesList list
+    (4, sheet) -> do
+      pokeCssRulesList ptrStructAnyElementRulesList (listElementAny sheet)
       return 1
-    _                                      -> return 0
+    _ -> return 0
 
 
 
@@ -414,6 +418,7 @@ getList table acc idx count = do
     let ptrList = (plusPtr table (idx * #{size c_css_rules_list_t}))
     listOfRules <- peekCssRulesList ptrList
     getList table (listOfRules:acc) (idx + 1) count
+
 
 
 

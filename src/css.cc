@@ -153,11 +153,6 @@ bool css_selector_has_pseudo_class(c_css_selector_t * selector)
    return false;
 }
 
-c_css_simple_selector_t * css_selector_get_top_simple_selector(c_css_selector_t * selector)
-{
-   return selector->c_simple_selector_list[selector->c_simple_selector_list_size - 1];
-}
-
 void css_selector_set_match_cache_offset(c_css_selector_t * selector, int offset)
 {
    if (selector->c_match_case_offset == -1) {
@@ -201,9 +196,7 @@ bool css_rule_is_safe(const c_css_rule_t * rule)
  */
 void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule)
 {
-   c_css_simple_selector_t * top = css_selector_get_top_simple_selector(rule->c_selector);
    int inserted = hll_insertRuleToStyleSheet(rule,
-                                             top,
                                              &style_sheet->c_id_rules,
                                              &style_sheet->c_class_rules,
                                              style_sheet->c_element_rules,
@@ -214,6 +207,7 @@ void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * 
          style_sheet->c_required_match_cache = css_selector_get_required_match_cache(rule->c_selector);
       }
    } else {
+      c_css_simple_selector_t * top = rule->c_selector->c_simple_selector_list[rule->c_selector->c_simple_selector_list_size - 1];
       assert (top->c_selector_element == CssSimpleSelectorElementNone);
    }
 }

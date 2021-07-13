@@ -159,12 +159,12 @@ static const int css_style_sheet_n_tags = 90 + 14;
  * In apply_style_sheet() all matching rules are applied.
  */
 typedef struct c_css_style_sheet_t {
+   c_css_rules_map_t c_id_rules;
+   c_css_rules_map_t c_class_rules;
    /* These containers seem to be for rules, which selectors *start with*
       either element, or are for any, or with id or with class. */
    c_css_rules_list_t c_element_rules[90 + 14 /* css_style_sheet_n_tags */];
    c_css_rules_list_t c_any_element_rules;
-   c_css_rules_map_t c_id_rules;
-   c_css_rules_map_t c_class_rules;
 
    int c_required_match_cache;
 } c_css_style_sheet_t;
@@ -242,7 +242,6 @@ int hll_selectorSpecificity(const c_css_selector_t * selector);
 c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);
 
 int hll_insertRuleToStyleSheet(c_css_rule_t * rule,
-                               c_css_simple_selector_t * sim_sel,
                                c_css_rules_map_t * id_rules_map,
                                c_css_rules_map_t * class_rules_map,
                                c_css_rules_list_t * element_rules_list,
