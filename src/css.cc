@@ -32,6 +32,8 @@ static void css_declaration_print_pretty(FILE * file, c_css_declaration_t * decl
 
 static void css_declaration_set_print_pretty(FILE * file, c_css_declaration_set_t * decl_set);
 
+static void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule);
+
 c_css_declaration_set_t * declarationListNew(void)
 {
    c_css_declaration_set_t * set = (c_css_declaration_set_t *) calloc(1, sizeof (c_css_declaration_set_t));
@@ -194,7 +196,7 @@ bool css_rule_is_safe(const c_css_rule_t * rule)
  * To improve matching performance the rules are organized into
  * rule lists based on the topmost simple selector of their selector.
  */
-void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule)
+static void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule)
 {
    int inserted = hll_insertRuleToStyleSheet(rule,
                                              &style_sheet->c_id_rules,
@@ -206,9 +208,6 @@ void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * 
       if (css_selector_get_required_match_cache(rule->c_selector) > style_sheet->c_required_match_cache) {
          style_sheet->c_required_match_cache = css_selector_get_required_match_cache(rule->c_selector);
       }
-   } else {
-      c_css_simple_selector_t * top = rule->c_selector->c_simple_selector_list[rule->c_selector->c_simple_selector_list_size - 1];
-      assert (top->c_selector_element == CssSimpleSelectorElementNone);
    }
 }
 
@@ -279,9 +278,6 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE *
          c_css_rule_t * rule = rules_lists[minSpecIndex]->c_rules[index[minSpecIndex]];
 
          /* Apply CSS rule. */
-         /* Guessing time: since we are using the last simple selector on a
-            list, there is no other simple selector after it to combine with,
-            so the combinator is None (probably that's the logic). */
          if (css_selector_matches(rule->c_selector, docTree, dtn, rule->c_selector->c_simple_selector_list_size - 1, CssSelectorCombinatorNone, match_cache)) {
             hll_declarationListAppend(decl_set, rule->c_decl_set);
          }

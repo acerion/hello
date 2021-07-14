@@ -137,7 +137,7 @@ module CssParser(nextToken
                 , defaultCssDeclarationSet
 
                 , CssRule (..)
-
+                , getTopSimSel
 
                 , consumeName
 
@@ -1667,9 +1667,10 @@ defaultSimpleSelector = CssSimpleSelector {
   , selectorClass       = []
   , selectorElement     = cssSimpleSelectorElementAny
 
-  -- Combinator that combines this simple selector and the previous one. For
-  -- a simple selector that is first on the list (or the only on the list),
-  -- the combinator will be None.
+  -- Combinator that combines this simple selector and the previous one
+  -- (previous one == simple selector to the left of current simple
+  -- selector). For a simple selector that is first on the list (or the only
+  -- on the list), the combinator will be None.
   , combinator          = CssCombinatorNone
   }
 
@@ -2204,3 +2205,7 @@ data CssRule = CssRule {
 
 
 
+
+-- Get top simple selector
+getTopSimSel :: CssRule -> CssSimpleSelector
+getTopSimSel = L.last . simpleSelectorList . selector

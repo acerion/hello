@@ -38,6 +38,7 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.List as L
 import Debug.Trace
+import Control.Monad -- when
 
 import CssParser
 import Css
@@ -76,12 +77,12 @@ insertRuleToStyleSheet rule sheet
   | not . null . selectorClass $ topSimSel = (2, sheet { mapClass       = updatedMapC })
   | element >= 0 && element < elementCount = (3, sheet { vectorElement  = (updatedListOfLists, updatedListOfRules) })
   | element == cssSimpleSelectorElementAny = (4, sheet { listElementAny = updatedListEA })
-  | otherwise                              = (0, sheet)
-    -- TODO: for "otherwise" case C code asserts that "element =
-    -- cssSimpleSelectorElementNone". Do something similar in Haskell.
+  | otherwise                              = if (element /= cssSimpleSelectorElementNone)
+                                             then (trace ("[EE] insert rule: unexpected element: " ++ (show element)) (0, sheet))
+                                             else (0, sheet)
 
   where
-    topSimSel = L.last . simpleSelectorList. selector $ rule -- Top simple selector
+    topSimSel = getTopSimSel rule
 
     element      = selectorElement topSimSel
     elementCount = (90 + 14) -- TODO: make it a constant imported from other module

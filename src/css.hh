@@ -260,7 +260,6 @@ void css_rules_list_insert_rule(c_css_rules_list_t * list, c_css_rule_t * rule);
 
 
 /* c_css_style_sheet_t methods. */
-void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule);
 void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE * file, c_css_declaration_set_t * decl_set, Doctree * docTree,
                                        const c_doctree_node_t * dtn, MatchCache * match_cache);
 
