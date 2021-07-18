@@ -138,6 +138,7 @@ module CssParser(nextToken
 
                 , CssRule (..)
                 , getTopSimSel
+                , getRequiredMatchCache
 
                 , consumeName
 
@@ -2209,3 +2210,11 @@ data CssRule = CssRule {
 -- Get top simple selector
 getTopSimSel :: CssRule -> CssSimpleSelector
 getTopSimSel = L.last . simpleSelectorList . selector
+
+
+
+
+getRequiredMatchCache :: CssRule -> Int
+getRequiredMatchCache rule = (matchCaseOffset . selector $ rule) + (length . simpleSelectorList . selector $ rule)
+
+

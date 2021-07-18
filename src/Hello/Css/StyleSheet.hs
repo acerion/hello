@@ -26,7 +26,7 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 module Hello.Css.StyleSheet( CssStyleSheet (..)
                            , CssRulesMap (..)
-                           , insertRuleToStyleSheet
+                           , addRuleToStyleSheet
                            ) where
 
 
@@ -53,13 +53,33 @@ type CssRulesMap = M.Map T.Text [CssRule]
 
 
 data CssStyleSheet = CssStyleSheet {
-    mapId          :: CssRulesMap
-  , mapClass       :: CssRulesMap
+    mapId              :: CssRulesMap
+  , mapClass           :: CssRulesMap
   -- TODO: list of lists to be replaced with vector indexed by element.
   -- This field needs to be a tuple because of FFI code.
-  , vectorElement  :: ([[CssRule]], [CssRule])
-  , listElementAny :: [CssRule]
+  , vectorElement      :: ([[CssRule]], [CssRule])
+  , listElementAny     :: [CssRule]
+  , requiredMatchCache :: Int
   } deriving (Show)
+
+
+
+
+{-
+Insert a rule into style sheet.
+
+To improve matching performance the rules are organized into rule lists based
+on the topmost simple selector of their selector.
+-}
+addRuleToStyleSheet :: CssStyleSheet -> CssRule -> (Int, CssStyleSheet)
+addRuleToStyleSheet sheet rule = case insertRuleToStyleSheet rule sheet of
+                                   (0, outSheet) -> (0, outSheet)
+                                   (i, outSheet) -> (i, outSheet { requiredMatchCache = newRequiredMatchCache sheet rule })
+
+  where
+    newRequiredMatchCache s r = if getRequiredMatchCache r > requiredMatchCache s
+                                then trace ("Updating from " ++ (show . requiredMatchCache $ s) ++ " to " ++ (show . getRequiredMatchCache $ r)) (getRequiredMatchCache r)
+                                else requiredMatchCache s
 
 
 

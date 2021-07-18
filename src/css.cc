@@ -32,8 +32,6 @@ static void css_declaration_print_pretty(FILE * file, c_css_declaration_t * decl
 
 static void css_declaration_set_print_pretty(FILE * file, c_css_declaration_set_t * decl_set);
 
-static void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule);
-
 c_css_declaration_set_t * declarationListNew(void)
 {
    c_css_declaration_set_t * set = (c_css_declaration_set_t *) calloc(1, sizeof (c_css_declaration_set_t));
@@ -162,6 +160,7 @@ void css_selector_set_match_cache_offset(c_css_selector_t * selector, int offset
    }
 }
 
+// Implemented as getRequiredMatchCache in CssParser.hs
 int css_selector_get_required_match_cache(c_css_selector_t * selector)
 {
    return selector->c_match_case_offset + selector->c_simple_selector_list_size;
@@ -188,23 +187,6 @@ c_css_rule_t * css_rule_new(c_css_selector_t * selector, c_css_declaration_set_t
 bool css_rule_is_safe(const c_css_rule_t * rule)
 {
    return !css_selector_has_pseudo_class(rule->c_selector) || rule->c_decl_set->c_is_safe;
-}
-
-/**
- * \brief Insert a rule into style sheet.
- *
- * To improve matching performance the rules are organized into
- * rule lists based on the topmost simple selector of their selector.
- */
-static void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule)
-{
-   int inserted = hll_insertRuleToStyleSheet(rule, style_sheet);
-
-   if (inserted) {
-      if (css_selector_get_required_match_cache(rule->c_selector) > style_sheet->c_required_match_cache) {
-         style_sheet->c_required_match_cache = css_selector_get_required_match_cache(rule->c_selector);
-      }
-   }
 }
 
 /**
@@ -290,16 +272,13 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE *
 c_css_style_sheet_t CssContext::userAgentSheet;
 bool g_user_agent_initialized;
 
-
 void alloc_sheet(c_css_style_sheet_t * sheet)
 {
    sheet->c_id_rules =  (c_css_rules_map_t *) calloc(1, sizeof (c_css_rules_map_t));
    sheet->c_class_rules = (c_css_rules_map_t *) calloc(1, sizeof (c_css_rules_map_t));
-
    for (int j = 0; j < css_style_sheet_n_tags; j++) {
       sheet->c_element_rules[j] = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
    }
-
    sheet->c_any_element_rules = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
 }
 
@@ -309,12 +288,10 @@ CssContext::CssContext () {
    match_cache_set_size(&this->match_cache, userAgentSheet.c_required_match_cache);
    memset(this->sheet, 0, sizeof (this->sheet));
 
-
    if (!g_user_agent_initialized) {
       alloc_sheet(&CssContext::userAgentSheet);
       g_user_agent_initialized = true;
    }
-
    for (int i = 0; i < CSS_PRIMARY_USER_IMPORTANT + 1; i++) {
       alloc_sheet(&this->sheet[i]);
    }
@@ -383,9 +360,9 @@ void css_context_add_rule(CssContext * context, c_css_rule_t * rule, CssPrimaryO
          match_cache_set_size(&context->match_cache, new_size);
 
       if (order == CSS_PRIMARY_USER_AGENT) {
-         css_style_sheet_add_rule(&context->userAgentSheet, rule);
+         hll_addRuleToStyleSheet(&context->userAgentSheet, rule);
       } else {
-         css_style_sheet_add_rule(&context->sheet[order], rule);
+         hll_addRuleToStyleSheet(&context->sheet[order], rule);
       }
    }
 }

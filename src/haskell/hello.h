@@ -241,7 +241,7 @@ int hll_selectorSpecificity(const c_css_selector_t * selector);
 
 c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);
 
-int hll_insertRuleToStyleSheet(c_css_rule_t * rule, c_css_style_sheet_t * style_sheet);
+int hll_addRuleToStyleSheet(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule);
 
 
 
