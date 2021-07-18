@@ -131,7 +131,7 @@ peekDoctreeNode ptrStructDoctreeNode = do
 foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
 foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
-foreign export ccall "hll_insertRuleToStyleSheet" hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO CInt
+foreign export ccall "hll_insertRuleToStyleSheet" hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssStyleSheet -> IO CInt
 
 
 
@@ -369,22 +369,66 @@ hll_rulesMapGetList ptrStructRulesMap cStringKey = do
 
 
 
-hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesMap -> Ptr FfiCssRulesList -> Ptr FfiCssRulesList -> IO CInt
-hll_insertRuleToStyleSheet ptrStructCssRule ptrStructIdRulesMap ptrStructClassRulesMap ptrStructElementRulesList ptrStructAnyElementRulesList = do
-  rule   <- peekCssRule ptrStructCssRule
-  mapI   <- peekCssRulesMap ptrStructIdRulesMap
-  mapC   <- peekCssRulesMap ptrStructClassRulesMap
-  listEA <- peekCssRulesList ptrStructAnyElementRulesList
 
+data FfiCssStyleSheet = FfiCssStyleSheet {
+    mapIdC          :: Ptr FfiCssRulesMap
+  , mapClassC       :: Ptr FfiCssRulesMap
+  , vectorElementC  :: Ptr (Ptr FfiCssRulesList)
+  , listElementAnyC :: Ptr FfiCssRulesList
+  , matchCacheC     :: CInt
+  }
+
+
+
+
+instance Storable FfiCssStyleSheet where
+  sizeOf    _ = #{size c_css_style_sheet_t}
+  alignment _ = #{alignment c_css_style_sheet_t}
+
+  peek ptr = do
+    a <- #{peek c_css_style_sheet_t, c_id_rules}             ptr
+    b <- #{peek c_css_style_sheet_t, c_class_rules}          ptr
+    let c = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_style_sheet_t, c_element_rules}) ptr
+    d <- #{peek c_css_style_sheet_t, c_any_element_rules}    ptr
+    e <- #{peek c_css_style_sheet_t, c_required_match_cache} ptr
+    return (FfiCssStyleSheet a b c d e)
+
+  poke ptr (FfiCssStyleSheet a b c d e) = do
+    #{poke c_css_style_sheet_t, c_id_rules}             ptr a
+    #{poke c_css_style_sheet_t, c_class_rules}          ptr b
+    #{poke c_css_style_sheet_t, c_element_rules}        ptr c
+    #{poke c_css_style_sheet_t, c_any_element_rules}    ptr d
+    #{poke c_css_style_sheet_t, c_required_match_cache} ptr e
+
+
+
+
+
+hll_insertRuleToStyleSheet :: Ptr FfiCssRule -> Ptr FfiCssStyleSheet -> IO CInt
+hll_insertRuleToStyleSheet ptrStructCssRule ptrStructCssStyleSheet = do
+
+  rule   <- peekCssRule ptrStructCssRule
   let topSimSel = L.last . simpleSelectorList. selector $ rule
   let element :: Int = selectorElement topSimSel
   let elementCount :: Int = (90 + 14)
-  inListOfLists :: [[CssRule]] <- getList ptrStructElementRulesList [] 0 elementCount
-  let inPtrListOfRules = (plusPtr ptrStructElementRulesList (element * #{size c_css_rules_list_t}))
 
+  ffiStyleSheet <- peek ptrStructCssStyleSheet
+
+  let ptrStructIdRulesMap          :: Ptr FfiCssRulesMap = mapIdC ffiStyleSheet
+  let ptrStructClassRulesMap       :: Ptr FfiCssRulesMap = mapClassC ffiStyleSheet
+  let ptrStructElementRulesList    :: Ptr (Ptr FfiCssRulesList) = vectorElementC ffiStyleSheet
+  let ptrStructAnyElementRulesList :: Ptr FfiCssRulesList = listElementAnyC ffiStyleSheet
+
+  mapI   <- peekCssRulesMap ptrStructIdRulesMap
+  mapC   <- peekCssRulesMap ptrStructClassRulesMap
+
+  inListOfLists :: [[CssRule]] <- peekArrayOfPointers ptrStructElementRulesList elementCount peekCssRulesList
+  inPtrListOfRules :: Ptr FfiCssRulesList <- peekElemOff ptrStructElementRulesList element
   inListOfRules <- if element >= 0 && element < elementCount
                    then peekCssRulesList inPtrListOfRules
                    else return []
+
+  listEA <- peekCssRulesList ptrStructAnyElementRulesList
 
   let styleSheet = CssStyleSheet { mapId          = mapI
                                  , mapClass       = mapC
@@ -406,18 +450,6 @@ hll_insertRuleToStyleSheet ptrStructCssRule ptrStructIdRulesMap ptrStructClassRu
       pokeCssRulesList ptrStructAnyElementRulesList (listElementAny sheet)
       return 1
     _ -> return 0
-
-
-
-
-getList :: Ptr FfiCssRulesList -> [[CssRule]] -> Int -> Int -> IO [[CssRule]]
-getList table acc idx count = do
-  if idx == count
-    then return acc
-    else do
-    let ptrList = (plusPtr table (idx * #{size c_css_rules_list_t}))
-    listOfRules <- peekCssRulesList ptrList
-    getList table (listOfRules:acc) (idx + 1) count
 
 
 

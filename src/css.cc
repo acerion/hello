@@ -198,11 +198,7 @@ bool css_rule_is_safe(const c_css_rule_t * rule)
  */
 static void css_style_sheet_add_rule(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule)
 {
-   int inserted = hll_insertRuleToStyleSheet(rule,
-                                             &style_sheet->c_id_rules,
-                                             &style_sheet->c_class_rules,
-                                             style_sheet->c_element_rules,
-                                             &style_sheet->c_any_element_rules);
+   int inserted = hll_insertRuleToStyleSheet(rule, style_sheet);
 
    if (inserted) {
       if (css_selector_get_required_match_cache(rule->c_selector) > style_sheet->c_required_match_cache) {
@@ -225,7 +221,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE *
    int index[maxLists] = {0};
 
    if (dtn->c_element_selector_id) {
-      rules_lists[numLists] = hll_rulesMapGetList(&style_sheet->c_id_rules, dtn->c_element_selector_id);
+      rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_id_rules, dtn->c_element_selector_id);
       if (rules_lists[numLists]) {
          numLists++;
       }
@@ -237,17 +233,17 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE *
          break;
       }
 
-      rules_lists[numLists] = hll_rulesMapGetList(&style_sheet->c_class_rules, dtn->c_element_selector_class[i]);
+      rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_class_rules, dtn->c_element_selector_class[i]);
       if (rules_lists[numLists]) {
          numLists++;
       }
    }
 
-   rules_lists[numLists] = &style_sheet->c_element_rules[dtn->c_html_element_idx];
+   rules_lists[numLists] = style_sheet->c_element_rules[dtn->c_html_element_idx];
    if (rules_lists[numLists])
       numLists++;
 
-   rules_lists[numLists] = &style_sheet->c_any_element_rules;
+   rules_lists[numLists] = style_sheet->c_any_element_rules;
    if (rules_lists[numLists])
       numLists++;
 
@@ -292,12 +288,36 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE *
 }
 
 c_css_style_sheet_t CssContext::userAgentSheet;
+bool g_user_agent_initialized;
+
+
+void alloc_sheet(c_css_style_sheet_t * sheet)
+{
+   sheet->c_id_rules =  (c_css_rules_map_t *) calloc(1, sizeof (c_css_rules_map_t));
+   sheet->c_class_rules = (c_css_rules_map_t *) calloc(1, sizeof (c_css_rules_map_t));
+
+   for (int j = 0; j < css_style_sheet_n_tags; j++) {
+      sheet->c_element_rules[j] = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
+   }
+
+   sheet->c_any_element_rules = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
+}
 
 CssContext::CssContext () {
    rulePosition = 0;
    memset(&this->match_cache, 0, sizeof (this->match_cache));
    match_cache_set_size(&this->match_cache, userAgentSheet.c_required_match_cache);
    memset(this->sheet, 0, sizeof (this->sheet));
+
+
+   if (!g_user_agent_initialized) {
+      alloc_sheet(&CssContext::userAgentSheet);
+      g_user_agent_initialized = true;
+   }
+
+   for (int i = 0; i < CSS_PRIMARY_USER_IMPORTANT + 1; i++) {
+      alloc_sheet(&this->sheet[i]);
+   }
 }
 
 /**
