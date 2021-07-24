@@ -25,7 +25,6 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 module Css( DoctreeNode (..)
           , simpleSelectorMatches
           , selectorSpecificity
-          , CssMatchCache (..)
           )
   where
 
@@ -135,5 +134,3 @@ simpleSelectorSpecificity simSel = fromId + fromClass + fromPseudoClass + fromEl
 
 
 
-
-type CssMatchCache = [Int]

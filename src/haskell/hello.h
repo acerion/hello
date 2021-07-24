@@ -196,7 +196,7 @@ typedef struct c_css_match_cache_t {
  */
 typedef struct c_css_context_t {
    c_css_style_sheet_t * c_sheets[CSS_PRIMARY_ORDER_SIZE];
-   c_css_match_cache_t c_match_cache;
+   c_css_match_cache_t * c_match_cache;
    int c_rule_position;
 } c_css_context_t;
 
@@ -276,6 +276,8 @@ int hll_addRuleToStyleSheet(c_css_style_sheet_t * style_sheet, c_css_rule_t * ru
 
 
 void hll_matchCacheSetSize(c_css_match_cache_t * match_cache, int size);
+
+void hll_cssContextAddRule(c_css_context_t * context, c_css_rule_t * rule, CssPrimaryOrder order);
 
 
 #ifdef __cplusplus

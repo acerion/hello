@@ -27,6 +27,10 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 module Hello.Css.StyleSheet( CssStyleSheet (..)
                            , CssRulesMap (..)
                            , addRuleToStyleSheet
+                           , CssMatchCache (..)
+
+                           , CssContext (..)
+                           , cssContextAddRule
                            ) where
 
 
@@ -95,7 +99,8 @@ insertRuleToStyleSheet rule sheet
   -- topmost Simple Selector of the rule.
   | not . T.null . selectorId $ topSimSel  = (1, sheet { mapId          = updatedMapId })
   | not . null . selectorClass $ topSimSel = (2, sheet { mapClass       = updatedMapC })
-  | element >= 0 && element < elementCount = (3, sheet { vectorElement  = (updatedListOfLists, updatedListOfRules) })
+  | element >= 0 && element < elementCount = trace ("==== Increase from " ++ (show lengthBefore) ++ " to " ++ (show lengthAfter))
+                                             ((3, sheet { vectorElement  = (updatedListOfLists, updatedListOfRules) }))
   | element == cssSimpleSelectorElementAny = (4, sheet { listElementAny = updatedListEA })
   | otherwise                              = if (element /= cssSimpleSelectorElementNone)
                                              then (trace ("[EE] insert rule: unexpected element: " ++ (show element)) (0, sheet))
@@ -110,12 +115,22 @@ insertRuleToStyleSheet rule sheet
     updatedMapId = updateMapOfLists (mapId sheet) (selectorId topSimSel) rule
     updatedMapC  = updateMapOfLists (mapClass sheet) (head . selectorClass $ topSimSel) rule
 
-    listOfRules = snd . vectorElement $ sheet
+
     listOfLists = fst . vectorElement $ sheet
+    listOfRules = if element >= 0 && element < elementCount
+                  then listOfLists !! element
+                  else []
+
     updatedListOfRules = insertRuleInListOfRules listOfRules rule
     updatedListOfLists = listReplaceElem listOfLists updatedListOfRules element
 
     updatedListEA = insertRuleInListOfRules (listElementAny sheet) rule
+
+
+    lengthBefore = length listOfRules
+    lengthAfter  = length updatedListOfRules
+    --lengthBefore = length ((fst . vectorElement $ sheet) !! element)
+    --lengthAfter  = length (updatedListOfLists !! element)
 
 
 
@@ -162,3 +177,21 @@ insertRuleInListOfRules list rule = L.concat [smallerOrEqual, [rule], larger]
 
 
 
+type CssMatchCache = [Int]
+
+
+
+
+data CssContext = CssContext {
+    sheets       :: [CssStyleSheet]
+  , matchCache   :: CssMatchCache
+  , rulePosition :: Int
+  } deriving (Show)
+
+
+
+
+cssContextAddRule :: CssContext -> CssRule -> Int -> CssContext
+cssContextAddRule context rule order = context{sheets = listReplaceElem (sheets context) updatedSheet order}
+  where
+    (_, updatedSheet) = addRuleToStyleSheet ((sheets $ context) !! order) rule

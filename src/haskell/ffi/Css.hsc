@@ -133,6 +133,7 @@ foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr Ff
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_addRuleToStyleSheet" hll_addRuleToStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssRule -> IO ()
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
+foreign export ccall "hll_cssContextAddRule" hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
 
 
 
@@ -214,6 +215,12 @@ pokeCssRulesList ptrStructRulesList list = do
 
 
 
+pokeCssRulesList2 :: [CssRule] -> Ptr FfiCssRulesList -> IO ()
+pokeCssRulesList2 ptrStructRulesList list = pokeCssRulesList list ptrStructRulesList
+
+
+
+
 aPokeCssRulesList :: [CssRule] -> IO (Ptr FfiCssRulesList)
 aPokeCssRulesList list = do
   ptrStructCssRulesList <- callocBytes #{size c_css_rules_list_t}
@@ -248,6 +255,7 @@ instance Storable FfiCssRule where
     c <- #{peek c_css_rule_t, c_specificity} ptr
     d <- #{peek c_css_rule_t, c_position}    ptr
     return (FfiCssRule a b c d)
+
 
 
 
@@ -351,6 +359,24 @@ pokeCssRulesMap ptrStructRulesMap map = do
 
 
 
+allocAndPokeCssRulesMap :: CssRulesMap -> IO (Ptr FfiCssRulesMap)
+allocAndPokeCssRulesMap map = do
+  ptrStructRulesMap <- callocBytes #{size c_css_rules_map_t}
+
+  ffiRulesMap <- peek ptrStructRulesMap
+
+  let keys = M.keys map
+  let values = M.elems map
+  let len :: CInt = (fromIntegral . length $ keys)
+
+  pokeArrayOfPointers keys textToPtrCChar (stringsC ffiRulesMap)
+  pokeArrayOfPointers values aPokeCssRulesList (rulesListC ffiRulesMap)
+  pokeByteOff ptrStructRulesMap (#offset c_css_rules_map_t, c_rules_map_size) len
+
+  return ptrStructRulesMap
+
+
+
 
 hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 hll_rulesMapGetList ptrStructRulesMap cStringKey = do
@@ -400,6 +426,58 @@ instance Storable FfiCssStyleSheet where
     #{poke c_css_style_sheet_t, c_element_rules}        ptr c
     #{poke c_css_style_sheet_t, c_any_element_rules}    ptr d
     #{poke c_css_style_sheet_t, c_required_match_cache} ptr e
+
+
+
+
+peekCssStyleSheet :: Ptr FfiCssStyleSheet -> IO CssStyleSheet
+peekCssStyleSheet ptrStructCssStyleSheet = do
+  ffiStyleSheet <- peek ptrStructCssStyleSheet
+
+  mId    <- peekCssRulesMap (mapIdC ffiStyleSheet)
+  mClass <- peekCssRulesMap (mapClassC ffiStyleSheet)
+
+  let elementCount :: Int = (90 + 14)
+  let ptrStructElementRulesList    :: Ptr (Ptr FfiCssRulesList) = vectorElementC ffiStyleSheet
+  elems :: [[CssRule]] <- peekArrayOfPointers ptrStructElementRulesList elementCount peekCssRulesList
+
+
+  let lengths :: [Int] = map length elems
+  --putStrLn ("Lengths in peek = " ++ (show (any (\c -> c > 1) lengths)))
+
+  listEA <- peekCssRulesList (listElementAnyC ffiStyleSheet)
+
+  let rmc :: Int = fromIntegral . requiredMatchCacheC $ ffiStyleSheet
+
+  return CssStyleSheet{ mapId = mId
+                      , mapClass = mClass
+                      , vectorElement = (elems, [])
+                      , listElementAny = listEA
+                      , requiredMatchCache = rmc }
+
+
+
+
+pokeStyleSheet :: CssStyleSheet -> Ptr FfiCssStyleSheet -> IO ()
+pokeStyleSheet sheet ptrStructStyleSheet = do
+
+  ffiStyleSheet <- peek ptrStructStyleSheet
+
+  pokeCssRulesMap (mapIdC ffiStyleSheet) (mapId sheet)
+  pokeCssRulesMap (mapClassC ffiStyleSheet) (mapClass sheet)
+  let rulesLists2 = (snd . vectorElement $ sheet)
+  let rulesLists1 = (fst . vectorElement $ sheet)
+  pokeArrayOfPointers2 rulesLists1 pokeCssRulesList2 (vectorElementC ffiStyleSheet)
+  pokeCssRulesList (listElementAnyC ffiStyleSheet) (listElementAny sheet)
+
+  --let lengths :: [Int] = map length rulesLists
+  -- putStrLn ("Lengths in poke = " ++ (show (any (\c -> c > 1) lengths)))
+  -- putStrLn ("Lengths in poke = " ++ (show . length $ rulesLists2))
+
+  let cache :: CInt = fromIntegral . requiredMatchCache $ sheet
+  pokeByteOff ptrStructStyleSheet (#offset c_css_style_sheet_t, c_required_match_cache) cache
+
+  return ()
 
 
 
@@ -475,7 +553,6 @@ instance Storable FfiCssMatchCache where
 
   peek ptr = do
     let a = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_match_cache_t, c_cache_items}) ptr
-    -- a <- #{peek c_css_match_cache_t, c_cache_items}      ptr
     b <- #{peek c_css_match_cache_t, c_cache_items_size} ptr
     return (FfiCssMatchCache a b)
 
@@ -486,10 +563,16 @@ instance Storable FfiCssMatchCache where
 
 
 
-peekCssMatchCache :: Ptr FfiCssMatchCache -> IO CssMatchCache
-peekCssMatchCache ptrStructMatchCache = do
+peekPtrCssMatchCache :: Ptr FfiCssMatchCache -> IO CssMatchCache
+peekPtrCssMatchCache ptrStructMatchCache = do
   ffiMatchCache <- peek ptrStructMatchCache
+  peekFfiCssMatchCache $ ffiMatchCache
 
+
+
+
+peekFfiCssMatchCache :: FfiCssMatchCache -> IO CssMatchCache
+peekFfiCssMatchCache ffiMatchCache = do
   let array :: Ptr CInt = cCacheItems ffiMatchCache
   let size  :: Int      = fromIntegral . cCacheItemsSize $ ffiMatchCache
 
@@ -514,12 +597,12 @@ pokeCssMatchCache ptrStructMatchCache cache = do
 
 
 
--- TODO: This function seems to just allocate a vector of (-1) elements. So
--- far I haven't seen this function update a vector with some non-(-1)
+-- TODO: This function seems to just allocate a new vector of (-1) elements.
+-- So far I haven't seen this function update a vector of some non-(-1)
 -- elements by adding (-1)s at the end.
 hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 hll_matchCacheSetSize ptrStructMatchCache cNewSize = do
-  oldMatchCache <- peekCssMatchCache ptrStructMatchCache
+  oldMatchCache <- peekPtrCssMatchCache ptrStructMatchCache
   let oldSize = length oldMatchCache
   let newSize = fromIntegral cNewSize
   let newMatchCache = oldMatchCache ++ (replicate (newSize - oldSize) (-1))
@@ -528,12 +611,80 @@ hll_matchCacheSetSize ptrStructMatchCache cNewSize = do
 
   return ()
 
-{-
-void match_cache_set_size(c_css_match_cache_t * match_cache, int new_size)
-{
-   for (int i = match_cache->c_cache_items_size; i < new_size; i++) {
-      match_cache->c_cache_items[i] = -1;
-   }
-   match_cache->c_cache_items_size = new_size;
-}
--}
+
+
+
+data FfiCssContext = FfiCssContext {
+    cSheets              :: Ptr (Ptr FfiCssStyleSheet)
+  , cStructPtrMatchCache :: Ptr FfiCssMatchCache
+  , cRulePosition        :: CInt
+  } deriving (Show)
+
+
+
+
+instance Storable FfiCssContext where
+  sizeOf    _ = #{size c_css_context_t}
+  alignment _ = #{alignment c_css_context_t}
+
+  peek ptr = do
+    let a = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_context_t, c_sheets}) ptr
+    b <- #{peek c_css_context_t, c_match_cache}   ptr
+    c <- #{peek c_css_context_t, c_rule_position} ptr
+    return (FfiCssContext a b c)
+
+  poke ptr (FfiCssContext a b c) = do
+    #{poke c_css_context_t, c_sheets}        ptr a
+    #{poke c_css_context_t, c_match_cache}   ptr b
+    #{poke c_css_context_t, c_rule_position} ptr c
+
+
+
+
+peekCssContext :: Ptr FfiCssContext -> IO CssContext
+peekCssContext ptrStructContext = do
+  ffiContext <- peek ptrStructContext
+
+  s :: [CssStyleSheet] <- peekArrayOfPointers (cSheets ffiContext) 5 peekCssStyleSheet
+  cache <- peekPtrCssMatchCache . cStructPtrMatchCache $ ffiContext
+
+  return CssContext{ sheets       = s
+                   , matchCache   = cache
+                   , rulePosition = fromIntegral . cRulePosition $ ffiContext
+                   }
+
+
+
+
+pokeCssContext :: Ptr FfiCssContext -> CssContext -> IO ()
+pokeCssContext ptrStructContext context = do
+  ffiContext <- peek ptrStructContext
+
+  let array :: Ptr (Ptr FfiCssStyleSheet) = cSheets ffiContext
+  pokeArrayOfPointers2 (sheets context) pokeStyleSheet array
+
+  pokeCssMatchCache (cStructPtrMatchCache ffiContext) (matchCache context)
+
+  let pos :: CInt = fromIntegral . rulePosition $ context
+  pokeByteOff ptrStructContext #{offset c_css_context_t, c_rule_position} pos
+
+
+
+
+hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
+hll_cssContextAddRule ptrStructCssContext ptrStructCssRule cOrder = do
+
+  ffiContext <- peek ptrStructCssContext
+  context    <- peekCssContext ptrStructCssContext
+  rule <- peekCssRule ptrStructCssRule
+  let order :: Int = fromIntegral cOrder
+
+  let updatedContext = cssContextAddRule context rule order
+
+  pokeCssContext ptrStructCssContext updatedContext
+
+  -- putStrLn ("\n\n\n\nFFI: context = " ++ (show context))
+  -- putStrLn ("\nFFI: updated context = " ++ (show updatedContext))
+
+  return ()
+

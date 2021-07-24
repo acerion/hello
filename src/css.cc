@@ -319,8 +319,8 @@ c_css_context_t * c_css_context_new(void)
       }
    }
 
-   memset(&context->c_match_cache, 0, sizeof (context->c_match_cache));
-   hll_matchCacheSetSize(&context->c_match_cache, context->c_sheets[CSS_PRIMARY_USER_AGENT]->c_required_match_cache); // Initially the size is zero.
+   context->c_match_cache = (c_css_match_cache_t *) calloc(1, sizeof (c_css_match_cache_t));
+   hll_matchCacheSetSize(context->c_match_cache, context->c_sheets[CSS_PRIMARY_USER_AGENT]->c_required_match_cache); // Initially the size is zero.
 
    return context;
 }
@@ -348,28 +348,28 @@ void css_context_apply_css_context(c_css_context_t * context,
    i++;
 
    fprintf(file, "CSS_PRIMARY_USER_AGENT\n");
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_AGENT], file, mergedDeclList, docTree, dtn, &context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_AGENT], file, mergedDeclList, docTree, dtn, context->c_match_cache);
 
    fprintf(file, "CSS_PRIMARY_USER\n");
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER], file, mergedDeclList, docTree, dtn, &context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER], file, mergedDeclList, docTree, dtn, context->c_match_cache);
 
    if (declListNonCss)
       hll_declarationListAppend(mergedDeclList, declListNonCss);
 
    fprintf(file, "CSS_PRIMARY_AUTHOR\n");
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR], file, mergedDeclList, docTree, dtn, &context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR], file, mergedDeclList, docTree, dtn, context->c_match_cache);
 
    if (declList)
       hll_declarationListAppend(mergedDeclList, declList);
 
    fprintf(file, "CSS_PRIMARY_AUTHOR_IMPORTANT\n");
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR_IMPORTANT], file, mergedDeclList, docTree, dtn, &context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR_IMPORTANT], file, mergedDeclList, docTree, dtn, context->c_match_cache);
 
    if (declListImportant)
       hll_declarationListAppend(mergedDeclList, declListImportant);
 
    fprintf(file, "CSS_PRIMARY_USER_IMPORTANT\n");
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], file, mergedDeclList, docTree, dtn, &context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], file, mergedDeclList, docTree, dtn, context->c_match_cache);
 
    fclose(file);
 }
@@ -386,16 +386,20 @@ void css_context_add_rule(c_css_context_t * context, c_css_rule_t * rule, CssPri
 
       // Set match cache offset of selector (css_selector_set_match_cache_offset(c_css_selector_t * selector, int offset))
       if (rule->c_selector->c_match_case_offset == -1) {
-         const int offset = context->c_match_cache.c_cache_items_size;
+         const int offset = context->c_match_cache->c_cache_items_size;
          rule->c_selector->c_match_case_offset = offset;
       }
 
       const int new_size = css_selector_get_required_match_cache(rule->c_selector);
-      if (new_size > context->c_match_cache.c_cache_items_size) {
-         hll_matchCacheSetSize(&context->c_match_cache, new_size);
+      if (new_size > context->c_match_cache->c_cache_items_size) {
+         hll_matchCacheSetSize(context->c_match_cache, new_size);
       }
 
+#if 1
+      hll_cssContextAddRule(context, rule, order);
+#else
       hll_addRuleToStyleSheet(context->c_sheets[order], rule);
+#endif
    }
 }
 

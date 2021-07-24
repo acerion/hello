@@ -30,6 +30,7 @@ module Hello.Ffi.Utils( ptrCCharToText
 
                       , peekArrayOfPointers
                       , pokeArrayOfPointers
+                      , pokeArrayOfPointers2
                       )
   where
 
@@ -103,6 +104,22 @@ pokeArrayOfPointers xs f array = pokeArrayOfPointers' xs f array 0
       return ()
     pokeArrayOfPointers' (x:xs) f array idx = do
       ptr :: Ptr b <- f x
+      pokeElemOff array idx ptr
+      pokeArrayOfPointers' xs f array (idx + 1)
+
+
+
+
+
+pokeArrayOfPointers2 :: (Storable b) => [a] -> (a -> Ptr b -> IO ()) -> Ptr (Ptr b) -> IO ()
+pokeArrayOfPointers2 xs f array = pokeArrayOfPointers' xs f array 0
+  where
+    pokeArrayOfPointers' :: (Storable b) => [a] -> (a -> Ptr b -> IO ()) -> Ptr (Ptr b) -> Int -> IO ()
+    pokeArrayOfPointers' [] f array _ = do
+      return ()
+    pokeArrayOfPointers' (x:xs) f array idx = do
+      ptr :: Ptr b <- peekElemOff array idx
+      f x ptr
       pokeElemOff array idx ptr
       pokeArrayOfPointers' xs f array (idx + 1)
 
