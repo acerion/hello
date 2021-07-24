@@ -6,7 +6,7 @@ AM_CPPFLAGS= \
 AM_CFLAGS = @LIBPNG_CFLAGS@
 AM_CXXFLAGS = @LIBPNG_CFLAGS@ @LIBFLTK_CXXFLAGS@
 
-SUBDIRS = IO haskell
+SUBDIRS = IO Hello
 
 bin_PROGRAMS = dillo
 
@@ -18,7 +18,7 @@ dillo_LDADD = \
 	$(top_builddir)/dw/libDw-fltk.a \
 	$(top_builddir)/dw/libDw-core.a \
 	$(top_builddir)/lout/liblout.a \
-	-L./haskell -lhello \
+	-L./Hello -lhello \
 	@LIBJPEG_LIBS@ @LIBPNG_LIBS@ @LIBFLTK_LIBS@ @LIBZ_LIBS@ \
 	@LIBICONV_LIBS@ @LIBPTHREAD_LIBS@ @LIBX11_LIBS@
 
