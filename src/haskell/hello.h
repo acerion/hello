@@ -275,6 +275,8 @@ c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, co
 int hll_addRuleToStyleSheet(c_css_style_sheet_t * style_sheet, c_css_rule_t * rule);
 
 
+void hll_matchCacheSetSize(c_css_match_cache_t * match_cache, int size);
+
 
 #ifdef __cplusplus
 }

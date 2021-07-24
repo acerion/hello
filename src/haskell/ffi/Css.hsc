@@ -132,6 +132,7 @@ foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Pt
 foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_addRuleToStyleSheet" hll_addRuleToStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssRule -> IO ()
+foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 
 
 
@@ -457,3 +458,82 @@ findString array size string = do
   case elemIndex string list of
     Just i  -> return i
     Nothing -> return (-1)
+
+
+
+
+data FfiCssMatchCache = FfiCssMatchCache {
+    cCacheItems     :: Ptr CInt
+  , cCacheItemsSize :: CInt
+  } deriving (Show)
+
+
+
+instance Storable FfiCssMatchCache where
+  sizeOf    _ = #{size c_css_match_cache_t}
+  alignment _ = #{alignment c_css_match_cache_t}
+
+  peek ptr = do
+    let a = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_match_cache_t, c_cache_items}) ptr
+    -- a <- #{peek c_css_match_cache_t, c_cache_items}      ptr
+    b <- #{peek c_css_match_cache_t, c_cache_items_size} ptr
+    return (FfiCssMatchCache a b)
+
+  poke ptr (FfiCssMatchCache a b) = do
+    #{poke c_css_match_cache_t, c_cache_items}      ptr a
+    #{poke c_css_match_cache_t, c_cache_items_size} ptr b
+
+
+
+
+peekCssMatchCache :: Ptr FfiCssMatchCache -> IO CssMatchCache
+peekCssMatchCache ptrStructMatchCache = do
+  ffiMatchCache <- peek ptrStructMatchCache
+
+  let array :: Ptr CInt = cCacheItems ffiMatchCache
+  let size  :: Int      = fromIntegral . cCacheItemsSize $ ffiMatchCache
+
+  cCache :: [CInt] <- peekArray size array
+  let cache = map fromIntegral cCache
+
+  return cache
+
+
+
+
+pokeCssMatchCache :: Ptr FfiCssMatchCache -> CssMatchCache -> IO ()
+pokeCssMatchCache ptrStructMatchCache cache = do
+  ffiMatchCache <- peek ptrStructMatchCache
+
+  let array :: Ptr CInt = cCacheItems ffiMatchCache
+  let cCache :: [CInt] = fmap fromIntegral cache
+
+  pokeArray array cCache
+  pokeByteOff ptrStructMatchCache #{offset c_css_match_cache_t, c_cache_items_size} (length cache)
+
+
+
+
+-- TODO: This function seems to just allocate a vector of (-1) elements. So
+-- far I haven't seen this function update a vector with some non-(-1)
+-- elements by adding (-1)s at the end.
+hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
+hll_matchCacheSetSize ptrStructMatchCache cNewSize = do
+  oldMatchCache <- peekCssMatchCache ptrStructMatchCache
+  let oldSize = length oldMatchCache
+  let newSize = fromIntegral cNewSize
+  let newMatchCache = oldMatchCache ++ (replicate (newSize - oldSize) (-1))
+
+  pokeCssMatchCache ptrStructMatchCache newMatchCache
+
+  return ()
+
+{-
+void match_cache_set_size(c_css_match_cache_t * match_cache, int new_size)
+{
+   for (int i = match_cache->c_cache_items_size; i < new_size; i++) {
+      match_cache->c_cache_items[i] = -1;
+   }
+   match_cache->c_cache_items_size = new_size;
+}
+-}

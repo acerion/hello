@@ -20,11 +20,6 @@ using namespace dw::core::style;
 
 
 
-static void match_cache_set_size(c_css_match_cache_t * match_cache, int new_size);
-
-
-
-
 /* c_css_selector_t methods. */
 static bool css_selector_matches(c_css_selector_t * selector, Doctree * dt, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache);
 static int css_selector_get_required_match_cache(c_css_selector_t * selector);
@@ -325,7 +320,7 @@ c_css_context_t * c_css_context_new(void)
    }
 
    memset(&context->c_match_cache, 0, sizeof (context->c_match_cache));
-   match_cache_set_size(&context->c_match_cache, context->c_sheets[CSS_PRIMARY_USER_AGENT]->c_required_match_cache); // Initially the size is zero.
+   hll_matchCacheSetSize(&context->c_match_cache, context->c_sheets[CSS_PRIMARY_USER_AGENT]->c_required_match_cache); // Initially the size is zero.
 
    return context;
 }
@@ -397,7 +392,7 @@ void css_context_add_rule(c_css_context_t * context, c_css_rule_t * rule, CssPri
 
       const int new_size = css_selector_get_required_match_cache(rule->c_selector);
       if (new_size > context->c_match_cache.c_cache_items_size) {
-         match_cache_set_size(&context->c_match_cache, new_size);
+         hll_matchCacheSetSize(&context->c_match_cache, new_size);
       }
 
       hll_addRuleToStyleSheet(context->c_sheets[order], rule);
@@ -419,14 +414,6 @@ float cssLengthValue(CssLength cssLength)
    return hll_cssLengthValue(cssLength.bits);
 }
 
-
-void match_cache_set_size(c_css_match_cache_t * match_cache, int new_size)
-{
-   for (int i = match_cache->c_cache_items_size; i < new_size; i++) {
-      match_cache->c_cache_items[i] = -1;
-   }
-   match_cache->c_cache_items_size = new_size;
-}
 
 /* ===================================== */
 
