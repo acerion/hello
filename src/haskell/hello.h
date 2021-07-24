@@ -176,7 +176,8 @@ typedef enum {
    CSS_PRIMARY_AUTHOR,
    CSS_PRIMARY_AUTHOR_IMPORTANT,
    CSS_PRIMARY_USER_IMPORTANT,
-   CSS_PRIMARY_LAST,
+
+   CSS_PRIMARY_ORDER_SIZE,
 } CssPrimaryOrder;
 
 typedef enum {
@@ -194,8 +195,7 @@ typedef struct c_css_match_cache_t {
  * \brief A set of c_css_style_sheet_t sheets
  */
 typedef struct c_css_context_t {
-   c_css_style_sheet_t * c_user_agent_sheet;
-   c_css_style_sheet_t c_sheets[CSS_PRIMARY_USER_IMPORTANT + 1];
+   c_css_style_sheet_t * c_sheets[CSS_PRIMARY_ORDER_SIZE];
    c_css_match_cache_t c_match_cache;
    int c_rule_position;
 } c_css_context_t;
