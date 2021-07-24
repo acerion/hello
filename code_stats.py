@@ -26,6 +26,9 @@ import datetime as dt
 
 
 
+# The numbers will be stored in the array as strings. We will have to convert
+# them to integers before displaying them.
+#
 #         date           cpp          c    haskell
 arr = np.array((
     ["2021-01-05",     33629,     19428,         0],

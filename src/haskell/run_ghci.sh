@@ -1,11 +1,11 @@
 ghci -fobject-code \
      -XOverloadedStrings \
-     ./CssParser.hs           ./tests/Css/Tokenizer.hs ../Hello/Tests/Css/Selector.hs ../Hello/Tests/Css/Rule.hs \
-     ./Css.hs                 ./tests/Css/Css.hs       ./tests/Css/CssTestData.hs \
-     ./cookies.hs             ./tests/TestsCookies.hs \
-     ./Colors.hs              ./tests/TestsColors.hs \
-     ./Gif.hs                 ./tests/TestsGif.hs ./tests/TestsGif2.hs \
-     ./HtmlEntity.hs          ./tests/TestsHtmlEntity.hs \
-     ./HtmlTag.hs             ./tests/TestsHtmlTag.hs \
+     ./CssParser.hs           ../Hello/Tests/Css/Tokenizer.hs ../Hello/Tests/Css/Selector.hs ../Hello/Tests/Css/Rule.hs \
+     ./Css.hs                 ../Hello/Tests/Css/Css.hs       ../Hello/Tests/Css/CssTestData.hs \
+     ./cookies.hs             ../Hello/Tests/TestsCookies.hs \
+     ./Colors.hs              ../Hello/Tests/TestsColors.hs \
+     ./Gif.hs                 ../Hello/Tests/TestsGif.hs ../Hello/Tests/TestsGif2.hs \
+     ./HtmlEntity.hs          ../Hello/Tests/Html/TestsHtmlEntity.hs \
+     ./HtmlTag.hs             ../Hello/Tests/Html/TestsHtmlTag.hs \
      ./Utils.hs \
-     ./tests_tools/Gifted.hs
+     ../Hello/Tests/TestUtils/Gifted.hs
