@@ -17,8 +17,26 @@
 
 using namespace dw::core::style;
 
+
+
+
+static void match_cache_set_size(c_css_match_cache_t * match_cache, int new_size);
+
+
+
+
+/* c_css_selector_t methods. */
+static bool css_selector_matches(c_css_selector_t * selector, Doctree * dt, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache);
+static void css_selector_set_match_cache_offset(c_css_selector_t * selector, int offset);
+static int css_selector_get_required_match_cache(c_css_selector_t * selector);
+static bool css_selector_has_pseudo_class(c_css_selector_t * selector);
+static void css_selector_print(FILE * file, c_css_selector_t * selector);
+
+
+
+
 static void css_value_copy(c_css_value_t * dest, c_css_value_t * src);
-static bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, MatchCache * match_cache);
+static bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache);
 
 static void css_rule_print_pretty(FILE * file, const c_css_rule_t * rule);
 
@@ -31,6 +49,15 @@ static void css_selector_print_pretty(FILE * file, c_css_selector_t * selector);
 static void css_declaration_print_pretty(FILE * file, c_css_declaration_t * declaration);
 
 static void css_declaration_set_print_pretty(FILE * file, c_css_declaration_set_t * decl_set);
+
+
+
+
+static c_css_style_sheet_t g_user_agent_sheet;
+static bool g_user_agent_initialized;
+
+
+
 
 c_css_declaration_set_t * declarationListNew(void)
 {
@@ -92,7 +119,7 @@ void css_value_copy(c_css_value_t * dest, c_css_value_t * src)
 /**
  * \brief Return whether selector matches at a given node in the document tree.
  */
-bool css_selector_matches(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, MatchCache * match_cache)
+bool css_selector_matches(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache)
 {
    if (sim_sel_idx < 0) {
       return true;
@@ -126,9 +153,9 @@ bool css_selector_matches(c_css_selector_t * selector, Doctree * docTree, const 
    return css_selector_matches(selector, docTree, dtn, sim_sel_idx - 1, (Combinator) sim_sel->c_combinator, match_cache);
 }
 
-bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, MatchCache * match_cache)
+bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache)
 {
-   int * match_cache_entry = &match_cache->arr[selector->c_match_case_offset + sim_sel_idx];
+   int * match_cache_entry = &match_cache->c_cache_items[selector->c_match_case_offset + sim_sel_idx];
    struct c_css_simple_selector_t * sim_sel = selector->c_simple_selector_list[sim_sel_idx];
 
    for (const c_doctree_node_t * dtn2 = dtn; dtn2 && dtn2->c_unique_num > *match_cache_entry; dtn2 = docTree->parent(dtn2)) {
@@ -195,7 +222,7 @@ bool css_rule_is_safe(const c_css_rule_t * rule)
  * The declarations (list property+value) are set as defined by the rules in
  * the stylesheet that match at the given node in the document tree.
  */
-void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE * file, c_css_declaration_set_t * decl_set, Doctree *docTree, const c_doctree_node_t *dtn, MatchCache * match_cache)
+void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE * file, c_css_declaration_set_t * decl_set, Doctree *docTree, const c_doctree_node_t *dtn, c_css_match_cache_t * match_cache)
 {
    static const int maxLists = 32;
    const c_css_rules_list_t * rules_lists[maxLists];
@@ -269,8 +296,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE *
    }
 }
 
-c_css_style_sheet_t CssContext::userAgentSheet;
-bool g_user_agent_initialized;
+
 
 void alloc_sheet(c_css_style_sheet_t * sheet)
 {
@@ -282,19 +308,28 @@ void alloc_sheet(c_css_style_sheet_t * sheet)
    sheet->c_any_element_rules = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
 }
 
-CssContext::CssContext () {
-   rulePosition = 0;
-   memset(&this->match_cache, 0, sizeof (this->match_cache));
-   match_cache_set_size(&this->match_cache, userAgentSheet.c_required_match_cache);
-   memset(this->sheet, 0, sizeof (this->sheet));
+c_css_context_t * c_css_context_new(void)
+{
+   c_css_context_t * context = (c_css_context_t *) calloc(1, sizeof (c_css_context_t));
+
+   context->c_rule_position = 0;
 
    if (!g_user_agent_initialized) {
-      alloc_sheet(&CssContext::userAgentSheet);
+      alloc_sheet(&g_user_agent_sheet);
       g_user_agent_initialized = true;
    }
+   /* Each context shares the same, single user agent sheet. */
+   context->c_user_agent_sheet = &g_user_agent_sheet;
+
+   memset(context->c_sheets, 0, sizeof (context->c_sheets));
    for (int i = 0; i < CSS_PRIMARY_USER_IMPORTANT + 1; i++) {
-      alloc_sheet(&this->sheet[i]);
+      alloc_sheet(&context->c_sheets[i]);
    }
+
+   memset(&context->c_match_cache, 0, sizeof (context->c_match_cache));
+   match_cache_set_size(&context->c_match_cache, context->c_user_agent_sheet->c_required_match_cache); // Initially the size is zero.
+
+   return context;
 }
 
 /**
@@ -306,63 +341,63 @@ CssContext::CssContext () {
  * by previous stylesheets.
  * This allows e.g. user styles to overwrite author styles.
  */
-void CssContext::apply_css_context(c_css_declaration_set_t * mergedDeclList, Doctree *docTree,
+void css_context_apply_css_context(c_css_context_t * context,
+                                   c_css_declaration_set_t * mergedDeclList, Doctree *docTree,
                                    c_doctree_node_t * dtn,
                                    c_css_declaration_set_t * declList,
                                    c_css_declaration_set_t * declListImportant,
                                    c_css_declaration_set_t * declListNonCss) {
 
-   CssContext * context = this;
    static int i = 0;
    char path[20] = { 0 };
    snprintf(path, sizeof (path), "/tmp/css_rules_%04d", i);
    FILE * file = fopen(path, "w");
    i++;
 
-   css_style_sheet_apply_style_sheet(&userAgentSheet, file, mergedDeclList, docTree, dtn, &context->match_cache);
+   css_style_sheet_apply_style_sheet(context->c_user_agent_sheet, file, mergedDeclList, docTree, dtn, &context->c_match_cache);
 
    fprintf(file, "CSS_PRIMARY_USER\n");
-   css_style_sheet_apply_style_sheet(&sheet[CSS_PRIMARY_USER], file, mergedDeclList, docTree, dtn, &context->match_cache);
+   css_style_sheet_apply_style_sheet(&context->c_sheets[CSS_PRIMARY_USER], file, mergedDeclList, docTree, dtn, &context->c_match_cache);
 
    if (declListNonCss)
       hll_declarationListAppend(mergedDeclList, declListNonCss);
 
    fprintf(file, "CSS_PRIMARY_AUTHOR\n");
-   css_style_sheet_apply_style_sheet(&sheet[CSS_PRIMARY_AUTHOR], file, mergedDeclList, docTree, dtn, &context->match_cache);
+   css_style_sheet_apply_style_sheet(&context->c_sheets[CSS_PRIMARY_AUTHOR], file, mergedDeclList, docTree, dtn, &context->c_match_cache);
 
    if (declList)
       hll_declarationListAppend(mergedDeclList, declList);
 
    fprintf(file, "CSS_PRIMARY_AUTHOR_IMPORTANT\n");
-   css_style_sheet_apply_style_sheet(&sheet[CSS_PRIMARY_AUTHOR_IMPORTANT], file, mergedDeclList, docTree, dtn, &context->match_cache);
+   css_style_sheet_apply_style_sheet(&context->c_sheets[CSS_PRIMARY_AUTHOR_IMPORTANT], file, mergedDeclList, docTree, dtn, &context->c_match_cache);
 
    if (declListImportant)
       hll_declarationListAppend(mergedDeclList, declListImportant);
 
    fprintf(file, "CSS_PRIMARY_USER_IMPORTANT\n");
-   css_style_sheet_apply_style_sheet(&sheet[CSS_PRIMARY_USER_IMPORTANT], file, mergedDeclList, docTree, dtn, &context->match_cache);
+   css_style_sheet_apply_style_sheet(&context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], file, mergedDeclList, docTree, dtn, &context->c_match_cache);
 
    fclose(file);
 }
 
-void css_context_add_rule(CssContext * context, c_css_rule_t * rule, CssPrimaryOrder order)
+void css_context_add_rule(c_css_context_t * context, c_css_rule_t * rule, CssPrimaryOrder order)
 {
    // TODO: should we do the increment even if we go into first branch of the
    // if/else below?
-   //context->rulePosition++;
+   context->c_rule_position++;
 
    if ((order == CSS_PRIMARY_AUTHOR || order == CSS_PRIMARY_AUTHOR_IMPORTANT) && !css_rule_is_safe(rule)) {
       MSG_WARN ("Ignoring unsafe author style that might reveal browsing history\n");
    } else {
-      css_selector_set_match_cache_offset(rule->c_selector, context->match_cache.size);
+      css_selector_set_match_cache_offset(rule->c_selector, context->c_match_cache.c_cache_items_size);
       const int new_size = css_selector_get_required_match_cache(rule->c_selector);
-      if (new_size > context->match_cache.size)
-         match_cache_set_size(&context->match_cache, new_size);
+      if (new_size > context->c_match_cache.c_cache_items_size)
+         match_cache_set_size(&context->c_match_cache, new_size);
 
       if (order == CSS_PRIMARY_USER_AGENT) {
-         hll_addRuleToStyleSheet(&context->userAgentSheet, rule);
+         hll_addRuleToStyleSheet(context->c_user_agent_sheet, rule);
       } else {
-         hll_addRuleToStyleSheet(&context->sheet[order], rule);
+         hll_addRuleToStyleSheet(&context->c_sheets[order], rule);
       }
    }
 }
@@ -383,12 +418,12 @@ float cssLengthValue(CssLength cssLength)
 }
 
 
-void match_cache_set_size(MatchCache * match_cache, int new_size)
+void match_cache_set_size(c_css_match_cache_t * match_cache, int new_size)
 {
-   for (int i = match_cache->size; i < new_size; i++) {
-      match_cache->arr[i] = -1;
+   for (int i = match_cache->c_cache_items_size; i < new_size; i++) {
+      match_cache->c_cache_items[i] = -1;
    }
-   match_cache->size = new_size;
+   match_cache->c_cache_items_size = new_size;
 }
 
 /* ===================================== */

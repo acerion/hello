@@ -6,22 +6,6 @@
 #include "css.h"
 #include "haskell/hello.h"
 
-/* Origin and weight. Used only internally.*/
-typedef enum {
-   CSS_PRIMARY_USER_AGENT,
-   CSS_PRIMARY_USER,
-   CSS_PRIMARY_AUTHOR,
-   CSS_PRIMARY_AUTHOR_IMPORTANT,
-   CSS_PRIMARY_USER_IMPORTANT,
-   CSS_PRIMARY_LAST,
-} CssPrimaryOrder;
-
-typedef enum {
-   CSS_ORIGIN_USER_AGENT,
-   CSS_ORIGIN_USER,
-   CSS_ORIGIN_AUTHOR,
-} CssOrigin;
-
 enum CssDeclarationValueType {
    CssDeclarationValueTypeINTEGER,            /* This type is only used internally, for x-* properties. */
    CssDeclarationValueTypeENUM,               /* Value is i, if represented by enum_symbols[i]. */
@@ -215,15 +199,6 @@ enum {
 
 
 
-typedef struct MatchCache {
-   int arr[10];
-   int size;
-} MatchCache;
-void match_cache_set_size(MatchCache * match_cache, int new_size);
-
-
-
-
 /* c_css_simple_selector_t methods. */
 void css_simple_selector_print(FILE * file, c_css_simple_selector_t * selector);
 /* Print simple selector in one line. Fields are printed in the same order as
@@ -232,16 +207,6 @@ void css_simple_selector_print_flat(FILE * file, const c_css_simple_selector_t *
 int css_simple_selector_specificity(c_css_simple_selector_t * selector);
 
 
-
-
-/* c_css_selector_t methods. */
-bool css_selector_matches(c_css_selector_t * selector, Doctree * dt, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, MatchCache * match_cache);
-c_css_simple_selector_t * css_selector_get_top_simple_selector(c_css_selector_t * selector);
-void css_selector_set_match_cache_offset(c_css_selector_t * selector, int offset);
-int css_selector_get_required_match_cache(c_css_selector_t * selector);
-bool css_selector_has_pseudo_class(c_css_selector_t * selector);
-int css_selector_specificity(c_css_selector_t * selector);
-void css_selector_print(FILE * file, c_css_selector_t * selector);
 
 
 
@@ -261,34 +226,26 @@ void css_rules_list_insert_rule(c_css_rules_list_t * list, c_css_rule_t * rule);
 
 /* c_css_style_sheet_t methods. */
 void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE * file, c_css_declaration_set_t * decl_set, Doctree * docTree,
-                                       const c_doctree_node_t * dtn, MatchCache * match_cache);
+                                       const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache);
 
 
 
 
-/**
- * \brief A set of c_css_style_sheet_t sheets
- */
-class CssContext {
-   public:
-      static c_css_style_sheet_t userAgentSheet;
-      c_css_style_sheet_t sheet[CSS_PRIMARY_USER_IMPORTANT + 1];
-      MatchCache match_cache;
-      int rulePosition;
+c_css_context_t * c_css_context_new(void);
+void css_context_apply_css_context(c_css_context_t * context,
+                                   c_css_declaration_set_t * mergedDeclList,
+                                   Doctree *docTree, c_doctree_node_t * dtn,
+                                   c_css_declaration_set_t * declList,
+                                   c_css_declaration_set_t * declListImportant,
+                                   c_css_declaration_set_t * declListNonCss);
+void css_context_add_rule(c_css_context_t * context, c_css_rule_t * rule, CssPrimaryOrder order);
 
-      CssContext();
 
-      void apply_css_context(c_css_declaration_set_t * mergedDeclList,
-                             Doctree *docTree, c_doctree_node_t * dtn,
-                             c_css_declaration_set_t * declList,
-                             c_css_declaration_set_t * declListImportant,
-                             c_css_declaration_set_t * declListNonCss);
-};
 
 
 CssLengthType cssLengthType(CssLength len);
 float cssLengthValue(CssLength len);
 CssLength cssCreateLength(float val, CssLengthType t);
-void css_context_add_rule(CssContext * context, c_css_rule_t * rule, CssPrimaryOrder order);
+
 
 #endif

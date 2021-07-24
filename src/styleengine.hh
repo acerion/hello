@@ -33,7 +33,7 @@ class StyleEngine {
 
       dw::core::Layout *layout;
       lout::misc::SimpleVector <Node> *styleNodesStack;
-      CssContext *cssContext;
+      c_css_context_t * cssContext;
       Doctree * doctree;
       int importDepth;
       DilloUrl *pageUrl, *baseUrl;

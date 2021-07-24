@@ -23,7 +23,7 @@ struct CssTokenizer {
 
 class CssParser {
    public:
-      CssContext *context_;
+      c_css_context_t * context_;
       CssOrigin origin;
       const DilloUrl *baseUrl;
 
@@ -31,17 +31,17 @@ class CssParser {
       CssTokenizer tokenizer;
       c_css_parser_t hll_css_parser;
 
-      CssParser(CssContext *context, CssOrigin origin, const DilloUrl *baseUrl,
+      CssParser(c_css_context_t * context, CssOrigin origin, const DilloUrl *baseUrl,
                 const char *buf, int buflen);
 
       void parseImport(DilloHtml *html);
       void parseMedia();
 
-      static void parse(DilloHtml *html, const DilloUrl *baseUrl, CssContext *context,
+      static void parse(DilloHtml *html, const DilloUrl *baseUrl, c_css_context_t * context,
                         const char *buf, int buflen, CssOrigin origin);
 };
 
 void parseDeclaration(CssParser * parser, c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant);
-void parseRuleset(CssParser * parser, CssContext * context);
+void parseRuleset(CssParser * parser, c_css_context_t * context);
 
 #endif

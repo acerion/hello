@@ -169,6 +169,37 @@ typedef struct c_css_style_sheet_t {
    int c_required_match_cache;
 } c_css_style_sheet_t;
 
+/* Origin and weight. Used only internally.*/
+typedef enum {
+   CSS_PRIMARY_USER_AGENT,
+   CSS_PRIMARY_USER,
+   CSS_PRIMARY_AUTHOR,
+   CSS_PRIMARY_AUTHOR_IMPORTANT,
+   CSS_PRIMARY_USER_IMPORTANT,
+   CSS_PRIMARY_LAST,
+} CssPrimaryOrder;
+
+typedef enum {
+   CSS_ORIGIN_USER_AGENT,
+   CSS_ORIGIN_USER,
+   CSS_ORIGIN_AUTHOR,
+} CssOrigin;
+
+typedef struct c_css_match_cache_t {
+   int c_cache_items[10];
+   int c_cache_items_size;
+} c_css_match_cache_t;
+
+/**
+ * \brief A set of c_css_style_sheet_t sheets
+ */
+typedef struct c_css_context_t {
+   c_css_style_sheet_t * c_user_agent_sheet;
+   c_css_style_sheet_t c_sheets[CSS_PRIMARY_USER_IMPORTANT + 1];
+   c_css_match_cache_t c_match_cache;
+   int c_rule_position;
+} c_css_context_t;
+
 
 /* URL */
 bool hll_hostIsIP(const char * hostname);

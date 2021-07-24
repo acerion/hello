@@ -45,7 +45,7 @@ void ignoreStatement(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
  *    Parsing
  * ---------------------------------------------------------------------- */
 
-CssParser::CssParser(CssContext *context, CssOrigin origin,
+CssParser::CssParser(c_css_context_t * context, CssOrigin origin,
                      const DilloUrl *baseUrl,
                      const char *buf, int buflen)
 {
@@ -80,7 +80,7 @@ void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
 #endif
 }
 
-void parseRuleset(CssParser * parser, CssContext * context)
+void parseRuleset(CssParser * parser, c_css_context_t * context)
 {
    c_css_selector_t * selectors = (c_css_selector_t *) calloc(100, sizeof (c_css_selector_t));
    int selectors_count = hll_cssParseSelectors(&parser->hll_css_parser,
@@ -118,27 +118,27 @@ void parseRuleset(CssParser * parser, CssContext * context)
       switch (parser->origin) {
       case CSS_ORIGIN_USER_AGENT:
          if (declList->c_declarations_size > 0) {
-            c_css_rule_t * rule = css_rule_new(sel, declList, context->rulePosition++);
+            c_css_rule_t * rule = css_rule_new(sel, declList, context->c_rule_position);
             css_context_add_rule(context, rule, CSS_PRIMARY_USER_AGENT);
          }
          break;
       case CSS_ORIGIN_USER:
          if (declList->c_declarations_size > 0) {
-            c_css_rule_t * rule = css_rule_new(sel, declList, context->rulePosition++);
+            c_css_rule_t * rule = css_rule_new(sel, declList, context->c_rule_position);
             css_context_add_rule(context, rule, CSS_PRIMARY_USER);
          }
          if (declListImportant->c_declarations_size > 0) {
-            c_css_rule_t * rule = css_rule_new(sel, declListImportant, context->rulePosition++);
+            c_css_rule_t * rule = css_rule_new(sel, declListImportant, context->c_rule_position);
             css_context_add_rule(context, rule, CSS_PRIMARY_USER_IMPORTANT);
          }
          break;
       case CSS_ORIGIN_AUTHOR:
          if (declList->c_declarations_size > 0) {
-            c_css_rule_t * rule = css_rule_new(sel, declList, context->rulePosition++);
+            c_css_rule_t * rule = css_rule_new(sel, declList, context->c_rule_position);
             css_context_add_rule(context, rule, CSS_PRIMARY_AUTHOR);
          }
          if (declListImportant->c_declarations_size > 0) {
-            c_css_rule_t * rule = css_rule_new(sel, declListImportant, context->rulePosition++);
+            c_css_rule_t * rule = css_rule_new(sel, declListImportant, context->c_rule_position);
             css_context_add_rule(context, rule, CSS_PRIMARY_AUTHOR_IMPORTANT);
          }
          break;
@@ -263,7 +263,7 @@ void ignoreStatement(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
 }
 
 void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
-                      CssContext *context,
+                      c_css_context_t * context,
                       const char *buf,
                       int buflen, CssOrigin origin)
 {

@@ -2175,7 +2175,7 @@ parseElementStyleAttribute baseUrl cssStyleAttribute (declSet, declSetImp) = (ou
 
     {-
       TODO: in original C++ code the parser was initialized like this:
-      CssParser parser(NULL,              -- CssContext object
+      CssParser parser(NULL,              -- c_css_context_t object
                        CSS_ORIGIN_AUTHOR, -- CssOrigin enum
                        baseUrl, cssStyleAttribute, buflen);
       Be sure to recreate this in final Haskell code.

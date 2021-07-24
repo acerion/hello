@@ -65,7 +65,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
 
    doctree = new Doctree ();
    styleNodesStack = new lout::misc::SimpleVector <Node> (1);
-   cssContext = new CssContext ();
+   cssContext = c_css_context_new();
    buildUserStyle ();
    this->layout = layout;
    this->pageUrl = pageUrl ? a_Url_dup(pageUrl) : NULL;
@@ -868,7 +868,7 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
 
    // merge style information
    c_css_declaration_set_t * mergedDeclList = declarationListNew();
-   cssContext->apply_css_context(mergedDeclList, doctree, styleNodesStack->getRef(some_idx)->doctreeNode,
+   css_context_apply_css_context(cssContext, mergedDeclList, doctree, styleNodesStack->getRef(some_idx)->doctreeNode,
                                  declList,
                                  declListImportant,
                                  declListNonCss);
@@ -1004,9 +1004,11 @@ void StyleEngine::init () {
        */
       "table, caption {font-size: medium; font-weight: normal}";
 
-   CssContext context;
-   CssParser::parse (NULL, NULL, &context, cssBuf, strlen (cssBuf),
+   /* Initialize 'user agent' sheet. All other sheets will be discarded. */
+   c_css_context_t * context = c_css_context_new();
+   CssParser::parse (NULL, NULL, context, cssBuf, strlen (cssBuf),
                      CSS_ORIGIN_USER_AGENT);
+   free(context); // Leaking memory here. Will be solved by migrating this code to Haskell.
 }
 
 void StyleEngine::buildUserStyle () {
