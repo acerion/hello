@@ -10,13 +10,11 @@ import datetime as dt
 # entire project (src, dpid, dpic dirs etc.)
 
 # Haskell numbers don't include code in these dirs:
-# src/haskell/tests
-# src/haskell/tests_tools
-# src/haskell/ffi
+# src/Hello/Tests
 # src/Hello/Ffi
 
 # C/C++ numbers don't include code in these dirs/files:
-# src/haskell/hello.h
+# src/Hello/hello.h
 
 
 
@@ -51,6 +49,7 @@ arr = np.array((
     ["2021-06-15",     32564,     19019,      1920],
     ["2021-06-26",     32543,     19019,      1980],
     ["2021-07-06",     32558,     19125,      2054],
+    ["2021-07-24",     32287,     19203,      2157],
 ))
 
 
