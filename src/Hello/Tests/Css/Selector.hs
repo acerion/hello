@@ -32,17 +32,17 @@ parseSelectorTestManualDataBasic = [
     ( "0",              "",   Nothing )
 
   -- Recognition of most basic case: just "id" selector.
-  , ( "#some_id",       "",   Just CssSelector {matchCaseOffset = (-1), simpleSelectorList = [
+  , ( "#some_id",       "",   Just CssSelector {matchCacheOffset = (-1), simpleSelectors = [
                                                    CssSimpleSelector {selectorPseudoClass = [], selectorId = "some_id", selectorClass = [], selectorElement = cssSimpleSelectorElementAny, combinator = CssCombinatorNone }
                                                    ]})
 
   -- Recognition of most basic case: just "class" selector.
-  , ( ".some_class",    "",   Just CssSelector {matchCaseOffset = (-1), simpleSelectorList = [
+  , ( ".some_class",    "",   Just CssSelector {matchCacheOffset = (-1), simpleSelectors = [
                                                    CssSimpleSelector {selectorPseudoClass = [], selectorId = "", selectorClass = ["some_class"], selectorElement = cssSimpleSelectorElementAny, combinator = CssCombinatorNone }
                                                    ]})
 
   -- Recognition of most basic case: just "pseudo class" selector.
-  , ( ":link",          "",   Just CssSelector {matchCaseOffset = (-1), simpleSelectorList = [
+  , ( ":link",          "",   Just CssSelector {matchCacheOffset = (-1), simpleSelectors = [
                                                    CssSimpleSelector {selectorPseudoClass = ["link"], selectorId = "", selectorClass = [], selectorElement = cssSimpleSelectorElementAny, combinator = CssCombinatorNone }
                                                    ]})
   ]

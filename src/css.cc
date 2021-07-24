@@ -133,7 +133,7 @@ bool css_selector_matches(c_css_selector_t * selector, Doctree * docTree, const 
          return false; // \todo implement other combinators
    }
 
-   struct c_css_simple_selector_t * sim_sel = selector->c_simple_selector_list[sim_sel_idx];
+   struct c_css_simple_selector_t * sim_sel = selector->c_simple_selectors[sim_sel_idx];
    if (!dtn) {
       return false;
    }
@@ -147,8 +147,8 @@ bool css_selector_matches(c_css_selector_t * selector, Doctree * docTree, const 
 
 bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache)
 {
-   int * match_cache_entry = &match_cache->c_cache_items[selector->c_match_case_offset + sim_sel_idx];
-   struct c_css_simple_selector_t * sim_sel = selector->c_simple_selector_list[sim_sel_idx];
+   int * match_cache_entry = &match_cache->c_cache_items[selector->c_match_cache_offset + sim_sel_idx];
+   struct c_css_simple_selector_t * sim_sel = selector->c_simple_selectors[sim_sel_idx];
 
    for (const c_doctree_node_t * dtn2 = dtn; dtn2 && dtn2->c_unique_num > *match_cache_entry; dtn2 = docTree->parent(dtn2)) {
       if (hll_simpleSelectorMatches(sim_sel, dtn2)
@@ -166,7 +166,7 @@ bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, co
 
 c_css_rule_t * css_rule_new(c_css_selector_t * selector, c_css_declaration_set_t * decl_set, int rule_position)
 {
-   assert (selector->c_simple_selector_list_size > 0);
+   assert (selector->c_simple_selectors_size > 0);
 
    c_css_rule_t * rule = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
 
@@ -196,7 +196,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE *
    int index[maxLists] = {0};
 
    if (dtn->c_element_selector_id) {
-      rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_id_rules, dtn->c_element_selector_id);
+      rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_rules_by_id, dtn->c_element_selector_id);
       if (rules_lists[numLists]) {
          numLists++;
       }
@@ -208,17 +208,17 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE *
          break;
       }
 
-      rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_class_rules, dtn->c_element_selector_class[i]);
+      rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_rules_by_class, dtn->c_element_selector_class[i]);
       if (rules_lists[numLists]) {
          numLists++;
       }
    }
 
-   rules_lists[numLists] = style_sheet->c_element_rules[dtn->c_html_element_idx];
+   rules_lists[numLists] = style_sheet->c_rules_by_element[dtn->c_html_element_idx];
    if (rules_lists[numLists])
       numLists++;
 
-   rules_lists[numLists] = style_sheet->c_any_element_rules;
+   rules_lists[numLists] = style_sheet->c_rules_by_any_element;
    if (rules_lists[numLists])
       numLists++;
 
@@ -249,7 +249,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE *
          c_css_rule_t * rule = rules_lists[minSpecIndex]->c_rules[index[minSpecIndex]];
 
          /* Apply CSS rule. */
-         if (css_selector_matches(rule->c_selector, docTree, dtn, rule->c_selector->c_simple_selector_list_size - 1, CssSelectorCombinatorNone, match_cache)) {
+         if (css_selector_matches(rule->c_selector, docTree, dtn, rule->c_selector->c_simple_selectors_size - 1, CssSelectorCombinatorNone, match_cache)) {
             hll_declarationListAppend(decl_set, rule->c_decl_set);
          }
 
@@ -268,12 +268,12 @@ void alloc_sheet(c_css_style_sheet_t ** sheet)
 {
    (*sheet) = (c_css_style_sheet_t *) calloc(1, sizeof (c_css_style_sheet_t));
 
-   (*sheet)->c_id_rules =  (c_css_rules_map_t *) calloc(1, sizeof (c_css_rules_map_t));
-   (*sheet)->c_class_rules = (c_css_rules_map_t *) calloc(1, sizeof (c_css_rules_map_t));
+   (*sheet)->c_rules_by_id = (c_css_rules_map_t *) calloc(1, sizeof (c_css_rules_map_t));
+   (*sheet)->c_rules_by_class = (c_css_rules_map_t *) calloc(1, sizeof (c_css_rules_map_t));
    for (int j = 0; j < css_style_sheet_n_tags; j++) {
-      (*sheet)->c_element_rules[j] = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
+      (*sheet)->c_rules_by_element[j] = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
    }
-   (*sheet)->c_any_element_rules = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
+   (*sheet)->c_rules_by_any_element = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
 }
 
 c_css_context_t * c_css_context_new(void)
@@ -453,9 +453,9 @@ void css_rule_print_pretty(FILE * file, const c_css_rule_t * rule)
 __attribute__((unused)) void css_selector_print_compact(FILE * file, const c_css_selector_t * selector)
 {
    fprintf(file, "C: Selector:\n");
-   fprintf(file, "simple selectors count: %d\n", selector->c_simple_selector_list_size);
-   for (int i = 0; i < selector->c_simple_selector_list_size; i++) {
-      css_simple_selector_print_compact(file, selector->c_simple_selector_list[i]);
+   fprintf(file, "simple selectors count: %d\n", selector->c_simple_selectors_size);
+   for (int i = 0; i < selector->c_simple_selectors_size; i++) {
+      css_simple_selector_print_compact(file, selector->c_simple_selectors[i]);
    }
 }
 
@@ -464,12 +464,12 @@ __attribute__((unused)) void css_selector_print_compact(FILE * file, const c_css
 void css_selector_print_pretty(FILE * file, c_css_selector_t * selector)
 {
    //fprintf(file, "        Rule SelectorList: Begin\n");
-   fprintf(file, "        Rule SelectorList: %d simple selectors\n", selector->c_simple_selector_list_size);
-   for (int i = 0; i < selector->c_simple_selector_list_size; i++) {
-      css_simple_selector_print_pretty(file, selector->c_simple_selector_list[i]);
+   fprintf(file, "        Rule SelectorList: %d simple selectors\n", selector->c_simple_selectors_size);
+   for (int i = 0; i < selector->c_simple_selectors_size; i++) {
+      css_simple_selector_print_pretty(file, selector->c_simple_selectors[i]);
 
-      if (i < selector->c_simple_selector_list_size - 1) {
-         switch (selector->c_simple_selector_list[i + 1]->c_combinator) {
+      if (i < selector->c_simple_selectors_size - 1) {
+         switch (selector->c_simple_selectors[i + 1]->c_combinator) {
             case CssSelectorCombinatorChild:
                fprintf (file, "                Rule SelectorList: combinator > \n");
                break;

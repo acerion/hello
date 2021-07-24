@@ -114,7 +114,7 @@ The specificity of a CSS selector is defined in
 http://www.w3.org/TR/CSS21/cascade.html#specificity
 -}
 selectorSpecificity :: CssSelector -> Int
-selectorSpecificity sel = selectorSpecificity' (simpleSelectorList sel) 0
+selectorSpecificity sel = selectorSpecificity' (simpleSelectors sel) 0
   where
     selectorSpecificity' (x:xs) acc = selectorSpecificity' xs (acc + (simpleSelectorSpecificity x))
     selectorSpecificity' []     acc = acc

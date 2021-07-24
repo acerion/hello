@@ -1639,8 +1639,8 @@ data CssSimpleSelector = CssSimpleSelector {
 
 
 data CssSelector = CssSelector {
-    matchCaseOffset      :: Int
-  , simpleSelectorList   :: [CssSimpleSelector]
+    matchCacheOffset :: Int
+  , simpleSelectors  :: [CssSimpleSelector]
   } deriving (Show, Eq)
 
 
@@ -1678,8 +1678,8 @@ defaultSimpleSelector = CssSimpleSelector {
 
 
 defaultSelector = CssSelector {
-    matchCaseOffset    = -1
-  , simpleSelectorList = [] -- [defaultSimpleSelector]
+    matchCacheOffset = -1
+  , simpleSelectors  = [] -- [defaultSimpleSelector]
   }
 
 
@@ -1722,25 +1722,27 @@ parseSelector (parser, token) = ((outParser, outToken), selector)
   where
     (outParser, outToken) = consumeRestOfSelector (p2, t2)
     ((p2, t2), selector) = case parseSelectorTokens (removeSpaceTokens selectorTokens []) [defaultSimpleSelector] of
-                             Just simpleSelectors -> ((newParser, newToken), Just defaultSelector{simpleSelectorList = reverse simpleSelectors})
-                             Nothing              -> ((newParser, newToken), Nothing)
-
+                             Just simSels -> ((newParser, newToken), Just defaultSelector{simpleSelectors = reverse simSels})
+                             Nothing      -> ((newParser, newToken), Nothing)
 
     ((newParser, newToken), selectorTokens) = takeSelectorTokens (parser, token)
 
-    parseSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
-    parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorElement = htmlTagIndex sym}):simSels)
 
-    parseSelectorTokens (CssTokCh '#':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID sym):simSels)
-    parseSelectorTokens (CssTokCh '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
-    parseSelectorTokens (CssTokCh ':':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
 
-    parseSelectorTokens (CssTokCh '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorChild}:simSels)
-    parseSelectorTokens (CssTokCh '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorAdjacentSibling}:simSels)
-    parseSelectorTokens (CssTokWS:tokens)     simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorDescendant}:simSels)
 
-    parseSelectorTokens [] simSels = Just simSels
-    parseSelectorTokens _  simSels = Nothing
+parseSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
+parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorElement = htmlTagIndex sym}):simSels)
+
+parseSelectorTokens (CssTokCh '#':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID sym):simSels)
+parseSelectorTokens (CssTokCh '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
+parseSelectorTokens (CssTokCh ':':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
+
+parseSelectorTokens (CssTokCh '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorChild}:simSels)
+parseSelectorTokens (CssTokCh '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorAdjacentSibling}:simSels)
+parseSelectorTokens (CssTokWS:tokens)     simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorDescendant}:simSels)
+
+parseSelectorTokens [] simSels = Just simSels
+parseSelectorTokens _  simSels = Nothing
 
 
 
@@ -2209,12 +2211,12 @@ data CssRule = CssRule {
 
 -- Get top simple selector
 getTopSimSel :: CssRule -> CssSimpleSelector
-getTopSimSel = L.last . simpleSelectorList . selector
+getTopSimSel = L.last . simpleSelectors . selector
 
 
 
 
 getRequiredMatchCache :: CssRule -> Int
-getRequiredMatchCache rule = (matchCaseOffset . selector $ rule) + (length . simpleSelectorList . selector $ rule)
+getRequiredMatchCache rule = (matchCacheOffset . selector $ rule) + (length . simpleSelectors . selector $ rule)
 
 

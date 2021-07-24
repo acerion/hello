@@ -407,13 +407,13 @@ pokeCssSimpleSelector simSel = do
 
 
 data FfiCssSelector = FfiCssSelector {
-    matchCaseOffsetC         :: CInt
+    cMatchCacheOffset    :: CInt
 
     --    <c_css_simple_selector_t * c_simple_selector_list[10]>
     -- == <c_css_simple_selector_t ** c_simple_selector_list>
     -- == pointer to pointer(s) to simple selector struct
-  , simpleSelectorListC      :: Ptr (Ptr FfiCssSimpleSelector)
-  , simpleSelectorListSizeC  :: CInt
+  , cSimpleSelectors     :: Ptr (Ptr FfiCssSimpleSelector)
+  , cSimpleSelectorsSize :: CInt
   } deriving (Show)
 
 
@@ -424,16 +424,15 @@ instance Storable FfiCssSelector where
   alignment _ = #{alignment c_css_selector_t}
 
   peek ptr = do
-    a <- #{peek c_css_selector_t, c_match_case_offset} ptr
-    -- b <- #{peek c_css_selector_t, c_simple_selector_list} ptr
-    let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_selector_t, c_simple_selector_list}) ptr
-    c <- #{peek c_css_selector_t, c_simple_selector_list_size} ptr
+    a <- #{peek c_css_selector_t, c_match_cache_offset} ptr
+    let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_selector_t, c_simple_selectors}) ptr
+    c <- #{peek c_css_selector_t, c_simple_selectors_size} ptr
     return (FfiCssSelector a b c)
 
-  poke ptr (FfiCssSelector inMatchCaseOffset inSimpleSelectorList inSimpleSelectorListSize) = do
-    #{poke c_css_selector_t, c_match_case_offset}          ptr inMatchCaseOffset
-    #{poke c_css_selector_t, c_simple_selector_list}       ptr inSimpleSelectorList
-    #{poke c_css_selector_t, c_simple_selector_list_size}  ptr inSimpleSelectorListSize
+  poke ptr (FfiCssSelector inMatchCaseOffset inSimpleSelectors inSimpleSelectorsSize) = do
+    #{poke c_css_selector_t, c_match_cache_offset}    ptr inMatchCaseOffset
+    #{poke c_css_selector_t, c_simple_selectors}      ptr inSimpleSelectors
+    #{poke c_css_selector_t, c_simple_selectors_size} ptr inSimpleSelectorsSize
 
 
 
@@ -447,13 +446,13 @@ peekCssSelector ptrStructCssSelector = do
   let offset = #{offset c_css_selector_t, c_simple_selector_list}
   let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = plusPtr ptrStructCssSelector offset
   -}
-  let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = simpleSelectorListC ffiSel
+  let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = cSimpleSelectors ffiSel
 
-  let simSelCount = fromIntegral . simpleSelectorListSizeC $ ffiSel
+  let simSelCount = fromIntegral . cSimpleSelectorsSize $ ffiSel
   simSels <- peekArrayOfPointers ptrSimSelArray simSelCount peekCssSimpleSelector
 
-  return CssSelector{ matchCaseOffset = fromIntegral . matchCaseOffsetC $ ffiSel
-                    , simpleSelectorList = simSels
+  return CssSelector{ matchCacheOffset = fromIntegral . cMatchCacheOffset $ ffiSel
+                    , simpleSelectors  = simSels
                     }
 
 
@@ -510,8 +509,8 @@ hll_cssParseSelector ptrStructCssParser ptrStructCssToken cBuf = do
     Just sel -> do
       ptrStructSelector <- callocBytes #{size c_css_selector_t}
       ffiSel <- peek ptrStructSelector
-      pokeArrayOfPointersWithAlloc (simpleSelectorList sel) pokeCssSimpleSelector (simpleSelectorListC ffiSel)
-      pokeByteOff ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ sel)
+      pokeArrayOfPointersWithAlloc (simpleSelectors sel) pokeCssSimpleSelector (cSimpleSelectors ffiSel)
+      pokeByteOff ptrStructSelector (#offset c_css_selector_t, c_simple_selectors_size) (length . simpleSelectors $ sel)
       return ptrStructSelector
     Nothing ->
       return nullPtr
@@ -550,8 +549,8 @@ updateSelectors ptr (s:ss) = do
 
   ffiSel <- peek ptr
 
-  pokeArrayOfPointersWithAlloc (simpleSelectorList s) pokeCssSimpleSelector (simpleSelectorListC ffiSel)
-  pokeByteOff ptr (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ s)
+  pokeArrayOfPointersWithAlloc (simpleSelectors s) pokeCssSimpleSelector (cSimpleSelectors ffiSel)
+  pokeByteOff ptr (#offset c_css_selector_t, c_simple_selectors_size) (length . simpleSelectors $ s)
 
   updateSelectors (advancePtr ptr 1) ss
 updateSelectors ptr [] = return ()

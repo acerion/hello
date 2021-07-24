@@ -33,6 +33,8 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
 
                            , CssContext (..)
                            , cssContextAddRule
+
+                           , styleSheetElementCount
                            ) where
 
 
@@ -58,12 +60,27 @@ type CssRulesMap = M.Map T.Text [CssRule]
 
 
 
+{-
+  TODO: don't hardcode the value.
+
+  90 is the full number of html4 elements, including those which we have
+  implemented. From html5, let's add: article, header, footer, mark, nav,
+  section, aside, figure, figcaption, wbr, audio, video, source, embed.
+
+  TODO: make it a constant imported from other (Html?) module
+-}
+styleSheetElementCount = (90 + 14)
+
+
+
+
 data CssStyleSheet = CssStyleSheet {
-    mapId              :: CssRulesMap
-  , mapClass           :: CssRulesMap
+    rulesById          :: CssRulesMap -- CSS rules, in which topmost simple selector is "id".
+  , rulesByClass       :: CssRulesMap -- CSS rules, in which topmost simple selector is "class".
   -- TODO: list of lists to be replaced with vector indexed by element.
-  , vectorElement      :: [[CssRule]]
-  , listElementAny     :: [CssRule]
+  , rulesByElement     :: [[CssRule]] -- CSS rules, in which topmost simple selector is "specific html element".
+  , rulesByAnyElement  :: [CssRule]   -- CSS rules, in which topmost simple selector is "any html element".
+
   , requiredMatchCache :: Int
   } deriving (Show)
 
@@ -98,10 +115,10 @@ insertRuleToStyleSheet :: CssRule -> CssStyleSheet -> (Int, CssStyleSheet)
 insertRuleToStyleSheet rule sheet
   -- Put a rule in a bucket. Decide which bucket to choose by looking at
   -- topmost Simple Selector of the rule.
-  | not . T.null . selectorId $ topSimSel  = (1, sheet { mapId          = updatedMapId })
-  | not . null . selectorClass $ topSimSel = (2, sheet { mapClass       = updatedMapC })
-  | element >= 0 && element < elementCount = (3, sheet { vectorElement  = updatedListOfLists })
-  | element == cssSimpleSelectorElementAny = (4, sheet { listElementAny = updatedListEA })
+  | not . T.null . selectorId $ topSimSel  = (1, sheet { rulesById         = updatedRulesById })
+  | not . null . selectorClass $ topSimSel = (2, sheet { rulesByClass      = updatedRulesByClass })
+  | element >= 0 && element < elementCount = (3, sheet { rulesByElement    = updatedRulesByElement })
+  | element == cssSimpleSelectorElementAny = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
   | otherwise                              = if (element /= cssSimpleSelectorElementNone)
                                              then (trace ("[EE] insert rule: unexpected element: " ++ (show element)) (0, sheet))
                                              else (0, sheet)
@@ -110,20 +127,20 @@ insertRuleToStyleSheet rule sheet
     topSimSel = getTopSimSel rule
 
     element      = selectorElement topSimSel
-    elementCount = (90 + 14) -- TODO: make it a constant imported from other module
+    elementCount = styleSheetElementCount
 
-    updatedMapId = updateMapOfLists (mapId sheet) (selectorId topSimSel) rule
-    updatedMapC  = updateMapOfLists (mapClass sheet) (head . selectorClass $ topSimSel) rule
+    updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId topSimSel) rule
+    updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ topSimSel) rule
 
-    listOfLists = vectorElement sheet
-    listOfRules = if element >= 0 && element < elementCount
-                  then listOfLists !! element
-                  else []
+    listOfLists = rulesByElement sheet
+    thisElementRules = if element >= 0 && element < elementCount
+                       then listOfLists !! element
+                       else []
 
-    updatedListOfRules = insertRuleInListOfRules listOfRules rule
-    updatedListOfLists = listReplaceElem listOfLists updatedListOfRules element
+    updatedThisElementRules = insertRuleInListOfRules thisElementRules rule
+    updatedRulesByElement = listReplaceElem listOfLists updatedThisElementRules element
 
-    updatedListEA = insertRuleInListOfRules (listElementAny sheet) rule
+    updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
 
 
 
@@ -202,7 +219,7 @@ cssRuleIsSafe rule = (not . cssSelectorHasPseudoClass . selector $ rule) || (isS
 -- Does any selector have non-empty list of pseudo class simple selectors?
 -- Remember that C/C++ code can use only first pseudo class.
 cssSelectorHasPseudoClass :: CssSelector -> Bool
-cssSelectorHasPseudoClass selector = any (\simSel -> not . null . selectorPseudoClass $ simSel) (simpleSelectorList selector)
+cssSelectorHasPseudoClass selector = any (\simSel -> not . null . selectorPseudoClass $ simSel) (simpleSelectors selector)
 
 
 
@@ -219,11 +236,11 @@ cssContextAddRule context rule order =
   where
     -- Set match cache offset of selector.
     ruleWithOffset :: CssRule
-    ruleWithOffset = if (-1) == (matchCaseOffset . selector $ rule)
+    ruleWithOffset = if (-1) == (matchCacheOffset . selector $ rule)
                      then rule {selector = newSelector . selector $ rule}
                      else rule
       where
-        newSelector sel = sel{matchCaseOffset = length . matchCache $ context}
+        newSelector sel = sel{matchCacheOffset = length . matchCache $ context}
 
 
 

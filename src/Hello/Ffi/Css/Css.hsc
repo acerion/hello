@@ -397,11 +397,11 @@ hll_rulesMapGetList ptrStructRulesMap cStringKey = do
 
 
 data FfiCssStyleSheet = FfiCssStyleSheet {
-    mapIdC              :: Ptr FfiCssRulesMap
-  , mapClassC           :: Ptr FfiCssRulesMap
-  , vectorElementC      :: Ptr (Ptr FfiCssRulesList)
-  , listElementAnyC     :: Ptr FfiCssRulesList
-  , requiredMatchCacheC :: CInt
+    cRulesById          :: Ptr FfiCssRulesMap
+  , cRulesByClass       :: Ptr FfiCssRulesMap
+  , cRulesByElement     :: Ptr (Ptr FfiCssRulesList)
+  , cRulesByAnyElement  :: Ptr FfiCssRulesList
+  , cRequiredMatchCache :: CInt
   }
 
 
@@ -412,18 +412,18 @@ instance Storable FfiCssStyleSheet where
   alignment _ = #{alignment c_css_style_sheet_t}
 
   peek ptr = do
-    a <- #{peek c_css_style_sheet_t, c_id_rules}             ptr
-    b <- #{peek c_css_style_sheet_t, c_class_rules}          ptr
-    let c = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_style_sheet_t, c_element_rules}) ptr
-    d <- #{peek c_css_style_sheet_t, c_any_element_rules}    ptr
+    a <- #{peek c_css_style_sheet_t, c_rules_by_id}          ptr
+    b <- #{peek c_css_style_sheet_t, c_rules_by_class}       ptr
+    let c = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_style_sheet_t, c_rules_by_element}) ptr
+    d <- #{peek c_css_style_sheet_t, c_rules_by_any_element} ptr
     e <- #{peek c_css_style_sheet_t, c_required_match_cache} ptr
     return (FfiCssStyleSheet a b c d e)
 
   poke ptr (FfiCssStyleSheet a b c d e) = do
-    #{poke c_css_style_sheet_t, c_id_rules}             ptr a
-    #{poke c_css_style_sheet_t, c_class_rules}          ptr b
-    #{poke c_css_style_sheet_t, c_element_rules}        ptr c
-    #{poke c_css_style_sheet_t, c_any_element_rules}    ptr d
+    #{poke c_css_style_sheet_t, c_rules_by_id}          ptr a
+    #{poke c_css_style_sheet_t, c_rules_by_class}       ptr b
+    #{poke c_css_style_sheet_t, c_rules_by_element}     ptr c
+    #{poke c_css_style_sheet_t, c_rules_by_any_element} ptr d
     #{poke c_css_style_sheet_t, c_required_match_cache} ptr e
 
 
@@ -433,25 +433,21 @@ peekCssStyleSheet :: Ptr FfiCssStyleSheet -> IO CssStyleSheet
 peekCssStyleSheet ptrStructCssStyleSheet = do
   ffiStyleSheet <- peek ptrStructCssStyleSheet
 
-  mId    <- peekCssRulesMap (mapIdC ffiStyleSheet)
-  mClass <- peekCssRulesMap (mapClassC ffiStyleSheet)
+  byId    <- peekCssRulesMap (cRulesById ffiStyleSheet)
+  byClass <- peekCssRulesMap (cRulesByClass ffiStyleSheet)
 
-  let elementCount :: Int = (90 + 14)
-  let ptrStructElementRulesList    :: Ptr (Ptr FfiCssRulesList) = vectorElementC ffiStyleSheet
-  elems :: [[CssRule]] <- peekArrayOfPointers ptrStructElementRulesList elementCount peekCssRulesList
+  let elementCount = styleSheetElementCount
+  let ptrStructElementRulesList :: Ptr (Ptr FfiCssRulesList) = cRulesByElement ffiStyleSheet
+  byElement :: [[CssRule]] <- peekArrayOfPointers ptrStructElementRulesList elementCount peekCssRulesList
 
+  byAnyElement <- peekCssRulesList (cRulesByAnyElement ffiStyleSheet)
 
-  let lengths :: [Int] = map length elems
-  --putStrLn ("Lengths in peek = " ++ (show (any (\c -> c > 1) lengths)))
+  let rmc :: Int = fromIntegral . cRequiredMatchCache $ ffiStyleSheet
 
-  listEA <- peekCssRulesList (listElementAnyC ffiStyleSheet)
-
-  let rmc :: Int = fromIntegral . requiredMatchCacheC $ ffiStyleSheet
-
-  return CssStyleSheet{ mapId = mId
-                      , mapClass = mClass
-                      , vectorElement = elems
-                      , listElementAny = listEA
+  return CssStyleSheet{ rulesById          = byId
+                      , rulesByClass       = byClass
+                      , rulesByElement     = byElement
+                      , rulesByAnyElement  = byAnyElement
                       , requiredMatchCache = rmc
                       }
 
@@ -463,10 +459,10 @@ pokeStyleSheet sheet ptrStructStyleSheet = do
 
   ffiStyleSheet <- peek ptrStructStyleSheet
 
-  pokeCssRulesMap (mapIdC ffiStyleSheet) (mapId sheet)
-  pokeCssRulesMap (mapClassC ffiStyleSheet) (mapClass sheet)
-  pokeArrayOfPreallocedPointers (vectorElement sheet) pokeCssRulesList2 (vectorElementC ffiStyleSheet)
-  pokeCssRulesList (listElementAnyC ffiStyleSheet) (listElementAny sheet)
+  pokeCssRulesMap (cRulesById ffiStyleSheet) (rulesById sheet)
+  pokeCssRulesMap (cRulesByClass ffiStyleSheet) (rulesByClass sheet)
+  pokeArrayOfPreallocedPointers (rulesByElement sheet) pokeCssRulesList2 (cRulesByElement ffiStyleSheet)
+  pokeCssRulesList (cRulesByAnyElement ffiStyleSheet) (rulesByAnyElement sheet)
 
   let cache :: CInt = fromIntegral . requiredMatchCache $ sheet
   pokeByteOff ptrStructStyleSheet (#offset c_css_style_sheet_t, c_required_match_cache) cache
