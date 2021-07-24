@@ -22,8 +22,6 @@ using namespace dw::core::style;
 
 /* c_css_selector_t methods. */
 static bool css_selector_matches(c_css_selector_t * selector, Doctree * dt, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache);
-static int css_selector_get_required_match_cache(c_css_selector_t * selector);
-static bool css_selector_has_pseudo_class(c_css_selector_t * selector);
 static void css_selector_print(FILE * file, c_css_selector_t * selector);
 
 
@@ -166,20 +164,6 @@ bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, co
    return false;
 }
 
-bool css_selector_has_pseudo_class(c_css_selector_t * selector)
-{
-   for (int i = 0; i < selector->c_simple_selector_list_size; i++)
-      if (selector->c_simple_selector_list[i]->c_selector_pseudo_class_size > 0) // Remember that C/C++ code can use only first pseudo class
-         return true;
-   return false;
-}
-
-// Implemented as getRequiredMatchCache in CssParser.hs
-int css_selector_get_required_match_cache(c_css_selector_t * selector)
-{
-   return selector->c_match_case_offset + selector->c_simple_selector_list_size;
-}
-
 c_css_rule_t * css_rule_new(c_css_selector_t * selector, c_css_declaration_set_t * decl_set, int rule_position)
 {
    assert (selector->c_simple_selector_list_size > 0);
@@ -196,11 +180,6 @@ c_css_rule_t * css_rule_new(c_css_selector_t * selector, c_css_declaration_set_t
    //fprintf(stderr, "\n\n\n");
 
    return rule;
-}
-
-bool css_rule_is_safe(const c_css_rule_t * rule)
-{
-   return !css_selector_has_pseudo_class(rule->c_selector) || rule->c_decl_set->c_is_safe;
 }
 
 /**
@@ -372,31 +351,6 @@ void css_context_apply_css_context(c_css_context_t * context,
    css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], file, mergedDeclList, docTree, dtn, context->c_match_cache);
 
    fclose(file);
-}
-
-void css_context_add_rule(c_css_context_t * context, c_css_rule_t * rule, CssPrimaryOrder order)
-{
-   // TODO: should we do the increment even if we go into first branch of the
-   // if/else below?
-   context->c_rule_position++;
-
-   if ((order == CSS_PRIMARY_AUTHOR || order == CSS_PRIMARY_AUTHOR_IMPORTANT) && !css_rule_is_safe(rule)) {
-      MSG_WARN ("Ignoring unsafe author style that might reveal browsing history\n");
-   } else {
-
-      // Set match cache offset of selector (css_selector_set_match_cache_offset(c_css_selector_t * selector, int offset))
-      if (rule->c_selector->c_match_case_offset == -1) {
-         const int offset = context->c_match_cache->c_cache_items_size;
-         rule->c_selector->c_match_case_offset = offset;
-      }
-
-      const int new_size = css_selector_get_required_match_cache(rule->c_selector);
-      if (new_size > context->c_match_cache->c_cache_items_size) {
-         hll_matchCacheSetSize(context->c_match_cache, new_size);
-      }
-
-      hll_cssContextAddRule(context, rule, order);
-   }
 }
 
 CssLength cssCreateLength(float val, CssLengthType t)

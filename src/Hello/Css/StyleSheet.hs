@@ -27,7 +27,9 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 module Hello.Css.StyleSheet( CssStyleSheet (..)
                            , CssRulesMap (..)
                            , addRuleToStyleSheet
+
                            , CssMatchCache (..)
+                           , matchCacheResize
 
                            , CssContext (..)
                            , cssContextAddRule
@@ -182,9 +184,70 @@ data CssContext = CssContext {
 
 
 
+
+cssPrimaryUserAgent       = 0
+cssPrimaryUser            = 1
+cssPrimaryAuthor          = 2
+cssPrimaryAuthorImportant = 3
+cssPrimaryUserImportant   = 4
+cssPrimaryOrderSize       = 5
+
+
+
+
+cssRuleIsSafe rule = (not . cssSelectorHasPseudoClass . selector $ rule) || (isSafe . declarationSet $ rule)
+
+
+
+-- Does any selector have non-empty list of pseudo class simple selectors?
+-- Remember that C/C++ code can use only first pseudo class.
+cssSelectorHasPseudoClass :: CssSelector -> Bool
+cssSelectorHasPseudoClass selector = any (\simSel -> not . null . selectorPseudoClass $ simSel) (simpleSelectorList selector)
+
+
+
+
+cssContextAddRule :: CssContext -> CssRule -> Int -> CssContext
+cssContextAddRule context rule order =
+
+  -- TODO: should we increpement rulePosition in a context, to which a rule
+  -- is not being added (in "then" branch)?
+  if (order == cssPrimaryAuthor || order == cssPrimaryAuthorImportant) && (not . cssRuleIsSafe $ rule)
+  then trace ("[WW] Ignoring unsafe author style that might reveal browsing history") (context{rulePosition = (rulePosition context) + 1})
+  else cssContextAddRule' context{rulePosition = (rulePosition context) + 1} ruleWithOffset order
+
+  where
+    -- Set match cache offset of selector.
+    ruleWithOffset :: CssRule
+    ruleWithOffset = if (-1) == (matchCaseOffset . selector $ rule)
+                     then rule {selector = newSelector . selector $ rule}
+                     else rule
+      where
+        newSelector sel = sel{matchCaseOffset = length . matchCache $ context}
+
+
+
+
+
 -- Add given rule to a style sheet in given context. The style sheet is
 -- selected by 'order' argument.
-cssContextAddRule :: CssContext -> CssRule -> Int -> CssContext
-cssContextAddRule context rule order = context{sheets = listReplaceElem (sheets context) updatedSheet order}
+cssContextAddRule' :: CssContext -> CssRule -> Int -> CssContext
+cssContextAddRule' context rule order = context{ sheets     = listReplaceElem (sheets context) updatedSheet order
+                                               , matchCache = if requiredCacheSize > existingCacheSize
+                                                              then matchCacheResize (matchCache context) requiredCacheSize
+                                                              else (matchCache context)
+                                               }
   where
-    updatedSheet = addRuleToStyleSheet ((sheets $ context) !! order) rule
+    updatedSheet      = addRuleToStyleSheet ((sheets $ context) !! order) rule
+    existingCacheSize = length . matchCache $ context
+    requiredCacheSize = getRequiredMatchCache rule
+
+
+
+
+matchCacheResize cache size = newCache
+  where
+    oldSize = length cache
+    newCache = cache ++ (replicate (size - oldSize) (-1))
+
+

@@ -238,7 +238,6 @@ void css_context_apply_css_context(c_css_context_t * context,
                                    c_css_declaration_set_t * declList,
                                    c_css_declaration_set_t * declListImportant,
                                    c_css_declaration_set_t * declListNonCss);
-void css_context_add_rule(c_css_context_t * context, c_css_rule_t * rule, CssPrimaryOrder order);
 
 
 

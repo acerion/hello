@@ -543,10 +543,8 @@ pokeCssMatchCache ptrStructMatchCache cache = do
 hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 hll_matchCacheSetSize ptrStructMatchCache cNewSize = do
   oldMatchCache <- peekPtrCssMatchCache ptrStructMatchCache
-  let oldSize = length oldMatchCache
   let newSize = fromIntegral cNewSize
-  let newMatchCache = oldMatchCache ++ (replicate (newSize - oldSize) (-1))
-
+  let newMatchCache = matchCacheResize oldMatchCache newSize
   pokeCssMatchCache ptrStructMatchCache newMatchCache
 
   return ()
