@@ -60,8 +60,7 @@ data CssStyleSheet = CssStyleSheet {
     mapId              :: CssRulesMap
   , mapClass           :: CssRulesMap
   -- TODO: list of lists to be replaced with vector indexed by element.
-  -- This field needs to be a tuple because of FFI code.
-  , vectorElement      :: ([[CssRule]], [CssRule])
+  , vectorElement      :: [[CssRule]]
   , listElementAny     :: [CssRule]
   , requiredMatchCache :: Int
   } deriving (Show)
@@ -75,10 +74,10 @@ Insert a rule into style sheet.
 To improve matching performance the rules are organized into rule lists based
 on the topmost simple selector of their selector.
 -}
-addRuleToStyleSheet :: CssStyleSheet -> CssRule -> (Int, CssStyleSheet)
+addRuleToStyleSheet :: CssStyleSheet -> CssRule -> CssStyleSheet
 addRuleToStyleSheet sheet rule = case insertRuleToStyleSheet rule sheet of
-                                   (0, outSheet) -> (0, outSheet)
-                                   (i, outSheet) -> (i, outSheet { requiredMatchCache = newRequiredMatchCache sheet rule })
+                                   (0, outSheet) -> outSheet
+                                   (i, outSheet) -> outSheet { requiredMatchCache = newRequiredMatchCache sheet rule }
 
   where
     newRequiredMatchCache s r = if getRequiredMatchCache r > requiredMatchCache s
@@ -99,8 +98,7 @@ insertRuleToStyleSheet rule sheet
   -- topmost Simple Selector of the rule.
   | not . T.null . selectorId $ topSimSel  = (1, sheet { mapId          = updatedMapId })
   | not . null . selectorClass $ topSimSel = (2, sheet { mapClass       = updatedMapC })
-  | element >= 0 && element < elementCount = trace ("==== Increase from " ++ (show lengthBefore) ++ " to " ++ (show lengthAfter))
-                                             ((3, sheet { vectorElement  = (updatedListOfLists, updatedListOfRules) }))
+  | element >= 0 && element < elementCount = (3, sheet { vectorElement  = updatedListOfLists })
   | element == cssSimpleSelectorElementAny = (4, sheet { listElementAny = updatedListEA })
   | otherwise                              = if (element /= cssSimpleSelectorElementNone)
                                              then (trace ("[EE] insert rule: unexpected element: " ++ (show element)) (0, sheet))
@@ -115,8 +113,7 @@ insertRuleToStyleSheet rule sheet
     updatedMapId = updateMapOfLists (mapId sheet) (selectorId topSimSel) rule
     updatedMapC  = updateMapOfLists (mapClass sheet) (head . selectorClass $ topSimSel) rule
 
-
-    listOfLists = fst . vectorElement $ sheet
+    listOfLists = vectorElement sheet
     listOfRules = if element >= 0 && element < elementCount
                   then listOfLists !! element
                   else []
@@ -125,12 +122,6 @@ insertRuleToStyleSheet rule sheet
     updatedListOfLists = listReplaceElem listOfLists updatedListOfRules element
 
     updatedListEA = insertRuleInListOfRules (listElementAny sheet) rule
-
-
-    lengthBefore = length listOfRules
-    lengthAfter  = length updatedListOfRules
-    --lengthBefore = length ((fst . vectorElement $ sheet) !! element)
-    --lengthAfter  = length (updatedListOfLists !! element)
 
 
 
@@ -191,7 +182,9 @@ data CssContext = CssContext {
 
 
 
+-- Add given rule to a style sheet in given context. The style sheet is
+-- selected by 'order' argument.
 cssContextAddRule :: CssContext -> CssRule -> Int -> CssContext
 cssContextAddRule context rule order = context{sheets = listReplaceElem (sheets context) updatedSheet order}
   where
-    (_, updatedSheet) = addRuleToStyleSheet ((sheets $ context) !! order) rule
+    updatedSheet = addRuleToStyleSheet ((sheets $ context) !! order) rule

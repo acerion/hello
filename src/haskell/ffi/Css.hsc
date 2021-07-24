@@ -131,7 +131,6 @@ peekDoctreeNode ptrStructDoctreeNode = do
 foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
 foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
-foreign export ccall "hll_addRuleToStyleSheet" hll_addRuleToStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssRule -> IO ()
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_cssContextAddRule" hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
 
@@ -451,9 +450,10 @@ peekCssStyleSheet ptrStructCssStyleSheet = do
 
   return CssStyleSheet{ mapId = mId
                       , mapClass = mClass
-                      , vectorElement = (elems, [])
+                      , vectorElement = elems
                       , listElementAny = listEA
-                      , requiredMatchCache = rmc }
+                      , requiredMatchCache = rmc
+                      }
 
 
 
@@ -465,67 +465,13 @@ pokeStyleSheet sheet ptrStructStyleSheet = do
 
   pokeCssRulesMap (mapIdC ffiStyleSheet) (mapId sheet)
   pokeCssRulesMap (mapClassC ffiStyleSheet) (mapClass sheet)
-  let rulesLists2 = (snd . vectorElement $ sheet)
-  let rulesLists1 = (fst . vectorElement $ sheet)
-  pokeArrayOfPointers2 rulesLists1 pokeCssRulesList2 (vectorElementC ffiStyleSheet)
+  pokeArrayOfPointers2 (vectorElement sheet) pokeCssRulesList2 (vectorElementC ffiStyleSheet)
   pokeCssRulesList (listElementAnyC ffiStyleSheet) (listElementAny sheet)
-
-  --let lengths :: [Int] = map length rulesLists
-  -- putStrLn ("Lengths in poke = " ++ (show (any (\c -> c > 1) lengths)))
-  -- putStrLn ("Lengths in poke = " ++ (show . length $ rulesLists2))
 
   let cache :: CInt = fromIntegral . requiredMatchCache $ sheet
   pokeByteOff ptrStructStyleSheet (#offset c_css_style_sheet_t, c_required_match_cache) cache
 
   return ()
-
-
-
-
-hll_addRuleToStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssRule -> IO ()
-hll_addRuleToStyleSheet ptrStructCssStyleSheet ptrStructCssRule = do
-
-  rule <- peekCssRule ptrStructCssRule
-  let topSimSel = L.last . simpleSelectorList. selector $ rule
-  let element :: Int = selectorElement topSimSel
-  let elementCount :: Int = (90 + 14)
-
-  ffiStyleSheet <- peek ptrStructCssStyleSheet
-
-  let ptrStructIdRulesMap          :: Ptr FfiCssRulesMap = mapIdC ffiStyleSheet
-  let ptrStructClassRulesMap       :: Ptr FfiCssRulesMap = mapClassC ffiStyleSheet
-  let ptrStructElementRulesList    :: Ptr (Ptr FfiCssRulesList) = vectorElementC ffiStyleSheet
-  let ptrStructAnyElementRulesList :: Ptr FfiCssRulesList = listElementAnyC ffiStyleSheet
-  let req                          :: Int = fromIntegral . requiredMatchCacheC $ ffiStyleSheet
-
-  mapI <- peekCssRulesMap ptrStructIdRulesMap
-  mapC <- peekCssRulesMap ptrStructClassRulesMap
-
-  inListOfLists :: [[CssRule]] <- peekArrayOfPointers ptrStructElementRulesList elementCount peekCssRulesList
-  inPtrListOfRules :: Ptr FfiCssRulesList <- peekElemOff ptrStructElementRulesList element
-  inListOfRules <- if element >= 0 && element < elementCount
-                   then peekCssRulesList inPtrListOfRules
-                   else return []
-
-  listEA <- peekCssRulesList ptrStructAnyElementRulesList
-
-  let styleSheet = CssStyleSheet { mapId              = mapI
-                                 , mapClass           = mapC
-                                 , vectorElement      = (inListOfLists, inListOfRules)
-                                 , listElementAny     = listEA
-                                 , requiredMatchCache = req
-                                 }
-
-  let (what, updSheet) = addRuleToStyleSheet styleSheet rule
-  let updReq :: CInt = fromIntegral . requiredMatchCache $ updSheet
-  when (what /= 0) (pokeByteOff ptrStructCssStyleSheet (#offset c_css_style_sheet_t, c_required_match_cache) updReq)
-
-  case what of
-    1 -> pokeCssRulesMap ptrStructIdRulesMap (mapId updSheet)
-    2 -> pokeCssRulesMap ptrStructClassRulesMap (mapClass updSheet)
-    3 -> pokeCssRulesList inPtrListOfRules (snd . vectorElement $ updSheet)
-    4 -> pokeCssRulesList ptrStructAnyElementRulesList (listElementAny updSheet)
-    _ -> return ()
 
 
 
@@ -682,9 +628,6 @@ hll_cssContextAddRule ptrStructCssContext ptrStructCssRule cOrder = do
   let updatedContext = cssContextAddRule context rule order
 
   pokeCssContext ptrStructCssContext updatedContext
-
-  -- putStrLn ("\n\n\n\nFFI: context = " ++ (show context))
-  -- putStrLn ("\nFFI: updated context = " ++ (show updatedContext))
 
   return ()
 

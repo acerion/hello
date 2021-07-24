@@ -395,11 +395,7 @@ void css_context_add_rule(c_css_context_t * context, c_css_rule_t * rule, CssPri
          hll_matchCacheSetSize(context->c_match_cache, new_size);
       }
 
-#if 1
       hll_cssContextAddRule(context, rule, order);
-#else
-      hll_addRuleToStyleSheet(context->c_sheets[order], rule);
-#endif
    }
 }
 
