@@ -24,7 +24,7 @@
 #include "html_common.hh"
 #include "css.hh"
 #include "cssparser.hh"
-#include "haskell/hello.h"
+#include "Hello/hello.h"
 
 using namespace dw::core::style;
 

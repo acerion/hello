@@ -50,7 +50,7 @@ import Hello.Ffi.Utils
 
 
 
-#include "../hello.h"
+#include "../../hello.h"
 
 
 

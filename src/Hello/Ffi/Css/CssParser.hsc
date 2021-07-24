@@ -87,7 +87,7 @@ foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declaration
 foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 
-#include "../hello.h"
+#include "../../hello.h"
 
 data FfiCssParser = FfiCssParser {
     spaceSeparatedC :: CInt

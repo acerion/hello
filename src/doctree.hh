@@ -2,7 +2,7 @@
 #define __DOCTREE_HH__
 
 #include "lout/misc.hh"
-#include "haskell/hello.h"
+#include "Hello/hello.h"
 
 
 

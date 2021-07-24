@@ -2,7 +2,7 @@
 #define __CSSPARSER_HH__
 
 #include "css.hh"
-#include "haskell/hello.h"
+#include "Hello/hello.h"
 
 class DilloHtml;
 

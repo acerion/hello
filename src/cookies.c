@@ -13,7 +13,7 @@
 /* Handling of cookies takes place here. */
 
 #include "msg.h"
-#include "haskell/hello.h"
+#include "Hello/hello.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>

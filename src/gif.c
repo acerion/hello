@@ -70,7 +70,7 @@
 #include "image.hh"
 #include "cache.h"
 #include "dicache.h"
-#include "haskell/hello.h"
+#include "Hello/hello.h"
 
 
 

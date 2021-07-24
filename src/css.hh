@@ -4,7 +4,7 @@
 #include "dw/core.hh"
 #include "doctree.hh"
 #include "css.h"
-#include "haskell/hello.h"
+#include "Hello/hello.h"
 
 enum CssDeclarationValueType {
    CssDeclarationValueTypeINTEGER,            /* This type is only used internally, for x-* properties. */

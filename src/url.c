@@ -47,7 +47,7 @@
 
 #include "url.h"
 #include "msg.h"
-#include "haskell/hello.h"
+#include "Hello/hello.h"
 
 static const char *HEX = "0123456789ABCDEF";
 

@@ -18,7 +18,7 @@
 #include "prefs.h"
 #include "misc.h"
 #include "msg.h"
-#include "haskell/hello.h"
+#include "Hello/hello.h"
 
 #include "prefsparser.hh"
 
