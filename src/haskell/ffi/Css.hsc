@@ -208,7 +208,7 @@ pokeCssRulesList ptrStructRulesList list = do
 
   let array :: Ptr (Ptr FfiCssRule) = rulesC ffiRulesList
 
-  pokeArrayOfPointers list pokeCssRule array
+  pokeArrayOfPointersWithAlloc list pokeCssRule array
   pokeByteOff ptrStructRulesList (#offset c_css_rules_list_t, c_rules_size) (length list)
 
 
@@ -350,8 +350,8 @@ pokeCssRulesMap ptrStructRulesMap map = do
   let values = M.elems map
   let len :: CInt = (fromIntegral . length $ keys)
 
-  pokeArrayOfPointers keys textToPtrCChar (stringsC ffiRulesMap)
-  pokeArrayOfPointers values aPokeCssRulesList (rulesListC ffiRulesMap)
+  pokeArrayOfPointersWithAlloc keys textToPtrCChar (stringsC ffiRulesMap)
+  pokeArrayOfPointersWithAlloc values aPokeCssRulesList (rulesListC ffiRulesMap)
   pokeByteOff ptrStructRulesMap (#offset c_css_rules_map_t, c_rules_map_size) len
 
   return ()
@@ -368,8 +368,8 @@ allocAndPokeCssRulesMap map = do
   let values = M.elems map
   let len :: CInt = (fromIntegral . length $ keys)
 
-  pokeArrayOfPointers keys textToPtrCChar (stringsC ffiRulesMap)
-  pokeArrayOfPointers values aPokeCssRulesList (rulesListC ffiRulesMap)
+  pokeArrayOfPointersWithAlloc keys textToPtrCChar (stringsC ffiRulesMap)
+  pokeArrayOfPointersWithAlloc values aPokeCssRulesList (rulesListC ffiRulesMap)
   pokeByteOff ptrStructRulesMap (#offset c_css_rules_map_t, c_rules_map_size) len
 
   return ptrStructRulesMap
@@ -465,7 +465,7 @@ pokeStyleSheet sheet ptrStructStyleSheet = do
 
   pokeCssRulesMap (mapIdC ffiStyleSheet) (mapId sheet)
   pokeCssRulesMap (mapClassC ffiStyleSheet) (mapClass sheet)
-  pokeArrayOfPointers2 (vectorElement sheet) pokeCssRulesList2 (vectorElementC ffiStyleSheet)
+  pokeArrayOfPreallocedPointers (vectorElement sheet) pokeCssRulesList2 (vectorElementC ffiStyleSheet)
   pokeCssRulesList (listElementAnyC ffiStyleSheet) (listElementAny sheet)
 
   let cache :: CInt = fromIntegral . requiredMatchCache $ sheet
@@ -512,13 +512,7 @@ instance Storable FfiCssMatchCache where
 peekPtrCssMatchCache :: Ptr FfiCssMatchCache -> IO CssMatchCache
 peekPtrCssMatchCache ptrStructMatchCache = do
   ffiMatchCache <- peek ptrStructMatchCache
-  peekFfiCssMatchCache $ ffiMatchCache
 
-
-
-
-peekFfiCssMatchCache :: FfiCssMatchCache -> IO CssMatchCache
-peekFfiCssMatchCache ffiMatchCache = do
   let array :: Ptr CInt = cCacheItems ffiMatchCache
   let size  :: Int      = fromIntegral . cCacheItemsSize $ ffiMatchCache
 
@@ -607,7 +601,7 @@ pokeCssContext ptrStructContext context = do
   ffiContext <- peek ptrStructContext
 
   let array :: Ptr (Ptr FfiCssStyleSheet) = cSheets ffiContext
-  pokeArrayOfPointers2 (sheets context) pokeStyleSheet array
+  pokeArrayOfPreallocedPointers (sheets context) pokeStyleSheet array
 
   pokeCssMatchCache (cStructPtrMatchCache ffiContext) (matchCache context)
 

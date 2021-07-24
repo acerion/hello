@@ -471,10 +471,10 @@ setSimpleSelector ptrStructSimpleSelector simpleSelector = do
 
   ffiSimSel <- peek ptrStructSimpleSelector
 
-  pokeArrayOfPointers (selectorClass simpleSelector) textToPtrCChar (selectorClassC ffiSimSel)
+  pokeArrayOfPointersWithAlloc (selectorClass simpleSelector) textToPtrCChar (selectorClassC ffiSimSel)
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class_size) (length . selectorClass $ simpleSelector)
 
-  pokeArrayOfPointers (selectorPseudoClass simpleSelector) textToPtrCChar (selectorPseudoClassC ffiSimSel)
+  pokeArrayOfPointersWithAlloc (selectorPseudoClass simpleSelector) textToPtrCChar (selectorPseudoClassC ffiSimSel)
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class_size) (length . selectorPseudoClass $ simpleSelector)
 
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_id) cStringPtrSelId
@@ -510,7 +510,7 @@ hll_cssParseSelector ptrStructCssParser ptrStructCssToken cBuf = do
     Just sel -> do
       ptrStructSelector <- callocBytes #{size c_css_selector_t}
       ffiSel <- peek ptrStructSelector
-      pokeArrayOfPointers (simpleSelectorList sel) pokeCssSimpleSelector (simpleSelectorListC ffiSel)
+      pokeArrayOfPointersWithAlloc (simpleSelectorList sel) pokeCssSimpleSelector (simpleSelectorListC ffiSel)
       pokeByteOff ptrStructSelector (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ sel)
       return ptrStructSelector
     Nothing ->
@@ -550,7 +550,7 @@ updateSelectors ptr (s:ss) = do
 
   ffiSel <- peek ptr
 
-  pokeArrayOfPointers (simpleSelectorList s) pokeCssSimpleSelector (simpleSelectorListC ffiSel)
+  pokeArrayOfPointersWithAlloc (simpleSelectorList s) pokeCssSimpleSelector (simpleSelectorListC ffiSel)
   pokeByteOff ptr (#offset c_css_selector_t, c_simple_selector_list_size) (length . simpleSelectorList $ s)
 
   updateSelectors (advancePtr ptr 1) ss
@@ -726,7 +726,7 @@ pokeCssDeclarationSet ptrStructDeclarationSet newDeclSet = do
   let cCount  :: CInt = fromIntegral . length . items $ newDeclSet
 
   pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_is_safe) cIsSafe
-  pokeArrayOfPointers (Foldable.toList . items $ newDeclSet) pokeCssDeclaration (ptrDeclarationsC ffiDeclSet)
+  pokeArrayOfPointersWithAlloc (Foldable.toList . items $ newDeclSet) pokeCssDeclaration (ptrDeclarationsC ffiDeclSet)
   pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_declarations_size) cCount
   --poke ptrStructDeclarationSet $ FfiCssDeclarationSet cIsSafe (ptrDeclarationsC ffiDeclSet) cCount -- TODO: why setting "array of pointers" field doesn't work?
 

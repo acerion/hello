@@ -29,8 +29,8 @@ module Hello.Ffi.Utils( ptrCCharToText
                       , textToPtrCChar
 
                       , peekArrayOfPointers
-                      , pokeArrayOfPointers
-                      , pokeArrayOfPointers2
+                      , pokeArrayOfPointersWithAlloc
+                      , pokeArrayOfPreallocedPointers
                       )
   where
 
@@ -89,6 +89,11 @@ peekArrayOfPointers array n f = if nullPtr == array
 
 
 
+-- Set elements of an array. The elements are pointers to memory that will be
+-- allocated by this function. More precisely: the memory is allocated by
+-- constructor function that is a second arg to this function. The
+-- constructor function allocates memory and sets its contents.
+--
 -- Save given list of Haskell objects [a] into C array of pointers to objects 'b'.
 -- The pointers are allocated by this function.
 -- The pointers are stored in an array given by third arg.
@@ -96,32 +101,34 @@ peekArrayOfPointers array n f = if nullPtr == array
 -- 'f' converts input items into pointers to allocated memory. The pointers
 -- will be read and interpreted by C code. This can be a function that e.g.
 -- converts Data.Text into char* strings.
-pokeArrayOfPointers :: (Storable b) => [a] -> (a -> IO (Ptr b)) -> Ptr (Ptr b) -> IO ()
-pokeArrayOfPointers xs f array = pokeArrayOfPointers' xs f array 0
+pokeArrayOfPointersWithAlloc :: (Storable b) => [a] -> (a -> IO (Ptr b)) -> Ptr (Ptr b) -> IO ()
+pokeArrayOfPointersWithAlloc xs ctor array = pokeArrayOfPointers' xs ctor array 0
   where
     pokeArrayOfPointers' :: (Storable b) => [a] -> (a -> IO (Ptr b)) -> Ptr (Ptr b) -> Int -> IO ()
-    pokeArrayOfPointers' [] f array _ = do
+    pokeArrayOfPointers' [] ctor array _ = do
       return ()
-    pokeArrayOfPointers' (x:xs) f array idx = do
-      ptr :: Ptr b <- f x
+    pokeArrayOfPointers' (x:xs) ctor array idx = do
+      ptr :: Ptr b <- ctor x
       pokeElemOff array idx ptr
-      pokeArrayOfPointers' xs f array (idx + 1)
+      pokeArrayOfPointers' xs ctor array (idx + 1)
 
 
 
 
-
-pokeArrayOfPointers2 :: (Storable b) => [a] -> (a -> Ptr b -> IO ()) -> Ptr (Ptr b) -> IO ()
-pokeArrayOfPointers2 xs f array = pokeArrayOfPointers' xs f array 0
+-- Set elements of an array. The elements are pointers to already allocated
+-- memory, so a function that sets each element doesn't allocate memory for
+-- the element (the memory is preallocated by owner/creator of the array).
+pokeArrayOfPreallocedPointers :: (Storable b) => [a] -> (a -> Ptr b -> IO ()) -> Ptr (Ptr b) -> IO ()
+pokeArrayOfPreallocedPointers xs setter array = pokeArrayOfPointers' xs setter array 0
   where
     pokeArrayOfPointers' :: (Storable b) => [a] -> (a -> Ptr b -> IO ()) -> Ptr (Ptr b) -> Int -> IO ()
-    pokeArrayOfPointers' [] f array _ = do
+    pokeArrayOfPointers' [] setter array _ = do
       return ()
-    pokeArrayOfPointers' (x:xs) f array idx = do
+    pokeArrayOfPointers' (x:xs) setter array idx = do
       ptr :: Ptr b <- peekElemOff array idx
-      f x ptr
+      setter x ptr
       pokeElemOff array idx ptr
-      pokeArrayOfPointers' xs f array (idx + 1)
+      pokeArrayOfPointers' xs setter array (idx + 1)
 
 
 
