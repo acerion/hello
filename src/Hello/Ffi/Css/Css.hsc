@@ -60,7 +60,7 @@ foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr Ff
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_cssContextAddRule" hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
-
+foreign export ccall "hll_makeAndDispatchRule" hll_makeAndDispatchRule :: Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> CInt -> IO ()
 
 
 
@@ -607,3 +607,21 @@ hll_cssContextAddRule ptrStructCssContext ptrStructCssRule cOrder = do
 
   return ()
 
+
+
+
+hll_makeAndDispatchRule :: Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> CInt -> IO ()
+hll_makeAndDispatchRule ptrStructCssContext arrayPtrStructCssSelector cSelsCount ptrStructDeclarationSet ptrStructDeclarationSetImp cOrig = do
+
+  let selectorsCount = fromIntegral cSelsCount
+  let origin         = fromIntegral cOrig
+  context    <- peekCssContext ptrStructCssContext
+  selectors  <- peekArrayOfPointers arrayPtrStructCssSelector selectorsCount peekCssSelector
+  declSet    <- peekCssDeclarationSet ptrStructDeclarationSet
+  declSetImp <- peekCssDeclarationSet ptrStructDeclarationSetImp
+
+  updatedContext <- makeAndDispatchRule context selectors declSet declSetImp origin
+
+  pokeCssContext ptrStructCssContext updatedContext
+
+  return()

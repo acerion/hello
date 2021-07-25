@@ -19,6 +19,14 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 This file is derived from dillo-3.0.5/src/css.cc.
 Copyright assignments from css.cc file:
 Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
+
+This file is derived from dillo-3.0.5/src/cssparser.cc.
+Copyright assignments from that file:
+Copyright 2004 Sebastian Geerken <sgeerken@dillo.org>
+Copyright 2008-2009 Johannes Hofmann <Johannes.Hofmann@gmx.de>
+Additional note in cssparser.cc:
+"This file is heavily based on the CSS parser of dillo-0.8.0-css-3 -
+a dillo1 based CSS prototype written by Sebastian Geerken."
 -}
 
 
@@ -35,6 +43,8 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
                            , cssContextAddRule
 
                            , styleSheetElementCount
+
+                           , makeAndDispatchRule
                            ) where
 
 
@@ -212,6 +222,12 @@ cssPrimaryOrderSize       = 5
 
 
 
+cssOriginUserAgent = 0
+cssOriginUser      = 1
+cssOriginAuthor    = 2
+
+
+
 cssRuleIsSafe rule = (not . cssSelectorHasPseudoClass . selector $ rule) || (isSafe . declarationSet $ rule)
 
 
@@ -268,3 +284,45 @@ matchCacheResize cache size = newCache
     newCache = cache ++ (replicate (size - oldSize) (-1))
 
 
+
+
+-- TODO: Name of this function is sub-optimal.
+--
+-- Given list of selectors, and given declaration sets (regular and
+-- important), for each of the selectors create one rule and add it to
+-- context.
+--
+-- Each rule can have only one selector, so this function works like this:
+-- "for each selector create a rule with given selector and some
+-- declarations, and put it in appropriate style sheet in the context".
+makeAndDispatchRule :: CssContext -> [CssSelector] -> CssDeclarationSet -> CssDeclarationSet -> Int -> IO CssContext
+makeAndDispatchRule context []     declSet declSetImp _      = return context
+makeAndDispatchRule context (x:xs) declSet declSetImp origin
+  | origin == cssOriginUserAgent = do
+       let updatedContext = if (length . items $ declSet) > 0
+                            then cssContextAddRule context (ruleCtor x declSet (rulePosition context)) cssPrimaryUserAgent
+                            else context
+       makeAndDispatchRule updatedContext xs declSet declSetImp origin
+
+  | origin == cssOriginUser = do
+      let updatedContext = if (length . items $ declSet) > 0
+                           then cssContextAddRule context (ruleCtor x declSet (rulePosition context)) cssPrimaryUser
+                           else context
+
+      let updatedContext2 = if (length . items $ declSetImp) > 0
+                            then cssContextAddRule updatedContext (ruleCtor x declSetImp (rulePosition context)) cssPrimaryUserImportant
+                            else updatedContext
+      makeAndDispatchRule updatedContext2 xs declSet declSetImp origin
+
+  | origin == cssOriginAuthor = do
+      let updatedContext = if (length . items $ declSet) > 0
+                           then cssContextAddRule context (ruleCtor x declSet (rulePosition context)) cssPrimaryAuthor
+                           else context
+
+      let updatedContext2 = if (length . items $ declSetImp) > 0
+                            then cssContextAddRule updatedContext (ruleCtor x declSetImp (rulePosition context)) cssPrimaryAuthorImportant
+                            else updatedContext
+      makeAndDispatchRule updatedContext2 xs declSet declSetImp origin
+
+  where
+    ruleCtor sel declSet pos = CssRule { selector = sel, declarationSet = declSet, specificity = selectorSpecificity sel, position = pos }

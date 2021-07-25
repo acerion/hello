@@ -98,15 +98,6 @@ void parseRuleset(CssParser * parser, c_css_context_t * context)
    /* Read block. ('{' has already been read.) */
    if (parser->tokenizer.token.c_type != CSS_TOKEN_TYPE_END) {
 
-#if 0
-      if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR) {
-         fprintf(stderr, "++++++++++++++++ char '%c'\n", parser->tokenizer.token.c_value[0]);
-      } else if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT) {
-         fprintf(stderr, "++++++++++++++++ ident '%s'\n", parser->tokenizer.token.c_value);
-      } else {
-         fprintf(stderr, "++++++++++++++++ unknown '%d'\n", parser->tokenizer.token.c_type);
-      }
-#endif
       parser->hll_css_parser.c_in_block = true;
       nextToken(&parser->tokenizer, &parser->hll_css_parser);
       do {
@@ -116,40 +107,7 @@ void parseRuleset(CssParser * parser, c_css_context_t * context)
       parser->hll_css_parser.c_in_block = false;
    }
 
-   for (int i = 0; i < selectors_count; i++) {
-      c_css_selector_t * sel = selectors[i];
-
-      switch (parser->origin) {
-      case CSS_ORIGIN_USER_AGENT:
-         if (declList->c_declarations_size > 0) {
-            c_css_rule_t * rule = css_rule_new(sel, declList, context->c_rule_position);
-            hll_cssContextAddRule(context, rule, CSS_PRIMARY_USER_AGENT);
-         }
-         break;
-      case CSS_ORIGIN_USER:
-         if (declList->c_declarations_size > 0) {
-            c_css_rule_t * rule = css_rule_new(sel, declList, context->c_rule_position);
-            hll_cssContextAddRule(context, rule, CSS_PRIMARY_USER);
-         }
-         if (declListImportant->c_declarations_size > 0) {
-            c_css_rule_t * rule = css_rule_new(sel, declListImportant, context->c_rule_position);
-            hll_cssContextAddRule(context, rule, CSS_PRIMARY_USER_IMPORTANT);
-         }
-         break;
-      case CSS_ORIGIN_AUTHOR:
-         if (declList->c_declarations_size > 0) {
-            c_css_rule_t * rule = css_rule_new(sel, declList, context->c_rule_position);
-            hll_cssContextAddRule(context, rule, CSS_PRIMARY_AUTHOR);
-         }
-         if (declListImportant->c_declarations_size > 0) {
-            c_css_rule_t * rule = css_rule_new(sel, declListImportant, context->c_rule_position);
-            hll_cssContextAddRule(context, rule, CSS_PRIMARY_AUTHOR_IMPORTANT);
-         }
-         break;
-      default:
-         break;
-      }
-   }
+   hll_makeAndDispatchRule(context, selectors, selectors_count, declList, declListImportant, parser->origin);
 
    if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == '}')
       nextToken(&parser->tokenizer, &parser->hll_css_parser);
