@@ -107,7 +107,8 @@ void parseRuleset(CssParser * parser, c_css_context_t * context)
       parser->hll_css_parser.c_in_block = false;
    }
 
-   hll_makeAndDispatchRule(context, selectors, selectors_count, declList, declListImportant, parser->origin);
+   // Construct rules from selectors and delcarations, and add them to context
+   hll_constructAndAddRules(context, selectors, selectors_count, declList, declListImportant, parser->origin);
 
    if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == '}')
       nextToken(&parser->tokenizer, &parser->hll_css_parser);

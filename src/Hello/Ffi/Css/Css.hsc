@@ -60,7 +60,7 @@ foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr Ff
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_cssContextAddRule" hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
-foreign export ccall "hll_makeAndDispatchRule" hll_makeAndDispatchRule :: Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> CInt -> IO ()
+foreign export ccall "hll_constructAndAddRules" hll_constructAndAddRules :: Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> CInt -> IO ()
 
 
 
@@ -601,7 +601,7 @@ hll_cssContextAddRule ptrStructCssContext ptrStructCssRule cOrder = do
   rule       <- peekCssRule ptrStructCssRule
   let order :: Int = fromIntegral cOrder
 
-  let updatedContext = cssContextAddRule context rule order
+  let updatedContext = cssContextAddRule context rule (getSheetSelector order)
 
   pokeCssContext ptrStructCssContext updatedContext
 
@@ -610,17 +610,21 @@ hll_cssContextAddRule ptrStructCssContext ptrStructCssRule cOrder = do
 
 
 
-hll_makeAndDispatchRule :: Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> CInt -> IO ()
-hll_makeAndDispatchRule ptrStructCssContext arrayPtrStructCssSelector cSelsCount ptrStructDeclarationSet ptrStructDeclarationSetImp cOrig = do
+hll_constructAndAddRules :: Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> CInt -> IO ()
+hll_constructAndAddRules ptrStructCssContext arrayPtrStructCssSelector cSelsCount ptrStructDeclarationSet ptrStructDeclarationSetImp cOrig = do
 
   let selectorsCount = fromIntegral cSelsCount
-  let origin         = fromIntegral cOrig
+  let origin         =  case fromIntegral cOrig of
+                          0 -> CssOriginUserAgent
+                          1 -> CssOriginUser
+                          2 -> CssOriginAuthor
+
   context    <- peekCssContext ptrStructCssContext
   selectors  <- peekArrayOfPointers arrayPtrStructCssSelector selectorsCount peekCssSelector
   declSet    <- peekCssDeclarationSet ptrStructDeclarationSet
   declSetImp <- peekCssDeclarationSet ptrStructDeclarationSetImp
 
-  updatedContext <- makeAndDispatchRule context selectors declSet declSetImp origin
+  let updatedContext = constructAndAddRules context selectors declSet declSetImp origin
 
   pokeCssContext ptrStructCssContext updatedContext
 

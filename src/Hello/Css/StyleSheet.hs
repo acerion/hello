@@ -44,7 +44,12 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
 
                            , styleSheetElementCount
 
-                           , makeAndDispatchRule
+                           , constructAndAddRules
+
+                           , CssOrigin (..)
+                           , CssSheetSelector (..)
+                           , getSheetIndex
+                           , getSheetSelector
                            ) where
 
 
@@ -55,6 +60,7 @@ import Data.List
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.List as L
+import qualified Data.Sequence as S
 import Debug.Trace
 import Control.Monad -- when
 
@@ -212,19 +218,24 @@ data CssContext = CssContext {
 
 
 
-cssPrimaryUserAgent       = 0
-cssPrimaryUser            = 1
-cssPrimaryAuthor          = 2
-cssPrimaryAuthorImportant = 3
-cssPrimaryUserImportant   = 4
-cssPrimaryOrderSize       = 5
+data CssSheetSelector =
+    CssPrimaryUserAgent       -- = 0
+  | CssPrimaryUser            -- = 1
+  | CssPrimaryAuthor          -- = 2
+  | CssPrimaryAuthorImportant -- = 3
+  | CssPrimaryUserImportant   -- = 4
+  | CssPrimaryOrderSize       -- = 5 -- TODO: to be removed
+  deriving (Eq)
 
 
 
 
-cssOriginUserAgent = 0
-cssOriginUser      = 1
-cssOriginAuthor    = 2
+-- Where does a rule come from?
+data CssOrigin =
+    CssOriginUserAgent -- = 0  -- Rule comes from User Agent. It is defined in program's source code.
+  | CssOriginUser      -- = 1
+  | CssOriginAuthor    -- = 2
+
 
 
 
@@ -240,40 +251,68 @@ cssSelectorHasPseudoClass selector = any (\simSel -> not . null . selectorPseudo
 
 
 
-cssContextAddRule :: CssContext -> CssRule -> Int -> CssContext
-cssContextAddRule context rule order =
+cssContextAddRules :: CssContext -> [(Maybe CssRule, CssSheetSelector)] -> CssContext
+cssContextAddRules context []                              = context
+cssContextAddRules context ((Just rule, sheetSelector):xs) = cssContextAddRules (cssContextAddRule context rule sheetSelector) xs
+cssContextAddRules context ((Nothing, _):xs)               = cssContextAddRules context xs
 
+
+
+
+cssContextAddRule :: CssContext -> CssRule -> CssSheetSelector -> CssContext
+cssContextAddRule context rule sheetSelector =
   -- TODO: should we increpement rulePosition in a context, to which a rule
   -- is not being added (in "then" branch)?
-  if (order == cssPrimaryAuthor || order == cssPrimaryAuthorImportant) && (not . cssRuleIsSafe $ rule)
+  if (sheetSelector == CssPrimaryAuthor || sheetSelector == CssPrimaryAuthorImportant) && (not . cssRuleIsSafe $ rule)
   then trace ("[WW] Ignoring unsafe author style that might reveal browsing history") (context{rulePosition = (rulePosition context) + 1})
-  else cssContextAddRule' context{rulePosition = (rulePosition context) + 1} ruleWithOffset order
+  else cssContextAddRule' context ruleWithOffset sheetSelector
 
   where
     -- Set match cache offset of selector.
     ruleWithOffset :: CssRule
     ruleWithOffset = if (-1) == (matchCacheOffset . selector $ rule)
-                     then rule {selector = newSelector . selector $ rule}
-                     else rule
+                     then rule{ selector = newSelector . selector $ rule
+                              , position = rulePosition context
+                              }
+                     else rule{ position = rulePosition context }
       where
         newSelector sel = sel{matchCacheOffset = length . matchCache $ context}
 
 
 
 
-
 -- Add given rule to a style sheet in given context. The style sheet is
--- selected by 'order' argument.
-cssContextAddRule' :: CssContext -> CssRule -> Int -> CssContext
-cssContextAddRule' context rule order = context{ sheets     = listReplaceElem (sheets context) updatedSheet order
-                                               , matchCache = if requiredCacheSize > existingCacheSize
-                                                              then matchCacheResize (matchCache context) requiredCacheSize
-                                                              else (matchCache context)
-                                               }
+-- selected by 'sheetSelector' argument.
+cssContextAddRule' :: CssContext -> CssRule -> CssSheetSelector -> CssContext
+cssContextAddRule' context rule sheetSelector = context{ sheets     = listReplaceElem (sheets context) updatedSheet (getSheetIndex sheetSelector)
+                                                       , matchCache = if requiredCacheSize > existingCacheSize
+                                                                      then matchCacheResize (matchCache context) requiredCacheSize
+                                                                      else (matchCache context)
+                                                       , rulePosition = (rulePosition context) + 1
+                                                       }
   where
-    updatedSheet      = addRuleToStyleSheet ((sheets $ context) !! order) rule
+    updatedSheet      = addRuleToStyleSheet ((sheets $ context) !! (getSheetIndex sheetSelector)) rule
     existingCacheSize = length . matchCache $ context
     requiredCacheSize = getRequiredMatchCache rule
+
+
+
+
+getSheetIndex sheetSelector = case sheetSelector of
+                                CssPrimaryUserAgent       -> 0
+                                CssPrimaryUser            -> 1
+                                CssPrimaryAuthor          -> 2
+                                CssPrimaryAuthorImportant -> 3
+                                CssPrimaryUserImportant   -> 4
+                                CssPrimaryOrderSize       -> 5
+
+getSheetSelector sheetIndex = case sheetIndex of
+                                0 -> CssPrimaryUserAgent
+                                1 -> CssPrimaryUser
+                                2 -> CssPrimaryAuthor
+                                3 -> CssPrimaryAuthorImportant
+                                4 -> CssPrimaryUserImportant
+                                5 -> CssPrimaryOrderSize
 
 
 
@@ -286,8 +325,26 @@ matchCacheResize cache size = newCache
 
 
 
--- TODO: Name of this function is sub-optimal.
---
+makeRulePairs :: [CssSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> [(Maybe CssRule, CssSheetSelector)] -> [(Maybe CssRule, CssSheetSelector)]
+makeRulePairs []     _       _          _      acc = reverse acc
+makeRulePairs (x:xs) declSet declSetImp origin acc =
+  case origin of
+    CssOriginUserAgent -> makeRulePairs xs declSet declSetImp origin ((rule, CssPrimaryUserAgent) : acc)
+    CssOriginUser      -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryUserImportant) : (rule, CssPrimaryUser) : acc)
+    CssOriginAuthor    -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryAuthorImportant) : (rule, CssPrimaryAuthor) : acc)
+
+  where rule    = ruleCtor x declSet
+        ruleImp = ruleCtor x declSetImp
+        ruleCtor sel decls = if not . S.null . items $ decls
+                             then Just CssRule { selector = sel
+                                               , declarationSet = decls
+                                               , specificity = selectorSpecificity sel
+                                               , position = 0 } -- Position of a rule will be set at the moment of inserting the rule to CSS context
+                             else Nothing -- Rule with zero declarations would be useless rule.
+
+
+
+
 -- Given list of selectors, and given declaration sets (regular and
 -- important), for each of the selectors create one rule and add it to
 -- context.
@@ -295,34 +352,11 @@ matchCacheResize cache size = newCache
 -- Each rule can have only one selector, so this function works like this:
 -- "for each selector create a rule with given selector and some
 -- declarations, and put it in appropriate style sheet in the context".
-makeAndDispatchRule :: CssContext -> [CssSelector] -> CssDeclarationSet -> CssDeclarationSet -> Int -> IO CssContext
-makeAndDispatchRule context []     declSet declSetImp _      = return context
-makeAndDispatchRule context (x:xs) declSet declSetImp origin
-  | origin == cssOriginUserAgent = do
-       let updatedContext = if (length . items $ declSet) > 0
-                            then cssContextAddRule context (ruleCtor x declSet (rulePosition context)) cssPrimaryUserAgent
-                            else context
-       makeAndDispatchRule updatedContext xs declSet declSetImp origin
-
-  | origin == cssOriginUser = do
-      let updatedContext = if (length . items $ declSet) > 0
-                           then cssContextAddRule context (ruleCtor x declSet (rulePosition context)) cssPrimaryUser
-                           else context
-
-      let updatedContext2 = if (length . items $ declSetImp) > 0
-                            then cssContextAddRule updatedContext (ruleCtor x declSetImp (rulePosition context)) cssPrimaryUserImportant
-                            else updatedContext
-      makeAndDispatchRule updatedContext2 xs declSet declSetImp origin
-
-  | origin == cssOriginAuthor = do
-      let updatedContext = if (length . items $ declSet) > 0
-                           then cssContextAddRule context (ruleCtor x declSet (rulePosition context)) cssPrimaryAuthor
-                           else context
-
-      let updatedContext2 = if (length . items $ declSetImp) > 0
-                            then cssContextAddRule updatedContext (ruleCtor x declSetImp (rulePosition context)) cssPrimaryAuthorImportant
-                            else updatedContext
-      makeAndDispatchRule updatedContext2 xs declSet declSetImp origin
-
+constructAndAddRules :: CssContext -> [CssSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> CssContext
+constructAndAddRules context []        declSet declSetImp _      = context
+constructAndAddRules context selectors declSet declSetImp origin = updatedContext
   where
-    ruleCtor sel declSet pos = CssRule { selector = sel, declarationSet = declSet, specificity = selectorSpecificity sel, position = pos }
+    updatedContext = cssContextAddRules context rulePairs
+    rulePairs = makeRulePairs selectors declSet declSetImp origin []
+
+
