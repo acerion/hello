@@ -18,6 +18,11 @@
 using namespace dw::core::style;
 
 
+static void alloc_rules_list(c_css_rules_list_t ** list);
+static void alloc_rules_map(c_css_rules_map_t ** map);
+static void alloc_sheet(c_css_style_sheet_t ** sheet);
+
+
 
 
 /* c_css_selector_t methods. */
@@ -262,18 +267,34 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE *
    }
 }
 
+static void alloc_rules_map(c_css_rules_map_t ** map)
+{
+   (*map) = (c_css_rules_map_t *) calloc(1, sizeof (c_css_rules_map_t));
+   for (int r = 0; r < RULES_MAP_SIZE; r++) {
+      alloc_rules_list(&(*map)->c_rules_lists[r]);
+   }
+}
 
+static void alloc_rules_list(c_css_rules_list_t ** list)
+{
+   (*list) = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
+   for (int r = 0; r < RULES_LIST_SIZE; r++) {
+      (*list)->c_rules[r] = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
+   }
+}
 
-void alloc_sheet(c_css_style_sheet_t ** sheet)
+static void alloc_sheet(c_css_style_sheet_t ** sheet)
 {
    (*sheet) = (c_css_style_sheet_t *) calloc(1, sizeof (c_css_style_sheet_t));
 
-   (*sheet)->c_rules_by_id = (c_css_rules_map_t *) calloc(1, sizeof (c_css_rules_map_t));
-   (*sheet)->c_rules_by_class = (c_css_rules_map_t *) calloc(1, sizeof (c_css_rules_map_t));
+   alloc_rules_map(&(*sheet)->c_rules_by_id);
+   alloc_rules_map(&(*sheet)->c_rules_by_class);
+
    for (int j = 0; j < css_style_sheet_n_tags; j++) {
-      (*sheet)->c_rules_by_element[j] = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
+      alloc_rules_list(&(*sheet)->c_rules_by_element[j]);
    }
-   (*sheet)->c_rules_by_any_element = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
+
+   alloc_rules_list(&(*sheet)->c_rules_by_any_element);
 }
 
 c_css_context_t * c_css_context_new(void)

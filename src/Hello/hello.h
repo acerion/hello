@@ -129,16 +129,18 @@ typedef struct c_css_rule_t {
 } c_css_rule_t;
 
 
+#define RULES_LIST_SIZE 1024
 typedef struct c_css_rules_list_t {
-   c_css_rule_t * c_rules[1024];
+   c_css_rule_t * c_rules[RULES_LIST_SIZE];
    int c_rules_size;
 } c_css_rules_list_t;
 
 
 /* Hash map: key: string, value: rules list */
+   #define RULES_MAP_SIZE 1024
 typedef struct c_css_rules_map_t {
-   char * c_strings[1024];
-   c_css_rules_list_t * c_rl[1024];
+   char * c_strings[RULES_MAP_SIZE];
+   c_css_rules_list_t * c_rules_lists[RULES_MAP_SIZE];
    int c_rules_map_size;
 } c_css_rules_map_t;
 
@@ -247,7 +249,7 @@ float hll_cssLengthValue(int cssLength);
 int hll_cssCreateLength(float val, CssLengthType t);
 
 // Return count of selectors in @p selectors
-int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_selector_t * selectors);
+int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_selector_t ** selectors);
 
 int hll_declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * declaration);
 

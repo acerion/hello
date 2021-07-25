@@ -82,7 +82,11 @@ void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
 
 void parseRuleset(CssParser * parser, c_css_context_t * context)
 {
-   c_css_selector_t * selectors = (c_css_selector_t *) calloc(100, sizeof (c_css_selector_t));
+#define SELECTORS_MAX 100
+   c_css_selector_t ** selectors = (c_css_selector_t **) calloc(SELECTORS_MAX, sizeof (c_css_selector_t *));
+   for (int s = 0; s < SELECTORS_MAX; s++) {
+      selectors[s] = (c_css_selector_t *) calloc(1, sizeof (c_css_selector_t *));
+   }
    int selectors_count = hll_cssParseSelectors(&parser->hll_css_parser,
                                                &parser->tokenizer.token,
                                                parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
@@ -113,7 +117,7 @@ void parseRuleset(CssParser * parser, c_css_context_t * context)
    }
 
    for (int i = 0; i < selectors_count; i++) {
-      c_css_selector_t * sel = &selectors[i];
+      c_css_selector_t * sel = selectors[i];
 
       switch (parser->origin) {
       case CSS_ORIGIN_USER_AGENT:

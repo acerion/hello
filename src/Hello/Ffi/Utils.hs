@@ -26,7 +26,7 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 module Hello.Ffi.Utils( ptrCCharToText
-                      , textToPtrCChar
+                      , allocAndPokeCString
 
                       , peekArrayOfPointers
                       , pokeArrayOfPointersWithAlloc
@@ -64,8 +64,8 @@ ptrCCharToText ptr = do
 -- This function allocates memory, but since the goal of this project is to
 -- replace C/C++ code with Haskell code, the allocation will be eventually
 -- removed. So I don't care about deallocating the memory.
-textToPtrCChar :: T.Text -> IO CString
-textToPtrCChar = newCString . T.unpack
+allocAndPokeCString :: T.Text -> IO CString
+allocAndPokeCString = newCString . T.unpack
 
 
 
@@ -118,15 +118,18 @@ pokeArrayOfPointersWithAlloc xs ctor array = pokeArrayOfPointers' xs ctor array 
 -- Set elements of an array. The elements are pointers to already allocated
 -- memory, so a function that sets each element doesn't allocate memory for
 -- the element (the memory is preallocated by owner/creator of the array).
-pokeArrayOfPreallocedPointers :: (Storable b) => [a] -> (a -> Ptr b -> IO ()) -> Ptr (Ptr b) -> IO ()
+--
+-- Order of arguments to setter function is the same as in
+-- https://hackage.haskell.org/package/base-4.15.0.0/docs/Foreign-Storable.html#v:poke
+pokeArrayOfPreallocedPointers :: (Storable b) => [a] -> (Ptr b -> a -> IO ()) -> Ptr (Ptr b) -> IO ()
 pokeArrayOfPreallocedPointers xs setter array = pokeArrayOfPointers' xs setter array 0
   where
-    pokeArrayOfPointers' :: (Storable b) => [a] -> (a -> Ptr b -> IO ()) -> Ptr (Ptr b) -> Int -> IO ()
+    pokeArrayOfPointers' :: (Storable b) => [a] -> (Ptr b -> a -> IO ()) -> Ptr (Ptr b) -> Int -> IO ()
     pokeArrayOfPointers' [] setter array _ = do
       return ()
     pokeArrayOfPointers' (x:xs) setter array idx = do
       ptr :: Ptr b <- peekElemOff array idx
-      setter x ptr
+      setter ptr x
       pokeElemOff array idx ptr
       pokeArrayOfPointers' xs setter array (idx + 1)
 

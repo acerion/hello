@@ -55,6 +55,15 @@ import Hello.Ffi.Utils
 
 
 
+foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
+foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
+foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
+foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
+foreign export ccall "hll_cssContextAddRule" hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
+
+
+
+
 data FfiDoctreeNode = FfiDoctreeNode {
     uniqueNumC      :: CInt -- unique ascending id
   , htmlElementIdxC :: CInt -- Index to html.cc::Tags
@@ -128,28 +137,11 @@ peekDoctreeNode ptrStructDoctreeNode = do
 
 
 
-foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
-foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
-foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
-foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
-foreign export ccall "hll_cssContextAddRule" hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
-
-
-
-
 hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
 hll_simpleSelectorMatches ptrStructSimpleSelector ptrStructDoctreeNode = do
 
   simSel :: CssSimpleSelector <- peekCssSimpleSelector ptrStructSimpleSelector
   dtn    :: DoctreeNode       <- peekDoctreeNode ptrStructDoctreeNode
-{-
-  putStrLn ("FFI: simSel: " ++ show simSel)
-  putStrLn ("FFI: dtn: "
-            ++ "htmlElementIdx = " ++ (show $ htmlElementIdx dtn)
-            ++ ", selPseudoClass = " ++ (show $ selPseudoClass dtn)
-            ++ ", selId = " ++ (show $ selId dtn)
-            ++ ", selClass = " ++ (show $ selClass dtn))
--}
   if simpleSelectorMatches simSel dtn
     then return 1 -- True
     else return 0 -- False
@@ -165,11 +157,11 @@ hll_selectorSpecificity ptrStructCssSelector = do
 
 
 
-
 data FfiCssRulesList = FfiCssRulesList {
     rulesC     :: Ptr (Ptr FfiCssRule)
   , rulesSizeC :: CInt
   } deriving (Show)
+
 
 
 
@@ -208,23 +200,8 @@ pokeCssRulesList ptrStructRulesList list = do
 
   let array :: Ptr (Ptr FfiCssRule) = rulesC ffiRulesList
 
-  pokeArrayOfPointersWithAlloc list pokeCssRule array
+  pokeArrayOfPreallocedPointers list pokeCssRule array
   pokeByteOff ptrStructRulesList (#offset c_css_rules_list_t, c_rules_size) (length list)
-
-
-
-
-pokeCssRulesList2 :: [CssRule] -> Ptr FfiCssRulesList -> IO ()
-pokeCssRulesList2 ptrStructRulesList list = pokeCssRulesList list ptrStructRulesList
-
-
-
-
-aPokeCssRulesList :: [CssRule] -> IO (Ptr FfiCssRulesList)
-aPokeCssRulesList list = do
-  ptrStructCssRulesList <- callocBytes #{size c_css_rules_list_t}
-  pokeCssRulesList ptrStructCssRulesList list
-  return ptrStructCssRulesList
 
 
 
@@ -235,6 +212,7 @@ data FfiCssRule = FfiCssRule {
   , specificityC    :: CInt
   , positionC       :: CInt
   } deriving (Show)
+
 
 
 
@@ -275,13 +253,40 @@ peekCssRule ptrStructCssRule = do
 
 
 
+-- Fill preallocated c_css_rule_t object.
+-- The rule is prealloced, but its members are not (yet).
+pokeCssRule :: Ptr FfiCssRule -> CssRule -> IO ()
+pokeCssRule ptrStructCssRule rule = do
+
+  ptrSelector <- callocBytes #{size c_css_selector_t}
+  pokeCssSelector ptrSelector (selector rule)
+  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_selector} ptrSelector
+
+  ptrDeclSet <- callocBytes #{size c_css_declaration_set_t}
+  pokeCssDeclarationSet ptrDeclSet (declarationSet rule)
+  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_decl_set} ptrDeclSet
+
+  let spec :: CInt = fromIntegral . specificity $ rule
+  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_specificity} spec
+
+  let pos :: CInt = fromIntegral . position $ rule
+  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_position} pos
+
+  return ()
+
+
+
+
+{-
+-- A version of pokeCssRule that allocates the rule. Keeping it for
+-- historical reasons.
 pokeCssRule :: CssRule -> IO (Ptr FfiCssRule)
 pokeCssRule rule = do
 
   ptrStructCssRule <- callocBytes #{size c_css_rule_t}
 
   ptrSelector <- callocBytes #{size c_css_selector_t}
-  updateSelectors ptrSelector [(selector rule)]
+  pokeCssSelector ptrSelector (selector rule)
   pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_selector} ptrSelector
 
   ptrDeclSet <- callocBytes #{size c_css_declaration_set_t}
@@ -295,6 +300,8 @@ pokeCssRule rule = do
   pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_position} pos
 
   return ptrStructCssRule
+-}
+
 
 
 
@@ -312,14 +319,14 @@ instance Storable FfiCssRulesMap where
   alignment _ = #{alignment c_css_rules_map_t}
 
   peek ptr = do
-    let a = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_rules_map_t, c_strings}) ptr
-    let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_rules_map_t, c_rl})      ptr
+    let a = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_rules_map_t, c_strings})     ptr
+    let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_rules_map_t, c_rules_lists}) ptr
     c <- #{peek c_css_rules_map_t, c_rules_map_size} ptr
     return (FfiCssRulesMap a b c)
 
   poke ptr (FfiCssRulesMap a b c) = do
     #{poke c_css_rules_map_t, c_strings}        ptr a
-    #{poke c_css_rules_map_t, c_rl}             ptr b
+    #{poke c_css_rules_map_t, c_rules_lists}    ptr b
     #{poke c_css_rules_map_t, c_rules_map_size} ptr c
 
 
@@ -335,8 +342,6 @@ peekCssRulesMap ptrStructRulesMap = do
 
   let map = M.fromList $ zip keys values
 
-  -- putStrLn ("FFI: map = " ++ (show map))
-
   return map
 
 
@@ -350,29 +355,11 @@ pokeCssRulesMap ptrStructRulesMap map = do
   let values = M.elems map
   let len :: CInt = (fromIntegral . length $ keys)
 
-  pokeArrayOfPointersWithAlloc keys textToPtrCChar (stringsC ffiRulesMap)
-  pokeArrayOfPointersWithAlloc values aPokeCssRulesList (rulesListC ffiRulesMap)
+  pokeArrayOfPointersWithAlloc keys allocAndPokeCString (stringsC ffiRulesMap)
+  pokeArrayOfPreallocedPointers values pokeCssRulesList (rulesListC ffiRulesMap)
   pokeByteOff ptrStructRulesMap (#offset c_css_rules_map_t, c_rules_map_size) len
 
   return ()
-
-
-
-allocAndPokeCssRulesMap :: CssRulesMap -> IO (Ptr FfiCssRulesMap)
-allocAndPokeCssRulesMap map = do
-  ptrStructRulesMap <- callocBytes #{size c_css_rules_map_t}
-
-  ffiRulesMap <- peek ptrStructRulesMap
-
-  let keys = M.keys map
-  let values = M.elems map
-  let len :: CInt = (fromIntegral . length $ keys)
-
-  pokeArrayOfPointersWithAlloc keys textToPtrCChar (stringsC ffiRulesMap)
-  pokeArrayOfPointersWithAlloc values aPokeCssRulesList (rulesListC ffiRulesMap)
-  pokeByteOff ptrStructRulesMap (#offset c_css_rules_map_t, c_rules_map_size) len
-
-  return ptrStructRulesMap
 
 
 
@@ -454,14 +441,15 @@ peekCssStyleSheet ptrStructCssStyleSheet = do
 
 
 
-pokeStyleSheet :: CssStyleSheet -> Ptr FfiCssStyleSheet -> IO ()
-pokeStyleSheet sheet ptrStructStyleSheet = do
+pokeStyleSheet :: Ptr FfiCssStyleSheet -> CssStyleSheet -> IO ()
+pokeStyleSheet ptrStructStyleSheet sheet = do
 
   ffiStyleSheet <- peek ptrStructStyleSheet
 
   pokeCssRulesMap (cRulesById ffiStyleSheet) (rulesById sheet)
   pokeCssRulesMap (cRulesByClass ffiStyleSheet) (rulesByClass sheet)
-  pokeArrayOfPreallocedPointers (rulesByElement sheet) pokeCssRulesList2 (cRulesByElement ffiStyleSheet)
+  pokeArrayOfPreallocedPointers (rulesByElement sheet) pokeCssRulesList (cRulesByElement ffiStyleSheet)
+
   pokeCssRulesList (cRulesByAnyElement ffiStyleSheet) (rulesByAnyElement sheet)
 
   let cache :: CInt = fromIntegral . requiredMatchCache $ sheet
@@ -486,6 +474,7 @@ data FfiCssMatchCache = FfiCssMatchCache {
     cCacheItems     :: Ptr CInt
   , cCacheItemsSize :: CInt
   } deriving (Show)
+
 
 
 
@@ -608,9 +597,8 @@ pokeCssContext ptrStructContext context = do
 hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
 hll_cssContextAddRule ptrStructCssContext ptrStructCssRule cOrder = do
 
-  ffiContext <- peek ptrStructCssContext
   context    <- peekCssContext ptrStructCssContext
-  rule <- peekCssRule ptrStructCssRule
+  rule       <- peekCssRule ptrStructCssRule
   let order :: Int = fromIntegral cOrder
 
   let updatedContext = cssContextAddRule context rule order

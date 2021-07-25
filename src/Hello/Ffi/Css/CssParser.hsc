@@ -30,7 +30,7 @@ module Hello.Ffi.Css.Parser( FfiCssSimpleSelector (..)
 
                            , FfiCssSelector (..)
                            , peekCssSelector
-                           , updateSelectors
+                           , pokeCssSelector
 
                            , FfiCssDeclarationSet (..)
                            , peekCssDeclarationSet
@@ -74,7 +74,7 @@ foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Int -> IO Int
 foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
 foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
 
-foreign export ccall "hll_cssParseSelectors" hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssSelector -> IO Int
+foreign export ccall "hll_cssParseSelectors" hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr (Ptr FfiCssSelector) -> IO Int
 
 foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
@@ -87,7 +87,13 @@ foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declaration
 foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 
+
+
+
 #include "../../hello.h"
+
+
+
 
 data FfiCssParser = FfiCssParser {
     spaceSeparatedC :: CInt
@@ -391,16 +397,41 @@ peekCssSimpleSelector ptrStructSimpleSelector = do
 
 
 
+-- Save given Haskell simple selector to C simple selector.
+-- https://downloads.haskell.org/~ghc/7.0.3/docs/html/users_guide/hsc2hs.html
+pokeCssSimpleSelector :: Ptr FfiCssSimpleSelector -> CssSimpleSelector -> IO ()
+pokeCssSimpleSelector ptrStructSimpleSelector simpleSelector = do
+  cStringPtrSelId <- if T.null . selectorId $ simpleSelector
+                     then return nullPtr
+                     else newCString . T.unpack . selectorId $ simpleSelector
+
+  ffiSimSel <- peek ptrStructSimpleSelector
+
+  pokeArrayOfPointersWithAlloc (selectorClass simpleSelector) allocAndPokeCString (selectorClassC ffiSimSel)
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class_size) (length . selectorClass $ simpleSelector)
+
+  pokeArrayOfPointersWithAlloc (selectorPseudoClass simpleSelector) allocAndPokeCString (selectorPseudoClassC ffiSimSel)
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class_size) (length . selectorPseudoClass $ simpleSelector)
+
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_id) cStringPtrSelId
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_element) (selectorElement simpleSelector)
+
+  let comb :: CInt = cssCombinatorDataToInt . combinator $ simpleSelector
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_combinator) comb
+
+
+
+
 -- Get pointer to newly allocated pointer to C structure representing given
 -- simple selector.
 --
 -- This function allocates memory, but since the goal of this project is to
 -- replace C/C++ code with Haskell code, the allocation will be eventually
 -- removed. So I don't care about deallocating the memory.
-pokeCssSimpleSelector :: CssSimpleSelector -> IO (Ptr FfiCssSimpleSelector)
-pokeCssSimpleSelector simSel = do
+allocAndPokeCssSimpleSelector :: CssSimpleSelector -> IO (Ptr FfiCssSimpleSelector)
+allocAndPokeCssSimpleSelector simSel = do
   ptrStructSimpleSelector <- callocBytes #{size c_css_simple_selector_t}
-  setSimpleSelector ptrStructSimpleSelector simSel
+  pokeCssSimpleSelector ptrStructSimpleSelector simSel
   return ptrStructSimpleSelector
 
 
@@ -458,68 +489,19 @@ peekCssSelector ptrStructCssSelector = do
 
 
 
+pokeCssSelector :: Ptr FfiCssSelector -> CssSelector -> IO ()
+pokeCssSelector ptrStructCssSelector selector = do
 
+  ffiSel <- peek ptrStructCssSelector
 
--- Save given Haskell simple selector to C simple selector.
--- https://downloads.haskell.org/~ghc/7.0.3/docs/html/users_guide/hsc2hs.html
-setSimpleSelector :: Ptr FfiCssSimpleSelector -> CssSimpleSelector -> IO ()
-setSimpleSelector ptrStructSimpleSelector simpleSelector = do
-  cStringPtrSelId <- if T.null . selectorId $ simpleSelector
-                     then return nullPtr
-                     else newCString . T.unpack . selectorId $ simpleSelector
-
-  ffiSimSel <- peek ptrStructSimpleSelector
-
-  pokeArrayOfPointersWithAlloc (selectorClass simpleSelector) textToPtrCChar (selectorClassC ffiSimSel)
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class_size) (length . selectorClass $ simpleSelector)
-
-  pokeArrayOfPointersWithAlloc (selectorPseudoClass simpleSelector) textToPtrCChar (selectorPseudoClassC ffiSimSel)
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class_size) (length . selectorPseudoClass $ simpleSelector)
-
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_id) cStringPtrSelId
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_element) (selectorElement simpleSelector)
-
-  let comb :: CInt = cssCombinatorDataToInt . combinator $ simpleSelector
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_combinator) comb
+  pokeArrayOfPointersWithAlloc (simpleSelectors selector) allocAndPokeCssSimpleSelector (cSimpleSelectors ffiSel)
+  pokeByteOff ptrStructCssSelector (#offset c_css_selector_t, c_simple_selectors_size) (length . simpleSelectors $ selector)
 
 
 
 
-hll_cssParseSelector :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO (Ptr FfiCssSelector)
-hll_cssParseSelector ptrStructCssParser ptrStructCssToken cBuf = do
-  buf       <- BSU.unsafePackCString $ cBuf
-  ffiParser <- peek ptrStructCssParser
-
-  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
-                            }
-
-  ffiToken <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
-  let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
-
-  let ((newParser, newToken), newSelector) = parseSelector (parser, token)
-
-  updateParserStruct ptrStructCssParser newParser
-  updateTokenStruct ptrStructCssToken newToken
-
-  case newSelector of
-    Just sel -> do
-      ptrStructSelector <- callocBytes #{size c_css_selector_t}
-      ffiSel <- peek ptrStructSelector
-      pokeArrayOfPointersWithAlloc (simpleSelectors sel) pokeCssSimpleSelector (cSimpleSelectors ffiSel)
-      pokeByteOff ptrStructSelector (#offset c_css_selector_t, c_simple_selectors_size) (length . simpleSelectors $ sel)
-      return ptrStructSelector
-    Nothing ->
-      return nullPtr
-
-
-
-
-hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssSelector -> IO Int
-hll_cssParseSelectors ptrStructCssParser ptrStructCssToken cBuf ptrStructCssSelector = do
+hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr (Ptr FfiCssSelector) -> IO Int
+hll_cssParseSelectors ptrStructCssParser ptrStructCssToken cBuf arrayPtrStructCssSelector = do
   buf       <- BSU.unsafePackCString $ cBuf
   ffiParser <- peek ptrStructCssParser
 
@@ -537,23 +519,9 @@ hll_cssParseSelectors ptrStructCssParser ptrStructCssToken cBuf ptrStructCssSele
 
   updateParserStruct ptrStructCssParser newParser
   updateTokenStruct ptrStructCssToken newToken
-  updateSelectors ptrStructCssSelector selectors
+  pokeArrayOfPreallocedPointers selectors pokeCssSelector arrayPtrStructCssSelector
 
   return (length selectors)
-
-
-
-
-updateSelectors :: Ptr FfiCssSelector -> [CssSelector] -> IO ()
-updateSelectors ptr (s:ss) = do
-
-  ffiSel <- peek ptr
-
-  pokeArrayOfPointersWithAlloc (simpleSelectors s) pokeCssSimpleSelector (cSimpleSelectors ffiSel)
-  pokeByteOff ptr (#offset c_css_selector_t, c_simple_selectors_size) (length . simpleSelectors $ s)
-
-  updateSelectors (advancePtr ptr 1) ss
-updateSelectors ptr [] = return ()
 
 
 
@@ -602,8 +570,8 @@ peekCssDeclaration ptr = do
 
 
 
-pokeCssDeclaration :: CssDeclaration -> IO (Ptr FfiCssDeclaration)
-pokeCssDeclaration declaration = do
+allocAndPokeCssDeclaration :: CssDeclaration -> IO (Ptr FfiCssDeclaration)
+allocAndPokeCssDeclaration declaration = do
   let textVal = case declValue declaration of
                   CssValueTypeString t     -> t
                   CssValueTypeStringList t -> t
@@ -725,7 +693,7 @@ pokeCssDeclarationSet ptrStructDeclarationSet newDeclSet = do
   let cCount  :: CInt = fromIntegral . length . items $ newDeclSet
 
   pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_is_safe) cIsSafe
-  pokeArrayOfPointersWithAlloc (Foldable.toList . items $ newDeclSet) pokeCssDeclaration (ptrDeclarationsC ffiDeclSet)
+  pokeArrayOfPointersWithAlloc (Foldable.toList . items $ newDeclSet) allocAndPokeCssDeclaration (ptrDeclarationsC ffiDeclSet)
   pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_declarations_size) cCount
   --poke ptrStructDeclarationSet $ FfiCssDeclarationSet cIsSafe (ptrDeclarationsC ffiDeclSet) cCount -- TODO: why setting "array of pointers" field doesn't work?
 
