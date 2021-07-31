@@ -52,6 +52,11 @@ typedef struct c_css_parser_t {
    int c_space_separated;
    int c_buf_offset;
    int c_in_block;
+
+   const char * c_parser_buf;
+   int c_parser_buflen;
+
+   int c_origin; // CssOrigin
 } c_css_parser_t;
 
 
@@ -231,13 +236,13 @@ int hll_htmlTagIndex(const char * tagName);
 
 /* CssParser */
 /* Token value is returned through return statement. */
-char * hll_nextToken(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
+char * hll_nextToken(c_css_parser_t * hll_parser, c_css_token_t * token);
 /* Function returns color through return statement. */
 //int hll_parseRgbFunction(c_css_parser_t * hll_parser, const char * remainder);
 
-char * hll_declarationValueAsString(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, int valueType, int property);
-int hll_ignoreBlock(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
-int hll_ignoreStatement(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder);
+char * hll_declarationValueAsString(c_css_parser_t * hll_parser, c_css_token_t * token, int valueType, int property);
+int hll_ignoreBlock(c_css_parser_t * hll_parser, c_css_token_t * token);
+int hll_ignoreStatement(c_css_parser_t * hll_parser, c_css_token_t * token);
 
 int hll_cssShorthandInfoIdxByName(const char * shorthandName);
 int hll_cssPropertyInfoIdxByName(const char * propertyName);
@@ -249,11 +254,11 @@ float hll_cssLengthValue(int cssLength);
 int hll_cssCreateLength(float val, CssLengthType t);
 
 // Return count of selectors in @p selectors
-int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder, c_css_selector_t ** selectors);
+int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, c_css_selector_t ** selectors);
 
 int hll_declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * declaration);
 
-void hll_parseDeclarationWrapper(c_css_parser_t * hll_parser, c_css_token_t * token, const char * remainder,
+void hll_parseDeclarationWrapper(c_css_parser_t * hll_parser, c_css_token_t * token,
                                  c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant);
 
 void hll_declarationListAppend(c_css_declaration_set_t * target, const c_css_declaration_set_t * source);

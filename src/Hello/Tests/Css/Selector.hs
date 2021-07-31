@@ -14,7 +14,7 @@ where
 import qualified Data.Text as T
 import Test.HUnit
 import System.Exit
-import CssParser
+import Hello.Css.Parser
 import Hello.Utils
 import Debug.Trace
 

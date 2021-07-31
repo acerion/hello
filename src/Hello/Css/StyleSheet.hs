@@ -46,7 +46,6 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
 
                            , constructAndAddRules
 
-                           , CssOrigin (..)
                            , CssSheetSelector (..)
                            , getSheetIndex
                            , getSheetSelector
@@ -64,7 +63,7 @@ import qualified Data.Sequence as S
 import Debug.Trace
 import Control.Monad -- when
 
-import CssParser
+import Hello.Css.Parser
 import Css
 import Hello.Utils
 
@@ -226,15 +225,6 @@ data CssSheetSelector =
   | CssPrimaryUserImportant   -- = 4
   | CssPrimaryOrderSize       -- = 5 -- TODO: to be removed
   deriving (Eq)
-
-
-
-
--- Where does a rule come from?
-data CssOrigin =
-    CssOriginUserAgent -- = 0  -- Rule comes from User Agent. It is defined in program's source code.
-  | CssOriginUser      -- = 1
-  | CssOriginAuthor    -- = 2
 
 
 

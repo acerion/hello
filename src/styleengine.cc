@@ -937,7 +937,7 @@ void StyleEngine::parse (DilloHtml *html, DilloUrl *url, const char *buf,
    }
 
    importDepth++;
-   CssParser::parse (html, url, cssContext, buf, buflen, origin);
+   parseCss(html, url, cssContext, buf, buflen, origin);
    importDepth--;
 }
 
@@ -1006,8 +1006,7 @@ void StyleEngine::init () {
 
    /* Initialize 'user agent' sheet. All other sheets will be discarded. */
    c_css_context_t * context = c_css_context_new();
-   CssParser::parse (NULL, NULL, context, cssBuf, strlen (cssBuf),
-                     CSS_ORIGIN_USER_AGENT);
+   parseCss(NULL, NULL, context, cssBuf, strlen (cssBuf), CSS_ORIGIN_USER_AGENT);
    free(context); // Leaking memory here. Will be solved by migrating this code to Haskell.
 }
 
@@ -1016,7 +1015,7 @@ void StyleEngine::buildUserStyle () {
    char *filename = dStrconcat(dGethomedir(), "/.dillo/style.css", NULL);
 
    if ((style = a_Misc_file2dstr(filename))) {
-      CssParser::parse (NULL,NULL,cssContext,style->str, style->len,CSS_ORIGIN_USER);
+      parseCss(NULL,NULL,cssContext,style->str, style->len,CSS_ORIGIN_USER);
       dStr_free (style, 1);
    }
    dFree (filename);

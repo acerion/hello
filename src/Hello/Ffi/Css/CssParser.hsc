@@ -35,6 +35,8 @@ module Hello.Ffi.Css.Parser( FfiCssSimpleSelector (..)
                            , FfiCssDeclarationSet (..)
                            , peekCssDeclarationSet
                            , pokeCssDeclarationSet
+
+                           , getCssOrigin
                            )
   where
 
@@ -59,28 +61,28 @@ import Control.Applicative
 import Control.Monad -- when
 import Debug.Trace
 
-import CssParser
+import Hello.Css.Parser
 import Hello.Ffi.Utils
 
 
 
 
-foreign export ccall "hll_nextToken" hll_nextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO CString
-foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Int -> Int -> IO CString
-foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO Int
-foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO Int
+foreign export ccall "hll_nextToken" hll_nextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO CString
+foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> Int -> IO CString
+foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
+foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 
 foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Int -> IO Int
 foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
 foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
 
-foreign export ccall "hll_cssParseSelectors" hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr (Ptr FfiCssSelector) -> IO Int
+foreign export ccall "hll_cssParseSelectors" hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr (Ptr FfiCssSelector) -> IO Int
 
 foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
-foreign export ccall "hll_parseDeclarationWrapper" hll_parseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+foreign export ccall "hll_parseDeclarationWrapper" hll_parseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 
 foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
 
@@ -99,14 +101,10 @@ data FfiCssParser = FfiCssParser {
     spaceSeparatedC :: CInt
   , bufOffsetC      :: CInt
   , inBlockC        :: CInt
-  } deriving (Show)
 
-
-
-
-data FfiCssToken = FfiCssToken {
-    typeC  :: CInt
-  , valueC :: CString
+  , cParserBuf      :: Ptr CChar
+  , cParserBuflen   :: CInt
+  , cCssOrigin      :: CInt
   } deriving (Show)
 
 
@@ -116,16 +114,64 @@ instance Storable FfiCssParser where
   sizeOf    _ = #{size c_css_parser_t}
   alignment _ = #{alignment c_css_parser_t}
 
-  poke ptr (FfiCssParser argSpaceSeparated argBufOffset argInBlock) = do
-    #{poke c_css_parser_t, c_space_separated} ptr argSpaceSeparated
-    #{poke c_css_parser_t, c_buf_offset}      ptr argBufOffset
-    #{poke c_css_parser_t, c_in_block}        ptr argInBlock
-
   peek ptr = do
     a <- #{peek c_css_parser_t, c_space_separated} ptr
     b <- #{peek c_css_parser_t, c_buf_offset}      ptr
     c <- #{peek c_css_parser_t, c_in_block}        ptr
-    return (FfiCssParser a b c)
+    d <- #{peek c_css_parser_t, c_parser_buf}      ptr
+    e <- #{peek c_css_parser_t, c_parser_buflen}   ptr
+    f <- #{peek c_css_parser_t, c_origin}          ptr
+    return (FfiCssParser a b c d e f)
+
+  poke ptr (FfiCssParser argSpaceSeparated argBufOffset argInBlock argBuf argBuflen argOrigin) = do
+    #{poke c_css_parser_t, c_space_separated} ptr argSpaceSeparated
+    #{poke c_css_parser_t, c_buf_offset}      ptr argBufOffset
+    #{poke c_css_parser_t, c_in_block}        ptr argInBlock
+    -- #{poke c_css_parser_t, c_parser_buf}      ptr argBuf
+    -- #{poke c_css_parser_t, c_parser_buflen}   ptr argBuflen
+    #{poke c_css_parser_t, c_origin}          ptr argOrigin
+
+
+
+
+peekCssParser :: Ptr FfiCssParser -> IO CssParser
+peekCssParser ptrStructCssParser = do
+  ffiParser <- peek ptrStructCssParser
+
+  let buf           = cParserBuf ffiParser
+  let offset        = fromIntegral . bufOffsetC $ ffiParser
+  let bufWithOffset = plusPtr buf offset
+  rem <- ptrCCharToText bufWithOffset
+
+  let parser = defaultParser{ remainder      = rem
+                            , inBlock        = (fromIntegral . inBlockC $ ffiParser) /= 0
+                            , bufOffset      = offset
+                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
+                            , cssOrigin      = getCssOrigin . fromIntegral . cCssOrigin $ ffiParser
+                            }
+  return parser
+
+
+
+pokeCssParser :: Ptr FfiCssParser -> CssParser -> IO ()
+pokeCssParser ptrStructCssParser parser = do
+  let sep = if spaceSeparated parser then 1 else 0
+  let off = fromIntegral . bufOffset $ parser
+  let blk = if inBlock parser then 1 else 0
+
+  let doesntMatter = 0
+  let len = doesntMatter
+  let origin = fromIntegral . getIntOrigin . cssOrigin $ parser
+
+  poke ptrStructCssParser $ FfiCssParser sep off blk nullPtr len origin
+
+
+
+
+data FfiCssToken = FfiCssToken {
+    typeC  :: CInt
+  , valueC :: CString
+  } deriving (Show)
 
 
 
@@ -146,37 +192,52 @@ instance Storable FfiCssToken where
 
 
 
-hll_nextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO CString
-hll_nextToken ptrStructCssParser ptrStructCssToken cBuf = do
-  buf       <- BSU.unsafePackCString cBuf
-  ffiParser <- peek ptrStructCssParser
-
-  let (newParser, newToken) = nextToken defaultParser{ remainder = T.E.decodeLatin1 buf
-                                                     , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
-                                                     , bufOffset = fromIntegral . bufOffsetC $ ffiParser
-                                                     , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
-                                                     }
-
-  updateParserStruct ptrStructCssParser newParser
-  updateTokenStruct ptrStructCssToken newToken
-
-  cstr newToken
-
-
-
--- Set fields in pointer to struct passed from C code.
-updateParserStruct :: Ptr FfiCssParser -> CssParser -> IO ()
-updateParserStruct ptrStructCssParser parser = do
-  poke ptrStructCssParser $ FfiCssParser (if spaceSeparated parser then 1 else 0) (fromIntegral . bufOffset $ parser) (if inBlock parser then 1 else 0)
+peekCssToken :: Ptr FfiCssToken -> IO CssToken
+peekCssToken ptrStructCssToken = do
+  ffiToken <- peek ptrStructCssToken
+  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
+  let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
+  return token
 
 
 
 
 -- Set fields in pointer to struct passed from C code.
-updateTokenStruct :: Ptr FfiCssToken-> CssToken -> IO ()
-updateTokenStruct ptrStructCssToken token = do
+pokeCssToken :: Ptr FfiCssToken-> CssToken -> IO ()
+pokeCssToken ptrStructCssToken token = do
   s <- cstr token
   poke ptrStructCssToken $ FfiCssToken (getTokenType token) s
+
+
+
+
+getTokenType (CssTokIdent  _) = 0
+getTokenType (CssTokStr  _)   = 1
+getTokenType (CssTokCh   _)   = 2
+getTokenType (CssTokEnd)      = 3
+getTokenType _                = 4
+
+
+
+
+getTokenADT tokType tokValue | tokType == 0 = CssTokIdent tokValue
+                             | tokType == 1 = CssTokStr tokValue
+                             | tokType == 2 = CssTokCh  (T.head tokValue)
+                             | tokType == 3 = CssTokEnd
+
+
+
+
+hll_nextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO CString
+hll_nextToken ptrStructCssParser ptrStructCssToken = do
+  parser <- peekCssParser ptrStructCssParser
+
+  let (newParser, newToken) = nextToken parser
+
+  pokeCssParser ptrStructCssParser newParser
+  pokeCssToken ptrStructCssToken newToken
+
+  cstr newToken
 
 
 
@@ -195,25 +256,15 @@ cstr token = case token of
 
 
 
-hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Int -> Int -> IO CString
-hll_declarationValueAsString ptrStructCssParser ptrStructCssToken cBuf valueType property = do
-  buf       <- BSU.unsafePackCString $ cBuf
-  ffiParser <- peek ptrStructCssParser
-
-  let parser = defaultParser{ remainder   = T.E.decodeLatin1 buf
-                            , inBlock     = (fromIntegral . inBlockC $ ffiParser) /= 0
-                            , bufOffset   = fromIntegral . bufOffsetC $ ffiParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
-                            }
-
-  ffiToken <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
-  let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
+hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> Int -> IO CString
+hll_declarationValueAsString ptrStructCssParser ptrStructCssToken valueType property = do
+  parser <- peekCssParser ptrStructCssParser
+  token  <- peekCssToken ptrStructCssToken
 
   let pair@((newParser, newToken), textVal) = declValueAsString valueType (parser, token) (cssPropertyInfo V.! property)
 
-  updateParserStruct ptrStructCssParser newParser
-  updateTokenStruct ptrStructCssToken newToken
+  pokeCssParser ptrStructCssParser newParser
+  pokeCssToken ptrStructCssToken newToken
 
   case textVal of
     Just t -> newCString . T.unpack $ t
@@ -222,55 +273,26 @@ hll_declarationValueAsString ptrStructCssParser ptrStructCssToken cBuf valueType
 
 
 
-hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO Int
-hll_ignoreBlock ptrStructCssParser ptrStructCssToken cBuf = do
-  buf       <- BSU.unsafePackCString $ cBuf
-  ffiParser <- peek ptrStructCssParser
-  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
-                            }
+hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
+hll_ignoreBlock ptrStructCssParser ptrStructCssToken = do
+  parser <- peekCssParser ptrStructCssParser
 
   let (newParser, newToken) = ignoreBlock parser -- TODO: shouldn't we pass current token to the function?
-  updateParserStruct ptrStructCssParser newParser
-  updateTokenStruct ptrStructCssToken newToken
+  pokeCssParser ptrStructCssParser newParser
+  pokeCssToken ptrStructCssToken newToken
   return 0
 
 
 
 
-hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> IO Int
-hll_ignoreStatement ptrStructCssParser ptrStructCssToken cBuf = do
-  buf       <- BSU.unsafePackCString $ cBuf
-  ffiParser <- peek ptrStructCssParser
-  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
-                            }
+hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
+hll_ignoreStatement ptrStructCssParser ptrStructCssToken = do
+  parser <- peekCssParser ptrStructCssParser
 
   let (newParser, newToken) = ignoreBlock parser -- TODO: shouldn't we pass current token to the function?
-  updateParserStruct ptrStructCssParser newParser
-  updateTokenStruct ptrStructCssToken newToken
+  pokeCssParser ptrStructCssParser newParser
+  pokeCssToken ptrStructCssToken newToken
   return 0
-
-
-
-
-getTokenType (CssTokIdent  _) = 0
-getTokenType (CssTokStr  _) = 1
-getTokenType (CssTokCh   _) = 2
-getTokenType (CssTokEnd)    = 3
-getTokenType _              = 4
-
-
-
-
-getTokenADT tokType tokValue | tokType == 0 = CssTokIdent tokValue
-                             | tokType == 1 = CssTokStr tokValue
-                             | tokType == 2 = CssTokCh  (T.head tokValue)
-                             | tokType == 3 = CssTokEnd
 
 
 
@@ -500,25 +522,15 @@ pokeCssSelector ptrStructCssSelector selector = do
 
 
 
-hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr (Ptr FfiCssSelector) -> IO Int
-hll_cssParseSelectors ptrStructCssParser ptrStructCssToken cBuf arrayPtrStructCssSelector = do
-  buf       <- BSU.unsafePackCString $ cBuf
-  ffiParser <- peek ptrStructCssParser
-
-  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
-                            }
-
-  ffiToken <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
-  let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
+hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr (Ptr FfiCssSelector) -> IO Int
+hll_cssParseSelectors ptrStructCssParser ptrStructCssToken arrayPtrStructCssSelector = do
+  parser <- peekCssParser ptrStructCssParser
+  token  <- peekCssToken ptrStructCssToken
 
   let ((newParser, newToken), selectors) = parseSelectors (parser, token)
 
-  updateParserStruct ptrStructCssParser newParser
-  updateTokenStruct ptrStructCssToken newToken
+  pokeCssParser ptrStructCssParser newParser
+  pokeCssToken ptrStructCssToken newToken
   pokeArrayOfPreallocedPointers selectors pokeCssSelector arrayPtrStructCssSelector
 
   return (length selectors)
@@ -702,28 +714,18 @@ pokeCssDeclarationSet ptrStructDeclarationSet newDeclSet = do
 
 
 
-hll_parseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> CString -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken cBuf ptrStructCssDeclarationSet ptrStructCssDeclarationSetImp = do
-  buf       <- BSU.unsafePackCString $ cBuf
-  ffiParser <- peek ptrStructCssParser
-
-  let parser = defaultParser{ remainder = T.E.decodeLatin1 buf
-                            , inBlock   = (fromIntegral . inBlockC $ ffiParser) /= 0
-                            , bufOffset = fromIntegral . bufOffsetC $ ffiParser
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
-                            }
-
-  ffiToken <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
-  let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
+hll_parseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken ptrStructCssDeclarationSet ptrStructCssDeclarationSetImp = do
+  parser <- peekCssParser ptrStructCssParser
+  token  <- peekCssToken ptrStructCssToken
 
   declSet    :: CssDeclarationSet <- peekCssDeclarationSet ptrStructCssDeclarationSet
   declSetImp :: CssDeclarationSet <- peekCssDeclarationSet ptrStructCssDeclarationSetImp
 
   let ((newParser, newToken), (newDeclSet, newDeclSetImp)) = parseDeclarationWrapper2 (parser, token) (declSet, declSetImp)
 
-  updateParserStruct ptrStructCssParser newParser
-  updateTokenStruct ptrStructCssToken newToken
+  pokeCssParser ptrStructCssParser newParser
+  pokeCssToken ptrStructCssToken newToken
 
   pokeCssDeclarationSet ptrStructCssDeclarationSet newDeclSet
   pokeCssDeclarationSet ptrStructCssDeclarationSetImp newDeclSetImp
@@ -846,3 +848,21 @@ cssCombinatorDataToInt d = case d of
                              CssCombinatorDescendant      -> 1
                              CssCombinatorChild           -> 2
                              CssCombinatorAdjacentSibling -> 3
+
+
+
+
+getCssOrigin :: Int -> CssOrigin
+getCssOrigin o = case o of
+                   0 -> CssOriginUserAgent
+                   1 -> CssOriginUser
+                   2 -> CssOriginAuthor
+
+
+
+
+getIntOrigin :: CssOrigin -> Int
+getIntOrigin origin = case origin of
+                        CssOriginUserAgent -> 0
+                        CssOriginUser      -> 1
+                        CssOriginAuthor    -> 2

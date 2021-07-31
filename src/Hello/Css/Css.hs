@@ -35,7 +35,7 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import Data.Bits
 import Debug.Trace
-import CssParser
+import Hello.Css.Parser
 
 
 

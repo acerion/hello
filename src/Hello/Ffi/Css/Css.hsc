@@ -21,7 +21,10 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
 
-module Hello.Ffi.Css.Misc() where
+module Hello.Ffi.Css.Misc( peekCssContext
+                         , pokeCssContext
+                         )
+  where
 
 
 
@@ -41,7 +44,7 @@ import qualified Data.List as L
 import Control.Monad -- when
 import Debug.Trace
 
-import CssParser
+import Hello.Css.Parser
 import Css
 import Hello.Css.StyleSheet
 import Hello.Ffi.Css.Parser
@@ -614,10 +617,7 @@ hll_constructAndAddRules :: Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CIn
 hll_constructAndAddRules ptrStructCssContext arrayPtrStructCssSelector cSelsCount ptrStructDeclarationSet ptrStructDeclarationSetImp cOrig = do
 
   let selectorsCount = fromIntegral cSelsCount
-  let origin         =  case fromIntegral cOrig of
-                          0 -> CssOriginUserAgent
-                          1 -> CssOriginUser
-                          2 -> CssOriginAuthor
+  let origin         = getCssOrigin . fromIntegral $ cOrig
 
   context    <- peekCssContext ptrStructCssContext
   selectors  <- peekArrayOfPointers arrayPtrStructCssSelector selectorsCount peekCssSelector

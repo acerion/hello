@@ -36,33 +36,35 @@ using namespace dw::core::style;
 #define DEBUG_LEVEL 10
 
 
-void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
-void ignoreBlock(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
-void ignoreStatement(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser);
+void nextToken(c_css_parser_t * hll_parser, c_css_token_t * token);
+void parseDeclaration(CssParser * parser, c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant);
+void parseRuleset(CssParser * parser, c_css_context_t * context);
+void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url);
+void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
+
 
 
 /* ----------------------------------------------------------------------
  *    Parsing
  * ---------------------------------------------------------------------- */
 
-CssParser::CssParser(c_css_context_t * context, CssOrigin origin,
+CssParser::CssParser(CssOrigin origin,
                      const DilloUrl *baseUrl,
                      const char *buf, int buflen)
 {
-   this->context_ = context;
-   this->origin = origin;
-   this->tokenizer.buf = buf;
-   this->tokenizer.buflen = buflen;
-   this->hll_css_parser.c_in_block = false;
-   this->hll_css_parser.c_space_separated = false;
-   this->hll_css_parser.c_buf_offset = 0;
-   this->baseUrl = baseUrl;
+   this->m_parser.c_parser_buf = buf;
+   this->m_parser.c_parser_buflen = buflen;
+   this->m_parser.c_in_block = false;
+   this->m_parser.c_space_separated = false;
+   this->m_parser.c_buf_offset = 0;
+   this->m_parser.c_origin = origin;
+   this->m_base_url = baseUrl;
 
-   nextToken(&this->tokenizer, &this->hll_css_parser);
+   nextToken(&this->m_parser, &this->m_token);
 }
 
 
-void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
+void nextToken(c_css_parser_t * hll_parser, c_css_token_t * token)
 {
 #if 0
    fprintf(stderr, "before:\n");
@@ -70,7 +72,7 @@ void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
    fprintf(stderr, "hll_css_parser->c_buf_offset      = %d\n", hll_css_parser->c_buf_offset);
    fprintf(stderr, "hll_css_parser->c_in_block        = %d\n", hll_css_parser->c_in_block);
 #endif
-   char * tokenValue = hll_nextToken(hll_css_parser, &tokenizer->token, tokenizer->buf + hll_css_parser->c_buf_offset);
+   char * tokenValue = hll_nextToken(hll_parser, token);
 #if 0
    fprintf(stderr, "after:\n");
    fprintf(stderr, "hll_css_parser->c_space_separated = %d\n", hll_css_parser->c_space_separated);
@@ -80,71 +82,65 @@ void nextToken(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
 #endif
 }
 
-void parseRuleset(CssParser * parser, c_css_context_t * context)
+void parseRuleset(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context)
 {
 #define SELECTORS_MAX 100
    c_css_selector_t ** selectors = (c_css_selector_t **) calloc(SELECTORS_MAX, sizeof (c_css_selector_t *));
    for (int s = 0; s < SELECTORS_MAX; s++) {
       selectors[s] = (c_css_selector_t *) calloc(1, sizeof (c_css_selector_t *));
    }
-   int selectors_count = hll_cssParseSelectors(&parser->hll_css_parser,
-                                               &parser->tokenizer.token,
-                                               parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
-                                               selectors);
+   int selectors_count = hll_cssParseSelectors(parser, token, selectors);
 
    c_css_declaration_set_t * declList = declarationListNew();
    c_css_declaration_set_t * declListImportant = declarationListNew();
 
    /* Read block. ('{' has already been read.) */
-   if (parser->tokenizer.token.c_type != CSS_TOKEN_TYPE_END) {
+   if (token->c_type != CSS_TOKEN_TYPE_END) {
 
-      parser->hll_css_parser.c_in_block = true;
-      nextToken(&parser->tokenizer, &parser->hll_css_parser);
+      parser->c_in_block = true;
+      nextToken(parser, token);
       do {
-         hll_parseDeclarationWrapper(&parser->hll_css_parser, &parser->tokenizer.token, parser->tokenizer.buf + parser->hll_css_parser.c_buf_offset,
-                                     declList, declListImportant);
-      } while (!(parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_END || (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == '}')));
-      parser->hll_css_parser.c_in_block = false;
+         hll_parseDeclarationWrapper(parser, token, declList, declListImportant);
+      } while (!(token->c_type == CSS_TOKEN_TYPE_END || (token->c_type == CSS_TOKEN_TYPE_CHAR && token->c_value[0] == '}')));
+      parser->c_in_block = false;
    }
 
    // Construct rules from selectors and delcarations, and add them to context
-   hll_constructAndAddRules(context, selectors, selectors_count, declList, declListImportant, parser->origin);
+   hll_constructAndAddRules(context, selectors, selectors_count, declList, declListImportant, (CssOrigin) parser->c_origin);
 
-   if (parser->tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && parser->tokenizer.token.c_value[0] == '}')
-      nextToken(&parser->tokenizer, &parser->hll_css_parser);
+   if (token->c_type == CSS_TOKEN_TYPE_CHAR && token->c_value[0] == '}') {
+      nextToken(parser, token);
+   }
 }
 
-void CssParser::parseImport(DilloHtml *html)
+void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)
 {
    char *urlStr = NULL;
    bool importSyntaxIsOK = false;
    bool mediaSyntaxIsOK = true;
    bool mediaIsSelected = true;
 
-   nextToken(&this->tokenizer, &this->hll_css_parser);
+   nextToken(parser, token);
 
-   if (tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT &&
-       dStrAsciiCasecmp(tokenizer.token.c_value, "url") == 0)
-      urlStr = hll_declarationValueAsString(&this->hll_css_parser,
-                                            &tokenizer.token,
-                                            this->tokenizer.buf + this->hll_css_parser.c_buf_offset,
-                                            0, 0);
-   else if (tokenizer.token.c_type == CSS_TOKEN_TYPE_STRING)
-      urlStr = dStrdup (tokenizer.token.c_value);
+   if (token->c_type == CSS_TOKEN_TYPE_IDENT &&
+       dStrAsciiCasecmp(token->c_value, "url") == 0)
+      urlStr = hll_declarationValueAsString(parser, token, 0, 0);
+   else if (token->c_type == CSS_TOKEN_TYPE_STRING)
+      urlStr = dStrdup (token->c_value);
 
-   nextToken(&this->tokenizer, &this->hll_css_parser);
+   nextToken(parser, token);
 
    /* parse a comma-separated list of media */
-   if (tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT) {
+   if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
       mediaSyntaxIsOK = false;
       mediaIsSelected = false;
-      while (tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT) {
-         if (dStrAsciiCasecmp(tokenizer.token.c_value, "all") == 0 ||
-             dStrAsciiCasecmp(tokenizer.token.c_value, "screen") == 0)
+      while (token->c_type == CSS_TOKEN_TYPE_IDENT) {
+         if (dStrAsciiCasecmp(token->c_value, "all") == 0 ||
+             dStrAsciiCasecmp(token->c_value, "screen") == 0)
             mediaIsSelected = true;
-         nextToken(&this->tokenizer, &this->hll_css_parser);
-         if (tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && tokenizer.token.c_value[0] == ',') {
-            nextToken(&this->tokenizer, &this->hll_css_parser);
+         nextToken(parser, token);
+         if (token->c_type == CSS_TOKEN_TYPE_CHAR && token->c_value[0] == ',') {
+            nextToken(parser, token);
          } else {
             mediaSyntaxIsOK = true;
             break;
@@ -153,18 +149,18 @@ void CssParser::parseImport(DilloHtml *html)
    }
 
    if (mediaSyntaxIsOK &&
-       tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR &&
-       tokenizer.token.c_value[0] == ';') {
+       token->c_type == CSS_TOKEN_TYPE_CHAR &&
+       token->c_value[0] == ';') {
       importSyntaxIsOK = true;
-      nextToken(&this->tokenizer, &this->hll_css_parser);
+      nextToken(parser, token);
    } else
-      ignoreStatement(&this->tokenizer, &this->hll_css_parser);
+      hll_ignoreStatement(parser, token);
 
    if (urlStr) {
       if (importSyntaxIsOK && mediaIsSelected) {
          MSG("CssParser::parseImport(): @import %s\n", urlStr);
-         DilloUrl *url = a_Html_url_new (html, urlStr, a_Url_str(this->baseUrl),
-                                         this->baseUrl ? 1 : 0);
+         DilloUrl *url = a_Html_url_new (html, urlStr, a_Url_str(base_url),
+                                         base_url ? 1 : 0);
          a_Html_load_stylesheet(html, url);
          a_Url_free(url);
       }
@@ -172,21 +168,21 @@ void CssParser::parseImport(DilloHtml *html)
    }
 }
 
-void CssParser::parseMedia()
+void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context)
 {
    bool mediaSyntaxIsOK = false;
    bool mediaIsSelected = false;
 
-   nextToken(&this->tokenizer, &this->hll_css_parser);
+   nextToken(parser, token);
 
    /* parse a comma-separated list of media */
-   while (tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT) {
-      if (dStrAsciiCasecmp(tokenizer.token.c_value, "all") == 0 ||
-          dStrAsciiCasecmp(tokenizer.token.c_value, "screen") == 0)
+   while (token->c_type == CSS_TOKEN_TYPE_IDENT) {
+      if (dStrAsciiCasecmp(token->c_value, "all") == 0 ||
+          dStrAsciiCasecmp(token->c_value, "screen") == 0)
          mediaIsSelected = true;
-      nextToken(&this->tokenizer, &this->hll_css_parser);
-      if (tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && tokenizer.token.c_value[0] == ',') {
-         nextToken(&this->tokenizer, &this->hll_css_parser);
+      nextToken(parser, token);
+      if (token->c_type == CSS_TOKEN_TYPE_CHAR && token->c_value[0] == ',') {
+         nextToken(parser, token);
       } else {
          mediaSyntaxIsOK = true;
          break;
@@ -195,64 +191,54 @@ void CssParser::parseMedia()
 
    /* check that the syntax is OK so far */
    if (!(mediaSyntaxIsOK &&
-         tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR &&
-         tokenizer.token.c_value[0] == '{')) {
-      ignoreStatement(&this->tokenizer, &this->hll_css_parser);
+         token->c_type == CSS_TOKEN_TYPE_CHAR &&
+         token->c_value[0] == '{')) {
+      hll_ignoreStatement(parser, token);
       return;
    }
 
    /* parse/ignore the block as required */
    if (mediaIsSelected) {
-      nextToken(&this->tokenizer, &this->hll_css_parser);
-      while (tokenizer.token.c_type != CSS_TOKEN_TYPE_END) {
-         parseRuleset(this, this->context_);
-         if (tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR && tokenizer.token.c_value[0] == '}') {
-            nextToken(&this->tokenizer, &this->hll_css_parser);
+      nextToken(parser, token);
+      while (token->c_type != CSS_TOKEN_TYPE_END) {
+         parseRuleset(parser, token, context);
+         if (token->c_type == CSS_TOKEN_TYPE_CHAR && token->c_value[0] == '}') {
+            nextToken(parser, token);
             break;
          }
       }
    } else
-      ignoreBlock(&this->tokenizer, &this->hll_css_parser);
+      hll_ignoreBlock(parser, token);
 }
 
-void ignoreBlock(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
+void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * context, const char * buf, int buflen, CssOrigin origin)
 {
-   hll_ignoreBlock(hll_css_parser, &tokenizer->token, tokenizer->buf + hll_css_parser->c_buf_offset);
-}
-
-void ignoreStatement(CssTokenizer * tokenizer, c_css_parser_t * hll_css_parser)
-{
-   hll_ignoreStatement(hll_css_parser, &tokenizer->token, tokenizer->buf + hll_css_parser->c_buf_offset);
-}
-
-void CssParser::parse(DilloHtml *html, const DilloUrl *baseUrl,
-                      c_css_context_t * context,
-                      const char *buf,
-                      int buflen, CssOrigin origin)
-{
-   CssParser parser (context, origin, baseUrl, buf, buflen);
+   CssParser parser_(origin, baseUrl, buf, buflen);
    bool importsAreAllowed = true;
 
-   while (parser.tokenizer.token.c_type != CSS_TOKEN_TYPE_END) {
-      if (parser.tokenizer.token.c_type == CSS_TOKEN_TYPE_CHAR &&
-          parser.tokenizer.token.c_value[0] == '@') {
-         nextToken(&parser.tokenizer, &parser.hll_css_parser);
-         if (parser.tokenizer.token.c_type == CSS_TOKEN_TYPE_IDENT) {
-            if (dStrAsciiCasecmp(parser.tokenizer.token.c_value, "import") == 0 &&
+   c_css_token_t * token = &parser_.m_token;
+   c_css_parser_t * parser = &parser_.m_parser;
+
+   while (token->c_type != CSS_TOKEN_TYPE_END) {
+      if (token->c_type == CSS_TOKEN_TYPE_CHAR &&
+          token->c_value[0] == '@') {
+         nextToken(parser, token);
+         if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
+            if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
                 html != NULL &&
                 importsAreAllowed) {
-               parser.parseImport(html);
-            } else if (dStrAsciiCasecmp(parser.tokenizer.token.c_value, "media") == 0) {
-               parser.parseMedia();
+               parseImport(html, parser, token, parser_.m_base_url);
+            } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
+               parseMedia(parser, token, context);
             } else {
-               ignoreStatement(&parser.tokenizer, &parser.hll_css_parser);
+               hll_ignoreStatement(parser, token);
             }
          } else {
-            ignoreStatement(&parser.tokenizer, &parser.hll_css_parser);
+            hll_ignoreStatement(parser, token);
          }
       } else {
          importsAreAllowed = false;
-         parseRuleset(&parser, parser.context_);
+         parseRuleset(parser, token, context);
       }
    }
 }

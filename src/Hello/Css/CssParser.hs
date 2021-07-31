@@ -51,98 +51,101 @@ TODO: think about performance of using isPrefixOf to get just one character.
 
 
 
-module CssParser(nextToken
-                , ignoreBlock
-                , ignoreStatement
-                , takeInt
+module Hello.Css.Parser(nextToken
+                       , ignoreBlock
+                       , ignoreStatement
+                       , takeInt
 
-                , takeIdentToken
-                , takeIdentLikeToken
-                , takeHashToken
+                       , takeIdentToken
+                       , takeIdentLikeToken
+                       , takeHashToken
 
-                , cssPropertyInfo
+                       , cssPropertyInfo
 
-                , cssSimpleSelectorElementAny
-                , cssSimpleSelectorElementNone
+                       , cssSimpleSelectorElementAny
+                       , cssSimpleSelectorElementNone
 
-                , parseUrl
-                , CssParser (..)
-                , CssToken (..)
-                , CssNum (..)
+                       , parseUrl
+                       , CssParser (..)
+                       , CssToken (..)
+                       , CssNum (..)
 
-                , consumeFunctionTokens
-                , interpretRgbFunctionTokens
-                , rgbFunctionToColor
+                       , consumeFunctionTokens
+                       , interpretRgbFunctionTokens
+                       , rgbFunctionToColor
 
-                , tokensAsValueColor
-                , declValueAsString
-                , tokensAsValueEnum
-                , tokensAsValueMultiEnum
-                , tokensAsValueAuto
-                , tokensAsValueStringList
-                , tokensAsValueBgPosition
-                , tokensAsValueString
-                , declValueAsFontWeightInteger
-                , declValueAsLength
-                , declValueAsURI
+                       , tokensAsValueColor
+                       , declValueAsString
+                       , tokensAsValueEnum
+                       , tokensAsValueMultiEnum
+                       , tokensAsValueAuto
+                       , tokensAsValueStringList
+                       , tokensAsValueBgPosition
+                       , tokensAsValueString
+                       , declValueAsFontWeightInteger
+                       , declValueAsLength
+                       , declValueAsURI
 
-                , cssLengthTypeAuto
+                       , cssLengthTypeAuto
 
-                , takeBgTokens
+                       , takeBgTokens
 
-                , cssShorthandInfoIdxByName
-                , cssPropertyInfoIdxByName
-                , cssPropertyNameString
+                       , cssShorthandInfoIdxByName
+                       , cssPropertyInfoIdxByName
+                       , cssPropertyNameString
 
-                , cssLengthType
-                , cssLengthValue
-                , cssCreateLength
-                , CssLength (..)
+                       , cssLengthType
+                       , cssLengthValue
+                       , cssCreateLength
+                       , CssLength (..)
 
-                , parseDeclarationMultiple
-                , parseDeclarationDirections
-                , parseDeclarationBorder
-                , parseDeclarationShorthand
+                       , parseDeclarationMultiple
+                       , parseDeclarationDirections
+                       , parseDeclarationBorder
+                       , parseDeclarationShorthand
 
-                , cssShorthandTypeMultiple
-                , cssShorthandTypeDirections
-                , cssShorthandTypeBorder
-                , cssShorthandTypeFont
+                       , cssShorthandTypeMultiple
+                       , cssShorthandTypeDirections
+                       , cssShorthandTypeBorder
+                       , cssShorthandTypeFont
 
-                , takeLengthTokens
+                       , takeLengthTokens
 
-                , defaultSimpleSelector
-                , defaultSelector
-                , CssSimpleSelector (..)
-                , CssSelector (..)
-                , takeSelectorTokens
-                , parseSelector
-                , parseSelectors
-                , removeSpaceTokens
+                       , defaultSimpleSelector
+                       , defaultSelector
+                       , CssSimpleSelector (..)
+                       , CssSelector (..)
+                       , takeSelectorTokens
+                       , parseSelector
+                       , parseSelectors
+                       , removeSpaceTokens
 
-                , CssCombinator (..)
+                       , CssCombinator (..)
 
-                , CssValue (..)
-                , CssDeclaration (..)
-                , parseDeclaration
-                , parseDeclarationWrapper2
-                , takePropertyTokens
-                , defaultDeclaration
-                , parseElementStyleAttribute
-                , parseAllDeclarations
+                       , CssValue (..)
+                       , CssDeclaration (..)
+                       , parseDeclaration
+                       , parseDeclarationWrapper2
+                       , takePropertyTokens
+                       , defaultDeclaration
+                       , parseElementStyleAttribute
+                       , parseAllDeclarations
 
-                , declarationsSetUpdateOrAdd
-                , declarationsSetAppend
-                , CssDeclarationSet (..)
-                , defaultCssDeclarationSet
+                       , declarationsSetUpdateOrAdd
+                       , declarationsSetAppend
+                       , CssDeclarationSet (..)
+                       , defaultCssDeclarationSet
 
-                , CssRule (..)
-                , getTopSimSel
-                , getRequiredMatchCache
+                       , CssRule (..)
+                       , getTopSimSel
+                       , getRequiredMatchCache
 
-                , consumeName
+                       , consumeName
 
-                , defaultParser) where
+                       , CssOrigin (..)
+
+                       , defaultParser)
+  where
 
 
 
@@ -208,12 +211,13 @@ data CssToken =
 
 
 
--- TODO: add baseUrl and Origin fields.
+-- TODO: add baseUrl field.
 data CssParser = CssParser {
     remainder      :: T.Text
   , spaceSeparated :: Bool
   , inBlock        :: Bool
   , bufOffset      :: Int
+  , cssOrigin      :: CssOrigin -- TODO: rethink wheter origin should be a member of parser or not.
   } deriving (Show)
 
 
@@ -224,6 +228,7 @@ defaultParser = CssParser {
   , inBlock   = False
   , spaceSeparated = False
   , bufOffset = 0
+  , cssOrigin = CssOriginUserAgent
   }
 
 
@@ -2186,6 +2191,7 @@ parseElementStyleAttribute baseUrl cssStyleAttribute (declSet, declSetImp) = (ou
                       , spaceSeparated = False
                       , inBlock        = True -- There is no block enclosed in {}. but parser needs to behave as if we were in the block.
                       , bufOffset      = 0
+                      , cssOrigin      = CssOriginAuthor
                       }
 
 
@@ -2218,5 +2224,17 @@ getTopSimSel = L.last . simpleSelectors . selector
 
 getRequiredMatchCache :: CssRule -> Int
 getRequiredMatchCache rule = (matchCacheOffset . selector $ rule) + (length . simpleSelectors . selector $ rule)
+
+
+
+
+-- Where does a rule come from?
+data CssOrigin =
+    CssOriginUserAgent -- = 0  -- Rule comes from User Agent. It is defined in program's source code.
+  | CssOriginUser      -- = 1
+  | CssOriginAuthor    -- = 2
+  deriving (Show)
+
+
 
 

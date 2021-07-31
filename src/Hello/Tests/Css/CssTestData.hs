@@ -10,7 +10,7 @@ where
 
 
 import qualified Data.Text as T
-import CssParser
+import Hello.Css.Parser
 
 
 

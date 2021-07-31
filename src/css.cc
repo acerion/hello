@@ -169,24 +169,6 @@ bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, co
    return false;
 }
 
-c_css_rule_t * css_rule_new(c_css_selector_t * selector, c_css_declaration_set_t * decl_set, int rule_position)
-{
-   assert (selector->c_simple_selectors_size > 0);
-
-   c_css_rule_t * rule = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
-
-   //css_selector_print_compact(stderr, selector);
-
-   rule->c_selector = selector;
-   rule->c_decl_set = decl_set;
-   rule->c_position = rule_position;
-   rule->c_specificity = hll_selectorSpecificity(selector);
-
-   //fprintf(stderr, "\n\n\n");
-
-   return rule;
-}
-
 /**
  * \brief Apply a stylesheet to a list of declarations.
  *

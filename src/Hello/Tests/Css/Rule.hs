@@ -16,7 +16,7 @@ import Test.HUnit
 import System.Exit
 import Debug.Trace
 
-import CssParser
+import Hello.Css.Parser
 import Hello.Utils
 import HtmlTag
 
