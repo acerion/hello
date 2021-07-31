@@ -91,26 +91,7 @@ void parseRuleset(c_css_parser_t * parser, c_css_token_t * token, c_css_context_
    }
    int selectors_count = hll_cssParseSelectors(parser, token, selectors);
 
-   c_css_declaration_set_t * declList = declarationListNew();
-   c_css_declaration_set_t * declListImportant = declarationListNew();
-
-   /* Read block. ('{' has already been read.) */
-   if (token->c_type != CSS_TOKEN_TYPE_END) {
-
-      parser->c_in_block = true;
-      nextToken(parser, token);
-      do {
-         hll_parseDeclarationWrapper(parser, token, declList, declListImportant);
-      } while (!(token->c_type == CSS_TOKEN_TYPE_END || (token->c_type == CSS_TOKEN_TYPE_CHAR && token->c_value[0] == '}')));
-      parser->c_in_block = false;
-   }
-
-   // Construct rules from selectors and delcarations, and add them to context
-   hll_constructAndAddRules(context, selectors, selectors_count, declList, declListImportant, (CssOrigin) parser->c_origin);
-
-   if (token->c_type == CSS_TOKEN_TYPE_CHAR && token->c_value[0] == '}') {
-      nextToken(parser, token);
-   }
+   hll_cssParseRuleset(parser, token, context, selectors, selectors_count, (CssOrigin) parser->c_origin);
 }
 
 void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)

@@ -45,6 +45,7 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
                            , styleSheetElementCount
 
                            , constructAndAddRules
+                           , cssParseRuleset
 
                            , CssSheetSelector (..)
                            , getSheetIndex
@@ -350,3 +351,31 @@ constructAndAddRules context selectors declSet declSetImp origin = updatedContex
     rulePairs = makeRulePairs selectors declSet declSetImp origin []
 
 
+
+
+cssParseRuleset :: CssParser -> CssToken -> CssContext -> [CssSelector] -> CssOrigin -> (CssParser, CssToken, CssContext)
+cssParseRuleset parser token context selectors origin = (p3, t3, updatedContext)
+  where
+    ((p2, t2), (declSet, declSetImp)) = parseDeclarations parser token
+    updatedContext = constructAndAddRules context selectors declSet declSetImp origin
+    (p3, t3) = case t2 of
+                 CssTokCh '}' -> nextToken p2
+                 _            -> (p2, t2)
+
+
+
+
+parseDeclarations parser token = ((p2{ inBlock = False }, t2), (declSet, declSetImp))
+  where
+    ((p2, t2), (declSet, declSetImp)) = case token of
+                                          CssTokEnd -> ((parser, token), (declSet, declSetImp))
+                                          otherwise -> parseDeclarations' ((nextToken parser{ inBlock = True }), (defaultCssDeclarationSet, defaultCssDeclarationSet))
+
+
+
+
+parseDeclarations' ((parser, token), (declSet, declSetImp)) =
+  case token of
+    CssTokEnd    -> ((parser, token), (declSet, declSetImp))
+    CssTokCh '}' -> ((parser, token), (declSet, declSetImp))
+    otherwise    -> parseDeclarations' (parseDeclarationWrapper2 (parser, token) (declSet, declSetImp))

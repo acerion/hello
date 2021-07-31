@@ -64,6 +64,8 @@ foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRule
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_cssContextAddRule" hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
 foreign export ccall "hll_constructAndAddRules" hll_constructAndAddRules :: Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> CInt -> IO ()
+foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> CInt -> IO ()
+
 
 
 
@@ -261,7 +263,10 @@ peekCssRule ptrStructCssRule = do
 pokeCssRule :: Ptr FfiCssRule -> CssRule -> IO ()
 pokeCssRule ptrStructCssRule rule = do
 
-  ptrSelector <- callocBytes #{size c_css_selector_t}
+  ffiRule <- peek ptrStructCssRule
+
+  let ptrSelector = selectorC ffiRule
+  --ptrSelector <- callocBytes #{size c_css_selector_t}
   pokeCssSelector ptrSelector (selector rule)
   pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_selector} ptrSelector
 
@@ -628,4 +633,27 @@ hll_constructAndAddRules ptrStructCssContext arrayPtrStructCssSelector cSelsCoun
 
   pokeCssContext ptrStructCssContext updatedContext
 
-  return()
+  return ()
+
+
+
+
+hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> CInt -> IO ()
+hll_cssParseRuleset ptrStructCssParser ptrStructCssToken ptrStructCssContext arrayPtrStructCssSelector cSelsCount cOrig = do
+
+  let selectorsCount = fromIntegral cSelsCount
+  let origin         = getCssOrigin . fromIntegral $ cOrig
+
+  parser <- peekCssParser ptrStructCssParser
+  token  <- peekCssToken ptrStructCssToken
+
+  context    <- peekCssContext ptrStructCssContext
+  selectors  <- peekArrayOfPointers arrayPtrStructCssSelector selectorsCount peekCssSelector
+
+  let (p2, t2, c2) = cssParseRuleset parser token context selectors origin
+
+  pokeCssParser ptrStructCssParser p2
+  pokeCssToken ptrStructCssToken t2
+  pokeCssContext ptrStructCssContext c2
+
+  return ()

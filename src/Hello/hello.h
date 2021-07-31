@@ -134,7 +134,7 @@ typedef struct c_css_rule_t {
 } c_css_rule_t;
 
 
-#define RULES_LIST_SIZE 1024
+#define RULES_LIST_SIZE 128
 typedef struct c_css_rules_list_t {
    c_css_rule_t * c_rules[RULES_LIST_SIZE];
    int c_rules_size;
@@ -142,7 +142,7 @@ typedef struct c_css_rules_list_t {
 
 
 /* Hash map: key: string, value: rules list */
-   #define RULES_MAP_SIZE 1024
+   #define RULES_MAP_SIZE 256
 typedef struct c_css_rules_map_t {
    char * c_strings[RULES_MAP_SIZE];
    c_css_rules_list_t * c_rules_lists[RULES_MAP_SIZE];
@@ -258,9 +258,6 @@ int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, c_
 
 int hll_declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * declaration);
 
-void hll_parseDeclarationWrapper(c_css_parser_t * hll_parser, c_css_token_t * token,
-                                 c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant);
-
 void hll_declarationListAppend(c_css_declaration_set_t * target, const c_css_declaration_set_t * source);
 
 void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const char * cssStyleAttribute, int buflen, c_css_declaration_set_t * declSet, c_css_declaration_set_t * declSetImp);
@@ -286,6 +283,10 @@ void hll_constructAndAddRules(c_css_context_t * context, c_css_selector_t ** sel
                               c_css_declaration_set_t * decl_set,
                               c_css_declaration_set_t * decl_set_imp,
                               CssOrigin origin);
+
+void hll_cssParseRuleset(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context,
+                         c_css_selector_t ** selectors, int selectors_count,
+                         CssOrigin origin);
 
 #ifdef __cplusplus
 }

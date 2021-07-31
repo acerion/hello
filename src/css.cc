@@ -259,9 +259,19 @@ static void alloc_rules_map(c_css_rules_map_t ** map)
 
 static void alloc_rules_list(c_css_rules_list_t ** list)
 {
+   static unsigned long size = 0;
    (*list) = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
    for (int r = 0; r < RULES_LIST_SIZE; r++) {
       (*list)->c_rules[r] = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
+      (*list)->c_rules[r]->c_selector = (c_css_selector_t *) calloc(1, sizeof (c_css_selector_t));
+      size += sizeof (c_css_selector_t);
+   }
+
+   fprintf(stderr, "size = %lu MB (%d * %d)\n",
+           size / (1024 * 1024),
+           RULES_LIST_SIZE, sizeof (c_css_selector_t));
+   if (size > 1000 * 1024 * 1024) {
+      exit(0);
    }
 }
 

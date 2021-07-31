@@ -36,6 +36,14 @@ module Hello.Ffi.Css.Parser( FfiCssSimpleSelector (..)
                            , peekCssDeclarationSet
                            , pokeCssDeclarationSet
 
+                           , FfiCssParser (..)
+                           , peekCssParser
+                           , pokeCssParser
+
+                           , FfiCssToken (..)
+                           , peekCssToken
+                           , pokeCssToken
+
                            , getCssOrigin
                            )
   where
@@ -81,8 +89,6 @@ foreign export ccall "hll_cssParseSelectors" hll_cssParseSelectors :: Ptr FfiCss
 foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
-
-foreign export ccall "hll_parseDeclarationWrapper" hll_parseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 
 foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
 
