@@ -267,12 +267,14 @@ static void alloc_rules_list(c_css_rules_list_t ** list)
       size += sizeof (c_css_selector_t);
    }
 
+#if 0
    fprintf(stderr, "size = %lu MB (%d * %d)\n",
            size / (1024 * 1024),
            RULES_LIST_SIZE, sizeof (c_css_selector_t));
    if (size > 1000 * 1024 * 1024) {
       exit(0);
    }
+#endif
 }
 
 static void alloc_sheet(c_css_style_sheet_t ** sheet)

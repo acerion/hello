@@ -192,7 +192,7 @@ typedef enum {
 } CssOrigin;
 
 typedef struct c_css_match_cache_t {
-   int c_cache_items[10];
+   int c_cache_items[2000]; // For soylentnews.net it's over 1000.
    int c_cache_items_size;
 } c_css_match_cache_t;
 
@@ -284,9 +284,7 @@ void hll_constructAndAddRules(c_css_context_t * context, c_css_selector_t ** sel
                               c_css_declaration_set_t * decl_set_imp,
                               CssOrigin origin);
 
-void hll_cssParseRuleset(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context,
-                         c_css_selector_t ** selectors, int selectors_count,
-                         CssOrigin origin);
+void hll_cssParseRuleset(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
 
 #ifdef __cplusplus
 }

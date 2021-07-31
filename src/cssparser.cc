@@ -35,22 +35,16 @@ using namespace dw::core::style;
 
 #define DEBUG_LEVEL 10
 
-
 void nextToken(c_css_parser_t * hll_parser, c_css_token_t * token);
 void parseDeclaration(CssParser * parser, c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant);
-void parseRuleset(CssParser * parser, c_css_context_t * context);
 void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url);
 void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
-
-
 
 /* ----------------------------------------------------------------------
  *    Parsing
  * ---------------------------------------------------------------------- */
 
-CssParser::CssParser(CssOrigin origin,
-                     const DilloUrl *baseUrl,
-                     const char *buf, int buflen)
+CssParser::CssParser(CssOrigin origin, const DilloUrl * baseUrl, const char * buf, int buflen)
 {
    this->m_parser.c_parser_buf = buf;
    this->m_parser.c_parser_buflen = buflen;
@@ -63,35 +57,9 @@ CssParser::CssParser(CssOrigin origin,
    nextToken(&this->m_parser, &this->m_token);
 }
 
-
 void nextToken(c_css_parser_t * hll_parser, c_css_token_t * token)
 {
-#if 0
-   fprintf(stderr, "before:\n");
-   fprintf(stderr, "hll_css_parser->c_space_separated = %d\n", hll_css_parser->c_space_separated);
-   fprintf(stderr, "hll_css_parser->c_buf_offset      = %d\n", hll_css_parser->c_buf_offset);
-   fprintf(stderr, "hll_css_parser->c_in_block        = %d\n", hll_css_parser->c_in_block);
-#endif
    char * tokenValue = hll_nextToken(hll_parser, token);
-#if 0
-   fprintf(stderr, "after:\n");
-   fprintf(stderr, "hll_css_parser->c_space_separated = %d\n", hll_css_parser->c_space_separated);
-   fprintf(stderr, "hll_css_parser->c_buf_offset      = %d\n", hll_css_parser->c_buf_offset);
-   fprintf(stderr, "hll_css_parser->c_in_block        = %d\n", hll_css_parser->c_in_block);
-   fprintf(stderr, "\n");
-#endif
-}
-
-void parseRuleset(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context)
-{
-#define SELECTORS_MAX 100
-   c_css_selector_t ** selectors = (c_css_selector_t **) calloc(SELECTORS_MAX, sizeof (c_css_selector_t *));
-   for (int s = 0; s < SELECTORS_MAX; s++) {
-      selectors[s] = (c_css_selector_t *) calloc(1, sizeof (c_css_selector_t *));
-   }
-   int selectors_count = hll_cssParseSelectors(parser, token, selectors);
-
-   hll_cssParseRuleset(parser, token, context, selectors, selectors_count, (CssOrigin) parser->c_origin);
 }
 
 void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)
@@ -182,7 +150,7 @@ void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t 
    if (mediaIsSelected) {
       nextToken(parser, token);
       while (token->c_type != CSS_TOKEN_TYPE_END) {
-         parseRuleset(parser, token, context);
+         hll_cssParseRuleset(parser, token, context);
          if (token->c_type == CSS_TOKEN_TYPE_CHAR && token->c_value[0] == '}') {
             nextToken(parser, token);
             break;
@@ -219,7 +187,7 @@ void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * conte
          }
       } else {
          importsAreAllowed = false;
-         parseRuleset(parser, token, context);
+         hll_cssParseRuleset(parser, token, context);
       }
    }
 }

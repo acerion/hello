@@ -84,8 +84,6 @@ foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Int -> IO Int
 foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
 foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
 
-foreign export ccall "hll_cssParseSelectors" hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr (Ptr FfiCssSelector) -> IO Int
-
 foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
@@ -524,22 +522,6 @@ pokeCssSelector ptrStructCssSelector selector = do
 
   pokeArrayOfPointersWithAlloc (simpleSelectors selector) allocAndPokeCssSimpleSelector (cSimpleSelectors ffiSel)
   pokeByteOff ptrStructCssSelector (#offset c_css_selector_t, c_simple_selectors_size) (length . simpleSelectors $ selector)
-
-
-
-
-hll_cssParseSelectors :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr (Ptr FfiCssSelector) -> IO Int
-hll_cssParseSelectors ptrStructCssParser ptrStructCssToken arrayPtrStructCssSelector = do
-  parser <- peekCssParser ptrStructCssParser
-  token  <- peekCssToken ptrStructCssToken
-
-  let ((newParser, newToken), selectors) = parseSelectors (parser, token)
-
-  pokeCssParser ptrStructCssParser newParser
-  pokeCssToken ptrStructCssToken newToken
-  pokeArrayOfPreallocedPointers selectors pokeCssSelector arrayPtrStructCssSelector
-
-  return (length selectors)
 
 
 

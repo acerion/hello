@@ -64,7 +64,7 @@ foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRule
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_cssContextAddRule" hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
 foreign export ccall "hll_constructAndAddRules" hll_constructAndAddRules :: Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> CInt -> IO ()
-foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> CInt -> IO ()
+foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
 
 
 
@@ -496,7 +496,7 @@ instance Storable FfiCssMatchCache where
     return (FfiCssMatchCache a b)
 
   poke ptr (FfiCssMatchCache a b) = do
-    #{poke c_css_match_cache_t, c_cache_items}      ptr a
+    -- #{poke c_css_match_cache_t, c_cache_items}      ptr a
     #{poke c_css_match_cache_t, c_cache_items_size} ptr b
 
 
@@ -523,9 +523,11 @@ pokeCssMatchCache ptrStructMatchCache cache = do
 
   let array :: Ptr CInt = cCacheItems ffiMatchCache
   let cCache :: [CInt] = fmap fromIntegral cache
-
+  let cLen :: CInt = fromIntegral . length $ cache
   pokeArray array cCache
-  pokeByteOff ptrStructMatchCache #{offset c_css_match_cache_t, c_cache_items_size} (length cache)
+
+  poke ptrStructMatchCache $ FfiCssMatchCache array cLen
+  --pokeByteOff ptrStructMatchCache #{offset c_css_match_cache_t, c_cache_items_size} cLen
 
 
 
@@ -638,22 +640,17 @@ hll_constructAndAddRules ptrStructCssContext arrayPtrStructCssSelector cSelsCoun
 
 
 
-hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> CInt -> IO ()
-hll_cssParseRuleset ptrStructCssParser ptrStructCssToken ptrStructCssContext arrayPtrStructCssSelector cSelsCount cOrig = do
+hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
+hll_cssParseRuleset ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
+  parser  <- peekCssParser ptrStructCssParser
+  token   <- peekCssToken ptrStructCssToken
+  context <- peekCssContext ptrStructCssContext
 
-  let selectorsCount = fromIntegral cSelsCount
-  let origin         = getCssOrigin . fromIntegral $ cOrig
+  let ((p2, t2), selectors) = parseSelectors (parser, token)
+  let (p3, t3, c2) = cssParseRuleset p2 t2 context selectors (cssOrigin parser)
 
-  parser <- peekCssParser ptrStructCssParser
-  token  <- peekCssToken ptrStructCssToken
-
-  context    <- peekCssContext ptrStructCssContext
-  selectors  <- peekArrayOfPointers arrayPtrStructCssSelector selectorsCount peekCssSelector
-
-  let (p2, t2, c2) = cssParseRuleset parser token context selectors origin
-
-  pokeCssParser ptrStructCssParser p2
-  pokeCssToken ptrStructCssToken t2
+  pokeCssParser ptrStructCssParser p3
+  pokeCssToken ptrStructCssToken t3
   pokeCssContext ptrStructCssContext c2
 
   return ()

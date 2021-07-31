@@ -116,7 +116,8 @@ addRuleToStyleSheet sheet rule = case insertRuleToStyleSheet rule sheet of
 
   where
     newRequiredMatchCache s r = if getRequiredMatchCache r > requiredMatchCache s
-                                then trace ("Updating from " ++ (show . requiredMatchCache $ s) ++ " to " ++ (show . getRequiredMatchCache $ r)) (getRequiredMatchCache r)
+                                -- then trace ("Updating from " ++ (show . requiredMatchCache $ s) ++ " to " ++ (show . getRequiredMatchCache $ r)) (getRequiredMatchCache r)
+                                then getRequiredMatchCache r
                                 else requiredMatchCache s
 
 
