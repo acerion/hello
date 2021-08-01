@@ -6,6 +6,25 @@
 #include "css.h"
 #include "Hello/hello.h"
 
+/* This is needed only for debug prints. */
+typedef enum {
+   CSS_TYPE_INTEGER,
+   CSS_TYPE_ENUM,
+   CSS_TYPE_MULTI_ENUM,
+   CSS_TYPE_LENGTH_PERCENTAGE,
+   CSS_TYPE_LENGTH,
+   CSS_TYPE_SIGNED_LENGTH,
+   CSS_TYPE_LENGTH_PERCENTAGE_NUMBER,
+   CSS_TYPE_AUTO,
+   CSS_TYPE_COLOR,
+   CSS_TYPE_FONT_WEIGHT,
+   CSS_TYPE_STRING,
+   CSS_TYPE_SYMBOL,
+   CSS_TYPE_URI,
+   CSS_TYPE_BACKGROUND_POSITION,
+   CSS_TYPE_UNUSED
+} CssValueType;
+
 enum CssDeclarationValueType {
    CssDeclarationValueTypeINTEGER,            /* This type is only used internally, for x-* properties. */
    CssDeclarationValueTypeENUM,               /* Value is i, if represented by enum_symbols[i]. */
@@ -212,7 +231,7 @@ int css_simple_selector_specificity(c_css_simple_selector_t * selector);
 
 
 /* c_css_style_sheet_t methods. */
-void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE * file, c_css_declaration_set_t * decl_set, Doctree * docTree,
+void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_declaration_set_t * decl_set, Doctree * docTree,
                                        const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache);
 
 

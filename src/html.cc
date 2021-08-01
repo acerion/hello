@@ -3360,6 +3360,9 @@ const TagInfo Tags[] = {
  */
 const char * a_Html_tag_name(int tag_idx)
 {
+   if (tag_idx == -1 || tag_idx == -2) {
+      return NULL;
+   }
    return Tags[tag_idx].name;
 }
 

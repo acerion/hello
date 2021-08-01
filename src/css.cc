@@ -27,25 +27,12 @@ static void alloc_sheet(c_css_style_sheet_t ** sheet);
 
 /* c_css_selector_t methods. */
 static bool css_selector_matches(c_css_selector_t * selector, Doctree * dt, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache);
-static void css_selector_print(FILE * file, c_css_selector_t * selector);
 
 
 
 
 static void css_value_copy(c_css_value_t * dest, c_css_value_t * src);
 static bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache);
-
-static void css_rule_print_pretty(FILE * file, const c_css_rule_t * rule);
-
-static void css_simple_selector_print_compact(FILE * file, const c_css_simple_selector_t * sim_sel);
-static void css_simple_selector_print_pretty(FILE * file, c_css_simple_selector_t * selector);
-
-static void css_selector_print_compact(FILE * file, const c_css_selector_t * selector);
-static void css_selector_print_pretty(FILE * file, c_css_selector_t * selector);
-
-static void css_declaration_print_pretty(FILE * file, c_css_declaration_t * declaration);
-
-static void css_declaration_set_print_pretty(FILE * file, c_css_declaration_set_t * decl_set);
 
 
 
@@ -175,7 +162,7 @@ bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, co
  * The declarations (list property+value) are set as defined by the rules in
  * the stylesheet that match at the given node in the document tree.
  */
-void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE * file, c_css_declaration_set_t * decl_set, Doctree *docTree, const c_doctree_node_t *dtn, c_css_match_cache_t * match_cache)
+void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_declaration_set_t * decl_set, Doctree *docTree, const c_doctree_node_t *dtn, c_css_match_cache_t * match_cache)
 {
    static const int maxLists = 32;
    const c_css_rules_list_t * rules_lists[maxLists];
@@ -239,8 +226,6 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, FILE *
          if (css_selector_matches(rule->c_selector, docTree, dtn, rule->c_selector->c_simple_selectors_size - 1, CssSelectorCombinatorNone, match_cache)) {
             hll_declarationListAppend(decl_set, rule->c_decl_set);
          }
-
-         css_rule_print_pretty(file, rule);
 
          index[minSpecIndex]++;
       } else {
@@ -335,37 +320,24 @@ void css_context_apply_css_context(c_css_context_t * context,
                                    c_css_declaration_set_t * declListImportant,
                                    c_css_declaration_set_t * declListNonCss) {
 
-   static int i = 0;
-   char path[20] = { 0 };
-   snprintf(path, sizeof (path), "/tmp/css_rules_%04d", i);
-   FILE * file = fopen(path, "w");
-   i++;
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_AGENT], mergedDeclList, docTree, dtn, context->c_match_cache);
 
-   fprintf(file, "CSS_PRIMARY_USER_AGENT\n");
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_AGENT], file, mergedDeclList, docTree, dtn, context->c_match_cache);
-
-   fprintf(file, "CSS_PRIMARY_USER\n");
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER], file, mergedDeclList, docTree, dtn, context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER], mergedDeclList, docTree, dtn, context->c_match_cache);
 
    if (declListNonCss)
       hll_declarationListAppend(mergedDeclList, declListNonCss);
 
-   fprintf(file, "CSS_PRIMARY_AUTHOR\n");
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR], file, mergedDeclList, docTree, dtn, context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR], mergedDeclList, docTree, dtn, context->c_match_cache);
 
    if (declList)
       hll_declarationListAppend(mergedDeclList, declList);
 
-   fprintf(file, "CSS_PRIMARY_AUTHOR_IMPORTANT\n");
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR_IMPORTANT], file, mergedDeclList, docTree, dtn, context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR_IMPORTANT], mergedDeclList, docTree, dtn, context->c_match_cache);
 
    if (declListImportant)
       hll_declarationListAppend(mergedDeclList, declListImportant);
 
-   fprintf(file, "CSS_PRIMARY_USER_IMPORTANT\n");
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], file, mergedDeclList, docTree, dtn, context->c_match_cache);
-
-   fclose(file);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], mergedDeclList, docTree, dtn, context->c_match_cache);
 }
 
 CssLength cssCreateLength(float val, CssLengthType t)
@@ -381,202 +353,4 @@ CssLengthType cssLengthType(CssLength cssLength)
 float cssLengthValue(CssLength cssLength)
 {
    return hll_cssLengthValue(cssLength.bits);
-}
-
-
-/* ===================================== */
-
-
-void print_string_array_with_len_flat(FILE * file, char * const * arr, int size, const char * name)
-{
-   fprintf(file, "%s size = %d, array ptr = %p, ", name, size, arr);
-   fprintf(file, "%s = [", name);
-   for (int i = 0; i < size; i++) {
-      const bool comma = size > 0 && i < size - 1;
-      fprintf(file, "arr ptr[%d] %p = %s%s", i, arr[i], arr[i], comma ? ", " : "");
-   }
-   fprintf(file, "], ");
-
-   return;
-}
-
-void print_string_array_with_len(FILE * file, char * const * arr, int size, const char * name)
-{
-   fprintf(file, "%s = [", name);
-   for (int i = 0; i < size; i++) {
-      const bool comma = size > 0 && i < size - 1;
-      fprintf(file, "%s%s", arr[i], comma ? ", " : "");
-   }
-   fprintf(file, "]\n");
-   fprintf(file, "%s size = %d\n", name, size);
-
-#if 1
-   fprintf(file, "    array ptr = %p, [", arr);
-   for (int i = 0; i < size; i++) {
-      const bool comma = size > 0 && i < size - 1;
-      fprintf(file, "%p%s", arr[i], comma ? ", " : "");
-   }
-   fprintf(file, "]\n");
-#endif
-
-   return;
-}
-
-void css_simple_selector_print_flat(FILE * file, const c_css_simple_selector_t * sim_sel)
-{
-   fprintf(file, "C: simSel: ");
-   print_string_array_with_len_flat(file, sim_sel->c_selector_pseudo_class, sim_sel->c_selector_pseudo_class_size, "pseudo class");
-   fprintf(file, "id = '%s', ", sim_sel->c_selector_id);
-   print_string_array_with_len_flat(file, sim_sel->c_selector_class, sim_sel->c_selector_class_size, "class");
-   fprintf(file, "element = %d, ", sim_sel->c_selector_element);
-   fprintf(file, "combinator = %d", sim_sel->c_combinator);
-   fprintf(file, "\n");
-
-   return;
-}
-
-
-void css_simple_selector_print_compact(FILE * file, const c_css_simple_selector_t * sim_sel)
-{
-   fprintf(file, "C: simSel:\n");
-   print_string_array_with_len(file, sim_sel->c_selector_pseudo_class, sim_sel->c_selector_pseudo_class_size, "pseudo class");
-   fprintf(file, "id = '%s'\n", sim_sel->c_selector_id);
-   print_string_array_with_len(file, sim_sel->c_selector_class, sim_sel->c_selector_class_size, "class");
-   fprintf(file, "element = %d\n", sim_sel->c_selector_element);
-   fprintf(file, "combinator = %d\n", sim_sel->c_combinator);
-   fprintf(file, "\n");
-
-   return;
-}
-
-void css_rule_print_pretty(FILE * file, const c_css_rule_t * rule)
-{
-   fprintf(file, "    Rule: Begin\n");
-   css_selector_print_pretty(file, rule->c_selector);
-   if (nullptr != rule->c_decl_set) {
-      fprintf(file, "        Rule Declarations (%d) {\n", rule->c_decl_set->c_declarations_size);
-      css_declaration_set_print_pretty(file, rule->c_decl_set);
-   } else {
-         fprintf(file, "        Rule Declarations (0) {\n");
-   }
-   fprintf(file, "        Rule Declarations }\n");
-   fprintf(file, "    Rule: End\n");
-   fprintf(file, "    Rule: ---------------------------\n");
-}
-
-
-__attribute__((unused)) void css_selector_print_compact(FILE * file, const c_css_selector_t * selector)
-{
-   fprintf(file, "C: Selector:\n");
-   fprintf(file, "simple selectors count: %d\n", selector->c_simple_selectors_size);
-   for (int i = 0; i < selector->c_simple_selectors_size; i++) {
-      css_simple_selector_print_compact(file, selector->c_simple_selectors[i]);
-   }
-}
-
-
-
-void css_selector_print_pretty(FILE * file, c_css_selector_t * selector)
-{
-   //fprintf(file, "        Rule SelectorList: Begin\n");
-   fprintf(file, "        Rule SelectorList: %d simple selectors\n", selector->c_simple_selectors_size);
-   for (int i = 0; i < selector->c_simple_selectors_size; i++) {
-      css_simple_selector_print_pretty(file, selector->c_simple_selectors[i]);
-
-      if (i < selector->c_simple_selectors_size - 1) {
-         switch (selector->c_simple_selectors[i + 1]->c_combinator) {
-            case CssSelectorCombinatorChild:
-               fprintf (file, "                Rule SelectorList: combinator > \n");
-               break;
-            case CssSelectorCombinatorDescendant:
-               fprintf (file, "                Rule SelectorList: combinator \" \" \n");
-               break;
-            case CssSelectorCombinatorAdjacentSibling:
-               fprintf (file, "                Rule SelectorList: combinator + \n");
-               break;
-            default:
-               fprintf (file, "                Rule SelectorList: combinator ?\n");
-               break;
-         }
-      }
-   }
-   //fprintf(file, "        Rule SelectorList: End\n");
-   //fprintf(file, "        Rule SelectorList: --------\n");
-
-   //fprintf (file, "\n");
-}
-
-void css_simple_selector_print_pretty(FILE * file, c_css_simple_selector_t * selector)
-{
-   fprintf(file, "            Rule SimpleSelector: ");
-
-   if (selector->c_selector_element == CssSimpleSelectorElementAny) {
-      fprintf(file, "Element ANY\n");
-   } else if (selector->c_selector_element >= 0) {
-      fprintf(file, "Element [%s]\n", a_Html_tag_name(selector->c_selector_element));
-   }
-
-   if (selector->c_selector_pseudo_class_size > 0) {
-      fprintf(file, "            Rule SimpleSelector: selector = Pseudo class [");
-      for (int i = 0; i < selector->c_selector_pseudo_class_size; i++) {
-         if (0 == i) {
-            fprintf(file, "%s", selector->c_selector_pseudo_class[i]);
-         } else {
-            fprintf(file, " %s", selector->c_selector_pseudo_class[i]);
-         }
-      }
-      fprintf(file, "]\n");
-   }
-   if (selector->c_selector_id) {
-      fprintf(file, "            Rule SimpleSelector: selector = ID %s\n", selector->c_selector_id);
-   }
-   if (selector->c_selector_class_size) {
-      fprintf(file, "            Rule SimpleSelector: selector = class [");
-      for (int i = 0; i < selector->c_selector_class_size; i++)
-         fprintf (file, ".%s", selector->c_selector_class[i]);
-      fprintf (file, "]\n");
-   }
-}
-
-void css_declaration_set_print_pretty(FILE * file, c_css_declaration_set_t * decl_set)
-{
-   for (int i = 0; i < decl_set->c_declarations_size; i++) {
-      css_declaration_print_pretty(file, decl_set->c_declarations[i]);
-   }
-}
-
-
-void css_declaration_print_pretty(FILE * file, c_css_declaration_t * declaration)
-{
-   if (declaration->c_important) {
-      fprintf(file, "important = true\n");
-   }
-   switch (declaration->c_value->c_type_tag) {
-   case CssDeclarationValueTypeSTRING:
-   case CssDeclarationValueTypeSYMBOL:
-   case CssDeclarationValueTypeURI:
-      if (declaration->c_property == -1) {
-         fprintf(file, "ERROR: property == -1 (A)\n"); // TODO: unset property. Maybe this happens on parse error?
-      } else {
-         fprintf (file, "            Rule: Declaration: property = '%s', value = [%s]\n", hll_cssPropertyNameString(declaration->c_property), declaration->c_value->c_text_val);
-      }
-      break;
-   case CssDeclarationValueTypeBACKGROUND_POSITION:
-      if (declaration->c_property == -1) {
-         fprintf(file, "ERROR: property == -1 (B)\n"); // TODO: unset property. Maybe this happens on parse error?
-      } else {
-         fprintf (file, "            Rule: Declaration: property = '%s', posValue = %d / %d\n",
-                  hll_cssPropertyNameString(declaration->c_property),
-                  declaration->c_value->c_bg_pos_x,
-                  declaration->c_value->c_bg_pos_y);
-      }
-      break;
-   default:
-      if (declaration->c_property == -1) {
-         fprintf(file, "ERROR: property == -1 (C)\n"); // TODO: unset property. Maybe this happens on parse error?
-      } else {
-         fprintf (file, "            Rule: Declaration: property = '%s', value = %d\n", hll_cssPropertyNameString(declaration->c_property), declaration->c_value->c_int_val);
-      }
-      break;
-   }
 }
