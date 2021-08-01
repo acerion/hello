@@ -117,7 +117,7 @@ module Hello.Css.Parser(nextToken
                        , CssSelector (..)
                        , takeSelectorTokens
                        , parseSelector
-                       , parseSelectors
+                       , readSelectorList
                        , removeSpaceTokens
 
                        , CssCombinator (..)
@@ -1633,10 +1633,12 @@ cssParseWeight (parser, tok)          = ((parser, tok), False)
 
 
 data CssSimpleSelector = CssSimpleSelector {
-    selectorPseudoClass :: [T.Text]
-  , selectorId          :: T.Text
-  , selectorClass       :: [T.Text]
-  , selectorElement     :: Int
+    selectorPseudoClass :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#pseudo-class
+  , selectorId          :: T.Text          -- https://www.w3.org/TR/selectors-4/#id-selector
+  , selectorClass       :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#class-selector
+  , selectorType        :: Int             -- https://www.w3.org/TR/selectors-4/#type-selector
+                                           -- TODO: add https://www.w3.org/TR/selectors-4/#universal-selector
+                                           -- TODO: add https://www.w3.org/TR/selectors-4/#attribute-selector
   , combinator          :: CssCombinator
   } deriving (Show, Eq)
 
@@ -1652,6 +1654,9 @@ data CssSelector = CssSelector {
 
 
 cssSimpleSelectorElementNone :: Int = (-1)
+-- TODO: this probably corresponds with
+-- https://www.w3.org/TR/selectors-4/#universal-selector, and should be
+-- separated from type selector.
 cssSimpleSelectorElementAny  :: Int  = (-2)
 
 
@@ -1671,7 +1676,7 @@ defaultSimpleSelector = CssSimpleSelector {
     selectorPseudoClass = []
   , selectorId          = ""
   , selectorClass       = []
-  , selectorElement     = cssSimpleSelectorElementAny
+  , selectorType        = cssSimpleSelectorElementAny
 
   -- Combinator that combines this simple selector and the previous one
   -- (previous one == simple selector to the left of current simple
@@ -1736,7 +1741,7 @@ parseSelector (parser, token) = ((outParser, outToken), selector)
 
 
 parseSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
-parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorElement = htmlTagIndex sym}):simSels)
+parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorType = htmlTagIndex sym}):simSels)
 
 parseSelectorTokens (CssTokCh '#':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID sym):simSels)
 parseSelectorTokens (CssTokCh '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
@@ -1753,13 +1758,21 @@ parseSelectorTokens _  simSels = Nothing
 
 
 -- Parse entire list of selectors that are separated with comma.
+-- Function name is matching CSS Selectors Level 4 terminology.
+--
+-- https://www.w3.org/TR/selectors-4/#structure:
+-- "A list of simple/compound/complex selectors is a comma-separated list of
+-- simple, compound, or complex selectors. This is also called just a
+-- selector list when the type is either unimportant or specified in the
+-- surrounding prose; if the type is important and unspecified, it defaults
+-- to meaning a list of complex selectors."
 --
 -- Note from dillo:
 --
 -- TODO: dump whole ruleset in case of parse error as required by CSS 2.1
 -- however make sure we don't dump it if only dillo fails to parse valid CSS.
-parseSelectors :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssSelector])
-parseSelectors (parser, token) = parseSelectorWrapper (parser, token) []
+readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssSelector])
+readSelectorList (parser, token) = parseSelectorWrapper (parser, token) []
   where
     parseSelectorWrapper (parser, token) acc =
       case parseSelector (parser, token) of

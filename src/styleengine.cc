@@ -1062,7 +1062,7 @@ void print_css_style_sheet(FILE * file, c_css_style_sheet_t * sheet)
 {
    fprintf(file, "        style sheet -> elementTable:\n");
    for (int t = 0; t < 90 + 14; t++) {
-      c_css_rules_list_t * rules_list = sheet->c_rules_by_element[t];
+      c_css_rules_list_t * rules_list = sheet->c_rules_by_type[t];
       if (0 != rules_list->c_rules_size) {
          fprintf(file, "        style sheet -> elementTable[%d]:\n", t);
          print_css_rule_list(file, rules_list);
@@ -1192,7 +1192,7 @@ void print_css_rule_properties(FILE * file, c_css_declaration_set_t * props)
 void print_css_simple_selector(FILE * file, c_css_simple_selector_t * sim_sel)
 {
    fprintf(file, "                        Simple selector:\n");
-   fprintf(file, "                            element = %d/%s\n", sim_sel->c_selector_element, a_Html_tag_name(sim_sel->c_selector_element));
+   fprintf(file, "                            element = %d/%s\n", sim_sel->c_selector_type, a_Html_tag_name(sim_sel->c_selector_type));
    fprintf(file, "                            pseudo  = '%s'\n", sim_sel->c_selector_pseudo_class[0]);
    fprintf(file, "                            id      = '%s'\n", sim_sel->c_selector_id);
    fprintf(file, "                            class (%d elems)\n", sim_sel->c_selector_class_size);

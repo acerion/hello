@@ -46,6 +46,7 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
 
                            , constructAndAddRules
                            , cssParseRuleset
+                           , parseRulesetWrapper
 
                            , CssSheetSelector (..)
                            , getSheetIndex
@@ -94,7 +95,7 @@ data CssStyleSheet = CssStyleSheet {
     rulesById          :: CssRulesMap -- CSS rules, in which topmost simple selector is "id".
   , rulesByClass       :: CssRulesMap -- CSS rules, in which topmost simple selector is "class".
   -- TODO: list of lists to be replaced with vector indexed by element.
-  , rulesByElement     :: [[CssRule]] -- CSS rules, in which topmost simple selector is "specific html element".
+  , rulesByType        :: [[CssRule]] -- CSS rules, in which topmost simple selector is "specific html element".
   , rulesByAnyElement  :: [CssRule]   -- CSS rules, in which topmost simple selector is "any html element".
 
   , requiredMatchCache :: Int
@@ -134,28 +135,28 @@ insertRuleToStyleSheet rule sheet
   -- topmost Simple Selector of the rule.
   | not . T.null . selectorId $ topSimSel  = (1, sheet { rulesById         = updatedRulesById })
   | not . null . selectorClass $ topSimSel = (2, sheet { rulesByClass      = updatedRulesByClass })
-  | element >= 0 && element < elementCount = (3, sheet { rulesByElement    = updatedRulesByElement })
-  | element == cssSimpleSelectorElementAny = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
-  | otherwise                              = if (element /= cssSimpleSelectorElementNone)
-                                             then (trace ("[EE] insert rule: unexpected element: " ++ (show element)) (0, sheet))
+  | selType >= 0 && selType < selTypeCount = (3, sheet { rulesByType       = updatedRulesByType })
+  | selType == cssSimpleSelectorElementAny = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
+  | otherwise                              = if (selType /= cssSimpleSelectorElementNone)
+                                             then (trace ("[EE] insert rule: unexpected type: " ++ (show selType)) (0, sheet))
                                              else (0, sheet)
 
   where
     topSimSel = getTopSimSel rule
 
-    element      = selectorElement topSimSel
-    elementCount = styleSheetElementCount
+    selType      = selectorType topSimSel
+    selTypeCount = styleSheetElementCount
 
     updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId topSimSel) rule
     updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ topSimSel) rule
 
-    listOfLists = rulesByElement sheet
-    thisElementRules = if element >= 0 && element < elementCount
-                       then listOfLists !! element
+    listOfLists = rulesByType sheet
+    thisElementRules = if selType >= 0 && selType < selTypeCount
+                       then listOfLists !! selType
                        else []
 
     updatedThisElementRules = insertRuleInListOfRules thisElementRules rule
-    updatedRulesByElement = listReplaceElem listOfLists updatedThisElementRules element
+    updatedRulesByType = listReplaceElem listOfLists updatedThisElementRules selType
 
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
 
@@ -345,20 +346,20 @@ makeRulePairs (x:xs) declSet declSetImp origin acc =
 -- "for each selector create a rule with given selector and some
 -- declarations, and put it in appropriate style sheet in the context".
 constructAndAddRules :: CssContext -> [CssSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> CssContext
-constructAndAddRules context []        declSet declSetImp _      = context
-constructAndAddRules context selectors declSet declSetImp origin = updatedContext
+constructAndAddRules context []           declSet declSetImp _      = context
+constructAndAddRules context selectorList declSet declSetImp origin = updatedContext
   where
     updatedContext = cssContextAddRules context rulePairs
-    rulePairs = makeRulePairs selectors declSet declSetImp origin []
+    rulePairs = makeRulePairs selectorList declSet declSetImp origin []
 
 
 
 
 cssParseRuleset :: CssParser -> CssToken -> CssContext -> [CssSelector] -> CssOrigin -> (CssParser, CssToken, CssContext)
-cssParseRuleset parser token context selectors origin = (p3, t3, updatedContext)
+cssParseRuleset parser token context selectorList origin = (p3, t3, updatedContext)
   where
     ((p2, t2), (declSet, declSetImp)) = parseDeclarations parser token
-    updatedContext = constructAndAddRules context selectors declSet declSetImp origin
+    updatedContext = constructAndAddRules context selectorList declSet declSetImp origin
     (p3, t3) = case t2 of
                  CssTokCh '}' -> nextToken p2
                  _            -> (p2, t2)
@@ -380,3 +381,11 @@ parseDeclarations' ((parser, token), (declSet, declSetImp)) =
     CssTokEnd    -> ((parser, token), (declSet, declSetImp))
     CssTokCh '}' -> ((parser, token), (declSet, declSetImp))
     otherwise    -> parseDeclarations' (parseDeclarationWrapper2 (parser, token) (declSet, declSetImp))
+
+
+
+
+parseRulesetWrapper parser token context = (p3, t3, updatedContext)
+  where
+    ((p2, t2), selectorList) = readSelectorList (parser, token)
+    (p3, t3, updatedContext) = cssParseRuleset p2 t2 context selectorList (cssOrigin parser)

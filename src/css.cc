@@ -188,7 +188,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
       }
    }
 
-   rules_lists[numLists] = style_sheet->c_rules_by_element[dtn->c_html_element_idx];
+   rules_lists[numLists] = style_sheet->c_rules_by_type[dtn->c_html_element_idx];
    if (rules_lists[numLists])
       numLists++;
 
@@ -270,7 +270,7 @@ static void alloc_sheet(c_css_style_sheet_t ** sheet)
    alloc_rules_map(&(*sheet)->c_rules_by_class);
 
    for (int j = 0; j < css_style_sheet_n_tags; j++) {
-      alloc_rules_list(&(*sheet)->c_rules_by_element[j]);
+      alloc_rules_list(&(*sheet)->c_rules_by_type[j]);
    }
 
    alloc_rules_list(&(*sheet)->c_rules_by_any_element);

@@ -394,7 +394,7 @@ hll_rulesMapGetList ptrStructRulesMap cStringKey = do
 data FfiCssStyleSheet = FfiCssStyleSheet {
     cRulesById          :: Ptr FfiCssRulesMap
   , cRulesByClass       :: Ptr FfiCssRulesMap
-  , cRulesByElement     :: Ptr (Ptr FfiCssRulesList)
+  , cRulesByType        :: Ptr (Ptr FfiCssRulesList)
   , cRulesByAnyElement  :: Ptr FfiCssRulesList
   , cRequiredMatchCache :: CInt
   }
@@ -409,7 +409,7 @@ instance Storable FfiCssStyleSheet where
   peek ptr = do
     a <- #{peek c_css_style_sheet_t, c_rules_by_id}          ptr
     b <- #{peek c_css_style_sheet_t, c_rules_by_class}       ptr
-    let c = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_style_sheet_t, c_rules_by_element}) ptr
+    let c = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_style_sheet_t, c_rules_by_type}) ptr
     d <- #{peek c_css_style_sheet_t, c_rules_by_any_element} ptr
     e <- #{peek c_css_style_sheet_t, c_required_match_cache} ptr
     return (FfiCssStyleSheet a b c d e)
@@ -417,7 +417,7 @@ instance Storable FfiCssStyleSheet where
   poke ptr (FfiCssStyleSheet a b c d e) = do
     #{poke c_css_style_sheet_t, c_rules_by_id}          ptr a
     #{poke c_css_style_sheet_t, c_rules_by_class}       ptr b
-    #{poke c_css_style_sheet_t, c_rules_by_element}     ptr c
+    #{poke c_css_style_sheet_t, c_rules_by_type}     ptr c
     #{poke c_css_style_sheet_t, c_rules_by_any_element} ptr d
     #{poke c_css_style_sheet_t, c_required_match_cache} ptr e
 
@@ -432,8 +432,8 @@ peekCssStyleSheet ptrStructCssStyleSheet = do
   byClass <- peekCssRulesMap (cRulesByClass ffiStyleSheet)
 
   let elementCount = styleSheetElementCount
-  let ptrStructElementRulesList :: Ptr (Ptr FfiCssRulesList) = cRulesByElement ffiStyleSheet
-  byElement :: [[CssRule]] <- peekArrayOfPointers ptrStructElementRulesList elementCount peekCssRulesList
+  let ptrStructElementRulesList :: Ptr (Ptr FfiCssRulesList) = cRulesByType ffiStyleSheet
+  byType :: [[CssRule]] <- peekArrayOfPointers ptrStructElementRulesList elementCount peekCssRulesList
 
   byAnyElement <- peekCssRulesList (cRulesByAnyElement ffiStyleSheet)
 
@@ -441,7 +441,7 @@ peekCssStyleSheet ptrStructCssStyleSheet = do
 
   return CssStyleSheet{ rulesById          = byId
                       , rulesByClass       = byClass
-                      , rulesByElement     = byElement
+                      , rulesByType        = byType
                       , rulesByAnyElement  = byAnyElement
                       , requiredMatchCache = rmc
                       }
@@ -456,7 +456,7 @@ pokeStyleSheet ptrStructStyleSheet sheet = do
 
   pokeCssRulesMap (cRulesById ffiStyleSheet) (rulesById sheet)
   pokeCssRulesMap (cRulesByClass ffiStyleSheet) (rulesByClass sheet)
-  pokeArrayOfPreallocedPointers (rulesByElement sheet) pokeCssRulesList (cRulesByElement ffiStyleSheet)
+  pokeArrayOfPreallocedPointers (rulesByType sheet) pokeCssRulesList (cRulesByType ffiStyleSheet)
 
   pokeCssRulesList (cRulesByAnyElement ffiStyleSheet) (rulesByAnyElement sheet)
 
@@ -646,11 +646,10 @@ hll_cssParseRuleset ptrStructCssParser ptrStructCssToken ptrStructCssContext = d
   token   <- peekCssToken ptrStructCssToken
   context <- peekCssContext ptrStructCssContext
 
-  let ((p2, t2), selectors) = parseSelectors (parser, token)
-  let (p3, t3, c2) = cssParseRuleset p2 t2 context selectors (cssOrigin parser)
+  let (p2, t2, c2) = parseRulesetWrapper parser token context
 
-  pokeCssParser ptrStructCssParser p3
-  pokeCssToken ptrStructCssToken t3
+  pokeCssParser ptrStructCssParser p2
+  pokeCssToken ptrStructCssToken t2
   pokeCssContext ptrStructCssContext c2
 
   return ()

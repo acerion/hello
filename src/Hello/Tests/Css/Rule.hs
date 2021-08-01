@@ -36,13 +36,13 @@ getTopSimSelTestManualDataBasic = [
   -- parser's input remainder      expected top simple selector
 
     ( "body {color: black;background-color: #ffffff;padding:0px;}"
-    , defaultSimpleSelector{ selectorElement = htmlTagIndex "body", combinator = CssCombinatorNone } )
+    , defaultSimpleSelector{ selectorType = htmlTagIndex "body", combinator = CssCombinatorNone } )
 
   , ( ".pure-g > div {-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;}"
-    , defaultSimpleSelector{ selectorElement = htmlTagIndex "div", combinator = CssCombinatorChild } )
+    , defaultSimpleSelector{ selectorType = htmlTagIndex "div", combinator = CssCombinatorChild } )
 
   , ( ".navmenu li:hover > ul {display: block;}"
-    , defaultSimpleSelector{ selectorElement = htmlTagIndex "ul", combinator = CssCombinatorChild } )
+    , defaultSimpleSelector{ selectorType = htmlTagIndex "ul", combinator = CssCombinatorChild } )
 
   , ( ".pure-menu-horizontal .pure-menu-has-children .pure-menu-link:after{content:\"x\"}"
     , defaultSimpleSelector{ selectorClass = ["pure-menu-link"], selectorPseudoClass = ["after"], combinator = CssCombinatorDescendant} )
@@ -51,7 +51,7 @@ getTopSimSelTestManualDataBasic = [
     , defaultSimpleSelector{ selectorId = "id", combinator = CssCombinatorAdjacentSibling} )
 
   , ( ".topnav-container a:visited { color: DarkBlue; }"
-    , defaultSimpleSelector{ selectorPseudoClass = ["visited"], selectorElement = htmlTagIndex "a", combinator = CssCombinatorDescendant } )
+    , defaultSimpleSelector{ selectorPseudoClass = ["visited"], selectorType = htmlTagIndex "a", combinator = CssCombinatorDescendant } )
   ]
 
 
@@ -70,8 +70,8 @@ getTopSimSelTest (x:xs) = if expectedSimSel /= simSel
 
     -- Both cases should work the same. If current token is None, tested
     -- function should get some non-None input token.
-    ((p1, t1), selectors) = parseSelectors (defaultParser{remainder = remainderIn}, CssTokNone)
-    rule = CssRule { selector = head selectors, declarationSet = defaultCssDeclarationSet, specificity = 0, position = 0 }
+    ((p1, t1), selectorList) = readSelectorList (defaultParser{remainder = remainderIn}, CssTokNone)
+    rule = CssRule { selector = head selectorList, declarationSet = defaultCssDeclarationSet, specificity = 0, position = 0 }
     simSel = getTopSimSel rule
 
 

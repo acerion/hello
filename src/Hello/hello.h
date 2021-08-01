@@ -74,7 +74,7 @@ typedef struct c_css_simple_selector_t {
    int c_selector_pseudo_class_size;
 
    char * c_selector_id;
-   int c_selector_element; /* Index corresponding to html.cc::Tags[]. */
+   int c_selector_type; /* Index corresponding to html.cc::Tags[]. */
 
    int c_combinator;
 } c_css_simple_selector_t;
@@ -168,7 +168,7 @@ static const int css_style_sheet_n_tags = 90 + 14;
 typedef struct c_css_style_sheet_t {
    c_css_rules_map_t * c_rules_by_id;
    c_css_rules_map_t * c_rules_by_class;
-   c_css_rules_list_t * c_rules_by_element[90 + 14 /* css_style_sheet_n_tags */];
+   c_css_rules_list_t * c_rules_by_type[90 + 14 /* css_style_sheet_n_tags */];
    c_css_rules_list_t * c_rules_by_any_element;
 
    int c_required_match_cache;

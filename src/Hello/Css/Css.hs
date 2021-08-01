@@ -71,7 +71,7 @@ simpleSelectorMatches simSel dtn | mismatchOnElement simSel dtn     = False
                                  | otherwise                        = True
   where
     mismatchOnElement :: CssSimpleSelector -> DoctreeNode -> Bool
-    mismatchOnElement simSel dtn = (selectorElement simSel) /= cssSimpleSelectorElementAny && (selectorElement simSel) /= (htmlElementIdx dtn)
+    mismatchOnElement simSel dtn = (selectorType simSel) /= cssSimpleSelectorElementAny && (selectorType simSel) /= (htmlElementIdx dtn)
     -- if (selector->c_selector_element != CssSimpleSelectorElementAny && selector->c_selector_element != dtn->c_html_element_idx)
     --     return false;
 
@@ -129,7 +129,7 @@ simpleSelectorSpecificity simSel = fromId + fromClass + fromPseudoClass + fromEl
     fromId          = if (not . T.null . selectorId $ simSel) then (1 `shiftL` 20) else 0
     fromClass       = (length . selectorClass $ simSel) `shiftL` 10
     fromPseudoClass = if (not . null . selectorPseudoClass $ simSel) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
-    fromElement     = if ((selectorElement simSel) /= cssSimpleSelectorElementAny) then 1 else 0
+    fromElement     = if ((selectorType simSel) /= cssSimpleSelectorElementAny) then 1 else 0
 
 
 
