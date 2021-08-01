@@ -277,13 +277,6 @@ c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, co
 
 
 void hll_matchCacheSetSize(c_css_match_cache_t * match_cache, int size);
-
-void hll_cssContextAddRule(c_css_context_t * context, c_css_rule_t * rule, CssPrimaryOrder order);
-void hll_constructAndAddRules(c_css_context_t * context, c_css_selector_t ** selectors, int selectors_count,
-                              c_css_declaration_set_t * decl_set,
-                              c_css_declaration_set_t * decl_set_imp,
-                              CssOrigin origin);
-
 void hll_cssParseRuleset(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
 
 #ifdef __cplusplus

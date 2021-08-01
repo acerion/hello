@@ -62,8 +62,6 @@ foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Pt
 foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
-foreign export ccall "hll_cssContextAddRule" hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
-foreign export ccall "hll_constructAndAddRules" hll_constructAndAddRules :: Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> CInt -> IO ()
 foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
 
 
@@ -604,49 +602,13 @@ pokeCssContext ptrStructContext context = do
 
 
 
-hll_cssContextAddRule :: Ptr FfiCssContext -> Ptr FfiCssRule -> CInt -> IO ()
-hll_cssContextAddRule ptrStructCssContext ptrStructCssRule cOrder = do
-
-  context    <- peekCssContext ptrStructCssContext
-  rule       <- peekCssRule ptrStructCssRule
-  let order :: Int = fromIntegral cOrder
-
-  let updatedContext = cssContextAddRule context rule (getSheetSelector order)
-
-  pokeCssContext ptrStructCssContext updatedContext
-
-  return ()
-
-
-
-
-hll_constructAndAddRules :: Ptr FfiCssContext -> Ptr (Ptr FfiCssSelector) -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> CInt -> IO ()
-hll_constructAndAddRules ptrStructCssContext arrayPtrStructCssSelector cSelsCount ptrStructDeclarationSet ptrStructDeclarationSetImp cOrig = do
-
-  let selectorsCount = fromIntegral cSelsCount
-  let origin         = getCssOrigin . fromIntegral $ cOrig
-
-  context    <- peekCssContext ptrStructCssContext
-  selectors  <- peekArrayOfPointers arrayPtrStructCssSelector selectorsCount peekCssSelector
-  declSet    <- peekCssDeclarationSet ptrStructDeclarationSet
-  declSetImp <- peekCssDeclarationSet ptrStructDeclarationSetImp
-
-  let updatedContext = constructAndAddRules context selectors declSet declSetImp origin
-
-  pokeCssContext ptrStructCssContext updatedContext
-
-  return ()
-
-
-
-
 hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
 hll_cssParseRuleset ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
   parser  <- peekCssParser ptrStructCssParser
   token   <- peekCssToken ptrStructCssToken
   context <- peekCssContext ptrStructCssContext
 
-  let (p2, t2, c2) = parseRulesetWrapper parser token context
+  let (p2, t2, c2) = parseRuleset parser token context
 
   pokeCssParser ptrStructCssParser p2
   pokeCssToken ptrStructCssToken t2

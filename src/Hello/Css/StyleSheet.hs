@@ -44,9 +44,7 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
 
                            , styleSheetElementCount
 
-                           , constructAndAddRules
-                           , cssParseRuleset
-                           , parseRulesetWrapper
+                           , parseRuleset
 
                            , CssSheetSelector (..)
                            , getSheetIndex
@@ -355,37 +353,38 @@ constructAndAddRules context selectorList declSet declSetImp origin = updatedCon
 
 
 
-cssParseRuleset :: CssParser -> CssToken -> CssContext -> [CssSelector] -> CssOrigin -> (CssParser, CssToken, CssContext)
-cssParseRuleset parser token context selectorList origin = (p3, t3, updatedContext)
-  where
-    ((p2, t2), (declSet, declSetImp)) = parseDeclarations parser token
-    updatedContext = constructAndAddRules context selectorList declSet declSetImp origin
-    (p3, t3) = case t2 of
-                 CssTokCh '}' -> nextToken p2
-                 _            -> (p2, t2)
-
-
-
-
-parseDeclarations parser token = ((p2{ inBlock = False }, t2), (declSet, declSetImp))
+readDeclarations parser token = ((p3, t3), (declSet, declSetImp))
   where
     ((p2, t2), (declSet, declSetImp)) = case token of
                                           CssTokEnd -> ((parser, token), (declSet, declSetImp))
-                                          otherwise -> parseDeclarations' ((nextToken parser{ inBlock = True }), (defaultCssDeclarationSet, defaultCssDeclarationSet))
+                                          otherwise -> readDeclarations' ((nextToken parser{ inBlock = True }), (defaultCssDeclarationSet, defaultCssDeclarationSet))
+    (p3, t3) = case t2 of
+                 CssTokCh '}' -> nextToken p2{ inBlock = False }
+                 _            -> (p2{ inBlock = False }, t2)
 
 
 
-
-parseDeclarations' ((parser, token), (declSet, declSetImp)) =
+readDeclarations' ((parser, token), (declSet, declSetImp)) =
   case token of
     CssTokEnd    -> ((parser, token), (declSet, declSetImp))
-    CssTokCh '}' -> ((parser, token), (declSet, declSetImp))
-    otherwise    -> parseDeclarations' (parseDeclarationWrapper2 (parser, token) (declSet, declSetImp))
+    CssTokCh '}' -> ((parser, token), (declSet, declSetImp)) -- TODO: this should be (nextToken parser)
+                    -- instead of (parser, token): ensure that '}' that is part of "declartions" block
+                    -- is handled and consumed, so that the next part of code doesn't have to handle it.
+    otherwise    -> readDeclarations' (parseDeclarationWrapper2 (parser, token) (declSet, declSetImp))
 
 
 
 
-parseRulesetWrapper parser token context = (p3, t3, updatedContext)
+rulesetToRulesWithOrigin parser token = ((p3, t3), rulesWithOrigin)
   where
     ((p2, t2), selectorList) = readSelectorList (parser, token)
-    (p3, t3, updatedContext) = cssParseRuleset p2 t2 context selectorList (cssOrigin parser)
+    ((p3, t3), (declSet, declSetImp)) = readDeclarations p2 t2
+    rulesWithOrigin = makeRulePairs selectorList declSet declSetImp (cssOrigin parser) []
+
+
+
+
+parseRuleset parser token context = (p2, t2, updatedContext)
+  where
+    updatedContext = cssContextAddRules context rulesWithOrigin
+    ((p2, t2), rulesWithOrigin) = rulesetToRulesWithOrigin parser token
