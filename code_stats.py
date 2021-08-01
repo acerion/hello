@@ -92,4 +92,16 @@ plt.ylabel("LOC")
 plt.title("hello's LOC over time")
 plt.legend()
 
+# Major ticks every 20, minor ticks every 5
+major_ticks = np.arange(0, 60000, 5000)
+minor_ticks = np.arange(0, 60000, 1000)
+
+axes.set_yticks(major_ticks)
+axes.set_yticks(minor_ticks, minor=True)
+
+# Or if you want different settings for the grids:
+plt.grid(which='minor', alpha=0.2)
+plt.grid(which='major', alpha=0.5)
+plt.subplots_adjust(left=0.05, right=0.99, top=0.97, bottom=0.1)
+
 plt.show()
