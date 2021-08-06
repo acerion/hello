@@ -359,9 +359,9 @@ readDeclarations parser token = ((p3, t3), (declSet, declSetImp))
   where
     ((p2, t2), (declSet, declSetImp)) = case token of
                                           CssTokEnd -> ((parser, token), (declSet, declSetImp))
-                                          otherwise -> readDeclarations' ((nextToken parser{ inBlock = True }), (defaultCssDeclarationSet, defaultCssDeclarationSet))
+                                          otherwise -> readDeclarations' ((nextToken1 parser{ inBlock = True }), (defaultCssDeclarationSet, defaultCssDeclarationSet))
     (p3, t3) = case t2 of
-                 CssTokCh '}' -> nextToken p2{ inBlock = False }
+                 CssTokCh '}' -> nextToken1 p2{ inBlock = False }
                  _            -> (p2{ inBlock = False }, t2)
 
 

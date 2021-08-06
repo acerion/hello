@@ -53,7 +53,7 @@ TODO: think about performance of using isPrefixOf to get just one character.
 
 module Hello.Css.Tokenizer( CssParser (..)
                           , defaultParser
-                          , nextToken
+                          , nextToken1
                           , nextToken2
 
                           , CssToken (..)
@@ -155,10 +155,10 @@ data CssOrigin =
 
 
 
-nextToken :: CssParser -> (CssParser, CssToken)
-nextToken parser = (updatedParser{bufOffset = increasedBufOffset parser}, token)
+nextToken1 :: CssParser -> (CssParser, CssToken)
+nextToken1 parser = (updatedParser{bufOffset = increasedBufOffset parser}, token)
   where
-    (updatedParser, token) = case nextToken' parser{spaceSeparated = False} of
+    (updatedParser, token) = case nextToken1' parser{spaceSeparated = False} of
                                (p, Just t)  -> (p, t)
                                (p, Nothing) -> (p, CssTokNone)
     increasedBufOffset parser = (bufOffset parser) + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
@@ -188,13 +188,13 @@ pair@(parser, _)  >>? _ = pair
 
 
 
-nextToken' :: CssParser -> (CssParser, Maybe CssToken)
-nextToken' parser = takeLeadingWhite parser >>?
-                    takeNumericToken        >>?
-                    takeIdentLikeToken      >>?
-                    takeString              >>?
-                    takeHashToken           >>?
-                    takeCharToken
+nextToken1' :: CssParser -> (CssParser, Maybe CssToken)
+nextToken1' parser = takeLeadingWhite parser >>?
+                     takeNumericToken        >>?
+                     takeIdentLikeToken      >>?
+                     takeString              >>?
+                     takeHashToken           >>?
+                     takeCharToken
 
 
 
@@ -426,7 +426,7 @@ tryTakingPercOrDim numParser cssNum | (parser, Just (CssTokCh '%'))      <- take
 -- <dimension-token>. Return one of the three token types.
 --
 takeNumericToken :: CssParser -> (CssParser, Maybe CssToken)
-takeNumericToken parser = case takeNum parser of
+takeNumericToken parser = case takeNumber parser of
                             (numParser, Just cssNum) -> (numTokenOrMore numParser cssNum)
                             otherwise                ->(parser, Nothing)
 
@@ -447,8 +447,8 @@ takeNumericToken parser = case takeNum parser of
 -- Try taking Float before trying to take Int, because otherwise you may take
 -- only an initial (integral) part of Float as an Int, and leave fractional
 -- part in remainder.
-takeNum :: CssParser -> (CssParser, Maybe CssNum)
-takeNum parser = wellFormedFloat parser >>? noStartingDigitFloat >>? takeInt
+takeNumber :: CssParser -> (CssParser, Maybe CssNum)
+takeNumber parser = wellFormedFloat parser >>? noStartingDigitFloat >>? takeInt
 
 
 

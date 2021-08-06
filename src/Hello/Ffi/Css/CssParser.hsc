@@ -237,7 +237,7 @@ hll_nextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO CString
 hll_nextToken ptrStructCssParser ptrStructCssToken = do
   parser <- peekCssParser ptrStructCssParser
 
-  let (newParser, newToken) = nextToken parser
+  let (newParser, newToken) = nextToken1 parser
 
   pokeCssParser ptrStructCssParser newParser
   pokeCssToken ptrStructCssToken newToken
