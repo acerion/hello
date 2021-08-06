@@ -69,6 +69,7 @@ import Control.Applicative
 import Control.Monad -- when
 import Debug.Trace
 
+import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Ffi.Utils
 

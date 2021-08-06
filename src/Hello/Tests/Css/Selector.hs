@@ -14,9 +14,11 @@ where
 import qualified Data.Text as T
 import Test.HUnit
 import System.Exit
+import Debug.Trace
+
+import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Utils
-import Debug.Trace
 
 
 

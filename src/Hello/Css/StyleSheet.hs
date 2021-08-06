@@ -64,6 +64,7 @@ import qualified Data.Sequence as S
 import Debug.Trace
 import Control.Monad -- when
 
+import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Css
 import Hello.Utils
