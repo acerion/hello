@@ -1193,7 +1193,16 @@ void print_css_simple_selector(FILE * file, c_css_simple_selector_t * sim_sel)
 {
    fprintf(file, "                        Simple selector:\n");
    fprintf(file, "                            element = %d/%s\n", sim_sel->c_selector_type, a_Html_tag_name(sim_sel->c_selector_type));
-   fprintf(file, "                            pseudo  = '%s'\n", sim_sel->c_selector_pseudo_class[0]);
+
+   fprintf(file, "                            pseudo  = ");
+   for (int p = 0; p == 0 || p < sim_sel->c_selector_pseudo_class_size; p++) { // The 'p == 0' condition to keep output format compatible with dillo's
+      fprintf(file, "%s'%s'", p > 0 ? " " : "", sim_sel->c_selector_pseudo_class[p]);
+   }
+   if (sim_sel->c_selector_pseudo_class_size > 1) {
+      fprintf(file, "(Hello-specific multi-value pseudo)");
+   }
+   fprintf(file, "\n");
+
    fprintf(file, "                            id      = '%s'\n", sim_sel->c_selector_id);
    fprintf(file, "                            class (%d elems)\n", sim_sel->c_selector_class_size);
    for (int i = 0; i < sim_sel->c_selector_class_size; i++) {
