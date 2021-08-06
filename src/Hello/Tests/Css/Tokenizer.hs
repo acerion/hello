@@ -4,8 +4,9 @@
 
 
 
-module TestsCssParser (testsCssTokenizer
-                      ) where
+module Hello.Tests.Css.Tokenizer (testsCssTokenizer
+                                 )
+where
 
 
 
@@ -106,6 +107,13 @@ tokenizerNumbersTestManualData = [
   -- identifier to number to get <dimension-token>. Verifying units is done
   -- by parser, not tokenizer.
   , ( "64.22cars}",            CssTokDim (CssNumF 64.22) "cars",     "}" )
+
+
+  -- Verify that non-number tokens aren't interpreted as numbers.
+  , ( "binary{",               CssTokIdent "binary",                 "{" )
+  -- Something that a buggy tokenizer may try to fix by prepending zero to
+  -- form a valid float.
+  , ( ".almostFloat;",         CssTokCh '.',                         "almostFloat;" )
   ]
 
 
@@ -115,14 +123,19 @@ tokenizerNumbersTestManualData = [
 -- remainder string in a row, for which test failed.
 tokenizerNumbersTest :: [(T.Text, CssToken, T.Text)] -> T.Text
 tokenizerNumbersTest []     = ""
-tokenizerNumbersTest (x:xs) = if expectedToken /= token || remainderAfter /= (remainder parser)
-                              then remainderBefore
+tokenizerNumbersTest (x:xs) = if expectedToken /= token || expectedRemainder /= (remainder parser)
+                              then T.pack . showFailedCase $ x
                               else tokenizerNumbersTest xs
   where
     remainderBefore = tripletFst x
     expectedToken   = tripletSnd x
-    remainderAfter  = tripletThrd x
+    expectedRemainder  = tripletThrd x
     (parser, token) = nextToken defaultParser{remainder = remainderBefore}
+
+    showFailedCase x =    "Input remainder = "    ++ (show remainderBefore) ++ "; "
+                       ++ "Expected remainder = " ++ (show expectedRemainder) ++ "; "
+                       ++ "Expected token = "     ++ (show expectedToken) ++ "; "
+                       ++ "Output token = "       ++ (show token) ++ "; "
 
 
 

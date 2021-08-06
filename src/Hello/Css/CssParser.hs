@@ -876,7 +876,6 @@ wellFormedFloat parser = case T.R.signed T.R.rational (remainder parser) of
 -- Fix a string that is a malformed float (i.e. starting with a dot: ".7")
 -- and try parsing it again. TODO: this function can't handle a case of sign
 -- followed by dot: "-.4".
---
 noStartingDigitFloat :: CssParser -> (CssParser, Maybe CssNum)
 noStartingDigitFloat parser = if isFloatWithoutLeadingDot parser
                                  -- TODO: this adding character to remainder may break calculation of offset in input buffer.
