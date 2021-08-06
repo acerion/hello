@@ -579,17 +579,16 @@ nextToken2 parser = (updatedParser{bufOffset = increasedBufOffset parser}, token
 --
 -- These lines are most awesome piece of code that I've written so far, in
 -- any project.
-(>>?) :: (CssParser, Maybe CssToken) -> (CssParser -> (CssParser, Maybe CssToken)) -> (CssParser, Maybe CssToken)
+(>>?) :: (CssParser, Maybe a) -> (CssParser -> (CssParser, Maybe a)) -> (CssParser, Maybe a)
 (parser, Nothing) >>? f = f parser
 pair@(parser, _)  >>? _ = pair
 
 
 
 
-
 nextToken' :: CssParser -> (CssParser, Maybe CssToken)
 nextToken' parser = takeLeadingWhite parser >>?
-                    takeNumPercDimToken     >>?
+                    takeNumericToken        >>?
                     takeIdentLikeToken      >>?
                     takeString              >>?
                     takeHashToken           >>?
@@ -600,7 +599,7 @@ nextToken' parser = takeLeadingWhite parser >>?
 
 nextToken2' :: CssParser -> (CssParser, Maybe CssToken)
 nextToken2' parser = takeLeadingWhite2 parser >>?
-                     takeNumPercDimToken      >>?
+                     takeNumericToken         >>?
                      takeIdentLikeToken       >>?
                      takeString               >>?
                      takeHashToken            >>?
@@ -824,13 +823,10 @@ tryTakingPercOrDim numParser cssNum | (parser, Just (CssTokCh '%'))      <- take
 -- allows to convert the <number-token> into <percentage-token> or
 -- <dimension-token>. Return one of the three token types.
 --
--- Try taking Float before trying to take Int, because otherwise you may take
--- only an initial (integral) part of Float as an Int, and leave fractional
--- part in remainder.
-takeNumPercDimToken :: CssParser -> (CssParser, Maybe CssToken)
-takeNumPercDimToken parser | (numParser, Just cssNum) <- takeFloat parser = numTokenOrMore numParser cssNum
-                           | (numParser, Just cssNum) <- takeInt parser   = numTokenOrMore numParser cssNum
-                           | otherwise                                    = (parser, Nothing)
+takeNumericToken :: CssParser -> (CssParser, Maybe CssToken)
+takeNumericToken parser = case takeNum parser of
+                            (numParser, Just cssNum) -> (numTokenOrMore numParser cssNum)
+                            otherwise                ->(parser, Nothing)
 
   where
     -- Use given CssNum to either create <number-token>, or (if data in
@@ -844,49 +840,60 @@ takeNumPercDimToken parser | (numParser, Just cssNum) <- takeFloat parser = numT
 
 
 
--- Alternative implementation of takeNumPercDimToken. I like it less because
--- it *feels* like there is too much constructing compared to first version.
-takeNumPercDimToken2 :: CssParser -> (CssParser, Maybe CssToken)
-takeNumPercDimToken2 parser = (tupleParser, tupleToToken tuple)
+-- Take a number: either float or integer. Don't take a unit that may or may
+-- not follow the number - leave it to next function.
+-- Try taking Float before trying to take Int, because otherwise you may take
+-- only an initial (integral) part of Float as an Int, and leave fractional
+-- part in remainder.
+takeNum :: CssParser -> (CssParser, Maybe CssNum)
+takeNum parser = wellFormedFloat parser >>? noStartingDigitFloat >>? takeInt
+
+
+
+
+-- Parse a string of characters that represents a well formed float. "Well
+-- formed" means with integral digit(s), e.g. "1.4". A "malformed" float (e.g.
+-- ".5") is a special case that should be handled by noStartingDigitFloat.
+wellFormedFloat :: CssParser -> (CssParser, Maybe CssNum)
+wellFormedFloat parser = case T.R.signed T.R.rational (remainder parser) of
+                           -- T.R.rational is happy to interpret "100" as float,
+                           -- but we want to treat is as int and reject it.
+                           -- Therefore we have to search for '.' in taken
+                           -- sub-string :( Similarly we search for 'e' to
+                           -- recognize a string that represents a float in
+                           -- exponential notation.
+                           Right (f, rem) -> case T.find (\c -> elem c ['.', 'e']) valString of
+                                               Just c    -> (parser{remainder = rem}, Just $ CssNumF f)
+                                               otherwise -> (parser, Nothing)
+                             where
+                               valString = T.take valLen $ remainder parser
+                               valLen = (T.length . remainder $ parser) - (T.length rem)
+                           Left _         -> (parser, Nothing)
+
+
+
+
+-- Fix a string that is a malformed float (i.e. starting with a dot: ".7")
+-- and try parsing it again. TODO: this function can't handle a case of sign
+-- followed by dot: "-.4".
+--
+noStartingDigitFloat :: CssParser -> (CssParser, Maybe CssNum)
+noStartingDigitFloat parser = if isFloatWithoutLeadingDot parser
+                                 -- TODO: this adding character to remainder may break calculation of offset in input buffer.
+                              then wellFormedFloat parser{remainder=(T.cons '0' (remainder parser))}
+                              else (parser, Nothing)
   where
-    -- A final <number/percentage/dimension-token> can be built from one or
-    -- two tokens that are in a tuple.
-    tupleToToken :: (Maybe CssToken, Maybe CssToken) -> Maybe CssToken
-    tupleToToken (Just (CssTokNum cssNum), Nothing)                  = Just $ CssTokNum cssNum
-    tupleToToken (Just (CssTokNum cssNum), Just (CssTokCh '%'))      = Just $ CssTokPerc cssNum
-    tupleToToken (Just (CssTokNum cssNum), Just (CssTokIdent ident)) = Just $ CssTokDim cssNum ident
-    tupleToToken _                                                   = Nothing
-
-    -- Try taking Float before trying to take Int, because otherwise you may
-    -- take only an initial (integral) part of Float as an Int, and leave
-    -- fractional part in remainder.
-    (tupleParser, tuple) | (numParser, Just cssNum) <- takeFloat parser = takeT2 numParser (Just $ CssTokNum cssNum, Nothing)
-                         | (numParser, Just cssNum) <- takeInt parser   = takeT2 numParser (Just $ CssTokNum cssNum, Nothing)
-                         | otherwise                                    = (parser, (Nothing, Nothing))
-
-    takeT2 p1 (t1, _) | pair@(p2, Just (CssTokCh '%'))      <- takeCharToken p1  = (p2, (t1, snd pair))
-                      | pair@(p2, Just (CssTokIdent ident)) <- takeIdentToken p1 = (p2, (t1, snd pair))
-                      | otherwise                                                = (p1, (t1, Nothing))
-
-
-
-
--- TODO: this function doesn't recognize some float formats that are
--- valid in CSS, e.g. ".5".
-takeFloat :: CssParser -> (CssParser, Maybe CssNum)
-takeFloat parser = case T.R.signed T.R.rational (remainder parser) of
-                     -- T.R.rational is happy to interpret "100" as
-                     -- float, but we want to treat is as int and reject
-                     -- it. Therefore we have to search for '.' in taken
-                     -- sub-string :( TODO: what about "4e10" float
-                     -- format that doesn't contain dot?
-                     Right (f, rem) -> case T.find (== '.') val of
-                                         Just c    -> (parser{remainder = rem}, Just $ CssNumF f)
-                                         otherwise -> (parser, Nothing)
-                       where
-                         val = T.take valLen $ remainder parser
-                         valLen = (T.length . remainder $ parser) - (T.length rem)
-                     Left _         -> (parser, Nothing)
+    -- TODO: this is one ugly function. This necessity to do two T.uncons
+    -- calls is UGLY.
+    isFloatWithoutLeadingDot parser =
+      case T.uncons (remainder parser) of
+        Just ('.', rem) -> case T.uncons (rem) of
+                             -- Don't just rely on a dot, check if the dot
+                             -- stands before a fractional part (good), or
+                             -- before CSS selector (bad).
+                             Just (d, rem2) -> d >= '0' && d <= '9'
+                             otherwise      -> False
+        otherwise       -> False
 
 
 

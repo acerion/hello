@@ -24,6 +24,10 @@ import Hello.Utils
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
+--
+-- We are testing <number-token>'s here. Put space before alphabetical string
+-- that come after numeric value, otherwise that string will be treated as
+-- ident, interpreted as unit, and the whole token will be of type CssTokDim.
 tokenizerNumbersTestManualData = [
   -- parser's remainder before     expected token           parser's remainder after
 
@@ -52,8 +56,17 @@ tokenizerNumbersTestManualData = [
   , ( "12345.1,",              CssTokNum $ CssNumF 12345.1,          "," )
   , ( "76.5 computers",        CssTokNum $ CssNumF 76.5,             " computers" )
   , ( "44.2,",                 CssTokNum $ CssNumF 44.2,             "," )
-  -- , ( ".2,",                   CssTokNum $ CssNumF 0.2,              "," ) -- TODO: implement support for this format
-  -- , ( "10e2}",                 CssTokNum $ CssNumF 1000.0,           "}" ) -- TODO: implement support for this format
+  , ( ".2,",                   CssTokNum $ CssNumF 0.2,              "," )
+  -- , ( "-.4;",                  CssTokNum $ CssNumF (-0.4),           ";" ) TODO: support this case (leading sign + missing leading digit)
+  -- , ( "+.5;",                  CssTokNum $ CssNumF 0.5,           ";" ) TODO: support this case (leading sign + missing leading digit)
+
+  -- Exponential notation.
+  , ( "10e2}",                 CssTokNum $ CssNumF 1000.0,           "}" )
+  , ( "10e+2 px",              CssTokNum $ CssNumF 1000.0,           " px" )
+  , ( "3e-2}",                 CssTokNum $ CssNumF 3e-2,             "}" )
+  , ( ".5e-2{",                CssTokNum $ CssNumF 0.5e-2,           "{" )
+  -- , ( "-.7e+3{",               CssTokNum $ CssNumF (-0.7e+3),        "{" ) TODO: support this case (leading sign + missing leading digit)
+  -- , ( "+.4e+4,",               CssTokNum $ CssNumF 0.4e+4,           "," ) TODO: support this case (leading sign + missing leading digit)
   , ( "1.2e-3}",               CssTokNum $ CssNumF 0.0012,           "}" )
   , ( "+1.2e-3}",              CssTokNum $ CssNumF 0.0012,           "}" )
   , ( "-1.2e-3}",              CssTokNum $ CssNumF (-0.0012),        "}" )

@@ -45,6 +45,7 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
                            , styleSheetElementCount
 
                            , parseRuleset
+                           , rulesetToRulesWithOrigin
 
                            , CssSheetSelector (..)
                            , getSheetIndex
@@ -225,7 +226,7 @@ data CssSheetSelector =
   | CssPrimaryAuthorImportant -- = 3
   | CssPrimaryUserImportant   -- = 4
   | CssPrimaryOrderSize       -- = 5 -- TODO: to be removed
-  deriving (Eq)
+  deriving (Eq, Show)
 
 
 
