@@ -31,7 +31,7 @@ import Hello.Utils
 -- We are testing <number-token>'s here. Put space before alphabetical string
 -- that come after numeric value, otherwise that string will be treated as
 -- ident, interpreted as unit, and the whole token will be of type CssTokDim.
-tokenizerNumbersTestManualData = [
+tokenizerNumericTokenTestManualData = [
   -- parser's remainder before     expected token           parser's remainder after
 
   -- Tests of <number-token>
@@ -141,11 +141,11 @@ tokenizerNumbersTestManualData = [
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-tokenizerNumbersTest :: [(T.Text, CssToken, T.Text)] -> T.Text
-tokenizerNumbersTest []     = ""
-tokenizerNumbersTest (x:xs) = if expectedToken /= token || expectedRemainder /= (remainder parser)
-                              then T.pack . showFailedCase $ x
-                              else tokenizerNumbersTest xs
+tokenizerNumericTokenTest :: [(T.Text, CssToken, T.Text)] -> T.Text
+tokenizerNumericTokenTest []     = ""
+tokenizerNumericTokenTest (x:xs) = if expectedToken /= token || expectedRemainder /= (remainder parser)
+                                   then T.pack . showFailedCase $ x
+                                   else tokenizerNumericTokenTest xs
   where
     remainderBefore = tripletFst x
     expectedToken   = tripletSnd x
@@ -165,7 +165,7 @@ tokenizerNumbersTest (x:xs) = if expectedToken /= token || expectedRemainder /= 
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
-tokenizerHashTestManualData = [
+tokenizerHashTokenTestManualData = [
   -- parser's remainder before     expected token           parser's remainder after
 
     ( "#0",                    CssTokHash "0",                        ""  )
@@ -179,17 +179,46 @@ tokenizerHashTestManualData = [
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-tokenizerHashTest :: [(T.Text, CssToken, T.Text)] -> T.Text
-tokenizerHashTest []     = ""
-tokenizerHashTest (x:xs) = if expectedToken /= token || remainderAfter /= (remainder parser)
-                           then remainderBefore
-                           else tokenizerHashTest xs
+tokenizerHashTokenTest :: [(T.Text, CssToken, T.Text)] -> T.Text
+tokenizerHashTokenTest []     = ""
+tokenizerHashTokenTest (x:xs) = if expectedToken /= token || remainderAfter /= (remainder parser)
+                                then remainderBefore
+                                else tokenizerHashTokenTest xs
   where
     remainderBefore = tripletFst x
     expectedToken   = tripletSnd x
     remainderAfter  = tripletThrd x
     (parser, token) = nextToken1 defaultParser{remainder = remainderBefore, inBlock = True}
 
+
+
+
+-- Tests for parsing strings as <ident-token> (CssTokIdent).
+--
+-- This array is called "Manual" because these tests were written manually.
+-- Perhaps in the future I will write some generator of test data.
+tokenizerIdentTokenTestManualData = [
+  -- parser's remainder before     expected token                  parser's remainder after
+
+    ( "a",                         CssTokIdent "a",                ""  )
+  , ( "a}",                        CssTokIdent "a",                "}" )
+  , ( "BODY}",                     CssTokIdent "BODY",             "}" )
+  , ( "BODY}",                     CssTokIdent "BODY",             "}" )
+
+  -- Taken from real css: ".opera-only :-o-prefocus,.pure-g{word-spacing:-.43em}"
+  , ( "-o-prefocus,",              CssTokIdent "-o-prefocus",      "," )
+
+  -- Escape sequence, taken from real css:
+  -- ".pure-button-active,.pure-button:active{box-shadow:0 0 0 1px rgba(0,0,0,.15) inset,0 0 6px rgba(0,0,0,.2) inset;border-color:#000\9}"
+  , ( "\\9",                       CssTokIdent "\t",               "" )
+  , ( "\\9}",                      CssTokIdent "\t",               "}" )
+
+  , ( "\\017C}",                   CssTokIdent "ż",                "}" ) -- Polish letter "LATIN SMALL LETTER Z WITH DOT ABOVE"
+  ]
+
+
+
+tokenizerIdentTokenTest = tokenizerNumericTokenTest
 
 
 
@@ -553,10 +582,13 @@ tokenizerTestCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.
      TestCase (do
-                 assertEqual "manual tests of numbers" "" (tokenizerNumbersTest tokenizerNumbersTestManualData))
+                 assertEqual "manual tests of numeric token"    "" (tokenizerNumericTokenTest tokenizerNumericTokenTestManualData))
 
    , TestCase (do
-                 assertEqual "manual tests of hash"  "" (tokenizerHashTest tokenizerHashTestManualData))
+                 assertEqual "manual tests of hash token"       "" (tokenizerHashTokenTest tokenizerHashTokenTestManualData))
+
+   , TestCase (do
+                 assertEqual "manual tests of ident token"      "" (tokenizerIdentTokenTest tokenizerIdentTokenTestManualData))
 
    , TestCase (do
                  assertEqual "manual tests of tokenAsValue 1"  Nothing (tokenAsValueTest1 0 tokenAsValueTestManualData1))

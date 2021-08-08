@@ -55,6 +55,7 @@ module Hello.Css.Tokenizer( CssParser (..)
                           , defaultParser
                           , nextToken1
                           , nextToken2
+                          , takeIdentToken
 
                           , CssToken (..)
 
@@ -69,6 +70,11 @@ module Hello.Css.Tokenizer( CssParser (..)
                           , expectDot
                           , expectFollowingDigits
                           , expectExponent
+                          , peekUpToNCodePoints
+                          , isValidStartOfIdentifier
+                          , consumeEscapedCodePoint
+                          , consumeEscapedCodePointString
+                          , consumeName
                           )
   where
 
@@ -84,6 +90,7 @@ import Debug.Trace
 
 import qualified Hello.Utils as HU
 import Hello.Utils
+import qualified Hello.Unicode as H.U
 
 
 
@@ -249,21 +256,50 @@ takeSymbol parser = if predNonNumeric . T.head . remainder $ parser
 -- rescribed in CSS3 spec.
 takeIdentToken :: CssParser -> (CssParser, Maybe CssToken)
 takeIdentToken parser = if isValidStartOfIdentifier . remainder $ parser
-                        then (parserMoveBy parser ident, Just $ CssTokIdent ident)
+                        then (parserMoveByLen parser len, Just $ CssTokIdent ident)
                         else (parser, Nothing)
   where
-    (ident, n) = consumeName (remainder parser) "" 0
+    (ident, len) = consumeName (remainder parser) "" 0
 
 
 
 
 -- https://www.w3.org/TR/css-syntax-3/#check-if-three-code-points-would-start-an-identifier
-isValidStartOfIdentifier buffer = case T.uncons buffer of
-                                    Just (c, rem) | c == '-'               -> False -- TODO: properly handle identifier starting with '-'
-                                                  | isNameStartCodePoint c -> True
-                                                  | c == '\\'              -> False -- TODO: properly handle an escape
-                                                  | otherwise              -> False
-                                    Nothing -> False
+isValidStartOfIdentifier buffer | null points             = False
+                                | c1 == '-'               = tryStartingWithHyphen points
+                                | isNameStartCodePoint c1 = True
+                                | c1 == '\\'              = length points >= 2 && isValidEscape c1 c2
+                                | otherwise               = False
+  where
+    points = peekUpToNCodePoints buffer 3 (\c -> True)
+
+    tryStartingWithHyphen points | length points >= 2 && (isNameStartCodePoint c2 || c2 == '-') = True
+                                 | length points >= 3 && isValidEscape c2 c3                    = True
+                                 | otherwise                                                    = False
+
+    c1 = points !! 0
+    c2 = points !! 1
+    c3 = points !! 2
+
+
+
+
+peekUpToNCodePoints :: T.Text -> Int -> (Char -> Bool) -> [Char]
+peekUpToNCodePoints buffer n p = peekUpToNCodePoints' buffer [] n
+  where
+    peekUpToNCodePoints' :: T.Text -> [Char] -> Int -> [Char]
+    peekUpToNCodePoints' buffer acc 0 = acc
+    peekUpToNCodePoints' buffer acc n = case T.uncons buffer of
+                                          Just (c, rem) -> if p c
+                                                           then peekUpToNCodePoints' rem (acc ++ [c]) (n - 1)
+                                                           else acc
+                                          Nothing       -> acc
+
+
+
+
+-- https://www.w3.org/TR/css-syntax-3/#starts-with-a-valid-escape
+isValidEscape c1 c2 = c1 == '\\' && c2 /= '\n'
 
 
 
@@ -368,10 +404,42 @@ takeHashToken parser = if not $ inBlock parser
 -- points.
 consumeName :: T.Text -> T.Text -> Int -> (T.Text, Int)
 consumeName buffer acc n = case T.uncons buffer of
-                             Just (c, rem) | isNameCodePoint c -> consumeName rem (T.snoc acc c) (n + 1)
-                                           | c == '\\'         -> (acc, n) -- TODO: properly handle an escape
-                                           | otherwise         -> (acc, n)
+                             Just (c, remr) | isNameCodePoint c -> consumeName remr              (T.snoc acc c)  (n + 1)
+                                            | c == '\\'         -> consumeName (T.drop len remr) (T.snoc acc ec) (n + len + 1)
+                                            | otherwise         -> (acc, n)
+                               where
+                                 (ec, len) = consumeEscapedCodePoint remr
                              Nothing -> (acc, n)
+
+
+
+
+
+-- https://www.w3.org/TR/css-syntax-3/#consume-an-escaped-code-point
+consumeEscapedCodePoint :: T.Text -> (Char, Int)
+consumeEscapedCodePoint buf = case T.uncons buf of
+                                Just (c, rem) | D.C.isHexDigit c -> consumeEscapedCodePointString buf
+                                              -- EOF case from CSS spec is handled by "Nothing" below.
+                                              | otherwise        -> (c, 1)
+                                Nothing -> (D.C.chr $ H.U.replacementCharacter, 0)  -- "This is a parse error. Return U+FFFD REPLACEMENT CHARACTER (�)."
+
+
+
+
+-- TODO: this function should also consume a whitespace if it exists after
+-- the hex digits: "If the next input code point is whitespace, consume it as
+-- well.".
+consumeEscapedCodePointString :: T.Text -> (Char, Int)
+consumeEscapedCodePointString buf = (char, len)
+  where
+    len = length digits
+    digits = peekUpToNCodePoints buf 6 (\c -> D.C.isHexDigit c)
+    char = D.C.chr $ case T.R.hexadecimal . T.pack $ digits of
+                       Right (d, rem) | d == 0                           -> H.U.replacementCharacter
+                                      | d >= H.U.maximumAllowedCodePoint -> H.U.replacementCharacter
+                                      | H.U.isSurrogate d                -> H.U.replacementCharacter
+                                      | otherwise                        -> d
+                       Left _ -> H.U.replacementCharacter -- TODO: is it the best choice to use Replacement Character here?
 
 
 
@@ -379,7 +447,7 @@ consumeName buffer acc n = case T.uncons buffer of
 takeCharToken :: CssParser -> (CssParser, Maybe CssToken)
 takeCharToken parser = if T.null . remainder $ parser
                        then (parser, Nothing)
-                       else (parserMoveBy parser (T.singleton . T.head . remainder $ parser),
+                       else (parserMoveByString parser (T.singleton . T.head . remainder $ parser),
                              Just $ CssTokCh (T.head . remainder $ parser))
 
 
@@ -418,8 +486,15 @@ takeLeadingWhite2 parser
 -- Move parser's remainder by length of given string. Call this function when
 -- givne string has been consumed to token and now you want to remove it from
 -- front of parser's remainder.
-parserMoveBy :: CssParser -> T.Text -> CssParser
-parserMoveBy parser tok = parser { remainder = T.drop (T.length tok) (remainder parser) }
+parserMoveByString :: CssParser -> T.Text -> CssParser
+parserMoveByString parser tok = parser { remainder = T.drop (T.length tok) (remainder parser) }
+
+
+
+
+-- Move parser's remainder by given explicit length.
+parserMoveByLen :: CssParser -> Int -> CssParser
+parserMoveByLen parser len = parser { remainder = T.drop len (remainder parser) }
 
 
 
