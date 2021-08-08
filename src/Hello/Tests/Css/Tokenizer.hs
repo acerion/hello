@@ -60,19 +60,25 @@ tokenizerNumbersTestManualData = [
   , ( "76.5 computers",        CssTokNum $ CssNumF 76.5,             " computers" )
   , ( "44.2,",                 CssTokNum $ CssNumF 44.2,             "," )
   , ( ".2,",                   CssTokNum $ CssNumF 0.2,              "," )
-  -- , ( "-.4;",                  CssTokNum $ CssNumF (-0.4),           ";" ) TODO: support this case (leading sign + missing leading digit)
-  -- , ( "+.5;",                  CssTokNum $ CssNumF 0.5,           ";" ) TODO: support this case (leading sign + missing leading digit)
+  , ( "-.4;",                  CssTokNum $ CssNumF (-0.4),           ";" )
+  , ( "+.5;",                  CssTokNum $ CssNumF 0.5,              ";" )
 
-  -- Exponential notation.
+  -- Exponential notation. Don't forget about capital 'E'.
   , ( "10e2}",                 CssTokNum $ CssNumF 1000.0,           "}" )
+  , ( "10E2}",                 CssTokNum $ CssNumF 1000.0,           "}" )
   , ( "10e+2 px",              CssTokNum $ CssNumF 1000.0,           " px" )
   , ( "3e-2}",                 CssTokNum $ CssNumF 3e-2,             "}" )
   , ( ".5e-2{",                CssTokNum $ CssNumF 0.5e-2,           "{" )
-  -- , ( "-.7e+3{",               CssTokNum $ CssNumF (-0.7e+3),        "{" ) TODO: support this case (leading sign + missing leading digit)
-  -- , ( "+.4e+4,",               CssTokNum $ CssNumF 0.4e+4,           "," ) TODO: support this case (leading sign + missing leading digit)
-  , ( "1.2e-3}",               CssTokNum $ CssNumF 0.0012,           "}" )
-  , ( "+1.2e-3}",              CssTokNum $ CssNumF 0.0012,           "}" )
-  , ( "-1.2e-3}",              CssTokNum $ CssNumF (-0.0012),        "}" )
+  , ( "-.7e+3{",               CssTokNum $ CssNumF (-0.7e+3),        "{" )
+  , ( "-.7E+3{",               CssTokNum $ CssNumF (-0.7e+3),        "{" )
+  , ( "-.721e+11{",            CssTokNum $ CssNumF (-0.721e+11),     "{" ) -- With few more digits
+  , ( "-.734E+13{",            CssTokNum $ CssNumF (-0.734e+13),     "{" ) -- With few more digits
+  , ( "+.4e+4,",               CssTokNum $ CssNumF 0.4e+4,           "," )
+  , ( "1.2e-3}",               CssTokNum $ CssNumF (1.2e-3),         "}" )
+  , ( "+1.2e-3}",              CssTokNum $ CssNumF (1.2e-3),         "}" )
+  , ( "-1.2e-3}",              CssTokNum $ CssNumF (-1.2e-3),        "}" )
+  , ( "+12.21e-4}",            CssTokNum $ CssNumF (12.21e-4),       "}" ) -- With few more digits
+  , ( "-97.54e-2}",            CssTokNum $ CssNumF (-97.54e-2),      "}" ) -- With few more digits
 
 
 
@@ -109,6 +115,7 @@ tokenizerNumbersTestManualData = [
   -- identifier to number to get <dimension-token>. Verifying units is done
   -- by parser, not tokenizer.
   , ( "64.22cars}",            CssTokDim (CssNumF 64.22) "cars",     "}" )
+  , ( "1.17em}",               CssTokDim (CssNumF 1.17) "em",        "}" )
 
 
   -- Verify that non-number tokens aren't interpreted as numbers.
@@ -116,6 +123,17 @@ tokenizerNumbersTestManualData = [
   -- Something that a buggy tokenizer may try to fix by prepending zero to
   -- form a valid float.
   , ( ".almostFloat;",         CssTokCh '.',                         "almostFloat;" )
+
+
+
+  -- Tricky valid numbers
+  -- "e" pretends to be part of float's exponent notantion, but is not
+  -- followed by digits. Thus it must be treated as unit of a float.
+  -- In particular make sure that CSS "em" unit is handled correctly.
+  , ( "+34.4e",                CssTokDim (CssNumF 34.4) "e",         ""  )
+  , ( "1.17em",                CssTokDim (CssNumF 1.17) "em",        ""  )
+  , ( "+34.4e}",               CssTokDim (CssNumF 34.4) "e",         "}" )
+  , ( "1.17em}",               CssTokDim (CssNumF 1.17) "em",        "}" )
   ]
 
 
@@ -132,7 +150,7 @@ tokenizerNumbersTest (x:xs) = if expectedToken /= token || expectedRemainder /= 
     remainderBefore = tripletFst x
     expectedToken   = tripletSnd x
     expectedRemainder  = tripletThrd x
-    (parser, token) = nextToken defaultParser{remainder = remainderBefore}
+    (parser, token) = nextToken1 defaultParser{remainder = remainderBefore}
 
     showFailedCase x =    "Input remainder = "    ++ (show remainderBefore) ++ "; "
                        ++ "Expected remainder = " ++ (show expectedRemainder) ++ "; "
@@ -170,7 +188,7 @@ tokenizerHashTest (x:xs) = if expectedToken /= token || remainderAfter /= (remai
     remainderBefore = tripletFst x
     expectedToken   = tripletSnd x
     remainderAfter  = tripletThrd x
-    (parser, token) = nextToken defaultParser{remainder = remainderBefore, inBlock = True}
+    (parser, token) = nextToken1 defaultParser{remainder = remainderBefore, inBlock = True}
 
 
 

@@ -67,7 +67,7 @@ parseSelectorTest (x:xs) = if expectedSelector /= selector || remainderAfter /= 
     -- Both cases should work the same. If current token is None, tested
     -- function should get some non-None input token.
     ((p1, t1), selector) = parseSelector (defaultParser{remainder = remainderBefore}, CssTokNone)
-    --((p1, t1), selector) = parseSelector $ nextToken defaultParser{remainder = remainderBefore}
+    --((p1, t1), selector) = parseSelector $ nextToken1 defaultParser{remainder = remainderBefore}
 
 
 

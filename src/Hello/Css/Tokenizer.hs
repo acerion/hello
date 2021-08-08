@@ -62,6 +62,13 @@ module Hello.Css.Tokenizer( CssParser (..)
                           , cssNumToFloat
 
                           , CssOrigin (..)
+
+                          , takeFloatString
+                          , expectSign
+                          , expectLeadingDigits
+                          , expectDot
+                          , expectFollowingDigits
+                          , expectExponent
                           )
   where
 
@@ -181,9 +188,15 @@ nextToken2 parser = (updatedParser{bufOffset = increasedBufOffset parser}, token
 --
 -- These lines are most awesome piece of code that I've written so far, in
 -- any project.
-(>>?) :: (CssParser, Maybe a) -> (CssParser -> (CssParser, Maybe a)) -> (CssParser, Maybe a)
+(>>?) :: (a, Maybe b) -> (a -> (a, Maybe b)) -> (a, Maybe b)
 (parser, Nothing) >>? f = f parser
 pair@(parser, _)  >>? _ = pair
+
+
+
+(>>!) :: (Maybe a) -> (a -> Maybe b) -> (Maybe b)
+(Nothing) >>! _ = Nothing
+(Just b)  >>! f  = f b
 
 
 
@@ -448,61 +461,138 @@ takeNumericToken parser = case takeNumber parser of
 -- only an initial (integral) part of Float as an Int, and leave fractional
 -- part in remainder.
 takeNumber :: CssParser -> (CssParser, Maybe CssNum)
-takeNumber parser = wellFormedFloat parser >>? noStartingDigitFloat >>? takeInt
+takeNumber parser = takeFloat parser >>? takeInt
 
 
 
 
--- Parse a string of characters that represents a well formed float. "Well
--- formed" means with integral digit(s), e.g. "1.4". A "malformed" float (e.g.
--- ".5") is a special case that should be handled by noStartingDigitFloat.
-wellFormedFloat :: CssParser -> (CssParser, Maybe CssNum)
-wellFormedFloat parser = case T.R.signed T.R.rational (remainder parser) of
-                           -- T.R.rational is happy to interpret "100" as float,
-                           -- but we want to treat is as int and reject it.
-                           -- Therefore we have to search for '.' in taken
-                           -- sub-string :( Similarly we search for 'e' to
-                           -- recognize a string that represents a float in
-                           -- exponential notation.
-                           Right (f, rem) -> case T.find (\c -> elem c ['.', 'e']) valString of
-                                               Just c    -> (parser{remainder = rem}, Just $ CssNumF f)
-                                               otherwise -> (parser, Nothing)
-                             where
-                               valString = T.take valLen $ remainder parser
-                               valLen = (T.length . remainder $ parser) - (T.length rem)
-                           Left _         -> (parser, Nothing)
+-- CSS defines number-token (non-normative illustration) like this:
+-- https://www.w3.org/TR/css-syntax-3/#number-token-diagram
+--
+-- Haskell reader/readers can deal with only a subset of possible CSS float
+-- numbers. It can't parse correctly tokens such as ".03" (no leading digit)
+-- or "+.4" (no leading digit, and a sign directly before dot).
+--
+-- Therefore I have implemented a function that converts all valid CSS number
+-- strings into something parsable by Haskell reader functions.
+--
+-- Sure, there is probably some parser there that can deal with this problem
+-- in 10 lines of code, but I'm at the stage of a project where I don't use
+-- external libs too much (yet). Hence I'm using this "manual" parsing for
+-- now.
+takeFloatString (buf, acc) = expectSign (buf, acc) >>!
+                             expectLeadingDigits   >>!
+                             expectDot             >>!
+                             expectFollowingDigits >>!
+                             expectExponent
 
 
 
 
--- Fix a string that is a malformed float (i.e. starting with a dot: ".7")
--- and try parsing it again. TODO: this function can't handle a case of sign
--- followed by dot: "-.4".
-noStartingDigitFloat :: CssParser -> (CssParser, Maybe CssNum)
-noStartingDigitFloat parser = if isFloatWithoutLeadingDot parser
-                                 -- TODO: this adding character to remainder may break calculation of offset in input buffer.
-                              then wellFormedFloat parser{remainder=(T.cons '0' (remainder parser))}
-                              else (parser, Nothing)
+expectSign :: (T.Text, T.Text) -> Maybe (T.Text, T.Text)
+expectSign (buf, acc) = case T.uncons buf of
+                          Just ('+', rem) -> Just (rem, T.concat [acc, "+"])
+                          Just ('-', rem) -> Just (rem, T.concat [acc, "-"])
+                          Just (_,   rem) -> Just (buf, T.concat [acc, "+"])
+                          otherwise       -> Nothing
+
+
+
+
+expectLeadingDigits :: (T.Text, T.Text) -> Maybe (T.Text, T.Text)
+expectLeadingDigits (buf, acc) = case T.uncons buf of
+                                   Just ('.', rem) -> Just (buf, T.concat [acc, "0"])
+                                   Just (d,   rem) -> tryTakingDigits (buf, acc) d
+                                   otherwise       -> Nothing
+
+
+
+
+expectDot :: (T.Text, T.Text) -> Maybe (T.Text, T.Text)
+expectDot (buf, acc) = case T.uncons buf of
+                         Just ('.', rem) -> Just (rem, T.concat [acc, "."])
+                         otherwise       -> Just (buf, acc) -- No dot, but maybe it's an exponential notation.
+
+
+
+
+expectFollowingDigits :: (T.Text, T.Text) -> Maybe (T.Text, T.Text)
+expectFollowingDigits (buf, acc) = case T.uncons buf of
+                                     Just (d, rem) -> tryTakingDigits (buf, acc) d
+                                     otherwise     -> Just (buf, acc)
+
+
+
+
+tryTakingDigits (buf, acc) d = if d >= '0' && d <= '9'
+                               then Just (T.drop len buf, T.concat [acc, digits])
+                               else Just (buf, acc)
   where
-    -- TODO: this is one ugly function. This necessity to do two T.uncons
-    -- calls is UGLY.
-    isFloatWithoutLeadingDot parser =
-      case T.uncons (remainder parser) of
-        Just ('.', rem) -> case T.uncons (rem) of
-                             -- Don't just rely on a dot, check if the dot
-                             -- stands before a fractional part (good), or
-                             -- before CSS selector (bad).
-                             Just (d, rem2) -> d >= '0' && d <= '9'
-                             otherwise      -> False
-        otherwise       -> False
+    digits = T.takeWhile D.C.isDigit buf
+    len    = T.length digits
 
 
 
 
--- This function is very similar to takeFloat, but I don't want to write
--- a common function just yet. takeFloat will have to be updated to read
--- all formats of float value, and that change may make it more
--- complicated and less similar to takeInt.
+requestFollowingDigits (buf, acc) = case T.uncons buf of
+                                      Just (d, rem) -> requestDigits (buf, acc) d
+                                      otherwise     -> Nothing
+
+
+
+requestDigits (buf, acc) d = if d >= '0' && d <= '9'
+                             then Just (T.drop len buf, T.concat [acc, digits])
+                             else Nothing
+  where
+    digits = T.takeWhile D.C.isDigit buf
+    len    = T.length digits
+
+
+
+
+expectExponent :: (T.Text, T.Text) -> Maybe (T.Text, T.Text)
+expectExponent (buf1, acc1) =
+  case T.uncons buf1 of
+    Nothing       -> Just (buf1, acc1) -- Probably string ending at fractional part of float (e.g. "1.21<NUL>").
+    Just (c, rem) -> if c == 'e' || c == 'E'
+                     then case expectSign (rem, T.concat [acc1, "e"]) of
+                            Nothing           -> Just (buf1, acc1) -- No character after 'e', so ignore the 'e' ('e' is part of next token).
+                            Just (buf2, acc2) -> case requestFollowingDigits (buf2, acc2) of
+                                                   Nothing           -> Just (buf1, acc1) -- Roll back to buf/acc that existed before hypothetical exponent.
+                                                   Just (buf3, acc3) -> Just (buf3, acc3)
+                     else Just (buf1, acc1) -- No exponent part, but there is another token after float.
+
+
+
+
+takeFloat :: CssParser -> (CssParser, Maybe CssNum)
+takeFloat parser = case takeFloatString (remainder parser, "") of
+                     Nothing                 -> (parser, Nothing)
+                     Just (rem, floatString) -> case interpretFloatString floatString of
+                                                  Nothing  -> (parser, Nothing)
+                                                  Just num -> (parser{ remainder = rem }, Just num)
+
+
+
+
+interpretFloatString buf = case T.R.signed T.R.rational buf of
+                             -- T.R.rational is happy to interpret "100" as float,
+                             -- but we want to treat is as int and reject it.
+                             -- Therefore we have to search for '.' in taken
+                             -- sub-string :( Similarly we search for 'e' to
+                             -- recognize a string that represents a float in
+                             -- exponential notation.
+                             Right (f, rem) -> case T.find (\c -> elem c ['.', 'e']) valString of
+                                                 Just c    -> Just $ CssNumF f
+                                                 otherwise -> Nothing
+                               where
+                                 valString = T.take valLen buf
+                                 valLen = (T.length buf) - (T.length rem)
+                             Left _         -> Nothing
+
+
+
+
 takeInt :: CssParser -> (CssParser, Maybe CssNum)
 takeInt parser = case T.R.signed T.R.decimal (remainder parser) of
                    Right (i, rem) -> (parser{remainder = rem}, Just $ CssNumI i)
