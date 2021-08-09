@@ -38,8 +38,8 @@ import Hello.Utils
 -- We are testing <number-token>'s here. Put space before alphabetical string
 -- that come after numeric value, otherwise that string will be treated as
 -- ident, interpreted as unit, and the whole token will be of type CssTokDim.
-tokenizerNumericTokenTestManualData = [
-  -- parser's remainder before     expected token           parser's remainder after
+numericTokenTestManualData = [
+  -- parser's initial remainder     expected token           parser's remainder after
 
   -- Tests of <number-token>
     ( "0",                     CssTokNum $ CssNumI 0,                ""  )
@@ -146,34 +146,12 @@ tokenizerNumericTokenTestManualData = [
 
 
 
--- On success return empty string. On failure return string representation of
--- remainder string in a row, for which test failed.
-tokenizerNumericTokenTest :: [(T.Text, CssToken, T.Text)] -> T.Text
-tokenizerNumericTokenTest []     = ""
-tokenizerNumericTokenTest (x:xs) = if expectedToken /= token || expectedRemainder /= (remainder parser)
-                                   then T.pack . showFailedCase $ x
-                                   else tokenizerNumericTokenTest xs
-  where
-    remainderBefore = tripletFst x
-    expectedToken   = tripletSnd x
-    expectedRemainder  = tripletThrd x
-    (parser, token) = nextToken1 defaultParser{remainder = remainderBefore}
-
-    showFailedCase x =    "Input remainder = "    ++ (show remainderBefore) ++ "; "
-                       ++ "Expected remainder = " ++ (show expectedRemainder) ++ "; "
-                       ++ "Expected token = "     ++ (show expectedToken) ++ "; "
-                       ++ "Output token = "       ++ (show token) ++ "; "
-
-
-
-
-
 -- Tests for parsing strings as <hash-token> (CssTokHash).
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
-tokenizerHashTokenTestManualData = [
-  -- parser's remainder before     expected token           parser's remainder after
+hashTokenTestManualData = [
+  -- parser's initial remainder    expected token           parser's remainder after
 
     ( "#0",                    CssTokHash "0",                        ""  )
   , ( "#02553}",               CssTokHash "02553",                    "}" )
@@ -184,28 +162,12 @@ tokenizerHashTokenTestManualData = [
 
 
 
--- On success return empty string. On failure return string representation of
--- remainder string in a row, for which test failed.
-tokenizerHashTokenTest :: [(T.Text, CssToken, T.Text)] -> T.Text
-tokenizerHashTokenTest []     = ""
-tokenizerHashTokenTest (x:xs) = if expectedToken /= token || remainderAfter /= (remainder parser)
-                                then remainderBefore
-                                else tokenizerHashTokenTest xs
-  where
-    remainderBefore = tripletFst x
-    expectedToken   = tripletSnd x
-    remainderAfter  = tripletThrd x
-    (parser, token) = nextToken1 defaultParser{remainder = remainderBefore, inBlock = True}
-
-
-
-
 -- Tests for parsing strings as <ident-token> (CssTokIdent).
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
-tokenizerIdentTokenTestManualData = [
-  -- parser's remainder before     expected token                  parser's remainder after
+identTokenTestManualData = [
+  -- parser's initial remainder    expected token                  parser's remainder after
 
     ( "a",                         CssTokIdent "a",                ""  )
   , ( "a}",                        CssTokIdent "a",                "}" )
@@ -226,17 +188,51 @@ tokenizerIdentTokenTestManualData = [
 
 
 
-tokenizerIdentTokenTest = tokenizerNumericTokenTest
+-- On success return empty string. On failure return string representation of
+-- testcase that failed.
+tokenizerTestRunner :: Bool -> [(T.Text, CssToken, T.Text)] -> T.Text
+tokenizerTestRunner _ []       = ""
+tokenizerTestRunner inB (x:xs) = if expectedToken /= t2 || expectedRemainder /= (remainder p2)
+                                 then T.pack . showFailedCase $ x
+                                 else tokenizerTestRunner inB xs
+  where
+    initialRemainder  = tripletFst x
+    expectedToken     = tripletSnd x
+    expectedRemainder = tripletThrd x
+    (p2, t2)          = nextToken1 defaultParser{remainder = initialRemainder, inBlock = inB }
+
+    showFailedCase x =    "Initial remainder = "  ++ (show initialRemainder) ++ "; "
+                       ++ "Expected remainder = " ++ (show expectedRemainder) ++ "; "
+                       ++ "Expected token = "     ++ (show expectedToken) ++ "; "
+                       ++ "Output remainder = "   ++ (show . remainder $ p2) ++ "; "
+                       ++ "Output token = "       ++ (show t2)
+
+
+
+
+-- List of token types from https://www.w3.org/TR/css-syntax-3/#tokenization
+-- that aren't tested below in tokenizerTestCases yet:
+--
+-- <function-token>, <at-keyword-token>, <string-token>, <bad-string-token>,
+-- <url-token>, <bad-url-token>, <delim-token>, <whitespace-token>,
+-- <CDO-token>, <CDC-token>, <colon-token>, <semicolon-token>, <comma-token>,
+-- <[-token>, <]-token>, <(-token>, <)-token>, <{-token>, <}-token>.
 
 
 
 
 tokenizerTestCases = [
-  -- If some error is found, test function returns some data (e.g. non-empty
-  -- string or test index) which can help identify which test failed.
-     TestCase (do assertEqual "manual tests of numeric token"    "" (tokenizerNumericTokenTest tokenizerNumericTokenTestManualData))
-   , TestCase (do assertEqual "manual tests of hash token"       "" (tokenizerHashTokenTest tokenizerHashTokenTestManualData))
-   , TestCase (do assertEqual "manual tests of ident token"      "" (tokenizerIdentTokenTest tokenizerIdentTokenTestManualData))
+  -- If some error is found, tokenizerTestRunner returns non-empty string
+  -- which can help in finding out which test failed.
+
+     -- <number-token>, <percentage-token>, <dimension-token>
+     TestCase (do assertEqual "manual tests of numeric tokens"   "" (tokenizerTestRunner False numericTokenTestManualData))
+
+     -- <hash-token>
+   , TestCase (do assertEqual "manual tests of hash token"       "" (tokenizerTestRunner True hashTokenTestManualData))
+
+     -- <ident-token>
+   , TestCase (do assertEqual "manual tests of ident token"      "" (tokenizerTestRunner False identTokenTestManualData))
   ]
 
 
