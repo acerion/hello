@@ -967,6 +967,7 @@ void StyleEngine::parse (DilloHtml *html, DilloUrl *url, const char *buf,
  */
 void StyleEngine::init () {
    const char *cssBuf =
+#if 1
       "body  {margin: 5px}"
       "big {font-size: 1.17em}"
       "blockquote, dd {margin-left: 40px; margin-right: 40px}"
@@ -1020,7 +1021,9 @@ void StyleEngine::init () {
        * http://developer.mozilla.org/En/Fixing_Table_Inheritance_in_Quirks_Mode
        * has a detailed description of the issue.
        */
-      "table, caption {font-size: medium; font-weight: normal}";
+      "table, caption {font-size: medium; font-weight: normal}"
+#endif
+      "";
 
    /* Initialize 'user agent' sheet. All other sheets will be discarded. */
    c_css_context_t * context = c_css_context_new();

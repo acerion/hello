@@ -376,7 +376,12 @@ cssPropertyInfo = V.fromList [
    , ("quotes",                 [],                                                                   [])
    , ("right",                  [],                                                                   [])
    , ("text-align",             [ tokensAsValueEnum ],                                                css_text_align_enum_vals)
+
+     -- https://www.w3.org/TR/CSS22/text.html#lining-striking-props
+     -- https://www.w3.org/TR/css-text-decor-3/
+     -- TODO: add support for "none" value
    , ("text-decoration",        [ tokensAsValueMultiEnum ],                                           css_text_decoration_enum_vals)
+
    , ("text-indent",            [ declValueAsLengthPercent ],                                         [])
    , ("text-shadow",            [],                                                                   [])
    , ("text-transform",         [ tokensAsValueEnum ],                                                css_text_transform_enum_vals)
