@@ -32,6 +32,33 @@
 
 sigset_t mask_sigchld;
 
+/*! Error codes for dpid */
+enum {
+   no_errors,
+   dpid_srs_addrinuse /* dpid service request socket address already in use */
+} dpi_errno;
+
+char *srs_name;
+
+/*! dpid's service request socket file descriptor */
+int srs_fd;
+
+/*! Number of available plugins */
+int numdpis;
+
+/*! Number of sockets being watched */
+int numsocks;
+
+/*! State information for each plugin. */
+struct dp *dpi_attr_list;
+
+/*! service served for each plugin  */
+Dlist *services_list;
+
+/*! Set of sockets watched for connections */
+fd_set sock_set;
+
+
 
 /* Start a dpi filter plugin after accepting the pending connection
  * \Return
