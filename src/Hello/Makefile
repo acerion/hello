@@ -16,7 +16,7 @@ all:
 		./Ffi/Css/*.hs \
 		./Ffi/Html/*.hs \
 		./Html/*.hs \
-		./wrapper.o -lHSrts-ghc8.4.4
+		./wrapper.o -lHSrts-ghc8.8.4
 
 distclean: clean
 
