@@ -60,6 +60,13 @@ module Hello.Css.Parser(
                        , declValueAsLength
                        , declValueAsURI
 
+                       , cssLengthTypeNone
+                       , cssLengthTypePX
+                       , cssLengthTypeMM
+                       , cssLengthTypeEM
+                       , cssLengthTypeEX
+                       , cssLengthTypePercentage
+                       , cssLengthTypeRelative
                        , cssLengthTypeAuto
 
                        , takeBgTokens
@@ -68,10 +75,7 @@ module Hello.Css.Parser(
                        , cssPropertyInfoIdxByName
                        , cssPropertyNameString
 
-                       , cssLengthType
-                       , cssLengthValue
-                       , cssCreateLength
-                       , CssLength (..)
+                       , CssDistance (..)
 
                        , parseDeclarationMultiple
                        , parseDeclarationDirections
@@ -135,18 +139,36 @@ import HtmlTag
 
 
 
-data CssLength = CssLength Int Int -- word (with LSB bits indicating type) + type
+
+-- This data type is not meant (yet) to be a good reflection of CSS standard.
+-- For now it is only a better replacement for CssLength type. The CssLenght
+-- type used an integer to encode (as bits in a bit word) different types of
+-- length, with three leftmost bits used for a type tag.
+--
+-- This data type is a step in a better direction.
+data CssDistance =
+    CssDistanceRelEm Float
+  | CssDistanceRelEx Float
+  | CssDistanceAbsMm Float
+  | CssDistanceAbsPx Float
+
+  | CssNumericPercentage Float
+
+  | CssNumericNone     Float
+  | CssNumericRelative Float
+  | CssNumericAuto     Int
   deriving (Show, Eq)
 
 
-cssLengthTypeNone       = 0
-cssLengthTypePX         = 1
-cssLengthTypeMM         = 2 -- "cm", "in", "pt" and "pc" are converted into millimeters.
-cssLengthTypeEM         = 3
-cssLengthTypeEX         = 4
-cssLengthTypePercentage = 5
-cssLengthTypeRelative   = 6 -- This does not exist in CSS but is used in HTML
-cssLengthTypeAuto       = 7 -- This can be used as a simple value.
+
+cssLengthTypeNone       = 0 :: Int
+cssLengthTypePX         = 1 :: Int
+cssLengthTypeMM         = 2 :: Int -- "cm", "in", "pt" and "pc" are converted into millimeters.
+cssLengthTypeEM         = 3 :: Int
+cssLengthTypeEX         = 4 :: Int
+cssLengthTypePercentage = 5 :: Int
+cssLengthTypeRelative   = 6 :: Int -- This does not exist in CSS but is used in HTML
+cssLengthTypeAuto       = 7 :: Int -- This can be used as a simple value.
 
 
 
@@ -181,17 +203,17 @@ data CssValue =
     CssValueTypeInt Int             -- This type is only used internally, for x-* properties.
   | CssValueTypeEnum Int            -- Value is i, if represented by enum_symbols[i].
   | CssValueTypeMultiEnum Int       -- For all enum_symbols[i], 1 << i are combined.
-  | CssValueTypeLengthPercent CssLength   -- <length> or <percentage>. Represented by CssLength.
-  | CssValueTypeLength CssLength          -- <length>, represented as CssLength.
+  | CssValueTypeLengthPercent CssDistance   -- <length> or <percentage>. Represented by CssDistance.
+  | CssValueTypeLength CssDistance          -- <length>, represented as CssDistance.
                                     -- Note: In some cases, CSS_TYPE_LENGTH
                                     -- is used instead of
                                     -- CSS_TYPE_LENGTH_PERCENTAGE, only
                                     -- because Dw cannot handle percentages
                                     -- in this particular case (e.g.
                                     -- 'margin-*-width').
-  | CssValueTypeSignedLength CssLength    -- As CSS_TYPE_LENGTH but may be negative.
-  | CssValueTypeLengthPercentNumber CssLength -- <length> or <percentage>, or <number>
-  | CssValueTypeAuto CssLength            -- Represented as CssLength of type cssLengthTypeAuto
+  | CssValueTypeSignedLength CssDistance    -- As CSS_TYPE_LENGTH but may be negative.
+  | CssValueTypeLengthPercentNumber CssDistance -- <length> or <percentage>, or <number>
+  | CssValueTypeAuto CssDistance            -- Represented as CssDistance of type CssNumericAuto
   | CssValueTypeColor Int           -- Represented as integer.
   | CssValueTypeFontWeight Int      -- This very special and only used by 'font-weight'
   | CssValueTypeString T.Text       -- <string>
@@ -675,23 +697,23 @@ matchSymbolTokensWithListRigid (p, t) _ bits                   = ((p, t), bits)
 -- token to build the Auto, but for consistency with other similar functions
 -- the function is still called "tokensAs...".
 tokensAsValueAuto :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueAuto (p, t@(CssTokIdent sym)) _ | T.toLower sym == "auto" = ((nextToken1 p), Just (CssValueTypeAuto (CssLength cssLengthTypeAuto cssLengthTypeAuto)))
+tokensAsValueAuto (p, t@(CssTokIdent sym)) _ | T.toLower sym == "auto" = ((nextToken1 p), Just (CssValueTypeAuto (CssNumericAuto cssLengthTypeAuto)))
                                              | otherwise               = ((p, t), Nothing)
 tokensAsValueAuto (p, t) _                 = ((p, t), Nothing)
 
 
 
 
-lengthValueToValAndType :: Float -> T.Text -> (Float, Int)
-lengthValueToValAndType fval unitStr | unitStr == "px" = (fval,               cssLengthTypePX)
-                                     | unitStr == "mm" = (fval,               cssLengthTypeMM)
-                                     | unitStr == "cm" = (fval * 10,          cssLengthTypeMM)
-                                     | unitStr == "in" = (fval * 25.4,        cssLengthTypeMM)
-                                     | unitStr == "pt" = (fval * (25.4/72.0), cssLengthTypeMM)
-                                     | unitStr == "pc" = (fval * (25.4/6.0),  cssLengthTypeMM)
-                                     | unitStr == "em" = (fval,               cssLengthTypeEM)
-                                     | unitStr == "ex" = (fval,               cssLengthTypeEX)
-                                     | otherwise       = (fval,               cssLengthTypeNone)
+lengthValueToDistance :: Float -> T.Text -> CssDistance
+lengthValueToDistance fval unitStr | unitStr == "px" = CssDistanceAbsPx fval
+                                   | unitStr == "mm" = CssDistanceAbsMm fval
+                                   | unitStr == "cm" = CssDistanceAbsMm (fval * 10)
+                                   | unitStr == "in" = CssDistanceAbsMm (fval * 25.4)
+                                   | unitStr == "pt" = CssDistanceAbsMm (fval * (25.4/72.0))
+                                   | unitStr == "pc" = CssDistanceAbsMm (fval * (25.4/6.0))
+                                   | unitStr == "em" = CssDistanceRelEm fval
+                                   | unitStr == "ex" = CssDistanceRelEx fval
+                                   | otherwise       = CssNumericNone   fval
 
 
 
@@ -739,7 +761,7 @@ declValueAsLengthPercentNumber (parser, token) enums = declValueAsLength' CssVal
 declValueAsLength :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsLength (parser, token) enums = declValueAsLength' CssValueTypeLength (parser, token) enums
 
-declValueAsLength' :: (CssLength -> CssValue) -> (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+declValueAsLength' :: (CssDistance -> CssValue) -> (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
 declValueAsLength' ctor (parser, token) enums =
   case tokens of
     [CssTokDim cssNum ident] -> ((newParser, newToken), Just (ctor (unitValue cssNum ident)))
@@ -751,26 +773,26 @@ declValueAsLength' ctor (parser, token) enums =
   where
     ((newParser, newToken), tokens) = takeLengthTokens (parser, token)
 
-    percentValue :: CssNum -> CssLength
-    percentValue cssNum = cssCreateLength val t
+    percentValue :: CssNum -> CssDistance
+    percentValue cssNum = distance
       where
         fval = cssNumToFloat cssNum
-        (val, t) = ((fval / 100.0), cssLengthTypePercentage)
+        distance = CssNumericPercentage (fval / 100.0)
 
-    unitValue :: CssNum -> T.Text -> CssLength
-    unitValue cssNum unitString = cssCreateLength val t
+    unitValue :: CssNum -> T.Text -> CssDistance
+    unitValue cssNum unitString = distance
       where
         fval = cssNumToFloat cssNum
-        (val, t) = lengthValueToValAndType fval (T.toLower unitString)
+        distance = lengthValueToDistance fval (T.toLower unitString)
 
-    unitlessValue :: CssNum -> Maybe CssLength
+    unitlessValue :: CssNum -> Maybe CssDistance
     -- Allow numbers without unit only for 0 or LengthPercentNumber. TODO: why?
-    unitlessValue cssNum = if (ctor (CssLength 1 cssLengthTypeNone) == CssValueTypeLengthPercentNumber (CssLength 1 cssLengthTypeNone) || fval == 0.0) -- TODO: is this the best way to compare data ctors?
-                           then Just (cssCreateLength val t)
+    unitlessValue cssNum = if (ctor (CssNumericNone 1) == CssValueTypeLengthPercentNumber (CssNumericNone 1) || fval == 0.0) -- TODO: is this the best way to compare data ctors?
+                           then Just distance
                            else Nothing
       where
         fval = cssNumToFloat cssNum
-        (val, t) = (fval, cssLengthTypeNone)
+        distance = CssNumericNone fval
 
 
 
@@ -1006,103 +1028,6 @@ tokenMatchesProperty token propInfo = tokenMatchesProperty' token acceptedValueT
                                                                   else tokenMatchesProperty' token ts enums
                                                    _           -> tokenMatchesProperty' token ts enums
 -}
-
-
-
-
-{-
-  Lengths are represented as int in the following way:
-
-     | <------   integer value   ------> |
-
-     +---+ - - - +---+---+- - - - - -+---+---+---+---+
-     |          integer part             |   type    |
-     +---+ - - - +---+---+- - - - - -+---+---+---+---+
-     | integer part  | decimal fraction  |   type    |
-     +---+ - - - +---+---+- - - - - -+---+---+---+---+
-      n-1          15  14              3   2  1   0
-
-     | <------ fixed point value ------> |
-
-  where type is one of the CSS_LENGTH_TYPE_* values.
-  CSS_LENGTH_TYPE_PX values are stored as
-  29 bit signed integer, all other types as fixed point values.
-
-What you see below is some wild attempt to make Haskell code correctly
-interpret floats encoded in upper bits of integers. Not the best approach to
-take.
--}
-
-
-cssLengthType :: CssLength -> Int
-cssLengthType (CssLength word t) = t
-
-
-
-
-cssLengthValue :: CssLength -> Float
-cssLengthValue (CssLength word t) | t == cssLengthTypePX = let
-                                      z = (word `shiftR` 3)
-                                    in
-                                      if (0xf0000000 .&. word) == 0xf0000000
-                                      then fromIntegral ((-1) * ((4294967295 - word) `shiftR` 3) - 1)
-                                      else fromIntegral z
-                                  | t == cssLengthTypeNone
-                                    || t == cssLengthTypeMM
-                                    || t == cssLengthTypeEM
-                                    || t == cssLengthTypeEX
-                                    || t == cssLengthTypePercentage
-                                    || t == cssLengthTypeRelative =
-                                      (fromIntegral (up2 word)) / (fromIntegral down2)
-                                  | t == cssLengthTypeAuto = 0.0
-                                  | otherwise = 0.0
-  where
-    up2 lenA = let
-      z = lenA .&. (complement 0x00000007) :: Int
-      in
-        if (0xf0000000 .&. z) == 0xf0000000
-        then (-1) * (4294967295 - z - 1)
-        else z
-    down2 = 1 `shiftL` 15 :: Int
-
-
-
-
-
-css_LENGTH_FRAC_MAX = (1 `shiftL` (32 - 15 - 1)) - 1 :: Int
-css_LENGTH_INT_MAX  = (1 `shiftL` (32 - 4)) - 1 :: Int
-
-cssCreateLength :: Float -> Int -> CssLength
-cssCreateLength f t | t == cssLengthTypePX = CssLength word1 t
-                    | t == cssLengthTypeNone
-                      || t == cssLengthTypeMM
-                      || t == cssLengthTypeEM
-                      || t == cssLengthTypeEX
-                      || t == cssLengthTypePercentage
-                      || t == cssLengthTypeRelative = CssLength word2 t
-                    | t == cssLengthTypeAuto = CssLength t t
-                    | otherwise = CssLength cssLengthTypeAuto cssLengthTypeAuto
-
-  where
-    word1 = (((asInt1 (round f)) `shiftL` 3) .|. t)
-    word2 = (((round ((asInt2 f) * (fromIntegral shift15L))) .&. (complement 7)) .|. t)
-
-    shift15L = (1 `shiftL` 15) :: Int
-
-    asInt1 :: Int -> Int
-    asInt1 f = if f > css_LENGTH_INT_MAX
-               then css_LENGTH_INT_MAX
-               else if f < (-css_LENGTH_INT_MAX)
-                    then (-css_LENGTH_INT_MAX)
-                    else f
-
-    asInt2 :: Float -> Float
-    asInt2 f = if f > fromIntegral css_LENGTH_FRAC_MAX
-               then fromIntegral css_LENGTH_FRAC_MAX
-               else if f < fromIntegral (-css_LENGTH_FRAC_MAX)
-                    then fromIntegral (-css_LENGTH_FRAC_MAX)
-                    else f
-
 
 
 
@@ -1793,11 +1718,4 @@ getTopSimSel = L.last . simpleSelectors . selector
 
 getRequiredMatchCache :: CssRule -> Int
 getRequiredMatchCache rule = (matchCacheOffset . selector $ rule) + (length . simpleSelectors . selector $ rule)
-
-
-
-
-
-
-
 
