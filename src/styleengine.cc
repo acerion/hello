@@ -1089,6 +1089,15 @@ void print_css_style_sheet(FILE * file, c_css_style_sheet_t * sheet)
 
 void print_css_rule_map(FILE * file, c_css_rules_map_t * map)
 {
+   for (int r = 0; r < RULES_MAP_SIZE; r++) {
+      if (map->c_strings[r]) {
+         fprintf(file, "            classes[%d] = '%s'\n", r, map->c_strings[r]);
+      }
+
+      if (map->c_rules_lists[r]->c_rules_size > 0) {
+         print_css_rule_list(file, map->c_rules_lists[r]);
+      }
+   }
 }
 
 void print_css_rule_list(FILE * file, c_css_rules_list_t * list)
