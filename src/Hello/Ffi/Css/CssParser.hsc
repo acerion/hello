@@ -81,9 +81,9 @@ foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString
 foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 
-foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Int -> IO Int
-foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Int -> IO Float
-foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Int
+foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Word32 -> IO Int
+foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Word32 -> IO Float
+foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Word32
 
 foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
@@ -302,26 +302,26 @@ hll_ignoreStatement ptrStructCssParser ptrStructCssToken = do
 
 
 
-hll_cssLengthType :: Int -> IO Int
+hll_cssLengthType :: Word32 -> IO Int
 hll_cssLengthType word = do
   return (cssLengthWordToType word)
 
 
 
 
-hll_cssLengthValue :: Int -> IO Float
+hll_cssLengthValue :: Word32 -> IO Float
 hll_cssLengthValue word = do
-  let v       = word
+  let intVal  = fromIntegral word
   let lenType = cssLengthWordToType word
-  return (cssLengthValue $ CssLength v lenType)
+  return (cssLengthValue $ CssLength intVal lenType)
 
 
 
 
-hll_cssCreateLength :: Float -> Int -> IO Int
+hll_cssCreateLength :: Float -> Int -> IO Word32
 hll_cssCreateLength f lenType = do
   case cssCreateLength f lenType of
-    CssLength word _ -> return word
+    CssLength word _ -> return (fromIntegral word)
 
 
 
@@ -898,8 +898,8 @@ data CssLength = CssLength Int Int -- word (with LSB bits indicating type) + len
 
 
 
-cssLengthWordToType :: Int -> Int
-cssLengthWordToType word = word .&. 0x07
+cssLengthWordToType :: Word32 -> Int
+cssLengthWordToType word = fromIntegral (word .&. 0x07)
 
 
 
@@ -918,7 +918,7 @@ cssLengthWordToDistance word | lenType == cssLengthTypeNone       = CssNumericNo
   where
     len = CssLength word lenType
     f = cssLengthValue len
-    lenType = cssLengthWordToType word
+    lenType = cssLengthWordToType (fromIntegral word)
 
 
 
@@ -1004,3 +1004,4 @@ cssCreateLength f lenType | lenType == cssLengthTypePX = CssLength word1 lenType
                     then fromIntegral (-css_LENGTH_FRAC_MAX)
                     else f
 
+    autoAsWord = cssLengthTypeAuto

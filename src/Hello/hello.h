@@ -249,9 +249,9 @@ int hll_cssPropertyInfoIdxByName(const char * propertyName);
 const char * hll_cssPropertyNameString(int property);
 
 
-CssLengthType hll_cssLengthType(int cssLength);
-float hll_cssLengthValue(int cssLength);
-int hll_cssCreateLength(float val, CssLengthType t);
+CssLengthType hll_cssLengthType(uint32_t css_length_word);
+float hll_cssLengthValue(uint32_t css_length_word);
+uint32_t hll_cssCreateLength(float val, CssLengthType t);
 
 // Return count of selectors in @p selectors
 int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, c_css_selector_t ** selectors);
