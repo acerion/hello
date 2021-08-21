@@ -88,7 +88,7 @@ void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token
              dStrAsciiCasecmp(token->c_value, "screen") == 0)
             mediaIsSelected = true;
          nextToken(parser, token);
-         if (token->c_type == CSS_TOKEN_TYPE_CHAR && token->c_value[0] == ',') {
+         if (hll_isTokenComma(token)) {
             nextToken(parser, token);
          } else {
             mediaSyntaxIsOK = true;
@@ -97,9 +97,7 @@ void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token
       }
    }
 
-   if (mediaSyntaxIsOK &&
-       token->c_type == CSS_TOKEN_TYPE_CHAR &&
-       token->c_value[0] == ';') {
+   if (mediaSyntaxIsOK && hll_isTokenSemicolon(token)) {
       importSyntaxIsOK = true;
       nextToken(parser, token);
    } else
@@ -130,7 +128,7 @@ void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t 
           dStrAsciiCasecmp(token->c_value, "screen") == 0)
          mediaIsSelected = true;
       nextToken(parser, token);
-      if (token->c_type == CSS_TOKEN_TYPE_CHAR && token->c_value[0] == ',') {
+      if (hll_isTokenComma(token)) {
          nextToken(parser, token);
       } else {
          mediaSyntaxIsOK = true;
@@ -139,9 +137,7 @@ void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t 
    }
 
    /* check that the syntax is OK so far */
-   if (!(mediaSyntaxIsOK &&
-         token->c_type == CSS_TOKEN_TYPE_CHAR &&
-         token->c_value[0] == '{')) {
+   if (!(mediaSyntaxIsOK && hll_isTokenBraceCurlyOpen(token))) {
       hll_ignoreStatement(parser, token);
       return;
    }
@@ -151,7 +147,7 @@ void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t 
       nextToken(parser, token);
       while (token->c_type != CSS_TOKEN_TYPE_END) {
          hll_cssParseRuleset(parser, token, context);
-         if (token->c_type == CSS_TOKEN_TYPE_CHAR && token->c_value[0] == '}') {
+         if (hll_isTokenBraceCurlyClose(token)) {
             nextToken(parser, token);
             break;
          }

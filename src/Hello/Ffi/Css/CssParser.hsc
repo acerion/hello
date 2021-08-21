@@ -94,6 +94,10 @@ foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declaration
 foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 
+foreign export ccall "hll_isTokenComma" hll_isTokenComma :: Ptr FfiCssToken -> IO Int
+foreign export ccall "hll_isTokenSemicolon" hll_isTokenSemicolon :: Ptr FfiCssToken -> IO Int
+foreign export ccall "hll_isTokenBraceCurlyOpen" hll_isTokenBraceCurlyOpen :: Ptr FfiCssToken -> IO Int
+foreign export ccall "hll_isTokenBraceCurlyClose" hll_isTokenBraceCurlyClose :: Ptr FfiCssToken -> IO Int
 
 
 
@@ -199,8 +203,13 @@ instance Storable FfiCssToken where
 
 peekCssToken :: Ptr FfiCssToken -> IO CssToken
 peekCssToken ptrStructCssToken = do
+
   ffiToken <- peek ptrStructCssToken
-  tokValue <- BSU.unsafePackCString . valueC $ ffiToken
+
+  let e = valueC ffiToken == nullPtr
+  emptyString <- newCString ""
+
+  tokValue <- BSU.unsafePackCString (if e then emptyString else valueC ffiToken)
   let token = getTokenADT (typeC ffiToken) (T.E.decodeLatin1 tokValue)
   return token
 
@@ -220,7 +229,11 @@ getTokenType (CssTokIdent  _) = 0
 getTokenType (CssTokStr  _)   = 1
 getTokenType (CssTokCh   _)   = 2
 getTokenType (CssTokEnd)      = 3
-getTokenType _                = 4
+getTokenType (CssTokBraceCurlyClose)  = 4
+getTokenType (CssTokColon)            = 5
+getTokenType (CssTokBraceSquareOpen)  = 6
+getTokenType (CssTokBraceSquareClose) = 7
+getTokenType _                = 8
 
 
 
@@ -229,6 +242,11 @@ getTokenADT tokType tokValue | tokType == 0 = CssTokIdent tokValue
                              | tokType == 1 = CssTokStr tokValue
                              | tokType == 2 = CssTokCh  (T.head tokValue)
                              | tokType == 3 = CssTokEnd
+                             | tokType == 4 = CssTokBraceCurlyClose
+                             | tokType == 5 = CssTokColon
+                             | tokType == 6 = CssTokBraceSquareOpen
+                             | tokType == 7 = CssTokBraceSquareClose
+                             | otherwise = trace ("tok type ============= = " ++ (show tokType)) (CssTokEnd)
 
 
 
@@ -765,7 +783,7 @@ hll_declarationListAppend ptrStructTarget ptrStructSource = do
 
 peekCssValue :: FfiCssValue -> IO CssValue
 peekCssValue ffiCssValue = do
-  --when (ptrTextValC ffiCssValue == nullPtr) (trace ("Error: peekCssValue: null pointer inside of css value") putStr (""))
+  when (ptrTextValC ffiCssValue == nullPtr) (trace ("Error: peekCssValue: null pointer inside of css value") putStr (""))
 
   let e = ptrTextValC ffiCssValue == nullPtr
   emptyString <- newCString ""
@@ -1005,3 +1023,34 @@ cssCreateLength f lenType | lenType == cssLengthTypePX = CssLength word1 lenType
                     else f
 
     autoAsWord = cssLengthTypeAuto
+
+
+
+
+hll_isTokenComma :: Ptr FfiCssToken -> IO Int
+hll_isTokenComma ptrStructCssToken = do
+  token <- peekCssToken ptrStructCssToken
+  case token of
+    CssTokComma -> return 1
+    otherwise   -> return 0
+
+hll_isTokenSemicolon :: Ptr FfiCssToken -> IO Int
+hll_isTokenSemicolon ptrStructCssToken = do
+  token <- peekCssToken ptrStructCssToken
+  case token of
+    CssTokSemicolon -> return 1
+    otherwise    -> return 0
+
+hll_isTokenBraceCurlyOpen :: Ptr FfiCssToken -> IO Int
+hll_isTokenBraceCurlyOpen ptrStructCssToken = do
+  token <- peekCssToken ptrStructCssToken
+  case token of
+    CssTokBraceCurlyOpen -> return 1
+    otherwise            -> return 0
+
+hll_isTokenBraceCurlyClose :: Ptr FfiCssToken -> IO Int
+hll_isTokenBraceCurlyClose ptrStructCssToken = do
+  token <- peekCssToken ptrStructCssToken
+  case token of
+    CssTokBraceCurlyClose -> return 1
+    otherwise             -> return 0

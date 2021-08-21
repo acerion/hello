@@ -166,7 +166,7 @@ tokenAsValueColorRgbTestManualData = [
                 , tokenBefore2 = CssTokFunc "rgb"
                 , remainderBefore2 = "15,50,200); next-property"
                 , remainderAfter2  = " next-property"
-                , tokenAfter2 = CssTokCh ';'
+                , tokenAfter2 = CssTokSemicolon
                 , expectedCssValue2 = Just (CssValueTypeColor 0x0f32c8)
                 }
   , AsTestData2 { testedFunction2 = tokensAsValueColor
@@ -174,7 +174,7 @@ tokenAsValueColorRgbTestManualData = [
                 , tokenBefore2 = CssTokFunc "rgb"
                 , remainderBefore2 = "90%,20%,0%); next-property"
                 , remainderAfter2  = " next-property"
-                , tokenAfter2 = CssTokCh ';'
+                , tokenAfter2 = CssTokSemicolon
                 , expectedCssValue2 = Just (CssValueTypeColor 0xe63300)
                 }
 
@@ -184,7 +184,7 @@ tokenAsValueColorRgbTestManualData = [
                 , tokenBefore2 = CssTokFunc "rgb"
                 , remainderBefore2 = "120%,-20%,15%); next-property" -- -> 100%,0%,15% -> 0xff0026
                 , remainderAfter2  = " next-property"
-                , tokenAfter2 = CssTokCh ';'
+                , tokenAfter2 = CssTokSemicolon
                 , expectedCssValue2 = Just (CssValueTypeColor 0xff0026)
                 }
 
@@ -195,7 +195,7 @@ tokenAsValueColorRgbTestManualData = [
                 , tokenBefore2 = CssTokFunc "rgb"
                 , remainderBefore2 = "90%,20,0%); next-property"
                 , remainderAfter2  = " next-property"
-                , tokenAfter2 = CssTokCh ';'
+                , tokenAfter2 = CssTokSemicolon
                 , expectedCssValue2 = Nothing
                 }
       ]
@@ -220,7 +220,7 @@ tokenAsValueMultiEnumTestManualData = [
                   -- token.
                   , remainderBefore2 = "first second third; next-property"
                   , remainderAfter2  = " next-property"
-                  , tokenAfter2 = CssTokCh ';'
+                  , tokenAfter2 = CssTokSemicolon
                   , expectedCssValue2 = Just (CssValueTypeMultiEnum 0b1111)
                   }
     , AsTestData2 { testedFunction2 = tokensAsValueMultiEnum
@@ -231,7 +231,7 @@ tokenAsValueMultiEnumTestManualData = [
                   -- token.
                   , remainderBefore2 = "first third}selector"
                   , remainderAfter2  = "selector"
-                  , tokenAfter2 = CssTokCh '}'
+                  , tokenAfter2 = CssTokBraceCurlyClose
                   , expectedCssValue2 = Just (CssValueTypeMultiEnum 0b1011)
                   }
     -- Tokens in stream appear in order that does not match order of enums.
@@ -326,7 +326,7 @@ tokenAsValueStringListTestManualData = [
                 , tokenBefore2 = CssTokIdent "monday"
                 , remainderBefore2 = ",tuesday, wednesday , thursday; next-property"
                 , remainderAfter2  = " next-property"
-                , tokenAfter2 = CssTokCh ';'
+                , tokenAfter2 = CssTokSemicolon
                 , expectedCssValue2 = Just (CssValueTypeStringList "monday,tuesday,wednesday,thursday")
                 }
   , AsTestData2 { testedFunction2 = tokensAsValueStringList
@@ -334,7 +334,7 @@ tokenAsValueStringListTestManualData = [
                 , tokenBefore2 = CssTokIdent "monday"
                 , remainderBefore2 = "; next-property"
                 , remainderAfter2  = " next-property"
-                , tokenAfter2 = CssTokCh ';'
+                , tokenAfter2 = CssTokSemicolon
                 , expectedCssValue2 = Just (CssValueTypeStringList "monday")
                 }
 

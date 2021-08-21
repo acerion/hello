@@ -361,18 +361,18 @@ readDeclarations parser token = ((p3, t3), (declSet, declSetImp))
                                           CssTokEnd -> ((parser, token), (declSet, declSetImp))
                                           otherwise -> readDeclarations' ((nextToken1 parser{ inBlock = True }), (defaultCssDeclarationSet, defaultCssDeclarationSet))
     (p3, t3) = case t2 of
-                 CssTokCh '}' -> nextToken1 p2{ inBlock = False }
-                 _            -> (p2{ inBlock = False }, t2)
+                 CssTokBraceCurlyClose -> nextToken1 p2{ inBlock = False }
+                 _                     -> (p2{ inBlock = False }, t2)
 
 
 
 readDeclarations' ((parser, token), (declSet, declSetImp)) =
   case token of
-    CssTokEnd    -> ((parser, token), (declSet, declSetImp))
-    CssTokCh '}' -> ((parser, token), (declSet, declSetImp)) -- TODO: this should be (nextToken parser)
-                    -- instead of (parser, token): ensure that '}' that is part of "declartions" block
-                    -- is handled and consumed, so that the next part of code doesn't have to handle it.
-    otherwise    -> readDeclarations' (parseDeclarationWrapper2 (parser, token) (declSet, declSetImp))
+    CssTokEnd             -> ((parser, token), (declSet, declSetImp))
+    CssTokBraceCurlyClose -> ((parser, token), (declSet, declSetImp)) -- TODO: this should be (nextToken parser)
+                             -- instead of (parser, token): ensure that '}' that is part of "declartions" block
+                             -- is handled and consumed, so that the next part of code doesn't have to handle it.
+    otherwise             -> readDeclarations' (parseDeclarationWrapper2 (parser, token) (declSet, declSetImp))
 
 
 

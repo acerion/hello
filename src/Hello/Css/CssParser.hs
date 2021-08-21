@@ -527,9 +527,9 @@ interpretRgbFunctionTokens :: [CssToken] -> Maybe (Int, Int, Int, Bool)
 interpretRgbFunctionTokens tokens =
   case tokens of
     -- "either three integer values or three percentage values" in https://www.w3.org/TR/css-color-3/
-    (CssTokPerc (CssNumI r):CssTokCh ',':CssTokPerc (CssNumI g):CssTokCh ',':CssTokPerc (CssNumI b):CssTokCh ')':[]) -> Just (r, g, b, True)
-    (CssTokNum (CssNumI r):CssTokCh ',':CssTokNum (CssNumI g):CssTokCh ',':CssTokNum (CssNumI b):CssTokCh ')':[])    -> Just (r, g, b, False)
-    otherwise                                                                                                        -> Nothing
+    (CssTokPerc (CssNumI r):CssTokComma:CssTokPerc (CssNumI g):CssTokComma:CssTokPerc (CssNumI b):CssTokParenClose:[]) -> Just (r, g, b, True)
+    (CssTokNum (CssNumI r):CssTokComma:CssTokNum (CssNumI g):CssTokComma:CssTokNum (CssNumI b):CssTokParenClose:[])    -> Just (r, g, b, False)
+    otherwise                                                                                                          -> Nothing
 
 
 
@@ -548,11 +548,11 @@ consumeFunctionTokens limit p1 = ((p2, t2), reverse list)
   where
     ((p2, t2), list) = takeNext (nextToken1 p1) []
     takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
-    takeNext (p2, t2@(CssTokCh ')')) list = (nextToken1 p2, t2:list) -- Add closing paren to result, it will be used to check if function body is valid.
-    takeNext (p2, CssTokEnd) list         = ((p2, CssTokEnd), list) -- https://www.w3.org/TR/css-syntax-3/#consume-function: "This is a parse error".
-    takeNext (p2, t2) list                = if (limit > 0 && length list >= limit)
-                                            then ((p2, t2), list)
-                                            else takeNext (nextToken1 p2) (t2:list)
+    takeNext (p2, t2@(CssTokParenClose)) list = (nextToken1 p2, t2:list) -- Add closing paren to result, it will be used to check if function body is valid.
+    takeNext (p2, CssTokEnd) list             = ((p2, CssTokEnd), list) -- https://www.w3.org/TR/css-syntax-3/#consume-function: "This is a parse error".
+    takeNext (p2, t2) list                    = if (limit > 0 && length list >= limit)
+                                                then ((p2, t2), list)
+                                                else takeNext (nextToken1 p2) (t2:list)
 
 
 
@@ -725,8 +725,8 @@ takeLengthTokens (parser, token) = case token of
                                      CssTokNum  _   -> (nextToken1 parser, [token])
                                      CssTokPerc  _  -> (nextToken1 parser, [token])
                                      CssTokDim  _ _ -> (nextToken1 parser, [token])
-                                     CssTokCh ';'   -> ((parser, token), [])
-                                     CssTokCh '}'   -> ((parser, token), [])
+                                     CssTokSemicolon       -> ((parser, token), [])
+                                     CssTokBraceCurlyClose -> ((parser, token), [])
                                      CssTokEnd      -> ((parser, token), [])
                                      _              -> ((parser, token), [])
 
@@ -824,14 +824,14 @@ parseUrl (parser, token@(CssTokIdent "url")) = (outParser, outUrl)
       Nothing  -> Nothing
       Just url -> Just url -- TODO: here we have to add first part of URL, defined in CssParser (the one starting with e.g. http://server.com).
     (outParser, partialUrl) = case nextToken1 parser of
-                                (newParser, newToken@(CssTokCh '(')) -> appendToUrl (newParser, newToken) ""
-                                (newParser, newToken)                -> ((parser, token), Nothing)
+                                (newParser, newToken@(CssTokParenOpen)) -> appendToUrl (newParser, newToken) ""
+                                (newParser, newToken)                   -> ((parser, token), Nothing)
     appendToUrl (parser, token) acc = case nextToken1 parser of
-                                        pair@(newParser, CssTokCh ')')    -> (pair, Just acc)
-                                        pair@(newParser, CssTokCh ch)     -> appendToUrl pair (T.snoc acc ch)
-                                        pair@(newParser, CssTokStr str)   -> appendToUrl pair (T.concat [acc, str])
-                                        pair@(newParser, CssTokIdent str) -> appendToUrl pair (T.concat [acc, str])
-                                        pair@(newParser, _)               -> (pair, Nothing) -- TODO: This is a BAD URL situation
+                                        pair@(newParser, CssTokParenClose) -> (pair, Just acc)
+                                        pair@(newParser, CssTokCh ch)      -> appendToUrl pair (T.snoc acc ch)
+                                        pair@(newParser, CssTokStr str)    -> appendToUrl pair (T.concat [acc, str])
+                                        pair@(newParser, CssTokIdent str)  -> appendToUrl pair (T.concat [acc, str])
+                                        pair@(newParser, _)                -> (pair, Nothing) -- TODO: This is a BAD URL situation
 parseUrl (parser, token)   = ((parser, token), Nothing)
 
 
@@ -960,9 +960,9 @@ tokensAsValueStringList (parser, token) enums = asList (parser, token) []
     asList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
     asList (p, (CssTokIdent sym)) acc = asList (nextToken1 p) (sym:acc)
     asList (p, (CssTokStr str)) acc   = asList (nextToken1 p) (str:acc)
-    asList (p, (CssTokCh  ',')) acc   = asList (nextToken1 p) (",":acc)
-    asList (p, t@(CssTokCh ';')) acc  = final (p, t) acc
-    asList (p, t@(CssTokCh '}')) acc  = final (p, t) acc
+    asList (p, (CssTokComma)) acc     = asList (nextToken1 p) (",":acc)
+    asList (p, t@(CssTokSemicolon)) acc       = final (p, t) acc
+    asList (p, t@(CssTokBraceCurlyClose)) acc = final (p, t) acc
     asList (p, t@(CssTokEnd)) acc     = final (p, t) acc
     asList (p, t) acc                 = ((parser, token), Nothing) -- TODO: this implmentation does not allow for final "!important" token.
 
@@ -1036,11 +1036,10 @@ ignoreBlock :: CssParser -> (CssParser, CssToken)
 ignoreBlock parser = ignoreBlock' (parser, CssTokNone) 0
   where
     ignoreBlock' (parser, tok@CssTokEnd) depth    = (parser, tok)
-    ignoreBlock' (parser, tok@(CssTokCh c)) depth | c == '{' = ignoreBlock' (nextToken1 parser) (depth + 1)
-                                                  | c == '}' = if depth == 1
-                                                              then nextToken1 parser
-                                                              else ignoreBlock' (nextToken1 parser) (depth - 1)
-                                                  | otherwise = ignoreBlock' (nextToken1 parser) depth
+    ignoreBlock' (parser, CssTokBraceCurlyOpen) depth  = ignoreBlock' (nextToken1 parser) (depth + 1)
+    ignoreBlock' (parser, CssTokBraceCurlyClose) depth = if depth == 1
+                                                         then nextToken1 parser
+                                                         else ignoreBlock' (nextToken1 parser) (depth - 1)
     ignoreBlock' (parser, tok) depth              = ignoreBlock' (nextToken1 parser) depth
 {-
    while (tokenizer->type != CSS_TOKEN_TYPE_END) {
@@ -1066,9 +1065,8 @@ ignoreStatement :: CssParser -> (CssParser, CssToken)
 ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
   where
     ignoreStatement' (parser, tok@CssTokEnd)    = (parser, tok)
-    ignoreStatement' (parser, tok@(CssTokCh c)) | c == ';' = nextToken1 parser
-                                                | c == '{' = ignoreBlock parser
-                                                | otherwise = ignoreStatement' (nextToken1 parser)
+    ignoreStatement' (parser, CssTokSemicolon)      = nextToken1 parser
+    ignoreStatement' (parser, CssTokBraceCurlyOpen) = ignoreBlock parser
     ignoreStatement' (parser, tok)              = ignoreStatement' (nextToken1 parser)
 {-
    while (tokenizer->type != CSS_TOKEN_TYPE_END) {
@@ -1226,7 +1224,7 @@ parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTo
 
 parseSelectorTokens (CssTokCh '#':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID sym):simSels)
 parseSelectorTokens (CssTokCh '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
-parseSelectorTokens (CssTokCh ':':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
+parseSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
 
 parseSelectorTokens (CssTokCh '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorChild}:simSels)
 parseSelectorTokens (CssTokCh '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorAdjacentSibling}:simSels)
@@ -1258,8 +1256,8 @@ readSelectorList (parser, token) = parseSelectorWrapper (parser, token) []
     parseSelectorWrapper (parser, token) acc =
       case parseSelector (parser, token) of
         ((parser, token), Just selector) -> case token of
-                                              CssTokCh ',' -> parseSelectorWrapper (nextToken1 parser) (acc ++ [selector])
-                                              otherwise    -> ((parser, token), acc ++ [selector])
+                                              CssTokComma -> parseSelectorWrapper (nextToken1 parser) (acc ++ [selector])
+                                              otherwise   -> ((parser, token), acc ++ [selector])
         _                                -> ((parser, token), acc)
 
 
@@ -1268,10 +1266,10 @@ readSelectorList (parser, token) = parseSelectorWrapper (parser, token) []
 
 -- Find end of current selector (probably needed only if something goes wrong
 -- during parsign of current selector).
-consumeRestOfSelector pair@(parser, CssTokEnd)    = pair
-consumeRestOfSelector pair@(parser, CssTokCh '{') = pair
-consumeRestOfSelector pair@(parser, CssTokCh ',') = pair
-consumeRestOfSelector (parser, _)                 = consumeRestOfSelector . nextToken1 $ parser
+consumeRestOfSelector pair@(parser, CssTokEnd)            = pair
+consumeRestOfSelector pair@(parser, CssTokBraceCurlyOpen) = pair
+consumeRestOfSelector pair@(parser, CssTokComma)          = pair
+consumeRestOfSelector (parser, _)                         = consumeRestOfSelector . nextToken1 $ parser
 
 
 
@@ -1285,8 +1283,8 @@ takeSelectorTokens (parser, token) = takeNext (parser, token) []
   where
     takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
     takeNext (parser, token) tokens = case token of
-                                        CssTokCh '{' -> ((parser, token), tokens)
-                                        CssTokCh ',' -> ((parser, token), tokens)
+                                        CssTokBraceCurlyOpen -> ((parser, token), tokens)
+                                        CssTokComma          -> ((parser, token), tokens)
                                         CssTokEnd    -> ((parser, token), tokens)
                                         -- Ignore whitespace occurring at the
                                         -- beginning of selectors list. I
@@ -1491,8 +1489,8 @@ takePropertyTokens (parser, nameToken) =
       (retParser, retToken) = nextToken1 colonParser
   in
     case (nameToken, colonToken) of
-      (CssTokIdent _, CssTokCh ':') -> ((retParser, retToken), [nameToken]) -- Don't return ':' token. Only 'property name' token is significant to caller.
-      _                             -> ((parser, nameToken), [])
+      (CssTokIdent _, CssTokColon) -> ((retParser, retToken), [nameToken]) -- Don't return ':' token. Only 'property name' token is significant to caller.
+      _                            -> ((parser, nameToken), [])
 
 
 
@@ -1565,10 +1563,10 @@ parseDeclarationWrapper2 (p1, t1) (inSet, inSetImp) = ((p2, t2), (outSet, outSet
 
 -- Find end of current declaration (probably needed only if something goes
 -- wrong during parsign of current declaration).
-consumeRestOfDeclaration pair@(parser, CssTokEnd)    = pair
-consumeRestOfDeclaration pair@(parser, CssTokCh '}') = pair -- '}' is not a part of declaration, so don't go past it. Return '}' as current token.
-consumeRestOfDeclaration (parser, CssTokCh ';')      = nextToken1 parser
-consumeRestOfDeclaration (parser, _)                 = consumeRestOfDeclaration . nextToken1 $ parser
+consumeRestOfDeclaration pair@(parser, CssTokEnd)             = pair
+consumeRestOfDeclaration pair@(parser, CssTokBraceCurlyClose) = pair -- '}' is not a part of declaration, so don't go past it. Return '}' as current token.
+consumeRestOfDeclaration (parser, CssTokSemicolon)            = nextToken1 parser
+consumeRestOfDeclaration (parser, _)                          = consumeRestOfDeclaration . nextToken1 $ parser
 
 
 
@@ -1692,8 +1690,8 @@ parseElementStyleAttribute baseUrl cssStyleAttribute (declSet, declSetImp) = (ou
 
 
 parseAllDeclarations :: ((CssParser, CssToken), (CssDeclarationSet, CssDeclarationSet)) -> ((CssParser, CssToken), (CssDeclarationSet, CssDeclarationSet))
-parseAllDeclarations ((p1, t1), (declSet, declSetImp)) | t1 == CssTokEnd    = ((p1, t1), (declSet, declSetImp))
-                                                       | t1 == CssTokCh '}' = ((p1, t1), (declSet, declSetImp))
+parseAllDeclarations ((p1, t1), (declSet, declSetImp)) | t1 == CssTokEnd             = ((p1, t1), (declSet, declSetImp))
+                                                       | t1 == CssTokBraceCurlyClose = ((p1, t1), (declSet, declSetImp))
                                                        | otherwise = parseAllDeclarations (parseDeclarationWrapper2 (p1, t1) (declSet, declSetImp))
 
 

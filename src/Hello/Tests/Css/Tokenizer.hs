@@ -151,12 +151,68 @@ numericTokenTestManualData = [
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
 hashTokenTestManualData = [
-  -- parser's initial remainder    expected token           parser's remainder after
+  -- parser's initial remainder    expected token                  parser's remainder after
 
-    ( "#0",                    CssTokHash "0",                        ""  )
-  , ( "#02553}",               CssTokHash "02553",                    "}" )
-  , ( "#name+",                CssTokHash "name",                     "+" )
-  , ( "#aD-9_1%",              CssTokHash "aD-9_1",                   "%" )
+    ( "#0",                        CssTokHash "0",                 ""  )
+  , ( "#02553}",                   CssTokHash "02553",             "}" )
+  , ( "#name+",                    CssTokHash "name",              "+" )
+  , ( "#aD-9_1%",                  CssTokHash "aD-9_1",            "%" )
+  ]
+
+
+
+
+-- Tests for parsing strings as tokens generated from single character.
+--
+-- This array is called "Manual" because these tests were written manually.
+-- Perhaps in the future I will write some generator of test data.
+singleCharTokenTestManualData = [
+  -- parser's initial remainder    expected token                  parser's remainder after
+
+    ( ":coffe",                    CssTokColon,                    "coffe"         )
+  , ( "::",                        CssTokColon,                    ":"             )
+  , ( ":",                         CssTokColon,                    ""              )
+  , ( ": ",                        CssTokColon,                    " "             )
+
+  , ( ";next",                     CssTokSemicolon,                "next"          )
+  , ( ";} div",                    CssTokSemicolon,                "} div"         )
+
+  , ( ", code, kbd",               CssTokComma,                    " code, kbd"    )
+  , ( ", sans-serif;",             CssTokComma,                    " sans-serif;"  )
+  , ( ", #submit,",                CssTokComma,                    " #submit,"     )
+  , ( ",0,0, 0.2);",               CssTokComma,                    "0,0, 0.2);"    )
+
+  , ( "[type",                     CssTokBraceSquareOpen,          "type"          )
+  , ( "[ ",                        CssTokBraceSquareOpen,          " "             )
+  , ( "[",                         CssTokBraceSquareOpen,          ""              )
+
+  , ( "],",                        CssTokBraceSquareClose,         ","             )
+  , ( "]",                         CssTokBraceSquareClose,         ""              )
+  , ( "] ",                        CssTokBraceSquareClose,         " "             )
+  , ( "] ",                        CssTokBraceSquareClose,         " "             )
+  , ( "]:hover",                   CssTokBraceSquareClose,         ":hover"        )
+  , ( "] {border",                 CssTokBraceSquareClose,         " {border"      )
+
+  , ( "(0,0,0)",                   CssTokParenOpen,                "0,0,0)"        )
+  , ( "(\"//server",               CssTokParenOpen,                "\"//server"    )
+  , ( "(#600",                     CssTokParenOpen,                "#600"          )
+  , ( "(",                         CssTokParenOpen,                ""              )
+
+  , ( "), transparent",            CssTokParenClose,               ", transparent" )
+  , ( "); a",                      CssTokParenClose,               "; a"           )
+  , ( ")",                         CssTokParenClose,               ""              )
+  , ( ") ",                        CssTokParenClose,               " "             )
+
+  , ( "{ background",              CssTokBraceCurlyOpen,           " background"   )
+  , ( "{{color",                   CssTokBraceCurlyOpen,           "{color"        )
+  , ( "{{",                        CssTokBraceCurlyOpen,           "{"             )
+  , ( "{",                         CssTokBraceCurlyOpen,           ""              )
+
+  , ( "}.commentTop",              CssTokBraceCurlyClose,          ".commentTop"   )
+  , ( "}}.commentTop",             CssTokBraceCurlyClose,          "}.commentTop"  )
+  , ( "}",                         CssTokBraceCurlyClose,          ""              )
+  , ( "} ",                        CssTokBraceCurlyClose,          " "             )
+  , ( "} div",                     CssTokBraceCurlyClose,          " div"          )
   ]
 
 
@@ -215,8 +271,7 @@ tokenizerTestRunner inB (x:xs) = if expectedToken /= t2 || expectedRemainder /= 
 --
 -- <function-token>, <at-keyword-token>, <string-token>, <bad-string-token>,
 -- <url-token>, <bad-url-token>, <delim-token>, <whitespace-token>,
--- <CDO-token>, <CDC-token>, <colon-token>, <semicolon-token>, <comma-token>,
--- <[-token>, <]-token>, <(-token>, <)-token>, <{-token>, <}-token>.
+-- <CDO-token>, <CDC-token>
 
 
 
@@ -226,13 +281,24 @@ tokenizerTestCases = [
   -- which can help in finding out which test failed.
 
      -- <number-token>, <percentage-token>, <dimension-token>
-     TestCase (do assertEqual "manual tests of numeric tokens"   "" (tokenizerTestRunner False numericTokenTestManualData))
+     TestCase (do assertEqual "manual tests of numeric tokens"         "" (tokenizerTestRunner False numericTokenTestManualData))
 
      -- <hash-token>
-   , TestCase (do assertEqual "manual tests of hash token"       "" (tokenizerTestRunner True hashTokenTestManualData))
+   , TestCase (do assertEqual "manual tests of hash token"             "" (tokenizerTestRunner True hashTokenTestManualData))
 
      -- <ident-token>
-   , TestCase (do assertEqual "manual tests of ident token"      "" (tokenizerTestRunner False identTokenTestManualData))
+   , TestCase (do assertEqual "manual tests of ident token"            "" (tokenizerTestRunner False identTokenTestManualData))
+
+     -- <colon-token>
+     -- <semicolon-token>
+     -- <comma-token>
+     -- <[-token>
+     -- <]-token>
+     -- <(-token>
+     -- <)-token>
+     -- <{-token>
+     -- <}-token>
+   , TestCase (do assertEqual "manual tests of single-char token"      "" (tokenizerTestRunner False singleCharTokenTestManualData))
   ]
 
 

@@ -279,6 +279,14 @@ c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, co
 void hll_matchCacheSetSize(c_css_match_cache_t * match_cache, int size);
 void hll_cssParseRuleset(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
 
+
+int hll_isTokenComma(c_css_token_t * token);
+int hll_isTokenSemicolon(c_css_token_t * token);
+int hll_isTokenBraceCurlyOpen(c_css_token_t * token);
+int hll_isTokenBraceCurlyClose(c_css_token_t * token);
+
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

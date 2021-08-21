@@ -107,13 +107,11 @@ cssNumToFloat (CssNumI i) = fromIntegral i
 
 
 -- Tokens listed in https://www.w3.org/TR/css-syntax-3/#tokenization, but not
--- included in CssToken type (or not commented yet):
+-- included in CssToken type (or not moved to a comment next to specific
+-- value constructor below yet):
 --
--- <at-keyword-token>, <string-token>, <bad-string-token>,
--- <delim-token>, <whitespace-token>, <CDO-token>, <CDC-token>,
--- <colon-token>, <semicolon-token>, <comma-token>, <[-token>, <]-token>,
--- <(-token>, <)-token>, <{-token>, and <}-token>.
-
+-- <at-keyword-token>, <string-token>, <bad-string-token>, <delim-token>,
+-- <whitespace-token>, <CDO-token>, <CDC-token>,
 data CssToken =
     CssTokNum CssNum            -- <number-token>
   | CssTokPerc CssNum           -- <percentage-token>
@@ -125,12 +123,23 @@ data CssToken =
   | CssTokUrl T.Text            -- <url-token>
   | CssTokBadUrl                -- <bad-url-token>
 
-  | CssTokHash T.Text           -- <hash-token>; T.Text value is not prefixed by '#'.
+  | CssTokColon                 -- <colon-token>
+  | CssTokSemicolon             -- <semicolon-token>
+  | CssTokComma                 -- <comma-token>
+
+  | CssTokBraceSquareOpen       -- <[-token>
+  | CssTokBraceSquareClose      -- <]-token>
+  | CssTokParenOpen             -- <(-token>
+  | CssTokParenClose            -- <)-token>
+  | CssTokBraceCurlyOpen        -- <{-token>
+  | CssTokBraceCurlyClose       -- <}-token>
+
+  | CssTokHash T.Text           -- <hash-token>; T.Text value is not prefixed by '#'. TODO: "<hash-token>'s type flag" is not implemented.
   | CssTokStr T.Text
   | CssTokCh Char
-  | CssTokWS          -- Whitespace
-  | CssTokEnd         -- End of input. No new tokens will appear in input.
-  | CssTokNone        -- No token was taken, proceed with parsing input data to try to take some token.
+  | CssTokWS                    -- Whitespace
+  | CssTokEnd                   -- End of input. No new tokens will appear in input.
+  | CssTokNone                  -- No token was taken, proceed with parsing input data to try to take some token.
   deriving (Show, Eq)
 
 
@@ -211,6 +220,7 @@ pair@(parser, _)  >>? _ = pair
 nextToken1' :: CssParser -> (CssParser, Maybe CssToken)
 nextToken1' parser = takeLeadingWhite parser >>?
                      takeNumericToken        >>?
+                     takeSingleCharToken     >>?
                      takeIdentLikeToken      >>?
                      takeString              >>?
                      takeHashToken           >>?
@@ -222,6 +232,7 @@ nextToken1' parser = takeLeadingWhite parser >>?
 nextToken2' :: CssParser -> (CssParser, Maybe CssToken)
 nextToken2' parser = takeLeadingWhite2 parser >>?
                      takeNumericToken         >>?
+                     takeSingleCharToken      >>?
                      takeIdentLikeToken       >>?
                      takeString               >>?
                      takeHashToken            >>?
@@ -323,15 +334,15 @@ takeIdentLikeToken :: CssParser -> (CssParser, Maybe CssToken)
 takeIdentLikeToken p1 = case takeIdentToken p1 of
                           (_, Nothing)                      -> (p1, Nothing)
                           (p2, Just t2@(CssTokIdent ident)) -> case takeCharToken p2 of
-                                                                 (_, Nothing)              -> (p2, Just t2)
-                                                                 (p3, Just (CssTokCh '(')) -> if ident == "url"
-                                                                                              then consumeUrlToken p3
-                                                                                              else (p3, Just $ CssTokFunc ident)
-                                                                 (p3, _)                   -> (p2, Just t2)
+                                                                 (_, Nothing)                 -> (p2, Just t2)
+                                                                 (p3, Just (CssTokParenOpen)) -> if ident == "url"
+                                                                                                 then consumeUrlToken p3
+                                                                                                 else (p3, Just $ CssTokFunc ident)
+                                                                 (p3, _)                      -> (p2, Just t2)
 
 
 
-consumeUrlToken p1 = if T.length text > 0 && T.last text == ')'
+consumeUrlToken p1 = if T.length text > 0 && T.last text == ')' -- TODO: shouldn't the ')' char be CssTokParenClose?
                      then (p2, Just $ CssTokUrl $ T.take (n - 1) text) -- Don't include closing paren.
                      else (p2, Just $ CssTokBadUrl)
   where
@@ -341,7 +352,7 @@ consumeUrlToken p1 = if T.length text > 0 && T.last text == ')'
 
     f :: T.Text -> [Char] -> String
     f buffer acc = case T.uncons buffer of
-                 Just (c, rem) | c == ')'  -> (c:acc) -- Include the paren here to recognize valid URL.
+                 Just (c, rem) | c == ')'  -> (c:acc) -- Include the paren here to recognize valid URL. TODO: Shouldn't the ')' char be CssParenClose?
                                | otherwise -> f rem (c:acc)
                                -- TODO: these conditions for taking chars should be improved.
                  Nothing -> acc
@@ -516,7 +527,7 @@ tryTakingPercOrDim numParser cssNum | (parser, Just (CssTokCh '%'))      <- take
 takeNumericToken :: CssParser -> (CssParser, Maybe CssToken)
 takeNumericToken parser = case takeNumber parser of
                             (numParser, Just cssNum) -> (numTokenOrMore numParser cssNum)
-                            otherwise                ->(parser, Nothing)
+                            otherwise                -> (parser, Nothing)
 
   where
     -- Use given CssNum to either create <number-token>, or (if data in
@@ -675,4 +686,26 @@ takeInt parser = case T.R.signed T.R.decimal (remainder parser) of
 
 
 
+
+-- Take a token that consists of a single char. Simple cases of tokenizations
+-- from https://www.w3.org/TR/css-syntax-3/#consume-token that consist only
+-- of unconditional "return a X token".
+--
+-- Not all such tokens may be returned by this function yet.
+--
+-- This function differs from takeCharToken in the fact that takeCharToken
+-- returns a "char token with some character in it". The function below
+-- returns a distinct token for each successfully consumed character.
+takeSingleCharToken :: CssParser -> (CssParser, Maybe CssToken)
+takeSingleCharToken parser = case T.uncons $ remainder parser of
+                               Just (':', rem) -> (parser{ remainder = rem }, Just CssTokColon)
+                               Just (';', rem) -> (parser{ remainder = rem }, Just CssTokSemicolon)
+                               Just (',', rem) -> (parser{ remainder = rem }, Just CssTokComma)
+                               Just ('[', rem) -> (parser{ remainder = rem }, Just CssTokBraceSquareOpen)
+                               Just (']', rem) -> (parser{ remainder = rem }, Just CssTokBraceSquareClose)
+                               Just ('(', rem) -> (parser{ remainder = rem }, Just CssTokParenOpen)
+                               Just (')', rem) -> (parser{ remainder = rem }, Just CssTokParenClose)
+                               Just ('{', rem) -> (parser{ remainder = rem }, Just CssTokBraceCurlyOpen)
+                               Just ('}', rem) -> (parser{ remainder = rem }, Just CssTokBraceCurlyClose)
+                               otherwise       -> (parser, Nothing)
 
