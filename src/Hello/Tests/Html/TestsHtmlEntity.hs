@@ -1,10 +1,29 @@
-module TestsHtmlEntity (testsHtmlEntity
-                ) where
+{-
+NOTE: This file is under yet-unspecified Free Software license.  The license
+may be different than a license for whole "Hello" package.
+-}
+
+
+
+
+{-# LANGUAGE OverloadedStrings #-}
+
+
+
+
+module Hello.Tests.Html.Entity
+  (
+    testsHtmlEntity
+  )
+where
+
+
+
 
 import Test.HUnit
-import System.Exit
-import HtmlEntity
 import qualified Data.Text as T
+
+import HtmlEntity
 
 
 
@@ -141,10 +160,10 @@ testCases = [
 
 
 
-testsHtmlEntity :: IO ()
+testsHtmlEntity :: IO String
 testsHtmlEntity = do
   counts <- runTestTT (TestList (testCases))
   if (errors counts + failures counts == 0)
-    then exitSuccess
-    else exitFailure
+    then return ""
+    else return "[EE] testsHtmlEntity failed"
 

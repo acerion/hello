@@ -1,10 +1,29 @@
-module TestsColors (testsColors
-                ) where
+{-
+NOTE: This file is under yet-unspecified Free Software license.  The license
+may be different than a license for whole "Hello" package.
+-}
+
+
+
+
+{-# LANGUAGE OverloadedStrings #-}
+
+
+
+
+module Hello.Tests.Colors
+  (
+    testsColors
+  )
+where
+
+
+
 
 import Test.HUnit
-import System.Exit
-import Colors
 import Numeric (showHex)
+
+import Colors
 
 
 
@@ -478,10 +497,10 @@ colorsTestCases = [
 
 
 
-testsColors :: IO ()
+testsColors :: IO String
 testsColors = do
   counts <- runTestTT (TestList (colorsTestCases))
   if (errors counts + failures counts == 0)
-    then exitSuccess
-    else exitFailure
+    then return ""
+    else return "[EE] testsColors failed"
 

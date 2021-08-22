@@ -19,6 +19,7 @@ all:
 		./wrapper.o -lHSrts-ghc8.8.4
 
 distclean: clean
+	make -C Tests distclean
 
 clean:
 	find ./ -name "*.hi"      | xargs rm -f

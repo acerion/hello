@@ -1,11 +1,21 @@
+{-
+NOTE: This file is under yet-unspecified Free Software license.  The license
+may be different than a license for whole "Hello" package.
+-}
+
+
+
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE BinaryLiterals #-} -- For specifying expected integer values of CssValueTypeMultiEnum.
 
 
 
 
-module Hello.Tests.Css.Selector (runTests
-                                )
+module Hello.Tests.Css.Selector
+  (
+    testsCssSelector
+  )
 where
 
 
@@ -13,7 +23,6 @@ where
 
 import qualified Data.Text as T
 import Test.HUnit
-import System.Exit
 import Debug.Trace
 
 import Hello.Css.Tokenizer
@@ -82,10 +91,10 @@ selectorTestCases = [
 
 
 
-runTests :: IO ()
-runTests = do
+testsCssSelector :: IO String
+testsCssSelector = do
   counts <- runTestTT (TestList (selectorTestCases))
   if (errors counts + failures counts == 0)
-    then exitSuccess
-    else exitFailure
+    then return ""
+    else return "[EE] testsCssSelector failed"
 

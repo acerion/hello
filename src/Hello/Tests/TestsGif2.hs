@@ -1,20 +1,32 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 {-
 NOTE: This file is under yet-unspecified Free Software license.  The license
 may be different than a license for whole "Hello" package.
 -}
 
-module TestsGif2 (testsGif2
-                ) where
 
-import System.Exit
+
+
+{-# LANGUAGE OverloadedStrings #-}
+
+
+
+
+module Hello.Tests.Gif2
+  (
+    testsGif2
+  )
+where
+
+
+
 
 import Test.QuickCheck
 import Test.QuickCheck.Instances.Text
 
 import Gif
-import Gifted
+import Hello.Tests.Utils.Gifted
+import Hello.Tests.Utils.QuickCheck
+
 
 
 
@@ -49,12 +61,14 @@ prop_parseCommentExtension text =
 
 
 
-testsGif2 :: IO ()
+testsGif2 :: IO String
 testsGif2 = do
   -- All I had to do to find stdArgs and xWith is to read documentation :)
   -- http://hackage.haskell.org/package/QuickCheck-2.8/docs/Test-QuickCheck.html
   let testArgs = stdArgs { maxSuccess = 400, maxSize = 300 }
-  -- qc <- quickCheckWith testArgs prop_parseCommentExtension
-  qc <- verboseCheckWith testArgs prop_parseCommentExtension
+  result <- quickCheckWithResult testArgs prop_parseCommentExtension
+  -- result <- verboseCheckWithResult testArgs prop_parseCommentExtension
 
-  exitSuccess
+  if qcResultIsSuccess result
+    then return ""
+    else return "[EE] testsGif2 failed"

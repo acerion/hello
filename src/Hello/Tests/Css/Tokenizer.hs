@@ -12,8 +12,10 @@ may be different than a license for whole "Hello" package.
 
 
 
-module Hello.Tests.Css.Tokenizer (testsCssTokenizer
-                                 )
+module Hello.Tests.Css.Tokenizer
+  (
+    testsCssTokenizer
+  )
 where
 
 
@@ -21,7 +23,6 @@ where
 
 import qualified Data.Text as T
 import Test.HUnit
-import System.Exit
 
 import Hello.Css.Tokenizer
 import Hello.Utils
@@ -304,10 +305,10 @@ tokenizerTestCases = [
 
 
 
-testsCssTokenizer :: IO ()
+testsCssTokenizer :: IO String
 testsCssTokenizer = do
   counts <- runTestTT (TestList (tokenizerTestCases))
   if (errors counts + failures counts == 0)
-    then exitSuccess
-    else exitFailure
+    then return ""
+    else return "[EE] testsCssTokenizer failed"
 

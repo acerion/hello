@@ -12,8 +12,10 @@ may be different than a license for whole "Hello" package.
 
 
 
-module Hello.Tests.Css.Value (testsCssValue
-                             )
+module Hello.Tests.Css.Value
+  (
+    testsCssValue
+  )
 where
 
 
@@ -21,7 +23,6 @@ where
 
 import qualified Data.Text as T
 import Test.HUnit
-import System.Exit
 
 import Hello.Css.Tokenizer
 import Hello.Css.Parser
@@ -400,10 +401,10 @@ valueTestCases = [
 
 
 
-testsCssValue :: IO ()
+testsCssValue :: IO String
 testsCssValue = do
   counts <- runTestTT (TestList (valueTestCases))
   if (errors counts + failures counts == 0)
-    then exitSuccess
-    else exitFailure
+    then return ""
+    else return "[EE] testsCssValue failed"
 

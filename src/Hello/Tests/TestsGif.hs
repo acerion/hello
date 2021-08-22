@@ -1,27 +1,39 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 {-
 NOTE: This file is under yet-unspecified Free Software license.  The license
 may be different than a license for whole "Hello" package.
 -}
 
-module TestsGif (testsGif
-                ) where
 
-import Test.QuickCheck
--- import Test.QuickCheck.Instances.Text -- We will write our own instance
+
+
+{-# LANGUAGE OverloadedStrings #-}
+
+
+
+
+module Hello.Tests.Gif
+  (
+    testsGif
+  )
+where
+
+
 
 
 import Foreign
 import Test.HUnit
-import System.Exit
+import Test.QuickCheck
+-- import Test.QuickCheck.Instances.Text -- We will write our own instance
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString as BS
 import Data.String (fromString)
 
 import Gif
-import Gifted
+import Hello.Tests.Utils.Gifted
+import Hello.Tests.Utils.QuickCheck
+
+
 
 
 myGetChar :: Gen Char
@@ -123,7 +135,7 @@ parseExtensionComment = [
 
 
 
-prop_parseCommentExtension text =
+parseCommentExtension text =
   case parseExtension gifDefault extension of
     Just gif -> text == comment gif && BS.length extension == consumed gif
     Nothing  -> False
@@ -132,15 +144,20 @@ prop_parseCommentExtension text =
 
 
 
-testsGif :: IO ()
+testsGif :: IO String
 testsGif = do
   -- All I had to do to find stdArgs and xWith is to read documentation :)
   -- http://hackage.haskell.org/package/QuickCheck-2.8/docs/Test-QuickCheck.html
   let testArgs = stdArgs { maxSuccess = 500, maxSize = 400 }
-  --qc <- quickCheckWith testArgs prop_parseCommentExtension
-  qc <- verboseCheckWith testArgs prop_parseCommentExtension
+  result <- quickCheckWithResult testArgs parseCommentExtension
+  -- result <- verboseCheckWithResult testArgs parseCommentExtension
+  let failures1 = if qcResultIsSuccess result
+                  then ""
+                  else "[EE] testsGif part 1 failed "
 
   counts <- runTestTT (TestList (parseExtensionComment))
-  if (errors counts + failures counts == 0)
-    then exitSuccess
-    else exitFailure
+  let failures2 = if errors counts + failures counts == 0
+                  then ""
+                  else "[EE] testsGif part 2 failed"
+
+  return $ failures1 ++ failures2

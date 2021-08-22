@@ -1,15 +1,28 @@
+{-
+NOTE: This file is under yet-unspecified Free Software license.  The license
+may be different than a license for whole "Hello" package.
+-}
+
+
+
+
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 
 
 
-module TestsCssData (specificityTestManualData)
+module Hello.Tests.Css.Data
+  (
+    specificityTestManualData
+  )
 where
 
 
 
 
 import qualified Data.Text as T
+
 import Hello.Css.Parser
 
 

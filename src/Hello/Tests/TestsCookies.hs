@@ -1,18 +1,28 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 {-
 NOTE: This file is under yet-unspecified Free Software license.  The license
 may be different than a license for whole "Hello" package.
 -}
 
 
-module Main (main) where
+
+
+{-# LANGUAGE OverloadedStrings #-}
+
+
+
+
+module Hello.Tests.Cookies
+  (
+    testsCookies
+  )
+where
+
+
+
 
 import Test.HUnit
-import System.Exit
 
 import Cookies
-
 
 
 
@@ -126,9 +136,11 @@ matchDomainCases = [
   ]
 
 
-main :: IO ()
-main = do
+
+
+testsCookies :: IO String
+testsCookies = do
   counts <- runTestTT (TestList (lineToRuleCases ++ sortRulesCases ++ matchDomainCases))
   if (errors counts + failures counts == 0)
-    then exitSuccess
-    else exitFailure
+    then return ""
+    else return "[EE] testsCookies failed"

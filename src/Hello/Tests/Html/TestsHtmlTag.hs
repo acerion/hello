@@ -1,10 +1,29 @@
-module TestsHtmlTag (testsHtmlTag
-                ) where
+{-
+NOTE: This file is under yet-unspecified Free Software license.  The license
+may be different than a license for whole "Hello" package.
+-}
+
+
+
+
+{-# LANGUAGE OverloadedStrings #-}
+
+
+
+
+module Hello.Tests.Html.Tag
+  (
+    testsHtmlTag
+  )
+where
+
+
+
 
 import Test.HUnit
-import System.Exit
-import HtmlTag
 import qualified Data.Text as T
+
+import HtmlTag
 
 
 
@@ -127,10 +146,10 @@ testCases = [
 
 
 
-testsHtmlTag :: IO ()
+testsHtmlTag :: IO String
 testsHtmlTag = do
   counts <- runTestTT (TestList (testCases))
   if (errors counts + failures counts == 0)
-    then exitSuccess
-    else exitFailure
+    then return ""
+    else return "[EE] testsHtmlTag failed"
 
