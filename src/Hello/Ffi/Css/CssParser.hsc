@@ -233,7 +233,9 @@ getTokenType (CssTokBraceCurlyClose)  = 4
 getTokenType (CssTokColon)            = 5
 getTokenType (CssTokBraceSquareOpen)  = 6
 getTokenType (CssTokBraceSquareClose) = 7
-getTokenType _                = 8
+getTokenType (CssTokHash CssHashUn _) = 8
+getTokenType (CssTokHash CssHashId _) = 9
+getTokenType _                = 10
 
 
 
@@ -246,6 +248,8 @@ getTokenADT tokType tokValue | tokType == 0 = CssTokIdent tokValue
                              | tokType == 5 = CssTokColon
                              | tokType == 6 = CssTokBraceSquareOpen
                              | tokType == 7 = CssTokBraceSquareClose
+                             | tokType == 8 = CssTokHash CssHashUn tokValue
+                             | tokType == 9 = CssTokHash CssHashId tokValue
                              | otherwise = trace ("tok type ============= = " ++ (show tokType)) (CssTokEnd)
 
 
@@ -269,8 +273,8 @@ cstr :: CssToken -> IO CString
 cstr token = case token of
     (CssTokNum (CssNumI i)) -> (newCString . show $ i)
     (CssTokNum (CssNumF f)) -> (newCString . show $ f)
-    (CssTokHash c) -> (newCString . T.unpack $ c)
-    (CssTokIdent s) -> (newCString . T.unpack $ s)
+    (CssTokHash _ s) -> (newCString . T.unpack $ s)
+    (CssTokIdent s)  -> (newCString . T.unpack $ s)
     (CssTokStr s) -> (newCString . T.unpack $ s)
     (CssTokCh c)  -> (newCString . T.unpack . T.singleton $ c)
     CssTokWS      -> (newCString " ")

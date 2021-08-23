@@ -58,6 +58,7 @@ module Hello.Css.Tokenizer( CssParser (..)
                           , takeIdentToken
 
                           , CssToken (..)
+                          , CssHashType (..)
 
                           , CssNum (..)
                           , cssNumToFloat
@@ -96,12 +97,21 @@ import qualified Hello.Unicode as H.U
 
 
 data CssNum
-    = CssNumI Int
-    | CssNumF Float
-    deriving (Show, Eq)
+  = CssNumI Int
+  | CssNumF Float
+  deriving (Show, Eq)
 
 cssNumToFloat (CssNumF f) = f
 cssNumToFloat (CssNumI i) = fromIntegral i
+
+
+
+
+-- Allowed values of type flag in <hash-token>
+data CssHashType
+  = CssHashUn    -- "unrestricted" (the default one)
+  | CssHashId    -- "id"
+  deriving (Show, Eq)
 
 
 
@@ -134,7 +144,7 @@ data CssToken =
   | CssTokBraceCurlyOpen        -- <{-token>
   | CssTokBraceCurlyClose       -- <}-token>
 
-  | CssTokHash T.Text           -- <hash-token>; T.Text value is not prefixed by '#'. TODO: "<hash-token>'s type flag" is not implemented.
+  | CssTokHash CssHashType T.Text   -- <hash-token>; T.Text value is not prefixed by '#'.
   | CssTokStr T.Text
   | CssTokCh Char
   | CssTokWS                    -- Whitespace
@@ -276,6 +286,7 @@ takeIdentToken parser = if isValidStartOfIdentifier . remainder $ parser
 
 
 -- https://www.w3.org/TR/css-syntax-3/#check-if-three-code-points-would-start-an-identifier
+-- TODO: write test for this function.
 isValidStartOfIdentifier buffer | null points             = False
                                 | c1 == '-'               = tryStartingWithHyphen points
                                 | isNameStartCodePoint c1 = True
@@ -388,23 +399,24 @@ takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
 
 
 
--- TODO: the function probably should return <delim-token> in some situations.
--- TODO: what if there are no characters after '#'?
---
--- TODO: do we still need to use inBlock here? After the function has been
--- changed from takeColor to takeHashToken, it could be used to take ID
--- selector tokens. The function can be now very well used outside of block.
-takeHashToken :: CssParser -> (CssParser, Maybe CssToken)
-takeHashToken parser = if not $ inBlock parser
-                       then (parser, Nothing) -- Don't take the leading '#' if we are not in a block;
-                       else
-                         case T.uncons $ remainder parser of
-                           Just ('#', rem) -> (parser { remainder = T.drop (n + 1) $ remainder parser}, Just $ CssTokHash value)
-                             -- TODO: That +1 for '#' above doesn't seem too clean. What if there are no valid characters after '#'?
-                             where
-                               (value, n) = consumeName rem "" 0
-                           Just (c, rem)   -> (parser, Nothing)
-                           Nothing         -> (parser, Nothing)
+-- Implementation of algorithm for hash token described in
+-- https://www.w3.org/TR/css-syntax-3/#consume-token
+takeHashToken p1 =
+  case T.uncons $ remainder p1 of
+    Just ('#', rem) | length points >= 1 && isNameCodePoint c0  -> createHashToken p1{ remainder = rem }
+                    | length points >= 2 && isValidEscape c0 c1 -> createHashToken p1{ remainder = rem }
+                    | otherwise                                 -> (p1{ remainder = rem }, Just $ CssTokCh '#')
+      where
+        points = peekUpToNCodePoints rem 2 (\c -> True)
+        c0 = points !! 0
+        c1 = points !! 1
+
+        createHashToken p2 = if isValidStartOfIdentifier $ remainder p2
+                             then (parserMoveByLen p2 len, Just $ CssTokHash CssHashId name)
+                             else (parserMoveByLen p2 len, Just $ CssTokHash CssHashUn name)
+          where
+            (name, len) = consumeName (remainder p2) "" 0
+    otherwise -> (p1, Nothing)
 
 
 

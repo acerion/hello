@@ -581,7 +581,7 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 -- (TODO) take as many tokens as necessary to build, parse and convert the
 -- function into color value.
 tokensAsValueColor :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueColor (p1, (CssTokHash str)) _    = case colorsHexStringToColor str of
+tokensAsValueColor (p1, (CssTokHash _ str)) _  = case colorsHexStringToColor str of
                                                    Just i  -> (nextToken1 p1, Just (CssValueTypeColor i))
                                                    Nothing -> (nextToken1 p1, Nothing)
 tokensAsValueColor (p1, (CssTokFunc "rgb")) _  = case rgbFunctionToColor p1 of
@@ -1221,11 +1221,11 @@ parseSelector (parser, token) = ((outParser, outToken), selector)
 
 parseSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
 parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorType = htmlTagIndex sym}):simSels)
-
-parseSelectorTokens (CssTokCh '#':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID sym):simSels)
+-- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
+-- the "id" type are valid ID selectors."
+parseSelectorTokens (CssTokHash CssHashId ident:tokens) (simSel:simSels)   = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID ident):simSels)
 parseSelectorTokens (CssTokCh '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
 parseSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
-
 parseSelectorTokens (CssTokCh '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorChild}:simSels)
 parseSelectorTokens (CssTokCh '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorAdjacentSibling}:simSels)
 parseSelectorTokens (CssTokWS:tokens)     simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorDescendant}:simSels)

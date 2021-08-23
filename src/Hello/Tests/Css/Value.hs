@@ -110,12 +110,12 @@ tokenAsValueColorHashTestManualData = [
 
   -- Success
     AsTestData1 { testedFunction1 = tokensAsValueColor
-                , tokenBefore1 = CssTokHash "fb5"  -- fb5 interpreted as rgb should be expanded to rrggbb in form of ffbb55
+                , tokenBefore1 = CssTokHash CssHashId "fb5"  -- fb5 interpreted as rgb should be expanded to rrggbb in form of ffbb55
                 , enums1 = []
                 , expectedCssValue1 = Just (CssValueTypeColor 0xffbb55)
                 }
   , AsTestData1 { testedFunction1 = tokensAsValueColor
-                , tokenBefore1 = CssTokHash "12de56"
+                , tokenBefore1 = CssTokHash CssHashId "12de56"
                 , enums1 = []
                 , expectedCssValue1 = Just (CssValueTypeColor 0x12de56)
                 }
@@ -132,20 +132,20 @@ tokenAsValueColorHashTestManualData = [
 
   -- Failure, not a hex-digit string.
   , AsTestData1 { testedFunction1 = tokensAsValueColor
-                , tokenBefore1 = CssTokHash "ident" -- This is a valid hash token, but can't be converted to color.
+                , tokenBefore1 = CssTokHash CssHashId "ident" -- This is a valid hash token, but can't be converted to color.
                 , enums1 = []
                 , expectedCssValue1 = Nothing
                 }
   -- Failure, incorrect count of hex characters.
   , AsTestData1 { testedFunction1 = tokensAsValueColor
                 , enums1 = []
-                , tokenBefore1 = CssTokHash "abcd" -- Color should have format rgb or rrggbb, so either 3 or 6 digits.
+                , tokenBefore1 = CssTokHash CssHashId "abcd" -- Color should have format rgb or rrggbb, so either 3 or 6 digits.
                 , expectedCssValue1 = Nothing
                 }
   -- Failure, empty hash string.
   , AsTestData1 { testedFunction1 = tokensAsValueColor
                 , enums1 = []
-                , tokenBefore1 = CssTokHash ""
+                , tokenBefore1 = CssTokHash CssHashId ""
                 , expectedCssValue1 = Nothing
                 }
   -- Failure, empty symbol string.
@@ -343,10 +343,10 @@ tokenAsValueStringListTestManualData = [
   -- following tokens will.
   , AsTestData2 { testedFunction2 = tokensAsValueStringList
                 , enums2 = [] -- Doesn't matter for this tested function.
-                , tokenBefore2 = CssTokHash "monday"
+                , tokenBefore2 = CssTokHash CssHashId "monday"
                 , remainderBefore2 = "tuesday; next-property"
                 , remainderAfter2  = "tuesday; next-property"
-                , tokenAfter2 = CssTokHash "monday"
+                , tokenAfter2 = CssTokHash CssHashId "monday"
                 , expectedCssValue2 = Nothing
                 }
   -- Numeric tokens should also lead to invalid parsing.

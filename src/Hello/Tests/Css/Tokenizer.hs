@@ -147,17 +147,30 @@ numericTokenTestManualData = [
 
 
 
--- Tests for parsing strings as <hash-token> (CssTokHash).
+-- Tests for parsing strings as <hash-token> (CssTokHashId or CssTokHashUn).
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
 hashTokenTestManualData = [
   -- parser's initial remainder    expected token                  parser's remainder after
 
-    ( "#0",                        CssTokHash "0",                 ""  )
-  , ( "#02553}",                   CssTokHash "02553",             "}" )
-  , ( "#name+",                    CssTokHash "name",              "+" )
-  , ( "#aD-9_1%",                  CssTokHash "aD-9_1",            "%" )
+    ( "#0",                        CssTokHash CssHashUn "0",               ""  )
+  , ( "#012;",                     CssTokHash CssHashUn "012",             ";" )
+  , ( "#02553}",                   CssTokHash CssHashUn "02553",           "}" )
+  , ( "#01234567890!",             CssTokHash CssHashUn "01234567890",     "!" ) -- Length of a regular text should not matter.
+
+    -- Escape. 91(hex) -> 145(dec). Valid escape is an ID.
+  , ( "#\\91",                     CssTokHash CssHashId "\145",            ""  )
+  , ( "#\\91;",                    CssTokHash CssHashId "\145",            ";" )
+  , ( "#\\r",                      CssTokHash CssHashId "r",               ""  )
+  , ( "#\\r@",                     CssTokHash CssHashId "r",               "@" )
+
+  , ( "#name+",                    CssTokHash CssHashId "name",            "+" )
+  , ( "#-ident}",                  CssTokHash CssHashId "-ident",          "}" )
+  , ( "#aD-9_1%",                  CssTokHash CssHashId "aD-9_1",          "%" )
+
+    -- Not enough good code points to build a proper hash token.
+  , ( "#;",                        CssTokCh '#',                           ";" )
   ]
 
 

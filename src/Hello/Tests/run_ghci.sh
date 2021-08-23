@@ -1,4 +1,5 @@
 ghci -fobject-code \
+     -XOverloadedStrings \
      ../*.hs \
      ../Css/*.hs \
      ../Html/*.hs \
