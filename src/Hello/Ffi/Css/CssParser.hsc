@@ -546,6 +546,8 @@ pokeCssSelector ptrStructCssSelector selector = do
   pokeArrayOfPointersWithAlloc (simpleSelectors selector) allocAndPokeCssSimpleSelector (cSimpleSelectors ffiSel)
   pokeByteOff ptrStructCssSelector (#offset c_css_selector_t, c_simple_selectors_size) (length . simpleSelectors $ selector)
 
+  pokeByteOff ptrStructCssSelector (#offset c_css_selector_t, c_match_cache_offset) (matchCacheOffset selector)
+
 
 
 
