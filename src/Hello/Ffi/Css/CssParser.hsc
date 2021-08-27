@@ -227,7 +227,7 @@ pokeCssToken ptrStructCssToken token = do
 
 getTokenType (CssTokIdent  _) = 0
 getTokenType (CssTokStr  _)   = 1
-getTokenType (CssTokCh   _)   = 2
+getTokenType (CssTokDelim _)  = 2
 getTokenType (CssTokEnd)      = 3
 getTokenType (CssTokBraceCurlyClose)  = 4
 getTokenType (CssTokColon)            = 5
@@ -242,7 +242,7 @@ getTokenType _                = 10
 
 getTokenADT tokType tokValue | tokType == 0 = CssTokIdent tokValue
                              | tokType == 1 = CssTokStr tokValue
-                             | tokType == 2 = CssTokCh  (T.head tokValue)
+                             | tokType == 2 = CssTokDelim  (T.head tokValue)
                              | tokType == 3 = CssTokEnd
                              | tokType == 4 = CssTokBraceCurlyClose
                              | tokType == 5 = CssTokColon
@@ -275,10 +275,10 @@ cstr token = case token of
     (CssTokNum (CssNumF f)) -> (newCString . show $ f)
     (CssTokHash _ s) -> (newCString . T.unpack $ s)
     (CssTokIdent s)  -> (newCString . T.unpack $ s)
-    (CssTokStr s) -> (newCString . T.unpack $ s)
-    (CssTokCh c)  -> (newCString . T.unpack . T.singleton $ c)
-    CssTokWS      -> (newCString " ")
-    otherwise     -> return nullPtr
+    (CssTokStr s)    -> (newCString . T.unpack $ s)
+    (CssTokDelim c)  -> (newCString . T.unpack . T.singleton $ c)
+    CssTokWS         -> (newCString " ")
+    otherwise        -> return nullPtr
 
 
 

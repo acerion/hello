@@ -738,8 +738,8 @@ takeLengthTokens (parser, token) = case token of
                                                                                else (nextToken p3, []) -- TODO: how to handle unrecognized symbol?
                                                   pair@(p3, CssTokPercI i) -> (nextToken p3, [numberToken, snd pair])
                                                   pair@(p3, CssTokPercF f) -> (nextToken p3, [numberToken, snd pair])
-                                                  pair@(p3, CssTokCh ';')  -> (pair, [numberToken])
-                                                  pair@(p3, CssTokCh '}')  -> (pair, [numberToken])
+                                                  pair@(p3, CssTokDelim ';') -> (pair, [numberToken])
+                                                  pair@(p3, CssTokDelim '}') -> (pair, [numberToken])
                                                   pair@(p3, CssTokEnd)     -> (pair, [numberToken])
                                                   pair                     -> ((parser, token), [])
 
@@ -828,7 +828,7 @@ parseUrl (parser, token@(CssTokIdent "url")) = (outParser, outUrl)
                                 (newParser, newToken)                   -> ((parser, token), Nothing)
     appendToUrl (parser, token) acc = case nextToken1 parser of
                                         pair@(newParser, CssTokParenClose) -> (pair, Just acc)
-                                        pair@(newParser, CssTokCh ch)      -> appendToUrl pair (T.snoc acc ch)
+                                        pair@(newParser, CssTokDelim ch)   -> appendToUrl pair (T.snoc acc ch)
                                         pair@(newParser, CssTokStr str)    -> appendToUrl pair (T.concat [acc, str])
                                         pair@(newParser, CssTokIdent str)  -> appendToUrl pair (T.concat [acc, str])
                                         pair@(newParser, _)                -> (pair, Nothing) -- TODO: This is a BAD URL situation
@@ -1103,9 +1103,9 @@ cssPropertyNameString property = tripletFst (cssPropertyInfo V.! property) -- TO
 
 
 cssParseWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Bool)
-cssParseWeight (parser, CssTokCh '!') = case nextToken1 parser of
-                                          (newParser, CssTokIdent "important") -> (nextToken1 newParser, True)
-                                          (newParser, tok)                     -> ((newParser, tok), False)
+cssParseWeight (parser, CssTokDelim '!') = case nextToken1 parser of
+                                             (newParser, CssTokIdent "important") -> (nextToken1 newParser, True)
+                                             (newParser, tok)                     -> ((newParser, tok), False)
 cssParseWeight (parser, tok)          = ((parser, tok), False)
 
 
@@ -1224,10 +1224,10 @@ parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTo
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
 parseSelectorTokens (CssTokHash CssHashId ident:tokens) (simSel:simSels)   = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID ident):simSels)
-parseSelectorTokens (CssTokCh '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
-parseSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
-parseSelectorTokens (CssTokCh '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorChild}:simSels)
-parseSelectorTokens (CssTokCh '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorAdjacentSibling}:simSels)
+parseSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
+parseSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (simSel:simSels)     = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
+parseSelectorTokens (CssTokDelim '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorChild}:simSels)
+parseSelectorTokens (CssTokDelim '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorAdjacentSibling}:simSels)
 parseSelectorTokens (CssTokWS:tokens)     simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorDescendant}:simSels)
 
 parseSelectorTokens [] simSels = Just simSels
@@ -1305,10 +1305,10 @@ takeSelectorTokens (parser, token) = takeNext (parser, token) []
 -- In such situations the spaces aren't combinators themselves but are just
 -- separators.
 removeSpaceTokens :: [CssToken] -> [CssToken] -> [CssToken]
-removeSpaceTokens ((CssTokWS):(CssTokCh '+'):xs) acc = removeSpaceTokens ((CssTokCh '+'):xs) acc
-removeSpaceTokens ((CssTokCh '+'):(CssTokWS):xs) acc = removeSpaceTokens ((CssTokCh '+'):xs) acc
-removeSpaceTokens ((CssTokWS):(CssTokCh '>'):xs) acc = removeSpaceTokens ((CssTokCh '>'):xs) acc
-removeSpaceTokens ((CssTokCh '>'):(CssTokWS):xs) acc = removeSpaceTokens ((CssTokCh '>'):xs) acc
+removeSpaceTokens ((CssTokWS):(CssTokDelim '+'):xs) acc = removeSpaceTokens ((CssTokDelim '+'):xs) acc
+removeSpaceTokens ((CssTokDelim '+'):(CssTokWS):xs) acc = removeSpaceTokens ((CssTokDelim '+'):xs) acc
+removeSpaceTokens ((CssTokWS):(CssTokDelim '>'):xs) acc = removeSpaceTokens ((CssTokDelim '>'):xs) acc
+removeSpaceTokens ((CssTokDelim '>'):(CssTokWS):xs) acc = removeSpaceTokens ((CssTokDelim '>'):xs) acc
 removeSpaceTokens (x:(CssTokWS):[]) acc              = acc ++ [x] -- Don't forget to remove ending whitespace too.
 removeSpaceTokens (x:xs) acc                         = removeSpaceTokens xs (acc ++ [x])
 removeSpaceTokens [] acc                             = acc

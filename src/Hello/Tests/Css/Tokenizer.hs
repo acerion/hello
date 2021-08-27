@@ -130,7 +130,7 @@ numericTokenTestManualData = [
   , ( "binary{",               CssTokIdent "binary",                 "{" )
   -- Something that a buggy tokenizer may try to fix by prepending zero to
   -- form a valid float.
-  , ( ".almostFloat;",         CssTokCh '.',                         "almostFloat;" )
+  , ( ".almostFloat;",         CssTokDelim '.',                      "almostFloat;" )
 
 
 
@@ -170,7 +170,7 @@ hashTokenTestManualData = [
   , ( "#aD-9_1%",                  CssTokHash CssHashId "aD-9_1",          "%" )
 
     -- Not enough good code points to build a proper hash token.
-  , ( "#;",                        CssTokCh '#',                           ";" )
+  , ( "#;",                        CssTokDelim '#',                        ";" )
   ]
 
 

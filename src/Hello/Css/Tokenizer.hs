@@ -120,7 +120,7 @@ data CssHashType
 -- included in CssToken type (or not moved to a comment next to specific
 -- value constructor below yet):
 --
--- <at-keyword-token>, <string-token>, <bad-string-token>, <delim-token>,
+-- <at-keyword-token>, <string-token>, <bad-string-token>,
 -- <whitespace-token>, <CDO-token>, <CDC-token>,
 data CssToken =
     CssTokNum CssNum            -- <number-token>
@@ -146,7 +146,7 @@ data CssToken =
 
   | CssTokHash CssHashType T.Text   -- <hash-token>; T.Text value is not prefixed by '#'.
   | CssTokStr T.Text
-  | CssTokCh Char
+  | CssTokDelim Char            -- <delim-token>
   | CssTokWS                    -- Whitespace
   | CssTokEnd                   -- End of input. No new tokens will appear in input.
   | CssTokNone                  -- No token was taken, proceed with parsing input data to try to take some token.
@@ -405,7 +405,7 @@ takeHashToken p1 =
   case T.uncons $ remainder p1 of
     Just ('#', rem) | length points >= 1 && isNameCodePoint c0  -> createHashToken p1{ remainder = rem }
                     | length points >= 2 && isValidEscape c0 c1 -> createHashToken p1{ remainder = rem }
-                    | otherwise                                 -> (p1{ remainder = rem }, Just $ CssTokCh '#')
+                    | otherwise                                 -> (p1{ remainder = rem }, Just $ CssTokDelim '#')
       where
         points = peekUpToNCodePoints rem 2 (\c -> True)
         c0 = points !! 0
@@ -471,7 +471,7 @@ takeCharToken :: CssParser -> (CssParser, Maybe CssToken)
 takeCharToken parser = if T.null . remainder $ parser
                        then (parser, Nothing)
                        else (parserMoveByString parser (T.singleton . T.head . remainder $ parser),
-                             Just $ CssTokCh (T.head . remainder $ parser))
+                             Just $ CssTokDelim (T.head . remainder $ parser))
 
 
 
@@ -525,7 +525,7 @@ parserMoveByLen parser len = parser { remainder = T.drop len (remainder parser) 
 -- Try to interpret what comes after a <number-token> as <percentage-token>
 -- or <dimension-token>.
 tryTakingPercOrDim :: CssParser -> CssNum -> (CssParser, Maybe CssToken)
-tryTakingPercOrDim numParser cssNum | (parser, Just (CssTokCh '%'))      <- takeCharToken numParser  = (parser, Just $ CssTokPerc cssNum)
+tryTakingPercOrDim numParser cssNum | (parser, Just (CssTokDelim '%'))   <- takeCharToken numParser  = (parser, Just $ CssTokPerc cssNum)
                                     | (parser, Just (CssTokIdent ident)) <- takeIdentToken numParser = (parser, Just $ CssTokDim cssNum ident)
                                     | otherwise                                                      = (numParser, Nothing)
 
