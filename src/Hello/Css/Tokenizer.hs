@@ -76,6 +76,8 @@ module Hello.Css.Tokenizer( CssParser (..)
                           , consumeEscapedCodePoint
                           , consumeEscapedCodePointString
                           , consumeName
+                          , removeDoubleWhitespaces
+                          , isWhitespace
                           )
   where
 
@@ -234,7 +236,7 @@ nextToken1' parser = takeLeadingWhite parser >>?
                      takeIdentLikeToken      >>?
                      takeString              >>?
                      takeHashToken           >>?
-                     takeCharToken
+                     takeDelimToken
 
 
 
@@ -246,7 +248,7 @@ nextToken2' parser = takeLeadingWhite2 parser >>?
                      takeIdentLikeToken       >>?
                      takeString               >>?
                      takeHashToken            >>?
-                     takeCharToken
+                     takeDelimToken
 
 
 
@@ -340,16 +342,51 @@ isNameCodePoint c = isNameStartCodePoint c || D.C.isDigit c || c == '-'
 
 
 
-
+-- https://www.w3.org/TR/css-syntax-3/#consume-an-ident-like-token
+-- TODO: make the algo more adhering to the spec.
 takeIdentLikeToken :: CssParser -> (CssParser, Maybe CssToken)
-takeIdentLikeToken p1 = case takeIdentToken p1 of
-                          (_, Nothing)                      -> (p1, Nothing)
-                          (p2, Just t2@(CssTokIdent ident)) -> case takeCharToken p2 of
-                                                                 (_, Nothing)                 -> (p2, Just t2)
-                                                                 (p3, Just (CssTokParenOpen)) -> if ident == "url"
-                                                                                                 then consumeUrlToken p3
-                                                                                                 else (p3, Just $ CssTokFunc ident)
-                                                                 (p3, _)                      -> (p2, Just t2)
+takeIdentLikeToken p1 = if len == 0
+                        then (p1, Nothing)
+                        else takeIdentLikeToken' p2 name
+  where
+    (name, len) = consumeName (remainder p1) "" 0
+    p2 = parserMoveByLen p1 len
+
+
+takeIdentLikeToken' p1 name =
+  case T.uncons . remainder $ p1 of
+    -- Opening paren disappears, it is not represented in list of output
+    -- tokens.
+    Just ('(', rem) -> if T.toLower name == "url"
+                       then tryConsumingUrlToken p2 name -- Just try. It may succeed, or it may result in <function-token>.
+                       else (p2, Just $ CssTokFunc name)
+      where
+        p2 = p1{ remainder = rem}
+    otherwise       -> (p1, Just $ CssTokIdent name)
+
+
+
+
+-- Remove a leading whitespace from parser's remainder as long as the
+-- remainder stars with two whitespaces.
+removeDoubleWhitespaces p1 = if length points == 2
+                             then removeDoubleWhitespaces $ parserMoveByLen p1 1
+                             else p1
+  where
+    points = peekUpToNCodePoints (remainder p1) 2 (\c -> isWhitespace c)
+
+
+
+
+tryConsumingUrlToken p1 name | length points >= 1 && (c0 == '\'' || c0 == '\"')                    = (p2, Just $ CssTokFunc name)
+                             | length points == 2 && isWhitespace c0 && (c1 == '\'' || c1 == '\"') = (p2, Just $ CssTokFunc name)
+                             | otherwise = consumeUrlToken p2
+  where
+    p2 = removeDoubleWhitespaces p1
+    points = peekUpToNCodePoints (remainder p2) 2 (\c -> True)
+    c0 = points !! 0
+    c1 = points !! 1
+
 
 
 
@@ -367,6 +404,7 @@ consumeUrlToken p1 = if T.length text > 0 && T.last text == ')' -- TODO: shouldn
                                | otherwise -> f rem (c:acc)
                                -- TODO: these conditions for taking chars should be improved.
                  Nothing -> acc
+
 
 
 
@@ -467,11 +505,10 @@ consumeEscapedCodePointString buf = (char, len)
 
 
 
-takeCharToken :: CssParser -> (CssParser, Maybe CssToken)
-takeCharToken parser = if T.null . remainder $ parser
-                       then (parser, Nothing)
-                       else (parserMoveByString parser (T.singleton . T.head . remainder $ parser),
-                             Just $ CssTokDelim (T.head . remainder $ parser))
+takeDelimToken :: CssParser -> (CssParser, Maybe CssToken)
+takeDelimToken parser = case T.uncons . remainder $ parser of
+                          Just (c, rem) -> (parser{ remainder = rem}, Just $ CssTokDelim c)
+                          Nothing       -> (parser, Nothing)
 
 
 
@@ -506,6 +543,16 @@ takeLeadingWhite2 parser
 
 
 
+-- https://www.w3.org/TR/css-syntax-3/#whitespace
+--
+-- TODO: CARRIAGE RETURN and FORM FEED should be converted to LINE FEED
+-- during preprocessing of input stream.
+isWhitespace :: Char -> Bool
+isWhitespace c = elem c ['\n', '\r', '\f', '\t', ' ']
+
+
+
+
 -- Move parser's remainder by length of given string. Call this function when
 -- givne string has been consumed to token and now you want to remove it from
 -- front of parser's remainder.
@@ -525,9 +572,9 @@ parserMoveByLen parser len = parser { remainder = T.drop len (remainder parser) 
 -- Try to interpret what comes after a <number-token> as <percentage-token>
 -- or <dimension-token>.
 tryTakingPercOrDim :: CssParser -> CssNum -> (CssParser, Maybe CssToken)
-tryTakingPercOrDim numParser cssNum | (parser, Just (CssTokDelim '%'))   <- takeCharToken numParser  = (parser, Just $ CssTokPerc cssNum)
-                                    | (parser, Just (CssTokIdent ident)) <- takeIdentToken numParser = (parser, Just $ CssTokDim cssNum ident)
-                                    | otherwise                                                      = (numParser, Nothing)
+tryTakingPercOrDim numParser cssNum | (parser, Just (CssTokDelim '%'))   <- takeDelimToken numParser  = (parser, Just $ CssTokPerc cssNum)
+                                    | (parser, Just (CssTokIdent ident)) <- takeIdentToken numParser  = (parser, Just $ CssTokDim cssNum ident)
+                                    | otherwise                                                       = (numParser, Nothing)
 
 
 
@@ -705,7 +752,7 @@ takeInt parser = case T.R.signed T.R.decimal (remainder parser) of
 --
 -- Not all such tokens may be returned by this function yet.
 --
--- This function differs from takeCharToken in the fact that takeCharToken
+-- This function differs from takeDelimToken in the fact that takeDelimToken
 -- returns a "char token with some character in it". The function below
 -- returns a distinct token for each successfully consumed character.
 takeSingleCharToken :: CssParser -> (CssParser, Maybe CssToken)

@@ -258,6 +258,67 @@ identTokenTestManualData = [
 
 
 
+-- Tests for parsing strings as <function-token>, <url-token>,
+-- <bad-url-token> (CssTokFunc, CssTokUrl, CssTokBadUrl).
+--
+-- This array is called "Manual" because these tests were written manually.
+-- Perhaps in the future I will write some generator of test data.
+functionUrlTokenTestManualData = [
+  -- parser's initial remainder    expected token                  parser's remainder after
+
+    -- Test that some cases of "url" are not recognized as <function-token>
+    ( "url",                            CssTokIdent "url",                   ""  )
+  , ( "url(a)",                         CssTokUrl "a",                       ""  )
+
+    -- As long as two leading whitespaces are encountered, tokenizer removes
+    -- first of them.
+  , ( "url(a)",                       CssTokUrl "a",                         ""  )
+  , ( "url( a)",                      CssTokUrl " a",                        ""  )
+  , ( "url(  a)",                     CssTokUrl " a",                        ""  )
+  , ( "url(   a)",                    CssTokUrl " a",                        ""  )
+
+    -- Recognition of "url" in <url-token> should be case-insensitive
+  , ( "url(a)",                       CssTokUrl "a",                         ""  )
+  , ( "URL(a)",                       CssTokUrl "a",                         ""  )
+  , ( "Url(a)",                       CssTokUrl "a",                         ""  )
+  , ( "uRl(a)",                       CssTokUrl "a",                         ""  )
+
+    -- If string inside parens starts in with apostrophe or quotation
+    -- (possibly preceded by whitespaces), then "url" should be interpreted
+    -- as function.
+  , ( "url(\'a\')",                   CssTokFunc "url",                      "\'a\')"   )
+  , ( "url( \'a\')",                  CssTokFunc "url",                      " \'a\')"  )
+  , ( "url(  \'a\')",                 CssTokFunc "url",                      " \'a\')"  )
+  , ( "url(   \'a\')",                CssTokFunc "url",                      " \'a\')"  )
+
+  , ( "url(\"a\")",                   CssTokFunc "url",                      "\"a\")"   )
+  , ( "url( \"a\")",                  CssTokFunc "url",                      " \"a\")"  )
+  , ( "url(  \"a\")",                 CssTokFunc "url",                      " \"a\")"  )
+  , ( "url(   \"a\")",                CssTokFunc "url",                      " \"a\")"  )
+
+    -- Test that function name not followed by opening paren is not
+    -- recognized as <function-token> or <url-token>. "rgb" is a function
+    -- supported by this implementation.
+  , ( "rgb{100, 100, 100}",             CssTokIdent "rgb",                   "{100, 100, 100}"    )
+  , ( "url{a}",                         CssTokIdent "url",                   "{a}"                )
+
+    -- Opening paren is being consumed, but is neither part of list of
+    -- tokens, nor of function name.
+  , ( "rgb(100, 100, 100)",             CssTokFunc "rgb",                    "100, 100, 100)"     )
+
+    -- Functions that aren't supported by this implementation (yet), but
+    -- still the functions must be recognized as such.
+  , ( "rgba(100, 100, 100, 50)",        CssTokFunc "rgba",                   "100, 100, 100, 50)" )
+  , ( "linear-gradient(#600, #933);",   CssTokFunc "linear-gradient",        "#600, #933);"       )
+
+
+    -- Space between ident and paren makes the input a non-function.
+  , ( "rgb (100, 100, 100)",            CssTokIdent "rgb",                   " (100, 100, 100)"   )
+  ]
+
+
+
+
 -- On success return empty string. On failure return string representation of
 -- testcase that failed.
 tokenizerTestRunner :: Bool -> [(T.Text, CssToken, T.Text)] -> T.Text
@@ -283,8 +344,8 @@ tokenizerTestRunner inB (x:xs) = if expectedToken /= t2 || expectedRemainder /= 
 -- List of token types from https://www.w3.org/TR/css-syntax-3/#tokenization
 -- that aren't tested below in tokenizerTestCases yet:
 --
--- <function-token>, <at-keyword-token>, <string-token>, <bad-string-token>,
--- <url-token>, <bad-url-token>, <delim-token>, <whitespace-token>,
+-- <at-keyword-token>, <string-token>, <bad-string-token>,
+-- <bad-url-token>, <delim-token>, <whitespace-token>,
 -- <CDO-token>, <CDC-token>
 
 
@@ -295,13 +356,17 @@ tokenizerTestCases = [
   -- which can help in finding out which test failed.
 
      -- <number-token>, <percentage-token>, <dimension-token>
-     TestCase (do assertEqual "manual tests of numeric tokens"         "" (tokenizerTestRunner False numericTokenTestManualData))
+     TestCase (do assertEqual "manual tests of numeric tokens"           "" (tokenizerTestRunner False numericTokenTestManualData))
 
      -- <hash-token>
-   , TestCase (do assertEqual "manual tests of hash token"             "" (tokenizerTestRunner True hashTokenTestManualData))
+   , TestCase (do assertEqual "manual tests of hash token"               "" (tokenizerTestRunner True hashTokenTestManualData))
 
      -- <ident-token>
-   , TestCase (do assertEqual "manual tests of ident token"            "" (tokenizerTestRunner False identTokenTestManualData))
+   , TestCase (do assertEqual "manual tests of ident token"              "" (tokenizerTestRunner False identTokenTestManualData))
+
+     -- <function-token>
+     -- <url-token>
+   , TestCase (do assertEqual "manual tests of function and url token"   "" (tokenizerTestRunner False functionUrlTokenTestManualData))
 
      -- <colon-token>
      -- <semicolon-token>
@@ -312,7 +377,7 @@ tokenizerTestCases = [
      -- <)-token>
      -- <{-token>
      -- <}-token>
-   , TestCase (do assertEqual "manual tests of single-char token"      "" (tokenizerTestRunner False singleCharTokenTestManualData))
+   , TestCase (do assertEqual "manual tests of single-char token"        "" (tokenizerTestRunner False singleCharTokenTestManualData))
   ]
 
 

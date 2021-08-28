@@ -4,7 +4,7 @@ TEST_BIN=tests
 
 
 all: clean
-	ghc -g -O0 -o $(TEST_BIN) \
+	ghc -j4 -g -O0 -o $(TEST_BIN) \
 		../*.hs \
 		../Css/*.hs \
 		../Html/*.hs \

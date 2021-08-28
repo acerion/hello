@@ -9,7 +9,7 @@ all:
 	hsc2hs ./Ffi/Url.hsc
 
 	ghc -g -O0 -fPIC -c ./wrapper.c
-	ghc -g -O0 -dynamic -shared -fPIC -o libhello.so \
+	ghc -j4 -g -O0 -dynamic -shared -fPIC -o libhello.so \
 		./*.hs \
 		./Css/*.hs \
 		./Ffi/*.hs \

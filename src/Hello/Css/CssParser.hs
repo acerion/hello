@@ -117,6 +117,8 @@ module Hello.Css.Parser(
                        , CssRule (..)
                        , getTopSimSel
                        , getRequiredMatchCache
+
+                       , consumeFunctionBody
                        )
   where
 
@@ -818,21 +820,19 @@ declValueAsURI (parser, token) enums = case parseUrl (parser, token) of
 
 
 parseUrl :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
-parseUrl (parser, token@(CssTokIdent "url")) = (outParser, outUrl)
+parseUrl (p1, CssTokUrl url)    = (nextToken1 p1, Just url)
+parseUrl (p1, CssTokFunc "url") = ((p2, t2), Just $ T.pack (show body))
   where
-    outUrl = case partialUrl of
-      Nothing  -> Nothing
-      Just url -> Just url -- TODO: here we have to add first part of URL, defined in CssParser (the one starting with e.g. http://server.com).
-    (outParser, partialUrl) = case nextToken1 parser of
-                                (newParser, newToken@(CssTokParenOpen)) -> appendToUrl (newParser, newToken) ""
-                                (newParser, newToken)                   -> ((parser, token), Nothing)
-    appendToUrl (parser, token) acc = case nextToken1 parser of
-                                        pair@(newParser, CssTokParenClose) -> (pair, Just acc)
-                                        pair@(newParser, CssTokDelim ch)   -> appendToUrl pair (T.snoc acc ch)
-                                        pair@(newParser, CssTokStr str)    -> appendToUrl pair (T.concat [acc, str])
-                                        pair@(newParser, CssTokIdent str)  -> appendToUrl pair (T.concat [acc, str])
-                                        pair@(newParser, _)                -> (pair, Nothing) -- TODO: This is a BAD URL situation
-parseUrl (parser, token)   = ((parser, token), Nothing)
+    ((p2, t2), body) = consumeFunctionBody p1 []
+parseUrl (p1, token)            = ((p1, token), Nothing)
+
+
+
+
+consumeFunctionBody p1 acc = case nextToken1 p1 of
+                               (p2, t2@CssTokParenClose) -> (nextToken1 p2, reverse (t2:acc))
+                               (p2, t2@CssTokEnd)        -> (nextToken1 p2, reverse acc) -- TODO: this is a parse error, handle the error
+                               (p2, t2)                  -> consumeFunctionBody p2 (t2:acc)
 
 
 
