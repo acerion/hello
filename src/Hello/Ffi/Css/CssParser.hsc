@@ -388,7 +388,7 @@ data FfiCssSimpleSelector = FfiCssSimpleSelector {
   , selectorPseudoClassSizeC :: CInt
 
   , selectorIdC              :: CString
-  , selectorTypeC            :: CInt
+  , selectorTagNameC         :: CInt
 
   , combinatorC              :: CInt
   } deriving (Show)
@@ -437,10 +437,10 @@ peekCssSimpleSelector ptrStructSimpleSelector = do
   c <- peekArrayOfPointers cStringArray (fromIntegral . selectorClassSizeC $ ffiSimSel) ptrCCharToText
 
   return CssSimpleSelector{ selectorPseudoClass = pc
-                          , selectorId    = selId
-                          , selectorClass = c
-                          , selectorType  = fromIntegral . selectorTypeC $ ffiSimSel
-                          , combinator    = cssCombinatorIntToData . fromIntegral . combinatorC $ ffiSimSel
+                          , selectorId      = selId
+                          , selectorClass   = c
+                          , selectorTagName = mkCssTypeSelector . fromIntegral . selectorTagNameC $ ffiSimSel
+                          , combinator      = cssCombinatorIntToData . fromIntegral . combinatorC $ ffiSimSel
                           }
 
 
@@ -463,7 +463,7 @@ pokeCssSimpleSelector ptrStructSimpleSelector simpleSelector = do
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class_size) (length . selectorPseudoClass $ simpleSelector)
 
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_id) cStringPtrSelId
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_type) (selectorType simpleSelector)
+  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_type) (unCssTypeSelector . selectorTagName $ simpleSelector)
 
   let comb :: CInt = cssCombinatorDataToInt . combinator $ simpleSelector
   pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_combinator) comb

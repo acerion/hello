@@ -39,8 +39,10 @@ module Hello.Css.Parser(
 
                        , cssPropertyInfo
 
-                       , cssSimpleSelectorElementAny
-                       , cssSimpleSelectorElementNone
+                       , CssTypeSelector (..) -- TODO: don't export value constructors
+                       , unCssTypeSelector
+                       , mkCssTypeSelector
+                       , styleSheetElementCount
 
                        , parseUrl
 
@@ -138,6 +140,20 @@ import Hello.Utils
 import Hello.Css.Tokenizer
 import Colors
 import HtmlTag
+
+
+
+
+{-
+  TODO: don't hardcode the value.
+
+  90 is the full number of html4 elements, including those which we have
+  implemented. From html5, let's add: article, header, footer, mark, nav,
+  section, aside, figure, figcaption, wbr, audio, video, source, embed.
+
+  TODO: make it a constant imported from other (Html?) module
+-}
+styleSheetElementCount = (90 + 14) :: Int
 
 
 
@@ -1115,8 +1131,7 @@ data CssSimpleSelector = CssSimpleSelector {
     selectorPseudoClass :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#pseudo-class
   , selectorId          :: T.Text          -- https://www.w3.org/TR/selectors-4/#id-selector
   , selectorClass       :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#class-selector
-  , selectorType        :: Int             -- https://www.w3.org/TR/selectors-4/#type-selector
-                                           -- TODO: add https://www.w3.org/TR/selectors-4/#universal-selector
+  , selectorTagName     :: Maybe CssTypeSelector
                                            -- TODO: add https://www.w3.org/TR/selectors-4/#attribute-selector
   , combinator          :: CssCombinator
   } deriving (Show, Eq)
@@ -1132,11 +1147,27 @@ data CssSelector = CssSelector {
 
 
 
-cssSimpleSelectorElementNone :: Int = (-1)
--- TODO: this probably corresponds with
--- https://www.w3.org/TR/selectors-4/#universal-selector, and should be
--- separated from type selector.
-cssSimpleSelectorElementAny  :: Int  = (-2)
+-- https://www.w3.org/TR/selectors-4/#typedef-type-selector
+data CssTypeSelector
+    -- Type selectors: "regular" and universal
+  = CssTypeSelector Int  --   https://www.w3.org/TR/selectors-4/#type-selector; Use htmlTagIndex "text" to get the integer value.
+  | CssTypeSelectorUniv  --   https://www.w3.org/TR/selectors-4/#the-universal-selector
+  deriving (Show, Eq)
+
+
+
+
+unCssTypeSelector :: Maybe CssTypeSelector -> Int
+unCssTypeSelector (Just (CssTypeSelector t)) = t
+unCssTypeSelector (Just CssTypeSelectorUniv) = (-2)
+unCssTypeSelector Nothing                    = (-1)
+
+
+
+mkCssTypeSelector :: Int -> Maybe CssTypeSelector
+mkCssTypeSelector t | t >= 0 && t < styleSheetElementCount = Just $ CssTypeSelector t
+                    | t == (-2)                            = Just CssTypeSelectorUniv
+                    | otherwise                            = Nothing
 
 
 
@@ -1155,7 +1186,7 @@ defaultSimpleSelector = CssSimpleSelector {
     selectorPseudoClass = []
   , selectorId          = ""
   , selectorClass       = []
-  , selectorType        = cssSimpleSelectorElementAny
+  , selectorTagName     = Just CssTypeSelectorUniv
 
   -- Combinator that combines this simple selector and the previous one
   -- (previous one == simple selector to the left of current simple
@@ -1186,8 +1217,8 @@ data CssSelectorType =
 -- Update simple selector with given symbol 'sym', depending on type of
 -- symbol.
 updateSimpleSelector :: CssSimpleSelector -> CssSelectorType -> T.Text -> CssSimpleSelector
-updateSimpleSelector simpleSelector selectorType sym =
-  case selectorType of
+updateSimpleSelector simpleSelector selectorTagName sym =
+  case selectorTagName of
     CssSelectorTypeClass       -> simpleSelector {selectorClass = (selectorClass simpleSelector) ++ [sym]}
     CssSelectorTypePseudoClass -> if T.null sym
                                   then simpleSelector
@@ -1220,7 +1251,7 @@ parseSelector (parser, token) = ((outParser, outToken), selector)
 
 
 parseSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
-parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorType = htmlTagIndex sym}):simSels)
+parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorTagName = mkCssTypeSelector $ htmlTagIndex sym}):simSels)
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
 parseSelectorTokens (CssTokHash CssHashId ident:tokens) (simSel:simSels)   = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID ident):simSels)

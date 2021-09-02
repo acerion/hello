@@ -42,8 +42,6 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
                            , CssContext (..)
                            , cssContextAddRule
 
-                           , styleSheetElementCount
-
                            , parseRuleset
                            , rulesetToRulesWithOrigin
 
@@ -74,20 +72,6 @@ import Hello.Utils
 
 
 type CssRulesMap = M.Map T.Text [CssRule]
-
-
-
-
-{-
-  TODO: don't hardcode the value.
-
-  90 is the full number of html4 elements, including those which we have
-  implemented. From html5, let's add: article, header, footer, mark, nav,
-  section, aside, figure, figcaption, wbr, audio, video, source, embed.
-
-  TODO: make it a constant imported from other (Html?) module
--}
-styleSheetElementCount = (90 + 14)
 
 
 
@@ -138,7 +122,7 @@ insertRuleToStyleSheet rule sheet
   | simSelIsSelClass tss       = (2, sheet { rulesByClass      = updatedRulesByClass })
   | simSelIsSelType tss        = (3, sheet { rulesByType       = updatedRulesByType })
   | simSelIsSelTypeAny tss     = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
-  | simSelIsUnexpectedType tss = (trace ("[EE] insert rule: unexpected type: " ++ (show . selectorType $ tss)) (0, sheet))
+  | simSelIsUnexpectedType tss = (trace ("[EE] insert rule: unexpected type: " ++ (show . selectorTagName $ tss)) (0, sheet))
   | otherwise                  = (0, sheet)
 
   where
@@ -146,7 +130,9 @@ insertRuleToStyleSheet rule sheet
     simSelIsSelClass           = not . null . selectorClass
     simSelIsSelType            = isJust . specificSelType
     simSelIsSelTypeAny         = isAnySelType
-    simSelIsUnexpectedType tss = (selectorType tss) /= cssSimpleSelectorElementNone
+    simSelIsUnexpectedType tss = case selectorTagName tss of
+                                   Nothing   -> False
+                                   otherwise -> True
 
     tss = getTopSimSel rule
 
@@ -154,7 +140,7 @@ insertRuleToStyleSheet rule sheet
     updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ tss) rule
 
     updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (specificSelType tss)) rule
-    updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (selectorType tss)
+    updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (unCssTypeSelector . selectorTagName $ tss)
 
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
 
@@ -164,15 +150,13 @@ insertRuleToStyleSheet rule sheet
     -- What is the top-level simple selector? Either some specific HTML tag
     -- (then 'Maybe t') or Any or None (then 'Nothing').
     specificSelType :: CssSimpleSelector -> Maybe Int
-    specificSelType ss = if t >= 0 && t < styleSheetElementCount
-                         then Just t
-                         else Nothing
-      where
-        t = selectorType ss
+    specificSelType ss = case selectorTagName ss of
+                           (Just (CssTypeSelector t)) -> Just t
+                           otherwise                  -> Nothing
 
     -- Is the top-level simple selector an 'Any' HTML tag?
     isAnySelType :: CssSimpleSelector -> Bool
-    isAnySelType ss = (selectorType ss) == cssSimpleSelectorElementAny
+    isAnySelType ss = (selectorTagName ss) == Just CssTypeSelectorUniv
 
 
 
