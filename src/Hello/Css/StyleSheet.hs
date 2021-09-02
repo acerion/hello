@@ -57,6 +57,7 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
 
 import Prelude
 import Data.List
+import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.List as L
@@ -133,32 +134,45 @@ insertRuleToStyleSheet :: CssRule -> CssStyleSheet -> (Int, CssStyleSheet)
 insertRuleToStyleSheet rule sheet
   -- Put a rule in a bucket. Decide which bucket to choose by looking at
   -- topmost Simple Selector of the rule.
-  | not . T.null . selectorId $ topSimSel  = (1, sheet { rulesById         = updatedRulesById })
-  | not . null . selectorClass $ topSimSel = (2, sheet { rulesByClass      = updatedRulesByClass })
-  | selType >= 0 && selType < selTypeCount = (3, sheet { rulesByType       = updatedRulesByType })
-  | selType == cssSimpleSelectorElementAny = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
-  | otherwise                              = if (selType /= cssSimpleSelectorElementNone)
-                                             then (trace ("[EE] insert rule: unexpected type: " ++ (show selType)) (0, sheet))
-                                             else (0, sheet)
+  | simSelIsSelId tss          = (1, sheet { rulesById         = updatedRulesById })
+  | simSelIsSelClass tss       = (2, sheet { rulesByClass      = updatedRulesByClass })
+  | simSelIsSelType tss        = (3, sheet { rulesByType       = updatedRulesByType })
+  | simSelIsSelTypeAny tss     = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
+  | simSelIsUnexpectedType tss = (trace ("[EE] insert rule: unexpected type: " ++ (show . selectorType $ tss)) (0, sheet))
+  | otherwise                  = (0, sheet)
 
   where
-    topSimSel = getTopSimSel rule
+    simSelIsSelId              = not . T.null . selectorId
+    simSelIsSelClass           = not . null . selectorClass
+    simSelIsSelType            = isJust . specificSelType
+    simSelIsSelTypeAny         = isAnySelType
+    simSelIsUnexpectedType tss = (selectorType tss) /= cssSimpleSelectorElementNone
 
-    selType      = selectorType topSimSel
-    selTypeCount = styleSheetElementCount
+    tss = getTopSimSel rule
 
-    updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId topSimSel) rule
-    updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ topSimSel) rule
+    updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId tss) rule
+    updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ tss) rule
 
-    listOfLists = rulesByType sheet
-    thisElementRules = if selType >= 0 && selType < selTypeCount
-                       then listOfLists !! selType
-                       else []
-
-    updatedThisElementRules = insertRuleInListOfRules thisElementRules rule
-    updatedRulesByType = listReplaceElem listOfLists updatedThisElementRules selType
+    updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (specificSelType tss)) rule
+    updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (selectorType tss)
 
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
+
+    thisElementRules sheet (Just t) = (rulesByType sheet) !! t
+    thisElementRules sheet Nothing  = []
+
+    -- What is the top-level simple selector? Either some specific HTML tag
+    -- (then 'Maybe t') or Any or None (then 'Nothing').
+    specificSelType :: CssSimpleSelector -> Maybe Int
+    specificSelType ss = if t >= 0 && t < styleSheetElementCount
+                         then Just t
+                         else Nothing
+      where
+        t = selectorType ss
+
+    -- Is the top-level simple selector an 'Any' HTML tag?
+    isAnySelType :: CssSimpleSelector -> Bool
+    isAnySelType ss = (selectorType ss) == cssSimpleSelectorElementAny
 
 
 
