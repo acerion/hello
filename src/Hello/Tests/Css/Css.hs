@@ -27,6 +27,7 @@ import Test.HUnit
 import Hello.Css.Parser
 import Css
 import Hello.Tests.Css.Data
+import Hello.Tests.Css.Match.Data
 import Hello.Utils
 
 
@@ -45,12 +46,29 @@ specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity selector
 
 
 
+-- On success return empty string. On failure return string representation of
+-- selector, for which test failed.
+matchTest :: [(Int, CssSimpleSelector, DoctreeNode)] -> T.Text
+matchTest []     = ""
+matchTest (x:xs) = if expectedMatch x /= (simpleSelectorMatches' (ss x) (dn x))
+                         then T.pack ((show $ ss x) ++ "    @@@@    " ++ (show $ dn x))
+                         else matchTest xs
+  where
+    expectedMatch (a, _, _) = a
+    ss            (_, b, _) = b
+    dn            (_, _, c) = c
+
+
+
 
 cssTestCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.
-     TestCase (do
+       TestCase (do
                  assertEqual "manual tests of specificity" "" (specificityTest specificityTestManualData))
+
+     , TestCase (do
+                 assertEqual "manual tests of matching" ""    (matchTest matchTestManualData))
 
   ]
 

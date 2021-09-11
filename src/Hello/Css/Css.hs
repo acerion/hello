@@ -24,6 +24,7 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 module Css( DoctreeNode (..)
           , simpleSelectorMatches
+          , simpleSelectorMatches'
           , selectorSpecificity
           )
   where
@@ -48,9 +49,9 @@ data DoctreeNode = DoctreeNode {
   , selId           :: T.Text
   , selClass        :: [T.Text]
 
-  , parent    :: DoctreeNode
-  , sibling   :: DoctreeNode
-  , lastChild :: DoctreeNode
+  , parent    :: Maybe DoctreeNode
+  , sibling   :: Maybe DoctreeNode
+  , lastChild :: Maybe DoctreeNode
   } deriving (Show)
 
 
@@ -63,12 +64,15 @@ Right now this is a naive re-write of simple_selector_matches() C function.
 
 TODO: in C++ code the string comparisons were case-insensitive.
 -}
-simpleSelectorMatches :: CssSimpleSelector -> DoctreeNode -> Bool
-simpleSelectorMatches simSel dtn | mismatchOnElement simSel dtn     = False
-                                 | mismatchOnPseudoClass simSel dtn = False
-                                 | mismatchOnId simSel dtn          = False
-                                 | mismatchOnClass simSel dtn       = False
-                                 | otherwise                        = True
+
+simpleSelectorMatches a b = (simpleSelectorMatches' a b) == 0
+
+simpleSelectorMatches' :: CssSimpleSelector -> DoctreeNode -> Int
+simpleSelectorMatches' simSel dtn | mismatchOnElement simSel dtn     = 4
+                                  | mismatchOnPseudoClass comSel dtn = 3
+                                  | mismatchOnId comSel dtn          = 2
+                                  | mismatchOnClass comSel dtn       = 1
+                                  | otherwise                        = 0
   where
     mismatchOnElement :: CssSimpleSelector -> DoctreeNode -> Bool
     mismatchOnElement simSel dtn = (selectorTagName simSel) /= Just CssTypeSelectorUniv && (unCssTypeSelector . selectorTagName $ simSel) /= (htmlElementIdx dtn)
@@ -76,23 +80,24 @@ simpleSelectorMatches simSel dtn | mismatchOnElement simSel dtn     = False
     --     return false;
 
     -- C/C++ code can use only first pseudo class
-    mismatchOnPseudoClass :: CssSimpleSelector -> DoctreeNode -> Bool
-    mismatchOnPseudoClass simSel dtn = (length . selectorPseudoClass $ simSel) > 0
-                                    && ((T.null . selPseudoClass $ dtn) || ((head . selectorPseudoClass $ simSel) /= selPseudoClass dtn))
+    mismatchOnPseudoClass :: CssCompoundSelector -> DoctreeNode -> Bool
+    mismatchOnPseudoClass comSel dtn = (length . selectorPseudoClass2 $ comSel) > 0
+                                    && ((T.null . selPseudoClass $ dtn) || ((head . selectorPseudoClass2 $ comSel) /= (CssPseudoClassSelector . selPseudoClass $ dtn)))
     -- if (selector->c_selector_pseudo_class_size > 0 &&
     --     (dtn->c_element_selector_pseudo_class == NULL || dStrAsciiCasecmp (selector->c_selector_pseudo_class[0], dtn->c_element_selector_pseudo_class) != 0))
     --     return false;
 
-    mismatchOnId :: CssSimpleSelector -> DoctreeNode -> Bool
-    mismatchOnId simSel dtn = (not . T.null . selectorId $ simSel) && ((T.null . selId $ dtn) || (selectorId simSel /= selId dtn))
+    mismatchOnId :: CssCompoundSelector -> DoctreeNode -> Bool
+    mismatchOnId comSel dtn = (not . null . selectorId2 $ comSel) && ((T.null . selId $ dtn) || (selectorId2 comSel /= [CssIdSelector . selId $ dtn]))
     -- if (selector->c_selector_id != NULL && (dtn->c_element_selector_id == NULL || dStrAsciiCasecmp (selector->c_selector_id, dtn->c_element_selector_id) != 0))
     --     return false;
 
     -- All class items of a simple selector must be found in dtn's class set
-    mismatchOnClass :: CssSimpleSelector -> DoctreeNode -> Bool
-    mismatchOnClass simSel dtn = not allSimSelClassInNodeClass
+    mismatchOnClass :: CssCompoundSelector -> DoctreeNode -> Bool
+    mismatchOnClass comSel dtn = not allSimSelClassInNodeClass
       where
-        allSimSelClassInNodeClass = and $ map (\x -> elem x (selClass dtn)) (selectorClass simSel)
+        allSimSelClassInNodeClass = and $ map (\x -> elem x classes) (selectorClass2 comSel)
+        classes = map CssClassSelector (selClass $ dtn)
     -- for (int i = 0; i < selector->c_selector_class_size; i++) {
     -- bool found = false;
     -- for (size_t j = 0; j < dtn->c_element_selector_class_size; j++) {
@@ -105,6 +110,8 @@ simpleSelectorMatches simSel dtn | mismatchOnElement simSel dtn     = False
     --     return false;
     -- }
 
+    comSel = toCompound simSel
+
 
 
 {-
@@ -116,23 +123,21 @@ http://www.w3.org/TR/CSS21/cascade.html#specificity
 selectorSpecificity :: CssSelector -> Int
 selectorSpecificity sel = selectorSpecificity' (simpleSelectors sel) 0
   where
-    selectorSpecificity' (x:xs) acc = selectorSpecificity' xs (acc + (simpleSelectorSpecificity x))
+    selectorSpecificity' (x:xs) acc = selectorSpecificity' xs (acc + (compoundSelectorSpecificity . toCompound $ x))
     selectorSpecificity' []     acc = acc
 
 
 
 
--- Return the specificity of the simple selector
-simpleSelectorSpecificity :: CssSimpleSelector -> Int
-simpleSelectorSpecificity simSel = fromId + fromClass + fromPseudoClass + fromElement
+-- Return the specificity of compound selector
+compoundSelectorSpecificity :: CssCompoundSelector -> Int
+compoundSelectorSpecificity csel = (fromId csel) + (fromClass csel) + (fromPseudoClass csel) + (fromElement csel)
   where
-    fromId          = if (not . T.null . selectorId $ simSel) then (1 `shiftL` 20) else 0
-    fromClass       = (length . selectorClass $ simSel) `shiftL` 10
-    fromPseudoClass = if (not . null . selectorPseudoClass $ simSel) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
-    fromElement     = case selectorTagName simSel of
-                        Just CssTypeSelectorUniv -> 0
-                        otherwise                -> 1
+    fromId csel          = if (not . null . selectorId2 $ csel) then (1 `shiftL` 20) else 0
+    fromClass csel       = (length . selectorClass2 $ csel) `shiftL` 10
+    fromPseudoClass csel = if (not . null . selectorPseudoClass2 $ csel) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
 
-
+    fromElement (CssCompoundSelector (CssTypeSelectorUniv, _)) = 0
+    fromElement (CssCompoundSelector (_, _))                   = 1
 
 

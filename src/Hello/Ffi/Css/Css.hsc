@@ -132,9 +132,9 @@ peekDoctreeNode ptrStructDoctreeNode = do
                     , selId          = i
                     , selClass       = c
 
-                    , parent = undefined
-                    , sibling = undefined
-                    , lastChild = undefined
+                    , parent = Nothing
+                    , sibling = Nothing
+                    , lastChild = Nothing
                     }
 
 

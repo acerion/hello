@@ -128,8 +128,8 @@ insertRuleToStyleSheet rule sheet
   where
     simSelIsSelId              = not . T.null . selectorId
     simSelIsSelClass           = not . null . selectorClass
-    simSelIsSelType            = isJust . specificSelType
-    simSelIsSelTypeAny         = isAnySelType
+    simSelIsSelType            = isJust . specificSelType . toCompound
+    simSelIsSelTypeAny         = isAnySelType . toCompound
     simSelIsUnexpectedType tss = case selectorTagName tss of
                                    Nothing   -> False
                                    otherwise -> True
@@ -139,7 +139,7 @@ insertRuleToStyleSheet rule sheet
     updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId tss) rule
     updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ tss) rule
 
-    updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (specificSelType tss)) rule
+    updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (specificSelType . toCompound $ tss)) rule
     updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (unCssTypeSelector . selectorTagName $ tss)
 
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
@@ -149,14 +149,15 @@ insertRuleToStyleSheet rule sheet
 
     -- What is the top-level simple selector? Either some specific HTML tag
     -- (then 'Maybe t') or Any or None (then 'Nothing').
-    specificSelType :: CssSimpleSelector -> Maybe Int
-    specificSelType ss = case selectorTagName ss of
-                           (Just (CssTypeSelector t)) -> Just t
-                           otherwise                  -> Nothing
+    specificSelType :: CssCompoundSelector -> Maybe Int
+    specificSelType (CssCompoundSelector (CssTypeSelector t, _)) = Just t
+    specificSelType _                                            = Nothing
+
 
     -- Is the top-level simple selector an 'Any' HTML tag?
-    isAnySelType :: CssSimpleSelector -> Bool
-    isAnySelType ss = (selectorTagName ss) == Just CssTypeSelectorUniv
+    isAnySelType :: CssCompoundSelector -> Bool
+    isAnySelType (CssCompoundSelector (CssTypeSelectorUniv, _)) = True
+    isAnySelType _ = False
 
 
 

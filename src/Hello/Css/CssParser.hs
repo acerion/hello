@@ -44,6 +44,14 @@ module Hello.Css.Parser(
                        , mkCssTypeSelector
                        , styleSheetElementCount
 
+                       , CssCompoundSelector(..)
+                       , toCompound
+                       , selectorPseudoClass2
+                       , selectorClass2
+                       , selectorId2
+
+                       , CssSubclassSelector (..)
+
                        , parseUrl
 
                        , consumeFunctionTokens
@@ -1171,6 +1179,54 @@ mkCssTypeSelector t | t >= 0 && t < styleSheetElementCount = Just $ CssTypeSelec
 
 
 
+-- https://www.w3.org/TR/selectors-4/#typedef-subclass-selector
+data CssSubclassSelector
+ = CssIdSelector T.Text
+ | CssClassSelector T.Text
+ --  | CssAttrSelector -- Unsupported for now
+ | CssPseudoClassSelector T.Text
+ deriving (Show, Eq)
+
+
+
+-- https://www.w3.org/TR/selectors-4/#typedef-compound-selector
+newtype CssCompoundSelector = CssCompoundSelector (CssTypeSelector, [CssSubclassSelector])
+
+
+
+
+toCompound :: CssSimpleSelector -> CssCompoundSelector
+toCompound ss = CssCompoundSelector (t, s)
+  where
+    t = case selectorTagName ss of
+          Just x  -> x
+          Nothing -> CssTypeSelectorUniv
+    s = (f1 . selectorId $ ss) ++ (f2 . selectorClass $ ss) ++ (f3 . selectorPseudoClass $ ss)
+    f1 x  = if T.null x then [] else [CssIdSelector x]
+    f2 xs = map (\x -> CssClassSelector x) xs
+    f3 xs = map (\x -> CssPseudoClassSelector x) xs
+
+
+
+selectorPseudoClass2 :: CssCompoundSelector -> [CssSubclassSelector]
+selectorPseudoClass2 (CssCompoundSelector (_, xs)) = filter (\x -> case x of
+                                                                     (CssPseudoClassSelector t) -> True
+                                                                     otherwise                  -> False) xs
+
+
+selectorClass2 :: CssCompoundSelector -> [CssSubclassSelector]
+selectorClass2 (CssCompoundSelector (_, xs)) = filter (\x -> case x of
+                                                               (CssClassSelector t) -> True
+                                                               otherwise            -> False) xs
+
+
+
+selectorId2 :: CssCompoundSelector -> [CssSubclassSelector]
+selectorId2 (CssCompoundSelector (_, xs)) = filter (\x -> case x of
+                                                            (CssIdSelector t) -> True
+                                                            otherwise         -> False) xs
+
+
 
 data CssCombinator =
     CssCombinatorNone
@@ -1205,28 +1261,17 @@ defaultSelector = CssSelector {
 
 
 
-data CssSelectorType =
-    CssSelectorTypeNone
-  | CssSelectorTypeClass
-  | CssSelectorTypePseudoClass
-  | CssSelectorTypeID
-
-
-
-
--- Update simple selector with given symbol 'sym', depending on type of
--- symbol.
-updateSimpleSelector :: CssSimpleSelector -> CssSelectorType -> T.Text -> CssSimpleSelector
-updateSimpleSelector simpleSelector selectorTagName sym =
-  case selectorTagName of
-    CssSelectorTypeClass       -> simpleSelector {selectorClass = (selectorClass simpleSelector) ++ [sym]}
-    CssSelectorTypePseudoClass -> if T.null sym
-                                  then simpleSelector
-                                  else simpleSelector {selectorPseudoClass = (selectorPseudoClass simpleSelector) ++ [sym]}
-    CssSelectorTypeID          -> if selectorId simpleSelector == ""
-                                  then simpleSelector {selectorId = sym}
-                                  else simpleSelector  -- TODO: is this valid that we ignore new value of the field without any warning?
-    otherwise                  -> simpleSelector -- TODO: this probably should be caught by some kind of "non-exhaustive pattern match" warning.
+-- Update simple selector with given subclass selector.
+appendSubclassSelector :: CssSimpleSelector -> CssSubclassSelector -> CssSimpleSelector
+appendSubclassSelector simpleSelector subSel =
+  case subSel of
+    CssClassSelector ident       -> simpleSelector {selectorClass = (selectorClass simpleSelector) ++ [ident]}
+    CssPseudoClassSelector ident -> if T.null ident
+                                    then simpleSelector
+                                    else simpleSelector {selectorPseudoClass = (selectorPseudoClass simpleSelector) ++ [ident]}
+    CssIdSelector ident          -> if selectorId simpleSelector == ""
+                                    then simpleSelector {selectorId = ident}
+                                    else simpleSelector  -- TODO: is this valid that we ignore new value of the field without any warning?
 
 
 
@@ -1238,7 +1283,6 @@ updateSimpleSelector simpleSelector selectorTagName sym =
 -- success/failure of the parsing.
 parseSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssSelector)
 parseSelector (parser, token) = ((outParser, outToken), selector)
-
   where
     (outParser, outToken) = consumeRestOfSelector (p2, t2)
     ((p2, t2), selector) = case parseSelectorTokens (removeSpaceTokens selectorTokens []) [defaultSimpleSelector] of
@@ -1254,9 +1298,9 @@ parseSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSele
 parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorTagName = mkCssTypeSelector $ htmlTagIndex sym}):simSels)
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
-parseSelectorTokens (CssTokHash CssHashId ident:tokens) (simSel:simSels)   = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeID ident):simSels)
-parseSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypeClass sym):simSels)
-parseSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (simSel:simSels)     = parseSelectorTokens tokens ((updateSimpleSelector simSel CssSelectorTypePseudoClass sym):simSels)
+parseSelectorTokens (CssTokHash CssHashId ident:tokens) (simSel:simSels)      = parseSelectorTokens tokens ((appendSubclassSelector simSel (CssIdSelector ident)):simSels)
+parseSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((appendSubclassSelector simSel (CssClassSelector sym)):simSels)
+parseSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (simSel:simSels)     = parseSelectorTokens tokens ((appendSubclassSelector simSel (CssPseudoClassSelector sym)):simSels)
 parseSelectorTokens (CssTokDelim '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorChild}:simSels)
 parseSelectorTokens (CssTokDelim '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorAdjacentSibling}:simSels)
 parseSelectorTokens (CssTokWS:tokens)     simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorDescendant}:simSels)
