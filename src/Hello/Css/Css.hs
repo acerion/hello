@@ -119,8 +119,8 @@ Return the specificity of the selector.
 The specificity of a CSS selector is defined in
 http://www.w3.org/TR/CSS21/cascade.html#specificity
 -}
-selectorSpecificity :: CssSelector -> Int
-selectorSpecificity sel = selectorSpecificity' (simpleSelectors sel) 0
+selectorSpecificity :: CssComplexSelector -> Int
+selectorSpecificity cplxSel = selectorSpecificity' (simpleSelectors cplxSel) 0
   where
     selectorSpecificity' (x:xs) acc = selectorSpecificity' xs (acc + (compoundSelectorSpecificity . toCompound $ x))
     selectorSpecificity' []     acc = acc
@@ -130,10 +130,10 @@ selectorSpecificity sel = selectorSpecificity' (simpleSelectors sel) 0
 
 -- Return the specificity of compound selector
 compoundSelectorSpecificity :: CssCompoundSelector -> Int
-compoundSelectorSpecificity csel = (fromId csel) + (fromClass csel) + (fromPseudoClass csel) + (fromElement csel)
+compoundSelectorSpecificity cpdSel = (fromId cpdSel) + (fromClass cpdSel) + (fromPseudoClass cpdSel) + (fromElement cpdSel)
   where
-    fromId csel          = if (not . null . cselId $ csel) then (1 `shiftL` 20) else 0
-    fromClass csel       = (length . cselClass $ csel) `shiftL` 10
-    fromPseudoClass csel = if (not . null . cselPseudoClass $ csel) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
-    fromElement csel     = if cselIsUniversal csel then 0 else 1
+    fromId cpdSsel          = if (not . null . cselId $ cpdSel) then (1 `shiftL` 20) else 0
+    fromClass cpdSel       = (length . cselClass $ cpdSel) `shiftL` 10
+    fromPseudoClass cpdSel = if (not . null . cselPseudoClass $ cpdSel) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
+    fromElement cpdSsel     = if cselIsUniversal cpdSel then 0 else 1
 

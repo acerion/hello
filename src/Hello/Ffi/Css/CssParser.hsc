@@ -32,9 +32,9 @@ module Hello.Ffi.Css.Parser( FfiCssSimpleSelector (..)
                            , FfiCssCompoundSelector (..)
                            , peekCssCompoundSelector
 
-                           , FfiCssSelector (..)
-                           , peekCssSelector
-                           , pokeCssSelector
+                           , FfiCssComplexSelector (..)
+                           , peekCssComplexSelector
+                           , pokeCssComplexSelector
 
                            , FfiCssDeclarationSet (..)
                            , peekCssDeclarationSet
@@ -584,7 +584,7 @@ pokeCssCompoundSelector ptrStructCompoundSelector csel = do
 
 
 
-data FfiCssSelector = FfiCssSelector {
+data FfiCssComplexSelector = FfiCssComplexSelector {
     cMatchCacheOffset    :: CInt
 
     --    <c_css_simple_selector_t * c_simple_selector_list[10]>
@@ -597,7 +597,7 @@ data FfiCssSelector = FfiCssSelector {
 
 
 
-instance Storable FfiCssSelector where
+instance Storable FfiCssComplexSelector where
   sizeOf    _ = #{size c_css_selector_t}
   alignment _ = #{alignment c_css_selector_t}
 
@@ -605,9 +605,9 @@ instance Storable FfiCssSelector where
     a <- #{peek c_css_selector_t, c_match_cache_offset} ptr
     let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_selector_t, c_simple_selectors}) ptr
     c <- #{peek c_css_selector_t, c_simple_selectors_size} ptr
-    return (FfiCssSelector a b c)
+    return (FfiCssComplexSelector a b c)
 
-  poke ptr (FfiCssSelector inMatchCaseOffset inSimpleSelectors inSimpleSelectorsSize) = do
+  poke ptr (FfiCssComplexSelector inMatchCaseOffset inSimpleSelectors inSimpleSelectorsSize) = do
     #{poke c_css_selector_t, c_match_cache_offset}    ptr inMatchCaseOffset
     #{poke c_css_selector_t, c_simple_selectors}      ptr inSimpleSelectors
     #{poke c_css_selector_t, c_simple_selectors_size} ptr inSimpleSelectorsSize
@@ -615,36 +615,36 @@ instance Storable FfiCssSelector where
 
 
 
-peekCssSelector :: Ptr FfiCssSelector -> IO CssSelector
-peekCssSelector ptrStructCssSelector = do
+peekCssComplexSelector :: Ptr FfiCssComplexSelector -> IO CssComplexSelector
+peekCssComplexSelector ptrStructCssComplexSelector = do
 
-  ffiSel <- peek ptrStructCssSelector
+  ffiSel <- peek ptrStructCssComplexSelector
 
   {- This would also work:
   let offset = #{offset c_css_selector_t, c_simple_selector_list}
-  let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = plusPtr ptrStructCssSelector offset
+  let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = plusPtr ptrStructCssComplexSelector offset
   -}
   let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = cSimpleSelectors ffiSel
 
   let simSelCount = fromIntegral . cSimpleSelectorsSize $ ffiSel
   simSels <- peekArrayOfPointers ptrSimSelArray simSelCount peekCssSimpleSelector
 
-  return CssSelector{ matchCacheOffset = fromIntegral . cMatchCacheOffset $ ffiSel
-                    , simpleSelectors  = simSels
-                    }
+  return CssComplexSelector{ matchCacheOffset = fromIntegral . cMatchCacheOffset $ ffiSel
+                           , simpleSelectors  = simSels
+                           }
 
 
 
 
-pokeCssSelector :: Ptr FfiCssSelector -> CssSelector -> IO ()
-pokeCssSelector ptrStructCssSelector selector = do
+pokeCssComplexSelector :: Ptr FfiCssComplexSelector -> CssComplexSelector -> IO ()
+pokeCssComplexSelector ptrStructCssComplexSelector selector = do
 
-  ffiSel <- peek ptrStructCssSelector
+  ffiSel <- peek ptrStructCssComplexSelector
 
   pokeArrayOfPointersWithAlloc (simpleSelectors selector) allocAndPokeCssSimpleSelector (cSimpleSelectors ffiSel)
-  pokeByteOff ptrStructCssSelector (#offset c_css_selector_t, c_simple_selectors_size) (length . simpleSelectors $ selector)
+  pokeByteOff ptrStructCssComplexSelector (#offset c_css_selector_t, c_simple_selectors_size) (length . simpleSelectors $ selector)
 
-  pokeByteOff ptrStructCssSelector (#offset c_css_selector_t, c_match_cache_offset) (matchCacheOffset selector)
+  pokeByteOff ptrStructCssComplexSelector (#offset c_css_selector_t, c_match_cache_offset) (matchCacheOffset selector)
 
 
 

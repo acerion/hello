@@ -37,7 +37,7 @@ import Hello.Tests.Html.Tag
 
 testFunctions = [testsColors, testsCookies,
                  testsGif, testsGif2,
-                 testsCssCss, testsCssRule, testsCssSelector, testsCssTokenizer, testsCssValue,
+                 testsCssCss, testsCssRule, testsCssComplexSelector, testsCssTokenizer, testsCssValue,
                  testsHtmlEntity, testsHtmlTag]
 
 

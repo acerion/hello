@@ -35,28 +35,28 @@ import Hello.Utils
 
 -- On success return empty string. On failure return string representation of
 -- selector, for which test failed.
-specificityTest :: [(Int, CssSelector)] -> T.Text
+specificityTest :: [(Int, CssComplexSelector)] -> T.Text
 specificityTest []     = ""
-specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity selector)
-                         then T.pack . show $ selector
+specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity cplxSel)
+                         then T.pack . show $ cplxSel
                          else specificityTest xs
   where
     expectedSpecificity = fst x
-    selector = snd x
+    cplxSel = snd x
 
 
 
 -- On success return empty string. On failure return string representation of
 -- selector, for which test failed.
-matchTest :: [(Int, CssSimpleSelector, DoctreeNode)] -> T.Text
+matchTest :: [(Int, CssCompoundSelector, DoctreeNode)] -> T.Text
 matchTest []     = ""
-matchTest (x:xs) = if expectedMatch x /= (compoundSelectorMatches' (cs x) (dn x))
-                         then T.pack ((show $ cs x) ++ "    @@@@    " ++ (show $ dn x))
+matchTest (x:xs) = if expectedMatch x /= (compoundSelectorMatches' (cpdSel x) (dtn x))
+                         then T.pack ((show $ cpdSel x) ++ "    @@@@    " ++ (show $ dtn x))
                          else matchTest xs
   where
     expectedMatch (a, _, _) = a
-    cs            (_, b, _) = toCompound b
-    dn            (_, _, c) = c
+    cpdSel        (_, b, _) = b
+    dtn           (_, _, c) = c
 
 
 

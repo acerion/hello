@@ -218,14 +218,14 @@ data CssSheetSelector =
 
 
 
-cssRuleIsSafe rule = (not . cssSelectorHasPseudoClass . selector $ rule) || (isSafe . declarationSet $ rule)
+cssRuleIsSafe rule = (not . cssSelectorHasPseudoClass . complexSelector $ rule) || (isSafe . declarationSet $ rule)
 
 
 
 -- Does any selector have non-empty list of pseudo class simple selectors?
 -- Remember that C/C++ code can use only first pseudo class.
-cssSelectorHasPseudoClass :: CssSelector -> Bool
-cssSelectorHasPseudoClass selector = any (\simSel -> not . null . selectorPseudoClass $ simSel) (simpleSelectors selector)
+cssSelectorHasPseudoClass :: CssComplexSelector -> Bool
+cssSelectorHasPseudoClass cplxSel = any (\simSel -> not . null . selectorPseudoClass $ simSel) (simpleSelectors cplxSel)
 
 
 
@@ -249,13 +249,13 @@ cssContextAddRule context rule sheetSelector =
   where
     -- Set match cache offset of selector.
     ruleWithOffset :: CssRule
-    ruleWithOffset = if (-1) == (matchCacheOffset . selector $ rule)
-                     then rule{ selector = newSelector . selector $ rule
+    ruleWithOffset = if (-1) == (matchCacheOffset . complexSelector $ rule)
+                     then rule{ complexSelector = newComplexSelector . complexSelector $ rule
                               , position = rulePosition context
                               }
                      else rule{ position = rulePosition context }
       where
-        newSelector sel = sel{matchCacheOffset = length . matchCache $ context}
+        newComplexSelector cplxSel = cplxSel{matchCacheOffset = length . matchCache $ context}
 
 
 
@@ -304,7 +304,7 @@ matchCacheResize cache size = newCache
 
 
 
-makeRulePairs :: [CssSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> [(Maybe CssRule, CssSheetSelector)] -> [(Maybe CssRule, CssSheetSelector)]
+makeRulePairs :: [CssComplexSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> [(Maybe CssRule, CssSheetSelector)] -> [(Maybe CssRule, CssSheetSelector)]
 makeRulePairs []     _       _          _      acc = reverse acc
 makeRulePairs (x:xs) declSet declSetImp origin acc =
   case origin of
@@ -314,12 +314,12 @@ makeRulePairs (x:xs) declSet declSetImp origin acc =
 
   where rule    = ruleCtor x declSet
         ruleImp = ruleCtor x declSetImp
-        ruleCtor sel decls = if not . S.null . items $ decls
-                             then Just CssRule { selector = sel
-                                               , declarationSet = decls
-                                               , specificity = selectorSpecificity sel
-                                               , position = 0 } -- Position of a rule will be set at the moment of inserting the rule to CSS context
-                             else Nothing -- Rule with zero declarations would be useless rule.
+        ruleCtor cplxSel decls = if not . S.null . items $ decls
+                                 then Just CssRule { complexSelector = cplxSel
+                                                   , declarationSet = decls
+                                                   , specificity = selectorSpecificity cplxSel
+                                                   , position = 0 } -- Position of a rule will be set at the moment of inserting the rule to CSS context
+                                 else Nothing -- Rule with zero declarations would be useless rule.
 
 
 
@@ -331,7 +331,7 @@ makeRulePairs (x:xs) declSet declSetImp origin acc =
 -- Each rule can have only one selector, so this function works like this:
 -- "for each selector create a rule with given selector and some
 -- declarations, and put it in appropriate style sheet in the context".
-constructAndAddRules :: CssContext -> [CssSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> CssContext
+constructAndAddRules :: CssContext -> [CssComplexSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> CssContext
 constructAndAddRules context []           declSet declSetImp _      = context
 constructAndAddRules context selectorList declSet declSetImp origin = updatedContext
   where

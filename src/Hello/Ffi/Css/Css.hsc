@@ -59,7 +59,7 @@ import Hello.Ffi.Utils
 
 
 foreign export ccall "hll_compoundSelectorMatches" hll_compoundSelectorMatches :: Ptr FfiCssCompoundSelector -> Ptr FfiDoctreeNode -> IO Int
-foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
+foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssComplexSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
@@ -151,10 +151,10 @@ hll_compoundSelectorMatches ptrStructCompoundSelector ptrStructDoctreeNode = do
 
 
 
-hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
-hll_selectorSpecificity ptrStructCssSelector = do
-  sel <- peekCssSelector ptrStructCssSelector
-  return . selectorSpecificity $ sel
+hll_selectorSpecificity :: Ptr FfiCssComplexSelector -> IO Int
+hll_selectorSpecificity ptrStructCssComplexSelector = do
+  cplxSel <- peekCssComplexSelector ptrStructCssComplexSelector
+  return . selectorSpecificity $ cplxSel
 
 
 
@@ -209,7 +209,7 @@ pokeCssRulesList ptrStructRulesList list = do
 
 
 data FfiCssRule = FfiCssRule {
-    selectorC       :: Ptr FfiCssSelector
+    selectorC       :: Ptr FfiCssComplexSelector
   , declarationSetC :: Ptr FfiCssDeclarationSet
   , specificityC    :: CInt
   , positionC       :: CInt
@@ -243,13 +243,13 @@ peekCssRule ptrStructCssRule = do
 
   ffiCssRule <- peek ptrStructCssRule
 
-  sel     <- peekCssSelector (selectorC ffiCssRule)
+  cplxSel <- peekCssComplexSelector (selectorC ffiCssRule)
   declSet <- peekCssDeclarationSet (declarationSetC ffiCssRule)
 
-  return CssRule { selector       = sel
-                 , declarationSet = declSet
-                 , specificity    = fromIntegral . specificityC $ ffiCssRule
-                 , position       = fromIntegral . positionC $ ffiCssRule
+  return CssRule { complexSelector = cplxSel
+                 , declarationSet  = declSet
+                 , specificity     = fromIntegral . specificityC $ ffiCssRule
+                 , position        = fromIntegral . positionC $ ffiCssRule
                  }
 
 
@@ -264,7 +264,7 @@ pokeCssRule ptrStructCssRule rule = do
 
   let ptrSelector = selectorC ffiRule
   --ptrSelector <- callocBytes #{size c_css_selector_t}
-  pokeCssSelector ptrSelector (selector rule)
+  pokeCssComplexSelector ptrSelector (complexSelector rule)
   pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_selector} ptrSelector
 
   ptrDeclSet <- callocBytes #{size c_css_declaration_set_t}
@@ -291,7 +291,7 @@ pokeCssRule rule = do
   ptrStructCssRule <- callocBytes #{size c_css_rule_t}
 
   ptrSelector <- callocBytes #{size c_css_selector_t}
-  pokeCssSelector ptrSelector (selector rule)
+  pokeCssComplexSelector ptrSelector (selector rule)
   pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_selector} ptrSelector
 
   ptrDeclSet <- callocBytes #{size c_css_declaration_set_t}

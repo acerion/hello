@@ -103,12 +103,14 @@ module Hello.Css.Parser(
 
                        , takeLengthTokens
 
-                       , defaultSimpleSelector
-                       , defaultSelector
+                       , CssComplexSelector (..)
+                       , defaultComplexSelector
+                       , takeComplexSelectorTokens
+                       , parseComplexSelector
+
                        , CssSimpleSelector (..)
-                       , CssSelector (..)
-                       , takeSelectorTokens
-                       , parseSelector
+                       , defaultSimpleSelector
+
                        , readSelectorList
                        , removeSpaceTokens
 
@@ -1151,7 +1153,7 @@ data CssSimpleSelector = CssSimpleSelector {
 
 
 
-data CssSelector = CssSelector {
+data CssComplexSelector = CssComplexSelector {
     matchCacheOffset :: Int
   , simpleSelectors  :: [CssSimpleSelector]
   } deriving (Show, Eq)
@@ -1289,7 +1291,7 @@ defaultSimpleSelector = CssSimpleSelector {
 
 
 
-defaultSelector = CssSelector {
+defaultComplexSelector = CssComplexSelector {
     matchCacheOffset = -1
   , simpleSelectors  = [] -- [defaultSimpleSelector]
   }
@@ -1312,40 +1314,43 @@ appendSubclassSelector simpleSelector subSel =
 
 
 
--- Create a selector from a group of tokens that is terminated by ',' or '{'
--- character.
+-- Create a comples selector from a group of tokens that are terminated by
+-- ',' or '{' character.
+--
+-- https://www.w3.org/TR/selectors-4/#structure: "A complex selector is a
+-- sequence of one or more compound selectors separated by combinators."
 --
 -- Function always consumes the group of tokens, regardless of
 -- success/failure of the parsing.
-parseSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssSelector)
-parseSelector (parser, token) = ((outParser, outToken), selector)
+parseComplexSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssComplexSelector)
+parseComplexSelector (parser, token) = ((outParser, outToken), selector)
   where
     (outParser, outToken) = consumeRestOfSelector (p2, t2)
-    ((p2, t2), selector) = case parseSelectorTokens (removeSpaceTokens selectorTokens []) [defaultSimpleSelector] of
-                             Just simSels -> ((newParser, newToken), Just defaultSelector{simpleSelectors = reverse simSels})
+    ((p2, t2), selector) = case parseComplexSelectorTokens (removeSpaceTokens cplxSelTokens []) [defaultSimpleSelector] of
+                             Just simSels -> ((newParser, newToken), Just defaultComplexSelector{simpleSelectors = reverse simSels})
                              Nothing      -> ((newParser, newToken), Nothing)
 
-    ((newParser, newToken), selectorTokens) = takeSelectorTokens (parser, token)
+    ((newParser, newToken), cplxSelTokens) = takeComplexSelectorTokens (parser, token)
 
 
 
 
-parseSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
-parseSelectorTokens (CssTokDelim '*':tokens) (simSel:simSels) = parseSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelectorUniv}):simSels)
-parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels) = case htmlTagIndex2 sym of
-                                                                  Just idx -> parseSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelector idx}):simSels)
-                                                                  Nothing  -> parseSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelectorUnknown}):simSels)
+parseComplexSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
+parseComplexSelectorTokens (CssTokDelim '*':tokens) (simSel:simSels) = parseComplexSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelectorUniv}):simSels)
+parseComplexSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels) = case htmlTagIndex2 sym of
+                                                                  Just idx -> parseComplexSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelector idx}):simSels)
+                                                                  Nothing  -> parseComplexSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelectorUnknown}):simSels)
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
-parseSelectorTokens (CssTokHash CssHashId ident:tokens) (simSel:simSels)      = parseSelectorTokens tokens ((appendSubclassSelector simSel (CssIdSelector ident)):simSels)
-parseSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) (simSel:simSels) = parseSelectorTokens tokens ((appendSubclassSelector simSel (CssClassSelector sym)):simSels)
-parseSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (simSel:simSels)     = parseSelectorTokens tokens ((appendSubclassSelector simSel (CssPseudoClassSelector sym)):simSels)
-parseSelectorTokens (CssTokDelim '>':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorChild}:simSels)
-parseSelectorTokens (CssTokDelim '+':tokens) simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorAdjacentSibling}:simSels)
-parseSelectorTokens (CssTokWS:tokens)     simSels = parseSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorDescendant}:simSels)
+parseComplexSelectorTokens (CssTokHash CssHashId ident:tokens) (simSel:simSels)      = parseComplexSelectorTokens tokens ((appendSubclassSelector simSel (CssIdSelector ident)):simSels)
+parseComplexSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) (simSel:simSels) = parseComplexSelectorTokens tokens ((appendSubclassSelector simSel (CssClassSelector sym)):simSels)
+parseComplexSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (simSel:simSels)     = parseComplexSelectorTokens tokens ((appendSubclassSelector simSel (CssPseudoClassSelector sym)):simSels)
+parseComplexSelectorTokens (CssTokDelim '>':tokens) simSels = parseComplexSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorChild}:simSels)
+parseComplexSelectorTokens (CssTokDelim '+':tokens) simSels = parseComplexSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorAdjacentSibling}:simSels)
+parseComplexSelectorTokens (CssTokWS:tokens)     simSels = parseComplexSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorDescendant}:simSels)
 
-parseSelectorTokens [] simSels = Just simSels
-parseSelectorTokens _  simSels = Nothing
+parseComplexSelectorTokens [] simSels = Just simSels
+parseComplexSelectorTokens _  simSels = Nothing
 
 
 
@@ -1364,11 +1369,11 @@ parseSelectorTokens _  simSels = Nothing
 --
 -- TODO: dump whole ruleset in case of parse error as required by CSS 2.1
 -- however make sure we don't dump it if only dillo fails to parse valid CSS.
-readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssSelector])
+readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssComplexSelector])
 readSelectorList (parser, token) = parseSelectorWrapper (parser, token) []
   where
     parseSelectorWrapper (parser, token) acc =
-      case parseSelector (parser, token) of
+      case parseComplexSelector (parser, token) of
         ((parser, token), Just selector) -> case token of
                                               CssTokComma -> parseSelectorWrapper (nextToken1 parser) (acc ++ [selector])
                                               otherwise   -> ((parser, token), acc ++ [selector])
@@ -1392,8 +1397,8 @@ consumeRestOfSelector (parser, _)                         = consumeRestOfSelecto
 -- create list of CssSimpleSelectors (with separating combinators). If input
 -- stream starts with whitespace, discard the whitespace (don't return token
 -- for it) - leading whitespace is certainly meaningless.
-takeSelectorTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
-takeSelectorTokens (parser, token) = takeNext (parser, token) []
+takeComplexSelectorTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
+takeComplexSelectorTokens (parser, token) = takeNext (parser, token) []
   where
     takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
     takeNext (parser, token) tokens = case token of
@@ -1812,10 +1817,10 @@ parseAllDeclarations ((p1, t1), (declSet, declSetImp)) | t1 == CssTokEnd        
 
 
 data CssRule = CssRule {
-    selector       :: CssSelector
-  , declarationSet :: CssDeclarationSet
-  , specificity    :: Int
-  , position       :: Int
+    complexSelector :: CssComplexSelector
+  , declarationSet  :: CssDeclarationSet
+  , specificity     :: Int
+  , position        :: Int
   } deriving (Show)
 
 
@@ -1823,11 +1828,11 @@ data CssRule = CssRule {
 
 -- Get top simple selector
 getTopSimSel :: CssRule -> CssSimpleSelector
-getTopSimSel = L.last . simpleSelectors . selector
+getTopSimSel = L.last . simpleSelectors . complexSelector
 
 
 
 
 getRequiredMatchCache :: CssRule -> Int
-getRequiredMatchCache rule = (matchCacheOffset . selector $ rule) + (length . simpleSelectors . selector $ rule)
+getRequiredMatchCache rule = (matchCacheOffset . complexSelector $ rule) + (length . simpleSelectors . complexSelector $ rule)
 
