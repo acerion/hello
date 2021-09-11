@@ -129,7 +129,7 @@ bool css_selector_matches(c_css_selector_t * selector, Doctree * docTree, const 
    if (!dtn) {
       return false;
    }
-   if (!hll_simpleSelectorMatches(sim_sel, dtn)) {
+   if (!hll_compoundSelectorMatches((c_css_compound_selector_t *) sim_sel, dtn)) {
       return false;
    }
 
@@ -143,7 +143,7 @@ bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, co
    struct c_css_simple_selector_t * sim_sel = selector->c_simple_selectors[sim_sel_idx];
 
    for (const c_doctree_node_t * dtn2 = dtn; dtn2 && dtn2->c_unique_num > *match_cache_entry; dtn2 = docTree->parent(dtn2)) {
-      if (hll_simpleSelectorMatches(sim_sel, dtn2)
+      if (hll_compoundSelectorMatches((c_css_compound_selector_t *) sim_sel, dtn2)
           && css_selector_matches(selector, docTree, dtn2, sim_sel_idx - 1, (Combinator) sim_sel->c_combinator, match_cache)) {
          return true;
       }

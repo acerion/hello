@@ -65,14 +65,14 @@ Right now this is a naive re-write of simple_selector_matches() C function.
 TODO: in C++ code the string comparisons were case-insensitive.
 -}
 
-compoundSelectorMatches simSel dtn = (compoundSelectorMatches' (toCompound simSel) dtn) == 0
+compoundSelectorMatches cpdSel dtn = (compoundSelectorMatches' cpdSel dtn) == 0
 
 compoundSelectorMatches' :: CssCompoundSelector -> DoctreeNode -> Int
-compoundSelectorMatches' csel dtn | mismatchOnElement csel dtn     = 4
-                                  | mismatchOnPseudoClass csel dtn = 3
-                                  | mismatchOnId csel dtn          = 2
-                                  | mismatchOnClass csel dtn       = 1
-                                  | otherwise                      = 0
+compoundSelectorMatches' cpdSel dtn | mismatchOnElement cpdSel dtn     = 4
+                                    | mismatchOnPseudoClass cpdSel dtn = 3
+                                    | mismatchOnId cpdSel dtn          = 2
+                                    | mismatchOnClass cpdSel dtn       = 1
+                                    | otherwise                        = 0
   where
     mismatchOnElement :: CssCompoundSelector -> DoctreeNode -> Bool
     mismatchOnElement csel dtn = (cselTagName csel) /= CssTypeSelectorUniv && (unCssTypeSelector . cselTagName $ csel) /= (htmlElementIdx dtn)

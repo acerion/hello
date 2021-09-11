@@ -58,7 +58,7 @@ import Hello.Ffi.Utils
 
 
 
-foreign export ccall "hll_simpleSelectorMatches" hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
+foreign export ccall "hll_compoundSelectorMatches" hll_compoundSelectorMatches :: Ptr FfiCssCompoundSelector -> Ptr FfiDoctreeNode -> IO Int
 foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
@@ -140,12 +140,11 @@ peekDoctreeNode ptrStructDoctreeNode = do
 
 
 
-hll_simpleSelectorMatches :: Ptr FfiCssSimpleSelector -> Ptr FfiDoctreeNode -> IO Int
-hll_simpleSelectorMatches ptrStructSimpleSelector ptrStructDoctreeNode = do
-
-  simSel :: CssSimpleSelector <- peekCssSimpleSelector ptrStructSimpleSelector
-  dtn    :: DoctreeNode       <- peekDoctreeNode ptrStructDoctreeNode
-  if compoundSelectorMatches simSel dtn
+hll_compoundSelectorMatches :: Ptr FfiCssCompoundSelector -> Ptr FfiDoctreeNode -> IO Int
+hll_compoundSelectorMatches ptrStructCompoundSelector ptrStructDoctreeNode = do
+  cpdSel :: CssCompoundSelector <- peekCssCompoundSelector ptrStructCompoundSelector
+  dtn    :: DoctreeNode         <- peekDoctreeNode ptrStructDoctreeNode
+  if compoundSelectorMatches cpdSel dtn
     then return 1 -- True
     else return 0 -- False
 

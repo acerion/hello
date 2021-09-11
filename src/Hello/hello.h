@@ -80,6 +80,22 @@ typedef struct c_css_simple_selector_t {
 } c_css_simple_selector_t;
 
 
+typedef struct c_css_compound_selector_t {
+   /* It's possible that more than one of these is set in a single
+      CssSimpleSelector struct. */
+   char * c_selector_class[10];
+   int c_selector_class_size;
+
+   /* In CSS there can be more pseudo-classes and Haskell can read them, but
+      for now C/C++ code will only use first one. */
+   char * c_selector_pseudo_class[10];
+   int c_selector_pseudo_class_size;
+
+   char * c_selector_id;
+   int c_selector_type; /* Index corresponding to html.cc::Tags[]. */
+} c_css_compound_selector_t;
+
+
 
 typedef struct c_css_selector_t {
    int c_match_cache_offset;
@@ -268,7 +284,7 @@ void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const
 /* Css.hsc */
 
 /* Function returns boolean. */
-int hll_simpleSelectorMatches(const c_css_simple_selector_t * simSel, const c_doctree_node_t * dtn);
+int hll_compoundSelectorMatches(const c_css_compound_selector_t * csel, const c_doctree_node_t * dtn);
 int hll_selectorSpecificity(const c_css_selector_t * selector);
 
 

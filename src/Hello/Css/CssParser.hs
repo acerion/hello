@@ -45,6 +45,7 @@ module Hello.Css.Parser(
                        , styleSheetElementCount
 
                        , CssCompoundSelector
+                       , mkCssCompoundSelector
                        , toCompound
                        , cselTagName
                        , cselPseudoClass
@@ -1196,6 +1197,16 @@ data CssSubclassSelector
 -- https://www.w3.org/TR/selectors-4/#typedef-compound-selector
 newtype CssCompoundSelector = CssCompoundSelector (CssTypeSelector, [CssSubclassSelector])
   deriving (Show, Eq)
+
+
+
+
+mkCssCompoundSelector :: CssTypeSelector -> [T.Text] -> [T.Text] -> T.Text -> CssCompoundSelector
+mkCssCompoundSelector ts classIdents pseudoClassIdents idIdent = CssCompoundSelector (ts, classes ++ pseudoClasses ++ ids)
+  where
+    ids           = if T.null idIdent then [] else [CssIdSelector idIdent]
+    classes       = map (\x -> CssClassSelector x) classIdents
+    pseudoClasses = map (\x -> CssPseudoClassSelector x) pseudoClassIdents
 
 
 

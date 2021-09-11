@@ -27,6 +27,10 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 module Hello.Ffi.Css.Parser( FfiCssSimpleSelector (..)
                            , peekCssSimpleSelector
+                           , pokeCssSimpleSelector
+
+                           , FfiCssCompoundSelector (..)
+                           , peekCssCompoundSelector
 
                            , FfiCssSelector (..)
                            , peekCssSelector
@@ -482,6 +486,100 @@ allocAndPokeCssSimpleSelector simSel = do
   ptrStructSimpleSelector <- callocBytes #{size c_css_simple_selector_t}
   pokeCssSimpleSelector ptrStructSimpleSelector simSel
   return ptrStructSimpleSelector
+
+
+
+
+data FfiCssCompoundSelector = FfiCssCompoundSelector {
+  -- equals to <char * c_selector_class[10]>,
+  -- which equals to <char ** c_selector_class>
+    selectorClassC2           :: Ptr (Ptr CChar)
+  , selectorClassSizeC2       :: CInt
+
+  -- equals to <char * c_pseudo_selector_class[10]>,
+  -- which equals to <char ** c_pseudo_selector_class>
+  , selectorPseudoClassC2     :: Ptr (Ptr CChar)
+  , selectorPseudoClassSizeC2 :: CInt
+
+  , selectorIdC2              :: CString
+  , selectorTagNameC2         :: CInt
+  } deriving (Show)
+
+
+
+
+instance Storable FfiCssCompoundSelector where
+  sizeOf    _ = #{size c_css_compound_selector_t}
+  alignment _ = #{alignment c_css_compound_selector_t}
+
+  peek ptr = do
+    let a = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_compound_selector_t, c_selector_class}) ptr
+    b <- #{peek c_css_compound_selector_t, c_selector_class_size} ptr
+    let c = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_compound_selector_t, c_selector_pseudo_class}) ptr
+    d <- #{peek c_css_compound_selector_t, c_selector_pseudo_class_size} ptr
+    e <- #{peek c_css_compound_selector_t, c_selector_id} ptr
+    f <- #{peek c_css_compound_selector_t, c_selector_type} ptr
+    return (FfiCssCompoundSelector a b c d e f)
+
+
+  poke ptr (FfiCssCompoundSelector selector_class_I selector_class_size_I selector_pseudo_class_I selector_pseudo_class_size_I selector_id_I selector_type_I) = do
+    #{poke c_css_compound_selector_t, c_selector_class}             ptr selector_class_I
+    #{poke c_css_compound_selector_t, c_selector_class_size}        ptr selector_class_size_I
+    #{poke c_css_compound_selector_t, c_selector_pseudo_class}      ptr selector_pseudo_class_I
+    #{poke c_css_compound_selector_t, c_selector_pseudo_class_size} ptr selector_pseudo_class_size_I
+    #{poke c_css_compound_selector_t, c_selector_id}                ptr selector_id_I
+    #{poke c_css_compound_selector_t, c_selector_type}              ptr selector_type_I
+
+
+
+
+peekCssCompoundSelector :: Ptr FfiCssCompoundSelector -> IO CssCompoundSelector
+peekCssCompoundSelector ptrStructCompoundSelector = do
+
+  ffiCpdSel <- peek ptrStructCompoundSelector
+
+  let pcStringArray :: Ptr CString = (selectorPseudoClassC2 ffiCpdSel)
+  pseudoClassIdents <- peekArrayOfPointers pcStringArray (fromIntegral . selectorPseudoClassSizeC2 $ ffiCpdSel) ptrCCharToText
+
+  idIdent <- ptrCCharToText . selectorIdC2 $ ffiCpdSel
+
+  let cStringArray :: Ptr CString = (selectorClassC2 ffiCpdSel)
+  classIdents <- peekArrayOfPointers cStringArray (fromIntegral . selectorClassSizeC2 $ ffiCpdSel) ptrCCharToText
+
+  return (mkCssCompoundSelector (mkCssTypeSelector . fromIntegral . selectorTagNameC2 $ ffiCpdSel) classIdents pseudoClassIdents idIdent)
+
+
+
+
+-- Save given Haskell compound selector to C compound selector.
+-- https://downloads.haskell.org/~ghc/7.0.3/docs/html/users_guide/hsc2hs.html
+pokeCssCompoundSelector :: Ptr FfiCssCompoundSelector -> CssCompoundSelector -> IO ()
+pokeCssCompoundSelector ptrStructCompoundSelector csel = do
+  cStringPtrSelId <- case cselId csel of
+                       []                  -> return nullPtr
+                       (CssIdSelector t:_) -> newCString . T.unpack $ t
+
+  ffiCpdSel <- peek ptrStructCompoundSelector
+
+  let classes = case cselClass csel of
+                  (CssClassSelector t:xs) -> [t]
+                  _                       -> [""]
+
+
+  let pseudoClasses = case cselPseudoClass csel of
+                        (CssPseudoClassSelector t:xs) -> [t]
+                        _                             -> [""]
+
+
+  pokeArrayOfPointersWithAlloc classes allocAndPokeCString (selectorClassC2 ffiCpdSel)
+  pokeByteOff ptrStructCompoundSelector (#offset c_css_compound_selector_t, c_selector_class_size) (length . cselClass $ csel)
+
+  pokeArrayOfPointersWithAlloc pseudoClasses allocAndPokeCString (selectorPseudoClassC2 ffiCpdSel)
+  pokeByteOff ptrStructCompoundSelector (#offset c_css_compound_selector_t, c_selector_pseudo_class_size) (length . cselPseudoClass $ csel)
+
+  pokeByteOff ptrStructCompoundSelector (#offset c_css_compound_selector_t, c_selector_id) cStringPtrSelId
+  pokeByteOff ptrStructCompoundSelector (#offset c_css_compound_selector_t, c_selector_type) (unCssTypeSelector . cselTagName $ csel)
+
 
 
 
