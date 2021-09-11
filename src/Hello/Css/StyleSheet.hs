@@ -128,36 +128,23 @@ insertRuleToStyleSheet rule sheet
   where
     simSelIsSelId              = not . T.null . selectorId
     simSelIsSelClass           = not . null . selectorClass
-    simSelIsSelType            = isJust . specificSelType . toCompound
-    simSelIsSelTypeAny         = isAnySelType . toCompound
-    simSelIsUnexpectedType tss = case selectorTagName tss of
-                                   Nothing   -> False
-                                   otherwise -> True
+    simSelIsSelType            = isJust . cselSpecificType . toCompound
+    simSelIsSelTypeAny         = cselIsUniversal . toCompound
+    simSelIsUnexpectedType tss = selectorTagName tss == CssTypeSelectorUnknown
+
 
     tss = getTopSimSel rule
 
     updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId tss) rule
     updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ tss) rule
 
-    updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (specificSelType . toCompound $ tss)) rule
+    updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (cselSpecificType . toCompound $ tss)) rule
     updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (unCssTypeSelector . selectorTagName $ tss)
 
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
 
     thisElementRules sheet (Just t) = (rulesByType sheet) !! t
     thisElementRules sheet Nothing  = []
-
-    -- What is the top-level simple selector? Either some specific HTML tag
-    -- (then 'Maybe t') or Any or None (then 'Nothing').
-    specificSelType :: CssCompoundSelector -> Maybe Int
-    specificSelType (CssCompoundSelector (CssTypeSelector t, _)) = Just t
-    specificSelType _                                            = Nothing
-
-
-    -- Is the top-level simple selector an 'Any' HTML tag?
-    isAnySelType :: CssCompoundSelector -> Bool
-    isAnySelType (CssCompoundSelector (CssTypeSelectorUniv, _)) = True
-    isAnySelType _ = False
 
 
 

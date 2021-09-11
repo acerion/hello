@@ -46,13 +46,13 @@ getTopSimSelTestManualDataBasic = [
   -- parser's input remainder      expected top simple selector
 
     ( "body {color: black;background-color: #ffffff;padding:0px;}"
-    , defaultSimpleSelector{ selectorTagName = Just (CssTypeSelector . htmlTagIndex $ "body"), combinator = CssCombinatorNone } )
+    , defaultSimpleSelector{ selectorTagName = CssTypeSelector . htmlTagIndex $ "body", combinator = CssCombinatorNone } )
 
   , ( ".pure-g > div {-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;}"
-    , defaultSimpleSelector{ selectorTagName = Just (CssTypeSelector . htmlTagIndex $ "div"), combinator = CssCombinatorChild } )
+    , defaultSimpleSelector{ selectorTagName = CssTypeSelector . htmlTagIndex $ "div", combinator = CssCombinatorChild } )
 
   , ( ".navmenu li:hover > ul {display: block;}"
-    , defaultSimpleSelector{ selectorTagName = Just (CssTypeSelector . htmlTagIndex $ "ul"), combinator = CssCombinatorChild } )
+    , defaultSimpleSelector{ selectorTagName = CssTypeSelector . htmlTagIndex $ "ul", combinator = CssCombinatorChild } )
 
   , ( ".pure-menu-horizontal .pure-menu-has-children .pure-menu-link:after{content:\"x\"}"
     , defaultSimpleSelector{ selectorClass = ["pure-menu-link"], selectorPseudoClass = ["after"], combinator = CssCombinatorDescendant} )
@@ -61,7 +61,7 @@ getTopSimSelTestManualDataBasic = [
     , defaultSimpleSelector{ selectorId = "id", combinator = CssCombinatorAdjacentSibling} )
 
   , ( ".topnav-container a:visited { color: DarkBlue; }"
-    , defaultSimpleSelector{ selectorPseudoClass = ["visited"], selectorTagName = Just (CssTypeSelector . htmlTagIndex $ "a"), combinator = CssCombinatorDescendant } )
+    , defaultSimpleSelector{ selectorPseudoClass = ["visited"], selectorTagName = CssTypeSelector . htmlTagIndex $ "a", combinator = CssCombinatorDescendant } )
   ]
 
 

@@ -50,12 +50,12 @@ specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity selector
 -- selector, for which test failed.
 matchTest :: [(Int, CssSimpleSelector, DoctreeNode)] -> T.Text
 matchTest []     = ""
-matchTest (x:xs) = if expectedMatch x /= (simpleSelectorMatches' (ss x) (dn x))
-                         then T.pack ((show $ ss x) ++ "    @@@@    " ++ (show $ dn x))
+matchTest (x:xs) = if expectedMatch x /= (compoundSelectorMatches' (cs x) (dn x))
+                         then T.pack ((show $ cs x) ++ "    @@@@    " ++ (show $ dn x))
                          else matchTest xs
   where
     expectedMatch (a, _, _) = a
-    ss            (_, b, _) = b
+    cs            (_, b, _) = toCompound b
     dn            (_, _, c) = c
 
 

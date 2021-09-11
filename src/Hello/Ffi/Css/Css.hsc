@@ -145,7 +145,7 @@ hll_simpleSelectorMatches ptrStructSimpleSelector ptrStructDoctreeNode = do
 
   simSel :: CssSimpleSelector <- peekCssSimpleSelector ptrStructSimpleSelector
   dtn    :: DoctreeNode       <- peekDoctreeNode ptrStructDoctreeNode
-  if simpleSelectorMatches simSel dtn
+  if compoundSelectorMatches simSel dtn
     then return 1 -- True
     else return 0 -- False
 

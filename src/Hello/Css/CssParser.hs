@@ -44,11 +44,14 @@ module Hello.Css.Parser(
                        , mkCssTypeSelector
                        , styleSheetElementCount
 
-                       , CssCompoundSelector(..)
+                       , CssCompoundSelector
                        , toCompound
-                       , selectorPseudoClass2
-                       , selectorClass2
-                       , selectorId2
+                       , cselTagName
+                       , cselPseudoClass
+                       , cselClass
+                       , cselId
+                       , cselIsUniversal
+                       , cselSpecificType
 
                        , CssSubclassSelector (..)
 
@@ -1139,7 +1142,7 @@ data CssSimpleSelector = CssSimpleSelector {
     selectorPseudoClass :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#pseudo-class
   , selectorId          :: T.Text          -- https://www.w3.org/TR/selectors-4/#id-selector
   , selectorClass       :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#class-selector
-  , selectorTagName     :: Maybe CssTypeSelector
+  , selectorTagName     :: CssTypeSelector
                                            -- TODO: add https://www.w3.org/TR/selectors-4/#attribute-selector
   , combinator          :: CssCombinator
   } deriving (Show, Eq)
@@ -1160,22 +1163,23 @@ data CssTypeSelector
     -- Type selectors: "regular" and universal
   = CssTypeSelector Int  --   https://www.w3.org/TR/selectors-4/#type-selector; Use htmlTagIndex "text" to get the integer value.
   | CssTypeSelectorUniv  --   https://www.w3.org/TR/selectors-4/#the-universal-selector
+  | CssTypeSelectorUnknown
   deriving (Show, Eq)
 
 
 
 
-unCssTypeSelector :: Maybe CssTypeSelector -> Int
-unCssTypeSelector (Just (CssTypeSelector t)) = t
-unCssTypeSelector (Just CssTypeSelectorUniv) = (-2)
-unCssTypeSelector Nothing                    = (-1)
+unCssTypeSelector :: CssTypeSelector -> Int
+unCssTypeSelector (CssTypeSelector t)    = t
+unCssTypeSelector CssTypeSelectorUniv    = (-2)
+unCssTypeSelector CssTypeSelectorUnknown = (-1)
 
 
 
-mkCssTypeSelector :: Int -> Maybe CssTypeSelector
-mkCssTypeSelector t | t >= 0 && t < styleSheetElementCount = Just $ CssTypeSelector t
-                    | t == (-2)                            = Just CssTypeSelectorUniv
-                    | otherwise                            = Nothing
+mkCssTypeSelector :: Int -> CssTypeSelector
+mkCssTypeSelector t | t >= 0 && t < styleSheetElementCount = CssTypeSelector t
+                    | t == (-2)                            = CssTypeSelectorUniv
+                    | otherwise                            = CssTypeSelectorUnknown
 
 
 
@@ -1191,6 +1195,7 @@ data CssSubclassSelector
 
 -- https://www.w3.org/TR/selectors-4/#typedef-compound-selector
 newtype CssCompoundSelector = CssCompoundSelector (CssTypeSelector, [CssSubclassSelector])
+  deriving (Show, Eq)
 
 
 
@@ -1198,9 +1203,7 @@ newtype CssCompoundSelector = CssCompoundSelector (CssTypeSelector, [CssSubclass
 toCompound :: CssSimpleSelector -> CssCompoundSelector
 toCompound ss = CssCompoundSelector (t, s)
   where
-    t = case selectorTagName ss of
-          Just x  -> x
-          Nothing -> CssTypeSelectorUniv
+    t = selectorTagName ss
     s = (f1 . selectorId $ ss) ++ (f2 . selectorClass $ ss) ++ (f3 . selectorPseudoClass $ ss)
     f1 x  = if T.null x then [] else [CssIdSelector x]
     f2 xs = map (\x -> CssClassSelector x) xs
@@ -1208,23 +1211,45 @@ toCompound ss = CssCompoundSelector (t, s)
 
 
 
-selectorPseudoClass2 :: CssCompoundSelector -> [CssSubclassSelector]
-selectorPseudoClass2 (CssCompoundSelector (_, xs)) = filter (\x -> case x of
-                                                                     (CssPseudoClassSelector t) -> True
-                                                                     otherwise                  -> False) xs
 
-
-selectorClass2 :: CssCompoundSelector -> [CssSubclassSelector]
-selectorClass2 (CssCompoundSelector (_, xs)) = filter (\x -> case x of
-                                                               (CssClassSelector t) -> True
-                                                               otherwise            -> False) xs
+cselTagName :: CssCompoundSelector -> CssTypeSelector
+cselTagName (CssCompoundSelector (t, _)) = t
 
 
 
-selectorId2 :: CssCompoundSelector -> [CssSubclassSelector]
-selectorId2 (CssCompoundSelector (_, xs)) = filter (\x -> case x of
-                                                            (CssIdSelector t) -> True
-                                                            otherwise         -> False) xs
+cselPseudoClass :: CssCompoundSelector -> [CssSubclassSelector]
+cselPseudoClass (CssCompoundSelector (_, xs)) = filter (\x -> case x of
+                                                                (CssPseudoClassSelector t) -> True
+                                                                otherwise                  -> False) xs
+
+
+cselClass :: CssCompoundSelector -> [CssSubclassSelector]
+cselClass (CssCompoundSelector (_, xs)) = filter (\x -> case x of
+                                                          (CssClassSelector t) -> True
+                                                          otherwise            -> False) xs
+
+
+
+cselId :: CssCompoundSelector -> [CssSubclassSelector]
+cselId (CssCompoundSelector (_, xs)) = filter (\x -> case x of
+                                                       (CssIdSelector t) -> True
+                                                       otherwise         -> False) xs
+
+
+
+
+-- Is a compound selector an 'Any' HTML tag?
+cselIsUniversal (CssCompoundSelector (CssTypeSelectorUniv, _)) = True
+cselIsUniversal _                                              = False
+
+
+
+
+-- What is the element in compound selector? Either some specific HTML tag
+-- (then 'Maybe t') or Any or None (then 'Nothing').
+cselSpecificType :: CssCompoundSelector -> Maybe Int
+cselSpecificType (CssCompoundSelector (CssTypeSelector t, _)) = Just t
+cselSpecificType _                                            = Nothing
 
 
 
@@ -1242,7 +1267,7 @@ defaultSimpleSelector = CssSimpleSelector {
     selectorPseudoClass = []
   , selectorId          = ""
   , selectorClass       = []
-  , selectorTagName     = Just CssTypeSelectorUniv
+  , selectorTagName     = CssTypeSelectorUniv
 
   -- Combinator that combines this simple selector and the previous one
   -- (previous one == simple selector to the left of current simple
@@ -1295,7 +1320,10 @@ parseSelector (parser, token) = ((outParser, outToken), selector)
 
 
 parseSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
-parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels)  = parseSelectorTokens tokens ((simSel{selectorTagName = mkCssTypeSelector $ htmlTagIndex sym}):simSels)
+parseSelectorTokens (CssTokDelim '*':tokens) (simSel:simSels) = parseSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelectorUniv}):simSels)
+parseSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels) = case htmlTagIndex2 sym of
+                                                                  Just idx -> parseSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelector idx}):simSels)
+                                                                  Nothing  -> parseSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelectorUnknown}):simSels)
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
 parseSelectorTokens (CssTokHash CssHashId ident:tokens) (simSel:simSels)      = parseSelectorTokens tokens ((appendSubclassSelector simSel (CssIdSelector ident)):simSels)

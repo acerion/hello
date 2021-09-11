@@ -37,6 +37,7 @@ module HtmlTag(
   , takeAttrValue
   , parserDefault
   , htmlTagIndex
+  , htmlTagIndex2
   , TagParser(..)
   ) where
 
@@ -316,11 +317,25 @@ fixWhiteSpaces text = T.map (\c -> if c == '\t' then ' ' else if c == '\n' then 
 --
 -- TODO: make sure before calling the function that the elementName contains
 -- only an element name, without any following characters.
-htmlTagIndex :: T.Text -> Int -- TODO: the function should return Maybe Int
+htmlTagIndex :: T.Text -> Int -- TODO: replace all calls of this function with htmlTagIndex2
 htmlTagIndex elementName =
   case V.findIndex findP htmlTagInfo of
     Just idx -> idx
     Nothing  -> -1
+  where
+    findP :: T.Text -> Bool
+    findP = (\t -> t == elementName')
+
+    nameP :: Char -> Bool
+    nameP = (\c -> isAlphaNum c && isAscii c)
+
+    elementName' = T.toLower (T.takeWhile nameP elementName)
+
+
+
+
+htmlTagIndex2 :: T.Text -> Maybe Int -- TODO: the function should return Maybe Int
+htmlTagIndex2 elementName = V.findIndex findP htmlTagInfo
   where
     findP :: T.Text -> Bool
     findP = (\t -> t == elementName')
