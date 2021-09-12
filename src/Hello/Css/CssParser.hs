@@ -108,8 +108,8 @@ module Hello.Css.Parser(
                        , takeComplexSelectorTokens
                        , parseComplexSelector
 
-                       , CssSimpleSelector (..)
-                       , defaultSimpleSelector
+                       , CssComplexSelectorLink (..)
+                       , defaultComplexSelectorLink
 
                        , readSelectorList
                        , removeSpaceTokens
@@ -131,7 +131,7 @@ module Hello.Css.Parser(
                        , defaultCssDeclarationSet
 
                        , CssRule (..)
-                       , getTopSimSel
+                       , getTopLink
                        , getRequiredMatchCache
 
                        , consumeFunctionBody
@@ -1141,7 +1141,7 @@ cssParseWeight (parser, tok)          = ((parser, tok), False)
 
 
 
-data CssSimpleSelector = CssSimpleSelector {
+data CssComplexSelectorLink = CssComplexSelectorLink {
     selectorPseudoClass :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#pseudo-class
   , selectorId          :: T.Text          -- https://www.w3.org/TR/selectors-4/#id-selector
   , selectorClass       :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#class-selector
@@ -1155,8 +1155,16 @@ data CssSimpleSelector = CssSimpleSelector {
 
 data CssComplexSelector = CssComplexSelector {
     matchCacheOffset :: Int
-  , simpleSelectors  :: [CssSimpleSelector]
+  , links            :: [CssComplexSelectorLink] -- Links in a chain of [Complex selector : Combinator : Complex selector : Combinator : ...] items.
   } deriving (Show, Eq)
+
+
+
+
+data CssComplexSelector2
+  = CssComplexSelectorA
+  | CssComplexSelectorB (CssCompoundSelector)
+  | CssComplexSelectorC (CssCompoundSelector, CssCombinator, CssComplexSelector2)
 
 
 
@@ -1213,7 +1221,7 @@ mkCssCompoundSelector ts classIdents pseudoClassIdents idIdent = CssCompoundSele
 
 
 
-toCompound :: CssSimpleSelector -> CssCompoundSelector
+toCompound :: CssComplexSelectorLink -> CssCompoundSelector
 toCompound ss = CssCompoundSelector (t, s)
   where
     t = selectorTagName ss
@@ -1276,15 +1284,15 @@ data CssCombinator =
 
 
 
-defaultSimpleSelector = CssSimpleSelector {
+defaultComplexSelectorLink = CssComplexSelectorLink {
     selectorPseudoClass = []
   , selectorId          = ""
   , selectorClass       = []
   , selectorTagName     = CssTypeSelectorUniv
 
-  -- Combinator that combines this simple selector and the previous one
-  -- (previous one == simple selector to the left of current simple
-  -- selector). For a simple selector that is first on the list (or the only
+  -- Combinator that combines this compound selector and the previous one
+  -- (previous one == compound selector to the left of current compound
+  -- selector). For a compound selector that is first on the list (or the only
   -- on the list), the combinator will be None.
   , combinator          = CssCombinatorNone
   }
@@ -1293,23 +1301,23 @@ defaultSimpleSelector = CssSimpleSelector {
 
 defaultComplexSelector = CssComplexSelector {
     matchCacheOffset = -1
-  , simpleSelectors  = [] -- [defaultSimpleSelector]
+  , links            = [] -- [defaultComplexSelectorLink]
   }
 
 
 
 
--- Update simple selector with given subclass selector.
-appendSubclassSelector :: CssSimpleSelector -> CssSubclassSelector -> CssSimpleSelector
-appendSubclassSelector simpleSelector subSel =
+-- Update compound selector with given subclass selector.
+appendSubclassSelector :: CssComplexSelectorLink -> CssSubclassSelector -> CssComplexSelectorLink
+appendSubclassSelector compound subSel =
   case subSel of
-    CssClassSelector ident       -> simpleSelector {selectorClass = (selectorClass simpleSelector) ++ [ident]}
+    CssClassSelector ident       -> compound {selectorClass = (selectorClass compound) ++ [ident]}
     CssPseudoClassSelector ident -> if T.null ident
-                                    then simpleSelector
-                                    else simpleSelector {selectorPseudoClass = (selectorPseudoClass simpleSelector) ++ [ident]}
-    CssIdSelector ident          -> if selectorId simpleSelector == ""
-                                    then simpleSelector {selectorId = ident}
-                                    else simpleSelector  -- TODO: is this valid that we ignore new value of the field without any warning?
+                                    then compound
+                                    else compound {selectorPseudoClass = (selectorPseudoClass compound) ++ [ident]}
+    CssIdSelector ident          -> if selectorId compound == ""
+                                    then compound {selectorId = ident}
+                                    else compound  -- TODO: is this valid that we ignore new value of the field without any warning?
 
 
 
@@ -1326,31 +1334,31 @@ parseComplexSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe C
 parseComplexSelector (parser, token) = ((outParser, outToken), selector)
   where
     (outParser, outToken) = consumeRestOfSelector (p2, t2)
-    ((p2, t2), selector) = case parseComplexSelectorTokens (removeSpaceTokens cplxSelTokens []) [defaultSimpleSelector] of
-                             Just simSels -> ((newParser, newToken), Just defaultComplexSelector{simpleSelectors = reverse simSels})
-                             Nothing      -> ((newParser, newToken), Nothing)
+    ((p2, t2), selector) = case parseComplexSelectorTokens (removeSpaceTokens cplxSelTokens []) [defaultComplexSelectorLink] of
+                             Just xs -> ((newParser, newToken), Just defaultComplexSelector{links = reverse xs})
+                             Nothing -> ((newParser, newToken), Nothing)
 
     ((newParser, newToken), cplxSelTokens) = takeComplexSelectorTokens (parser, token)
 
 
 
 
-parseComplexSelectorTokens :: [CssToken] -> [CssSimpleSelector] -> Maybe [CssSimpleSelector]
-parseComplexSelectorTokens (CssTokDelim '*':tokens) (simSel:simSels) = parseComplexSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelectorUniv}):simSels)
-parseComplexSelectorTokens (CssTokIdent sym:tokens) (simSel:simSels) = case htmlTagIndex2 sym of
-                                                                  Just idx -> parseComplexSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelector idx}):simSels)
-                                                                  Nothing  -> parseComplexSelectorTokens tokens ((simSel{selectorTagName = CssTypeSelectorUnknown}):simSels)
+parseComplexSelectorTokens :: [CssToken] -> [CssComplexSelectorLink] -> Maybe [CssComplexSelectorLink]
+parseComplexSelectorTokens (CssTokDelim '*':tokens) (x:xs) = parseComplexSelectorTokens tokens ((x{selectorTagName = CssTypeSelectorUniv}):xs)
+parseComplexSelectorTokens (CssTokIdent sym:tokens) (x:xs) = case htmlTagIndex2 sym of
+                                                               Just idx -> parseComplexSelectorTokens tokens ((x {selectorTagName = CssTypeSelector idx}):xs)
+                                                               Nothing  -> parseComplexSelectorTokens tokens ((x {selectorTagName = CssTypeSelectorUnknown}):xs)
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
-parseComplexSelectorTokens (CssTokHash CssHashId ident:tokens) (simSel:simSels)      = parseComplexSelectorTokens tokens ((appendSubclassSelector simSel (CssIdSelector ident)):simSels)
-parseComplexSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) (simSel:simSels) = parseComplexSelectorTokens tokens ((appendSubclassSelector simSel (CssClassSelector sym)):simSels)
-parseComplexSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (simSel:simSels)     = parseComplexSelectorTokens tokens ((appendSubclassSelector simSel (CssPseudoClassSelector sym)):simSels)
-parseComplexSelectorTokens (CssTokDelim '>':tokens) simSels = parseComplexSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorChild}:simSels)
-parseComplexSelectorTokens (CssTokDelim '+':tokens) simSels = parseComplexSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorAdjacentSibling}:simSels)
-parseComplexSelectorTokens (CssTokWS:tokens)     simSels = parseComplexSelectorTokens tokens (defaultSimpleSelector{combinator = CssCombinatorDescendant}:simSels)
+parseComplexSelectorTokens (CssTokHash CssHashId ident:tokens) (x:xs)      = parseComplexSelectorTokens tokens ((appendSubclassSelector x (CssIdSelector ident)):xs)
+parseComplexSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) (x:xs) = parseComplexSelectorTokens tokens ((appendSubclassSelector x (CssClassSelector sym)):xs)
+parseComplexSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (x:xs)     = parseComplexSelectorTokens tokens ((appendSubclassSelector x (CssPseudoClassSelector sym)):xs)
+parseComplexSelectorTokens (CssTokDelim '>':tokens) xs = parseComplexSelectorTokens tokens (defaultComplexSelectorLink{combinator = CssCombinatorChild}:xs)
+parseComplexSelectorTokens (CssTokDelim '+':tokens) xs = parseComplexSelectorTokens tokens (defaultComplexSelectorLink{combinator = CssCombinatorAdjacentSibling}:xs)
+parseComplexSelectorTokens (CssTokWS:tokens)        xs = parseComplexSelectorTokens tokens (defaultComplexSelectorLink{combinator = CssCombinatorDescendant}:xs)
 
-parseComplexSelectorTokens [] simSels = Just simSels
-parseComplexSelectorTokens _  simSels = Nothing
+parseComplexSelectorTokens [] xs = Just xs
+parseComplexSelectorTokens _  xs = Nothing
 
 
 
@@ -1394,7 +1402,7 @@ consumeRestOfSelector (parser, _)                         = consumeRestOfSelecto
 
 
 -- Take all tokens until ',' or '{' or EOF is met. The tokens will be used to
--- create list of CssSimpleSelectors (with separating combinators). If input
+-- create list of CssComplexSelectorLinks (with separating combinators). If input
 -- stream starts with whitespace, discard the whitespace (don't return token
 -- for it) - leading whitespace is certainly meaningless.
 takeComplexSelectorTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
@@ -1826,13 +1834,13 @@ data CssRule = CssRule {
 
 
 
--- Get top simple selector
-getTopSimSel :: CssRule -> CssSimpleSelector
-getTopSimSel = L.last . simpleSelectors . complexSelector
+-- Get top compound selector
+getTopLink :: CssRule -> CssComplexSelectorLink
+getTopLink = L.last . links . complexSelector
 
 
 
 
 getRequiredMatchCache :: CssRule -> Int
-getRequiredMatchCache rule = (matchCacheOffset . complexSelector $ rule) + (length . simpleSelectors . complexSelector $ rule)
+getRequiredMatchCache rule = (matchCacheOffset . complexSelector $ rule) + (length . links . complexSelector $ rule)
 

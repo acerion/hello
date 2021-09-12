@@ -62,9 +62,9 @@ typedef struct c_css_parser_t {
 
 
 
-typedef struct c_css_simple_selector_t {
+typedef struct c_css_complex_selector_link_t {
    /* It's possible that more than one of these is set in a single
-      CssSimpleSelector struct. */
+      CssComplexSelectorLink struct. */
    char * c_selector_class[10];
    int c_selector_class_size;
 
@@ -77,12 +77,12 @@ typedef struct c_css_simple_selector_t {
    int c_selector_type; /* Index corresponding to html.cc::Tags[]. */
 
    int c_combinator;
-} c_css_simple_selector_t;
+} c_css_complex_selector_link_t;
 
 
 typedef struct c_css_compound_selector_t {
    /* It's possible that more than one of these is set in a single
-      CssSimpleSelector struct. */
+      CssComplexSelectorLink struct. */
    char * c_selector_class[10];
    int c_selector_class_size;
 
@@ -99,8 +99,8 @@ typedef struct c_css_compound_selector_t {
 
 typedef struct c_css_selector_t {
    int c_match_cache_offset;
-   c_css_simple_selector_t * c_simple_selectors[10];
-   int c_simple_selectors_size;
+   c_css_complex_selector_link_t * c_links[10];
+   int c_links_size;
 } c_css_selector_t;
 
 

@@ -28,7 +28,7 @@ void print_css_rule_map(FILE * file, c_css_rules_map_t * map);
 void print_css_rule_list(FILE * file, c_css_rules_list_t * list);
 void print_css_rule_selector(FILE * file, c_css_selector_t * selector);
 void print_css_rule_properties(FILE * file, c_css_declaration_set_t * props);
-void print_css_simple_selector(FILE * file, c_css_simple_selector_t * sim_sel);
+void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t * link);
 
 /**
  * Signal handler for "delete": This handles the case when an instance
@@ -1119,11 +1119,11 @@ void print_css_rule_selector(FILE * file, c_css_selector_t * selector)
    if (!selector) {
       return;
    }
-   fprintf(file, "                    selector (%d elements):\n", selector->c_simple_selectors_size);
-   for (int i = 0; i < selector->c_simple_selectors_size; i++) {
-      c_css_simple_selector_t * ss = selector->c_simple_selectors[i];
-      fprintf(file, "                        combinator = %d\n", ss->c_combinator);
-      print_css_simple_selector(file, ss);
+   fprintf(file, "                    selector (%d elements):\n", selector->c_links_size);
+   for (int i = 0; i < selector->c_links_size; i++) {
+      c_css_complex_selector_link_t * link = selector->c_links[i];
+      fprintf(file, "                        combinator = %d\n", link->c_combinator);
+      print_css_complex_selector_link(file, link);
    }
 }
 
@@ -1201,23 +1201,23 @@ void print_css_rule_properties(FILE * file, c_css_declaration_set_t * props)
    }
 }
 
-void print_css_simple_selector(FILE * file, c_css_simple_selector_t * sim_sel)
+void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t * link)
 {
-   fprintf(file, "                        Simple selector:\n");
-   fprintf(file, "                            element = %d/%s\n", sim_sel->c_selector_type, a_Html_tag_name(sim_sel->c_selector_type));
+   fprintf(file, "                        Compound selector:\n");
+   fprintf(file, "                            element = %d/%s\n", link->c_selector_type, a_Html_tag_name(link->c_selector_type));
 
    fprintf(file, "                            pseudo  = ");
-   for (int p = 0; p == 0 || p < sim_sel->c_selector_pseudo_class_size; p++) { // The 'p == 0' condition to keep output format compatible with dillo's
-      fprintf(file, "%s'%s'", p > 0 ? " " : "", sim_sel->c_selector_pseudo_class[p]);
+   for (int p = 0; p == 0 || p < link->c_selector_pseudo_class_size; p++) { // The 'p == 0' condition to keep output format compatible with dillo's
+      fprintf(file, "%s'%s'", p > 0 ? " " : "", link->c_selector_pseudo_class[p]);
    }
-   if (sim_sel->c_selector_pseudo_class_size > 1) {
+   if (link->c_selector_pseudo_class_size > 1) {
       fprintf(file, "(Hello-specific multi-value pseudo)");
    }
    fprintf(file, "\n");
 
-   fprintf(file, "                            id      = '%s'\n", sim_sel->c_selector_id);
-   fprintf(file, "                            class (%d elems)\n", sim_sel->c_selector_class_size);
-   for (int i = 0; i < sim_sel->c_selector_class_size; i++) {
-      fprintf(file, "                                class[%d] = '%s'\n", i, sim_sel->c_selector_class[i]);
+   fprintf(file, "                            id      = '%s'\n", link->c_selector_id);
+   fprintf(file, "                            class (%d elems)\n", link->c_selector_class_size);
+   for (int i = 0; i < link->c_selector_class_size; i++) {
+      fprintf(file, "                                class[%d] = '%s'\n", i, link->c_selector_class[i]);
    }
 }

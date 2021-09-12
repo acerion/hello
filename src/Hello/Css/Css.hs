@@ -58,7 +58,7 @@ data DoctreeNode = DoctreeNode {
 
 
 {-
-Return whether simple selector matches at a given node of the document tree.
+Return whether compound selector matches at a given node of the document tree.
 
 Right now this is a naive re-write of simple_selector_matches() C function.
 
@@ -92,11 +92,11 @@ compoundSelectorMatches' cpdSel dtn | mismatchOnElement cpdSel dtn     = 4
     -- if (selector->c_selector_id != NULL && (dtn->c_element_selector_id == NULL || dStrAsciiCasecmp (selector->c_selector_id, dtn->c_element_selector_id) != 0))
     --     return false;
 
-    -- All class items of a simple selector must be found in dtn's class set
+    -- All class items of a compound selector must be found in dtn's class set
     mismatchOnClass :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnClass csel dtn = not allSimSelClassInNodeClass
+    mismatchOnClass csel dtn = not allCompoundClassInNodeClass
       where
-        allSimSelClassInNodeClass = and $ map (\x -> elem x classes) (cselClass csel)
+        allCompoundClassInNodeClass = and $ map (\x -> elem x classes) (cselClass csel)
         classes = map CssClassSelector (selClass $ dtn)
     -- for (int i = 0; i < selector->c_selector_class_size; i++) {
     -- bool found = false;
@@ -120,7 +120,7 @@ The specificity of a CSS selector is defined in
 http://www.w3.org/TR/CSS21/cascade.html#specificity
 -}
 selectorSpecificity :: CssComplexSelector -> Int
-selectorSpecificity cplxSel = selectorSpecificity' (simpleSelectors cplxSel) 0
+selectorSpecificity cplxSel = selectorSpecificity' (links cplxSel) 0
   where
     selectorSpecificity' (x:xs) acc = selectorSpecificity' xs (acc + (compoundSelectorSpecificity . toCompound $ x))
     selectorSpecificity' []     acc = acc

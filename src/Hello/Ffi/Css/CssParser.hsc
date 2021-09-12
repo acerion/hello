@@ -25,9 +25,9 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
-module Hello.Ffi.Css.Parser( FfiCssSimpleSelector (..)
-                           , peekCssSimpleSelector
-                           , pokeCssSimpleSelector
+module Hello.Ffi.Css.Parser( FfiCssComplexSelectorLink (..)
+                           , peekCssComplexSelectorLink
+                           , pokeCssComplexSelectorLink
 
                            , FfiCssCompoundSelector (..)
                            , peekCssCompoundSelector
@@ -380,7 +380,7 @@ hll_cssPropertyNameString property = do
 
 
 
-data FfiCssSimpleSelector = FfiCssSimpleSelector {
+data FfiCssComplexSelectorLink = FfiCssComplexSelectorLink {
   -- equals to <char * c_selector_class[10]>,
   -- which equals to <char ** c_selector_class>
     selectorClassC           :: Ptr (Ptr CChar)
@@ -400,92 +400,92 @@ data FfiCssSimpleSelector = FfiCssSimpleSelector {
 
 
 
-instance Storable FfiCssSimpleSelector where
-  sizeOf    _ = #{size c_css_simple_selector_t}
-  alignment _ = #{alignment c_css_simple_selector_t}
+instance Storable FfiCssComplexSelectorLink where
+  sizeOf    _ = #{size c_css_complex_selector_link_t}
+  alignment _ = #{alignment c_css_complex_selector_link_t}
 
   peek ptr = do
-    let a = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_simple_selector_t, c_selector_class}) ptr
-    b <- #{peek c_css_simple_selector_t, c_selector_class_size} ptr
-    let c = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_simple_selector_t, c_selector_pseudo_class}) ptr
-    d <- #{peek c_css_simple_selector_t, c_selector_pseudo_class_size} ptr
-    e <- #{peek c_css_simple_selector_t, c_selector_id} ptr
-    f <- #{peek c_css_simple_selector_t, c_selector_type} ptr
-    g <- #{peek c_css_simple_selector_t, c_combinator} ptr
-    return (FfiCssSimpleSelector a b c d e f g)
+    let a = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_complex_selector_link_t, c_selector_class}) ptr
+    b <- #{peek c_css_complex_selector_link_t, c_selector_class_size} ptr
+    let c = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_complex_selector_link_t, c_selector_pseudo_class}) ptr
+    d <- #{peek c_css_complex_selector_link_t, c_selector_pseudo_class_size} ptr
+    e <- #{peek c_css_complex_selector_link_t, c_selector_id} ptr
+    f <- #{peek c_css_complex_selector_link_t, c_selector_type} ptr
+    g <- #{peek c_css_complex_selector_link_t, c_combinator} ptr
+    return (FfiCssComplexSelectorLink a b c d e f g)
 
 
-  poke ptr (FfiCssSimpleSelector selectorClassI selector_class_size_I selector_pseudo_class_I selector_pseudo_class_size_I selector_id_I selector_type_I combinator_I) = do
-    #{poke c_css_simple_selector_t, c_selector_class}             ptr selectorClassI
-    #{poke c_css_simple_selector_t, c_selector_class_size}        ptr selector_class_size_I
-    #{poke c_css_simple_selector_t, c_selector_pseudo_class}      ptr selector_pseudo_class_I
-    #{poke c_css_simple_selector_t, c_selector_pseudo_class_size} ptr selector_pseudo_class_size_I
-    #{poke c_css_simple_selector_t, c_selector_id}                ptr selector_id_I
-    #{poke c_css_simple_selector_t, c_selector_type}              ptr selector_type_I
-    #{poke c_css_simple_selector_t, c_combinator}                 ptr combinator_I
+  poke ptr (FfiCssComplexSelectorLink selectorClassI selector_class_size_I selector_pseudo_class_I selector_pseudo_class_size_I selector_id_I selector_type_I combinator_I) = do
+    #{poke c_css_complex_selector_link_t, c_selector_class}             ptr selectorClassI
+    #{poke c_css_complex_selector_link_t, c_selector_class_size}        ptr selector_class_size_I
+    #{poke c_css_complex_selector_link_t, c_selector_pseudo_class}      ptr selector_pseudo_class_I
+    #{poke c_css_complex_selector_link_t, c_selector_pseudo_class_size} ptr selector_pseudo_class_size_I
+    #{poke c_css_complex_selector_link_t, c_selector_id}                ptr selector_id_I
+    #{poke c_css_complex_selector_link_t, c_selector_type}              ptr selector_type_I
+    #{poke c_css_complex_selector_link_t, c_combinator}                 ptr combinator_I
 
 
 
 
-peekCssSimpleSelector :: Ptr FfiCssSimpleSelector -> IO CssSimpleSelector
-peekCssSimpleSelector ptrStructSimpleSelector = do
+peekCssComplexSelectorLink :: Ptr FfiCssComplexSelectorLink -> IO CssComplexSelectorLink
+peekCssComplexSelectorLink ptrStructLink = do
 
-  ffiSimSel <- peek ptrStructSimpleSelector
+  ffiLink <- peek ptrStructLink
 
-  let pcStringArray :: Ptr CString = (selectorPseudoClassC ffiSimSel)
-  pc <- peekArrayOfPointers pcStringArray (fromIntegral . selectorPseudoClassSizeC $ ffiSimSel) ptrCCharToText
+  let pcStringArray :: Ptr CString = (selectorPseudoClassC ffiLink)
+  pc <- peekArrayOfPointers pcStringArray (fromIntegral . selectorPseudoClassSizeC $ ffiLink) ptrCCharToText
 
-  selId <- ptrCCharToText . selectorIdC $ ffiSimSel
+  selId <- ptrCCharToText . selectorIdC $ ffiLink
 
-  let cStringArray :: Ptr CString = (selectorClassC ffiSimSel)
-  c <- peekArrayOfPointers cStringArray (fromIntegral . selectorClassSizeC $ ffiSimSel) ptrCCharToText
+  let cStringArray :: Ptr CString = (selectorClassC ffiLink)
+  c <- peekArrayOfPointers cStringArray (fromIntegral . selectorClassSizeC $ ffiLink) ptrCCharToText
 
-  return CssSimpleSelector{ selectorPseudoClass = pc
+  return CssComplexSelectorLink{ selectorPseudoClass = pc
                           , selectorId      = selId
                           , selectorClass   = c
-                          , selectorTagName = mkCssTypeSelector . fromIntegral . selectorTagNameC $ ffiSimSel
-                          , combinator      = cssCombinatorIntToData . fromIntegral . combinatorC $ ffiSimSel
+                          , selectorTagName = mkCssTypeSelector . fromIntegral . selectorTagNameC $ ffiLink
+                          , combinator      = cssCombinatorIntToData . fromIntegral . combinatorC $ ffiLink
                           }
 
 
 
 
--- Save given Haskell simple selector to C simple selector.
+-- Save given Haskell compound selector to C compound selector.
 -- https://downloads.haskell.org/~ghc/7.0.3/docs/html/users_guide/hsc2hs.html
-pokeCssSimpleSelector :: Ptr FfiCssSimpleSelector -> CssSimpleSelector -> IO ()
-pokeCssSimpleSelector ptrStructSimpleSelector simpleSelector = do
-  cStringPtrSelId <- if T.null . selectorId $ simpleSelector
+pokeCssComplexSelectorLink :: Ptr FfiCssComplexSelectorLink -> CssComplexSelectorLink -> IO ()
+pokeCssComplexSelectorLink ptrStructLink link = do
+  cStringPtrSelId <- if T.null . selectorId $ link
                      then return nullPtr
-                     else newCString . T.unpack . selectorId $ simpleSelector
+                     else newCString . T.unpack . selectorId $ link
 
-  ffiSimSel <- peek ptrStructSimpleSelector
+  ffiLink <- peek ptrStructLink
 
-  pokeArrayOfPointersWithAlloc (selectorClass simpleSelector) allocAndPokeCString (selectorClassC ffiSimSel)
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_class_size) (length . selectorClass $ simpleSelector)
+  pokeArrayOfPointersWithAlloc (selectorClass link) allocAndPokeCString (selectorClassC ffiLink)
+  pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_selector_class_size) (length . selectorClass $ link)
 
-  pokeArrayOfPointersWithAlloc (selectorPseudoClass simpleSelector) allocAndPokeCString (selectorPseudoClassC ffiSimSel)
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_pseudo_class_size) (length . selectorPseudoClass $ simpleSelector)
+  pokeArrayOfPointersWithAlloc (selectorPseudoClass link) allocAndPokeCString (selectorPseudoClassC ffiLink)
+  pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_selector_pseudo_class_size) (length . selectorPseudoClass $ link)
 
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_id) cStringPtrSelId
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_selector_type) (unCssTypeSelector . selectorTagName $ simpleSelector)
+  pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_selector_id) cStringPtrSelId
+  pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_selector_type) (unCssTypeSelector . selectorTagName $ link)
 
-  let comb :: CInt = cssCombinatorDataToInt . combinator $ simpleSelector
-  pokeByteOff ptrStructSimpleSelector (#offset c_css_simple_selector_t, c_combinator) comb
+  let comb :: CInt = cssCombinatorDataToInt . combinator $ link
+  pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_combinator) comb
 
 
 
 
 -- Get pointer to newly allocated pointer to C structure representing given
--- simple selector.
+-- compound selector.
 --
 -- This function allocates memory, but since the goal of this project is to
 -- replace C/C++ code with Haskell code, the allocation will be eventually
 -- removed. So I don't care about deallocating the memory.
-allocAndPokeCssSimpleSelector :: CssSimpleSelector -> IO (Ptr FfiCssSimpleSelector)
-allocAndPokeCssSimpleSelector simSel = do
-  ptrStructSimpleSelector <- callocBytes #{size c_css_simple_selector_t}
-  pokeCssSimpleSelector ptrStructSimpleSelector simSel
-  return ptrStructSimpleSelector
+allocAndPokeCssComplexSelectorLink :: CssComplexSelectorLink -> IO (Ptr FfiCssComplexSelectorLink)
+allocAndPokeCssComplexSelectorLink link = do
+  ptrStructLink <- callocBytes #{size c_css_complex_selector_link_t}
+  pokeCssComplexSelectorLink ptrStructLink link
+  return ptrStructLink
 
 
 
@@ -587,11 +587,11 @@ pokeCssCompoundSelector ptrStructCompoundSelector csel = do
 data FfiCssComplexSelector = FfiCssComplexSelector {
     cMatchCacheOffset    :: CInt
 
-    --    <c_css_simple_selector_t * c_simple_selector_list[10]>
-    -- == <c_css_simple_selector_t ** c_simple_selector_list>
-    -- == pointer to pointer(s) to simple selector struct
-  , cSimpleSelectors     :: Ptr (Ptr FfiCssSimpleSelector)
-  , cSimpleSelectorsSize :: CInt
+    --    <c_css_complex_selector_link_t * c_links[10]>
+    -- == <c_css_complex_selector_link_t ** c_links>
+    -- == pointer to pointer(s) to link struct
+  , cLinks     :: Ptr (Ptr FfiCssComplexSelectorLink)
+  , cLinksSize :: CInt
   } deriving (Show)
 
 
@@ -603,14 +603,14 @@ instance Storable FfiCssComplexSelector where
 
   peek ptr = do
     a <- #{peek c_css_selector_t, c_match_cache_offset} ptr
-    let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_selector_t, c_simple_selectors}) ptr
-    c <- #{peek c_css_selector_t, c_simple_selectors_size} ptr
+    let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_selector_t, c_links}) ptr
+    c <- #{peek c_css_selector_t, c_links_size} ptr
     return (FfiCssComplexSelector a b c)
 
-  poke ptr (FfiCssComplexSelector inMatchCaseOffset inSimpleSelectors inSimpleSelectorsSize) = do
+  poke ptr (FfiCssComplexSelector inMatchCaseOffset inLinks inLinksSize) = do
     #{poke c_css_selector_t, c_match_cache_offset}    ptr inMatchCaseOffset
-    #{poke c_css_selector_t, c_simple_selectors}      ptr inSimpleSelectors
-    #{poke c_css_selector_t, c_simple_selectors_size} ptr inSimpleSelectorsSize
+    #{poke c_css_selector_t, c_links}      ptr inLinks
+    #{poke c_css_selector_t, c_links_size} ptr inLinksSize
 
 
 
@@ -621,16 +621,16 @@ peekCssComplexSelector ptrStructCssComplexSelector = do
   ffiSel <- peek ptrStructCssComplexSelector
 
   {- This would also work:
-  let offset = #{offset c_css_selector_t, c_simple_selector_list}
-  let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = plusPtr ptrStructCssComplexSelector offset
+  let offset = #{offset c_css_selector_t, c_links}
+  let ptrLinkArray :: Ptr (Ptr FfiCssComplexSelectorLink) = plusPtr ptrStructCssComplexSelector offset
   -}
-  let ptrSimSelArray :: Ptr (Ptr FfiCssSimpleSelector) = cSimpleSelectors ffiSel
+  let ptrLinkArray :: Ptr (Ptr FfiCssComplexSelectorLink) = cLinks ffiSel
 
-  let simSelCount = fromIntegral . cSimpleSelectorsSize $ ffiSel
-  simSels <- peekArrayOfPointers ptrSimSelArray simSelCount peekCssSimpleSelector
+  let linksCount = fromIntegral . cLinksSize $ ffiSel
+  linksData <- peekArrayOfPointers ptrLinkArray linksCount peekCssComplexSelectorLink
 
   return CssComplexSelector{ matchCacheOffset = fromIntegral . cMatchCacheOffset $ ffiSel
-                           , simpleSelectors  = simSels
+                           , links            = linksData
                            }
 
 
@@ -641,8 +641,8 @@ pokeCssComplexSelector ptrStructCssComplexSelector selector = do
 
   ffiSel <- peek ptrStructCssComplexSelector
 
-  pokeArrayOfPointersWithAlloc (simpleSelectors selector) allocAndPokeCssSimpleSelector (cSimpleSelectors ffiSel)
-  pokeByteOff ptrStructCssComplexSelector (#offset c_css_selector_t, c_simple_selectors_size) (length . simpleSelectors $ selector)
+  pokeArrayOfPointersWithAlloc (links selector) allocAndPokeCssComplexSelectorLink (cLinks ffiSel)
+  pokeByteOff ptrStructCssComplexSelector (#offset c_css_selector_t, c_links_size) (length . links $ selector)
 
   pokeByteOff ptrStructCssComplexSelector (#offset c_css_selector_t, c_match_cache_offset) (matchCacheOffset selector)
 

@@ -218,12 +218,12 @@ enum {
 
 
 
-/* c_css_simple_selector_t methods. */
-void css_simple_selector_print(FILE * file, c_css_simple_selector_t * selector);
-/* Print simple selector in one line. Fields are printed in the same order as
+/* c_css_complex_selector_link_t methods. */
+void css_complex_selector_link_print(FILE * file, c_css_complex_selector_link_t * link);
+/* Print compound simple selector in one line. Fields are printed in the same order as
    in Haskell record. */
-void css_simple_selector_print_flat(FILE * file, const c_css_simple_selector_t * sim_sel);
-int css_simple_selector_specificity(c_css_simple_selector_t * selector);
+void css_complex_selector_link_print_flat(FILE * file, const c_css_complex_selector_link_t * link);
+int css_complex_selector_link_specificity(c_css_complex_selector_link_t * link);
 
 
 

@@ -26,13 +26,13 @@ static void alloc_sheet(c_css_style_sheet_t ** sheet);
 
 
 /* c_css_selector_t methods. */
-static bool css_selector_matches(c_css_selector_t * selector, Doctree * dt, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache);
+static bool css_selector_matches(c_css_selector_t * selector, Doctree * dt, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache);
 
 
 
 
 static void css_value_copy(c_css_value_t * dest, c_css_value_t * src);
-static bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache);
+static bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache);
 
 
 
@@ -103,9 +103,9 @@ void css_value_copy(c_css_value_t * dest, c_css_value_t * src)
 /**
  * \brief Return whether selector matches at a given node in the document tree.
  */
-bool css_selector_matches(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache)
+bool css_selector_matches(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache)
 {
-   if (sim_sel_idx < 0) {
+   if (link_idx < 0) {
       return true;
    }
 
@@ -120,31 +120,31 @@ bool css_selector_matches(c_css_selector_t * selector, Doctree * docTree, const 
          break;
       case CssSelectorCombinatorDescendant:
          dtn = docTree->parent(dtn);
-         return on_combinator_descendant(selector, docTree, dtn, sim_sel_idx, comb, match_cache);
+         return on_combinator_descendant(selector, docTree, dtn, link_idx, comb, match_cache);
       default:
          return false; // \todo implement other combinators
    }
 
-   struct c_css_simple_selector_t * sim_sel = selector->c_simple_selectors[sim_sel_idx];
+   struct c_css_complex_selector_link_t * link = selector->c_links[link_idx];
    if (!dtn) {
       return false;
    }
-   if (!hll_compoundSelectorMatches((c_css_compound_selector_t *) sim_sel, dtn)) {
+   if (!hll_compoundSelectorMatches((c_css_compound_selector_t *) link, dtn)) {
       return false;
    }
 
    // tail recursion should be optimized by the compiler
-   return css_selector_matches(selector, docTree, dtn, sim_sel_idx - 1, (Combinator) sim_sel->c_combinator, match_cache);
+   return css_selector_matches(selector, docTree, dtn, link_idx - 1, (Combinator) link->c_combinator, match_cache);
 }
 
-bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int sim_sel_idx, Combinator comb, c_css_match_cache_t * match_cache)
+bool on_combinator_descendant(c_css_selector_t * selector, Doctree * docTree, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache)
 {
-   int * match_cache_entry = &match_cache->c_cache_items[selector->c_match_cache_offset + sim_sel_idx];
-   struct c_css_simple_selector_t * sim_sel = selector->c_simple_selectors[sim_sel_idx];
+   int * match_cache_entry = &match_cache->c_cache_items[selector->c_match_cache_offset + link_idx];
+   struct c_css_complex_selector_link_t * link = selector->c_links[link_idx];
 
    for (const c_doctree_node_t * dtn2 = dtn; dtn2 && dtn2->c_unique_num > *match_cache_entry; dtn2 = docTree->parent(dtn2)) {
-      if (hll_compoundSelectorMatches((c_css_compound_selector_t *) sim_sel, dtn2)
-          && css_selector_matches(selector, docTree, dtn2, sim_sel_idx - 1, (Combinator) sim_sel->c_combinator, match_cache)) {
+      if (hll_compoundSelectorMatches((c_css_compound_selector_t *) link, dtn2)
+          && css_selector_matches(selector, docTree, dtn2, link_idx - 1, (Combinator) link->c_combinator, match_cache)) {
          return true;
       }
    }
@@ -223,7 +223,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
          c_css_rule_t * rule = rules_lists[minSpecIndex]->c_rules[index[minSpecIndex]];
 
          /* Apply CSS rule. */
-         if (css_selector_matches(rule->c_selector, docTree, dtn, rule->c_selector->c_simple_selectors_size - 1, CssSelectorCombinatorNone, match_cache)) {
+         if (css_selector_matches(rule->c_selector, docTree, dtn, rule->c_selector->c_links_size - 1, CssSelectorCombinatorNone, match_cache)) {
             hll_declarationListAppend(decl_set, rule->c_decl_set);
          }
 

@@ -77,11 +77,11 @@ type CssRulesMap = M.Map T.Text [CssRule]
 
 
 data CssStyleSheet = CssStyleSheet {
-    rulesById          :: CssRulesMap -- CSS rules, in which topmost simple selector is "id".
-  , rulesByClass       :: CssRulesMap -- CSS rules, in which topmost simple selector is "class".
+    rulesById          :: CssRulesMap -- CSS rules, in which topmost compound selector is characterized by its "id".
+  , rulesByClass       :: CssRulesMap -- CSS rules, in which topmost compound selector is characterized by its "class".
   -- TODO: list of lists to be replaced with vector indexed by element.
-  , rulesByType        :: [[CssRule]] -- CSS rules, in which topmost simple selector is "specific html element".
-  , rulesByAnyElement  :: [CssRule]   -- CSS rules, in which topmost simple selector is "any html element".
+  , rulesByType        :: [[CssRule]] -- CSS rules, in which topmost compound selector is characterized by its "specific html element".
+  , rulesByAnyElement  :: [CssRule]   -- CSS rules, in which topmost compound selector is characterized by its "any html element".
 
   , requiredMatchCache :: Int
   } deriving (Show)
@@ -93,7 +93,7 @@ data CssStyleSheet = CssStyleSheet {
 Insert a rule into style sheet.
 
 To improve matching performance the rules are organized into rule lists based
-on the topmost simple selector of their selector.
+on the topmost compound selector of their selector.
 -}
 addRuleToStyleSheet :: CssStyleSheet -> CssRule -> CssStyleSheet
 addRuleToStyleSheet sheet rule = case insertRuleToStyleSheet rule sheet of
@@ -117,29 +117,28 @@ poke.
 insertRuleToStyleSheet :: CssRule -> CssStyleSheet -> (Int, CssStyleSheet)
 insertRuleToStyleSheet rule sheet
   -- Put a rule in a bucket. Decide which bucket to choose by looking at
-  -- topmost Simple Selector of the rule.
-  | simSelIsSelId tss          = (1, sheet { rulesById         = updatedRulesById })
-  | simSelIsSelClass tss       = (2, sheet { rulesByClass      = updatedRulesByClass })
-  | simSelIsSelType tss        = (3, sheet { rulesByType       = updatedRulesByType })
-  | simSelIsSelTypeAny tss     = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
-  | simSelIsUnexpectedType tss = (trace ("[EE] insert rule: unexpected type: " ++ (show . selectorTagName $ tss)) (0, sheet))
-  | otherwise                  = (0, sheet)
+  -- topmost compound selector in the complex selector of given rule.
+  | isSelId link          = (1, sheet { rulesById         = updatedRulesById })
+  | isSelClass link       = (2, sheet { rulesByClass      = updatedRulesByClass })
+  | isSelType link        = (3, sheet { rulesByType       = updatedRulesByType })
+  | isSelTypeAny link     = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
+  | isUnexpectedType link = (trace ("[EE] insert rule: unexpected type: " ++ (show . selectorTagName $ link)) (0, sheet))
+  | otherwise             = (0, sheet)
 
   where
-    simSelIsSelId              = not . T.null . selectorId
-    simSelIsSelClass           = not . null . selectorClass
-    simSelIsSelType            = isJust . cselSpecificType . toCompound
-    simSelIsSelTypeAny         = cselIsUniversal . toCompound
-    simSelIsUnexpectedType tss = selectorTagName tss == CssTypeSelectorUnknown
+    isSelId               = not . T.null . selectorId
+    isSelClass            = not . null . selectorClass
+    isSelType             = isJust . cselSpecificType . toCompound
+    isSelTypeAny          = cselIsUniversal . toCompound
+    isUnexpectedType link = selectorTagName link == CssTypeSelectorUnknown
 
+    link = getTopLink rule
 
-    tss = getTopSimSel rule
+    updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId link) rule
+    updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ link) rule
 
-    updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId tss) rule
-    updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ tss) rule
-
-    updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (cselSpecificType . toCompound $ tss)) rule
-    updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (unCssTypeSelector . selectorTagName $ tss)
+    updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (cselSpecificType . toCompound $ link)) rule
+    updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (unCssTypeSelector . selectorTagName $ link)
 
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
 
@@ -156,7 +155,8 @@ list).
 A map can be indexed by either CSS ID or CSS class.
 
 Value of a map, associated with the index (map key) is a list of rules, each
-of the rules having given id/class in topmost Simple Selector.
+of the rules having given id/class in topmost compound selector of a complex
+selector.
 -}
 updateMapOfLists :: CssRulesMap -> T.Text -> CssRule -> CssRulesMap
 updateMapOfLists map key rule = case M.lookup key map of
@@ -218,14 +218,15 @@ data CssSheetSelector =
 
 
 
-cssRuleIsSafe rule = (not . cssSelectorHasPseudoClass . complexSelector $ rule) || (isSafe . declarationSet $ rule)
+cssRuleIsSafe rule = (not . cssComplexSelectorHasPseudoClass . complexSelector $ rule) || (isSafe . declarationSet $ rule)
 
 
 
--- Does any selector have non-empty list of pseudo class simple selectors?
--- Remember that C/C++ code can use only first pseudo class.
-cssSelectorHasPseudoClass :: CssComplexSelector -> Bool
-cssSelectorHasPseudoClass cplxSel = any (\simSel -> not . null . selectorPseudoClass $ simSel) (simpleSelectors cplxSel)
+-- Does any compound selector in given complex selector have non-empty list
+-- of pseudo class simple selectors? Remember that C/C++ code can use only
+-- first pseudo class.
+cssComplexSelectorHasPseudoClass :: CssComplexSelector -> Bool
+cssComplexSelectorHasPseudoClass complex = any (\link -> not . null . selectorPseudoClass $ link) (links complex)
 
 
 
