@@ -44,15 +44,23 @@ module Hello.Css.Parser(
                        , mkCssTypeSelector
                        , styleSheetElementCount
 
-                       , CssCompoundSelector
+                       , CssCompoundSelector1
                        , mkCssCompoundSelector
                        , toCompound
+                       , compound2toCompound1
                        , cselTagName
                        , cselPseudoClass
                        , cselClass
                        , cselId
-                       , cselIsUniversal
-                       , cselSpecificType
+                       , compoundHasUniversalType
+                       , compoundHasUnexpectedType
+                       , compoundHasSpecificType
+                       , compoundSpecificType
+                       , compoundHasClass
+                       , compoundHasId
+
+                       , CssCompoundSelector2 (..)
+                       , defaultCssCompoundSelector2
 
                        , CssSubclassSelector (..)
 
@@ -131,7 +139,7 @@ module Hello.Css.Parser(
                        , defaultCssDeclarationSet
 
                        , CssRule (..)
-                       , getTopLink
+                       , getTopCompound
                        , getRequiredMatchCache
 
                        , consumeFunctionBody
@@ -1141,13 +1149,19 @@ cssParseWeight (parser, tok)          = ((parser, tok), False)
 
 
 
-data CssComplexSelectorLink = CssComplexSelectorLink {
-    selectorPseudoClass :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#pseudo-class
+data CssCompoundSelector2 = CssCompoundSelector2
+  { selectorPseudoClass :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#pseudo-class
   , selectorId          :: T.Text          -- https://www.w3.org/TR/selectors-4/#id-selector
   , selectorClass       :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#class-selector
   , selectorTagName     :: CssTypeSelector
                                            -- TODO: add https://www.w3.org/TR/selectors-4/#attribute-selector
-  , combinator          :: CssCombinator
+  } deriving (Show, Eq)
+
+
+
+data CssComplexSelectorLink = CssComplexSelectorLink
+  { compound   :: CssCompoundSelector2
+  , combinator :: CssCombinator
   } deriving (Show, Eq)
 
 
@@ -1163,8 +1177,8 @@ data CssComplexSelector = CssComplexSelector {
 
 data CssComplexSelector2
   = CssComplexSelectorA
-  | CssComplexSelectorB (CssCompoundSelector)
-  | CssComplexSelectorC (CssCompoundSelector, CssCombinator, CssComplexSelector2)
+  | CssComplexSelectorB (CssCompoundSelector1)
+  | CssComplexSelectorC (CssCompoundSelector1, CssCombinator, CssComplexSelector2)
 
 
 
@@ -1205,14 +1219,14 @@ data CssSubclassSelector
 
 
 -- https://www.w3.org/TR/selectors-4/#typedef-compound-selector
-newtype CssCompoundSelector = CssCompoundSelector (CssTypeSelector, [CssSubclassSelector])
+newtype CssCompoundSelector1 = CssCompoundSelector1 (CssTypeSelector, [CssSubclassSelector])
   deriving (Show, Eq)
 
 
 
 
-mkCssCompoundSelector :: CssTypeSelector -> [T.Text] -> [T.Text] -> T.Text -> CssCompoundSelector
-mkCssCompoundSelector ts classIdents pseudoClassIdents idIdent = CssCompoundSelector (ts, classes ++ pseudoClasses ++ ids)
+mkCssCompoundSelector :: CssTypeSelector -> [T.Text] -> [T.Text] -> T.Text -> CssCompoundSelector1
+mkCssCompoundSelector ts classIdents pseudoClassIdents idIdent = CssCompoundSelector1 (ts, classes ++ pseudoClasses ++ ids)
   where
     ids           = if T.null idIdent then [] else [CssIdSelector idIdent]
     classes       = map (\x -> CssClassSelector x) classIdents
@@ -1221,11 +1235,11 @@ mkCssCompoundSelector ts classIdents pseudoClassIdents idIdent = CssCompoundSele
 
 
 
-toCompound :: CssComplexSelectorLink -> CssCompoundSelector
-toCompound ss = CssCompoundSelector (t, s)
+toCompound :: CssComplexSelectorLink -> CssCompoundSelector1
+toCompound link = CssCompoundSelector1 (t, s)
   where
-    t = selectorTagName ss
-    s = (f1 . selectorId $ ss) ++ (f2 . selectorClass $ ss) ++ (f3 . selectorPseudoClass $ ss)
+    t = selectorTagName . compound $ link
+    s = (f1 . selectorId . compound $ link) ++ (f2 . selectorClass . compound $ link) ++ (f3 . selectorPseudoClass . compound $ link)
     f1 x  = if T.null x then [] else [CssIdSelector x]
     f2 xs = map (\x -> CssClassSelector x) xs
     f3 xs = map (\x -> CssPseudoClassSelector x) xs
@@ -1233,44 +1247,76 @@ toCompound ss = CssCompoundSelector (t, s)
 
 
 
-cselTagName :: CssCompoundSelector -> CssTypeSelector
-cselTagName (CssCompoundSelector (t, _)) = t
+compound2toCompound1 :: CssCompoundSelector2 -> CssCompoundSelector1
+compound2toCompound1 cpd2 = CssCompoundSelector1 (t, s)
+  where
+    t = selectorTagName cpd2
+    s = (f1 . selectorId $ cpd2) ++ (f2 . selectorClass $ cpd2) ++ (f3 . selectorPseudoClass $ cpd2)
+    f1 x  = if T.null x then [] else [CssIdSelector x]
+    f2 xs = map (\x -> CssClassSelector x) xs
+    f3 xs = map (\x -> CssPseudoClassSelector x) xs
 
 
 
-cselPseudoClass :: CssCompoundSelector -> [CssSubclassSelector]
-cselPseudoClass (CssCompoundSelector (_, xs)) = filter (\x -> case x of
-                                                                (CssPseudoClassSelector t) -> True
-                                                                otherwise                  -> False) xs
 
 
-cselClass :: CssCompoundSelector -> [CssSubclassSelector]
-cselClass (CssCompoundSelector (_, xs)) = filter (\x -> case x of
-                                                          (CssClassSelector t) -> True
-                                                          otherwise            -> False) xs
+cselTagName :: CssCompoundSelector1 -> CssTypeSelector
+cselTagName (CssCompoundSelector1 (t, _)) = t
 
 
 
-cselId :: CssCompoundSelector -> [CssSubclassSelector]
-cselId (CssCompoundSelector (_, xs)) = filter (\x -> case x of
-                                                       (CssIdSelector t) -> True
-                                                       otherwise         -> False) xs
+cselPseudoClass :: CssCompoundSelector1 -> [CssSubclassSelector]
+cselPseudoClass (CssCompoundSelector1 (_, xs)) = filter (\x -> case x of
+                                                                 (CssPseudoClassSelector t) -> True
+                                                                 otherwise                  -> False) xs
+
+
+cselClass :: CssCompoundSelector1 -> [CssSubclassSelector]
+cselClass (CssCompoundSelector1 (_, xs)) = filter (\x -> case x of
+                                                           (CssClassSelector t) -> True
+                                                           otherwise            -> False) xs
+
+
+
+cselId :: CssCompoundSelector1 -> [CssSubclassSelector]
+cselId (CssCompoundSelector1 (_, xs)) = filter (\x -> case x of
+                                                        (CssIdSelector t) -> True
+                                                        otherwise         -> False) xs
 
 
 
 
 -- Is a compound selector an 'Any' HTML tag?
-cselIsUniversal (CssCompoundSelector (CssTypeSelectorUniv, _)) = True
-cselIsUniversal _                                              = False
+compoundHasUniversalType (CssCompoundSelector1 (CssTypeSelectorUniv, _)) = True
+compoundHasUniversalType _                                              = False
 
 
+
+compoundHasUnexpectedType :: CssCompoundSelector1 -> Bool
+compoundHasUnexpectedType (CssCompoundSelector1 (CssTypeSelectorUnknown, _)) = True
+compoundHasUnexpectedType _                                                  = False
+
+
+
+compoundHasSpecificType :: CssCompoundSelector1 -> Bool
+compoundHasSpecificType = isJust . compoundSpecificType
 
 
 -- What is the element in compound selector? Either some specific HTML tag
 -- (then 'Maybe t') or Any or None (then 'Nothing').
-cselSpecificType :: CssCompoundSelector -> Maybe Int
-cselSpecificType (CssCompoundSelector (CssTypeSelector t, _)) = Just t
-cselSpecificType _                                            = Nothing
+compoundSpecificType :: CssCompoundSelector1 -> Maybe Int
+compoundSpecificType (CssCompoundSelector1 (CssTypeSelector t, _)) = Just t
+compoundSpecificType _                                             = Nothing
+
+
+
+compoundHasClass :: CssCompoundSelector2 -> Bool
+compoundHasClass = not . null . selectorClass
+
+
+
+compoundHasId :: CssCompoundSelector2 -> Bool
+compoundHasId = not . T.null . selectorId
 
 
 
@@ -1284,11 +1330,20 @@ data CssCombinator =
 
 
 
-defaultComplexSelectorLink = CssComplexSelectorLink {
-    selectorPseudoClass = []
+
+defaultCssCompoundSelector2 = CssCompoundSelector2
+  { selectorPseudoClass = []
   , selectorId          = ""
   , selectorClass       = []
   , selectorTagName     = CssTypeSelectorUniv
+  }
+
+
+
+
+
+defaultComplexSelectorLink = CssComplexSelectorLink
+  { compound = defaultCssCompoundSelector2
 
   -- Combinator that combines this compound selector and the previous one
   -- (previous one == compound selector to the left of current compound
@@ -1308,7 +1363,7 @@ defaultComplexSelector = CssComplexSelector {
 
 
 -- Update compound selector with given subclass selector.
-appendSubclassSelector :: CssComplexSelectorLink -> CssSubclassSelector -> CssComplexSelectorLink
+appendSubclassSelector :: CssCompoundSelector2 -> CssSubclassSelector -> CssCompoundSelector2
 appendSubclassSelector compound subSel =
   case subSel of
     CssClassSelector ident       -> compound {selectorClass = (selectorClass compound) ++ [ident]}
@@ -1344,15 +1399,18 @@ parseComplexSelector (parser, token) = ((outParser, outToken), selector)
 
 
 parseComplexSelectorTokens :: [CssToken] -> [CssComplexSelectorLink] -> Maybe [CssComplexSelectorLink]
-parseComplexSelectorTokens (CssTokDelim '*':tokens) (x:xs) = parseComplexSelectorTokens tokens ((x{selectorTagName = CssTypeSelectorUniv}):xs)
+parseComplexSelectorTokens (CssTokDelim '*':tokens) (x:xs) = parseComplexSelectorTokens tokens ((setSelectorTagName x CssTypeSelectorUniv):xs)
 parseComplexSelectorTokens (CssTokIdent sym:tokens) (x:xs) = case htmlTagIndex2 sym of
-                                                               Just idx -> parseComplexSelectorTokens tokens ((x {selectorTagName = CssTypeSelector idx}):xs)
-                                                               Nothing  -> parseComplexSelectorTokens tokens ((x {selectorTagName = CssTypeSelectorUnknown}):xs)
+                                                               Just idx -> parseComplexSelectorTokens tokens ((setSelectorTagName x (CssTypeSelector idx)):xs)
+                                                               Nothing  -> parseComplexSelectorTokens tokens ((setSelectorTagName x (CssTypeSelectorUnknown)):xs)
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
-parseComplexSelectorTokens (CssTokHash CssHashId ident:tokens) (x:xs)      = parseComplexSelectorTokens tokens ((appendSubclassSelector x (CssIdSelector ident)):xs)
-parseComplexSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) (x:xs) = parseComplexSelectorTokens tokens ((appendSubclassSelector x (CssClassSelector sym)):xs)
-parseComplexSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (x:xs)     = parseComplexSelectorTokens tokens ((appendSubclassSelector x (CssPseudoClassSelector sym)):xs)
+parseComplexSelectorTokens (CssTokHash CssHashId ident:tokens) (x:xs)      = parseComplexSelectorTokens
+                                                                             tokens ((x { compound = appendSubclassSelector (compound x) (CssIdSelector ident)}):xs)
+parseComplexSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) (x:xs) = parseComplexSelectorTokens
+                                                                             tokens ((x { compound = appendSubclassSelector (compound x) (CssClassSelector sym)}):xs)
+parseComplexSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (x:xs)     = parseComplexSelectorTokens
+                                                                             tokens ((x { compound = appendSubclassSelector (compound x) (CssPseudoClassSelector sym)}):xs)
 parseComplexSelectorTokens (CssTokDelim '>':tokens) xs = parseComplexSelectorTokens tokens (defaultComplexSelectorLink{combinator = CssCombinatorChild}:xs)
 parseComplexSelectorTokens (CssTokDelim '+':tokens) xs = parseComplexSelectorTokens tokens (defaultComplexSelectorLink{combinator = CssCombinatorAdjacentSibling}:xs)
 parseComplexSelectorTokens (CssTokWS:tokens)        xs = parseComplexSelectorTokens tokens (defaultComplexSelectorLink{combinator = CssCombinatorDescendant}:xs)
@@ -1361,6 +1419,10 @@ parseComplexSelectorTokens [] xs = Just xs
 parseComplexSelectorTokens _  xs = Nothing
 
 
+
+setSelectorTagName link t = link {compound = c { selectorTagName = t }}
+  where
+    c = compound link
 
 
 -- Parse entire list of selectors that are separated with comma.
@@ -1835,8 +1897,8 @@ data CssRule = CssRule {
 
 
 -- Get top compound selector
-getTopLink :: CssRule -> CssComplexSelectorLink
-getTopLink = L.last . links . complexSelector
+getTopCompound :: CssRule -> CssCompoundSelector2
+getTopCompound = compound . L.last . links . complexSelector
 
 
 

@@ -36,7 +36,7 @@ import Css
 -- function, and printing the input selector in Haskell function.
 --
 -- Perhaps in the future I will write some generator of test data.
-matchTestManualData :: [(Int, CssCompoundSelector, DoctreeNode)] = [
+matchTestManualData :: [(Int, CssCompoundSelector1, DoctreeNode)] = [
     (4,
     mkCssCompoundSelector {- t= -} (CssTypeSelector 36) {- c= -}  [] {- pc = -}[] {- id= -} "",
     DoctreeNode {uniqueNum = 453, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], parent = Nothing, sibling = Nothing, lastChild = Nothing})

@@ -33,7 +33,7 @@ import HtmlTag
 
 
 
--- Test of getTopLink function
+-- Test of getTopCompound function
 --
 -- "top compound selector" is the rightmost compound selector in a rule, and data
 -- structure representing it is storing it at the end of a list. This test is
@@ -42,26 +42,26 @@ import HtmlTag
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
-getTopLinkTestManualDataBasic = [
+getTopCompoundTestManualDataBasic = [
   -- parser's input remainder      expected top simple selector
 
     ( "body {color: black;background-color: #ffffff;padding:0px;}"
-    , defaultComplexSelectorLink{ selectorTagName = CssTypeSelector . htmlTagIndex $ "body", combinator = CssCombinatorNone } )
+    , defaultCssCompoundSelector2{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} )
 
   , ( ".pure-g > div {-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;}"
-    , defaultComplexSelectorLink{ selectorTagName = CssTypeSelector . htmlTagIndex $ "div", combinator = CssCombinatorChild } )
+    , defaultCssCompoundSelector2{ selectorTagName = CssTypeSelector . htmlTagIndex $ "div"} )
 
   , ( ".navmenu li:hover > ul {display: block;}"
-    , defaultComplexSelectorLink{ selectorTagName = CssTypeSelector . htmlTagIndex $ "ul", combinator = CssCombinatorChild } )
+    , defaultCssCompoundSelector2{ selectorTagName = CssTypeSelector . htmlTagIndex $ "ul"} )
 
   , ( ".pure-menu-horizontal .pure-menu-has-children .pure-menu-link:after{content:\"x\"}"
-    , defaultComplexSelectorLink{ selectorClass = ["pure-menu-link"], selectorPseudoClass = ["after"], combinator = CssCombinatorDescendant} )
+    , defaultCssCompoundSelector2{ selectorClass = ["pure-menu-link"], selectorPseudoClass = ["after"]} )
 
   , ( "H3.SummaryHL + #id { margin: 0px; }"
-    , defaultComplexSelectorLink{ selectorId = "id", combinator = CssCombinatorAdjacentSibling} )
+    , defaultCssCompoundSelector2{ selectorId = "id"} )
 
   , ( ".topnav-container a:visited { color: DarkBlue; }"
-    , defaultComplexSelectorLink{ selectorPseudoClass = ["visited"], selectorTagName = CssTypeSelector . htmlTagIndex $ "a", combinator = CssCombinatorDescendant } )
+    , defaultCssCompoundSelector2{ selectorPseudoClass = ["visited"], selectorTagName = CssTypeSelector . htmlTagIndex $ "a"} )
   ]
 
 
@@ -69,20 +69,20 @@ getTopLinkTestManualDataBasic = [
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-getTopLinkTest :: [(T.Text, CssComplexSelectorLink)] -> T.Text
-getTopLinkTest []     = ""
-getTopLinkTest (x:xs) = if expectedLink /= link
-                        then remainderIn
-                        else getTopLinkTest xs
+getTopCompoundTest :: [(T.Text, CssCompoundSelector2)] -> T.Text
+getTopCompoundTest []     = ""
+getTopCompoundTest (x:xs) = if expectedCompound /= cpd
+                            then remainderIn
+                            else getTopCompoundTest xs
   where
     remainderIn  = fst x
-    expectedLink = snd x
+    expectedCompound = snd x
 
     -- Both cases should work the same. If current token is None, tested
     -- function should get some non-None input token.
     ((p1, t1), selectorList) = readSelectorList (defaultParser{remainder = remainderIn}, CssTokNone)
     rule = CssRule { complexSelector = head selectorList, declarationSet = defaultCssDeclarationSet, specificity = 0, position = 0 }
-    link = getTopLink rule
+    cpd = getTopCompound rule
 
 
 
@@ -91,7 +91,7 @@ ruleTestCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.
      TestCase (do
-                 assertEqual "manual tests of getTopLink" "" (getTopLinkTest getTopLinkTestManualDataBasic))
+                 assertEqual "manual tests of getTopCompound" "" (getTopCompoundTest getTopCompoundTestManualDataBasic))
   ]
 
 

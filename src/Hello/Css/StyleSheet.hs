@@ -118,27 +118,22 @@ insertRuleToStyleSheet :: CssRule -> CssStyleSheet -> (Int, CssStyleSheet)
 insertRuleToStyleSheet rule sheet
   -- Put a rule in a bucket. Decide which bucket to choose by looking at
   -- topmost compound selector in the complex selector of given rule.
-  | isSelId link          = (1, sheet { rulesById         = updatedRulesById })
-  | isSelClass link       = (2, sheet { rulesByClass      = updatedRulesByClass })
-  | isSelType link        = (3, sheet { rulesByType       = updatedRulesByType })
-  | isSelTypeAny link     = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
-  | isUnexpectedType link = (trace ("[EE] insert rule: unexpected type: " ++ (show . selectorTagName $ link)) (0, sheet))
-  | otherwise             = (0, sheet)
+  | compoundHasId cpd2             = (1, sheet { rulesById         = updatedRulesById })
+  | compoundHasClass cpd2          = (2, sheet { rulesByClass      = updatedRulesByClass })
+  | compoundHasSpecificType cpd1   = (3, sheet { rulesByType       = updatedRulesByType })
+  | compoundHasUniversalType cpd1  = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
+  | compoundHasUnexpectedType cpd1 = (trace ("[EE] insert rule: unexpected type: " ++ (show . selectorTagName $ cpd2)) (0, sheet))
+  | otherwise                      = (0, sheet)
 
   where
-    isSelId               = not . T.null . selectorId
-    isSelClass            = not . null . selectorClass
-    isSelType             = isJust . cselSpecificType . toCompound
-    isSelTypeAny          = cselIsUniversal . toCompound
-    isUnexpectedType link = selectorTagName link == CssTypeSelectorUnknown
+    cpd2 = getTopCompound rule :: CssCompoundSelector2
+    cpd1 = compound2toCompound1 cpd2
 
-    link = getTopLink rule
+    updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId cpd2) rule
+    updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ cpd2) rule
 
-    updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId link) rule
-    updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ link) rule
-
-    updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (cselSpecificType . toCompound $ link)) rule
-    updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (unCssTypeSelector . selectorTagName $ link)
+    updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (compoundSpecificType cpd1)) rule
+    updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (unCssTypeSelector . selectorTagName $ cpd2)
 
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
 
@@ -226,7 +221,7 @@ cssRuleIsSafe rule = (not . cssComplexSelectorHasPseudoClass . complexSelector $
 -- of pseudo class simple selectors? Remember that C/C++ code can use only
 -- first pseudo class.
 cssComplexSelectorHasPseudoClass :: CssComplexSelector -> Bool
-cssComplexSelectorHasPseudoClass complex = any (\link -> not . null . selectorPseudoClass $ link) (links complex)
+cssComplexSelectorHasPseudoClass complex = any (\link -> not . null . selectorPseudoClass . compound $ link) (links $ complex)
 
 
 

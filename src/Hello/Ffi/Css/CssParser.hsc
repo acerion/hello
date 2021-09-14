@@ -440,12 +440,17 @@ peekCssComplexSelectorLink ptrStructLink = do
   let cStringArray :: Ptr CString = (selectorClassC ffiLink)
   c <- peekArrayOfPointers cStringArray (fromIntegral . selectorClassSizeC $ ffiLink) ptrCCharToText
 
-  return CssComplexSelectorLink{ selectorPseudoClass = pc
-                          , selectorId      = selId
-                          , selectorClass   = c
-                          , selectorTagName = mkCssTypeSelector . fromIntegral . selectorTagNameC $ ffiLink
-                          , combinator      = cssCombinatorIntToData . fromIntegral . combinatorC $ ffiLink
-                          }
+  let cpd = CssCompoundSelector2
+            { selectorPseudoClass = pc
+            , selectorId          = selId
+            , selectorClass       = c
+            , selectorTagName     = mkCssTypeSelector . fromIntegral . selectorTagNameC $ ffiLink
+            }
+
+  return CssComplexSelectorLink
+    { compound = cpd
+    , combinator      = cssCombinatorIntToData . fromIntegral . combinatorC $ ffiLink
+    }
 
 
 
@@ -454,20 +459,20 @@ peekCssComplexSelectorLink ptrStructLink = do
 -- https://downloads.haskell.org/~ghc/7.0.3/docs/html/users_guide/hsc2hs.html
 pokeCssComplexSelectorLink :: Ptr FfiCssComplexSelectorLink -> CssComplexSelectorLink -> IO ()
 pokeCssComplexSelectorLink ptrStructLink link = do
-  cStringPtrSelId <- if T.null . selectorId $ link
+  cStringPtrSelId <- if T.null . selectorId . compound $ link
                      then return nullPtr
-                     else newCString . T.unpack . selectorId $ link
+                     else newCString . T.unpack . selectorId . compound $ link
 
   ffiLink <- peek ptrStructLink
 
-  pokeArrayOfPointersWithAlloc (selectorClass link) allocAndPokeCString (selectorClassC ffiLink)
-  pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_selector_class_size) (length . selectorClass $ link)
+  pokeArrayOfPointersWithAlloc (selectorClass . compound $ link) allocAndPokeCString (selectorClassC ffiLink)
+  pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_selector_class_size) (length . selectorClass . compound $ link)
 
-  pokeArrayOfPointersWithAlloc (selectorPseudoClass link) allocAndPokeCString (selectorPseudoClassC ffiLink)
-  pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_selector_pseudo_class_size) (length . selectorPseudoClass $ link)
+  pokeArrayOfPointersWithAlloc (selectorPseudoClass . compound $ link) allocAndPokeCString (selectorPseudoClassC ffiLink)
+  pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_selector_pseudo_class_size) (length . selectorPseudoClass . compound $ link)
 
   pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_selector_id) cStringPtrSelId
-  pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_selector_type) (unCssTypeSelector . selectorTagName $ link)
+  pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_selector_type) (unCssTypeSelector . selectorTagName . compound $ link)
 
   let comb :: CInt = cssCombinatorDataToInt . combinator $ link
   pokeByteOff ptrStructLink (#offset c_css_complex_selector_link_t, c_combinator) comb
@@ -533,7 +538,7 @@ instance Storable FfiCssCompoundSelector where
 
 
 
-peekCssCompoundSelector :: Ptr FfiCssCompoundSelector -> IO CssCompoundSelector
+peekCssCompoundSelector :: Ptr FfiCssCompoundSelector -> IO CssCompoundSelector1
 peekCssCompoundSelector ptrStructCompoundSelector = do
 
   ffiCpdSel <- peek ptrStructCompoundSelector
@@ -553,7 +558,7 @@ peekCssCompoundSelector ptrStructCompoundSelector = do
 
 -- Save given Haskell compound selector to C compound selector.
 -- https://downloads.haskell.org/~ghc/7.0.3/docs/html/users_guide/hsc2hs.html
-pokeCssCompoundSelector :: Ptr FfiCssCompoundSelector -> CssCompoundSelector -> IO ()
+pokeCssCompoundSelector :: Ptr FfiCssCompoundSelector -> CssCompoundSelector1 -> IO ()
 pokeCssCompoundSelector ptrStructCompoundSelector csel = do
   cStringPtrSelId <- case cselId csel of
                        []                  -> return nullPtr

@@ -43,19 +43,19 @@ parseComplexSelectorTestManualDataBasic = [
     ( "0",              "",   Nothing )
 
   -- Recognition of most basic case: just "id" selector.
-  , ( "#some_id",       "",   Just CssComplexSelector {matchCacheOffset = (-1), links = [
-                                                          CssComplexSelectorLink {selectorPseudoClass = [], selectorId = "some_id", selectorClass = [], selectorTagName = CssTypeSelectorUniv, combinator = CssCombinatorNone }
-                                                   ]})
+  , ( "#some_id",       "",   Just CssComplexSelector
+                              { matchCacheOffset = (-1)
+                              , links = [CssComplexSelectorLink { compound = CssCompoundSelector2{selectorPseudoClass = [], selectorId = "some_id", selectorClass = [], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
 
   -- Recognition of most basic case: just "class" selector.
-  , ( ".some_class",    "",   Just CssComplexSelector {matchCacheOffset = (-1), links = [
-                                                          CssComplexSelectorLink {selectorPseudoClass = [], selectorId = "", selectorClass = ["some_class"], selectorTagName = CssTypeSelectorUniv, combinator = CssCombinatorNone }
-                                                   ]})
+  , ( ".some_class",    "",   Just CssComplexSelector
+                              { matchCacheOffset = (-1)
+                              , links = [CssComplexSelectorLink {compound = CssCompoundSelector2{selectorPseudoClass = [], selectorId = "", selectorClass = ["some_class"], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
 
   -- Recognition of most basic case: just "pseudo class" selector.
-  , ( ":link",          "",   Just CssComplexSelector {matchCacheOffset = (-1), links = [
-                                                          CssComplexSelectorLink {selectorPseudoClass = ["link"], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelectorUniv, combinator = CssCombinatorNone }
-                                                   ]})
+  , ( ":link",          "",   Just CssComplexSelector
+                              { matchCacheOffset = (-1)
+                              , links = [CssComplexSelectorLink {compound = CssCompoundSelector2{selectorPseudoClass = ["link"], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
   ]
 
 
