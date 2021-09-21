@@ -3,7 +3,7 @@
 
 all:
 	hsc2hs ./Ffi/Css/Css.hsc
-	hsc2hs ./Ffi/Css/CssParser.hsc
+	hsc2hs ./Ffi/Css/Parser.hsc
 	hsc2hs ./Ffi/Gif.hsc
 	hsc2hs ./Ffi/Html/HtmlTag.hsc
 	hsc2hs ./Ffi/Url.hsc
@@ -31,7 +31,7 @@ clean:
 	find ./Ffi/ -name "*.h"   | xargs rm -f
 
 	rm -f ./Ffi/Css/Css.hs
-	rm -f ./Ffi/Css/CssParser.hs
+	rm -f ./Ffi/Css/Parser.hs
 	rm -f ./Ffi/Gif.hs
 	rm -f ./Ffi/Html/HtmlTag.hs
 	rm -f ./Ffi/Url.hs

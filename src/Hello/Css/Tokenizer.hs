@@ -31,7 +31,7 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 {-
 TODO: be careful with decoding string from external representation into
 Data.Text. My original attempt to convert C string into Data.Text in
-ffi/CssParser.hsc used T.E.decodeUtf8. I had to change it to T.E.decodeLatin1
+ffi/Parser.hsc used T.E.decodeUtf8. I had to change it to T.E.decodeLatin1
 because of exceptions from Data.Text module on some characters in some css
 files.
 
