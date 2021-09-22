@@ -43,19 +43,19 @@ parseComplexSelectorTestManualDataBasic = [
     ( "0",              "",   Nothing )
 
   -- Recognition of most basic case: just "id" selector.
-  , ( "#some_id",       "",   Just CssComplexSelector
+  , ( "#some_id",       "",   Just CssComplexSelector1
                               { matchCacheOffset = (-1)
-                              , links = [CssComplexSelectorLink { compound = CssCompoundSelector2{selectorPseudoClass = [], selectorId = "some_id", selectorClass = [], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
+                              , chain = linksToChain [CssComplexSelectorLink { compound = CssCompoundSelector2{selectorPseudoClass = [], selectorId = "some_id", selectorClass = [], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
 
   -- Recognition of most basic case: just "class" selector.
-  , ( ".some_class",    "",   Just CssComplexSelector
+  , ( ".some_class",    "",   Just CssComplexSelector1
                               { matchCacheOffset = (-1)
-                              , links = [CssComplexSelectorLink {compound = CssCompoundSelector2{selectorPseudoClass = [], selectorId = "", selectorClass = ["some_class"], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
+                              , chain = linksToChain [CssComplexSelectorLink {compound = CssCompoundSelector2{selectorPseudoClass = [], selectorId = "", selectorClass = ["some_class"], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
 
   -- Recognition of most basic case: just "pseudo class" selector.
-  , ( ":link",          "",   Just CssComplexSelector
+  , ( ":link",          "",   Just CssComplexSelector1
                               { matchCacheOffset = (-1)
-                              , links = [CssComplexSelectorLink {compound = CssCompoundSelector2{selectorPseudoClass = ["link"], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
+                              , chain = linksToChain [CssComplexSelectorLink {compound = CssCompoundSelector2{selectorPseudoClass = ["link"], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
   ]
 
 
@@ -63,7 +63,7 @@ parseComplexSelectorTestManualDataBasic = [
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-parseComplexSelectorTest :: [(T.Text, T.Text, Maybe CssComplexSelector)] -> T.Text
+parseComplexSelectorTest :: [(T.Text, T.Text, Maybe CssComplexSelector1)] -> T.Text
 parseComplexSelectorTest []     = ""
 parseComplexSelectorTest (x:xs) = if expectedSelector /= cplxSel || remainderAfter /= (remainder p1)
                                   then remainderBefore
@@ -81,11 +81,103 @@ parseComplexSelectorTest (x:xs) = if expectedSelector /= cplxSel || remainderAft
 
 
 
+
+linkAndChainTestData =
+  [
+    -- Single link
+    [CssComplexSelectorLink {compound = CssCompoundSelector2 { selectorPseudoClass = ["link"]
+                                                             , selectorId = ""
+                                                             , selectorClass = []
+                                                             , selectorTagName = CssTypeSelectorUniv}
+                            , combinator = CssCombinatorNone}]
+
+{-
+    -- Two links
+  , [CssComplexSelectorLink {compound = CssCompoundSelector2 { selectorPseudoClass = []
+                                                             , selectorId = ""
+                                                             , selectorClass = ["topnav-container"]
+                                                             , selectorTagName = CssTypeSelectorUniv}
+                            , combinator = CssCombinatorNone},
+     CssComplexSelectorLink {compound = CssCompoundSelector2 { selectorPseudoClass = ["visited"]
+                                                             , selectorId = ""
+                                                             , selectorClass = []
+                                                             , selectorTagName = CssTypeSelector 0}
+                            , combinator = CssCombinatorDescendant}]
+
+
+
+  , [CssComplexSelectorLink {compound = CssCompoundSelector2 { selectorPseudoClass = []
+                                                             , selectorId = ""
+                                                             , selectorClass = ["SummaryHL"]
+                                                             , selectorTagName = CssTypeSelector 35}
+                            , combinator = CssCombinatorNone},
+     CssComplexSelectorLink {compound = CssCompoundSelector2 { selectorPseudoClass = []
+                                                             , selectorId = "id"
+                                                             , selectorClass = []
+                                                             , selectorTagName = CssTypeSelectorUniv}
+                            , combinator = CssCombinatorAdjacentSibling}]
+
+-}
+  -- Three links
+  , [CssComplexSelectorLink {compound = CssCompoundSelector2 { selectorPseudoClass = []
+                                                             , selectorId = ""
+                                                             , selectorClass = ["pure-menu-horizontal"]
+                                                             , selectorTagName = CssTypeSelectorUniv}
+                            , combinator = CssCombinatorNone},
+     CssComplexSelectorLink {compound = CssCompoundSelector2 { selectorPseudoClass = []
+                                                             , selectorId = ""
+                                                             , selectorClass = ["pure-menu-has-children"]
+                                                             , selectorTagName = CssTypeSelectorUniv}
+                            , combinator = CssCombinatorDescendant},
+     CssComplexSelectorLink {compound = CssCompoundSelector2 { selectorPseudoClass = ["after"]
+                                                             , selectorId = ""
+                                                             , selectorClass = ["pure-menu-link"]
+                                                             , selectorTagName = CssTypeSelectorUniv}
+                            , combinator = CssCombinatorDescendant}]
+
+
+  , [CssComplexSelectorLink {compound = CssCompoundSelector2 { selectorPseudoClass = []
+                                                             , selectorId = ""
+                                                             , selectorClass = ["navmenu"]
+                                                             , selectorTagName = CssTypeSelectorUniv}
+                            , combinator = CssCombinatorNone},
+     CssComplexSelectorLink {compound = CssCompoundSelector2 { selectorPseudoClass = ["hover"]
+                                                             , selectorId = ""
+                                                             , selectorClass = []
+                                                             , selectorTagName = CssTypeSelector 50}
+                            , combinator = CssCombinatorDescendant},
+     CssComplexSelectorLink {compound = CssCompoundSelector2 { selectorPseudoClass = []
+                                                             , selectorId = ""
+                                                             , selectorClass = []
+                                                             , selectorTagName = CssTypeSelector 85}
+                            , combinator = CssCombinatorChild}]
+  ]
+
+
+-- On success return empty string. On failure return string representation of
+-- remainder string in a row, for which test failed.
+linkAndChainTest :: [[CssComplexSelectorLink]] -> T.Text
+linkAndChainTest []     = ""
+linkAndChainTest (x:xs) = if linkIn x /= linkOut x
+                          then T.pack $ ("in = " ++ (show $ linkIn x) ++ ", chain = " ++ (show $ linksToChain x) ++ ", out = " ++ (show $ linkOut x))
+                          else linkAndChainTest xs
+  where
+    linkIn l  = l
+    linkOut l = chainToLinks (linksToChain l) []
+
+
+
+
+
 selectorTestCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.
      TestCase (do
-                 assertEqual "manual tests of parseComplexSelector - basic cases" "" (parseComplexSelectorTest parseComplexSelectorTestManualDataBasic))
+                  assertEqual "manual tests of parseComplexSelector - basic cases" "" (parseComplexSelectorTest parseComplexSelectorTestManualDataBasic))
+
+
+   , TestCase (do
+                  assertEqual "manual tests of link and chain"                     "" (linkAndChainTest linkAndChainTestData))
   ]
 
 

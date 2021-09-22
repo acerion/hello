@@ -119,21 +119,23 @@ Return the specificity of the selector.
 The specificity of a CSS selector is defined in
 http://www.w3.org/TR/CSS21/cascade.html#specificity
 -}
-selectorSpecificity :: CssComplexSelector -> Int
-selectorSpecificity cplxSel = selectorSpecificity' (links cplxSel) 0
+selectorSpecificity :: CssComplexSelector1 -> Int
+selectorSpecificity cplxSel = selectorSpecificity' (chain cplxSel) 0
   where
-    selectorSpecificity' (x:xs) acc = selectorSpecificity' xs (acc + (compoundSelectorSpecificity . toCompound $ x))
-    selectorSpecificity' []     acc = acc
+    selectorSpecificity' :: CssComplexSelector2 -> Int -> Int
+    selectorSpecificity' (Link combinator (Datum c1) remainder) acc = selectorSpecificity' remainder (acc + (compoundSelectorSpecificity c1))
+    selectorSpecificity' (Datum c1)                             acc =                                 acc + (compoundSelectorSpecificity c1)
+
 
 
 
 
 -- Return the specificity of compound selector
-compoundSelectorSpecificity :: CssCompoundSelector1 -> Int
+compoundSelectorSpecificity :: CssCompoundSelector2 -> Int
 compoundSelectorSpecificity cpdSel = (fromId cpdSel) + (fromClass cpdSel) + (fromPseudoClass cpdSel) + (fromElement cpdSel)
   where
-    fromId cpdSsel          = if (not . null . cselId $ cpdSel) then (1 `shiftL` 20) else 0
-    fromClass cpdSel       = (length . cselClass $ cpdSel) `shiftL` 10
-    fromPseudoClass cpdSel = if (not . null . cselPseudoClass $ cpdSel) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
-    fromElement cpdSsel     = if compoundHasUniversalType cpdSel then 0 else 1
+    fromId cpdSsel          = if (not . T.null . selectorId $ cpdSel) then (1 `shiftL` 20) else 0
+    fromClass cpdSel       = (length . selectorClass $ cpdSel) `shiftL` 10
+    fromPseudoClass cpdSel = if (not . null . selectorPseudoClass $ cpdSel) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
+    fromElement cpdSsel     = if compound2HasUniversalType cpdSel then 0 else 1
 

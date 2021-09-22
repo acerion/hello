@@ -620,7 +620,7 @@ instance Storable FfiCssComplexSelector where
 
 
 
-peekCssComplexSelector :: Ptr FfiCssComplexSelector -> IO CssComplexSelector
+peekCssComplexSelector :: Ptr FfiCssComplexSelector -> IO CssComplexSelector1
 peekCssComplexSelector ptrStructCssComplexSelector = do
 
   ffiSel <- peek ptrStructCssComplexSelector
@@ -634,20 +634,21 @@ peekCssComplexSelector ptrStructCssComplexSelector = do
   let linksCount = fromIntegral . cLinksSize $ ffiSel
   linksData <- peekArrayOfPointers ptrLinkArray linksCount peekCssComplexSelectorLink
 
-  return CssComplexSelector{ matchCacheOffset = fromIntegral . cMatchCacheOffset $ ffiSel
-                           , links            = linksData
-                           }
+  return CssComplexSelector1{ matchCacheOffset = fromIntegral . cMatchCacheOffset $ ffiSel
+                            , chain            = linksToChain linksData
+                            }
 
 
 
 
-pokeCssComplexSelector :: Ptr FfiCssComplexSelector -> CssComplexSelector -> IO ()
+pokeCssComplexSelector :: Ptr FfiCssComplexSelector -> CssComplexSelector1 -> IO ()
 pokeCssComplexSelector ptrStructCssComplexSelector selector = do
 
   ffiSel <- peek ptrStructCssComplexSelector
+  let len = chainLength . chain $ selector :: Int
 
-  pokeArrayOfPointersWithAlloc (links selector) allocAndPokeCssComplexSelectorLink (cLinks ffiSel)
-  pokeByteOff ptrStructCssComplexSelector (#offset c_css_selector_t, c_links_size) (length . links $ selector)
+  pokeArrayOfPointersWithAlloc (chainToLinks (chain selector) []) allocAndPokeCssComplexSelectorLink (cLinks ffiSel)
+  pokeByteOff ptrStructCssComplexSelector (#offset c_css_selector_t, c_links_size) len
 
   pokeByteOff ptrStructCssComplexSelector (#offset c_css_selector_t, c_match_cache_offset) (matchCacheOffset selector)
 

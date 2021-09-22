@@ -66,10 +66,14 @@ module Hello.Css.Parser(
                        , parseComplexSelector2
                        , parsePairs
                        , makeComplexR
-                       , Chain (..)
+                       , Chain2 (..)
+                       , linksToChain
+                       , chainToLinks
+                       , chainLength
 
                        , CssCompoundSelector2 (..)
                        , defaultCssCompoundSelector2
+                       , compound2HasUniversalType
 
                        , CssSubclassSelector (..)
 
@@ -120,7 +124,7 @@ module Hello.Css.Parser(
 
                        , takeLengthTokens
 
-                       , CssComplexSelector (..)
+                       , CssComplexSelector1 (..)
                        , defaultComplexSelector
                        , takeComplexSelectorTokens
                        , parseComplexSelector
@@ -128,6 +132,8 @@ module Hello.Css.Parser(
 
                        , CssComplexSelectorLink (..)
                        , defaultComplexSelectorLink
+
+                       , CssComplexSelector2
 
                        , readSelectorList
                        , removeSpaceTokens
@@ -1177,18 +1183,10 @@ data CssComplexSelectorLink = CssComplexSelectorLink
 
 
 
-data CssComplexSelector = CssComplexSelector {
+data CssComplexSelector1 = CssComplexSelector1 {
     matchCacheOffset :: Int
-  , links            :: [CssComplexSelectorLink] -- Links in a chain of [Complex selector : Combinator : Complex selector : Combinator : ...] items.
+  , chain            :: CssComplexSelector2
   } deriving (Show, Eq)
-
-
-
-
-data CssComplexSelector2
-  = CssComplexSelectorA
-  | CssComplexSelectorB (CssCompoundSelector1)
-  | CssComplexSelectorC (CssCompoundSelector1, CssCombinator, CssComplexSelector2)
 
 
 
@@ -1301,6 +1299,10 @@ compoundHasUniversalType (CssCompoundSelector1 (CssTypeSelectorUniv, _)) = True
 compoundHasUniversalType _                                              = False
 
 
+compound2HasUniversalType (CssCompoundSelector2 { selectorTagName = CssTypeSelectorUniv}) = True
+compound2HasUniversalType _                                                               = False
+
+
 
 compoundHasUnexpectedType :: CssCompoundSelector1 -> Bool
 compoundHasUnexpectedType (CssCompoundSelector1 (CssTypeSelectorUnknown, _)) = True
@@ -1364,9 +1366,9 @@ defaultComplexSelectorLink = CssComplexSelectorLink
 
 
 
-defaultComplexSelector = CssComplexSelector {
+defaultComplexSelector = CssComplexSelector1 {
     matchCacheOffset = -1
-  , links            = [] -- [defaultComplexSelectorLink]
+  , chain            = Datum defaultCssCompoundSelector2
   }
 
 
@@ -1395,12 +1397,12 @@ appendSubclassSelector compound subSel =
 --
 -- Function always consumes the group of tokens, regardless of
 -- success/failure of the parsing.
-parseComplexSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssComplexSelector)
+parseComplexSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssComplexSelector1)
 parseComplexSelector (parser, token) = ((outParser, outToken), selector)
   where
     (outParser, outToken) = consumeRestOfSelector (p2, t2)
     ((p2, t2), selector) = case parseComplexSelectorTokens (removeSpaceTokens cplxSelTokens []) [defaultComplexSelectorLink] of
-                             Just xs -> ((newParser, newToken), Just defaultComplexSelector{links = reverse xs})
+                             Just xs -> ((newParser, newToken), Just defaultComplexSelector{chain = linksToChain xs})
                              Nothing -> ((newParser, newToken), Nothing)
 
     ((newParser, newToken), cplxSelTokens) = takeComplexSelectorTokens (parser, token)
@@ -1414,61 +1416,49 @@ parseComplexSelector (parser, token) = ((outParser, outToken), selector)
 parseComplexSelectorTokens :: [CssToken] -> [CssComplexSelectorLink] -> Maybe [CssComplexSelectorLink]
 parseComplexSelectorTokens tokens _ = case parseComplexSelector2 tokens of
                                         Nothing      -> Nothing
-                                        Just complex -> Just $ complexToLinks complex []
-  where
-    complexToLinks ((Chain compound1) :>: remainder) acc = complexToLinks remainder (acc ++ [defaultComplexSelectorLink { compound = compound1, combinator = CssCombinatorChild }])
-    complexToLinks ((Chain compound1) :+: remainder) acc = complexToLinks remainder (acc ++ [defaultComplexSelectorLink { compound = compound1, combinator = CssCombinatorAdjacentSibling }])
-    complexToLinks ((Chain compound1) :~: remainder) acc = complexToLinks remainder (acc ++ [defaultComplexSelectorLink { compound = compound1, combinator = CssCombinatorDescendant }])
-    complexToLinks (Chain compound1) acc                 = acc ++ [defaultComplexSelectorLink { compound = compound1, combinator = CssCombinatorNone }]
+                                        Just complex -> Just $ chainToLinks complex []
+
+
+chainToLinks :: CssComplexSelector2 -> [CssComplexSelectorLink] -> [CssComplexSelectorLink]
+chainToLinks (Link comb (Datum compound1) remainder) acc      = chainToLinks remainder (defaultComplexSelectorLink { compound = compound1, combinator = comb } : acc)
+chainToLinks (Datum compound1) acc                 = defaultComplexSelectorLink { compound = compound1, combinator = CssCombinatorNone } : acc
 
 
 
-{-
-parseComplexSelectorTokens :: [CssToken] -> [CssComplexSelectorLink] -> Maybe [CssComplexSelectorLink]
-parseComplexSelectorTokens (CssTokDelim '*':tokens) (x:xs) = parseComplexSelectorTokens tokens ((setSelectorTagName x CssTypeSelectorUniv):xs)
-parseComplexSelectorTokens (CssTokIdent sym:tokens) (x:xs) = case htmlTagIndex2 sym of
-                                                               Just idx -> parseComplexSelectorTokens tokens ((setSelectorTagName x (CssTypeSelector idx)):xs)
-                                                               Nothing  -> parseComplexSelectorTokens tokens ((setSelectorTagName x (CssTypeSelectorUnknown)):xs)
--- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
--- the "id" type are valid ID selectors."
-parseComplexSelectorTokens (CssTokHash CssHashId ident:tokens) (x:xs)      = parseComplexSelectorTokens
-                                                                             tokens ((x { compound = appendSubclassSelector (compound x) (CssIdSelector ident)}):xs)
-parseComplexSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) (x:xs) = parseComplexSelectorTokens
-                                                                             tokens ((x { compound = appendSubclassSelector (compound x) (CssClassSelector sym)}):xs)
-parseComplexSelectorTokens (CssTokColon:CssTokIdent sym:tokens) (x:xs)     = parseComplexSelectorTokens
-                                                                             tokens ((x { compound = appendSubclassSelector (compound x) (CssPseudoClassSelector sym)}):xs)
-parseComplexSelectorTokens (CssTokDelim '>':tokens) xs = parseComplexSelectorTokens tokens (defaultComplexSelectorLink{combinator = CssCombinatorChild}:xs)
-parseComplexSelectorTokens (CssTokDelim '+':tokens) xs = parseComplexSelectorTokens tokens (defaultComplexSelectorLink{combinator = CssCombinatorAdjacentSibling}:xs)
-parseComplexSelectorTokens (CssTokWS:tokens)        xs = parseComplexSelectorTokens tokens (defaultComplexSelectorLink{combinator = CssCombinatorDescendant}:xs)
 
-parseComplexSelectorTokens [] xs = Just xs
-parseComplexSelectorTokens _  xs = Nothing
--}
+linksToChain :: [CssComplexSelectorLink] -> CssComplexSelector2
+linksToChain = linksToChain' . reverse
 
 
-infixr 5 :>:
-infixr 5 :+:
-infixr 5 :~:
 
-data Chain a
-  = Chain a
-  | Chain a :>: Chain a
-  | Chain a :+: Chain a
-  | Chain a :~: Chain a
+
+linksToChain' :: [CssComplexSelectorLink] -> CssComplexSelector2
+linksToChain' list@(CssComplexSelectorLink{combinator=CssCombinatorChild}:xs)           = Link CssCombinatorChild           (Datum (compound . head $ list)) (linksToChain' xs)
+linksToChain' list@(CssComplexSelectorLink{combinator=CssCombinatorAdjacentSibling}:xs) = Link CssCombinatorAdjacentSibling (Datum (compound . head $ list)) (linksToChain' xs)
+linksToChain' list@(CssComplexSelectorLink{combinator=CssCombinatorDescendant}:xs)      = Link CssCombinatorDescendant      (Datum (compound . head $ list)) (linksToChain' xs)
+linksToChain' list@(CssComplexSelectorLink{combinator=CssCombinatorNone}:xs)            = Datum . compound . head $ list
+linksToChain' []                                                                        = Datum defaultCssCompoundSelector2
+
+
+
+
+data Chain2 a b
+  = Datum a
+  | Link b (Chain2 a b) (Chain2 a b)
   deriving (Show, Read, Eq, Ord)
 
 
 
 
-type CssCombinator2 = (Chain CssCompoundSelector2 -> Chain CssCompoundSelector2 -> Chain CssCompoundSelector2)
+type CssComplexSelector2 = Chain2 CssCompoundSelector2 CssCombinator
 
 
 
 
-parseCombinator2 :: [CssToken] -> Maybe (CssCombinator2, [CssToken])
-parseCombinator2 (CssTokDelim '>':tokens) = Just ((:>:), tokens)
-parseCombinator2 (CssTokDelim '+':tokens) = Just ((:+:), tokens)
-parseCombinator2 (CssTokWS:tokens)        = Just ((:~:), tokens)
+parseCombinator2 :: [CssToken] -> Maybe (CssCombinator, [CssToken])
+parseCombinator2 (CssTokDelim '>':tokens) = Just (CssCombinatorChild, tokens)
+parseCombinator2 (CssTokDelim '+':tokens) = Just (CssCombinatorAdjacentSibling, tokens)
+parseCombinator2 (CssTokWS:tokens)        = Just (CssCombinatorDescendant, tokens)
 parseCombinator2 _                        = Nothing
 
 
@@ -1493,32 +1483,26 @@ parseCompoundSelector2 (Nothing, _)                                             
 
 
 
-parseComplexSelector2 :: [CssToken] -> Maybe (Chain CssCompoundSelector2)
+parseComplexSelector2 :: [CssToken] -> Maybe (CssComplexSelector2)
 parseComplexSelector2 tokens = case parseCompoundSelector2 (Just defaultCssCompoundSelector2, tokens) of
                                  Nothing                  -> Nothing
                                  Just (compound, tokens2) -> case parsePairs tokens2 [] of
                                                                Nothing         -> Nothing
-                                                               Just (_, pairs) -> Just (makeComplexR (Chain compound) pairs)
+                                                               Just (_, pairs) -> Just (makeComplexR (Datum compound) pairs)
 
 
 
 
--- let pairs = [((:>:), defaultCssCompoundSelector2), ((:+:), defaultCssCompoundSelector2), ((:~:), defaultCssCompoundSelector2)]
--- let compound = Chain defaultCssCompoundSelector2
--- let complex = makeComplexR compound pairs
-
-
-
-makeComplexR :: (Chain CssCompoundSelector2) -> [(CssCombinator2, CssCompoundSelector2)] -> Chain CssCompoundSelector2
+makeComplexR :: CssComplexSelector2 -> [(CssCombinator, CssCompoundSelector2)] -> CssComplexSelector2
 makeComplexR compound pairs = foldr f compound pairs
   where
-    f :: (CssCombinator2, CssCompoundSelector2) -> (Chain CssCompoundSelector2) -> (Chain CssCompoundSelector2)
-    f x acc = (fst x) (Chain (snd x)) acc
+    f :: (CssCombinator, CssCompoundSelector2) -> CssComplexSelector2 -> CssComplexSelector2
+    f x acc = Link (fst x) (Datum (snd x)) acc
 
 
 
 
-parsePairs :: [CssToken] -> [(CssCombinator2, CssCompoundSelector2)] -> Maybe ([CssToken], [(CssCombinator2, CssCompoundSelector2)])
+parsePairs :: [CssToken] -> [(CssCombinator, CssCompoundSelector2)] -> Maybe ([CssToken], [(CssCombinator, CssCompoundSelector2)])
 parsePairs [] acc   = Just ([], acc) -- There is no "combinator followed by selector" data. Don't return error here.
 parsePairs tokens@(x:xs) acc = case parseCombinator2 tokens of
                                  Nothing                    -> Nothing
@@ -1573,7 +1557,7 @@ setSelectorTagName2 compound t = compound { selectorTagName = t }
 --
 -- TODO: dump whole ruleset in case of parse error as required by CSS 2.1
 -- however make sure we don't dump it if only dillo fails to parse valid CSS.
-readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssComplexSelector])
+readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssComplexSelector1])
 readSelectorList (parser, token) = parseSelectorWrapper (parser, token) []
   where
     parseSelectorWrapper (parser, token) acc =
@@ -2021,7 +2005,7 @@ parseAllDeclarations ((p1, t1), (declSet, declSetImp)) | t1 == CssTokEnd        
 
 
 data CssRule = CssRule {
-    complexSelector :: CssComplexSelector
+    complexSelector :: CssComplexSelector1
   , declarationSet  :: CssDeclarationSet
   , specificity     :: Int
   , position        :: Int
@@ -2032,11 +2016,19 @@ data CssRule = CssRule {
 
 -- Get top compound selector
 getTopCompound :: CssRule -> CssCompoundSelector2
-getTopCompound = compound . L.last . links . complexSelector
+getTopCompound rule = getTopCompound' . chain . complexSelector $ rule
+getTopCompound' (Link _ (Datum c) remainder) = c
+getTopCompound' (Datum c)                    = c
+
 
 
 
 
 getRequiredMatchCache :: CssRule -> Int
-getRequiredMatchCache rule = (matchCacheOffset . complexSelector $ rule) + (length . links . complexSelector $ rule)
+getRequiredMatchCache rule = (matchCacheOffset . complexSelector $ rule) + (chainLength . chain . complexSelector $ rule)
 
+
+
+chainLength chain = chainLength' chain 0
+chainLength' (Link _ (Datum _) remainder) acc = chainLength' remainder (acc + 1)
+chainLength' (Datum _)                    acc =                        (acc + 1)
