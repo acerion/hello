@@ -46,22 +46,22 @@ getTopCompoundTestManualDataBasic = [
   -- parser's input remainder      expected top simple selector
 
     ( "body {color: black;background-color: #ffffff;padding:0px;}"
-    , defaultCssCompoundSelector2{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} )
+    , defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} )
 
   , ( ".pure-g > div {-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;}"
-    , defaultCssCompoundSelector2{ selectorTagName = CssTypeSelector . htmlTagIndex $ "div"} )
+    , defaultCssCompoundSelector{ selectorTagName = CssTypeSelector . htmlTagIndex $ "div"} )
 
   , ( ".navmenu li:hover > ul {display: block;}"
-    , defaultCssCompoundSelector2{ selectorTagName = CssTypeSelector . htmlTagIndex $ "ul"} )
+    , defaultCssCompoundSelector{ selectorTagName = CssTypeSelector . htmlTagIndex $ "ul"} )
 
   , ( ".pure-menu-horizontal .pure-menu-has-children .pure-menu-link:after{content:\"x\"}"
-    , defaultCssCompoundSelector2{ selectorClass = ["pure-menu-link"], selectorPseudoClass = ["after"]} )
+    , defaultCssCompoundSelector{ selectorClass = ["pure-menu-link"], selectorPseudoClass = ["after"]} )
 
   , ( "H3.SummaryHL + #id { margin: 0px; }"
-    , defaultCssCompoundSelector2{ selectorId = "id"} )
+    , defaultCssCompoundSelector{ selectorId = "id"} )
 
   , ( ".topnav-container a:visited { color: DarkBlue; }"
-    , defaultCssCompoundSelector2{ selectorPseudoClass = ["visited"], selectorTagName = CssTypeSelector . htmlTagIndex $ "a"} )
+    , defaultCssCompoundSelector{ selectorPseudoClass = ["visited"], selectorTagName = CssTypeSelector . htmlTagIndex $ "a"} )
   ]
 
 
@@ -69,7 +69,7 @@ getTopCompoundTestManualDataBasic = [
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-getTopCompoundTest :: [(T.Text, CssCompoundSelector2)] -> T.Text
+getTopCompoundTest :: [(T.Text, CssCompoundSelector)] -> T.Text
 getTopCompoundTest []     = ""
 getTopCompoundTest (x:xs) = if expectedCompound /= cpd
                             then remainderIn

@@ -118,22 +118,21 @@ insertRuleToStyleSheet :: CssRule -> CssStyleSheet -> (Int, CssStyleSheet)
 insertRuleToStyleSheet rule sheet
   -- Put a rule in a bucket. Decide which bucket to choose by looking at
   -- topmost compound selector in the complex selector of given rule.
-  | compoundHasId cpd2             = (1, sheet { rulesById         = updatedRulesById })
-  | compoundHasClass cpd2          = (2, sheet { rulesByClass      = updatedRulesByClass })
-  | compoundHasSpecificType cpd1   = (3, sheet { rulesByType       = updatedRulesByType })
-  | compoundHasUniversalType cpd1  = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
-  | compoundHasUnexpectedType cpd1 = (trace ("[EE] insert rule: unexpected type: " ++ (show . selectorTagName $ cpd2)) (0, sheet))
-  | otherwise                      = (0, sheet)
+  | compoundHasId compound             = (1, sheet { rulesById         = updatedRulesById })
+  | compoundHasClass compound          = (2, sheet { rulesByClass      = updatedRulesByClass })
+  | compoundHasSpecificType compound   = (3, sheet { rulesByType       = updatedRulesByType })
+  | compoundHasUniversalType compound  = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
+  | compoundHasUnexpectedType compound = (trace ("[NN] insert rule to stylesheet: unexpected element: " ++ (show . selectorTagName $ compound)) (0, sheet))
+  | otherwise                          = (0, sheet)
 
   where
-    cpd2 = getTopCompound rule :: CssCompoundSelector2
-    cpd1 = compound2toCompound1 cpd2
+    compound = getTopCompound rule
 
-    updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId cpd2) rule
-    updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ cpd2) rule
+    updatedRulesById    = updateMapOfLists (rulesById sheet) (selectorId compound) rule
+    updatedRulesByClass = updateMapOfLists (rulesByClass sheet) (head . selectorClass $ compound) rule
 
-    updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (compoundSpecificType cpd1)) rule
-    updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (unCssTypeSelector . selectorTagName $ cpd2)
+    updatedThisElementRules = insertRuleInListOfRules (thisElementRules sheet (compoundSpecificType compound)) rule
+    updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (unCssTypeSelector . selectorTagName $ compound)
 
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
 

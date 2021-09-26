@@ -44,10 +44,6 @@ module Hello.Css.Parser(
                        , mkCssTypeSelector
                        , styleSheetElementCount
 
-                       , CssCompoundSelector1
-                       , mkCssCompoundSelector
-                       , toCompound
-                       , compound2toCompound1
                        , cselTagName
                        , cselPseudoClass
                        , cselClass
@@ -62,7 +58,7 @@ module Hello.Css.Parser(
                        , parseCompoundSelectorTokens
 
                        , parseCombinator2
-                       , parseCompoundSelector2
+                       , parseCompoundSelector
                        , parseComplexSelector2
                        , parsePairs
                        , makeComplexR
@@ -71,8 +67,8 @@ module Hello.Css.Parser(
                        , chainToLinks
                        , chainLength
 
-                       , CssCompoundSelector2 (..)
-                       , defaultCssCompoundSelector2
+                       , CssCompoundSelector (..)
+                       , defaultCssCompoundSelector
                        , compound2HasUniversalType
 
                        , CssSubclassSelector (..)
@@ -1165,7 +1161,7 @@ cssParseWeight (parser, tok)          = ((parser, tok), False)
 
 
 
-data CssCompoundSelector2 = CssCompoundSelector2
+data CssCompoundSelector = CssCompoundSelector
   { selectorPseudoClass :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#pseudo-class
   , selectorId          :: T.Text          -- https://www.w3.org/TR/selectors-4/#id-selector
   , selectorClass       :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#class-selector
@@ -1176,7 +1172,7 @@ data CssCompoundSelector2 = CssCompoundSelector2
 
 
 data CssComplexSelectorLink = CssComplexSelectorLink
-  { compound   :: CssCompoundSelector2
+  { compound   :: CssCompoundSelector
   , combinator :: CssCombinator
   } deriving (Show, Eq)
 
@@ -1226,108 +1222,60 @@ data CssSubclassSelector
 
 
 
--- https://www.w3.org/TR/selectors-4/#typedef-compound-selector
-newtype CssCompoundSelector1 = CssCompoundSelector1 (CssTypeSelector, [CssSubclassSelector])
-  deriving (Show, Eq)
+cselTagName :: CssCompoundSelector -> CssTypeSelector
+cselTagName = selectorTagName
 
 
 
-
-mkCssCompoundSelector :: CssTypeSelector -> [T.Text] -> [T.Text] -> T.Text -> CssCompoundSelector1
-mkCssCompoundSelector ts classIdents pseudoClassIdents idIdent = CssCompoundSelector1 (ts, classes ++ pseudoClasses ++ ids)
-  where
-    ids           = if T.null idIdent then [] else [CssIdSelector idIdent]
-    classes       = map (\x -> CssClassSelector x) classIdents
-    pseudoClasses = map (\x -> CssPseudoClassSelector x) pseudoClassIdents
+cselPseudoClass :: CssCompoundSelector -> [CssSubclassSelector]
+cselPseudoClass compound = map (\x -> CssPseudoClassSelector x) (selectorPseudoClass compound)
 
 
+cselClass :: CssCompoundSelector -> [CssSubclassSelector]
+cselClass compound = map (\x -> CssClassSelector x) (selectorClass compound)
 
 
-toCompound :: CssComplexSelectorLink -> CssCompoundSelector1
-toCompound link = CssCompoundSelector1 (t, s)
-  where
-    t = selectorTagName . compound $ link
-    s = (f1 . selectorId . compound $ link) ++ (f2 . selectorClass . compound $ link) ++ (f3 . selectorPseudoClass . compound $ link)
-    f1 x  = if T.null x then [] else [CssIdSelector x]
-    f2 xs = map (\x -> CssClassSelector x) xs
-    f3 xs = map (\x -> CssPseudoClassSelector x) xs
-
-
-
-
-compound2toCompound1 :: CssCompoundSelector2 -> CssCompoundSelector1
-compound2toCompound1 cpd2 = CssCompoundSelector1 (t, s)
-  where
-    t = selectorTagName cpd2
-    s = (f1 . selectorId $ cpd2) ++ (f2 . selectorClass $ cpd2) ++ (f3 . selectorPseudoClass $ cpd2)
-    f1 x  = if T.null x then [] else [CssIdSelector x]
-    f2 xs = map (\x -> CssClassSelector x) xs
-    f3 xs = map (\x -> CssPseudoClassSelector x) xs
-
-
-
-
-
-cselTagName :: CssCompoundSelector1 -> CssTypeSelector
-cselTagName (CssCompoundSelector1 (t, _)) = t
-
-
-
-cselPseudoClass :: CssCompoundSelector1 -> [CssSubclassSelector]
-cselPseudoClass (CssCompoundSelector1 (_, xs)) = filter (\x -> case x of
-                                                                 (CssPseudoClassSelector t) -> True
-                                                                 otherwise                  -> False) xs
-
-
-cselClass :: CssCompoundSelector1 -> [CssSubclassSelector]
-cselClass (CssCompoundSelector1 (_, xs)) = filter (\x -> case x of
-                                                           (CssClassSelector t) -> True
-                                                           otherwise            -> False) xs
-
-
-
-cselId :: CssCompoundSelector1 -> [CssSubclassSelector]
-cselId (CssCompoundSelector1 (_, xs)) = filter (\x -> case x of
-                                                        (CssIdSelector t) -> True
-                                                        otherwise         -> False) xs
+cselId :: CssCompoundSelector -> [CssSubclassSelector]
+cselId (CssCompoundSelector{selectorId = ""}) = []
+cselId (CssCompoundSelector{selectorId = i})  = [CssIdSelector i]
 
 
 
 
 -- Is a compound selector an 'Any' HTML tag?
-compoundHasUniversalType (CssCompoundSelector1 (CssTypeSelectorUniv, _)) = True
-compoundHasUniversalType _                                              = False
+compoundHasUniversalType (CssCompoundSelector{selectorTagName = CssTypeSelectorUniv}) = True
+compoundHasUniversalType _                                                             = False
 
 
-compound2HasUniversalType (CssCompoundSelector2 { selectorTagName = CssTypeSelectorUniv}) = True
+compound2HasUniversalType (CssCompoundSelector { selectorTagName = CssTypeSelectorUniv}) = True
 compound2HasUniversalType _                                                               = False
 
 
 
-compoundHasUnexpectedType :: CssCompoundSelector1 -> Bool
-compoundHasUnexpectedType (CssCompoundSelector1 (CssTypeSelectorUnknown, _)) = True
-compoundHasUnexpectedType _                                                  = False
+compoundHasUnexpectedType :: CssCompoundSelector -> Bool
+compoundHasUnexpectedType (CssCompoundSelector{selectorTagName = CssTypeSelectorUnknown}) = True
+compoundHasUnexpectedType _                                                                = False
 
 
 
-compoundHasSpecificType :: CssCompoundSelector1 -> Bool
+compoundHasSpecificType :: CssCompoundSelector -> Bool
 compoundHasSpecificType = isJust . compoundSpecificType
 
 
 -- What is the element in compound selector? Either some specific HTML tag
 -- (then 'Maybe t') or Any or None (then 'Nothing').
-compoundSpecificType :: CssCompoundSelector1 -> Maybe Int
-compoundSpecificType (CssCompoundSelector1 (CssTypeSelector t, _)) = Just t
-compoundSpecificType _                                             = Nothing
+compoundSpecificType :: CssCompoundSelector -> Maybe Int
+compoundSpecificType (CssCompoundSelector{selectorTagName = CssTypeSelector t}) = Just t
+compoundSpecificType _                                                           = Nothing
 
 
 
-compoundHasClass :: CssCompoundSelector2 -> Bool
+compoundHasClass :: CssCompoundSelector -> Bool
 compoundHasClass = not . null . selectorClass
 
 
 
-compoundHasId :: CssCompoundSelector2 -> Bool
+compoundHasId :: CssCompoundSelector -> Bool
 compoundHasId = not . T.null . selectorId
 
 
@@ -1343,7 +1291,7 @@ data CssCombinator =
 
 
 
-defaultCssCompoundSelector2 = CssCompoundSelector2
+defaultCssCompoundSelector = CssCompoundSelector
   { selectorPseudoClass = []
   , selectorId          = ""
   , selectorClass       = []
@@ -1355,7 +1303,7 @@ defaultCssCompoundSelector2 = CssCompoundSelector2
 
 
 defaultComplexSelectorLink = CssComplexSelectorLink
-  { compound = defaultCssCompoundSelector2
+  { compound = defaultCssCompoundSelector
 
   -- Combinator that combines this compound selector and the previous one
   -- (previous one == compound selector to the left of current compound
@@ -1368,14 +1316,14 @@ defaultComplexSelectorLink = CssComplexSelectorLink
 
 defaultComplexSelector = CssComplexSelector1 {
     matchCacheOffset = -1
-  , chain            = Datum defaultCssCompoundSelector2
+  , chain            = Datum defaultCssCompoundSelector
   }
 
 
 
 
 -- Update compound selector with given subclass selector.
-appendSubclassSelector :: CssCompoundSelector2 -> CssSubclassSelector -> CssCompoundSelector2
+appendSubclassSelector :: CssCompoundSelector -> CssSubclassSelector -> CssCompoundSelector
 appendSubclassSelector compound subSel =
   case subSel of
     CssClassSelector ident       -> compound {selectorClass = (selectorClass compound) ++ [ident]}
@@ -1437,7 +1385,7 @@ linksToChain' list@(CssComplexSelectorLink{combinator=CssCombinatorChild}:xs)   
 linksToChain' list@(CssComplexSelectorLink{combinator=CssCombinatorAdjacentSibling}:xs) = Link CssCombinatorAdjacentSibling (Datum (compound . head $ list)) (linksToChain' xs)
 linksToChain' list@(CssComplexSelectorLink{combinator=CssCombinatorDescendant}:xs)      = Link CssCombinatorDescendant      (Datum (compound . head $ list)) (linksToChain' xs)
 linksToChain' list@(CssComplexSelectorLink{combinator=CssCombinatorNone}:xs)            = Datum . compound . head $ list
-linksToChain' []                                                                        = Datum defaultCssCompoundSelector2
+linksToChain' []                                                                        = Datum defaultCssCompoundSelector
 
 
 
@@ -1450,7 +1398,7 @@ data Chain2 a b
 
 
 
-type CssComplexSelector2 = Chain2 CssCompoundSelector2 CssCombinator
+type CssComplexSelector2 = Chain2 CssCompoundSelector CssCombinator
 
 
 
@@ -1464,27 +1412,27 @@ parseCombinator2 _                        = Nothing
 
 
 
-parseCompoundSelector2 :: (Maybe CssCompoundSelector2, [CssToken]) -> Maybe (CssCompoundSelector2, [CssToken])
-parseCompoundSelector2 (Just compound, (CssTokDelim '*':tokens)) = parseCompoundSelector2 (Just compound, tokens)
-parseCompoundSelector2 (Just compound, (CssTokIdent sym:tokens)) = case htmlTagIndex2 sym of
-                                                                Just idx -> parseCompoundSelector2 (Just (setSelectorTagName2 compound (CssTypeSelector idx)), tokens)
-                                                                Nothing  -> parseCompoundSelector2 (Just (setSelectorTagName2 compound (CssTypeSelectorUnknown)), tokens)
+parseCompoundSelector :: (Maybe CssCompoundSelector, [CssToken]) -> Maybe (CssCompoundSelector, [CssToken])
+parseCompoundSelector (Just compound, (CssTokDelim '*':tokens)) = parseCompoundSelector (Just compound, tokens)
+parseCompoundSelector (Just compound, (CssTokIdent sym:tokens)) = case htmlTagIndex2 sym of
+                                                                    Just idx -> parseCompoundSelector (Just (setSelectorTagName2 compound (CssTypeSelector idx)), tokens)
+                                                                    Nothing  -> parseCompoundSelector (Just (setSelectorTagName2 compound (CssTypeSelectorUnknown)), tokens)
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
-parseCompoundSelector2 (Just compound, (CssTokHash CssHashId ident:tokens))      = parseCompoundSelector2
-                                                                                   (Just (appendSubclassSelector compound (CssIdSelector ident)), tokens)
-parseCompoundSelector2 (Just compound, (CssTokDelim '.':CssTokIdent sym:tokens)) = parseCompoundSelector2
-                                                                                   (Just (appendSubclassSelector compound (CssClassSelector sym)), tokens)
-parseCompoundSelector2 (Just compound, (CssTokColon:CssTokIdent sym:tokens))     = parseCompoundSelector2
-                                                                                   (Just (appendSubclassSelector compound (CssPseudoClassSelector sym)), tokens)
-parseCompoundSelector2 (Just compound, tokens)                                   = Just (compound, tokens)
-parseCompoundSelector2 (Nothing, _)                                              = Nothing
+parseCompoundSelector (Just compound, (CssTokHash CssHashId ident:tokens))      = parseCompoundSelector
+                                                                                  (Just (appendSubclassSelector compound (CssIdSelector ident)), tokens)
+parseCompoundSelector (Just compound, (CssTokDelim '.':CssTokIdent sym:tokens)) = parseCompoundSelector
+                                                                                  (Just (appendSubclassSelector compound (CssClassSelector sym)), tokens)
+parseCompoundSelector (Just compound, (CssTokColon:CssTokIdent sym:tokens))     = parseCompoundSelector
+                                                                                  (Just (appendSubclassSelector compound (CssPseudoClassSelector sym)), tokens)
+parseCompoundSelector (Just compound, tokens)                                   = Just (compound, tokens)
+parseCompoundSelector (Nothing, _)                                              = Nothing
 
 
 
 
 parseComplexSelector2 :: [CssToken] -> Maybe (CssComplexSelector2)
-parseComplexSelector2 tokens = case parseCompoundSelector2 (Just defaultCssCompoundSelector2, tokens) of
+parseComplexSelector2 tokens = case parseCompoundSelector (Just defaultCssCompoundSelector, tokens) of
                                  Nothing                  -> Nothing
                                  Just (compound, tokens2) -> case parsePairs tokens2 [] of
                                                                Nothing         -> Nothing
@@ -1493,27 +1441,27 @@ parseComplexSelector2 tokens = case parseCompoundSelector2 (Just defaultCssCompo
 
 
 
-makeComplexR :: CssComplexSelector2 -> [(CssCombinator, CssCompoundSelector2)] -> CssComplexSelector2
+makeComplexR :: CssComplexSelector2 -> [(CssCombinator, CssCompoundSelector)] -> CssComplexSelector2
 makeComplexR compound pairs = foldr f compound pairs
   where
-    f :: (CssCombinator, CssCompoundSelector2) -> CssComplexSelector2 -> CssComplexSelector2
+    f :: (CssCombinator, CssCompoundSelector) -> CssComplexSelector2 -> CssComplexSelector2
     f x acc = Link (fst x) (Datum (snd x)) acc
 
 
 
 
-parsePairs :: [CssToken] -> [(CssCombinator, CssCompoundSelector2)] -> Maybe ([CssToken], [(CssCombinator, CssCompoundSelector2)])
+parsePairs :: [CssToken] -> [(CssCombinator, CssCompoundSelector)] -> Maybe ([CssToken], [(CssCombinator, CssCompoundSelector)])
 parsePairs [] acc   = Just ([], acc) -- There is no "combinator followed by selector" data. Don't return error here.
 parsePairs tokens@(x:xs) acc = case parseCombinator2 tokens of
                                  Nothing                    -> Nothing
-                                 Just (combinator, tokens2) -> case parseCompoundSelector2 (Just defaultCssCompoundSelector2, tokens2) of
+                                 Just (combinator, tokens2) -> case parseCompoundSelector (Just defaultCssCompoundSelector, tokens2) of
                                                                  Nothing -> Nothing
                                                                  Just (compound, tokens3) -> parsePairs tokens3 ((combinator, compound):acc)
 
 
 
 
-parseCompoundSelectorTokens :: [CssToken] -> CssCompoundSelector2 -> Maybe ([CssToken], CssCompoundSelector2)
+parseCompoundSelectorTokens :: [CssToken] -> CssCompoundSelector -> Maybe ([CssToken], CssCompoundSelector)
 parseCompoundSelectorTokens (CssTokDelim '*':tokens) compound = parseCompoundSelectorTokens tokens (setSelectorTagName2 compound CssTypeSelectorUniv)
 parseCompoundSelectorTokens (CssTokIdent sym:tokens) compound = case htmlTagIndex2 sym of
                                                                   Just idx -> parseCompoundSelectorTokens tokens (setSelectorTagName2 compound (CssTypeSelector idx))
@@ -2015,7 +1963,7 @@ data CssRule = CssRule {
 
 
 -- Get top compound selector
-getTopCompound :: CssRule -> CssCompoundSelector2
+getTopCompound :: CssRule -> CssCompoundSelector
 getTopCompound rule = getTopCompound' . chain . complexSelector $ rule
 getTopCompound' (Link _ (Datum c) remainder) = c
 getTopCompound' (Datum c)                    = c

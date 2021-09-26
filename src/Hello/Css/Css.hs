@@ -65,38 +65,39 @@ Right now this is a naive re-write of simple_selector_matches() C function.
 TODO: in C++ code the string comparisons were case-insensitive.
 -}
 
+compoundSelectorMatches :: CssCompoundSelector -> DoctreeNode -> Bool
 compoundSelectorMatches cpdSel dtn = (compoundSelectorMatches' cpdSel dtn) == 0
 
-compoundSelectorMatches' :: CssCompoundSelector1 -> DoctreeNode -> Int
+compoundSelectorMatches' :: CssCompoundSelector -> DoctreeNode -> Int
 compoundSelectorMatches' cpdSel dtn | mismatchOnElement cpdSel dtn     = 4
                                     | mismatchOnPseudoClass cpdSel dtn = 3
                                     | mismatchOnId cpdSel dtn          = 2
                                     | mismatchOnClass cpdSel dtn       = 1
                                     | otherwise                        = 0
   where
-    mismatchOnElement :: CssCompoundSelector1 -> DoctreeNode -> Bool
+    mismatchOnElement :: CssCompoundSelector -> DoctreeNode -> Bool
     mismatchOnElement csel dtn = (cselTagName csel) /= CssTypeSelectorUniv && (unCssTypeSelector . cselTagName $ csel) /= (htmlElementIdx dtn)
     -- if (selector->c_selector_element != CssSimpleSelectorElementAny && selector->c_selector_element != dtn->c_html_element_idx)
     --     return false;
 
     -- C/C++ code can use only first pseudo class
-    mismatchOnPseudoClass :: CssCompoundSelector1 -> DoctreeNode -> Bool
+    mismatchOnPseudoClass :: CssCompoundSelector -> DoctreeNode -> Bool
     mismatchOnPseudoClass csel dtn = (length . cselPseudoClass $ csel) > 0
                                      && ((T.null . selPseudoClass $ dtn) || ((head . cselPseudoClass $ csel) /= (CssPseudoClassSelector . selPseudoClass $ dtn)))
     -- if (selector->c_selector_pseudo_class_size > 0 &&
     --     (dtn->c_element_selector_pseudo_class == NULL || dStrAsciiCasecmp (selector->c_selector_pseudo_class[0], dtn->c_element_selector_pseudo_class) != 0))
     --     return false;
 
-    mismatchOnId :: CssCompoundSelector1 -> DoctreeNode -> Bool
-    mismatchOnId csel dtn = (not . null . cselId $ csel) && ((T.null . selId $ dtn) || (cselId csel /= [CssIdSelector . selId $ dtn]))
+    mismatchOnId :: CssCompoundSelector -> DoctreeNode -> Bool
+    mismatchOnId csel dtn = (not . null . cselId $ csel) && ((T.null . selId $ dtn) || ((cselId $ csel) /= [CssIdSelector . selId $ dtn]))
     -- if (selector->c_selector_id != NULL && (dtn->c_element_selector_id == NULL || dStrAsciiCasecmp (selector->c_selector_id, dtn->c_element_selector_id) != 0))
     --     return false;
 
     -- All class items of a compound selector must be found in dtn's class set
-    mismatchOnClass :: CssCompoundSelector1 -> DoctreeNode -> Bool
+    mismatchOnClass :: CssCompoundSelector -> DoctreeNode -> Bool
     mismatchOnClass csel dtn = not allCompoundClassInNodeClass
       where
-        allCompoundClassInNodeClass = and $ map (\x -> elem x classes) (cselClass csel)
+        allCompoundClassInNodeClass = and $ map (\x -> elem x classes) (cselClass $ csel)
         classes = map CssClassSelector (selClass $ dtn)
     -- for (int i = 0; i < selector->c_selector_class_size; i++) {
     -- bool found = false;
@@ -131,7 +132,7 @@ selectorSpecificity cplxSel = selectorSpecificity' (chain cplxSel) 0
 
 
 -- Return the specificity of compound selector
-compoundSelectorSpecificity :: CssCompoundSelector2 -> Int
+compoundSelectorSpecificity :: CssCompoundSelector -> Int
 compoundSelectorSpecificity cpdSel = (fromId cpdSel) + (fromClass cpdSel) + (fromPseudoClass cpdSel) + (fromElement cpdSel)
   where
     fromId cpdSsel          = if (not . T.null . selectorId $ cpdSel) then (1 `shiftL` 20) else 0

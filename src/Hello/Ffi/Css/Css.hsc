@@ -142,8 +142,8 @@ peekDoctreeNode ptrStructDoctreeNode = do
 
 hll_compoundSelectorMatches :: Ptr FfiCssCompoundSelector -> Ptr FfiDoctreeNode -> IO Int
 hll_compoundSelectorMatches ptrStructCompoundSelector ptrStructDoctreeNode = do
-  cpdSel :: CssCompoundSelector1 <- peekCssCompoundSelector ptrStructCompoundSelector
-  dtn    :: DoctreeNode          <- peekDoctreeNode ptrStructDoctreeNode
+  cpdSel :: CssCompoundSelector <- peekCssCompoundSelector ptrStructCompoundSelector
+  dtn    :: DoctreeNode         <- peekDoctreeNode ptrStructDoctreeNode
   if compoundSelectorMatches cpdSel dtn
     then return 1 -- True
     else return 0 -- False

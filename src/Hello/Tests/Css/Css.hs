@@ -48,7 +48,7 @@ specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity cplxSel)
 
 -- On success return empty string. On failure return string representation of
 -- selector, for which test failed.
-matchTest :: [(Int, CssCompoundSelector1, DoctreeNode)] -> T.Text
+matchTest :: [(Int, CssCompoundSelector, DoctreeNode)] -> T.Text
 matchTest []     = ""
 matchTest (x:xs) = if expectedMatch x /= (compoundSelectorMatches' (cpdSel x) (dtn x))
                          then T.pack ((show $ cpdSel x) ++ "    @@@@    " ++ (show $ dtn x))
