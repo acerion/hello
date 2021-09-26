@@ -37,6 +37,7 @@ import qualified Data.Map as M
 import Data.Bits
 import Debug.Trace
 import Hello.Css.Parser
+import Hello.Css.Selector
 
 
 

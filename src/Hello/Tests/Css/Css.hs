@@ -25,6 +25,7 @@ import qualified Data.Text as T
 import Test.HUnit
 
 import Hello.Css.Parser
+import Hello.Css.Selector
 import Css
 import Hello.Tests.Css.Data
 import Hello.Tests.Css.Match.Data

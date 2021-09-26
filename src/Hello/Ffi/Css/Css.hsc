@@ -47,6 +47,7 @@ import Debug.Trace
 import Hello.Css.Parser
 import Css
 import Hello.Css.StyleSheet
+import Hello.Css.Selector
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Utils
 
