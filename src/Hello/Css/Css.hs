@@ -67,30 +67,30 @@ TODO: in C++ code the string comparisons were case-insensitive.
 -}
 
 compoundSelectorMatches :: CssCompoundSelector -> DoctreeNode -> Bool
-compoundSelectorMatches cpdSel dtn = (compoundSelectorMatches' cpdSel dtn) == 0
+compoundSelectorMatches compound dtn = (compoundSelectorMatches' compound dtn) == 0
 
 compoundSelectorMatches' :: CssCompoundSelector -> DoctreeNode -> Int
-compoundSelectorMatches' cpdSel dtn | mismatchOnElement cpdSel dtn     = 4
-                                    | mismatchOnPseudoClass cpdSel dtn = 3
-                                    | mismatchOnId cpdSel dtn          = 2
-                                    | mismatchOnClass cpdSel dtn       = 1
-                                    | otherwise                        = 0
+compoundSelectorMatches' compound dtn | mismatchOnElement compound dtn     = 4
+                                      | mismatchOnPseudoClass compound dtn = 3
+                                      | mismatchOnId compound dtn          = 2
+                                      | mismatchOnClass compound dtn       = 1
+                                      | otherwise                          = 0
   where
     mismatchOnElement :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnElement csel dtn = (cselTagName csel) /= CssTypeSelectorUniv && (unCssTypeSelector . cselTagName $ csel) /= (htmlElementIdx dtn)
+    mismatchOnElement csel dtn = (compoundTagName csel) /= CssTypeSelectorUniv && (unCssTypeSelector . compoundTagName $ csel) /= (htmlElementIdx dtn)
     -- if (selector->c_selector_element != CssSimpleSelectorElementAny && selector->c_selector_element != dtn->c_html_element_idx)
     --     return false;
 
     -- C/C++ code can use only first pseudo class
     mismatchOnPseudoClass :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnPseudoClass csel dtn = (length . cselPseudoClass $ csel) > 0
-                                     && ((T.null . selPseudoClass $ dtn) || ((head . cselPseudoClass $ csel) /= (CssPseudoClassSelector . selPseudoClass $ dtn)))
+    mismatchOnPseudoClass csel dtn = (length . compoundPseudoClass $ csel) > 0
+                                     && ((T.null . selPseudoClass $ dtn) || ((head . compoundPseudoClass $ csel) /= (CssPseudoClassSelector . selPseudoClass $ dtn)))
     -- if (selector->c_selector_pseudo_class_size > 0 &&
     --     (dtn->c_element_selector_pseudo_class == NULL || dStrAsciiCasecmp (selector->c_selector_pseudo_class[0], dtn->c_element_selector_pseudo_class) != 0))
     --     return false;
 
     mismatchOnId :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnId csel dtn = (not . null . cselId $ csel) && ((T.null . selId $ dtn) || ((cselId $ csel) /= [CssIdSelector . selId $ dtn]))
+    mismatchOnId csel dtn = (not . null . compoundId $ csel) && ((T.null . selId $ dtn) || ((compoundId $ csel) /= [CssIdSelector . selId $ dtn]))
     -- if (selector->c_selector_id != NULL && (dtn->c_element_selector_id == NULL || dStrAsciiCasecmp (selector->c_selector_id, dtn->c_element_selector_id) != 0))
     --     return false;
 
@@ -98,7 +98,7 @@ compoundSelectorMatches' cpdSel dtn | mismatchOnElement cpdSel dtn     = 4
     mismatchOnClass :: CssCompoundSelector -> DoctreeNode -> Bool
     mismatchOnClass csel dtn = not allCompoundClassInNodeClass
       where
-        allCompoundClassInNodeClass = and $ map (\x -> elem x classes) (cselClass $ csel)
+        allCompoundClassInNodeClass = and $ map (\x -> elem x classes) (compoundClass $ csel)
         classes = map CssClassSelector (selClass $ dtn)
     -- for (int i = 0; i < selector->c_selector_class_size; i++) {
     -- bool found = false;
@@ -131,13 +131,12 @@ selectorSpecificity cplxSel = selectorSpecificity' (chain cplxSel) 0
 
 
 
-
 -- Return the specificity of compound selector
 compoundSelectorSpecificity :: CssCompoundSelector -> Int
-compoundSelectorSpecificity cpdSel = (fromId cpdSel) + (fromClass cpdSel) + (fromPseudoClass cpdSel) + (fromElement cpdSel)
+compoundSelectorSpecificity compound = (fromId compound) + (fromClass compound) + (fromPseudoClass compound) + (fromElement compound)
   where
-    fromId cpdSsel          = if (not . T.null . selectorId $ cpdSel) then (1 `shiftL` 20) else 0
-    fromClass cpdSel       = (length . selectorClass $ cpdSel) `shiftL` 10
-    fromPseudoClass cpdSel = if (not . null . selectorPseudoClass $ cpdSel) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
-    fromElement cpdSsel     = if compound2HasUniversalType cpdSel then 0 else 1
+    fromId compound          = if (not . T.null . selectorId $ compound) then (1 `shiftL` 20) else 0
+    fromClass compound       = (length . selectorClass $ compound) `shiftL` 10
+    fromPseudoClass compound = if (not . null . selectorPseudoClass $ compound) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
+    fromElement compound     = if compoundHasUniversalType compound then 0 else 1
 

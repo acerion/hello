@@ -39,10 +39,12 @@ module Hello.Css.Selector
   , unCssTypeSelector
   , mkCssTypeSelector
 
-  , cselTagName
-  , cselPseudoClass
-  , cselClass
-  , cselId
+  , CssCompoundSelector (..)
+  , defaultCssCompoundSelector
+  , compoundTagName
+  , compoundPseudoClass
+  , compoundClass
+  , compoundId
   , compoundHasUniversalType
   , compoundHasUnexpectedType
   , compoundHasSpecificType
@@ -54,10 +56,6 @@ module Hello.Css.Selector
   , linksToChain
   , chainToLinks
   , chainLength
-
-  , CssCompoundSelector (..)
-  , defaultCssCompoundSelector
-  , compound2HasUniversalType
 
   , CssSubclassSelector (..)
 
@@ -165,39 +163,41 @@ data CssSubclassSelector
 
 
 
-cselTagName :: CssCompoundSelector -> CssTypeSelector
-cselTagName = selectorTagName
+compoundTagName :: CssCompoundSelector -> CssTypeSelector
+compoundTagName = selectorTagName
 
 
 
-cselPseudoClass :: CssCompoundSelector -> [CssSubclassSelector]
-cselPseudoClass compound = map (\x -> CssPseudoClassSelector x) (selectorPseudoClass compound)
+compoundPseudoClass :: CssCompoundSelector -> [CssSubclassSelector]
+compoundPseudoClass compound = map (\x -> CssPseudoClassSelector x) (selectorPseudoClass compound)
 
 
-cselClass :: CssCompoundSelector -> [CssSubclassSelector]
-cselClass compound = map (\x -> CssClassSelector x) (selectorClass compound)
 
 
-cselId :: CssCompoundSelector -> [CssSubclassSelector]
-cselId (CssCompoundSelector{selectorId = ""}) = []
-cselId (CssCompoundSelector{selectorId = i})  = [CssIdSelector i]
+compoundClass :: CssCompoundSelector -> [CssSubclassSelector]
+compoundClass compound = map (\x -> CssClassSelector x) (selectorClass compound)
+
+
+
+
+compoundId :: CssCompoundSelector -> [CssSubclassSelector]
+compoundId (CssCompoundSelector{selectorId = ""}) = []
+compoundId (CssCompoundSelector{selectorId = i})  = [CssIdSelector i]
 
 
 
 
 -- Is a compound selector an 'Any' HTML tag?
 compoundHasUniversalType (CssCompoundSelector{selectorTagName = CssTypeSelectorUniv}) = True
-compoundHasUniversalType _                                                             = False
+compoundHasUniversalType _                                                            = False
 
-
-compound2HasUniversalType (CssCompoundSelector { selectorTagName = CssTypeSelectorUniv}) = True
-compound2HasUniversalType _                                                               = False
 
 
 
 compoundHasUnexpectedType :: CssCompoundSelector -> Bool
 compoundHasUnexpectedType (CssCompoundSelector{selectorTagName = CssTypeSelectorUnknown}) = True
-compoundHasUnexpectedType _                                                                = False
+compoundHasUnexpectedType _                                                               = False
+
 
 
 
@@ -205,11 +205,14 @@ compoundHasSpecificType :: CssCompoundSelector -> Bool
 compoundHasSpecificType = isJust . compoundSpecificType
 
 
+
+
 -- What is the element in compound selector? Either some specific HTML tag
 -- (then 'Maybe t') or Any or None (then 'Nothing').
 compoundSpecificType :: CssCompoundSelector -> Maybe Int
 compoundSpecificType (CssCompoundSelector{selectorTagName = CssTypeSelector t}) = Just t
-compoundSpecificType _                                                           = Nothing
+compoundSpecificType _                                                          = Nothing
+
 
 
 
@@ -218,8 +221,10 @@ compoundHasClass = not . null . selectorClass
 
 
 
+
 compoundHasId :: CssCompoundSelector -> Bool
 compoundHasId = not . T.null . selectorId
+
 
 
 
@@ -233,14 +238,12 @@ data CssCombinator =
 
 
 
-
 defaultCssCompoundSelector = CssCompoundSelector
   { selectorPseudoClass = []
   , selectorId          = ""
   , selectorClass       = []
   , selectorTagName     = CssTypeSelectorUniv
   }
-
 
 
 
@@ -257,12 +260,11 @@ defaultComplexSelectorLink = CssComplexSelectorLink
 
 
 
+
 defaultComplexSelector = CssComplexSelector1 {
     matchCacheOffset = -1
   , chain            = Datum defaultCssCompoundSelector
   }
-
-
 
 
 
@@ -276,6 +278,8 @@ data Chain2 a b
 
 
 type CssComplexSelector2 = Chain2 CssCompoundSelector CssCombinator
+
+
 
 
 chainToLinks :: CssComplexSelector2 -> [CssComplexSelectorLink] -> [CssComplexSelectorLink]
@@ -304,10 +308,4 @@ linksToChain' []                                                                
 chainLength chain = chainLength' chain 0
 chainLength' (Link _ (Datum _) remainder) acc = chainLength' remainder (acc + 1)
 chainLength' (Datum _)                    acc =                        (acc + 1)
-
-
-
-
-
-
 
