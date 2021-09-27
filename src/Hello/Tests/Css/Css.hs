@@ -36,14 +36,14 @@ import Hello.Utils
 
 -- On success return empty string. On failure return string representation of
 -- selector, for which test failed.
-specificityTest :: [(Int, CssComplexSelector1)] -> T.Text
+specificityTest :: [(Int, CssComplexSelector)] -> T.Text
 specificityTest []     = ""
-specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity cplxSel)
-                         then T.pack . show $ cplxSel
+specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity complex)
+                         then T.pack . show $ complex
                          else specificityTest xs
   where
     expectedSpecificity = fst x
-    cplxSel = snd x
+    complex = snd x
 
 
 

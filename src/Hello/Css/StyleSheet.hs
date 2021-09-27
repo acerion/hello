@@ -220,7 +220,7 @@ cssRuleIsSafe rule = (not . cssComplexSelectorHasPseudoClass . complexSelector $
 -- Does any compound selector in given complex selector have non-empty list
 -- of pseudo class simple selectors? Remember that C/C++ code can use only
 -- first pseudo class.
-cssComplexSelectorHasPseudoClass :: CssComplexSelector1 -> Bool
+cssComplexSelectorHasPseudoClass :: CssCachedComplexSelector -> Bool
 cssComplexSelectorHasPseudoClass complex = any (\link -> not . null . selectorPseudoClass . compound $ link) (chainToLinks (chain complex) [])
 
 
@@ -300,7 +300,7 @@ matchCacheResize cache size = newCache
 
 
 
-makeRulePairs :: [CssComplexSelector1] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> [(Maybe CssRule, CssSheetSelector)] -> [(Maybe CssRule, CssSheetSelector)]
+makeRulePairs :: [CssCachedComplexSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> [(Maybe CssRule, CssSheetSelector)] -> [(Maybe CssRule, CssSheetSelector)]
 makeRulePairs []     _       _          _      acc = reverse acc
 makeRulePairs (x:xs) declSet declSetImp origin acc =
   case origin of
@@ -313,7 +313,7 @@ makeRulePairs (x:xs) declSet declSetImp origin acc =
         ruleCtor cplxSel decls = if not . S.null . items $ decls
                                  then Just CssRule { complexSelector = cplxSel
                                                    , declarationSet = decls
-                                                   , specificity = selectorSpecificity cplxSel
+                                                   , specificity = selectorSpecificity . chain $ cplxSel
                                                    , position = 0 } -- Position of a rule will be set at the moment of inserting the rule to CSS context
                                  else Nothing -- Rule with zero declarations would be useless rule.
 
@@ -327,7 +327,7 @@ makeRulePairs (x:xs) declSet declSetImp origin acc =
 -- Each rule can have only one selector, so this function works like this:
 -- "for each selector create a rule with given selector and some
 -- declarations, and put it in appropriate style sheet in the context".
-constructAndAddRules :: CssContext -> [CssComplexSelector1] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> CssContext
+constructAndAddRules :: CssContext -> [CssCachedComplexSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> CssContext
 constructAndAddRules context []           declSet declSetImp _      = context
 constructAndAddRules context selectorList declSet declSetImp origin = updatedContext
   where

@@ -44,17 +44,17 @@ parseComplexSelectorTestManualDataBasic = [
     ( "0",              "",   Nothing )
 
   -- Recognition of most basic case: just "id" selector.
-  , ( "#some_id",       "",   Just CssComplexSelector1
+  , ( "#some_id",       "",   Just CssCachedComplexSelector
                               { matchCacheOffset = (-1)
                               , chain = linksToChain [CssComplexSelectorLink { compound = CssCompoundSelector{selectorPseudoClass = [], selectorId = "some_id", selectorClass = [], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
 
   -- Recognition of most basic case: just "class" selector.
-  , ( ".some_class",    "",   Just CssComplexSelector1
+  , ( ".some_class",    "",   Just CssCachedComplexSelector
                               { matchCacheOffset = (-1)
                               , chain = linksToChain [CssComplexSelectorLink {compound = CssCompoundSelector{selectorPseudoClass = [], selectorId = "", selectorClass = ["some_class"], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
 
   -- Recognition of most basic case: just "pseudo class" selector.
-  , ( ":link",          "",   Just CssComplexSelector1
+  , ( ":link",          "",   Just CssCachedComplexSelector
                               { matchCacheOffset = (-1)
                               , chain = linksToChain [CssComplexSelectorLink {compound = CssCompoundSelector{selectorPseudoClass = ["link"], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelectorUniv}, combinator = CssCombinatorNone }]})
   ]
@@ -64,7 +64,7 @@ parseComplexSelectorTestManualDataBasic = [
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-parseComplexSelectorTest :: [(T.Text, T.Text, Maybe CssComplexSelector1)] -> T.Text
+parseComplexSelectorTest :: [(T.Text, T.Text, Maybe CssCachedComplexSelector)] -> T.Text
 parseComplexSelectorTest []     = ""
 parseComplexSelectorTest (x:xs) = if expectedSelector /= cplxSel || remainderAfter /= (remainder p1)
                                   then remainderBefore

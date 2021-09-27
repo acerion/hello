@@ -592,7 +592,7 @@ instance Storable FfiCssComplexSelector where
 
 
 
-peekCssComplexSelector :: Ptr FfiCssComplexSelector -> IO CssComplexSelector1
+peekCssComplexSelector :: Ptr FfiCssComplexSelector -> IO CssCachedComplexSelector
 peekCssComplexSelector ptrStructCssComplexSelector = do
 
   ffiSel <- peek ptrStructCssComplexSelector
@@ -606,14 +606,14 @@ peekCssComplexSelector ptrStructCssComplexSelector = do
   let linksCount = fromIntegral . cLinksSize $ ffiSel
   linksData <- peekArrayOfPointers ptrLinkArray linksCount peekCssComplexSelectorLink
 
-  return CssComplexSelector1{ matchCacheOffset = fromIntegral . cMatchCacheOffset $ ffiSel
-                            , chain            = linksToChain linksData
-                            }
+  return CssCachedComplexSelector{ matchCacheOffset = fromIntegral . cMatchCacheOffset $ ffiSel
+                                 , chain            = linksToChain linksData
+                                 }
 
 
 
 
-pokeCssComplexSelector :: Ptr FfiCssComplexSelector -> CssComplexSelector1 -> IO ()
+pokeCssComplexSelector :: Ptr FfiCssComplexSelector -> CssCachedComplexSelector -> IO ()
 pokeCssComplexSelector ptrStructCssComplexSelector selector = do
 
   ffiSel <- peek ptrStructCssComplexSelector

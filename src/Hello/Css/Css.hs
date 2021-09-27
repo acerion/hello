@@ -121,10 +121,10 @@ Return the specificity of the selector.
 The specificity of a CSS selector is defined in
 http://www.w3.org/TR/CSS21/cascade.html#specificity
 -}
-selectorSpecificity :: CssComplexSelector1 -> Int
-selectorSpecificity cplxSel = selectorSpecificity' (chain cplxSel) 0
+selectorSpecificity :: CssComplexSelector -> Int
+selectorSpecificity complex = selectorSpecificity' complex 0
   where
-    selectorSpecificity' :: CssComplexSelector2 -> Int -> Int
+    selectorSpecificity' :: CssComplexSelector -> Int -> Int
     selectorSpecificity' (Link combinator (Datum c1) remainder) acc = selectorSpecificity' remainder (acc + (compoundSelectorSpecificity c1))
     selectorSpecificity' (Datum c1)                             acc =                                 acc + (compoundSelectorSpecificity c1)
 

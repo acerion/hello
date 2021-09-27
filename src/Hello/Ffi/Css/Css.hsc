@@ -154,8 +154,8 @@ hll_compoundSelectorMatches ptrStructCompoundSelector ptrStructDoctreeNode = do
 
 hll_selectorSpecificity :: Ptr FfiCssComplexSelector -> IO Int
 hll_selectorSpecificity ptrStructCssComplexSelector = do
-  cplxSel <- peekCssComplexSelector ptrStructCssComplexSelector
-  return . selectorSpecificity $ cplxSel
+  cachedComplex <- peekCssComplexSelector ptrStructCssComplexSelector
+  return . selectorSpecificity . chain $ cachedComplex
 
 
 

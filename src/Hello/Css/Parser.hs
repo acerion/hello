@@ -1139,7 +1139,7 @@ appendSubclassSelector compound subSel =
 --
 -- Function always consumes the group of tokens, regardless of
 -- success/failure of the parsing.
-parseComplexSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssComplexSelector1)
+parseComplexSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssCachedComplexSelector)
 parseComplexSelector (parser, token) = ((outParser, outToken), selector)
   where
     (outParser, outToken) = consumeRestOfSelector (p2, t2)
@@ -1191,7 +1191,7 @@ parseCompoundSelector (Nothing, _)                                              
 
 
 
-parseComplexSelector2 :: [CssToken] -> Maybe (CssComplexSelector2)
+parseComplexSelector2 :: [CssToken] -> Maybe (CssComplexSelector)
 parseComplexSelector2 tokens = case parseCompoundSelector (Just defaultCssCompoundSelector, tokens) of
                                  Nothing                  -> Nothing
                                  Just (compound, tokens2) -> case parsePairs tokens2 [] of
@@ -1201,10 +1201,10 @@ parseComplexSelector2 tokens = case parseCompoundSelector (Just defaultCssCompou
 
 
 
-makeComplexR :: CssComplexSelector2 -> [(CssCombinator, CssCompoundSelector)] -> CssComplexSelector2
+makeComplexR :: CssComplexSelector -> [(CssCombinator, CssCompoundSelector)] -> CssComplexSelector
 makeComplexR compound pairs = foldr f compound pairs
   where
-    f :: (CssCombinator, CssCompoundSelector) -> CssComplexSelector2 -> CssComplexSelector2
+    f :: (CssCombinator, CssCompoundSelector) -> CssComplexSelector -> CssComplexSelector
     f x acc = Link (fst x) (Datum (snd x)) acc
 
 
@@ -1265,7 +1265,7 @@ setSelectorTagName2 compound t = compound { selectorTagName = t }
 --
 -- TODO: dump whole ruleset in case of parse error as required by CSS 2.1
 -- however make sure we don't dump it if only dillo fails to parse valid CSS.
-readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssComplexSelector1])
+readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssCachedComplexSelector])
 readSelectorList (parser, token) = parseSelectorWrapper (parser, token) []
   where
     parseSelectorWrapper (parser, token) acc =
@@ -1713,7 +1713,7 @@ parseAllDeclarations ((p1, t1), (declSet, declSetImp)) | t1 == CssTokEnd        
 
 
 data CssRule = CssRule {
-    complexSelector :: CssComplexSelector1
+    complexSelector :: CssCachedComplexSelector
   , declarationSet  :: CssDeclarationSet
   , specificity     :: Int
   , position        :: Int

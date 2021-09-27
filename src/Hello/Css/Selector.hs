@@ -59,13 +59,13 @@ module Hello.Css.Selector
 
   , CssSubclassSelector (..)
 
-  , CssComplexSelector1 (..)
+  , CssCachedComplexSelector (..)
   , defaultComplexSelector
 
   , CssComplexSelectorLink (..)
   , defaultComplexSelectorLink
 
-  , CssComplexSelector2
+  , CssComplexSelector
 
   , CssCombinator (..)
 
@@ -120,9 +120,9 @@ data CssComplexSelectorLink = CssComplexSelectorLink
 
 
 
-data CssComplexSelector1 = CssComplexSelector1 {
+data CssCachedComplexSelector = CssCachedComplexSelector {
     matchCacheOffset :: Int
-  , chain            :: CssComplexSelector2
+  , chain            :: CssComplexSelector
   } deriving (Show, Eq)
 
 
@@ -261,7 +261,7 @@ defaultComplexSelectorLink = CssComplexSelectorLink
 
 
 
-defaultComplexSelector = CssComplexSelector1 {
+defaultComplexSelector = CssCachedComplexSelector {
     matchCacheOffset = -1
   , chain            = Datum defaultCssCompoundSelector
   }
@@ -277,25 +277,44 @@ data Chain2 a b
 
 
 
-type CssComplexSelector2 = Chain2 CssCompoundSelector CssCombinator
+{-
+data Chain5 a b
+  = Datum5 a
+  | (:.) (Chain5 a b) (Chain5 a b)
+
+
+data Chain4 a b
+  = Datum4 a
+  | Link4 (Chain4 a b) b (Chain4 a b)
+
+ch41 =                                                                                   Datum4 "one"
+ch42 =                                                         Link4 (Datum4 "two") '+' (Datum4 "one")
+ch43 =                             Link4 (Datum4 "three") '-' (Link4 (Datum4 "two") '+' (Datum4 "one"))
+ch44 = Link4 (Datum4 "four") '/'  (Link4 (Datum4 "three") '-' (Link4 (Datum4 "two") '+' (Datum4 "one")))
+-}
 
 
 
 
-chainToLinks :: CssComplexSelector2 -> [CssComplexSelectorLink] -> [CssComplexSelectorLink]
+type CssComplexSelector = Chain2 CssCompoundSelector CssCombinator
+
+
+
+
+chainToLinks :: CssComplexSelector -> [CssComplexSelectorLink] -> [CssComplexSelectorLink]
 chainToLinks (Link comb (Datum compound1) remainder) acc      = chainToLinks remainder (defaultComplexSelectorLink { compound = compound1, combinator = comb } : acc)
 chainToLinks (Datum compound1) acc                 = defaultComplexSelectorLink { compound = compound1, combinator = CssCombinatorNone } : acc
 
 
 
 
-linksToChain :: [CssComplexSelectorLink] -> CssComplexSelector2
+linksToChain :: [CssComplexSelectorLink] -> CssComplexSelector
 linksToChain = linksToChain' . reverse
 
 
 
 
-linksToChain' :: [CssComplexSelectorLink] -> CssComplexSelector2
+linksToChain' :: [CssComplexSelectorLink] -> CssComplexSelector
 linksToChain' list@(CssComplexSelectorLink{combinator=CssCombinatorChild}:xs)           = Link CssCombinatorChild           (Datum (compound . head $ list)) (linksToChain' xs)
 linksToChain' list@(CssComplexSelectorLink{combinator=CssCombinatorAdjacentSibling}:xs) = Link CssCombinatorAdjacentSibling (Datum (compound . head $ list)) (linksToChain' xs)
 linksToChain' list@(CssComplexSelectorLink{combinator=CssCombinatorDescendant}:xs)      = Link CssCombinatorDescendant      (Datum (compound . head $ list)) (linksToChain' xs)
