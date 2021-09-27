@@ -39,13 +39,17 @@ module Hello.Css.Parser(
 
                        , cssPropertyInfo
 
+                         -- Parsing of selector
                        , parseCompoundSelectorTokens
-                       , parseCombinator2
+                       , parseCombinator
                        , parseCompoundSelector
-                       , parseComplexSelector2
-
+                       , parseComplexSelectorTokens
+                       , takeComplexSelectorTokens
+                       , parseComplexSelector
                        , parsePairs
                        , makeComplexR
+                       , readSelectorList
+                       , removeSpaceTokens
 
                        , parseUrl
 
@@ -93,13 +97,6 @@ module Hello.Css.Parser(
                        , cssShorthandTypeFont
 
                        , takeLengthTokens
-
-                       , takeComplexSelectorTokens
-                       , parseComplexSelector
-                       , parseComplexSelectorTokens
-
-                       , readSelectorList
-                       , removeSpaceTokens
 
                        , CssCombinator (..)
 
@@ -1143,31 +1140,20 @@ parseComplexSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe C
 parseComplexSelector (parser, token) = ((outParser, outToken), selector)
   where
     (outParser, outToken) = consumeRestOfSelector (p2, t2)
-    ((p2, t2), selector) = case parseComplexSelectorTokens (removeSpaceTokens cplxSelTokens []) [defaultComplexSelectorLink] of
-                             Just xs -> ((newParser, newToken), Just defaultComplexSelector{chain = linksToChain xs})
+    ((p2, t2), selector) = case parseComplexSelectorTokens (removeSpaceTokens cplxSelTokens []) of
+                             Just xs -> ((newParser, newToken), Just defaultComplexSelector{chain = xs})
                              Nothing -> ((newParser, newToken), Nothing)
 
     ((newParser, newToken), cplxSelTokens) = takeComplexSelectorTokens (parser, token)
 
 
 
--- let tokens = snd . takeComplexSelectorTokens $ (defaultParser{remainder="#some_id"}, CssTokNone)
--- parseComplexSelectorTokens tokens [defaultComplexSelectorLink]
 
-
-parseComplexSelectorTokens :: [CssToken] -> [CssComplexSelectorLink] -> Maybe [CssComplexSelectorLink]
-parseComplexSelectorTokens tokens _ = case parseComplexSelector2 tokens of
-                                        Nothing      -> Nothing
-                                        Just complex -> Just $ chainToLinks complex []
-
-
-
-
-parseCombinator2 :: [CssToken] -> Maybe (CssCombinator, [CssToken])
-parseCombinator2 (CssTokDelim '>':tokens) = Just (CssCombinatorChild, tokens)
-parseCombinator2 (CssTokDelim '+':tokens) = Just (CssCombinatorAdjacentSibling, tokens)
-parseCombinator2 (CssTokWS:tokens)        = Just (CssCombinatorDescendant, tokens)
-parseCombinator2 _                        = Nothing
+parseCombinator :: [CssToken] -> Maybe (CssCombinator, [CssToken])
+parseCombinator (CssTokDelim '>':tokens) = Just (CssCombinatorChild, tokens)
+parseCombinator (CssTokDelim '+':tokens) = Just (CssCombinatorAdjacentSibling, tokens)
+parseCombinator (CssTokWS:tokens)        = Just (CssCombinatorDescendant, tokens)
+parseCombinator _                        = Nothing
 
 
 
@@ -1175,8 +1161,8 @@ parseCombinator2 _                        = Nothing
 parseCompoundSelector :: (Maybe CssCompoundSelector, [CssToken]) -> Maybe (CssCompoundSelector, [CssToken])
 parseCompoundSelector (Just compound, (CssTokDelim '*':tokens)) = parseCompoundSelector (Just compound, tokens)
 parseCompoundSelector (Just compound, (CssTokIdent sym:tokens)) = case htmlTagIndex2 sym of
-                                                                    Just idx -> parseCompoundSelector (Just (setSelectorTagName2 compound (CssTypeSelector idx)), tokens)
-                                                                    Nothing  -> parseCompoundSelector (Just (setSelectorTagName2 compound (CssTypeSelectorUnknown)), tokens)
+                                                                    Just idx -> parseCompoundSelector (Just (setSelectorTagName compound (CssTypeSelector idx)), tokens)
+                                                                    Nothing  -> parseCompoundSelector (Just (setSelectorTagName compound (CssTypeSelectorUnknown)), tokens)
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
 parseCompoundSelector (Just compound, (CssTokHash CssHashId ident:tokens))      = parseCompoundSelector
@@ -1191,12 +1177,16 @@ parseCompoundSelector (Nothing, _)                                              
 
 
 
-parseComplexSelector2 :: [CssToken] -> Maybe (CssComplexSelector)
-parseComplexSelector2 tokens = case parseCompoundSelector (Just defaultCssCompoundSelector, tokens) of
-                                 Nothing                  -> Nothing
-                                 Just (compound, tokens2) -> case parsePairs tokens2 [] of
-                                                               Nothing         -> Nothing
-                                                               Just (_, pairs) -> Just (makeComplexR (Datum compound) pairs)
+-- First take a single compound selector. Then, in properly build complex
+-- selector, there should be zero or more pairs of combinator-compound. Take
+-- the pairs, and combine them with the first compound into a complex
+-- selector.
+parseComplexSelectorTokens :: [CssToken] -> Maybe CssComplexSelector
+parseComplexSelectorTokens tokens = case parseCompoundSelector (Just defaultCssCompoundSelector, tokens) of
+                                      Nothing                  -> Nothing
+                                      Just (compound, tokens2) -> case parsePairs tokens2 [] of
+                                                                    Nothing         -> Nothing
+                                                                    Just (_, pairs) -> Just (makeComplexR (Datum compound) pairs)
 
 
 
@@ -1212,7 +1202,7 @@ makeComplexR compound pairs = foldr f compound pairs
 
 parsePairs :: [CssToken] -> [(CssCombinator, CssCompoundSelector)] -> Maybe ([CssToken], [(CssCombinator, CssCompoundSelector)])
 parsePairs [] acc   = Just ([], acc) -- There is no "combinator followed by selector" data. Don't return error here.
-parsePairs tokens@(x:xs) acc = case parseCombinator2 tokens of
+parsePairs tokens@(x:xs) acc = case parseCombinator tokens of
                                  Nothing                    -> Nothing
                                  Just (combinator, tokens2) -> case parseCompoundSelector (Just defaultCssCompoundSelector, tokens2) of
                                                                  Nothing -> Nothing
@@ -1222,10 +1212,10 @@ parsePairs tokens@(x:xs) acc = case parseCombinator2 tokens of
 
 
 parseCompoundSelectorTokens :: [CssToken] -> CssCompoundSelector -> Maybe ([CssToken], CssCompoundSelector)
-parseCompoundSelectorTokens (CssTokDelim '*':tokens) compound = parseCompoundSelectorTokens tokens (setSelectorTagName2 compound CssTypeSelectorUniv)
+parseCompoundSelectorTokens (CssTokDelim '*':tokens) compound = parseCompoundSelectorTokens tokens (setSelectorTagName compound CssTypeSelectorUniv)
 parseCompoundSelectorTokens (CssTokIdent sym:tokens) compound = case htmlTagIndex2 sym of
-                                                                  Just idx -> parseCompoundSelectorTokens tokens (setSelectorTagName2 compound (CssTypeSelector idx))
-                                                                  Nothing  -> parseCompoundSelectorTokens tokens (setSelectorTagName2 compound (CssTypeSelectorUnknown))
+                                                                  Just idx -> parseCompoundSelectorTokens tokens (setSelectorTagName compound (CssTypeSelector idx))
+                                                                  Nothing  -> parseCompoundSelectorTokens tokens (setSelectorTagName compound (CssTypeSelectorUnknown))
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
 parseCompoundSelectorTokens (CssTokHash CssHashId ident:tokens) compound      = parseCompoundSelectorTokens
@@ -1243,12 +1233,7 @@ parseCompoundSelectorTokens _  compound = Nothing
 
 
 
-setSelectorTagName link t = link {compound = c { selectorTagName = t }}
-  where
-    c = compound link
-
-
-setSelectorTagName2 compound t = compound { selectorTagName = t }
+setSelectorTagName compound t = compound { selectorTagName = t }
 
 
 -- Parse entire list of selectors that are separated with comma.
