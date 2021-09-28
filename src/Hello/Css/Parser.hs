@@ -1177,7 +1177,7 @@ parseCompoundSelector (Nothing, _)                                              
 
 
 
--- First take a single compound selector. Then, in properly build complex
+-- First take a single compound selector. Then, in properly built complex
 -- selector, there should be zero or more pairs of combinator-compound. Take
 -- the pairs, and combine them with the first compound into a complex
 -- selector.
@@ -1195,18 +1195,18 @@ makeComplexR :: CssComplexSelector -> [(CssCombinator, CssCompoundSelector)] -> 
 makeComplexR compound pairs = foldr f compound pairs
   where
     f :: (CssCombinator, CssCompoundSelector) -> CssComplexSelector -> CssComplexSelector
-    f x acc = Link (fst x) (Datum (snd x)) acc
+    f x acc = Link (Datum (snd x)) (fst x) acc
 
 
 
 
 parsePairs :: [CssToken] -> [(CssCombinator, CssCompoundSelector)] -> Maybe ([CssToken], [(CssCombinator, CssCompoundSelector)])
 parsePairs [] acc   = Just ([], acc) -- There is no "combinator followed by selector" data. Don't return error here.
-parsePairs tokens@(x:xs) acc = case parseCombinator tokens of
-                                 Nothing                    -> Nothing
-                                 Just (combinator, tokens2) -> case parseCompoundSelector (Just defaultCssCompoundSelector, tokens2) of
-                                                                 Nothing -> Nothing
-                                                                 Just (compound, tokens3) -> parsePairs tokens3 ((combinator, compound):acc)
+parsePairs tokens acc = case parseCombinator tokens of
+                          Nothing                    -> Nothing
+                          Just (combinator, tokens2) -> case parseCompoundSelector (Just defaultCssCompoundSelector, tokens2) of
+                                                          Nothing -> Nothing
+                                                          Just (compound, tokens3) -> parsePairs tokens3 ((combinator, compound):acc)
 
 
 
@@ -1263,7 +1263,6 @@ readSelectorList (parser, token) = parseSelectorWrapper (parser, token) []
 
 
 
-
 -- Find end of current selector (probably needed only if something goes wrong
 -- during parsign of current selector).
 consumeRestOfSelector pair@(parser, CssTokEnd)            = pair
@@ -1275,7 +1274,7 @@ consumeRestOfSelector (parser, _)                         = consumeRestOfSelecto
 
 
 -- Take all tokens until ',' or '{' or EOF is met. The tokens will be used to
--- create list of CssComplexSelectorLinks (with separating combinators). If input
+-- create list of CssCompoundSelectors (with separating combinators). If input
 -- stream starts with whitespace, discard the whitespace (don't return token
 -- for it) - leading whitespace is certainly meaningless.
 takeComplexSelectorTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
@@ -1296,7 +1295,6 @@ takeComplexSelectorTokens (parser, token) = takeNext (parser, token) []
                                                       else takeNext (nextToken2 parser) (tokens ++ [token])
                                         CssTokNone -> takeNext (nextToken2 parser) tokens -- This token can be used to 'kick-start' of parsing
                                         otherwise  -> takeNext (nextToken2 parser) (tokens ++ [token])
-
 
 
 
@@ -1360,6 +1358,7 @@ defaultCssDeclarationSet = CssDeclarationSet
 
 
 
+
 parseDeclarationNormal :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), [CssDeclaration])
 parseDeclarationNormal (parser, token) property =
   case parseDeclValue (parser, token) enums functions  of
@@ -1386,7 +1385,6 @@ parseDeclValue (parser, token) enums (f:fs) = case f (parser, token) enums of
 -- CssValueTypeInt is used internally only.
 -- TODO: clarify why we need this at all.
 declValueAsInt (parser, token) enums = ((parser, token), Just (CssValueTypeInt 0))
-
 
 
 
@@ -1447,7 +1445,6 @@ matchOrderedTokens (parser, token) (prop:properties) values =
     functions = tripletSnd propInfo
     enums = tripletThrd propInfo
 matchOrderedTokens (parser, token) [] values               = ((parser, token), values)
-
 
 
 
@@ -1526,7 +1523,6 @@ tryShorthand (parser, token) shorthandIdx = parseDeclarationShorthand (parser, t
 
 
 
-
 -- For non-shorthand declaration, this function should produce one-element
 -- list. But a shorthand declaration translates into two or more regular
 -- declarations, hence the return type contains a list of declarations.
@@ -1541,7 +1537,6 @@ parseDeclaration (p1, t1) = ((outParser, outToken), declarationsWithImportant)
     (outParser, outToken) = consumeRestOfDeclaration (p3, t3)
 
     markAsImportant inDecl = inDecl{important = True}
-
 
 
 
@@ -1567,7 +1562,6 @@ consumeRestOfDeclaration pair@(parser, CssTokEnd)             = pair
 consumeRestOfDeclaration pair@(parser, CssTokBraceCurlyClose) = pair -- '}' is not a part of declaration, so don't go past it. Return '}' as current token.
 consumeRestOfDeclaration (parser, CssTokSemicolon)            = nextToken1 parser
 consumeRestOfDeclaration (parser, _)                          = consumeRestOfDeclaration . nextToken1 $ parser
-
 
 
 
@@ -1716,6 +1710,6 @@ getRequiredMatchCache rule = (matchCacheOffset . complexSelector $ rule) + (chai
 -- Get top compound selector
 getTopCompound :: CssRule -> CssCompoundSelector
 getTopCompound rule = getTopCompound' . chain . complexSelector $ rule
-getTopCompound' (Link _ (Datum c) remainder) = c
+getTopCompound' (Link (Datum c) _ remainder) = c
 getTopCompound' (Datum c)                    = c
 
