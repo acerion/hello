@@ -31,18 +31,20 @@ typedef struct c_gif_t {
 struct c_doctree_node_t;
 /* From doctree.h */
 typedef struct c_doctree_node_t {
-      int c_unique_num; // unique ascending id
-      int c_html_element_idx; /* Index to html.cc::Tags */
+   int c_unique_num; // unique ascending id
+   int c_html_element_idx; /* Index to html.cc::Tags */
 
-      /* Css Selectors. */
-      char * c_element_selector_pseudo_class;
-      char * c_element_selector_id;
-      char * c_element_selector_class[10];
-      int c_element_selector_class_size;
+   /* Css Selectors. */
+   char * c_element_selector_pseudo_class;
+   char * c_element_selector_id;
+   char * c_element_selector_class[10];
+   int c_element_selector_class_size;
 
-      struct c_doctree_node_t * c_parent;
-      struct c_doctree_node_t * c_sibling;
-      struct c_doctree_node_t * c_last_child;
+   struct c_doctree_node_t * c_parent;
+   struct c_doctree_node_t * c_sibling;
+   struct c_doctree_node_t * c_last_child;
+
+   struct c_doctree_node_t * c_root_node;
 } c_doctree_node_t;
 
 
@@ -301,6 +303,10 @@ int hll_isTokenSemicolon(c_css_token_t * token);
 int hll_isTokenBraceCurlyOpen(c_css_token_t * token);
 int hll_isTokenBraceCurlyClose(c_css_token_t * token);
 
+
+
+c_doctree_node_t * hll_getDtnParent(const c_doctree_node_t * dtn);
+c_doctree_node_t * hll_getDtnSibling(const c_doctree_node_t * dtn);
 
 
 #ifdef __cplusplus

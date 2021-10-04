@@ -70,10 +70,6 @@ foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssPars
 
 
 
-
-
-
-
 hll_compoundSelectorMatches :: Ptr FfiCssCompoundSelector -> Ptr FfiDoctreeNode -> IO Int
 hll_compoundSelectorMatches ptrStructCompoundSelector ptrStructDoctreeNode = do
   cpdSel :: CssCompoundSelector <- peekCssCompoundSelector ptrStructCompoundSelector

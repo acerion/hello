@@ -40,11 +40,7 @@ module Hello.Css.DoctreeNode
 
 
 import qualified Data.Text as T
---import qualified Data.Map as M
---import Data.Bits
 import Debug.Trace
---import Hello.Css.Parser
---import Hello.Css.Selector
 
 
 
@@ -60,6 +56,7 @@ data DoctreeNode = DoctreeNode {
   , dtnParent    :: Int -- Maybe DoctreeNode
   , dtnSibling   :: Int -- Maybe DoctreeNode
   , dtnLastChild :: Int -- Maybe DoctreeNode
+  , dtnRootNode  :: Int -- Maybe DoctreeNode -- TODO: this field belongs to DocTree, not to DoctreeNode
   } deriving (Show)
 
 
@@ -68,10 +65,13 @@ data DoctreeNode = DoctreeNode {
 defaultDoctreeNode = DoctreeNode
   { uniqueNum = (-1)
   , htmlElementIdx = (-1)
+
   , selPseudoClass = ""
   , selId = ""
   , selClass = []
-  , dtnParent = 0
-  , dtnSibling = 0
+
+  , dtnParent    = 0
+  , dtnSibling   = 0
   , dtnLastChild = 0
+  , dtnRootNode  = 0
   }

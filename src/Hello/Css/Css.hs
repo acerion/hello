@@ -57,7 +57,8 @@ TODO: in C++ code the string comparisons were case-insensitive.
 compoundSelectorMatches :: CssCompoundSelector -> DoctreeNode -> IO Bool
 compoundSelectorMatches compound dtn = do
   par <- ffi_dtnGetParent dtn
-  return (trace ("parent:" ++ (show $ xParent dtn par)) ((compoundSelectorMatches' compound dtn) == 0))
+  -- return (trace ("parent:" ++ (show $ xParent dtn par)) ((compoundSelectorMatches' compound dtn) == 0))
+  return ((compoundSelectorMatches' compound dtn) == 0)
 
 
 xParent dtn par = if dtnParent dtn /= 0

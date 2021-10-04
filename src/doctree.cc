@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include "doctree.hh"
 
-c_doctree_node_t * DoctreeNodeNew() {
+c_doctree_node_t * DoctreeNodeNew(c_doctree_node_t * root) {
    c_doctree_node_t * dtn = (c_doctree_node_t *) calloc(1, sizeof (c_doctree_node_t));
+   dtn->c_root_node = root;
    return dtn;
 };
 
