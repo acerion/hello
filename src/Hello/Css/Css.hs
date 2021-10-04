@@ -22,11 +22,12 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 -}
 
 
-module Css( DoctreeNode (..)
-          , compoundSelectorMatches
-          , compoundSelectorMatches'
-          , selectorSpecificity
-          )
+module Css
+  (
+    compoundSelectorMatches
+  , compoundSelectorMatches'
+  , selectorSpecificity
+  )
   where
 
 
@@ -38,22 +39,9 @@ import Data.Bits
 import Debug.Trace
 import Hello.Css.Parser
 import Hello.Css.Selector
+import Hello.Css.DoctreeNode
+import Hello.Ffi.Css.DoctreeNode
 
-
-
-
-data DoctreeNode = DoctreeNode {
-    uniqueNum      :: Int -- unique ascending id
-  , htmlElementIdx :: Int -- Index to html.cc::Tags
-
-  , selPseudoClass  :: T.Text
-  , selId           :: T.Text
-  , selClass        :: [T.Text]
-
-  , parent    :: Maybe DoctreeNode
-  , sibling   :: Maybe DoctreeNode
-  , lastChild :: Maybe DoctreeNode
-  } deriving (Show)
 
 
 
@@ -66,8 +54,17 @@ Right now this is a naive re-write of simple_selector_matches() C function.
 TODO: in C++ code the string comparisons were case-insensitive.
 -}
 
-compoundSelectorMatches :: CssCompoundSelector -> DoctreeNode -> Bool
-compoundSelectorMatches compound dtn = (compoundSelectorMatches' compound dtn) == 0
+compoundSelectorMatches :: CssCompoundSelector -> DoctreeNode -> IO Bool
+compoundSelectorMatches compound dtn = do
+  par <- ffi_dtnGetParent dtn
+  return (trace ("parent:" ++ (show $ xParent dtn par)) ((compoundSelectorMatches' compound dtn) == 0))
+
+
+xParent dtn par = if dtnParent dtn /= 0
+                  then "parent of dtn with element idx " ++ (show . htmlElementIdx $ dtn) ++ " has element idx " ++ (show . htmlElementIdx $ par)
+                  else "dtn with element idx " ++ (show . htmlElementIdx $ dtn) ++ " has no parent"
+
+
 
 compoundSelectorMatches' :: CssCompoundSelector -> DoctreeNode -> Int
 compoundSelectorMatches' compound dtn | mismatchOnElement compound dtn     = 4
@@ -139,4 +136,7 @@ compoundSelectorSpecificity compound = (fromId compound) + (fromClass compound) 
     fromClass compound       = (length . selectorClass $ compound) `shiftL` 10
     fromPseudoClass compound = if (not . null . selectorPseudoClass $ compound) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
     fromElement compound     = if compoundHasUniversalType compound then 0 else 1
+
+
+
 

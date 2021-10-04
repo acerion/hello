@@ -48,8 +48,10 @@ import Hello.Css.Parser
 import Css
 import Hello.Css.StyleSheet
 import Hello.Css.Selector
+import Hello.Css.DoctreeNode
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Utils
+import Hello.Ffi.Css.DoctreeNode
 
 
 
@@ -68,75 +70,6 @@ foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssPars
 
 
 
-data FfiDoctreeNode = FfiDoctreeNode {
-    uniqueNumC      :: CInt -- unique ascending id
-  , htmlElementIdxC :: CInt -- Index to html.cc::Tags
-
-  , elementSelectorPseudoClassC     :: CString
-  , elementSelectorIdC              :: CString
-  , elementSelectorClassC           :: CString
-  , elementSelectorClassSizeC       :: CInt
-
-  , parentC    :: Ptr FfiDoctreeNode
-  , siblingC   :: Ptr FfiDoctreeNode
-  , lastChildC :: Ptr FfiDoctreeNode
-  } deriving (Show)
-
-
-
-
-instance Storable FfiDoctreeNode where
-  sizeOf    _ = #{size c_doctree_node_t}
-  alignment _ = #{alignment c_doctree_node_t}
-
-  poke ptr (FfiDoctreeNode a b c d e f g h i) = do
-    #{poke c_doctree_node_t, c_unique_num}                    ptr a
-    #{poke c_doctree_node_t, c_html_element_idx}              ptr b
-    #{poke c_doctree_node_t, c_element_selector_pseudo_class} ptr c
-    #{poke c_doctree_node_t, c_element_selector_id}           ptr d
-    #{poke c_doctree_node_t, c_element_selector_class}        ptr e
-    #{poke c_doctree_node_t, c_element_selector_class_size}   ptr f
-    #{poke c_doctree_node_t, c_parent}                        ptr g
-    #{poke c_doctree_node_t, c_sibling}                       ptr h
-    #{poke c_doctree_node_t, c_last_child}                    ptr i
-
-  peek ptr = do
-    a <- #{peek c_doctree_node_t, c_unique_num}                    ptr
-    b <- #{peek c_doctree_node_t, c_html_element_idx}              ptr
-    c <- #{peek c_doctree_node_t, c_element_selector_pseudo_class} ptr
-    d <- #{peek c_doctree_node_t, c_element_selector_id}           ptr
-    e <- #{peek c_doctree_node_t, c_element_selector_class}        ptr
-    f <- #{peek c_doctree_node_t, c_element_selector_class_size}   ptr
-    g <- #{peek c_doctree_node_t, c_parent}                        ptr
-    h <- #{peek c_doctree_node_t, c_sibling}                       ptr
-    i <- #{peek c_doctree_node_t, c_last_child}                    ptr
-    return (FfiDoctreeNode a b c d e f g h i)
-
-
-
-
-peekDoctreeNode :: Ptr FfiDoctreeNode -> IO DoctreeNode
-peekDoctreeNode ptrStructDoctreeNode = do
-
-  ffiDtn <- peek ptrStructDoctreeNode
-  pc <- ptrCCharToText . elementSelectorPseudoClassC $ ffiDtn
-  i  <- ptrCCharToText . elementSelectorIdC $ ffiDtn
-
-  let cOffset = (#offset c_doctree_node_t, c_element_selector_class)
-  let cStringArray :: Ptr CString = plusPtr ptrStructDoctreeNode cOffset
-  c  <- peekArrayOfPointers cStringArray (fromIntegral . elementSelectorClassSizeC $ ffiDtn) ptrCCharToText
-
-  return DoctreeNode{ uniqueNum = fromIntegral . uniqueNumC $ ffiDtn
-
-                    , htmlElementIdx = fromIntegral . htmlElementIdxC $ ffiDtn
-                    , selPseudoClass = pc
-                    , selId          = i
-                    , selClass       = c
-
-                    , parent = Nothing
-                    , sibling = Nothing
-                    , lastChild = Nothing
-                    }
 
 
 
@@ -145,7 +78,9 @@ hll_compoundSelectorMatches :: Ptr FfiCssCompoundSelector -> Ptr FfiDoctreeNode 
 hll_compoundSelectorMatches ptrStructCompoundSelector ptrStructDoctreeNode = do
   cpdSel :: CssCompoundSelector <- peekCssCompoundSelector ptrStructCompoundSelector
   dtn    :: DoctreeNode         <- peekDoctreeNode ptrStructDoctreeNode
-  if compoundSelectorMatches cpdSel dtn
+
+  matches <- compoundSelectorMatches cpdSel dtn
+  if matches
     then return 1 -- True
     else return 0 -- False
 
@@ -615,3 +550,8 @@ hll_cssParseRuleset ptrStructCssParser ptrStructCssToken ptrStructCssContext = d
   pokeCssContext ptrStructCssContext c2
 
   return ()
+
+
+
+
+
