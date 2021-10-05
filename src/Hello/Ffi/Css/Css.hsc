@@ -99,7 +99,7 @@ hll_onCombinatorNonDescendant ptrStructComplexSelector ptrStructDtn cLinkIdx ptr
       if not matches
          then return 0 -- False
          else return 1 -- True
---int hll_onCombinatorNonDescendant(const c_css_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
+--int hll_onCombinatorNonDescendant(const c_css_cached_complex_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
 
 
 
@@ -185,13 +185,13 @@ instance Storable FfiCssRule where
   alignment _ = #{alignment c_css_value_t}
 
   poke ptr (FfiCssRule a b c d) = do
-    #{poke c_css_rule_t, c_selector}    ptr a
+    #{poke c_css_rule_t, c_cached_complex_selector}    ptr a
     #{poke c_css_rule_t, c_decl_set}    ptr b
     #{poke c_css_rule_t, c_specificity} ptr c
     #{poke c_css_rule_t, c_position}    ptr d
 
   peek ptr = do
-    a <- #{peek c_css_rule_t, c_selector}    ptr
+    a <- #{peek c_css_rule_t, c_cached_complex_selector}    ptr
     b <- #{peek c_css_rule_t, c_decl_set}    ptr
     c <- #{peek c_css_rule_t, c_specificity} ptr
     d <- #{peek c_css_rule_t, c_position}    ptr
@@ -225,9 +225,9 @@ pokeCssRule ptrStructCssRule rule = do
   ffiRule <- peek ptrStructCssRule
 
   let ptrSelector = selectorC ffiRule
-  --ptrSelector <- callocBytes #{size c_css_selector_t}
+  --ptrSelector <- callocBytes #{size c_css_cached_complex_selector_t}
   pokeCssComplexSelector ptrSelector (complexSelector rule)
-  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_selector} ptrSelector
+  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_cached_complex_selector} ptrSelector
 
   ptrDeclSet <- callocBytes #{size c_css_declaration_set_t}
   pokeCssDeclarationSet ptrDeclSet (declarationSet rule)
@@ -252,9 +252,9 @@ pokeCssRule rule = do
 
   ptrStructCssRule <- callocBytes #{size c_css_rule_t}
 
-  ptrSelector <- callocBytes #{size c_css_selector_t}
+  ptrSelector <- callocBytes #{size c_css_cached_complex_selector_t}
   pokeCssComplexSelector ptrSelector (selector rule)
-  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_selector} ptrSelector
+  pokeByteOff ptrStructCssRule #{offset c_css_rule_t, c_cached_complex_selector} ptrSelector
 
   ptrDeclSet <- callocBytes #{size c_css_declaration_set_t}
   pokeCssDeclarationSet ptrDeclSet (declarationSet rule)

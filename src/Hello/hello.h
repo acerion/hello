@@ -99,11 +99,11 @@ typedef struct c_css_compound_selector_t {
 
 
 
-typedef struct c_css_selector_t {
+typedef struct c_css_cached_complex_selector_t {
    int c_match_cache_offset;
    c_css_complex_selector_link_t * c_links[10];
    int c_links_size;
-} c_css_selector_t;
+} c_css_cached_complex_selector_t;
 
 
 typedef struct c_css_value_t {
@@ -142,10 +142,10 @@ typedef struct c_css_token_t {
 /**
  * \brief A pair of CSS selector and CSS declarations set.
  *
- *  The c_css_declaration_set_t is applied if the c_css_selector_t matches.
+ *  The c_css_declaration_set_t is applied if the c_css_cached_complex_selector_t matches.
  */
 typedef struct c_css_rule_t {
-      c_css_selector_t * c_selector;
+      c_css_cached_complex_selector_t * c_cached_complex_selector;
       c_css_declaration_set_t * c_decl_set;
       int c_specificity;
       int c_position;
@@ -272,7 +272,7 @@ float hll_cssLengthValue(uint32_t css_length_word);
 uint32_t hll_cssCreateLength(float val, CssLengthType t);
 
 // Return count of selectors in @p selectors
-int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, c_css_selector_t ** selectors);
+int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, c_css_cached_complex_selector_t ** selectors);
 
 int hll_declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * declaration);
 
@@ -287,8 +287,8 @@ void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const
 
 /* Function returns boolean. */
 int hll_compoundSelectorMatches(const c_css_compound_selector_t * csel, const c_doctree_node_t * dtn);
-int hll_selectorSpecificity(const c_css_selector_t * selector);
-int hll_onCombinatorNonDescendant(const c_css_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
+int hll_selectorSpecificity(const c_css_cached_complex_selector_t * selector);
+int hll_onCombinatorNonDescendant(const c_css_cached_complex_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
 
 
 c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);

@@ -575,19 +575,19 @@ data FfiCssComplexSelector = FfiCssComplexSelector {
 
 
 instance Storable FfiCssComplexSelector where
-  sizeOf    _ = #{size c_css_selector_t}
-  alignment _ = #{alignment c_css_selector_t}
+  sizeOf    _ = #{size c_css_cached_complex_selector_t}
+  alignment _ = #{alignment c_css_cached_complex_selector_t}
 
   peek ptr = do
-    a <- #{peek c_css_selector_t, c_match_cache_offset} ptr
-    let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_selector_t, c_links}) ptr
-    c <- #{peek c_css_selector_t, c_links_size} ptr
+    a <- #{peek c_css_cached_complex_selector_t, c_match_cache_offset} ptr
+    let b = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_cached_complex_selector_t, c_links}) ptr
+    c <- #{peek c_css_cached_complex_selector_t, c_links_size} ptr
     return (FfiCssComplexSelector a b c)
 
   poke ptr (FfiCssComplexSelector inMatchCaseOffset inLinks inLinksSize) = do
-    #{poke c_css_selector_t, c_match_cache_offset}    ptr inMatchCaseOffset
-    #{poke c_css_selector_t, c_links}      ptr inLinks
-    #{poke c_css_selector_t, c_links_size} ptr inLinksSize
+    #{poke c_css_cached_complex_selector_t, c_match_cache_offset}    ptr inMatchCaseOffset
+    #{poke c_css_cached_complex_selector_t, c_links}      ptr inLinks
+    #{poke c_css_cached_complex_selector_t, c_links_size} ptr inLinksSize
 
 
 
@@ -598,7 +598,7 @@ peekCssComplexSelector ptrStructCssComplexSelector = do
   ffiSel <- peek ptrStructCssComplexSelector
 
   {- This would also work:
-  let offset = #{offset c_css_selector_t, c_links}
+  let offset = #{offset c_css_cached_complex_selector_t, c_links}
   let ptrLinkArray :: Ptr (Ptr FfiCssComplexSelectorLink) = plusPtr ptrStructCssComplexSelector offset
   -}
   let ptrLinkArray :: Ptr (Ptr FfiCssComplexSelectorLink) = cLinks ffiSel
@@ -620,9 +620,9 @@ pokeCssComplexSelector ptrStructCssComplexSelector selector = do
   let len = chainLength . chain $ selector :: Int
 
   pokeArrayOfPointersWithAlloc (chainToLinks (chain selector) []) allocAndPokeCssComplexSelectorLink (cLinks ffiSel)
-  pokeByteOff ptrStructCssComplexSelector (#offset c_css_selector_t, c_links_size) len
+  pokeByteOff ptrStructCssComplexSelector (#offset c_css_cached_complex_selector_t, c_links_size) len
 
-  pokeByteOff ptrStructCssComplexSelector (#offset c_css_selector_t, c_match_cache_offset) (matchCacheOffset selector)
+  pokeByteOff ptrStructCssComplexSelector (#offset c_css_cached_complex_selector_t, c_match_cache_offset) (matchCacheOffset selector)
 
 
 

@@ -25,15 +25,15 @@ static void alloc_sheet(c_css_style_sheet_t ** sheet);
 
 
 
-/* c_css_selector_t methods. */
-static bool css_selector_matches(const c_css_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache);
+/* c_css_cached_complex_selector_t methods. */
+static bool css_selector_matches(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache);
 
 
 
 
 static void css_value_copy(c_css_value_t * dest, c_css_value_t * src);
-static bool on_combinator_non_descendant(const c_css_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
-static bool on_combinator_descendant(const c_css_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
+static bool on_combinator_non_descendant(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
+static bool on_combinator_descendant(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
 
 
 
@@ -104,7 +104,7 @@ void css_value_copy(c_css_value_t * dest, c_css_value_t * src)
 /**
  * \brief Return whether selector matches at a given node in the document tree.
  */
-bool css_selector_matches(const c_css_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache)
+bool css_selector_matches(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache)
 {
    if (link_idx < 0) {
       return true;
@@ -112,28 +112,28 @@ bool css_selector_matches(const c_css_selector_t * selector, const c_doctree_nod
 
    switch (comb) {
    case CssSelectorCombinatorNone:
-      return on_combinator_non_descendant(selector, dtn, link_idx, match_cache);
+      return on_combinator_non_descendant(cached_complex, dtn, link_idx, match_cache);
 
    case CssSelectorCombinatorChild:
       dtn = hll_getDtnParent(dtn);
-      return on_combinator_non_descendant(selector, dtn, link_idx, match_cache);
+      return on_combinator_non_descendant(cached_complex, dtn, link_idx, match_cache);
 
    case CssSelectorCombinatorAdjacentSibling:
       dtn = hll_getDtnSibling(dtn);
-      return on_combinator_non_descendant(selector, dtn, link_idx, match_cache);
+      return on_combinator_non_descendant(cached_complex, dtn, link_idx, match_cache);
 
    case CssSelectorCombinatorDescendant:
       dtn = hll_getDtnParent(dtn);
-      return on_combinator_descendant(selector, dtn, link_idx, match_cache);
+      return on_combinator_descendant(cached_complex, dtn, link_idx, match_cache);
 
    default:
       return false; // \todo implement other combinators
    }
 }
 
-bool on_combinator_non_descendant(const c_css_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache)
+bool on_combinator_non_descendant(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache)
 {
-   if (0 == hll_onCombinatorNonDescendant(selector, dtn, link_idx, match_cache)) {
+   if (0 == hll_onCombinatorNonDescendant(cached_complex, dtn, link_idx, match_cache)) {
       return false;
    }
 #if 0
@@ -141,32 +141,32 @@ bool on_combinator_non_descendant(const c_css_selector_t * selector, const c_doc
       return false;
    }
 
-   c_css_complex_selector_link_t * link = selector->c_links[link_idx];
+   c_css_complex_selector_link_t * link = cached_complex->c_links[link_idx];
    c_css_compound_selector_t * compound = (c_css_compound_selector_t *) link;
    if (!hll_compoundSelectorMatches(compound, dtn)) {
       return false;
    }
 #endif
-   c_css_complex_selector_link_t * link = selector->c_links[link_idx];
+   c_css_complex_selector_link_t * link = cached_complex->c_links[link_idx];
    // tail recursion should be optimized by the compiler
-   return css_selector_matches(selector, dtn, link_idx - 1, (Combinator) link->c_combinator, match_cache);
+   return css_selector_matches(cached_complex, dtn, link_idx - 1, (Combinator) link->c_combinator, match_cache);
 }
 
-bool on_combinator_descendant(const c_css_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache)
+bool on_combinator_descendant(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache)
 {
-   const int match_cache_entry = match_cache->c_cache_items[selector->c_match_cache_offset + link_idx];
-   c_css_complex_selector_link_t * link = selector->c_links[link_idx];
+   const int match_cache_entry = match_cache->c_cache_items[cached_complex->c_match_cache_offset + link_idx];
+   c_css_complex_selector_link_t * link = cached_complex->c_links[link_idx];
    c_css_compound_selector_t * compound = (c_css_compound_selector_t *) link;
 
    for (const c_doctree_node_t * dtn2 = dtn; dtn2 && dtn2->c_unique_num > match_cache_entry; dtn2 = hll_getDtnParent(dtn2)) {
       if (hll_compoundSelectorMatches(compound, dtn2)
-          && css_selector_matches(selector, dtn2, link_idx - 1, (Combinator) link->c_combinator, match_cache)) {
+          && css_selector_matches(cached_complex, dtn2, link_idx - 1, (Combinator) link->c_combinator, match_cache)) {
          return true;
       }
    }
 
    if (dtn) { // remember that it didn't match to avoid future tests
-      match_cache->c_cache_items[selector->c_match_cache_offset + link_idx] = dtn->c_unique_num;
+      match_cache->c_cache_items[cached_complex->c_match_cache_offset + link_idx] = dtn->c_unique_num;
    }
 
    return false;
@@ -239,7 +239,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
          c_css_rule_t * rule = rules_lists[minSpecIndex]->c_rules[index[minSpecIndex]];
 
          /* Apply CSS rule. */
-         if (css_selector_matches(rule->c_selector, dtn, rule->c_selector->c_links_size - 1, CssSelectorCombinatorNone, match_cache)) {
+         if (css_selector_matches(rule->c_cached_complex_selector, dtn, rule->c_cached_complex_selector->c_links_size - 1, CssSelectorCombinatorNone, match_cache)) {
             hll_declarationListAppend(decl_set, rule->c_decl_set);
          }
 
@@ -264,14 +264,14 @@ static void alloc_rules_list(c_css_rules_list_t ** list)
    (*list) = (c_css_rules_list_t *) calloc(1, sizeof (c_css_rules_list_t));
    for (int r = 0; r < RULES_LIST_SIZE; r++) {
       (*list)->c_rules[r] = (c_css_rule_t *) calloc(1, sizeof (c_css_rule_t));
-      (*list)->c_rules[r]->c_selector = (c_css_selector_t *) calloc(1, sizeof (c_css_selector_t));
-      size += sizeof (c_css_selector_t);
+      (*list)->c_rules[r]->c_cached_complex_selector = (c_css_cached_complex_selector_t *) calloc(1, sizeof (c_css_cached_complex_selector_t));
+      size += sizeof (c_css_cached_complex_selector_t);
    }
 
 #if 0
    fprintf(stderr, "size = %lu MB (%d * %d)\n",
            size / (1024 * 1024),
-           RULES_LIST_SIZE, sizeof (c_css_selector_t));
+           RULES_LIST_SIZE, sizeof (c_css_cached_complex_selector_t));
    if (size > 1000 * 1024 * 1024) {
       exit(0);
    }

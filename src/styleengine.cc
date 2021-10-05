@@ -26,7 +26,7 @@ void print_css_context(FILE * file, c_css_context_t * context);
 void print_css_style_sheet(FILE * file, c_css_style_sheet_t * sheet);
 void print_css_rule_map(FILE * file, c_css_rules_map_t * map);
 void print_css_rule_list(FILE * file, c_css_rules_list_t * list);
-void print_css_rule_selector(FILE * file, c_css_selector_t * selector);
+void print_css_rule_selector(FILE * file, c_css_cached_complex_selector_t * cached_complex);
 void print_css_rule_properties(FILE * file, c_css_declaration_set_t * props);
 void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t * link);
 
@@ -1107,21 +1107,21 @@ void print_css_rule_list(FILE * file, c_css_rules_list_t * list)
       c_css_rule_t * rule = list->c_rules[i];
       fprintf(file, "                rule->specificity = %d\n", rule->c_specificity);
       fprintf(file, "                rule->position    = %d\n", rule->c_position);
-      print_css_rule_selector(file, rule->c_selector);
+      print_css_rule_selector(file, rule->c_cached_complex_selector);
       print_css_rule_properties(file, rule->c_decl_set);
       fprintf(file, "\n");
    }
    fprintf(file, "\n");
 }
 
-void print_css_rule_selector(FILE * file, c_css_selector_t * selector)
+void print_css_rule_selector(FILE * file, c_css_cached_complex_selector_t * cached_complex)
 {
-   if (!selector) {
+   if (!cached_complex) {
       return;
    }
-   fprintf(file, "                    selector (%d elements):\n", selector->c_links_size);
-   for (int i = 0; i < selector->c_links_size; i++) {
-      c_css_complex_selector_link_t * link = selector->c_links[i];
+   fprintf(file, "                    selector (%d elements):\n", cached_complex->c_links_size);
+   for (int i = 0; i < cached_complex->c_links_size; i++) {
+      c_css_complex_selector_link_t * link = cached_complex->c_links[i];
       fprintf(file, "                        combinator = %d\n", link->c_combinator);
       print_css_complex_selector_link(file, link);
    }
