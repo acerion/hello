@@ -310,6 +310,24 @@ c_doctree_node_t * hll_getDtnParent(const c_doctree_node_t * dtn);
 c_doctree_node_t * hll_getDtnSibling(const c_doctree_node_t * dtn);
 
 
+/**
+ * \brief CSS selector class.
+ *
+ * \todo Implement missing selector options.
+ */
+typedef enum {
+              CssSelectorCombinatorNone,
+              CssSelectorCombinatorDescendant,      // ' '
+              CssSelectorCombinatorChild,           // '>'
+              CssSelectorCombinatorAdjacentSibling, // '+'
+} Combinator;
+
+
+/* c_css_cached_complex_selector_t methods. */
+bool css_selector_matches(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache);
+
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

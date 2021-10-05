@@ -199,17 +199,6 @@ enum class CssSelectorType {
 
 
 
-/**
- * \brief CSS selector class.
- *
- * \todo Implement missing selector options.
- */
-typedef enum {
-              CssSelectorCombinatorNone,
-              CssSelectorCombinatorDescendant,      // ' '
-              CssSelectorCombinatorChild,           // '>'
-              CssSelectorCombinatorAdjacentSibling, // '+'
-} Combinator;
 
 enum {
       CssSimpleSelectorElementNone = -1,

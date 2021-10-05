@@ -69,6 +69,9 @@ foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssPars
 foreign export ccall "hll_onCombinatorNonDescendant" hll_onCombinatorNonDescendant :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Int -> Ptr FfiCssMatchCache -> IO Int
 
 
+foreign import ccall "css_selector_matches" c_css_selector_matches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Int -> Int -> Ptr FfiCssMatchCache -> Bool
+
+
 
 hll_compoundSelectorMatches :: Ptr FfiCssCompoundSelector -> Ptr FfiDoctreeNode -> IO Int
 hll_compoundSelectorMatches ptrStructCompoundSelector ptrStructDoctreeNode = do
@@ -97,10 +100,24 @@ hll_onCombinatorNonDescendant ptrStructComplexSelector ptrStructDtn cLinkIdx ptr
       dtn <- peekDoctreeNode ptrStructDtn
       matches <- compoundSelectorMatches compound dtn
       if not matches
-         then return 0 -- False
-         else return 1 -- True
+        then return 0 -- False
+        else
+        do
+          let links = chainToLinks (chain cachedComplex) []
+          let link = links !! linkIdx
+          let comb = combinator link
+          if c_css_selector_matches ptrStructComplexSelector ptrStructDtn (cLinkIdx - 1) (intComb comb) ptrStructMatchCache
+            then return 1
+            else return 0
 --int hll_onCombinatorNonDescendant(const c_css_cached_complex_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
+-- foreign import ccall "css_selector_matches" c_css_selector_matches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Int -> Int -> Ptr FfiCssMatchCache -> Bool
 
+
+
+intComb CssCombinatorNone       = 0
+intComb CssCombinatorDescendant = 1
+intComb CssCombinatorChild      = 2
+intComb CssCombinatorAdjacentSibling = 3
 
 
 

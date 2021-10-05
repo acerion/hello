@@ -25,14 +25,10 @@ static void alloc_sheet(c_css_style_sheet_t ** sheet);
 
 
 
-/* c_css_cached_complex_selector_t methods. */
-static bool css_selector_matches(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache);
-
 
 
 
 static void css_value_copy(c_css_value_t * dest, c_css_value_t * src);
-static bool on_combinator_non_descendant(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
 static bool on_combinator_descendant(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
 
 
@@ -112,15 +108,15 @@ bool css_selector_matches(const c_css_cached_complex_selector_t * cached_complex
 
    switch (comb) {
    case CssSelectorCombinatorNone:
-      return on_combinator_non_descendant(cached_complex, dtn, link_idx, match_cache);
+      return hll_onCombinatorNonDescendant(cached_complex, dtn, link_idx, match_cache);
 
    case CssSelectorCombinatorChild:
       dtn = hll_getDtnParent(dtn);
-      return on_combinator_non_descendant(cached_complex, dtn, link_idx, match_cache);
+      return hll_onCombinatorNonDescendant(cached_complex, dtn, link_idx, match_cache);
 
    case CssSelectorCombinatorAdjacentSibling:
       dtn = hll_getDtnSibling(dtn);
-      return on_combinator_non_descendant(cached_complex, dtn, link_idx, match_cache);
+      return hll_onCombinatorNonDescendant(cached_complex, dtn, link_idx, match_cache);
 
    case CssSelectorCombinatorDescendant:
       dtn = hll_getDtnParent(dtn);
@@ -129,27 +125,6 @@ bool css_selector_matches(const c_css_cached_complex_selector_t * cached_complex
    default:
       return false; // \todo implement other combinators
    }
-}
-
-bool on_combinator_non_descendant(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache)
-{
-   if (0 == hll_onCombinatorNonDescendant(cached_complex, dtn, link_idx, match_cache)) {
-      return false;
-   }
-#if 0
-   if (!dtn) {
-      return false;
-   }
-
-   c_css_complex_selector_link_t * link = cached_complex->c_links[link_idx];
-   c_css_compound_selector_t * compound = (c_css_compound_selector_t *) link;
-   if (!hll_compoundSelectorMatches(compound, dtn)) {
-      return false;
-   }
-#endif
-   c_css_complex_selector_link_t * link = cached_complex->c_links[link_idx];
-   // tail recursion should be optimized by the compiler
-   return css_selector_matches(cached_complex, dtn, link_idx - 1, (Combinator) link->c_combinator, match_cache);
 }
 
 bool on_combinator_descendant(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache)
