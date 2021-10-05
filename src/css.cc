@@ -133,14 +133,21 @@ bool css_selector_matches(const c_css_selector_t * selector, const c_doctree_nod
 
 bool on_combinator_non_descendant(const c_css_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache)
 {
+   if (0 == hll_onCombinatorNonDescendant(selector, dtn, link_idx, match_cache)) {
+      return false;
+   }
+#if 0
    if (!dtn) {
       return false;
    }
+
    c_css_complex_selector_link_t * link = selector->c_links[link_idx];
    c_css_compound_selector_t * compound = (c_css_compound_selector_t *) link;
    if (!hll_compoundSelectorMatches(compound, dtn)) {
       return false;
    }
+#endif
+   c_css_complex_selector_link_t * link = selector->c_links[link_idx];
    // tail recursion should be optimized by the compiler
    return css_selector_matches(selector, dtn, link_idx - 1, (Combinator) link->c_combinator, match_cache);
 }

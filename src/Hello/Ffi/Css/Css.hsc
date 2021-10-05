@@ -66,7 +66,7 @@ foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr Ff
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
-
+foreign export ccall "hll_onCombinatorNonDescendant" hll_onCombinatorNonDescendant :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Int -> Ptr FfiCssMatchCache -> IO Int
 
 
 
@@ -79,6 +79,36 @@ hll_compoundSelectorMatches ptrStructCompoundSelector ptrStructDoctreeNode = do
   if matches
     then return 1 -- True
     else return 0 -- False
+
+
+
+
+hll_onCombinatorNonDescendant :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Int -> Ptr FfiCssMatchCache -> IO Int
+hll_onCombinatorNonDescendant ptrStructComplexSelector ptrStructDtn cLinkIdx ptrStructMatchCache = do
+  cachedComplex <- peekCssComplexSelector ptrStructComplexSelector
+  mc            <- peekPtrCssMatchCache ptrStructMatchCache
+  let linkIdx = fromIntegral cLinkIdx
+
+  if nullPtr == ptrStructDtn
+    then return 0 -- False
+    else
+    do
+      let compound = takeNthCompound (chain cachedComplex) linkIdx
+      dtn <- peekDoctreeNode ptrStructDtn
+      matches <- compoundSelectorMatches compound dtn
+      if not matches
+         then return 0 -- False
+         else return 1 -- True
+--int hll_onCombinatorNonDescendant(const c_css_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
+
+
+
+
+takeNthCompound :: CssComplexSelector -> Int -> CssCompoundSelector
+takeNthCompound complex idx = compound link
+  where
+    links = chainToLinks complex []
+    link = links !! idx
 
 
 

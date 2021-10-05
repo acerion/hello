@@ -288,6 +288,7 @@ void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const
 /* Function returns boolean. */
 int hll_compoundSelectorMatches(const c_css_compound_selector_t * csel, const c_doctree_node_t * dtn);
 int hll_selectorSpecificity(const c_css_selector_t * selector);
+int hll_onCombinatorNonDescendant(const c_css_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
 
 
 c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);
