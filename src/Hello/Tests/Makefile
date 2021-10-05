@@ -8,6 +8,8 @@ all: clean
 		../*.hs \
 		../Css/*.hs \
 		../Html/*.hs \
+		../Ffi/Css/*.hs \
+		../Ffi/*.hs \
 		./*.hs \
 		./Css/*.hs \
 		./Html/*.hs \
