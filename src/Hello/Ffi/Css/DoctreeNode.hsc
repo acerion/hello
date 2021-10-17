@@ -29,8 +29,8 @@ module Hello.Ffi.Css.DoctreeNode
   (
     FfiDoctreeNode (..)
   , ffi_dtnGetParent
-  , ffi_dtnGetSibling
-  , ffi_dtnGetLastChild
+  , hll_getDtnParent
+  , hll_getDtnSibling
   , peekDoctreeNode
   )
 where
@@ -52,12 +52,6 @@ import Hello.Css.DoctreeNode
 
 
 #include "../../hello.h"
-
-
-
-
-foreign export ccall "hll_getDtnParent" hll_getDtnParent :: Ptr FfiDoctreeNode -> IO (Ptr FfiDoctreeNode)
-foreign export ccall "hll_getDtnSibling" hll_getDtnSibling :: Ptr FfiDoctreeNode -> IO (Ptr FfiDoctreeNode)
 
 
 
@@ -151,21 +145,13 @@ ffi_dtnGetParent dtn = do
 
 
 
-
-ffi_dtnGetSibling :: DoctreeNode -> IO DoctreeNode
-ffi_dtnGetSibling dtn = do
-  if dtnSibling dtn == 0
-    then return defaultDoctreeNode
-    else peekDoctreeNode (intPtrToPtr (IntPtr $ dtnSibling dtn))
-
-
-
-
+{-
 ffi_dtnGetLastChild :: DoctreeNode -> IO DoctreeNode
 ffi_dtnGetLastChild dtn = do
   if dtnLastChild dtn == 0
     then return defaultDoctreeNode
     else peekDoctreeNode (intPtrToPtr (IntPtr $ dtnLastChild dtn))
+-}
 
 
 

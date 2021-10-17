@@ -31,16 +31,27 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 module Hello.Css.DoctreeNode
   (
-    DoctreeNode (..)
+    Doctree (..)
+  , DoctreeNode (..)
   , defaultDoctreeNode
+
+  , getDtnParent
+  , getDtnSibling
+
   )
   where
 
 
 
 
+import qualified Data.Map as M
 import qualified Data.Text as T
 import Debug.Trace
+
+
+
+
+type Doctree = M.Map Int DoctreeNode
 
 
 
@@ -75,3 +86,16 @@ defaultDoctreeNode = DoctreeNode
   , dtnLastChild = 0
   , dtnRootNode  = 0
   }
+
+
+
+
+getDtnParent tree Nothing    = Nothing
+getDtnParent tree (Just dtn) = M.lookup (dtnParent dtn) tree
+
+
+getDtnSibling tree Nothing    = Nothing
+getDtnSibling tree (Just dtn) = M.lookup (dtnParent dtn) tree
+
+
+

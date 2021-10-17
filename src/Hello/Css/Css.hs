@@ -24,9 +24,7 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 module Css
   (
-    compoundSelectorMatches
-  , compoundSelectorMatches'
-  , selectorSpecificity
+    selectorSpecificity
   )
   where
 
@@ -42,73 +40,6 @@ import Hello.Css.Selector
 import Hello.Css.DoctreeNode
 import Hello.Ffi.Css.DoctreeNode
 
-
-
-
-
-{-
-Return whether compound selector matches at a given node of the document tree.
-
-Right now this is a naive re-write of simple_selector_matches() C function.
-
-TODO: in C++ code the string comparisons were case-insensitive.
--}
-
-compoundSelectorMatches :: CssCompoundSelector -> DoctreeNode -> IO Bool
-compoundSelectorMatches compound dtn = do
-  par <- ffi_dtnGetParent dtn
-  -- return (trace ("parent:" ++ (show $ xParent dtn par)) ((compoundSelectorMatches' compound dtn) == 0))
-  return ((compoundSelectorMatches' compound dtn) == 0)
-
-
-xParent dtn par = if dtnParent dtn /= 0
-                  then "parent of dtn with element idx " ++ (show . htmlElementIdx $ dtn) ++ " has element idx " ++ (show . htmlElementIdx $ par)
-                  else "dtn with element idx " ++ (show . htmlElementIdx $ dtn) ++ " has no parent"
-
-
-
-compoundSelectorMatches' :: CssCompoundSelector -> DoctreeNode -> Int
-compoundSelectorMatches' compound dtn | mismatchOnElement compound dtn     = 4
-                                      | mismatchOnPseudoClass compound dtn = 3
-                                      | mismatchOnId compound dtn          = 2
-                                      | mismatchOnClass compound dtn       = 1
-                                      | otherwise                          = 0
-  where
-    mismatchOnElement :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnElement csel dtn = (compoundTagName csel) /= CssTypeSelectorUniv && (unCssTypeSelector . compoundTagName $ csel) /= (htmlElementIdx dtn)
-    -- if (selector->c_selector_element != CssSimpleSelectorElementAny && selector->c_selector_element != dtn->c_html_element_idx)
-    --     return false;
-
-    -- C/C++ code can use only first pseudo class
-    mismatchOnPseudoClass :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnPseudoClass csel dtn = (length . compoundPseudoClass $ csel) > 0
-                                     && ((T.null . selPseudoClass $ dtn) || ((head . compoundPseudoClass $ csel) /= (CssPseudoClassSelector . selPseudoClass $ dtn)))
-    -- if (selector->c_selector_pseudo_class_size > 0 &&
-    --     (dtn->c_element_selector_pseudo_class == NULL || dStrAsciiCasecmp (selector->c_selector_pseudo_class[0], dtn->c_element_selector_pseudo_class) != 0))
-    --     return false;
-
-    mismatchOnId :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnId csel dtn = (not . null . compoundId $ csel) && ((T.null . selId $ dtn) || ((compoundId $ csel) /= [CssIdSelector . selId $ dtn]))
-    -- if (selector->c_selector_id != NULL && (dtn->c_element_selector_id == NULL || dStrAsciiCasecmp (selector->c_selector_id, dtn->c_element_selector_id) != 0))
-    --     return false;
-
-    -- All class items of a compound selector must be found in dtn's class set
-    mismatchOnClass :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnClass csel dtn = not allCompoundClassInNodeClass
-      where
-        allCompoundClassInNodeClass = and $ map (\x -> elem x classes) (compoundClass $ csel)
-        classes = map CssClassSelector (selClass $ dtn)
-    -- for (int i = 0; i < selector->c_selector_class_size; i++) {
-    -- bool found = false;
-    -- for (size_t j = 0; j < dtn->c_element_selector_class_size; j++) {
-    --     if (dStrAsciiCasecmp (selector->c_selector_class[i], dtn->c_element_selector_class[j]) == 0) {
-    --         found = true;
-    --         break;
-    --     }
-    -- }
-    -- if (!found) {
-    --     return false;
-    -- }
 
 
 

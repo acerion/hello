@@ -285,31 +285,7 @@ void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const
 
 /* Css.hsc */
 
-/* Function returns boolean. */
-int hll_compoundSelectorMatches(const c_css_compound_selector_t * csel, const c_doctree_node_t * dtn);
-int hll_selectorSpecificity(const c_css_cached_complex_selector_t * selector);
-int hll_onCombinatorNonDescendant(const c_css_cached_complex_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
-
-
-c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);
-
-
-
-void hll_matchCacheSetSize(c_css_match_cache_t * match_cache, int size);
-void hll_cssParseRuleset(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
-
-
-int hll_isTokenComma(c_css_token_t * token);
-int hll_isTokenSemicolon(c_css_token_t * token);
-int hll_isTokenBraceCurlyOpen(c_css_token_t * token);
-int hll_isTokenBraceCurlyClose(c_css_token_t * token);
-
-
-
-c_doctree_node_t * hll_getDtnParent(const c_doctree_node_t * dtn);
-c_doctree_node_t * hll_getDtnSibling(const c_doctree_node_t * dtn);
-
-
+   
 /**
  * \brief CSS selector class.
  *
@@ -323,8 +299,23 @@ typedef enum {
 } Combinator;
 
 
-/* c_css_cached_complex_selector_t methods. */
-bool css_selector_matches(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache);
+
+/* Function returns boolean. */
+int hll_selectorSpecificity(const c_css_cached_complex_selector_t * selector);
+bool hll_cssComplexSelectorMatches(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, int link_idx, Combinator comb, c_css_match_cache_t * match_cache);
+
+c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);
+
+
+
+void hll_matchCacheSetSize(c_css_match_cache_t * match_cache, int size);
+void hll_cssParseRuleset(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
+
+
+int hll_isTokenComma(c_css_token_t * token);
+int hll_isTokenSemicolon(c_css_token_t * token);
+int hll_isTokenBraceCurlyOpen(c_css_token_t * token);
+int hll_isTokenBraceCurlyClose(c_css_token_t * token);
 
 
 

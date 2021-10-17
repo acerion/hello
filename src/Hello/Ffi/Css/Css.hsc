@@ -35,11 +35,12 @@ import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Marshal.Array
 import Data.List
+import Data.Maybe
+import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Vector as V
-import qualified Data.Map as M
 import qualified Data.List as L
 import Control.Monad -- when
 import Debug.Trace
@@ -49,6 +50,7 @@ import Css
 import Hello.Css.StyleSheet
 import Hello.Css.Selector
 import Hello.Css.DoctreeNode
+import Hello.Css.Match
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Utils
 import Hello.Ffi.Css.DoctreeNode
@@ -61,71 +63,69 @@ import Hello.Ffi.Css.DoctreeNode
 
 
 
-foreign export ccall "hll_compoundSelectorMatches" hll_compoundSelectorMatches :: Ptr FfiCssCompoundSelector -> Ptr FfiDoctreeNode -> IO Int
+foreign export ccall "hll_cssComplexSelectorMatches" hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> CInt -> CInt -> Ptr FfiCssMatchCache -> IO Bool
 foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssComplexSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
-foreign export ccall "hll_onCombinatorNonDescendant" hll_onCombinatorNonDescendant :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Int -> Ptr FfiCssMatchCache -> IO Int
-
-
-foreign import ccall "css_selector_matches" c_css_selector_matches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Int -> Int -> Ptr FfiCssMatchCache -> Bool
-
-
-
-hll_compoundSelectorMatches :: Ptr FfiCssCompoundSelector -> Ptr FfiDoctreeNode -> IO Int
-hll_compoundSelectorMatches ptrStructCompoundSelector ptrStructDoctreeNode = do
-  cpdSel :: CssCompoundSelector <- peekCssCompoundSelector ptrStructCompoundSelector
-  dtn    :: DoctreeNode         <- peekDoctreeNode ptrStructDoctreeNode
-
-  matches <- compoundSelectorMatches cpdSel dtn
-  if matches
-    then return 1 -- True
-    else return 0 -- False
 
 
 
 
-hll_onCombinatorNonDescendant :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Int -> Ptr FfiCssMatchCache -> IO Int
-hll_onCombinatorNonDescendant ptrStructComplexSelector ptrStructDtn cLinkIdx ptrStructMatchCache = do
-  cachedComplex <- peekCssComplexSelector ptrStructComplexSelector
-  mc            <- peekPtrCssMatchCache ptrStructMatchCache
-  let linkIdx = fromIntegral cLinkIdx
+hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> CInt -> CInt -> Ptr FfiCssMatchCache -> IO Bool
+hll_cssComplexSelectorMatches ptrStructCachedComplexSelector ptrStructDtn cCompoundIdx cComb ptrStructMatchCache = do
 
-  if nullPtr == ptrStructDtn
-    then return 0 -- False
-    else
-    do
-      let compound = takeNthCompound (chain cachedComplex) linkIdx
-      dtn <- peekDoctreeNode ptrStructDtn
-      matches <- compoundSelectorMatches compound dtn
-      if not matches
-        then return 0 -- False
+  cachedComplex <- peekCssComplexSelector ptrStructCachedComplexSelector
+  mDtn <- ptrToMdtn ptrStructDtn
+  tree <- analyzeDtn ptrStructDtn M.empty
+  let compoundIdx    = fromIntegral cCompoundIdx
+  let combinator = intToComb . fromIntegral $ cComb
+  mc <- peekPtrCssMatchCache ptrStructMatchCache
+
+  let (isMatch, outMc) = cssComplexSelectorMatches cachedComplex mDtn tree compoundIdx combinator mc
+  pokeCssMatchCache ptrStructMatchCache outMc
+
+  return isMatch
+
+
+
+
+analyzeDtn ptrStructDtn tree = do
+  mDtn <- ptrToMdtn ptrStructDtn
+  case mDtn of
+    Just dtn -> do
+      let intPtr = ptrToIntPtr ptrStructDtn
+      let this = case intPtr of
+            IntPtr i -> i
+      if M.member this tree
+        then
+        do
+          return tree
         else
         do
-          let links = chainToLinks (chain cachedComplex) []
-          let link = links !! linkIdx
-          let comb = combinator link
-          if c_css_selector_matches ptrStructComplexSelector ptrStructDtn (cLinkIdx - 1) (intComb comb) ptrStructMatchCache
-            then return 1
-            else return 0
---int hll_onCombinatorNonDescendant(const c_css_cached_complex_selector_t * selector, const c_doctree_node_t * dtn, int link_idx, c_css_match_cache_t * match_cache);
--- foreign import ccall "css_selector_matches" c_css_selector_matches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Int -> Int -> Ptr FfiCssMatchCache -> Bool
+          let tree2 = M.insert this dtn tree
+          tree3 <- analyzeDtn (intPtrToPtr $ (IntPtr $ dtnParent dtn)) tree2
+          analyzeDtn (intPtrToPtr $ (IntPtr $ dtnSibling dtn)) tree3
+    Nothing  -> return tree
 
 
 
-intComb CssCombinatorNone       = 0
-intComb CssCombinatorDescendant = 1
-intComb CssCombinatorChild      = 2
-intComb CssCombinatorAdjacentSibling = 3
+
+ptrToMdtn ptrStructDtn = do
+  if (nullPtr /= ptrStructDtn)
+    then
+    do dtn <- peekDoctreeNode ptrStructDtn
+       return $ Just dtn
+    else
+    return Nothing
 
 
 
-takeNthCompound :: CssComplexSelector -> Int -> CssCompoundSelector
-takeNthCompound complex idx = compound link
-  where
-    links = chainToLinks complex []
-    link = links !! idx
+
+intToComb i | i == 0 = CssCombinatorNone
+            | i == 1 = CssCombinatorDescendant
+            | i == 2 = CssCombinatorChild
+            | i == 3 = CssCombinatorAdjacentSibling
 
 
 
