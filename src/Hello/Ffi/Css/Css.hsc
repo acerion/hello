@@ -82,7 +82,7 @@ hll_cssComplexSelectorMatches ptrStructCachedComplexSelector ptrStructDtn cCompo
   let combinator = intToComb . fromIntegral $ cComb
   mc <- peekPtrCssMatchCache ptrStructMatchCache
 
-  let (isMatch, outMc) = cssComplexSelectorMatches cachedComplex mDtn tree compoundIdx combinator mc
+  let (isMatch, outMc) = cssComplexSelectorMatches (chain cachedComplex) combinator mDtn tree compoundIdx mc (matchCacheOffset cachedComplex)
   pokeCssMatchCache ptrStructMatchCache outMc
 
   return isMatch
