@@ -63,7 +63,7 @@ import Hello.Ffi.Css.DoctreeNode
 
 
 
-foreign export ccall "hll_cssComplexSelectorMatches" hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> CInt -> CInt -> Ptr FfiCssMatchCache -> IO Bool
+foreign export ccall "hll_cssComplexSelectorMatches" hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
 foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssComplexSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
@@ -72,17 +72,15 @@ foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssPars
 
 
 
-hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> CInt -> CInt -> Ptr FfiCssMatchCache -> IO Bool
-hll_cssComplexSelectorMatches ptrStructCachedComplexSelector ptrStructDtn cCompoundIdx cComb ptrStructMatchCache = do
+hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
+hll_cssComplexSelectorMatches ptrStructCachedComplexSelector ptrStructDtn ptrStructMatchCache = do
 
   cachedComplex <- peekCssComplexSelector ptrStructCachedComplexSelector
   mDtn <- ptrToMdtn ptrStructDtn
   tree <- analyzeDtn ptrStructDtn M.empty
-  let compoundIdx    = fromIntegral cCompoundIdx
-  let combinator = intToComb . fromIntegral $ cComb
   mc <- peekPtrCssMatchCache ptrStructMatchCache
 
-  let (isMatch, outMc) = cssComplexSelectorMatches (chain cachedComplex) combinator mDtn tree compoundIdx mc (matchCacheOffset cachedComplex)
+  let (isMatch, outMc) = cssComplexSelectorMatches (chain cachedComplex) mDtn tree mc (matchCacheOffset cachedComplex)
   pokeCssMatchCache ptrStructMatchCache outMc
 
   return isMatch
@@ -118,14 +116,6 @@ ptrToMdtn ptrStructDtn = do
        return $ Just dtn
     else
     return Nothing
-
-
-
-
-intToComb i | i == 0 = CssCombinatorNone
-            | i == 1 = CssCombinatorDescendant
-            | i == 2 = CssCombinatorChild
-            | i == 3 = CssCombinatorAdjacentSibling
 
 
 

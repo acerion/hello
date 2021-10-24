@@ -45,35 +45,40 @@ import Hello.Utils
 
 
 
-cssComplexSelectorMatches :: CssComplexSelector -> CssCombinator -> Maybe DoctreeNode -> Doctree -> Int -> CssMatchCache -> Int -> (Bool, CssMatchCache)
-cssComplexSelectorMatches _        _          _    _    (-1)        mc _           = (True, mc)
-cssComplexSelectorMatches complex combinator mDtn tree compoundIdx mc cacheOffset =
+cssComplexSelectorMatches :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
+cssComplexSelectorMatches (Datum compound)                       mDtn tree mc cacheOffset = (compoundSelectorMatches compound (fromJust mDtn), mc)
+cssComplexSelectorMatches (Link (Datum compound) combinator rem) mDtn tree mc cacheOffset =
+  if not $ compoundSelectorMatches compound (fromJust mDtn)
+  then (False, mc)
+  else cssComplexSelectorMatches' rem combinator mDtn tree mc cacheOffset
+
+
+
+
+cssComplexSelectorMatches' :: CssComplexSelector -> CssCombinator -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
+cssComplexSelectorMatches' complex combinator mDtn tree mc cacheOffset =
   case combinator of
-    CssCombinatorNone            -> onCombinatorNonDescendant complex mDtn                      tree compoundIdx mc cacheOffset
     CssCombinatorDescendant      -> onCombinatorDescendant    complex (getDtnParent tree mDtn)  tree mc cacheOffset
-    CssCombinatorChild           -> onCombinatorNonDescendant complex (getDtnParent tree mDtn)  tree compoundIdx mc cacheOffset
-    CssCombinatorAdjacentSibling -> onCombinatorNonDescendant complex (getDtnSibling tree mDtn) tree compoundIdx mc cacheOffset
+    CssCombinatorChild           -> onCombinatorNonDescendant complex (getDtnParent tree mDtn)  tree mc cacheOffset
+    CssCombinatorAdjacentSibling -> onCombinatorNonDescendant complex (getDtnSibling tree mDtn) tree mc cacheOffset
 
 
 
 
-onCombinatorNonDescendant :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> Int -> CssMatchCache -> Int -> (Bool, CssMatchCache)
-onCombinatorNonDescendant _                                              Nothing    _    _           mc _           = (False, mc)
-onCombinatorNonDescendant complex@(Link (Datum compound) combinator rem) (Just dtn) tree compoundIdx mc cacheOffset =
+onCombinatorNonDescendant :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
+onCombinatorNonDescendant _                                      Nothing    _    mc _           = (False, mc)
+onCombinatorNonDescendant (Link (Datum compound) combinator rem) (Just dtn) tree mc cacheOffset =
   if compoundSelectorMatches compound dtn
-  then cssComplexSelectorMatches rem combinator (Just dtn) tree (compoundIdx - 1) mc cacheOffset
+  then cssComplexSelectorMatches' rem combinator (Just dtn) tree mc cacheOffset
   else (False, mc)
-onCombinatorNonDescendant (Datum compound) (Just dtn) tree compoundIdx mc cacheOffset =
-  if compoundSelectorMatches compound dtn
-  then cssComplexSelectorMatches (Datum compound) CssCombinatorNone (Just dtn) tree (compoundIdx - 1) mc cacheOffset
-  else (False, mc)
+onCombinatorNonDescendant (Datum compound) (Just dtn) tree mc cacheOffset =
+  (compoundSelectorMatches compound dtn, mc)
 
 
 
 
--- I'm not totally sure that we need to patterm match on the first arg.
 onCombinatorDescendantLoop :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> Int -> (Bool, CssMatchCache)
-onCombinatorDescendantLoop _                                               Nothing      _           mc _               _           = (False, mc)
+onCombinatorDescendantLoop _                                               Nothing   _    mc _               _           = (False, mc)
 onCombinatorDescendantLoop complex@(Link (Datum compound) combinator rem) (Just dtn) tree mc matchCacheEntry cacheOffset =
   if uniqueNum dtn > matchCacheEntry
   then if thisCompoundMatches && followingCompoundsMatch
@@ -82,23 +87,19 @@ onCombinatorDescendantLoop complex@(Link (Datum compound) combinator rem) (Just 
   else (False, mc)
 
   where
-    compoundIdx = (chainLength complex) - 1
     parentDtn = getDtnParent tree (Just dtn)
     thisCompoundMatches = compoundSelectorMatches compound dtn
-    (followingCompoundsMatch, mc2) = cssComplexSelectorMatches rem combinator (Just dtn) tree (compoundIdx - 1) mc cacheOffset
+    (followingCompoundsMatch, mc2) = cssComplexSelectorMatches' rem combinator (Just dtn) tree mc cacheOffset
 
 onCombinatorDescendantLoop (Datum compound) (Just dtn) tree mc matchCacheEntry cacheOffset =
   if uniqueNum dtn > matchCacheEntry
-  then if thisCompoundMatches && followingCompoundsMatch
-       then (True, mc2)
-       else onCombinatorDescendantLoop (Datum compound) parentDtn tree mc2 matchCacheEntry cacheOffset
+  then if compoundSelectorMatches compound dtn
+       then (True, mc)
+       else onCombinatorDescendantLoop (Datum compound) parentDtn tree mc matchCacheEntry cacheOffset
   else (False, mc)
 
   where
-    compoundIdx = (chainLength (Datum compound)) - 1
     parentDtn = getDtnParent tree (Just dtn)
-    thisCompoundMatches = compoundSelectorMatches compound dtn
-    (followingCompoundsMatch, mc2) = cssComplexSelectorMatches (Datum compound) CssCombinatorNone (Just dtn) tree (compoundIdx - 1) mc cacheOffset
 
 
 
