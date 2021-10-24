@@ -27,6 +27,7 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 module Hello.Css.Match
   (
     cssComplexSelectorMatches
+  , compoundSelectorMatches' -- For tests code
   )
   where
 
