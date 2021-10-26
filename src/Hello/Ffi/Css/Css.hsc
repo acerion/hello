@@ -64,7 +64,6 @@ import Hello.Ffi.Css.DoctreeNode
 
 
 foreign export ccall "hll_cssComplexSelectorMatches" hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
-foreign export ccall "hll_selectorSpecificity" hll_selectorSpecificity :: Ptr FfiCssComplexSelector -> IO Int
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
@@ -116,14 +115,6 @@ ptrToMdtn ptrStructDtn = do
        return $ Just dtn
     else
     return Nothing
-
-
-
-
-hll_selectorSpecificity :: Ptr FfiCssComplexSelector -> IO Int
-hll_selectorSpecificity ptrStructCssComplexSelector = do
-  cachedComplex <- peekCssComplexSelector ptrStructCssComplexSelector
-  return . selectorSpecificity . chain $ cachedComplex
 
 
 

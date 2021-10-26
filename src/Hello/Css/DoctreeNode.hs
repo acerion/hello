@@ -90,12 +90,10 @@ defaultDoctreeNode = DoctreeNode
 
 
 
-getDtnParent tree Nothing    = Nothing
-getDtnParent tree (Just dtn) = M.lookup (dtnParent dtn) tree
+getDtnParent tree dtn = M.lookup (dtnParent dtn) tree
 
 
-getDtnSibling tree Nothing    = Nothing
-getDtnSibling tree (Just dtn) = M.lookup (dtnParent dtn) tree
+getDtnSibling tree dtn = M.lookup (dtnParent dtn) tree
 
 
 

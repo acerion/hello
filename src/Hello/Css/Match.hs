@@ -51,7 +51,7 @@ cssComplexSelectorMatches _                                      Nothing    _   
 cssComplexSelectorMatches (Datum compound)                       (Just dtn) tree mc cacheOffset = (compoundSelectorMatches compound dtn, mc)
 cssComplexSelectorMatches (Link (Datum compound) combinator rem) (Just dtn) tree mc cacheOffset =
   if compoundSelectorMatches compound dtn
-  then matchCombinatorAndRemainder combinator rem (Just dtn) tree mc cacheOffset
+  then matchCombinatorAndRemainder combinator rem dtn tree mc cacheOffset
   else (False, mc)
 
 
@@ -59,12 +59,12 @@ cssComplexSelectorMatches (Link (Datum compound) combinator rem) (Just dtn) tree
 
 -- Test whether a pair of <combinator> + <remainder of complex selector>
 -- matches a doctree.
-matchCombinatorAndRemainder :: CssCombinator -> CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
-matchCombinatorAndRemainder combinator complex mDtn tree mc cacheOffset =
+matchCombinatorAndRemainder :: CssCombinator -> CssComplexSelector -> DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
+matchCombinatorAndRemainder combinator complex dtn tree mc cacheOffset =
   case combinator of
-    CssCombinatorDescendant      -> matchDescendant    complex (getDtnParent tree mDtn)  tree mc cacheOffset
-    CssCombinatorChild           -> matchNonDescendant complex (getDtnParent tree mDtn)  tree mc cacheOffset
-    CssCombinatorAdjacentSibling -> matchNonDescendant complex (getDtnSibling tree mDtn) tree mc cacheOffset
+    CssCombinatorDescendant      -> matchDescendant    complex (getDtnParent tree dtn)  tree mc cacheOffset
+    CssCombinatorChild           -> matchNonDescendant complex (getDtnParent tree dtn)  tree mc cacheOffset
+    CssCombinatorAdjacentSibling -> matchNonDescendant complex (getDtnSibling tree dtn) tree mc cacheOffset
 
 
 
@@ -95,7 +95,7 @@ findMatchingDescendantAndFollowers complex (Just dtn) tree mc matchCacheEntry ca
   else (False, mc)
 
   where
-    parentDtn = getDtnParent tree (Just dtn)
+    parentDtn = getDtnParent tree dtn
 
 
 

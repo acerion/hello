@@ -28,9 +28,6 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 module Hello.Ffi.Css.DoctreeNode
   (
     FfiDoctreeNode (..)
-  , ffi_dtnGetParent
-  , hll_getDtnParent
-  , hll_getDtnSibling
   , peekDoctreeNode
   )
 where
@@ -133,55 +130,3 @@ peekDoctreeNode ptrStructDoctreeNode = do
                     , dtnRootNode = case ptrToIntPtr . rootNodeC $ ffiDtn of
                                       IntPtr i -> i
                     }
-
-
-
-
-ffi_dtnGetParent :: DoctreeNode -> IO DoctreeNode
-ffi_dtnGetParent dtn = do
-  if dtnParent dtn == 0
-    then return defaultDoctreeNode
-    else peekDoctreeNode (intPtrToPtr (IntPtr $ dtnParent dtn))
-
-
-
-{-
-ffi_dtnGetLastChild :: DoctreeNode -> IO DoctreeNode
-ffi_dtnGetLastChild dtn = do
-  if dtnLastChild dtn == 0
-    then return defaultDoctreeNode
-    else peekDoctreeNode (intPtrToPtr (IntPtr $ dtnLastChild dtn))
--}
-
-
-
-
-hll_getDtnParent :: Ptr FfiDoctreeNode -> IO (Ptr FfiDoctreeNode)
-hll_getDtnParent ptrStructDtn = do
-  dtn <- peekDoctreeNode ptrStructDtn
-  if dtnParent dtn /= dtnRootNode dtn
-    then return (intPtrToPtr (IntPtr $ dtnParent dtn))
-    else return nullPtr
-
-
-
-hll_getDtnSibling :: Ptr FfiDoctreeNode -> IO (Ptr FfiDoctreeNode)
-hll_getDtnSibling ptrStructDtn = do
-  dtn <- peekDoctreeNode ptrStructDtn
-  return (intPtrToPtr (IntPtr $ dtnSibling dtn))
-
-
-
-{-
-
-      inline c_doctree_node_t * getDtnParent(const c_doctree_node_t * dtn) {
-         if (dtn->c_parent != rootNode)
-            return dtn->c_parent;
-         else
-            return NULL;
-      };
-
-      inline c_doctree_node_t * getDtnSibling(const c_doctree_node_t * dtn) {
-         return dtn->c_sibling;
-      };
--}
