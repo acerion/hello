@@ -24,7 +24,6 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 module Css
   (
-    selectorSpecificity
   )
   where
 
@@ -42,32 +41,6 @@ import Hello.Ffi.Css.DoctreeNode
 
 
 
-
-
-{-
-Return the specificity of the selector.
-
-The specificity of a CSS selector is defined in
-http://www.w3.org/TR/CSS21/cascade.html#specificity
--}
-selectorSpecificity :: CssComplexSelector -> Int
-selectorSpecificity complex = selectorSpecificity' complex 0
-  where
-    selectorSpecificity' :: CssComplexSelector -> Int -> Int
-    selectorSpecificity' (Link (Datum c1) combinator remainder) acc = selectorSpecificity' remainder (acc + (compoundSelectorSpecificity c1))
-    selectorSpecificity' (Datum c1)                             acc =                                 acc + (compoundSelectorSpecificity c1)
-
-
-
-
--- Return the specificity of compound selector
-compoundSelectorSpecificity :: CssCompoundSelector -> Int
-compoundSelectorSpecificity compound = (fromId compound) + (fromClass compound) + (fromPseudoClass compound) + (fromElement compound)
-  where
-    fromId compound          = if (not . T.null . selectorId $ compound) then (1 `shiftL` 20) else 0
-    fromClass compound       = (length . selectorClass $ compound) `shiftL` 10
-    fromPseudoClass compound = if (not . null . selectorPseudoClass $ compound) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
-    fromElement compound     = if compoundHasUniversalType compound then 0 else 1
 
 
 
