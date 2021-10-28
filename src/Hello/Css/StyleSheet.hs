@@ -66,7 +66,6 @@ import Control.Monad -- when
 import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Css.Selector
-import Css
 import Hello.Utils
 
 

@@ -46,7 +46,6 @@ import Control.Monad -- when
 import Debug.Trace
 
 import Hello.Css.Parser
-import Css
 import Hello.Css.StyleSheet
 import Hello.Css.Selector
 import Hello.Css.DoctreeNode
