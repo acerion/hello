@@ -219,8 +219,7 @@ compoundHasId = not . T.null . selectorId
 
 
 data CssCombinator =
-    CssCombinatorNone
-  | CssCombinatorDescendant        -- ' '
+    CssCombinatorDescendant        -- ' '
   | CssCombinatorChild             -- '>'
   | CssCombinatorAdjacentSibling   -- '+'
   deriving (Show, Eq)

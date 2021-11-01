@@ -106,7 +106,7 @@ linkAndChainTestData =
                                                             , selectorId = ""
                                                             , selectorClass = []
                                                             , selectorTagName = CssTypeSelectorUniv}
-                            , combinator = CssCombinatorNone}]
+                            , combinator = Nothing}]
 
 
     -- Two links
@@ -114,12 +114,12 @@ linkAndChainTestData =
                                                             , selectorId = ""
                                                             , selectorClass = ["topnav-container"]
                                                             , selectorTagName = CssTypeSelectorUniv}
-                            , combinator = CssCombinatorNone},
+                            , combinator = Nothing},
      CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = ["visited"]
                                                             , selectorId = ""
                                                             , selectorClass = []
                                                             , selectorTagName = CssTypeSelector 0}
-                            , combinator = CssCombinatorDescendant}]
+                            , combinator = Just CssCombinatorDescendant}]
 
 
 
@@ -127,12 +127,12 @@ linkAndChainTestData =
                                                             , selectorId = ""
                                                             , selectorClass = ["SummaryHL"]
                                                             , selectorTagName = CssTypeSelector 35}
-                            , combinator = CssCombinatorNone},
+                            , combinator = Nothing},
      CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = []
                                                             , selectorId = "id"
                                                             , selectorClass = []
                                                             , selectorTagName = CssTypeSelectorUniv}
-                            , combinator = CssCombinatorAdjacentSibling}]
+                            , combinator = Just CssCombinatorAdjacentSibling}]
 
 
   -- Three links
@@ -140,34 +140,34 @@ linkAndChainTestData =
                                                             , selectorId = ""
                                                             , selectorClass = ["pure-menu-horizontal"]
                                                             , selectorTagName = CssTypeSelectorUniv}
-                            , combinator = CssCombinatorNone},
+                            , combinator = Nothing},
      CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = []
                                                             , selectorId = ""
                                                             , selectorClass = ["pure-menu-has-children"]
                                                             , selectorTagName = CssTypeSelectorUniv}
-                            , combinator = CssCombinatorDescendant},
+                            , combinator = Just CssCombinatorDescendant},
      CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = ["after"]
                                                             , selectorId = ""
                                                             , selectorClass = ["pure-menu-link"]
                                                             , selectorTagName = CssTypeSelectorUniv}
-                            , combinator = CssCombinatorDescendant}]
+                            , combinator = Just CssCombinatorDescendant}]
 
 
   , [CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = []
                                                             , selectorId = ""
                                                             , selectorClass = ["navmenu"]
                                                             , selectorTagName = CssTypeSelectorUniv}
-                            , combinator = CssCombinatorNone},
+                            , combinator = Nothing},
      CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = ["hover"]
                                                             , selectorId = ""
                                                             , selectorClass = []
                                                             , selectorTagName = CssTypeSelector 50}
-                            , combinator = CssCombinatorDescendant},
+                            , combinator = Just CssCombinatorDescendant},
      CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = []
                                                             , selectorId = ""
                                                             , selectorClass = []
                                                             , selectorTagName = CssTypeSelector 85}
-                            , combinator = CssCombinatorChild}]
+                            , combinator = Just CssCombinatorChild}]
   ]
 
 

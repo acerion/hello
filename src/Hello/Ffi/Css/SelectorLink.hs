@@ -60,28 +60,28 @@ import Hello.Css.Selector
 
 data CssComplexSelectorLink = CssComplexSelectorLink
   { compound   :: CssCompoundSelector
-  , combinator :: CssCombinator
+  , combinator :: Maybe CssCombinator
   } deriving (Show, Eq)
 
 
 
 
 defaultComplexSelectorLink = CssComplexSelectorLink
-  { compound = defaultCssCompoundSelector
+  { compound   = defaultCssCompoundSelector
 
   -- Combinator that combines this compound selector and the previous one
   -- (previous one == compound selector to the left of current compound
   -- selector). For a compound selector that is first on the list (or the only
   -- on the list), the combinator will be None.
-  , combinator          = CssCombinatorNone
+  , combinator = Nothing
   }
 
 
 
 
 chainToLinks :: CssComplexSelector -> [CssComplexSelectorLink] -> [CssComplexSelectorLink]
-chainToLinks (Link (Datum compo) combi remainder) acc = chainToLinks remainder (defaultComplexSelectorLink { compound = compo, combinator = combi } : acc)
-chainToLinks (Datum compo) acc                        = defaultComplexSelectorLink { compound = compo, combinator = CssCombinatorNone } : acc
+chainToLinks (Link (Datum compo) combi remainder) acc = chainToLinks remainder (defaultComplexSelectorLink { compound = compo, combinator = Just combi } : acc)
+chainToLinks (Datum compo) acc                        = defaultComplexSelectorLink { compound = compo, combinator = Nothing } : acc
 
 
 
@@ -93,10 +93,10 @@ linksToChain = linksToChain' . reverse
 
 
 linksToChain' :: [CssComplexSelectorLink] -> CssComplexSelector
-linksToChain' (x:xs) | combi == CssCombinatorNone = Datum . compound $ x
-                     | otherwise                  = Link (Datum . compound $ x) combi (linksToChain' xs)
-  where combi = combinator x
-linksToChain' []                                 = Datum defaultCssCompoundSelector
+linksToChain' (x:xs) = case combinator x of
+                         Nothing    -> Datum . compound $ x -- no combinator
+                         Just combi -> Link (Datum . compound $ x) combi (linksToChain' xs)
+linksToChain' []     = Datum defaultCssCompoundSelector
 
 
 

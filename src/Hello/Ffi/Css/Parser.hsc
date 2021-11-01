@@ -934,17 +934,16 @@ cssValueToTypeTag value = case value of
 
 
 cssCombinatorIntToData i = case i of
-                             0 -> CssCombinatorNone
-                             1 -> CssCombinatorDescendant
-                             2 -> CssCombinatorChild
-                             3 -> CssCombinatorAdjacentSibling
-                             _ -> CssCombinatorNone
+                             1 -> Just CssCombinatorDescendant
+                             2 -> Just CssCombinatorChild
+                             3 -> Just CssCombinatorAdjacentSibling
+                             _ -> Nothing
 
 cssCombinatorDataToInt d = case d of
-                             CssCombinatorNone            -> 0
-                             CssCombinatorDescendant      -> 1
-                             CssCombinatorChild           -> 2
-                             CssCombinatorAdjacentSibling -> 3
+                             Just CssCombinatorDescendant      -> 1
+                             Just CssCombinatorChild           -> 2
+                             Just CssCombinatorAdjacentSibling -> 3
+                             otherwise                         -> 0
 
 
 
