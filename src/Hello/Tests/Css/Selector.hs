@@ -29,6 +29,7 @@ import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Css.Selector
 import Hello.Utils
+import Hello.Ffi.Css.SelectorLink -- CssComplexSelectorLink
 
 
 

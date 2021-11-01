@@ -220,7 +220,7 @@ cssRuleIsSafe rule = (not . cssComplexSelectorHasPseudoClass . complexSelector $
 -- of pseudo class simple selectors? Remember that C/C++ code can use only
 -- first pseudo class.
 cssComplexSelectorHasPseudoClass :: CssCachedComplexSelector -> Bool
-cssComplexSelectorHasPseudoClass complex = any (\link -> not . null . selectorPseudoClass . compound $ link) (chainToLinks (chain complex) [])
+cssComplexSelectorHasPseudoClass complex = chainAny (\compound -> not . null . selectorPseudoClass $ compound) (chain complex)
 
 
 

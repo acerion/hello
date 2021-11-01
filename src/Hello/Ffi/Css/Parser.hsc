@@ -77,6 +77,7 @@ import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Css.Selector
 import Hello.Ffi.Utils
+import Hello.Ffi.Css.SelectorLink
 
 
 

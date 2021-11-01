@@ -53,17 +53,13 @@ module Hello.Css.Selector
   , compoundHasId
 
   , Chain (..)
-  , linksToChain
-  , chainToLinks
   , chainLength
+  , chainAny
 
   , CssSubclassSelector (..)
 
   , CssCachedComplexSelector (..)
   , defaultComplexSelector
-
-  , CssComplexSelectorLink (..)
-  , defaultComplexSelectorLink
 
   , CssComplexSelector
 
@@ -111,14 +107,6 @@ data CssCompoundSelector = CssCompoundSelector
   , selectorTagName     :: CssTypeSelector
                                            -- TODO: add https://www.w3.org/TR/selectors-4/#attribute-selector
   } deriving (Show, Eq)
-
-
-
-data CssComplexSelectorLink = CssComplexSelectorLink
-  { compound   :: CssCompoundSelector
-  , combinator :: CssCombinator
-  } deriving (Show, Eq)
-
 
 
 
@@ -250,26 +238,10 @@ defaultCssCompoundSelector = CssCompoundSelector
 
 
 
-defaultComplexSelectorLink = CssComplexSelectorLink
-  { compound = defaultCssCompoundSelector
-
-  -- Combinator that combines this compound selector and the previous one
-  -- (previous one == compound selector to the left of current compound
-  -- selector). For a compound selector that is first on the list (or the only
-  -- on the list), the combinator will be None.
-  , combinator          = CssCombinatorNone
-  }
-
-
-
-
 defaultComplexSelector = CssCachedComplexSelector {
     matchCacheOffset = -1
   , chain            = Datum defaultCssCompoundSelector
   }
-
-
-
 
 
 
@@ -296,31 +268,16 @@ type CssComplexSelector = Chain CssCompoundSelector CssCombinator
 
 
 
-chainToLinks :: CssComplexSelector -> [CssComplexSelectorLink] -> [CssComplexSelectorLink]
-chainToLinks (Link (Datum compo) combi remainder) acc = chainToLinks remainder (defaultComplexSelectorLink { compound = compo, combinator = combi } : acc)
-chainToLinks (Datum compo) acc                        = defaultComplexSelectorLink { compound = compo, combinator = CssCombinatorNone } : acc
-
-
-
-
-linksToChain :: [CssComplexSelectorLink] -> CssComplexSelector
-linksToChain = linksToChain' . reverse
-
-
-
-
-linksToChain' :: [CssComplexSelectorLink] -> CssComplexSelector
-linksToChain' (x:xs) | combi == CssCombinatorNone = Datum . compound $ x
-                     | otherwise                  = Link (Datum . compound $ x) combi (linksToChain' xs)
-  where combi = combinator x
-linksToChain' []                                 = Datum defaultCssCompoundSelector
-
-
-
-
 chainLength chain = chainLength' chain 0
 chainLength' (Link (Datum _) _ remainder) acc = chainLength' remainder (acc + 1)
 chainLength' (Datum _)                    acc =                        (acc + 1)
+
+
+
+
+chainAny :: (CssCompoundSelector -> Bool) -> CssComplexSelector -> Bool
+chainAny fn (Datum compound)                             = fn compound
+chainAny fn (Link (Datum compound) combinator remainder) = (fn compound) || (chainAny fn remainder)
 
 
 
