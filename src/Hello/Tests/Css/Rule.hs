@@ -82,7 +82,7 @@ getTopCompoundTest (x:xs) = if expectedCompound /= cpd
     -- Both cases should work the same. If current token is None, tested
     -- function should get some non-None input token.
     ((p1, t1), selectorList) = readSelectorList (defaultParser{remainder = remainderIn}, CssTokNone)
-    rule = CssRule { complexSelector = trace ("selector list = " ++ (show selectorList)) (head selectorList), declarationSet = defaultCssDeclarationSet, specificity = 0, position = 0 }
+    rule = CssRule { complexSelector = head selectorList, declarationSet = defaultCssDeclarationSet, specificity = 0, position = 0 }
     cpd = getTopCompound rule
 
 
