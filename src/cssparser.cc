@@ -18,6 +18,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/time.h>
 
 #include "lout/debug.hh"
 #include "msg.h"
@@ -164,26 +165,57 @@ void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * conte
    c_css_token_t * token = &parser_.m_token;
    c_css_parser_t * parser = &parser_.m_parser;
 
-   while (token->c_type != CSS_TOKEN_TYPE_END) {
-      if (token->c_type == CSS_TOKEN_TYPE_CHAR &&
-          token->c_value[0] == '@') {
-         nextToken(parser, token);
-         if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
-            if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
-                html != NULL &&
-                importsAreAllowed) {
-               parseImport(html, parser, token, parser_.m_base_url);
-            } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
-               parseMedia(parser, token, context);
+   static struct timeval accumulated;
+   static bool initialized = false;
+   if (!initialized) {
+      timerclear(&accumulated);
+      initialized = true;
+   }
+
+   struct timeval start;
+   timerclear(&start);
+   gettimeofday(&start, NULL);
+
+   if (1) {
+      hll_parseCss(&parser_.m_parser, &parser_.m_token, context);
+   } else {
+      while (token->c_type != CSS_TOKEN_TYPE_END) {
+         if (token->c_type == CSS_TOKEN_TYPE_CHAR &&
+             token->c_value[0] == '@') {
+            nextToken(parser, token);
+            if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
+               if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
+                   html != NULL &&
+                   importsAreAllowed) {
+                  fprintf(stderr, "MEAS: PARSE IMPORT\n");
+                  parseImport(html, parser, token, parser_.m_base_url);
+               } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
+                  fprintf(stderr, "MEAS: PARSE MEDIA\n");
+                  parseMedia(parser, token, context);
+               } else {
+                  hll_ignoreStatement(parser, token);
+               }
             } else {
                hll_ignoreStatement(parser, token);
             }
          } else {
-            hll_ignoreStatement(parser, token);
+            importsAreAllowed = false;
+            hll_cssParseRuleset(parser, token, context);
          }
-      } else {
-         importsAreAllowed = false;
-         hll_cssParseRuleset(parser, token, context);
       }
    }
+
+   struct timeval stop;
+   timerclear(&stop);
+   gettimeofday(&stop, NULL);
+
+   struct timeval diff;
+   timerclear(&diff);
+   timersub(&stop, &start, &diff);
+
+   struct timeval old_accumulated = accumulated;
+   timeradd(&diff, &old_accumulated, &accumulated);
+
+   fprintf(stderr, "MEAS: TIME: %ld.%06ld seconds\n", diff.tv_sec, diff.tv_usec);
+   fprintf(stderr, "MEAS: ACCUMULATED TIME: %ld.%02ld seconds\n", accumulated.tv_sec, accumulated.tv_usec / (1000 * 10));
 }

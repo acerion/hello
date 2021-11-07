@@ -46,6 +46,7 @@ import Control.Monad -- when
 import Debug.Trace
 
 import Hello.Css.Parser
+import Hello.Css.Tokenizer
 import Hello.Css.StyleSheet
 import Hello.Css.Selector
 import Hello.Css.DoctreeNode
@@ -66,6 +67,7 @@ foreign export ccall "hll_cssComplexSelectorMatches" hll_cssComplexSelectorMatch
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
+foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
 
 
 
@@ -577,4 +579,53 @@ hll_cssParseRuleset ptrStructCssParser ptrStructCssToken ptrStructCssContext = d
 
 
 
+hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
+hll_parseCss ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
+  parser  <- peekCssParser ptrStructCssParser
+  token   <- peekCssToken ptrStructCssToken
+  context <- peekCssContext ptrStructCssContext
 
+  (p2, t2, c2) <- parseCss parser token context
+
+  pokeCssParser ptrStructCssParser p2
+  pokeCssToken ptrStructCssToken t2
+  pokeCssContext ptrStructCssContext c2
+
+  return ()
+
+
+
+
+parseCss :: CssParser -> CssToken -> CssContext -> IO (CssParser, CssToken, CssContext)
+parseCss parser token context = do
+  case token of
+    CssTokDelim '@' -> do
+      parseAtRule
+      return (parser, token, context)
+    CssTokEnd -> do
+      return (parser, token, context)
+    otherwise       -> do
+      let importsAreAllowed = False
+      let (p2, t2, c2) = parseRuleset parser token context
+      parseCss p2 t2 c2
+
+
+
+
+parseAtRule = undefined -- TODO: implement according to the C code below
+{-
+         nextToken(parser, token);
+         if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
+            if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
+                html != NULL &&
+                importsAreAllowed) {
+               parseImport(html, parser, token, parser_.m_base_url);
+            } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
+               parseMedia(parser, token, context);
+            } else {
+               hll_ignoreStatement(parser, token);
+            }
+         } else {
+            hll_ignoreStatement(parser, token);
+         }
+-}
