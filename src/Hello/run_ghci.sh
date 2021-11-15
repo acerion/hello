@@ -6,5 +6,6 @@ ghci -fobject-code \
      ./Tests/*.hs \
      ./Tests/Css/*.hs \
      ./Tests/Html/*.hs \
-     ./Tests/TestUtils/*.hs
+     ./Tests/TestUtils/*.hs \
+     ./Ffi/Css/SelectorLink.hs
 
