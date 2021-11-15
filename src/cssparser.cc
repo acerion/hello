@@ -40,6 +40,7 @@ void nextToken(c_css_parser_t * hll_parser, c_css_token_t * token);
 void parseDeclaration(CssParser * parser, c_css_declaration_set_t * declList, c_css_declaration_set_t * declListImportant);
 void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url);
 void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
+static void parse_media_query(c_css_parser_t * parser, c_css_token_t * token, int * mediaSyntaxIsOk, int * mediaIsSelected);
 
 /* ----------------------------------------------------------------------
  *    Parsing
@@ -67,8 +68,8 @@ void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token
 {
    char *urlStr = NULL;
    bool importSyntaxIsOK = false;
-   bool mediaSyntaxIsOK = true;
-   bool mediaIsSelected = true;
+   int mediaSyntaxIsOK = true;
+   int mediaIsSelected = true;
 
    nextToken(parser, token);
 
@@ -84,18 +85,7 @@ void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token
    if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
       mediaSyntaxIsOK = false;
       mediaIsSelected = false;
-      while (token->c_type == CSS_TOKEN_TYPE_IDENT) {
-         if (dStrAsciiCasecmp(token->c_value, "all") == 0 ||
-             dStrAsciiCasecmp(token->c_value, "screen") == 0)
-            mediaIsSelected = true;
-         nextToken(parser, token);
-         if (hll_isTokenComma(token)) {
-            nextToken(parser, token);
-         } else {
-            mediaSyntaxIsOK = true;
-            break;
-         }
-      }
+      parse_media_query(parser, token, &mediaSyntaxIsOK, &mediaIsSelected);
    }
 
    if (mediaSyntaxIsOK && hll_isTokenSemicolon(token)) {
@@ -118,24 +108,11 @@ void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token
 
 void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context)
 {
-   bool mediaSyntaxIsOK = false;
-   bool mediaIsSelected = false;
-
    nextToken(parser, token);
 
-   /* parse a comma-separated list of media */
-   while (token->c_type == CSS_TOKEN_TYPE_IDENT) {
-      if (dStrAsciiCasecmp(token->c_value, "all") == 0 ||
-          dStrAsciiCasecmp(token->c_value, "screen") == 0)
-         mediaIsSelected = true;
-      nextToken(parser, token);
-      if (hll_isTokenComma(token)) {
-         nextToken(parser, token);
-      } else {
-         mediaSyntaxIsOK = true;
-         break;
-      }
-   }
+   int mediaSyntaxIsOK = false;
+   int mediaIsSelected = false;
+   parse_media_query(parser, token, &mediaSyntaxIsOK, &mediaIsSelected);
 
    /* check that the syntax is OK so far */
    if (!(mediaSyntaxIsOK && hll_isTokenBraceCurlyOpen(token))) {
@@ -153,8 +130,29 @@ void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t 
             break;
          }
       }
-   } else
+   } else {
       hll_ignoreBlock(parser, token);
+   }
+}
+
+static void parse_media_query(c_css_parser_t * parser, c_css_token_t * token, int * mediaSyntaxIsOK, int * mediaIsSelected)
+{
+   while (token->c_type == CSS_TOKEN_TYPE_IDENT) {
+      if (dStrAsciiCasecmp(token->c_value, "all") == 0 || dStrAsciiCasecmp(token->c_value, "screen") == 0) {
+         *mediaIsSelected = true;
+      }
+
+      fprintf(stderr, "MEDIA = '%s'\n", token->c_value);
+
+      nextToken(parser, token);
+
+      if (hll_isTokenComma(token)) {
+         nextToken(parser, token);
+      } else {
+         *mediaSyntaxIsOK = true;
+         break;
+      }
+   }
 }
 
 void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * context, const char * buf, int buflen, CssOrigin origin)

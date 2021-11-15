@@ -51,6 +51,8 @@ import Hello.Css.StyleSheet
 import Hello.Css.Selector
 import Hello.Css.DoctreeNode
 import Hello.Css.Match
+import Hello.Css.MediaQuery
+
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Utils
 import Hello.Ffi.Css.DoctreeNode
@@ -599,9 +601,13 @@ hll_parseCss ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
 parseCss :: CssParser -> CssToken -> CssContext -> IO (CssParser, CssToken, CssContext)
 parseCss parser token context = do
   case token of
-    CssTokDelim '@' -> do
-      parseAtRule
-      return (parser, token, context)
+    -- TODO: check whether string comparison of "import" or "media" should be
+    -- case-sensitive or not.
+    CssTokAt "import" -> undefined -- TODO: implement according to the C code below
+    CssTokAt "media"  -> do
+      let (p2, t2) = trace ("token2 = " ++ (show token)) (parseMediaRule (parser, token))
+      let (p3, t3) = ignoreBlock p2
+      parseCss p3 t3 context
     CssTokEnd -> do
       return (parser, token, context)
     otherwise       -> do
@@ -612,7 +618,12 @@ parseCss parser token context = do
 
 
 
-parseAtRule = undefined -- TODO: implement according to the C code below
+parseMediaRule pair@(parser, token) = trace ("media = " ++ (show media)) (p2, t2)
+  where
+    ((p2, t2), media) = parseMediaQuery pair
+    (syntaxOk, mediaMatch) = case media of
+                               Just m  -> (True, mediaMatchesParser parser m)
+                               Nothing -> (False, False)
 {-
          nextToken(parser, token);
          if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
@@ -628,4 +639,29 @@ parseAtRule = undefined -- TODO: implement according to the C code below
          } else {
             hll_ignoreStatement(parser, token);
          }
+-}
+
+
+
+
+{-
+static void parse_media_query(c_css_parser_t * parser, c_css_token_t * token, int * mediaSyntaxIsOK, int * mediaIsSelected)
+{
+   while (token->c_type == CSS_TOKEN_TYPE_IDENT) {
+      if (dStrAsciiCasecmp(token->c_value, "all") == 0 || dStrAsciiCasecmp(token->c_value, "screen") == 0) {
+         *mediaIsSelected = true;
+      }
+
+      fprintf(stderr, "MEDIA = '%s'\n", token->c_value);
+
+      nextToken(parser, token);
+
+      if (hll_isTokenComma(token)) {
+         nextToken(parser, token);
+      } else {
+         *mediaSyntaxIsOK = true;
+         break;
+      }
+   }
+}
 -}

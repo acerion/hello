@@ -78,6 +78,8 @@ module Hello.Css.Tokenizer( CssParser (..)
                           , consumeName
                           , removeDoubleWhitespaces
                           , isWhitespace
+
+                          , splitAtCommaToken
                           )
   where
 
@@ -122,7 +124,7 @@ data CssHashType
 -- included in CssToken type (or not moved to a comment next to specific
 -- value constructor below yet):
 --
--- <at-keyword-token>, <string-token>, <bad-string-token>,
+-- <string-token>, <bad-string-token>,
 -- <whitespace-token>, <CDO-token>, <CDC-token>,
 data CssToken =
     CssTokNum CssNum            -- <number-token>
@@ -150,6 +152,9 @@ data CssToken =
   | CssTokStr T.Text
   | CssTokDelim Char            -- <delim-token>
   | CssTokWS                    -- Whitespace
+
+  | CssTokAt T.Text             -- <at-keyword-token>
+
   | CssTokEnd                   -- End of input. No new tokens will appear in input.
   | CssTokNone                  -- No token was taken, proceed with parsing input data to try to take some token.
   deriving (Show, Eq)
@@ -236,6 +241,7 @@ nextToken1' parser = takeLeadingWhite parser >>?
                      takeIdentLikeToken      >>?
                      takeString              >>?
                      takeHashToken           >>?
+                     takeAtToken             >>?
                      takeDelimToken
 
 
@@ -248,6 +254,7 @@ nextToken2' parser = takeLeadingWhite2 parser >>?
                      takeIdentLikeToken       >>?
                      takeString               >>?
                      takeHashToken            >>?
+                     takeAtToken              >>?
                      takeDelimToken
 
 
@@ -454,6 +461,21 @@ takeHashToken p1 =
                              else (parserMoveByLen p2 len, Just $ CssTokHash CssHashUn name)
           where
             (name, len) = consumeName (remainder p2) "" 0
+    otherwise -> (p1, Nothing)
+
+
+
+
+takeAtToken p1 =
+  case T.uncons $ remainder p1 of
+    Just ('@', rem) | length points == 3 && isValidStartOfIdentifier (T.pack points) -> createAtToken p1{remainder = rem }
+                    | otherwise                                                      -> (p1{ remainder = rem }, Just $ CssTokDelim '@')
+      where
+        points           = peekUpToNCodePoints rem 3 (\c -> True)
+        createAtToken p2 = (parserMoveByLen p2 len, Just $ CssTokAt name)
+          where
+            (name, len) = consumeName (remainder p2) "" 0
+
     otherwise -> (p1, Nothing)
 
 
@@ -767,4 +789,13 @@ takeSingleCharToken parser = case T.uncons $ remainder parser of
                                Just ('{', rem) -> (parser{ remainder = rem }, Just CssTokBraceCurlyOpen)
                                Just ('}', rem) -> (parser{ remainder = rem }, Just CssTokBraceCurlyClose)
                                otherwise       -> (parser, Nothing)
+
+
+
+
+splitAtCommaToken :: [CssToken] -> [[CssToken]] -> [[CssToken]]
+splitAtCommaToken [] acc               = reverse acc
+splitAtCommaToken (CssTokComma:xs) acc = splitAtCommaToken xs ([]:acc)
+splitAtCommaToken (x:xs)       (a:acc) = splitAtCommaToken xs ((a ++ [x]):acc)
+splitAtCommaToken (x:xs)       ([])    = splitAtCommaToken xs [[x]]
 
