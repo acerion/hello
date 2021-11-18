@@ -102,8 +102,6 @@ foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyl
 
 foreign export ccall "hll_isTokenComma" hll_isTokenComma :: Ptr FfiCssToken -> IO Int
 foreign export ccall "hll_isTokenSemicolon" hll_isTokenSemicolon :: Ptr FfiCssToken -> IO Int
-foreign export ccall "hll_isTokenBraceCurlyOpen" hll_isTokenBraceCurlyOpen :: Ptr FfiCssToken -> IO Int
-foreign export ccall "hll_isTokenBraceCurlyClose" hll_isTokenBraceCurlyClose :: Ptr FfiCssToken -> IO Int
 
 
 
@@ -1122,17 +1120,3 @@ hll_isTokenSemicolon ptrStructCssToken = do
   case token of
     CssTokSemicolon -> return 1
     otherwise    -> return 0
-
-hll_isTokenBraceCurlyOpen :: Ptr FfiCssToken -> IO Int
-hll_isTokenBraceCurlyOpen ptrStructCssToken = do
-  token <- peekCssToken ptrStructCssToken
-  case token of
-    CssTokBraceCurlyOpen -> return 1
-    otherwise            -> return 0
-
-hll_isTokenBraceCurlyClose :: Ptr FfiCssToken -> IO Int
-hll_isTokenBraceCurlyClose ptrStructCssToken = do
-  token <- peekCssToken ptrStructCssToken
-  case token of
-    CssTokBraceCurlyClose -> return 1
-    otherwise             -> return 0

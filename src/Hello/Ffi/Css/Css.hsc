@@ -68,7 +68,6 @@ import Hello.Ffi.Css.DoctreeNode
 foreign export ccall "hll_cssComplexSelectorMatches" hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
-foreign export ccall "hll_cssParseRuleset" hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
 foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
 
 
@@ -564,30 +563,13 @@ pokeCssContext ptrStructContext context = do
 
 
 
-hll_cssParseRuleset :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
-hll_cssParseRuleset ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
-  parser  <- peekCssParser ptrStructCssParser
-  token   <- peekCssToken ptrStructCssToken
-  context <- peekCssContext ptrStructCssContext
-
-  let (p2, t2, c2) = parseRuleset parser token context
-
-  pokeCssParser ptrStructCssParser p2
-  pokeCssToken ptrStructCssToken t2
-  pokeCssContext ptrStructCssContext c2
-
-  return ()
-
-
-
-
 hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
 hll_parseCss ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
   parser  <- peekCssParser ptrStructCssParser
   token   <- peekCssToken ptrStructCssToken
   context <- peekCssContext ptrStructCssContext
 
-  (p2, t2, c2) <- parseCss parser token context
+  let ((p2, t2), c2) = parseCss ((parser, token), context)
 
   pokeCssParser ptrStructCssParser p2
   pokeCssToken ptrStructCssToken t2
@@ -598,70 +580,3 @@ hll_parseCss ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
 
 
 
-parseCss :: CssParser -> CssToken -> CssContext -> IO (CssParser, CssToken, CssContext)
-parseCss parser token context = do
-  case token of
-    -- TODO: check whether string comparison of "import" or "media" should be
-    -- case-sensitive or not.
-    CssTokAt "import" -> undefined -- TODO: implement according to the C code below
-    CssTokAt "media"  -> do
-      let (p2, t2) = trace ("token2 = " ++ (show token)) (parseMediaRule (parser, token))
-      let (p3, t3) = ignoreBlock p2
-      parseCss p3 t3 context
-    CssTokEnd -> do
-      return (parser, token, context)
-    otherwise       -> do
-      let importsAreAllowed = False
-      let (p2, t2, c2) = parseRuleset parser token context
-      parseCss p2 t2 c2
-
-
-
-
-parseMediaRule pair@(parser, token) = trace ("media = " ++ (show media)) (p2, t2)
-  where
-    ((p2, t2), media) = parseMediaQuery pair
-    (syntaxOk, mediaMatch) = case media of
-                               Just m  -> (True, mediaMatchesParser parser m)
-                               Nothing -> (False, False)
-{-
-         nextToken(parser, token);
-         if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
-            if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
-                html != NULL &&
-                importsAreAllowed) {
-               parseImport(html, parser, token, parser_.m_base_url);
-            } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
-               parseMedia(parser, token, context);
-            } else {
-               hll_ignoreStatement(parser, token);
-            }
-         } else {
-            hll_ignoreStatement(parser, token);
-         }
--}
-
-
-
-
-{-
-static void parse_media_query(c_css_parser_t * parser, c_css_token_t * token, int * mediaSyntaxIsOK, int * mediaIsSelected)
-{
-   while (token->c_type == CSS_TOKEN_TYPE_IDENT) {
-      if (dStrAsciiCasecmp(token->c_value, "all") == 0 || dStrAsciiCasecmp(token->c_value, "screen") == 0) {
-         *mediaIsSelected = true;
-      }
-
-      fprintf(stderr, "MEDIA = '%s'\n", token->c_value);
-
-      nextToken(parser, token);
-
-      if (hll_isTokenComma(token)) {
-         nextToken(parser, token);
-      } else {
-         *mediaSyntaxIsOK = true;
-         break;
-      }
-   }
-}
--}

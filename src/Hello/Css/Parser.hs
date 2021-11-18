@@ -35,6 +35,7 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 module Hello.Css.Parser(
                          ignoreBlock
+                       , consumeBlock
                        , ignoreStatement
 
                        , cssPropertyInfo
@@ -1034,6 +1035,7 @@ tokenMatchesProperty token propInfo = tokenMatchesProperty' token acceptedValueT
 
 
 
+-- TODO: rewrite with consumeBlock?
 ignoreBlock :: CssParser -> (CssParser, CssToken)
 ignoreBlock parser = ignoreBlock' (parser, CssTokNone) 0
   where
@@ -1059,6 +1061,22 @@ ignoreBlock parser = ignoreBlock' (parser, CssTokNone) 0
       nextToken(tokenizer, hll_css_parser);
    }
 -}
+
+
+
+
+-- TODO: this function can recognize only blocks enclosed by curly braces.
+-- Make the function recognize all types of Css braces.
+consumeBlock :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
+consumeBlock (parser, token) = consumeBlock' (parser, token) [] []
+  where
+    -- Last argument (braces) is used to keep track of opened/closed braces
+    -- to know what is the current nesting level of blocks.
+    consumeBlock' (parser, tok@CssTokEnd) tokens braces                              = ((parser, tok), reverse tokens)
+    consumeBlock' (parser, CssTokBraceCurlyOpen) tokens braces                       = consumeBlock' (nextToken1 parser) (CssTokBraceCurlyOpen : tokens) (CssTokBraceCurlyOpen : braces)
+    consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : []) = ((nextToken1 parser), reverse tokens)
+    consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : xs) = consumeBlock' (nextToken1 parser) (CssTokBraceCurlyClose : tokens) xs
+    consumeBlock' (parser, tok) tokens braces                                        = consumeBlock' (nextToken1 parser) (tok : tokens) braces
 
 
 

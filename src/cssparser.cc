@@ -106,6 +106,7 @@ void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token
    }
 }
 
+#if 0
 void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context)
 {
    nextToken(parser, token);
@@ -134,6 +135,7 @@ void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t 
       hll_ignoreBlock(parser, token);
    }
 }
+#endif
 
 static void parse_media_query(c_css_parser_t * parser, c_css_token_t * token, int * mediaSyntaxIsOK, int * mediaIsSelected)
 {
@@ -174,34 +176,34 @@ void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * conte
    timerclear(&start);
    gettimeofday(&start, NULL);
 
-   if (1) {
-      hll_parseCss(&parser_.m_parser, &parser_.m_token, context);
-   } else {
-      while (token->c_type != CSS_TOKEN_TYPE_END) {
-         if (token->c_type == CSS_TOKEN_TYPE_CHAR &&
-             token->c_value[0] == '@') {
-            nextToken(parser, token);
-            if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
-               if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
-                   html != NULL &&
-                   importsAreAllowed) {
-                  fprintf(stderr, "MEAS: PARSE IMPORT\n");
-                  parseImport(html, parser, token, parser_.m_base_url);
-               } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
-                  fprintf(stderr, "MEAS: PARSE MEDIA\n");
-                  parseMedia(parser, token, context);
-               } else {
-                  hll_ignoreStatement(parser, token);
-               }
+#if 1
+   hll_parseCss(&parser_.m_parser, &parser_.m_token, context);
+#else
+   while (token->c_type != CSS_TOKEN_TYPE_END) {
+      if (token->c_type == CSS_TOKEN_TYPE_CHAR &&
+          token->c_value[0] == '@') {
+         nextToken(parser, token);
+         if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
+            if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
+                html != NULL &&
+                importsAreAllowed) {
+               fprintf(stderr, "MEAS: PARSE IMPORT\n");
+               parseImport(html, parser, token, parser_.m_base_url);
+            } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
+               fprintf(stderr, "MEAS: PARSE MEDIA\n");
+               parseMedia(parser, token, context);
             } else {
                hll_ignoreStatement(parser, token);
             }
          } else {
-            importsAreAllowed = false;
-            hll_cssParseRuleset(parser, token, context);
+            hll_ignoreStatement(parser, token);
          }
+      } else {
+         importsAreAllowed = false;
+         hll_cssParseRuleset(parser, token, context);
       }
    }
+#endif
 
    struct timeval stop;
    timerclear(&stop);

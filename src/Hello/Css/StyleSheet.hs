@@ -32,6 +32,11 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 
 
+{-# LANGUAGE OverloadedStrings #-}
+
+
+
+
 module Hello.Css.StyleSheet( CssStyleSheet (..)
                            , CssRulesMap (..)
                            , addRuleToStyleSheet
@@ -48,6 +53,8 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
                            , CssSheetSelector (..)
                            , getSheetIndex
                            , getSheetSelector
+
+                           , parseCss
                            ) where
 
 
@@ -66,6 +73,7 @@ import Control.Monad -- when
 import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Css.Selector
+import Hello.Css.MediaQuery
 import Hello.Utils
 
 
@@ -367,7 +375,63 @@ rulesetToRulesWithOrigin parser token = ((p3, t3), rulesWithOrigin)
 
 
 
-parseRuleset parser token context = (p2, t2, updatedContext)
+parseRuleset ((parser, token), context) = ((p2, t2), updatedContext)
   where
     updatedContext = cssContextAddRules context rulesWithOrigin
     ((p2, t2), rulesWithOrigin) = rulesetToRulesWithOrigin parser token
+
+
+
+
+parseCss :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
+parseCss ((parser, token), context) =
+  case token of
+    -- TODO: check whether string comparison of "import" or "media" should be
+    -- case-sensitive or not.
+    CssTokAt "import" -> (ignoreBlock parser, context) -- TODO: reimplement "void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)"
+    CssTokAt "media"  -> parseCss . parseMediaRule $ ((parser, token), context)
+    CssTokEnd         -> ((parser, token), context)
+    otherwise         -> parseCss . parseRuleset $ ((parser, token), context) -- TODO: set flag "let importsAreAllowed = False"
+
+
+
+parseMediaRule :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
+parseMediaRule ((parser, token), context) = ((p3, t3), c3)
+  where
+    ((p2, t2), media) = parseMediaQuery (parser, token)
+    (syntaxOk, mediaMatch) = case media of
+                               Just m  -> (True, mediaMatchesParser parser m)
+                               Nothing -> (False, False)
+
+    ((p3, t3), c3) = if mediaMatch
+                     then parseMediaBlock ((nextToken1 p2), context) -- nextToken skips opening brace of a block
+                     else (ignoreBlock p2, context)
+
+
+
+
+parseMediaBlock ((parser, token), context) = case parseRuleset ((parser, token), context) of
+                                               ((p2, CssTokEnd), c2)             -> ((p2, CssTokEnd), c2)
+                                               ((p2, CssTokBraceCurlyClose), c2) -> ((nextToken1 p2), c2) -- Consume closing brace of media block
+                                               ((p2, t2), c2)                    -> parseRuleset ((p2, t2), c2)
+
+
+
+{-
+         nextToken(parser, token);
+         if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
+            if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
+                html != NULL &&
+                importsAreAllowed) {
+               parseImport(html, parser, token, parser_.m_base_url);
+            } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
+               parseMedia(parser, token, context);
+            } else {
+               hll_ignoreStatement(parser, token);
+            }
+         } else {
+            hll_ignoreStatement(parser, token);
+         }
+-}
+
+
