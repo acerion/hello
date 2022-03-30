@@ -31,6 +31,7 @@ import Hello.Tests.Css.Value
 
 import Hello.Tests.Html.Entity
 import Hello.Tests.Html.Tag
+import Hello.Tests.Html.Attribute
 
 
 
@@ -38,7 +39,7 @@ import Hello.Tests.Html.Tag
 testFunctions = [testsColors, testsCookies,
                  testsGif, testsGif2,
                  testsCssCss, testsCssRule, testsCssComplexSelector, testsCssTokenizer, testsCssValue,
-                 testsHtmlEntity, testsHtmlTag]
+                 testsHtmlEntity, testsHtmlTag, testsHtmlAttribute]
 
 
 

@@ -58,7 +58,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    }
 
    if (border != -1) {
-      cssLength = cssCreateLength(border, CSS_LENGTH_TYPE_PX);
+      cssLength.bits = hll_cssCreateLength(border, CSS_LENGTH_TYPE_PX);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
@@ -70,12 +70,13 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    }
 
    if (cellspacing != -1) {
-      cssLength = cssCreateLength(cellspacing, CSS_LENGTH_TYPE_PX);
+      cssLength.bits = hll_cssCreateLength(cellspacing, CSS_LENGTH_TYPE_PX);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_SPACING, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
    }
 
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "width"))) {
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, a_Html_parse_length(html, attrbuf));
+      CssLength width = html_parse_attribute_width_or_height(attrbuf);
+      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<table> width attribute is obsolete.");
    }
@@ -104,7 +105,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    /* The style for the cells */
    html->styleEngine->clearNonCssHints ();
    if (border > 0) {
-      cssLength = cssCreateLength(1, CSS_LENGTH_TYPE_PX);
+      cssLength.bits = hll_cssCreateLength(1, CSS_LENGTH_TYPE_PX);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
@@ -116,7 +117,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    }
 
    if (cellpadding != -1) {
-      cssLength = cssCreateLength(cellpadding, CSS_LENGTH_TYPE_PX);
+      cssLength.bits = hll_cssCreateLength(cellpadding, CSS_LENGTH_TYPE_PX);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_PADDING_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_PADDING_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_PADDING_LEFT,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
@@ -358,7 +359,8 @@ static void Html_tag_open_table_cell(DilloHtml *html,
       a_Html_tag_set_align_attr (html, tag, tagsize);
 
       if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "width"))) {
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, a_Html_parse_length (html, attrbuf));
+         CssLength width = html_parse_attribute_width_or_height(attrbuf);
+         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
          if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
             BUG_MSG("<t%c> width attribute is obsolete.",
                (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');

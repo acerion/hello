@@ -1074,7 +1074,7 @@ static void Html_process_word(DilloHtml *html, const char *word, int size)
  * Does the tag in tagstr (e.g. "p") match the tag in the tag, tagsize
  * structure, with the initial < skipped over (e.g. "P align=center>")?
  */
-static bool Html_match_tag(const char *tagstr, char *tag, int tagsize)
+static bool Html_match_tag(const char *tagstr, char *tag, int tagsize) // kamil
 {
    int i;
 
@@ -1266,66 +1266,15 @@ static void Html_tag_cleanup_nested_inputs(DilloHtml *html, int new_idx)
  * Some parsing routines.
  */
 
-/*
- * Used by a_Html_parse_length
- */
-static CssLength Html_parse_length_or_multi_length (const char *attr,
-                                                    char **endptr)
-{
-   CssLength l;
-   double v;
-   char *end;
-
-   v = strtod (attr, &end);
-   switch (*end) {
-   case '%':
-      end++;
-      l = cssCreateLength(v / 100, CSS_LENGTH_TYPE_PERCENTAGE);
-      break;
-
-   case '*':
-      end++;
-      l = cssCreateLength(v, CSS_LENGTH_TYPE_RELATIVE);
-      break;
-/*
-   The "px" suffix seems not allowed by HTML4.01 SPEC.
-   case 'p':
-      if (end[1] == 'x')
-         end += 2;
-*/
-   default:
-      l = cssCreateLength(v, CSS_LENGTH_TYPE_PX);
-      break;
-   }
-
-   if (endptr)
-      *endptr = end;
-   return l;
-}
-
 
 /*
  * Returns a length or a percentage, or UNDEF_LENGTH in case
  * of an error, or if attr is NULL.
  */
-CssLength a_Html_parse_length (DilloHtml *html, const char *attr)
+CssLength html_parse_attribute_width_or_height(const char * attr_value)
 {
    CssLength l;
-   char *end;
-
-   l = Html_parse_length_or_multi_length (attr, &end);
-   if (cssLengthType(l) == CSS_LENGTH_TYPE_RELATIVE)
-      /* not allowed as &Length; */
-      l = cssCreateLength(0.0, CSS_LENGTH_TYPE_AUTO);
-   else {
-      /* allow only whitespaces */
-      if (*end && !isspace (*end)) {
-         BUG_MSG("Garbage after length: '%s'.", attr);
-         l = cssCreateLength(0.0, CSS_LENGTH_TYPE_AUTO);
-      }
-   }
-
-   _MSG("a_Html_parse_length: \"%s\" %d\n", attr, cssLengthValue(l));
+   l.bits = hll_htmlParseAttributeWidthOrHeight(attr_value);
    return l;
 }
 
@@ -1351,7 +1300,7 @@ int32_t a_Html_color_parse(DilloHtml *html, const char *str,
  * Return value: 1 if OK, 0 otherwise.
  */
 static int
- Html_check_name_val(DilloHtml *html, const char *val, const char *attrname)
+Html_check_name_val(DilloHtml *html, const char *val, const char *attrname) // kamil
 {
    if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f) {
       bool valid = *val && !strchr(val, ' ');
@@ -1920,8 +1869,10 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
 {
    char *width_ptr, *height_ptr;
    const char *attrbuf;
-   CssLength l_w  = cssCreateLength(0.0, CSS_LENGTH_TYPE_AUTO);
-   CssLength l_h  = cssCreateLength(0.0, CSS_LENGTH_TYPE_AUTO);
+   CssLength l_w;
+   l_w.bits = hll_cssCreateLength(0.0, CSS_LENGTH_TYPE_AUTO);
+   CssLength l_h;
+   l_h.bits = hll_cssCreateLength(0.0, CSS_LENGTH_TYPE_AUTO);
    int w = 0, h = 0;
 
    if (prefs.show_tooltip && (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
@@ -1932,12 +1883,12 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
    // Check for malicious values
    // TODO: the same for percentage and relative lengths.
    if (width_ptr) {
-      l_w = a_Html_parse_length (html, width_ptr);
-      w = (int) (cssLengthType(l_w) == CSS_LENGTH_TYPE_PX ? cssLengthValue(l_w) : 0);
+      l_w = html_parse_attribute_width_or_height(width_ptr);
+      w = (int) (hll_cssLengthType(l_w.bits) == CSS_LENGTH_TYPE_PX ? hll_cssLengthValue(l_w.bits) : 0);
    }
    if (height_ptr) {
-      l_h = a_Html_parse_length (html, height_ptr);
-      h = (int) (cssLengthType(l_h) == CSS_LENGTH_TYPE_PX ? cssLengthValue(l_h) : 0);
+      l_h = html_parse_attribute_width_or_height(height_ptr);
+      h = (int) (hll_cssLengthType(l_h.bits) == CSS_LENGTH_TYPE_PX ? hll_cssLengthValue(l_h.bits) : 0);
    }
    /* Check for suspicious image size request that would cause
     * an excessive amount of memory to be allocated for the
@@ -1956,9 +1907,9 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
       width_ptr = height_ptr = NULL;
       MSG("a_Html_common_image_attrs: suspicious image size request %d x %d\n", w, h);
    } else {
-      if (cssLengthType(l_w) != CSS_LENGTH_TYPE_AUTO)
+      if (hll_cssLengthType(l_w.bits) != CSS_LENGTH_TYPE_AUTO)
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_w);
-      if (cssLengthType(l_h) != CSS_LENGTH_TYPE_AUTO)
+      if (hll_cssLengthType(l_h.bits) != CSS_LENGTH_TYPE_AUTO)
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_HEIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_h);
    }
 
@@ -2056,9 +2007,10 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "hspace"))) {
       int i = strtol(attrbuf, NULL, 10);
       if (i > 0) {
-         CssLength space = cssCreateLength(i, CSS_LENGTH_TYPE_PX);
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_MARGIN_LEFT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_MARGIN_RIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
+	      CssLength space;
+	      space.bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
+	      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_MARGIN_LEFT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
+	      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_MARGIN_RIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
       }
    }
 
@@ -2066,7 +2018,8 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "vspace"))) {
       int i = strtol(attrbuf, NULL, 10);
       if (i > 0) {
-         CssLength space = cssCreateLength(i, CSS_LENGTH_TYPE_PX);
+         CssLength space;
+         space.bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_MARGIN_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_MARGIN_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
       }
@@ -2076,7 +2029,8 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
    if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "border"))) {
       int i = strtol(attrbuf, NULL, 10);
       if (i >= 0) {
-         CssLength border = cssCreateLength(i, CSS_LENGTH_TYPE_PX);
+         CssLength border;
+         border.bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_TOP_WIDTH,     CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
@@ -2769,7 +2723,8 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
    if (width_ptr) {
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<hr> width attribute is obsolete.");
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, a_Html_parse_length(html, width_ptr));
+      CssLength width = html_parse_attribute_width_or_height(width_ptr);
+      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
       dFree(width_ptr);
    }
 
@@ -2795,8 +2750,10 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
    }
 
    if (size > 0) {
-      CssLength size_top = cssCreateLength ((size+1)/2, CSS_LENGTH_TYPE_PX);
-      CssLength size_bottom = cssCreateLength (size / 2, CSS_LENGTH_TYPE_PX);
+      CssLength size_top;
+      size_top.bits = hll_cssCreateLength ((size+1)/2, CSS_LENGTH_TYPE_PX);
+      CssLength size_bottom;
+      size_bottom.bits = hll_cssCreateLength (size / 2, CSS_LENGTH_TYPE_PX);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, size_bottom);

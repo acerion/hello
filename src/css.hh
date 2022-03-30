@@ -237,9 +237,4 @@ void css_context_apply_css_context(c_css_context_t * context,
 
 
 
-CssLengthType cssLengthType(CssLength len);
-float cssLengthValue(CssLength len);
-CssLength cssCreateLength(float val, CssLengthType t);
-
-
 #endif

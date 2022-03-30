@@ -86,6 +86,9 @@ module Hello.Css.Parser(
                        , cssPropertyNameString
 
                        , CssDistance (..)
+                       , CssLength (..)
+                       , css_LENGTH_FRAC_MAX
+                       , css_LENGTH_INT_MAX
 
                        , parseDeclarationMultiple
                        , parseDeclarationDirections
@@ -141,6 +144,15 @@ import Hello.Css.Tokenizer
 import Hello.Css.Selector
 import Colors
 import HtmlTag
+
+
+
+data CssLength = CssLength Int Int -- word (with LSB bits indicating type) + lenType
+  deriving (Show, Eq)
+
+css_LENGTH_FRAC_MAX = (1 `shiftL` (32 - 15 - 1)) - 1 :: Int
+css_LENGTH_INT_MAX  = (1 `shiftL` (32 - 4)) - 1 :: Int
+
 
 
 

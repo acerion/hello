@@ -283,6 +283,10 @@ void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const
 
 
 
+uint32_t hll_htmlParseAttributeWidthOrHeight(const char * attribute_value);
+
+
+
 /* Css.hsc */
 
    

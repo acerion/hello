@@ -6,5 +6,7 @@ ghci -fobject-code \
      ./*.hs \
      ./Css/*.hs \
      ./Html/*.hs \
-     ./TestUtils/*.hs
-
+     ./TestUtils/*.hs \
+     ../Ffi/Css/*.hs \
+     ../Ffi/*.hs
+     

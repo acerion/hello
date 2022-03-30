@@ -276,17 +276,4 @@ void css_context_apply_css_context(c_css_context_t * context,
    css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], mergedDeclList, docTree, dtn, context->c_match_cache);
 }
 
-CssLength cssCreateLength(float val, CssLengthType t)
-{
-   CssLength cssLength;
-   cssLength.bits = hll_cssCreateLength(val, t);
-   return cssLength;
-}
-CssLengthType cssLengthType(CssLength cssLength)
-{
-   return hll_cssLengthType(cssLength.bits);
-}
-float cssLengthValue(CssLength cssLength)
-{
-   return hll_cssLengthValue(cssLength.bits);
-}
+

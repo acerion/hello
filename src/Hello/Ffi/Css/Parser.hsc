@@ -49,6 +49,9 @@ module Hello.Ffi.Css.Parser( FfiCssComplexSelectorLink (..)
                            , pokeCssToken
 
                            , getCssOrigin
+
+                           , hll_cssCreateLength
+                           , cssCreateLength
                            )
   where
 
@@ -990,9 +993,6 @@ take.
 
 
 
-data CssLength = CssLength Int Int -- word (with LSB bits indicating type) + lenType
-  deriving (Show, Eq)
-
 
 
 
@@ -1049,8 +1049,6 @@ cssLengthValue (CssLength word lenType) | lenType == cssLengthTypePX = let
 
 
 
-css_LENGTH_FRAC_MAX = (1 `shiftL` (32 - 15 - 1)) - 1 :: Int
-css_LENGTH_INT_MAX  = (1 `shiftL` (32 - 4)) - 1 :: Int
 
 
 

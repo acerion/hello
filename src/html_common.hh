@@ -245,7 +245,7 @@ void a_Html_pop_tag(DilloHtml *html, int TagIdx);
 void a_Html_stash_init(DilloHtml *html);
 int32_t a_Html_color_parse(DilloHtml *html, const char *str,
                            int32_t default_color);
-CssLength a_Html_parse_length (DilloHtml *html, const char *attr);
+CssLength html_parse_attribute_width_or_height(const char * attr_value);
 void a_Html_tag_set_align_attr(DilloHtml *html, const char *tag, int tagsize);
 bool a_Html_tag_set_valign_attr(DilloHtml *html,
                                 const char *tag, int tagsize);
