@@ -338,7 +338,7 @@ void Html_tag_open_form(DilloHtml *html, const char *tag, int tagsize)
    DilloHtmlMethod method;
    DilloHtmlEnc content_type;
    char *charset, *first;
-   const char *attrbuf;
+   const char *attr_value;
 
    Html2TextBlock(html)->addParbreak (9, html->styleEngine->getWordStyle (html->bw));
 
@@ -352,15 +352,15 @@ void Html_tag_open_form(DilloHtml *html, const char *tag, int tagsize)
    html->InFlags &= ~IN_TEXTAREA;
 
    method = DILLO_HTML_METHOD_GET;
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "method"))) {
-      if (!dStrAsciiCasecmp(attrbuf, "post")) {
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "method"))) {
+      if (!dStrAsciiCasecmp(attr_value, "post")) {
          method = DILLO_HTML_METHOD_POST;
-      } else if (dStrAsciiCasecmp(attrbuf, "get")) {
-         BUG_MSG("<form> submission method unknown: '%s'.", attrbuf);
+      } else if (dStrAsciiCasecmp(attr_value, "get")) {
+         BUG_MSG("<form> submission method unknown: '%s'.", attr_value);
       }
    }
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "action")))
-      action = a_Html_url_new(html, attrbuf, NULL, 0);
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "action")))
+      action = a_Html_url_new(html, attr_value, NULL, 0);
    else {
       if (html->DocType != DT_HTML || html->DocTypeVersion <= 4.01f)
          BUG_MSG("<form> requires action attribute.");
@@ -368,15 +368,15 @@ void Html_tag_open_form(DilloHtml *html, const char *tag, int tagsize)
    }
    content_type = DILLO_HTML_ENC_URLENCODED;
    if ((method == DILLO_HTML_METHOD_POST) &&
-       ((attrbuf = a_Html_get_attr(html, tag, tagsize, "enctype")))) {
-      if (!dStrAsciiCasecmp(attrbuf, "multipart/form-data"))
+       ((attr_value = html_attribute_get_value(tag, tagsize, "enctype")))) {
+      if (!dStrAsciiCasecmp(attr_value, "multipart/form-data"))
          content_type = DILLO_HTML_ENC_MULTIPART;
    }
    charset = NULL;
    first = NULL;
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "accept-charset"))) {
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "accept-charset"))) {
       /* a list of acceptable charsets, separated by commas or spaces */
-      char *ptr = first = dStrdup(attrbuf);
+      char *ptr = first = dStrdup(attr_value);
       while (ptr && !charset) {
          char *curr = dStrsep(&ptr, " ,");
          if (!dStrAsciiCasecmp(curr, "utf-8")) {
@@ -432,7 +432,8 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
    Resource *resource = NULL;
    Embed *embed = NULL;
    char *value, *name, *type, *init_str, *placeholder = NULL;
-   const char *attrbuf, *label;
+   const char *attr_value;
+   const char *label;
    bool init_val = false;
    ResourceFactory *factory;
 
@@ -448,23 +449,23 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
    factory = Html2Layout(html)->getResourceFactory();
 
    /* Get 'value', 'name' and 'type' */
-   value = a_Html_get_attr_wdef(html, tag, tagsize, "value", NULL);
-   name = a_Html_get_attr_wdef(html, tag, tagsize, "name", NULL);
-   type = a_Html_get_attr_wdef(html, tag, tagsize, "type", "");
+   value = html_attribute_get_value_with_default(tag, tagsize, "value", NULL);
+   name = html_attribute_get_value_with_default(tag, tagsize, "name", NULL);
+   type = html_attribute_get_value_with_default(tag, tagsize, "type", "");
 
    init_str = NULL;
    inp_type = DILLO_HTML_INPUT_UNKNOWN;
    if (!dStrAsciiCasecmp(type, "password")) {
       inp_type = DILLO_HTML_INPUT_PASSWORD;
-      placeholder = a_Html_get_attr_wdef(html, tag,tagsize,"placeholder",NULL);
-      attrbuf = a_Html_get_attr(html, tag, tagsize, "size");
-      int size = Html_input_get_size(html, attrbuf);
+      placeholder = html_attribute_get_value_with_default(tag,tagsize,"placeholder",NULL);
+      attr_value = html_attribute_get_value(tag, tagsize, "size");
+      int size = Html_input_get_size(html, attr_value);
       resource = factory->createEntryResource (size, true, NULL, placeholder);
       init_str = value;
    } else if (!dStrAsciiCasecmp(type, "checkbox")) {
       inp_type = DILLO_HTML_INPUT_CHECKBOX;
       resource = factory->createCheckButtonResource(false);
-      init_val = (a_Html_get_attr(html, tag, tagsize, "checked") != NULL);
+      init_val = (html_attribute_get_value(tag, tagsize, "checked") != NULL);
       init_str = (value) ? value : dStrdup("on");
    } else if (!dStrAsciiCasecmp(type, "radio")) {
       inp_type = DILLO_HTML_INPUT_RADIO;
@@ -473,7 +474,7 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
       if (input)
          rb_r = (RadioButtonResource*) input->embed->getResource();
       resource = factory->createRadioButtonResource(rb_r, false);
-      init_val = (a_Html_get_attr(html, tag, tagsize, "checked") != NULL);
+      init_val = (html_attribute_get_value(tag, tagsize, "checked") != NULL);
       init_str = value;
    } else if (!dStrAsciiCasecmp(type, "hidden")) {
       inp_type = DILLO_HTML_INPUT_HIDDEN;
@@ -492,8 +493,8 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
       if (URL_FLAGS(html->base_url) & URL_SpamSafe) {
          /* Don't request the image; make a text submit button instead */
          inp_type = DILLO_HTML_INPUT_SUBMIT;
-         attrbuf = a_Html_get_attr(html, tag, tagsize, "alt");
-         label = attrbuf ? attrbuf : value ? value : name ? name : "Submit";
+         attr_value = html_attribute_get_value(tag, tagsize, "alt");
+         label = attr_value ? attr_value : value ? value : name ? name : "Submit";
          init_str = dStrdup(label);
          resource = factory->createLabelButtonResource(init_str);
       } else {
@@ -532,9 +533,9 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
    } else {
       /* Text input, which also is the default */
       inp_type = DILLO_HTML_INPUT_TEXT;
-      placeholder = a_Html_get_attr_wdef(html, tag,tagsize,"placeholder",NULL);
-      attrbuf = a_Html_get_attr(html, tag, tagsize, "size");
-      int size = Html_input_get_size(html, attrbuf);
+      placeholder = html_attribute_get_value_with_default(tag,tagsize,"placeholder",NULL);
+      attr_value = html_attribute_get_value(tag, tagsize, "size");
+      int size = Html_input_get_size(html, attr_value);
       resource = factory->createEntryResource(size, false, NULL, placeholder);
       init_str = value;
    }
@@ -554,17 +555,17 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
       }
       if (inp_type == DILLO_HTML_INPUT_TEXT ||
           inp_type == DILLO_HTML_INPUT_PASSWORD) {
-         if (a_Html_get_attr(html, tag, tagsize, "readonly"))
+         if (html_attribute_get_value(tag, tagsize, "readonly"))
             ((EntryResource *) resource)->setEditable(false);
 
          /* Maximum length of the text in the entry */
-         if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "maxlength"))) {
-            int maxlen = strtol(attrbuf, NULL, 10);
+         if ((attr_value = html_attribute_get_value(tag, tagsize, "maxlength"))) {
+            int maxlen = strtol(attr_value, NULL, 10);
             ((EntryResource *) resource)->setMaxLength(maxlen);
          }
       }
-      if (prefs.show_tooltip && (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
-         html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attrbuf);
+      if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
+         html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
       }
       Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle(html->bw));
    }
@@ -584,15 +585,15 @@ void Html_tag_open_isindex(DilloHtml *html, const char *tag, int tagsize)
 {
    DilloUrl *action;
    Embed *embed;
-   const char *attrbuf;
+   const char *attr_value;
 
    if (html->InFlags & IN_FORM) {
       MSG("<isindex> inside <form> not handled.\n");
       return;
    }
 
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "action")))
-      action = a_Html_url_new(html, attrbuf, NULL, 0);
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "action")))
+      action = a_Html_url_new(html, attr_value, NULL, 0);
    else
       action = a_Url_dup(html->base_url);
 
@@ -602,8 +603,8 @@ void Html_tag_open_isindex(DilloHtml *html, const char *tag, int tagsize)
 
    Html2TextBlock(html)->addParbreak (9, html->styleEngine->getWordStyle (html->bw));
 
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "prompt")))
-      Html2TextBlock(html)->addText(attrbuf, html->styleEngine->getWordStyle (html->bw));
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "prompt")))
+      Html2TextBlock(html)->addText(attr_value, html->styleEngine->getWordStyle (html->bw));
 
    ResourceFactory *factory = Html2Layout(html)->getResourceFactory();
    EntryResource *entryResource = factory->createEntryResource (20, false,
@@ -632,14 +633,14 @@ void Html_tag_content_textarea(DilloHtml *html, const char *tag, int tagsize)
    const int MAX_COLS=1024, MAX_ROWS=10000;
 
    char *name;
-   const char *attrbuf;
+   const char *attr_value;
    int cols, rows;
 
    a_Html_stash_init(html);
    TopOfParsingStack(html)->parse_mode = DILLO_HTML_PARSE_MODE_VERBATIM;
 
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "cols"))) {
-      cols = strtol(attrbuf, NULL, 10);
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "cols"))) {
+      cols = strtol(attr_value, NULL, 10);
    } else {
       if (html->DocType != DT_HTML || html->DocTypeVersion <= 4.01f)
          BUG_MSG("<textarea> requires cols attribute.");
@@ -650,8 +651,8 @@ void Html_tag_content_textarea(DilloHtml *html, const char *tag, int tagsize)
       cols = (cols < 1 ? 20 : MAX_COLS);
       BUG_MSG("<textarea> cols=%d, using cols=%d instead.", badCols, cols);
    }
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "rows"))) {
-      rows = strtol(attrbuf, NULL, 10);
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "rows"))) {
+      rows = strtol(attr_value, NULL, 10);
    } else {
       if (html->DocType != DT_HTML || html->DocTypeVersion <= 4.01f)
          BUG_MSG("<textarea> requires rows attribute.");
@@ -663,18 +664,18 @@ void Html_tag_content_textarea(DilloHtml *html, const char *tag, int tagsize)
       BUG_MSG("<textarea> rows=%d, using rows=%d instead.", badRows, rows);
    }
    name = NULL;
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "name")))
-      name = dStrdup(attrbuf);
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "name")))
+      name = dStrdup(attr_value);
 
-   attrbuf = a_Html_get_attr(html, tag, tagsize, "placeholder");
+   attr_value = html_attribute_get_value(tag, tagsize, "placeholder");
 
    ResourceFactory *factory = Html2Layout(html)->getResourceFactory();
    MultiLineTextResource *textres =
-      factory->createMultiLineTextResource (cols, rows, attrbuf);
+      factory->createMultiLineTextResource (cols, rows, attr_value);
 
    Embed *embed = new Embed(textres);
    /* Readonly or not? */
-   if (a_Html_get_attr(html, tag, tagsize, "readonly"))
+   if (html_attribute_get_value(tag, tagsize, "readonly"))
       textres->setEditable(false);
    Html_add_input(html, DILLO_HTML_INPUT_TEXTAREA, embed, name, NULL, false);
 
@@ -728,7 +729,7 @@ void Html_tag_close_textarea(DilloHtml *html)
 /* The select tag is quite tricky, because of gorpy html syntax. */
 void Html_tag_open_select(DilloHtml *html, const char *tag, int tagsize)
 {
-   const char *attrbuf;
+   const char *attr_value;
    int rows = 0;
 
    assert((html->InFlags & (IN_BUTTON | IN_SELECT | IN_TEXTAREA)) == 0);
@@ -736,14 +737,14 @@ void Html_tag_open_select(DilloHtml *html, const char *tag, int tagsize)
    html->InFlags |= IN_SELECT;
    html->InFlags &= ~IN_OPTION;
 
-   char *name = a_Html_get_attr_wdef(html, tag, tagsize, "name", NULL);
+   char *name = html_attribute_get_value_with_default(tag, tagsize, "name", NULL);
    ResourceFactory *factory = Html2Layout(html)->getResourceFactory ();
    DilloHtmlInputType type;
    SelectionResource *res;
-   bool multi = a_Html_get_attr(html, tag, tagsize, "multiple") != NULL;
+   bool multi = html_attribute_get_value(tag, tagsize, "multiple") != NULL;
 
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "size"))) {
-      rows = strtol(attrbuf, NULL, 10);
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "size"))) {
+      rows = strtol(attr_value, NULL, 10);
       if (rows > 100)
          rows = 100;
    }
@@ -763,8 +764,8 @@ void Html_tag_open_select(DilloHtml *html, const char *tag, int tagsize)
    }
    Embed *embed = new Embed(res);
 
-   if (prefs.show_tooltip && (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attrbuf);
+   if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
+      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
    }
    Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle (html->bw));
 
@@ -817,8 +818,8 @@ void Html_tag_open_optgroup(DilloHtml *html, const char *tag, int tagsize)
    if (input &&
        (input->type == DILLO_HTML_INPUT_SELECT ||
         input->type == DILLO_HTML_INPUT_SEL_LIST)) {
-      char *label = a_Html_get_attr_wdef(html, tag, tagsize, "label", NULL);
-      bool enabled = (a_Html_get_attr(html, tag, tagsize, "disabled") == NULL);
+      char *label = html_attribute_get_value_with_default(tag, tagsize, "label", NULL);
+      bool enabled = (html_attribute_get_value(tag, tagsize, "disabled") == NULL);
 
       if (!label) {
          BUG_MSG("<optgroup> requires label attribute.");
@@ -870,10 +871,10 @@ void Html_tag_open_option(DilloHtml *html, const char *tag, int tagsize)
    if (input &&
        (input->type == DILLO_HTML_INPUT_SELECT ||
         input->type == DILLO_HTML_INPUT_SEL_LIST)) {
-      char *value = a_Html_get_attr_wdef(html, tag, tagsize, "value", NULL);
-      char *label = a_Html_get_attr_wdef(html, tag, tagsize, "label", NULL);
-      bool selected = (a_Html_get_attr(html, tag, tagsize,"selected") != NULL);
-      bool enabled = (a_Html_get_attr(html, tag, tagsize, "disabled") == NULL);
+      char *value = html_attribute_get_value_with_default(tag, tagsize, "value", NULL);
+      char *label = html_attribute_get_value_with_default(tag, tagsize, "label", NULL);
+      bool selected = (html_attribute_get_value(tag, tagsize,"selected") != NULL);
+      bool enabled = (html_attribute_get_value(tag, tagsize, "disabled") == NULL);
 
       DilloHtmlOption *option =
          new DilloHtmlOption (value, label, selected, enabled);
@@ -907,7 +908,7 @@ void Html_tag_open_button(DilloHtml *html, const char *tag, int tagsize)
    assert((html->InFlags & (IN_BUTTON | IN_SELECT | IN_TEXTAREA)) == 0);
 
    html->InFlags |= IN_BUTTON;
-   type = a_Html_get_attr_wdef(html, tag, tagsize, "type", "");
+   type = html_attribute_get_value_with_default(tag, tagsize, "type", "");
 
    if (!dStrAsciiCasecmp(type, "button")) {
       inp_type = DILLO_HTML_INPUT_BUTTON;
@@ -925,11 +926,11 @@ void Html_tag_open_button(DilloHtml *html, const char *tag, int tagsize)
       /* Render the button */
       Widget *page;
       Embed *embed;
-      const char *attrbuf;
+      const char *attr_value;
       char *name, *value;
 
-      if (prefs.show_tooltip && (attrbuf = a_Html_get_attr(html, tag, tagsize, "title"))) {
-         html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attrbuf);
+      if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
+         html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
       }
       /* We used to have Textblock (prefs.limit_text_width, ...) here,
        * but it caused 100% CPU usage.
@@ -948,8 +949,8 @@ void Html_tag_open_button(DilloHtml *html, const char *tag, int tagsize)
 
       TopOfParsingStack(html)->textblock = html->dw = page;
 
-      value = a_Html_get_attr_wdef(html, tag, tagsize, "value", NULL);
-      name = a_Html_get_attr_wdef(html, tag, tagsize, "name", NULL);
+      value = html_attribute_get_value_with_default(tag, tagsize, "value", NULL);
+      name = html_attribute_get_value_with_default(tag, tagsize, "name", NULL);
 
       Html_add_input(html, inp_type, embed, name, value, FALSE);
       dFree(name);

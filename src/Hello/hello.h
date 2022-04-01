@@ -244,7 +244,7 @@ int64_t hll_htmlEntityToIsoCode(const char * token, int tokenLen);
 
 
 /* HtmlTag */
-char * hll_getAttrValue(const char * tag, int tagSize, const char * attrName);
+char * hll_htmlAttributeGetValue(const char * documentRem, int tagSize, const char * attrName);
 /* Return index of tag named \p tagName. The index is an index to 'TagInfo
    Tags[]' array. Return -1 if tag name was not found. */
 int hll_htmlTagIndex(const char * tagName);

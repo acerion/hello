@@ -39,20 +39,20 @@ static void Html_tag_content_table_cell(DilloHtml *html,
  */
 void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
 {
-   const char *attrbuf;
+   const char *attr_value;
    int32_t border = -1, cellspacing = -1, cellpadding = -1, bgcolor = -1;
    CssLength cssLength;
 
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "border")))
-      border = isdigit(attrbuf[0]) ? strtol (attrbuf, NULL, 10) : 1;
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "cellspacing"))) {
-      cellspacing = strtol (attrbuf, NULL, 10);
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "border")))
+      border = isdigit(attr_value[0]) ? strtol (attr_value, NULL, 10) : 1;
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "cellspacing"))) {
+      cellspacing = strtol (attr_value, NULL, 10);
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<table> cellspacing attribute is obsolete.");
    }
 
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "cellpadding"))) {
-      cellpadding = strtol (attrbuf, NULL, 10);
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "cellpadding"))) {
+      cellpadding = strtol (attr_value, NULL, 10);
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<table> cellpadding attribute is obsolete.");
    }
@@ -74,26 +74,26 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_SPACING, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
    }
 
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "width"))) {
-      CssLength width = html_parse_attribute_width_or_height(attrbuf);
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "width"))) {
+      CssLength width = html_parse_attribute_width_or_height(attr_value);
       html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<table> width attribute is obsolete.");
    }
 
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "align"))) {
-      if (dStrAsciiCasecmp (attrbuf, "left") == 0)
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "align"))) {
+      if (dStrAsciiCasecmp (attr_value, "left") == 0)
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_TEXT_ALIGN,  CssDeclarationValueTypeENUM, TEXT_ALIGN_LEFT);
-      else if (dStrAsciiCasecmp (attrbuf, "right") == 0)
+      else if (dStrAsciiCasecmp (attr_value, "right") == 0)
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, TEXT_ALIGN_RIGHT);
-      else if (dStrAsciiCasecmp (attrbuf, "center") == 0)
+      else if (dStrAsciiCasecmp (attr_value, "center") == 0)
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, TEXT_ALIGN_CENTER);
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<table> align attribute is obsolete.");
    }
 
-   if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "bgcolor"))) {
-      bgcolor = a_Html_color_parse(html, attrbuf, -1);
+   if ((attr_value = html_attribute_get_value(tag, tagsize, "bgcolor"))) {
+      bgcolor = a_Html_color_parse(html, attr_value, -1);
       if (bgcolor != -1)
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
@@ -146,7 +146,7 @@ void Html_tag_content_table(DilloHtml *html, const char *tag, int tagsize)
  */
 void Html_tag_open_tr(DilloHtml *html, const char *tag, int tagsize)
 {
-   const char *attrbuf;
+   const char *attr_value;
    int32_t bgcolor = -1;
 
    html->styleEngine->inheritNonCssHints ();
@@ -160,15 +160,15 @@ void Html_tag_open_tr(DilloHtml *html, const char *tag, int tagsize)
    case DILLO_HTML_TABLE_MODE_TR:
    case DILLO_HTML_TABLE_MODE_TD:
 
-      if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "bgcolor"))) {
-         bgcolor = a_Html_color_parse(html, attrbuf, -1);
+      if ((attr_value = html_attribute_get_value(tag, tagsize, "bgcolor"))) {
+         bgcolor = a_Html_color_parse(html, attr_value, -1);
          if (bgcolor != -1)
             html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
          if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
             BUG_MSG("<tr> bgcolor attribute is obsolete.");
       }
 
-      if (a_Html_get_attr (html, tag, tagsize, "align")) {
+      if (html_attribute_get_value(tag, tagsize, "align")) {
          TopOfParsingStack(html)->cell_text_align_set = TRUE;
          a_Html_tag_set_align_attr (html, tag, tagsize);
       }
@@ -331,7 +331,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
                                      const char *tag, int tagsize,
                                      dw::core::style::TextAlignType text_align)
 {
-   const char *attrbuf;
+   const char *attr_value;
    int32_t bgcolor;
 
    html->styleEngine->inheritNonCssHints ();
@@ -349,7 +349,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
       if (!TopOfParsingStack(html)->cell_text_align_set) {
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, text_align);
       }
-      if (a_Html_get_attr(html, tag, tagsize, "nowrap")) {
+      if (html_attribute_get_value(tag, tagsize, "nowrap")) {
          if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
             BUG_MSG("<t%c> nowrap attribute is obsolete.",
                (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');
@@ -358,8 +358,8 @@ static void Html_tag_open_table_cell(DilloHtml *html,
 
       a_Html_tag_set_align_attr (html, tag, tagsize);
 
-      if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "width"))) {
-         CssLength width = html_parse_attribute_width_or_height(attrbuf);
+      if ((attr_value = html_attribute_get_value(tag, tagsize, "width"))) {
+         CssLength width = html_parse_attribute_width_or_height(attr_value);
          html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
          if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
             BUG_MSG("<t%c> width attribute is obsolete.",
@@ -368,8 +368,8 @@ static void Html_tag_open_table_cell(DilloHtml *html,
 
       a_Html_tag_set_valign_attr (html, tag, tagsize);
 
-      if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "bgcolor"))) {
-         bgcolor = a_Html_color_parse(html, attrbuf, -1);
+      if ((attr_value = html_attribute_get_value(tag, tagsize, "bgcolor"))) {
+         bgcolor = a_Html_color_parse(html, attr_value, -1);
          if (bgcolor != -1)
             html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
          if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
@@ -387,7 +387,7 @@ static void Html_tag_content_table_cell(DilloHtml *html,
                                      const char *tag, int tagsize)
 {
    int colspan = 1, rowspan = 1;
-   const char *attrbuf;
+   const char *attr_value;
    Widget *col_tb;
 
    switch (TopOfParsingStack(html)->table_mode) {
@@ -403,15 +403,15 @@ static void Html_tag_content_table_cell(DilloHtml *html,
       /* continues */
    case DILLO_HTML_TABLE_MODE_TR:
    case DILLO_HTML_TABLE_MODE_TD:
-      if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "colspan"))) {
+      if ((attr_value = html_attribute_get_value(tag, tagsize, "colspan"))) {
          char *invalid;
-         colspan = strtol(attrbuf, &invalid, 10);
-         if ((colspan < 0) || (attrbuf == invalid))
+         colspan = strtol(attr_value, &invalid, 10);
+         if ((colspan < 0) || (attr_value == invalid))
             colspan = 1;
       }
       /* TODO: check errors? */
-      if ((attrbuf = a_Html_get_attr(html, tag, tagsize, "rowspan")))
-         rowspan = MAX(1, strtol (attrbuf, NULL, 10));
+      if ((attr_value = html_attribute_get_value(tag, tagsize, "rowspan")))
+         rowspan = MAX(1, strtol (attr_value, NULL, 10));
       if (html->styleEngine->getStyle (html->bw)->textAlign
           == TEXT_ALIGN_STRING)
          col_tb = new dw::TableCell (

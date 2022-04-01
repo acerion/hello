@@ -29,7 +29,7 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 module HtmlTag(
   -- Only for tests
-    htmlTagGetAttributeValue
+    htmlAttributeGetValue
   , htmlTagParseWholeTag
   , takeAttrNameAndValue
   , takeAttrName
@@ -208,12 +208,12 @@ TODO: handling of escaped delimiter inside of attribute value
 
 
 
-htmlTagGetAttributeValue :: T.Text -> T.Text -> Maybe T.Text
-htmlTagGetAttributeValue text needle = case htmlTagParseWholeTag text of
-                                         Nothing -> Nothing
-                                         Just parser -> case M.lookup needle (attributes parser) of
-                                           Nothing -> Nothing
-                                           Just text -> Just text
+htmlAttributeGetValue :: T.Text -> T.Text -> Maybe T.Text
+htmlAttributeGetValue text needle = case htmlTagParseWholeTag text of
+                                      Nothing     -> Nothing
+                                      Just parser -> case M.lookup needle (attributes parser) of
+                                                       Nothing   -> Nothing
+                                                       Just text -> Just text
 
 
 

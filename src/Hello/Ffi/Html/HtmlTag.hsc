@@ -30,8 +30,10 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 
 
-module Hello.Ffi.Html.Tag (hll_getAttrValue
-                          )
+module Hello.Ffi.Html.Tag
+  (
+    hll_htmlAttributeGetValue
+  )
 where
 
 
@@ -49,13 +51,13 @@ import HtmlTag
 
 
 
-foreign export ccall "hll_getAttrValue" hll_getAttrValue :: CString -> Int -> CString -> IO CString
+foreign export ccall "hll_htmlAttributeGetValue" hll_htmlAttributeGetValue :: CString -> Int -> CString -> IO CString
 foreign export ccall "hll_htmlTagIndex" hll_htmlTagIndex :: CString -> IO Int
 
 
 
 
--- Return NULL if cAttrName was not found in cTag string.
+-- Return NULL if cAttrName was not found in cDocumentRem string.
 --
 -- Otherwise return C string with value of the attribute. The returned string
 -- may be empty.
@@ -65,11 +67,11 @@ foreign export ccall "hll_htmlTagIndex" hll_htmlTagIndex :: CString -> IO Int
 -- newCString), but I don't care that much because sooner or later most of
 -- HTML code (if not all) will be rewritten in Haskell, and this particular
 -- FFI function will be gone.
-hll_getAttrValue :: CString -> Int -> CString -> IO CString
-hll_getAttrValue cTag ctagSize cAttrName = do
-  tag <- BSU.unsafePackCStringLen (cTag, ctagSize)
+hll_htmlAttributeGetValue :: CString -> Int -> CString -> IO CString
+hll_htmlAttributeGetValue cDocumentRem ctagSize cAttrName = do
+  documentRem <- BSU.unsafePackCStringLen (cDocumentRem, ctagSize)
   attrName <- BSU.unsafePackCString (cAttrName)
-  case htmlTagGetAttributeValue (T.E.decodeUtf8 tag) (T.E.decodeUtf8 attrName) of
+  case htmlAttributeGetValue (T.E.decodeUtf8 documentRem) (T.E.decodeUtf8 attrName) of
     Just attrValue -> newCString (T.unpack attrValue) -- This string may be empty if attr value is empty.
     Nothing        -> return nullPtr                  -- Null pointer indicates "attribute name not found".
 

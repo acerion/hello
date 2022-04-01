@@ -181,7 +181,7 @@ public:  //BUG: for now everything is public
     * ATM they're used as three state flags {0,1,>1} */
    uchar_t Num_HTML, Num_HEAD, Num_BODY, Num_TITLE;
 
-   Dstr *attr_data;       /* Buffer for attribute value */
+   char attr_data[1024];       /* Buffer for attribute value */
 
    int32_t non_css_link_color; /* as provided by link attribute in BODY */
    int32_t non_css_visited_color; /* as provided by vlink attribute in BODY */
@@ -222,16 +222,8 @@ public:
 
 const char * a_Html_tag_name(int index);
 
-const char *a_Html_get_attr(DilloHtml *html,
-                            const char *tag,
-                            int tagsize,
-                            const char *attrname);
-
-char *a_Html_get_attr_wdef(DilloHtml *html,
-                           const char *tag,
-                           int tagsize,
-                           const char *attrname,
-                           const char *def);
+const char * html_attribute_get_value(const char * document_rem, int tagsize, const char * attr_name);
+char * html_attribute_get_value_with_default(const char * document_rem, int tagsize, const char * attr_name, const char *def);
 
 DilloUrl *a_Html_url_new(DilloHtml *html,
                          const char *url_str, const char *base_url,

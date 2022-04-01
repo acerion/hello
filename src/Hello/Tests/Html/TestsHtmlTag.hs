@@ -127,7 +127,7 @@ testAttributeValueData =
 
 testAttributeValueFun :: [(T.Text, T.Text, T.Text, Maybe T.Text)] -> T.Text
 testAttributeValueFun []     = ""
-testAttributeValueFun (x:xs) = if (expectedValue x) == (htmlTagGetAttributeValue (tag x) (attributeName x))
+testAttributeValueFun (x:xs) = if (expectedValue x) == (htmlAttributeGetValue (tag x) (attributeName x))
                                then testAttributeValueFun xs
                                else testID x -- Return ID of failed test
   where
