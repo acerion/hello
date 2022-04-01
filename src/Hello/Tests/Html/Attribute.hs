@@ -20,6 +20,7 @@ where
 
 
 
+import Debug.Trace
 import Test.HUnit
 import qualified Data.Text as T
 
@@ -34,8 +35,10 @@ lengthData =
   [
     ("100",                         Just (100.0, cssLengthTypePX))
   , ("100.1",                       Just (100.1, cssLengthTypePX))
-  , ("100%",                        Just (100.0, cssLengthTypePercentage))
-  , ("100.1%",                      Just (100.1, cssLengthTypePercentage))
+
+  -- when lengths are in percentage, the main code divides percentage by 100
+  , ("100%",                        Just (1.0, cssLengthTypePercentage))
+  , ("100.1%",                      Just (1.001, cssLengthTypePercentage))
 
   , ("",                            Nothing)
   , ("bird",                        Nothing)
