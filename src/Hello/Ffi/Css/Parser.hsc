@@ -52,6 +52,12 @@ module Hello.Ffi.Css.Parser( FfiCssComplexSelectorLink (..)
 
                            , hll_cssCreateLength
                            , cssCreateLength
+
+                           , FfiCssDeclaration
+                           , allocAndPokeCssDeclaration
+
+                           , FfiCssValue
+                           , peekCssValue
                            )
   where
 

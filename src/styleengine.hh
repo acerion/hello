@@ -20,11 +20,9 @@ class StyleEngine;
 
 
 
+struct StyleNode {
+   c_css_declaration_lists_t declLists;
 
-struct Node {
-   c_css_declaration_set_t * declList;
-   c_css_declaration_set_t * declListImportant;
-   c_css_declaration_set_t * declListNonCss;
    dw::core::style::Style *style;
    dw::core::style::Style *wordStyle;
    dw::core::style::Style *backgroundStyle;
@@ -34,39 +32,15 @@ struct Node {
 };
 
 class StyleEngine;
-Node * getCurrentNode(StyleEngine * styleEngine);
+StyleNode * getCurrentNode(StyleEngine * styleEngine);
 
-inline void setNonCssHintOfProperty(Node * node, CssDeclarationProperty property, c_css_value_t value, CssDeclarationValueType type)
-{
-   if (!node->declListNonCss) {
-      node->declListNonCss = declarationListNew();
-   }
-   value.c_type_tag = type;
-   css_declaration_set_add_or_update_declaration(node->declListNonCss, property, value);
-}
-
-inline void styleEngineSetNonCssHintOfCurrentNode(Node * node, CssDeclarationProperty property, CssDeclarationValueType type, int value)
-{
-   c_css_value_t v;
-   v.c_int_val = value;
-   setNonCssHintOfProperty(node, property, v, type);
-}
-inline void styleEngineSetNonCssHintOfCurrentNode(Node * node, CssDeclarationProperty property, CssDeclarationValueType type, const char *value)
-{
-   c_css_value_t v;
-   v.c_text_val = dStrdup(value);
-   setNonCssHintOfProperty(node, property, v, type);
-}
-inline void styleEngineSetNonCssHintOfCurrentNode(Node * node, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
-{
-   c_css_value_t v;
-   v.c_int_val = cssLength.bits;
-   setNonCssHintOfProperty(node, property, v, type);
-}
+void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, int value);
+void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, const char *value);
+void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength);
 
 class StyleEngine {
 public:
-   lout::misc::SimpleVector <Node> *styleNodesStack;
+   lout::misc::SimpleVector <StyleNode> *styleNodesStack;
 
    private:
 
@@ -143,7 +117,7 @@ public:
       };
 };
 
-inline Node * getCurrentNode(StyleEngine * styleEngine)
+inline StyleNode * getCurrentNode(StyleEngine * styleEngine)
 {
    return styleEngine->styleNodesStack->getRef(styleEngine->styleNodesStack->size() - 1);
 }

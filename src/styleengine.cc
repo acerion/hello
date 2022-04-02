@@ -73,7 +73,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    FontAttrs font_attrs;
 
    doctree = new Doctree ();
-   styleNodesStack = new lout::misc::SimpleVector <Node> (1);
+   styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
    cssContext = c_css_context_new();
    buildUserStyle ();
    this->layout = layout;
@@ -82,7 +82,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    importDepth = 0;
 
    stackPush ();
-   Node *n = styleNodesStack->getLastRef ();
+   StyleNode *n = styleNodesStack->getLastRef ();
 
    /* Create a dummy font, attribute, and tag for the bottom of the stack. */
    font_attrs.name = prefs.font_sans_serif;
@@ -120,7 +120,7 @@ StyleEngine::~StyleEngine () {
 }
 
 void StyleEngine::stackPush () {
-   static const Node emptyNode = {
+   static const StyleNode emptyNode = {
       NULL, NULL, NULL, NULL, NULL, NULL, false, false, NULL
    };
 
@@ -128,11 +128,11 @@ void StyleEngine::stackPush () {
 }
 
 void StyleEngine::stackPop () {
-   Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
+   StyleNode *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
 
-   delete n->declList;
-   delete n->declListImportant;
-   delete n->declListNonCss;
+   delete n->declLists.main;
+   delete n->declLists.important;
+   delete n->declLists.nonCss;
    if (n->style)
       n->style->unref ();
    if (n->wordStyle)
@@ -149,7 +149,7 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    getStyle (bw); // ensure that style of current node is computed
 
    stackPush ();
-   Node *n = styleNodesStack->getLastRef();
+   StyleNode *n = styleNodesStack->getLastRef();
 
    n->doctreeNode = doctree->push();
    n->doctreeNode->c_html_element_idx = html_element_idx;
@@ -188,15 +188,15 @@ void StyleEngine::setElementClass(const char * element_class) {
 // properties-values for a Node.
 void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
 {
-   Node * n = styleNodesStack->getRef(styleNodesStack->size () - 1);
-   assert (n->declList == NULL);
+   StyleNode * n = styleNodesStack->getRef(styleNodesStack->size () - 1);
+   assert (n->declLists.main == NULL);
    // parse style information from style="" attribute, if it exists
    if (cssStyleAttribute && prefs.parse_embedded_css) {
-      n->declList = declarationListNew();
-      n->declListImportant = declarationListNew();
+      n->declLists.main = declarationListNew();
+      n->declLists.important = declarationListNew();
 
       hll_cssParseElementStyleAttribute(baseUrl, cssStyleAttribute, strlen (cssStyleAttribute),
-                                        n->declList, n->declListImportant);
+                                        n->declLists.main, n->declLists.important);
    }
 }
 
@@ -207,16 +207,16 @@ void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
  */
 void StyleEngine::inheritNonCssHints()
 {
-   Node *pn = styleNodesStack->getRef(styleNodesStack->size () - 2);
+   StyleNode *pn = styleNodesStack->getRef(styleNodesStack->size () - 2);
 
-   if (pn->declListNonCss) {
-      Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
-      c_css_declaration_set_t * origDeclListNonCss = n->declListNonCss;
+   if (pn->declLists.nonCss) {
+      StyleNode *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
+      c_css_declaration_set_t * origDeclListNonCss = n->declLists.nonCss;
 
-      n->declListNonCss = declarationListNew(pn->declListNonCss); // NOTICE: copy constructor
+      n->declLists.nonCss = declarationListNew(pn->declLists.nonCss); // NOTICE: copy constructor
 
       if (origDeclListNonCss) // original declListNonCss have precedence
-         hll_declarationListAppend(n->declListNonCss, origDeclListNonCss);
+         hll_declarationListAppend(n->declLists.nonCss, origDeclListNonCss);
 
       delete origDeclListNonCss;
    }
@@ -224,10 +224,10 @@ void StyleEngine::inheritNonCssHints()
 
 void StyleEngine::clearNonCssHints()
 {
-   Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
+   StyleNode *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
 
-   delete n->declListNonCss;
-   n->declListNonCss = NULL;
+   delete n->declLists.nonCss;
+   n->declLists.nonCss = NULL;
 }
 
 /**
@@ -242,7 +242,7 @@ void StyleEngine::inheritBackgroundColor () {
 
 dw::core::style::Color *StyleEngine::getBackgroundColor () {
    for (int i = 1; i < styleNodesStack->size (); i++) {
-      Node *n = styleNodesStack->getRef(i);
+      StyleNode *n = styleNodesStack->getRef(i);
 
       if (n->style && n->style->backgroundColor)
          return n->style->backgroundColor;
@@ -257,7 +257,7 @@ dw::core::style::StyleImage *StyleEngine::getBackgroundImage
     dw::core::style::Length *bgPositionX,
     dw::core::style::Length *bgPositionY) {
    for (int i = 1; i < styleNodesStack->size (); i++) {
-      Node *n = styleNodesStack->getRef (i);
+      StyleNode *n = styleNodesStack->getRef (i);
 
       if (n->style && n->style->backgroundImage) {
          *bgRepeat     = n->style->backgroundRepeat;
@@ -299,7 +299,7 @@ void StyleEngine::endElement (int element) {
 
 void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
    /* workaround for styling of inline elements */
-   Node * n = styleNodesStack->getRef(styleNodesStack->size() - 2);
+   StyleNode * n = styleNodesStack->getRef(styleNodesStack->size() - 2);
    if (n->inheritBackgroundColor) {
       attrs->backgroundColor      = n->style->backgroundColor;
       attrs->backgroundImage      = n->style->backgroundImage;
@@ -871,16 +871,12 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
    attrs.resetValues ();
    preprocessAttrs (&attrs);
 
-   c_css_declaration_set_t * declList          = styleNodesStack->getRef(some_idx)->declList;
-   c_css_declaration_set_t * declListImportant = styleNodesStack->getRef(some_idx)->declListImportant;
-   c_css_declaration_set_t * declListNonCss    = styleNodesStack->getRef(some_idx)->declListNonCss;
+   c_css_declaration_lists_t * declLists = &styleNodesStack->getRef(some_idx)->declLists;
 
    // merge style information
    c_css_declaration_set_t * mergedDeclList = declarationListNew();
    css_context_apply_css_context(cssContext, mergedDeclList, doctree, styleNodesStack->getRef(some_idx)->doctreeNode,
-                                 declList,
-                                 declListImportant,
-                                 declListNonCss);
+                                 declLists);
 
    // apply style
    apply(some_idx, &attrs, mergedDeclList, bw);
@@ -920,7 +916,7 @@ Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
  */
 void StyleEngine::restyle (BrowserWindow *bw) {
    for (int some_idx = 1; some_idx < styleNodesStack->size(); some_idx++) {
-      Node *n = styleNodesStack->getRef (some_idx);
+      StyleNode *n = styleNodesStack->getRef (some_idx);
       if (n->style) {
          n->style->unref ();
          n->style = NULL;
@@ -1221,3 +1217,44 @@ void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t 
       fprintf(file, "                                class[%d] = '%s'\n", i, link->c_selector_class[i]);
    }
 }
+
+
+void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, int int_val)
+{
+   c_css_value_t value = {};
+   value.c_int_val = int_val;
+   value.c_type_tag = type;
+
+   if (!declLists->nonCss) {
+      declLists->nonCss = declarationListNew();
+   }
+
+   hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+}
+void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, const char * str_val)
+{
+   c_css_value_t value = {};
+   value.c_text_val = dStrdup(str_val);
+   value.c_type_tag = type;
+
+   if (!declLists->nonCss) {
+      declLists->nonCss = declarationListNew();
+   }
+
+   hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+}
+void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
+{
+   c_css_value_t value = {};
+   value.c_int_val = cssLength.bits;
+   value.c_type_tag = type;
+
+   if (!declLists->nonCss) {
+      declLists->nonCss = declarationListNew();
+   }
+
+   hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+}
+
+
+

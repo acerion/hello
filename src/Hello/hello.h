@@ -319,6 +319,9 @@ int hll_isTokenComma(c_css_token_t * token);
 int hll_isTokenSemicolon(c_css_token_t * token);
 
 
+/* StyleEngine */
+c_css_declaration_t * hll_makeCssDeclaration(int property, c_css_value_t * value);
+
 
 #ifdef __cplusplus
 }

@@ -6,6 +6,12 @@
 #include "css.h"
 #include "Hello/hello.h"
 
+typedef struct c_css_declaration_lists_t {
+   c_css_declaration_set_t * main;
+   c_css_declaration_set_t * important;
+   c_css_declaration_set_t * nonCss;
+} c_css_declaration_lists_t;
+
 /* This is needed only for debug prints. */
 typedef enum {
    CSS_TYPE_INTEGER,
@@ -230,9 +236,7 @@ c_css_context_t * c_css_context_new(void);
 void css_context_apply_css_context(c_css_context_t * context,
                                    c_css_declaration_set_t * mergedDeclList,
                                    Doctree *docTree, c_doctree_node_t * dtn,
-                                   c_css_declaration_set_t * declList,
-                                   c_css_declaration_set_t * declListImportant,
-                                   c_css_declaration_set_t * declListNonCss);
+                                   c_css_declaration_lists_t * declLists);
 
 
 

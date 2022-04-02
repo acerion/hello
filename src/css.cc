@@ -70,27 +70,7 @@ c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * inD
    return out;
 }
 
-void css_declaration_set_add_or_update_declaration(c_css_declaration_set_t * decl_set, CssDeclarationProperty property, c_css_value_t value)
-{
-   c_css_declaration_t * decl = new c_css_declaration_t;
-   decl->c_property = property;
-   decl->c_value = (c_css_value_t *) calloc(1, sizeof (c_css_value_t));
-   css_value_copy(decl->c_value, &value);
 
-   hll_declarationListAddOrUpdateDeclaration(decl_set, decl);
-}
-
-
-void css_value_copy(c_css_value_t * dest, c_css_value_t * src)
-{
-   dest->c_type_tag = src->c_type_tag;
-   dest->c_int_val  = src->c_int_val;
-   dest->c_bg_pos_x = src->c_bg_pos_x;
-   dest->c_bg_pos_y = src->c_bg_pos_y;
-   if (src->c_type_tag == CssDeclarationValueTypeSTRING || src->c_type_tag == CssDeclarationValueTypeSYMBOL) {
-      dest->c_text_val = strdup(src->c_text_val);
-   }
-}
 
 /**
  * \brief Apply a stylesheet to a list of declarations.
@@ -252,26 +232,26 @@ c_css_context_t * c_css_context_new(void)
 void css_context_apply_css_context(c_css_context_t * context,
                                    c_css_declaration_set_t * mergedDeclList, Doctree *docTree,
                                    c_doctree_node_t * dtn,
-                                   c_css_declaration_set_t * declList,
-                                   c_css_declaration_set_t * declListImportant,
-                                   c_css_declaration_set_t * declListNonCss) {
+                                   c_css_declaration_lists_t * declLists) {
 
    css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_AGENT], mergedDeclList, docTree, dtn, context->c_match_cache);
 
    css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER], mergedDeclList, docTree, dtn, context->c_match_cache);
 
-   if (declListNonCss)
-      hll_declarationListAppend(mergedDeclList, declListNonCss);
+   if (declLists->nonCss)
+      hll_declarationListAppend(mergedDeclList, declLists->nonCss);
 
    css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR], mergedDeclList, docTree, dtn, context->c_match_cache);
 
-   if (declList)
-      hll_declarationListAppend(mergedDeclList, declList);
+   if (declLists->main) {
+      hll_declarationListAppend(mergedDeclList, declLists->main);
+   }
 
    css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR_IMPORTANT], mergedDeclList, docTree, dtn, context->c_match_cache);
 
-   if (declListImportant)
-      hll_declarationListAppend(mergedDeclList, declListImportant);
+   if (declLists->important) {
+      hll_declarationListAppend(mergedDeclList, declLists->important);
+   }
 
    css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], mergedDeclList, docTree, dtn, context->c_match_cache);
 }
