@@ -101,7 +101,8 @@ public:
           dw::core::style::Length *bgPositionY);
 
       inline dw::core::style::Style *getStyle (BrowserWindow *bw) {
-         dw::core::style::Style *s = styleNodesStack->getRef(styleNodesStack->size () - 1)->style;
+         StyleNode * currentNode = getCurrentNode(this);
+         dw::core::style::Style *s = currentNode->style;
          if (s)
             return s;
          else
@@ -109,7 +110,8 @@ public:
       };
 
       inline dw::core::style::Style *getWordStyle (BrowserWindow *bw) {
-         dw::core::style::Style *s = styleNodesStack->getRef(styleNodesStack->size()-1)->wordStyle;
+         StyleNode * currentNode = getCurrentNode(this);
+         dw::core::style::Style *s = currentNode->wordStyle;
          if (s)
             return s;
          else
@@ -122,7 +124,10 @@ inline StyleNode * getCurrentNode(StyleEngine * styleEngine)
    return styleEngine->styleNodesStack->getRef(styleEngine->styleNodesStack->size() - 1);
 }
 
-
+inline StyleNode * getParentNode(StyleEngine * styleEngine)
+{
+   return styleEngine->styleNodesStack->getRef(styleEngine->styleNodesStack->size() - 2);
+}
 
 
 #endif

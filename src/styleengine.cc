@@ -128,17 +128,17 @@ void StyleEngine::stackPush () {
 }
 
 void StyleEngine::stackPop () {
-   StyleNode *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
+   StyleNode * currentNode = getCurrentNode(this);
 
-   delete n->declLists.main;
-   delete n->declLists.important;
-   delete n->declLists.nonCss;
-   if (n->style)
-      n->style->unref ();
-   if (n->wordStyle)
-      n->wordStyle->unref ();
-   if (n->backgroundStyle)
-      n->backgroundStyle->unref ();
+   delete currentNode->declLists.main;
+   delete currentNode->declLists.important;
+   delete currentNode->declLists.nonCss;
+   if (currentNode->style)
+      currentNode->style->unref ();
+   if (currentNode->wordStyle)
+      currentNode->wordStyle->unref ();
+   if (currentNode->backgroundStyle)
+      currentNode->backgroundStyle->unref ();
    styleNodesStack->setSize(styleNodesStack->size() - 1);
 }
 
@@ -154,8 +154,10 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    n->doctreeNode = doctree->push();
    n->doctreeNode->c_html_element_idx = html_element_idx;
 
-   if (styleNodesStack->size() > 1)
-      n->displayNone = styleNodesStack->getRef(styleNodesStack->size() - 2)->displayNone;
+   if (styleNodesStack->size() > 1) {
+      StyleNode * parentNode = getParentNode(this);
+      n->displayNone = parentNode->displayNone;
+   }
 }
 
 void StyleEngine::startElement (const char *tagname, BrowserWindow *bw) {
@@ -188,15 +190,15 @@ void StyleEngine::setElementClass(const char * element_class) {
 // properties-values for a Node.
 void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
 {
-   StyleNode * n = styleNodesStack->getRef(styleNodesStack->size () - 1);
-   assert (n->declLists.main == NULL);
+   StyleNode * currentNode = getCurrentNode(this);
+   assert (currentNode->declLists.main == NULL);
    // parse style information from style="" attribute, if it exists
    if (cssStyleAttribute && prefs.parse_embedded_css) {
-      n->declLists.main = declarationListNew();
-      n->declLists.important = declarationListNew();
+      currentNode->declLists.main      = declarationListNew();
+      currentNode->declLists.important = declarationListNew();
 
       hll_cssParseElementStyleAttribute(baseUrl, cssStyleAttribute, strlen (cssStyleAttribute),
-                                        n->declLists.main, n->declLists.important);
+                                        currentNode->declLists.main, currentNode->declLists.important);
    }
 }
 
@@ -207,16 +209,17 @@ void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
  */
 void StyleEngine::inheritNonCssHints()
 {
-   StyleNode *pn = styleNodesStack->getRef(styleNodesStack->size () - 2);
+   StyleNode * parentNode = getParentNode(this);
 
-   if (pn->declLists.nonCss) {
-      StyleNode *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
-      c_css_declaration_set_t * origDeclListNonCss = n->declLists.nonCss;
+   if (parentNode->declLists.nonCss) {
+      StyleNode * currentNode = getCurrentNode(this);
+      c_css_declaration_set_t * origDeclListNonCss = currentNode->declLists.nonCss;
 
-      n->declLists.nonCss = declarationListNew(pn->declLists.nonCss); // NOTICE: copy constructor
+      currentNode->declLists.nonCss = declarationListNew(parentNode->declLists.nonCss); // NOTICE: copy constructor
 
-      if (origDeclListNonCss) // original declListNonCss have precedence
-         hll_declarationListAppend(n->declLists.nonCss, origDeclListNonCss);
+      if (origDeclListNonCss) {// original declListNonCss have precedence
+         hll_declarationListAppend(currentNode->declLists.nonCss, origDeclListNonCss);
+      }
 
       delete origDeclListNonCss;
    }
@@ -224,10 +227,10 @@ void StyleEngine::inheritNonCssHints()
 
 void StyleEngine::clearNonCssHints()
 {
-   StyleNode *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
+   StyleNode * currentNode = getCurrentNode(this);
 
-   delete n->declLists.nonCss;
-   n->declLists.nonCss = NULL;
+   delete currentNode->declLists.nonCss;
+   currentNode->declLists.nonCss = NULL;
 }
 
 /**
@@ -237,7 +240,8 @@ void StyleEngine::clearNonCssHints()
  *   don't draw any background.
  */
 void StyleEngine::inheritBackgroundColor () {
-   styleNodesStack->getRef (styleNodesStack->size () - 1)->inheritBackgroundColor = true;
+   StyleNode * currentNode = getCurrentNode(this);
+   currentNode->inheritBackgroundColor = true;
 }
 
 dw::core::style::Color *StyleEngine::getBackgroundColor () {
@@ -299,15 +303,15 @@ void StyleEngine::endElement (int element) {
 
 void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
    /* workaround for styling of inline elements */
-   StyleNode * n = styleNodesStack->getRef(styleNodesStack->size() - 2);
-   if (n->inheritBackgroundColor) {
-      attrs->backgroundColor      = n->style->backgroundColor;
-      attrs->backgroundImage      = n->style->backgroundImage;
-      attrs->backgroundRepeat     = n->style->backgroundRepeat;
-      attrs->backgroundAttachment = n->style->backgroundAttachment;
-      attrs->backgroundPositionX  = n->style->backgroundPositionX;
-      attrs->backgroundPositionY  = n->style->backgroundPositionY;
-      attrs->valign               = n->style->valign;
+   StyleNode * parentNode = getParentNode(this);
+   if (parentNode->inheritBackgroundColor) {
+      attrs->backgroundColor      = parentNode->style->backgroundColor;
+      attrs->backgroundImage      = parentNode->style->backgroundImage;
+      attrs->backgroundRepeat     = parentNode->style->backgroundRepeat;
+      attrs->backgroundAttachment = parentNode->style->backgroundAttachment;
+      attrs->backgroundPositionX  = parentNode->style->backgroundPositionX;
+      attrs->backgroundPositionY  = parentNode->style->backgroundPositionY;
+      attrs->valign               = parentNode->style->valign;
    }
    attrs->borderColor.top = (Color *) -1;
    attrs->borderColor.bottom = (Color *) -1;
@@ -837,16 +841,18 @@ void StyleEngine::computeBorderWidth (int *dest, c_css_declaration_t * decl, dw:
  * background. This method ensures that backgroundColor is set.
  */
 Style * StyleEngine::getBackgroundStyle (BrowserWindow *bw) {
-   if (!styleNodesStack->getRef(styleNodesStack->size() - 1)->backgroundStyle) {
+   StyleNode * currentNode = getCurrentNode(this);
+   if (!currentNode->backgroundStyle) {
       StyleAttrs attrs = *getStyle (bw);
 
-      for (int i = styleNodesStack->size() - 1; i >= 0 && ! attrs.backgroundColor; i--)
+      for (int i = styleNodesStack->size() - 1; i >= 0 && ! attrs.backgroundColor; i--) {
          attrs.backgroundColor = styleNodesStack->getRef (i)->style->backgroundColor;
+      }
 
       assert (attrs.backgroundColor);
-      styleNodesStack->getRef(styleNodesStack->size() - 1)->backgroundStyle = Style::create (&attrs);
+      currentNode->backgroundStyle = Style::create (&attrs);
    }
-   return styleNodesStack->getRef(styleNodesStack->size() - 1)->backgroundStyle;
+   return currentNode->backgroundStyle;
 }
 
 /**
@@ -892,7 +898,8 @@ Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
    StyleAttrs attrs = *getStyle (bw);
    attrs.resetValues ();
 
-   if (styleNodesStack->getRef(styleNodesStack->size() - 1)->inheritBackgroundColor) {
+   StyleNode * node = getCurrentNode(this);
+   if (node->inheritBackgroundColor) {
       attrs.backgroundColor      = getStyle (bw)->backgroundColor;
       attrs.backgroundImage      = getStyle (bw)->backgroundImage;
       attrs.backgroundRepeat     = getStyle (bw)->backgroundRepeat;
@@ -903,8 +910,8 @@ Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
 
    attrs.valign = getStyle(bw)->valign;
 
-   styleNodesStack->getRef(styleNodesStack->size() - 1)->wordStyle = Style::create(&attrs);
-   return styleNodesStack->getRef(styleNodesStack->size() - 1)->wordStyle;
+   node->wordStyle = Style::create(&attrs);
+   return node->wordStyle;
 }
 
 /**
