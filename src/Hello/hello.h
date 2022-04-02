@@ -274,7 +274,7 @@ uint32_t hll_cssCreateLength(float val, CssLengthType t);
 // Return count of selectors in @p selectors
 int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, c_css_cached_complex_selector_t ** selectors);
 
-int hll_declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * declaration);
+c_css_declaration_set_t * hll_declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * declaration);
 
 void hll_declarationListAppend(c_css_declaration_set_t * target, const c_css_declaration_set_t * source);
 

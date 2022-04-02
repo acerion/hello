@@ -1232,11 +1232,8 @@ void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists
    value.c_int_val = int_val;
    value.c_type_tag = type;
 
-   if (!declLists->nonCss) {
-      declLists->nonCss = declarationListNew();
-   }
-
-   hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+   c_css_declaration_set_t * newSet = hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+   declLists->nonCss = newSet;
 }
 void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, const char * str_val)
 {
@@ -1244,11 +1241,8 @@ void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists
    value.c_text_val = dStrdup(str_val);
    value.c_type_tag = type;
 
-   if (!declLists->nonCss) {
-      declLists->nonCss = declarationListNew();
-   }
-
-   hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+   c_css_declaration_set_t * newSet = hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+   declLists->nonCss = newSet;
 }
 void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
 {
@@ -1256,11 +1250,8 @@ void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists
    value.c_int_val = cssLength.bits;
    value.c_type_tag = type;
 
-   if (!declLists->nonCss) {
-      declLists->nonCss = declarationListNew();
-   }
-
-   hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+   c_css_declaration_set_t * newSet = hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+   declLists->nonCss = newSet;
 }
 
 

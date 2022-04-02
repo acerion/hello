@@ -277,7 +277,7 @@ static int Html_set_new_link(DilloHtml *html, DilloUrl **url)
  * Evaluates the ALIGN attribute (left|center|right|justify) and
  * sets the style at the top of the stack.
  */
-void a_Html_tag_set_align_attr(DilloHtml *html, const char *tag, int tagsize)
+void a_Html_tag_set_align_attr(DilloHtml *html, const char *tag, int tagsize) // kamil
 {
    const char *align;
 

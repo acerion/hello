@@ -104,7 +104,7 @@ foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByNa
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
-foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
+foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO (Ptr FfiCssDeclarationSet)
 
 foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
@@ -841,19 +841,21 @@ hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken ptrStructCssDec
 
 
 
-hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO Int
+hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO (Ptr FfiCssDeclarationSet)
 hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDeclaration = do
 
-  when (ptrStructDeclarationSet == nullPtr) (trace ("Error: first arg to declarationListAddOrUpdateDeclaration is null pointer") putStr (""))
-
-  declSet :: CssDeclarationSet <- peekCssDeclarationSet ptrStructDeclarationSet
+  declSet :: CssDeclarationSet <- if ptrStructDeclarationSet == nullPtr
+                                  then return defaultCssDeclarationSet
+                                  else peekCssDeclarationSet ptrStructDeclarationSet
   decl    :: CssDeclaration    <- peekCssDeclaration ptrStructDeclaration
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
 
-  pokeCssDeclarationSet ptrStructDeclarationSet newDeclSet
+  newPtrStructDeclarationSet :: Ptr FfiCssDeclarationSet  <- callocBytes #{size c_css_declaration_set_t}
 
-  return 0
+  pokeCssDeclarationSet newPtrStructDeclarationSet newDeclSet
+
+  return newPtrStructDeclarationSet
 
 
 
