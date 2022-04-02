@@ -17,22 +17,61 @@ class StyleEngine;
  * HTML elements and their attributes via the startElement() / endElement()
  * methods.
  */
+
+
+
+
+struct Node {
+   c_css_declaration_set_t * declList;
+   c_css_declaration_set_t * declListImportant;
+   c_css_declaration_set_t * declListNonCss;
+   dw::core::style::Style *style;
+   dw::core::style::Style *wordStyle;
+   dw::core::style::Style *backgroundStyle;
+   bool inheritBackgroundColor;
+   bool displayNone;
+   c_doctree_node_t *doctreeNode;
+};
+
+class StyleEngine;
+Node * getCurrentNode(StyleEngine * styleEngine);
+
+inline void setNonCssHintOfProperty(Node * node, CssDeclarationProperty property, c_css_value_t value, CssDeclarationValueType type)
+{
+   if (!node->declListNonCss) {
+      node->declListNonCss = declarationListNew();
+   }
+   value.c_type_tag = type;
+   css_declaration_set_add_or_update_declaration(node->declListNonCss, property, value);
+}
+
+inline void styleEngineSetNonCssHintOfCurrentNode(Node * node, CssDeclarationProperty property, CssDeclarationValueType type, int value)
+{
+   c_css_value_t v;
+   v.c_int_val = value;
+   setNonCssHintOfProperty(node, property, v, type);
+}
+inline void styleEngineSetNonCssHintOfCurrentNode(Node * node, CssDeclarationProperty property, CssDeclarationValueType type, const char *value)
+{
+   c_css_value_t v;
+   v.c_text_val = dStrdup(value);
+   setNonCssHintOfProperty(node, property, v, type);
+}
+inline void styleEngineSetNonCssHintOfCurrentNode(Node * node, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
+{
+   c_css_value_t v;
+   v.c_int_val = cssLength.bits;
+   setNonCssHintOfProperty(node, property, v, type);
+}
+
 class StyleEngine {
+public:
+   lout::misc::SimpleVector <Node> *styleNodesStack;
+
    private:
-      struct Node {
-         c_css_declaration_set_t * declList;
-         c_css_declaration_set_t * declListImportant;
-         c_css_declaration_set_t * declListNonCss;
-         dw::core::style::Style *style;
-         dw::core::style::Style *wordStyle;
-         dw::core::style::Style *backgroundStyle;
-         bool inheritBackgroundColor;
-         bool displayNone;
-         c_doctree_node_t *doctreeNode;
-      };
 
       dw::core::Layout *layout;
-      lout::misc::SimpleVector <Node> *styleNodesStack;
+   
       c_css_context_t * cssContext;
       Doctree * doctree;
       int importDepth;
@@ -43,15 +82,7 @@ class StyleEngine {
       void buildUserStyle ();
       dw::core::style::Style *getStyle0 (int some_idx, BrowserWindow *bw);
       dw::core::style::Style *getWordStyle0 (BrowserWindow *bw);
-      inline void setNonCssHintOfProperty(CssDeclarationProperty property, c_css_value_t value, CssDeclarationValueType type) {
-         Node *n = styleNodesStack->getRef(styleNodesStack->size () - 1);
 
-         if (!n->declListNonCss)
-            n->declListNonCss = declarationListNew();
-
-         value.c_type_tag = type;
-         css_declaration_set_add_or_update_declaration(n->declListNonCss, property, value);
-      }
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void apply(int some_idx, dw::core::style::StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw);
@@ -82,21 +113,7 @@ class StyleEngine {
 
       void setPseudoLink ();
       void setPseudoVisited ();
-      inline void setNonCssHintOfCurrentNode(CssDeclarationProperty property, CssDeclarationValueType type, int value) {
-         c_css_value_t v;
-         v.c_int_val = value;
-         setNonCssHintOfProperty(property, v, type);
-      }
-      inline void setNonCssHintOfCurrentNode(CssDeclarationProperty property, CssDeclarationValueType type, const char *value) {
-         c_css_value_t v;
-         v.c_text_val = dStrdup(value);
-         setNonCssHintOfProperty(property, v, type);
-      }
-      inline void setNonCssHintOfCurrentNode(CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength) {
-         c_css_value_t v;
-         v.c_int_val = cssLength.bits;
-         setNonCssHintOfProperty(property, v, type);
-      }
+
       void inheritNonCssHints ();
       void clearNonCssHints ();
       void restyle (BrowserWindow *bw);
@@ -125,5 +142,13 @@ class StyleEngine {
             return getWordStyle0 (bw);
       };
 };
+
+inline Node * getCurrentNode(StyleEngine * styleEngine)
+{
+   return styleEngine->styleNodesStack->getRef(styleEngine->styleNodesStack->size() - 1);
+}
+
+
+
 
 #endif

@@ -313,7 +313,8 @@ void a_Html_tag_set_align_attr(DilloHtml *html, const char *tag, int tagsize)
             style_attrs.textAlignChar = '.';
       }
 #endif
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, textAlignType);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, textAlignType);
    }
 }
 
@@ -339,7 +340,8 @@ bool a_Html_tag_set_valign_attr(DilloHtml *html, const char *tag, int tagsize)
       else
          valign = VALIGN_MIDDLE;
 
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_VERTICAL_ALIGN, CssDeclarationValueTypeENUM, valign);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_VERTICAL_ALIGN, CssDeclarationValueTypeENUM, valign);
       return true;
    } else
       return false;
@@ -1623,8 +1625,10 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<body> bgcolor attribute is obsolete.");
 
-      if (color != -1)
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, color);
+      if (color != -1) {
+         Node * currentNode = getCurrentNode(html->styleEngine);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, color);
+      }
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "text"))) {
@@ -1633,8 +1637,10 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<body> text attribute is obsolete.");
 
-      if (color != -1)
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color);
+      if (color != -1) {
+         Node * currentNode = getCurrentNode(html->styleEngine);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color);
+      }
    }
 
    html->styleEngine->restyle (html->bw);
@@ -1672,7 +1678,8 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    html->styleEngine->startElement (tag_index_a, html->bw);
    html->styleEngine->setPseudoVisited ();
    if (html->non_css_visited_color != -1) {
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color);
    }
    html->visited_color = html->styleEngine->getStyle (html->bw)->color->getColor ();
    html->styleEngine->endElement (tag_index_a);
@@ -1733,7 +1740,8 @@ static void Html_tag_open_frame (DilloHtml *html, const char *tag, int tagsize)
       html->styleEngine->setPseudoLink ();
    }
 
-   html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html,&url));
+   Node * currentNode = getCurrentNode(html->styleEngine);
+   styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html,&url));
 }
 
 static void
@@ -1826,13 +1834,16 @@ static void Html_tag_open_font(DilloHtml *html, const char *tag, int tagsize)
          /* use the tag-specified color */
          color = a_Html_color_parse(html, attr_value, -1);
       }
-      if (color != -1)
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color);
+      if (color != -1) {
+         Node * currentNode = getCurrentNode(html->styleEngine);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color);
+      }
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "face"))) {
       fontFamily = dStrdup(attr_value);
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_FONT_FAMILY, CssDeclarationValueTypeSYMBOL, fontFamily);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_FONT_FAMILY, CssDeclarationValueTypeSYMBOL, fontFamily);
    }
 
    dFree(fontFamily);
@@ -1848,7 +1859,8 @@ static void Html_tag_open_abbr(DilloHtml *html, const char *tag, int tagsize)
    html->styleEngine->inheritBackgroundColor ();
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
    }
 }
 
@@ -1866,7 +1878,8 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
    int w = 0, h = 0;
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
    }
    width_ptr = html_attribute_get_value_with_default(tag, tagsize, "width", NULL);
    height_ptr = html_attribute_get_value_with_default(tag, tagsize, "height", NULL);
@@ -1897,10 +1910,13 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
       width_ptr = height_ptr = NULL;
       MSG("a_Html_common_image_attrs: suspicious image size request %d x %d\n", w, h);
    } else {
-      if (hll_cssLengthType(l_w.bits) != CSS_LENGTH_TYPE_AUTO)
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_w);
-      if (hll_cssLengthType(l_h.bits) != CSS_LENGTH_TYPE_AUTO)
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_HEIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_h);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      if (hll_cssLengthType(l_w.bits) != CSS_LENGTH_TYPE_AUTO) {
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_w);
+      }
+      if (hll_cssLengthType(l_h.bits) != CSS_LENGTH_TYPE_AUTO) {
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_HEIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_h);
+      }
    }
 
    /* TODO: we should scale the image respecting its ratio.
@@ -1912,7 +1928,8 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
 
    /* x_img is an index to a list of {url,image} pairs.
     * We know a_Html_image_new() will use size() as its next index */
-   html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_IMG, CssDeclarationValueTypeINTEGER, html->images->size());
+   Node * currentNode = getCurrentNode(html->styleEngine);
+   styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_IMG, CssDeclarationValueTypeINTEGER, html->images->size());
 
 
    dFree(width_ptr);
@@ -1999,8 +2016,9 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
       if (i > 0) {
 	      CssLength space;
 	      space.bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
-	      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_MARGIN_LEFT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
-	      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_MARGIN_RIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
+         Node * currentNode = getCurrentNode(html->styleEngine);
+	      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_MARGIN_LEFT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
+	      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_MARGIN_RIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
       }
    }
 
@@ -2010,8 +2028,9 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
       if (i > 0) {
          CssLength space;
          space.bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_MARGIN_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_MARGIN_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
+         Node * currentNode = getCurrentNode(html->styleEngine);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_MARGIN_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_MARGIN_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
       }
    }
 
@@ -2021,15 +2040,16 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
       if (i >= 0) {
          CssLength border;
          border.bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_TOP_WIDTH,     CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
+         Node * currentNode = getCurrentNode(html->styleEngine);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_TOP_WIDTH,     CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
 
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID);
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID);
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID);
-         html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID);
+         styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID);
       }
    }
 
@@ -2267,7 +2287,8 @@ static void Html_tag_open_object(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
    }
    a_Url_free(base_url);
 }
@@ -2304,7 +2325,8 @@ static void Html_tag_open_video(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
 
       Html2TextBlock(html)->addText("[VIDEO]", html->styleEngine->getWordStyle (html->bw));
    }
@@ -2335,7 +2357,8 @@ static void Html_tag_open_audio(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
 
       Html2TextBlock(html)->addText("[AUDIO]", html->styleEngine->getWordStyle (html->bw));
    }
@@ -2368,7 +2391,8 @@ static void Html_tag_open_source(DilloHtml *html, const char *tag,
       } else {
          html->styleEngine->setPseudoLink ();
       }
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
    }
 }
 
@@ -2406,7 +2430,8 @@ static void Html_tag_open_embed(DilloHtml *html, const char *tag, int tagsize)
          html->styleEngine->setPseudoLink ();
       }
 
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
    }
 }
 
@@ -2480,21 +2505,23 @@ static void Html_tag_open_a(DilloHtml *html, const char *tag, int tagsize)
       url = a_Html_url_new(html, attr_value, NULL, 0);
       dReturn_if_fail ( url != NULL );
 
+      Node * currentNode = getCurrentNode(html->styleEngine);
       if (a_Capi_get_flags_with_redirection(url) & CAPI_IsCached) {
          html->InVisitedLink = true;
          html->styleEngine->setPseudoVisited ();
          if (html->non_css_visited_color != -1)
-            html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color);
+            styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color);
       } else {
          html->styleEngine->setPseudoLink ();
          if (html->non_css_link_color != -1)
-            html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_link_color);
+            styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_link_color);
       }
 
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
    }
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
    }
 
    html->styleEngine->inheritBackgroundColor ();
@@ -2586,7 +2613,8 @@ static void Html_tag_open_ul(DilloHtml *html, const char *tag, int tagsize)
          /* invalid value */
          list_style_type = LIST_STYLE_TYPE_DISC;
 
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, list_style_type);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, list_style_type);
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<ul> type attribute is obsolete.");
    }
@@ -2652,7 +2680,8 @@ static void Html_tag_open_ol(DilloHtml *html, const char *tag, int tagsize)
       else if (*attr_value == 'I')
          listStyleType = LIST_STYLE_TYPE_UPPER_ROMAN;
 
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, listStyleType);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, listStyleType);
    }
 
    TopOfParsingStack(html)->list_type = HTML_LIST_ORDERED;
@@ -2716,7 +2745,8 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<hr> width attribute is obsolete.");
       CssLength width = html_parse_attribute_width_or_height(width_ptr);
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
       dFree(width_ptr);
    }
 
@@ -2732,10 +2762,11 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
    if (html_attribute_get_value(tag, tagsize, "noshade")) {
       if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
          BUG_MSG("<hr> noshade attribute is obsolete.");
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID);
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID);
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID);
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID);
 
       if (size <= 0)
          size = 1;
@@ -2746,10 +2777,11 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
       size_top.bits = hll_cssCreateLength ((size+1)/2, CSS_LENGTH_TYPE_PX);
       CssLength size_bottom;
       size_bottom.bits = hll_cssCreateLength (size / 2, CSS_LENGTH_TYPE_PX);
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, size_bottom);
-      html->styleEngine->setNonCssHintOfCurrentNode(CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, size_bottom);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, size_bottom);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, size_bottom);
    }
 
 }
@@ -3124,7 +3156,8 @@ static void Html_tag_open_span(DilloHtml *html, const char *tag, int tagsize)
    html->styleEngine->inheritBackgroundColor();
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
    }
 }
 
@@ -3137,7 +3170,8 @@ static void Html_tag_open_sectioning(DilloHtml *html, const char *tag,
    const char *attr_value;
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
    }
 }
 
@@ -3524,8 +3558,10 @@ static void Html_parse_common_attrs(DilloHtml *html, char *tag, int tagsize)
       if (attr_value)
          strncpy(lang, attr_value, 2);
    }
-   if (lang[0])
-      html->styleEngine->setNonCssHintOfCurrentNode(PROPERTY_X_LANG, CssDeclarationValueTypeSTRING, lang);
+   if (lang[0]) {
+      Node * currentNode = getCurrentNode(html->styleEngine);
+      styleEngineSetNonCssHintOfCurrentNode(currentNode, PROPERTY_X_LANG, CssDeclarationValueTypeSTRING, lang);
+   }
 }
 
 /*
@@ -3693,14 +3729,16 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
          html->PreFirstChar = true;
       }
 
-      if (html->styleEngine->getElementId ())
+      if (html->styleEngine->getElementId ()) {
          Html_add_anchor(html, html->styleEngine->getElementId());
+      }
 
       /* Request immediate close for elements with forbidden close tag. */
       /* TODO: XHTML always requires close tags. A simple implementation
        * of the commented clause below will make it work. */
-      if (/* parsing HTML && */ Tags[new_tag_idx].EndTag == 'F')
+      if (/* parsing HTML && */ Tags[new_tag_idx].EndTag == 'F') {
          html->ReqTagClose = true;
+      }
 
       /* Don't break! Open tags may also close themselves */
 
