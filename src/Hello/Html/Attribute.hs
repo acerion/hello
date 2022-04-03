@@ -32,6 +32,7 @@ module Hello.Html.Attribute(
 
   -- Only for tests
   , parseLengthOrMultiLength
+  , validateNameOrIdValue
   ) where
 
 
@@ -40,7 +41,7 @@ module Hello.Html.Attribute(
 import Prelude
 import Foreign.C.String
 import Foreign
-import Data.Char
+import qualified Data.Char as D.C
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 import qualified Data.Text.Read as T.R
@@ -48,9 +49,12 @@ import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Map as M
 
 import Hello.Css.Parser
+import Hello.Html.Document
 
 
 
+
+-- TODO: this code is a duplicate of code from other file
 cssCreateLength :: Float -> Int -> CssLength
 cssCreateLength f lenType | lenType == cssLengthTypePX = CssLength word1 lenType
                           | lenType == cssLengthTypeNone
@@ -112,9 +116,46 @@ parseLengthOrMultiLength attribute =
                        Nothing       -> Just (realToFrac f, cssLengthTypePX) -- empty remainder: attribute string is just a number
                        Just ('%', _) -> Just (realToFrac (f / 100), cssLengthTypePercentage) -- not sure why we divide by 100, but the dillo c++ code did this for percentage
                        Just ('*', _) -> Just (0.0, cssLengthTypeAuto)
-                       Just (c, _)   -> if Data.Char.isSpace c
+                       Just (c, _)   -> if D.C.isSpace c
                                         then Just (realToFrac f, cssLengthTypePX)
                                         else Nothing -- Don't accept garbage attached to a number
     otherwise     -> Nothing
+
+
+
+
+{-
+HTML4:
+Check that 'val' is composed of characters inside [A-Za-z0-9:_.-]
+Note: ID can't have entities, but this check is enough (no '&').
+
+HTML5:
+TODO: check spec and add info
+
+
+Return value: true if OK, false otherwise.
+
+TODO: this function is written in terrible style
+-}
+validateNameOrIdValue :: HtmlDocument -> T.Text -> T.Text -> Bool
+validateNameOrIdValue htmlDocument attrName attrValue  =
+  if docType htmlDocument == HtmlDocumentTypeHtml && docTypeVersion htmlDocument >= 5.0
+  then
+    if T.length attrValue == 0
+    then False  -- TODO: log error that value of attribute attrName must not be empty
+    else
+      if T.any (\c -> c == ' ') attrValue
+      then False -- TODO: log error that value of attribute attrName must not contain spaces
+      else True
+  else
+    case T.uncons attrValue of
+      Nothing       -> False -- TODO: log error that value of attribute attrName must not be empty
+      Just (c, rem) -> if not (D.C.isLatin1 c && D.C.isLetter c)
+                       then False -- TODO: log error that first char is out of range
+                       else
+                         if not $ T.all (\c -> ((D.C.isLatin1 c) && (D.C.isLetter c)) || (D.C.isDigit c) ||  elem c [':', '_', ',', '-']) rem
+                         then False -- TODO: log error that some char is out of range
+                         else True
+
 
 

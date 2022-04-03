@@ -48,12 +48,14 @@ import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString.Unsafe as BSU
 import Hello.Html.Attribute
 import Hello.Ffi.Css.Parser
+import Hello.Ffi.Html.Document
 import Hello.Css.Parser
 
 
 
 
 foreign export ccall "hll_htmlParseAttributeWidthOrHeight" hll_htmlParseAttributeWidthOrHeight :: CString -> IO Word32
+foreign export ccall "hll_htmlValidateNameOrIdValue" hll_htmlValidateNameOrIdValue :: Ptr FfiHtmlDocument -> CString -> CString -> IO Bool
 
 
 
@@ -67,3 +69,17 @@ hll_htmlParseAttributeWidthOrHeight cAttrValue = do
 
 
 
+
+
+hll_htmlValidateNameOrIdValue :: Ptr FfiHtmlDocument -> CString -> CString -> IO Bool
+hll_htmlValidateNameOrIdValue ptrHtmlDocument ptrAttrName ptrAttrValue = do
+
+  htmlDocument <- peekHtmlDocument ptrHtmlDocument
+
+  attrName <- BSU.unsafePackCString ptrAttrName
+  attrValue <- BSU.unsafePackCString ptrAttrValue
+
+  let attrNameT = T.E.decodeUtf8 attrName
+  let attrValueT = T.E.decodeUtf8 attrValue
+
+  return $ validateNameOrIdValue htmlDocument attrNameT attrValueT

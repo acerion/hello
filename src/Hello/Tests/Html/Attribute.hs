@@ -25,13 +25,14 @@ import Test.HUnit
 import qualified Data.Text as T
 
 import Hello.Html.Attribute
+import Hello.Html.Document
 import Hello.Css.Parser
 
 
 
 
 lengthData =
-  --  attribute token               length
+  --  attribute token               resulting length
   [
     ("100",                         Just (100.0, cssLengthTypePX))
   , ("100.1",                       Just (100.1, cssLengthTypePX))
@@ -42,7 +43,7 @@ lengthData =
 
   , ("",                            Nothing)
   , ("bird",                        Nothing)
-  , ("100#",                        Nothing)
+  , ("100#",                        Nothing) -- No "garbage" allowed after a seemingly valid value
   ]
 
 
@@ -60,8 +61,64 @@ lengthTest (x:xs) = if len x == parseLengthOrMultiLength (inAttribute x)
 
 
 
+{- -------------------------------------------------------------------------- -}
+
+
+
+
+nameOrIdValuesData =
+  [
+    -- HTML4 tests
+    ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 4.0 }, "name01", "some_name", True  )
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 4.0 }, "name02", "Some_name", True  )
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 4.0 }, "name03", "Some_na44", True  )
+
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 4.0 }, "name04", "4ome_name", False ) -- value can't start with something other than a letter
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 4.0 }, "name05", "&ome_name", False ) -- value can't start with something other than a letter
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 4.0 }, "name06", "some?name", False ) -- value can't contain '?' character
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 4.0 }, "name07", "some name", False ) -- value can't contain ' ' character
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 4.0 }, "name08", " ome_name", False ) -- value can't contain ' ' character
+
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 4.0 }, "name09", "",          False ) -- value can't be empty
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 4.0 }, "name10", " ",         False ) -- value can't be just a space
+
+
+    -- HTML5 tests
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 5.0 }, "name51", "some_name", True  )
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 5.0 }, "name52", "Some_name", True  )
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 5.0 }, "name53", "Some_na44", True  )
+
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 5.0 }, "name54", "4ome_na44", True  ) -- for HTML5 we allow value to start with number
+
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 5.0 }, "name55", "",          False ) -- value can't be empty
+  , ( HtmlDocument { docType = HtmlDocumentTypeHtml, docTypeVersion = 5.0 }, "name56", " ",         False ) -- value can't be just a space
+  ]
+
+
+
+
+nameOrIdValuesTest :: [(HtmlDocument, T.Text, T.Text, Bool)] -> T.Text
+nameOrIdValuesTest []     = ""
+nameOrIdValuesTest (x:xs) = if expected x == validateNameOrIdValue (doc x) (attrName x) (attrValue x)
+                            then nameOrIdValuesTest xs
+                            else (attrName x)
+  where
+    doc       (a, _, _, _) = a
+    attrName  (_, b, _, _) = b
+    attrValue (_, _, c, _) = c
+    expected  (_, _, _, d) = d
+
+
+
+
+{- -------------------------------------------------------------------------- -}
+
+
+
+
 testCases = [
     TestCase(assertEqual "valid length tests"           "" (lengthTest lengthData))
+  , TestCase(assertEqual "name or id values"            "" (nameOrIdValuesTest nameOrIdValuesData))
   ]
 
 
@@ -72,5 +129,6 @@ testsHtmlAttribute = do
   counts <- runTestTT (TestList (testCases))
   if (errors counts + failures counts == 0)
     then return ""
-    else return "[EE] testsHtmlAttribute failed"
+    else return "[EE] Hello.Tests.Html.Attribute failed"
+
 

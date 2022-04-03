@@ -13,6 +13,13 @@ extern "C" {
 
 
 
+typedef struct c_html_document_t {
+   int   c_doc_type; /* DilloHtmlDocumentType, as given by DOCTYPE tag */
+   float c_doc_type_version;          /* HTML or XHTML version number */
+} c_html_document_t;
+
+
+
 
 typedef struct c_gif_t {
 
@@ -243,6 +250,11 @@ int64_t hll_htmlEntityToIsoCode(const char * token, int tokenLen);
 
 
 
+bool hll_htmlValidateNameOrIdValue(c_html_document_t * htmlDocument, const char * attrName, const char * attrValue);
+
+
+
+
 /* HtmlTag */
 char * hll_htmlAttributeGetValue(const char * documentRem, int tagSize, const char * attrName);
 /* Return index of tag named \p tagName. The index is an index to 'TagInfo
@@ -323,6 +335,9 @@ int hll_isTokenSemicolon(c_css_token_t * token);
 c_css_declaration_t * hll_makeCssDeclaration(int property, c_css_value_t * value);
 c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeInt(c_css_declaration_set_t * declSet, int property, int valueType, int intVal);
 c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeString(c_css_declaration_set_t * declSet, int property, int valueType, const char * stringVal);
+
+
+
 
 
 #ifdef __cplusplus

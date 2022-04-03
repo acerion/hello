@@ -362,7 +362,7 @@ void Html_tag_open_form(DilloHtml *html, const char *tag, int tagsize)
    if ((attr_value = html_attribute_get_value(tag, tagsize, "action")))
       action = a_Html_url_new(html, attr_value, NULL, 0);
    else {
-      if (html->htmlDocument.DocType != DT_HTML || html->htmlDocument.DocTypeVersion <= 4.01f)
+      if (html->htmlDocument.c_doc_type != DT_HTML || html->htmlDocument.c_doc_type_version <= 4.01f)
          BUG_MSG("<form> requires action attribute.");
       action = a_Url_dup(html->base_url);
    }
@@ -643,7 +643,7 @@ void Html_tag_content_textarea(DilloHtml *html, const char *tag, int tagsize)
    if ((attr_value = html_attribute_get_value(tag, tagsize, "cols"))) {
       cols = strtol(attr_value, NULL, 10);
    } else {
-      if (html->htmlDocument.DocType != DT_HTML || html->htmlDocument.DocTypeVersion <= 4.01f)
+      if (html->htmlDocument.c_doc_type != DT_HTML || html->htmlDocument.c_doc_type_version <= 4.01f)
          BUG_MSG("<textarea> requires cols attribute.");
       cols = 20;
    }
@@ -655,7 +655,7 @@ void Html_tag_content_textarea(DilloHtml *html, const char *tag, int tagsize)
    if ((attr_value = html_attribute_get_value(tag, tagsize, "rows"))) {
       rows = strtol(attr_value, NULL, 10);
    } else {
-      if (html->htmlDocument.DocType != DT_HTML || html->htmlDocument.DocTypeVersion <= 4.01f)
+      if (html->htmlDocument.c_doc_type != DT_HTML || html->htmlDocument.c_doc_type_version <= 4.01f)
          BUG_MSG("<textarea> requires rows attribute.");
       rows = 10;
    }
