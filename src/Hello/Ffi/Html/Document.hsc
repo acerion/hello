@@ -52,7 +52,16 @@ import Foreign
 import Foreign.C
 import Foreign.C.String
 
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T.E
+import qualified Data.ByteString.Unsafe as BSU
+
 import Hello.Html.Document
+
+
+
+
+foreign export ccall "hll_getDoctypePublic" hll_getDoctypePublic :: Ptr FfiHtmlDocument -> CString -> IO ()
 
 
 
@@ -119,4 +128,22 @@ intToDocumentType i = case i of
                         2 -> HtmlDocumentTypeHtml
                         3 -> HtmlDocumentTypeXhtml
 
+
+
+
+
+hll_getDoctypePublic :: Ptr FfiHtmlDocument -> CString -> IO ()
+hll_getDoctypePublic ptrHtmlDocument cBuf = do
+  buf <- BSU.unsafePackCString cBuf
+  let bufT = T.E.decodeUtf8 buf
+
+  htmlDocument <- peekHtmlDocument ptrHtmlDocument
+
+  let newHtmlDocument = getDoctypePublic bufT htmlDocument
+
+  pokeHtmlDocument ptrHtmlDocument newHtmlDocument
+
+  putStrLn $ show newHtmlDocument
+
+  return ()
 

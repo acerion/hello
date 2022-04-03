@@ -251,6 +251,7 @@ int64_t hll_htmlEntityToIsoCode(const char * token, int tokenLen);
 
 
 bool hll_htmlValidateNameOrIdValue(c_html_document_t * htmlDocument, const char * attrName, const char * attrValue);
+void hll_getDoctypePublic(c_html_document_t * htmlDocument, const char * buf);
 
 
 

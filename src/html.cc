@@ -1288,6 +1288,7 @@ int32_t a_Html_color_parse(DilloHtml *html, const char *str,
    return color;
 }
 
+
 /*
  * Handle DOCTYPE declaration
  *
@@ -1309,85 +1310,61 @@ int32_t a_Html_color_parse(DilloHtml *html, const char *str,
  */
 static void Html_parse_doctype(DilloHtml *html, const char *tag, int tagsize)
 {
-   static const char HTML_SGML_sig [] = "<!DOCTYPE HTML PUBLIC ";
-   static const char HTML20     [] = "-//IETF//DTD HTML";
-   static const char HTML32     [] = "-//W3C//DTD HTML 3.2";
-   static const char HTML40     [] = "-//W3C//DTD HTML 4.0";
-   static const char HTML401    [] = "-//W3C//DTD HTML 4.01";
-   static const char HTML401_url[] = "http://www.w3.org/TR/html4/";
-   static const char XHTML1     [] = "-//W3C//DTD XHTML 1.0";
-   static const char XHTML1_url [] = "http://www.w3.org/TR/xhtml1/DTD/";
-   static const char XHTML11    [] = "-//W3C//DTD XHTML 1.1";
-   static const char XHTML11_url[] = "http://www.w3.org/TR/xhtml11/DTD/";
-
-   size_t i;
-   int quote;
-   char *p, *ntag = dStrndup(tag, tagsize);
-
-   /* Tag sanitization: Collapse whitespace between tokens
-    * and replace '\n' and '\r' with ' ' inside quoted strings. */
-   for (i = 0, p = ntag; *p; ++p) {
-      if (isspace(*p)) {
-         for (ntag[i++] = ' '; isspace(p[1]); ++p) ;
-      } else if ((quote = *p) == '"' || *p == '\'') {
-         for (ntag[i++] = *p++; (ntag[i] = *p) && ntag[i++] != quote; ++p) {
-            if (*p == '\n' || *p == '\r')
-               ntag[i - 1] = ' ';
-            p += (p[0] == '\r' && p[1] == '\n') ? 1 : 0;
+   char * sanitizedTag = dStrndup(tag, tagsize);
+   {
+      size_t i;
+      int quote;
+      char * p = NULL;
+      /* Tag sanitization: Collapse whitespace between tokens
+       * and replace '\n' and '\r' with ' ' inside quoted strings. */
+      for (i = 0, p = sanitizedTag; *p; ++p) {
+         if (isspace(*p)) {
+            for (sanitizedTag[i++] = ' '; isspace(p[1]); ++p) ;
+         } else if ((quote = *p) == '"' || *p == '\'') {
+            for (sanitizedTag[i++] = *p++; (sanitizedTag[i] = *p) && sanitizedTag[i++] != quote; ++p) {
+               if (*p == '\n' || *p == '\r') {
+                  sanitizedTag[i - 1] = ' ';
+               }
+               p += (p[0] == '\r' && p[1] == '\n') ? 1 : 0;
+            }
+         } else {
+            sanitizedTag[i++] = *p;
          }
-      } else {
-         ntag[i++] = *p;
+         if (!*p) {
+            break;
+         }
       }
-      if (!*p)
-         break;
+      sanitizedTag[i] = 0;
+      fprintf(stderr, "Sanitized tag: {%s}\n", sanitizedTag);
    }
-   ntag[i] = 0;
 
-   _MSG("New: {%s}\n", ntag);
-
-   if (html->htmlDocument.c_doc_type != DT_NONE)
+   if (html->htmlDocument.c_doc_type != DT_NONE) {
       BUG_MSG("Multiple DOCTYPE declarations.");
-
-   /* The default DT_NONE type is TagSoup */
-   if (i > strlen(HTML_SGML_sig) && // avoid out of bounds reads!
-       !dStrnAsciiCasecmp(ntag, HTML_SGML_sig, strlen(HTML_SGML_sig))) {
-      p = ntag + strlen(HTML_SGML_sig) + 1;
-      if (!strncmp(p, HTML401, strlen(HTML401)) &&
-          dStriAsciiStr(p + strlen(HTML401), HTML401_url)) {
-         html->htmlDocument.c_doc_type = DT_HTML;
-         html->htmlDocument.c_doc_type_version = 4.01f;
-      } else if (!strncmp(p, XHTML1, strlen(XHTML1)) &&
-                 dStriAsciiStr(p + strlen(XHTML1), XHTML1_url)) {
-         html->htmlDocument.c_doc_type = DT_XHTML;
-         html->htmlDocument.c_doc_type_version = 1.0f;
-      } else if (!strncmp(p, XHTML11, strlen(XHTML11)) &&
-                 dStriAsciiStr(p + strlen(XHTML11), XHTML11_url)) {
-         html->htmlDocument.c_doc_type = DT_XHTML;
-         html->htmlDocument.c_doc_type_version = 1.1f;
-      } else if (!strncmp(p, HTML40, strlen(HTML40))) {
-         html->htmlDocument.c_doc_type = DT_HTML;
-         html->htmlDocument.c_doc_type_version = 4.0f;
-      } else if (!strncmp(p, HTML32, strlen(HTML32))) {
-         html->htmlDocument.c_doc_type = DT_HTML;
-         html->htmlDocument.c_doc_type_version = 3.2f;
-      } else if (!strncmp(p, HTML20, strlen(HTML20))) {
-         html->htmlDocument.c_doc_type = DT_HTML;
-         html->htmlDocument.c_doc_type_version = 2.0f;
-      }
-   } else if (!dStrAsciiCasecmp(ntag, "<!DOCTYPE html>") ||
-              !dStrAsciiCasecmp(ntag, "<!DOCTYPE html >") ||
-              !dStrAsciiCasecmp(ntag,
-                           "<!DOCTYPE html SYSTEM \"about:legacy-compat\">") ||
-              !dStrAsciiCasecmp(ntag,
-                             "<!DOCTYPE html SYSTEM 'about:legacy-compat'>")) {
-      html->htmlDocument.c_doc_type = DT_HTML;
-      html->htmlDocument.c_doc_type_version = 5.0f;
    }
+
+   {
+      static const char HTML_SGML_sig[] = "<!DOCTYPE HTML PUBLIC ";
+
+      /* The default DT_NONE type is TagSoup */
+      if (strlen(sanitizedTag) > strlen(HTML_SGML_sig) && !dStrnAsciiCasecmp(sanitizedTag, HTML_SGML_sig, strlen(HTML_SGML_sig))) {
+
+         char * pastPublic = sanitizedTag + strlen(HTML_SGML_sig) + 1;
+         hll_getDoctypePublic(&html->htmlDocument, pastPublic);
+
+      } else if (!dStrAsciiCasecmp(sanitizedTag, "<!DOCTYPE html>") ||
+                 !dStrAsciiCasecmp(sanitizedTag, "<!DOCTYPE html >") ||
+                 !dStrAsciiCasecmp(sanitizedTag, "<!DOCTYPE html SYSTEM \"about:legacy-compat\">") ||
+                 !dStrAsciiCasecmp(sanitizedTag, "<!DOCTYPE html SYSTEM 'about:legacy-compat'>")) {
+         html->htmlDocument.c_doc_type = DT_HTML;
+         html->htmlDocument.c_doc_type_version = 5.0f;
+      }
+   }
+
    if (html->htmlDocument.c_doc_type == DT_NONE) {
       html->htmlDocument.c_doc_type = DT_UNRECOGNIZED;
-      BUG_MSG("DOCTYPE not recognized: ('%s').", ntag);
+      BUG_MSG("DOCTYPE not recognized: ('%s').", sanitizedTag);
    }
-   dFree(ntag);
+   dFree(sanitizedTag);
 }
 
 /*
