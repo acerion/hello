@@ -321,6 +321,8 @@ int hll_isTokenSemicolon(c_css_token_t * token);
 
 /* StyleEngine */
 c_css_declaration_t * hll_makeCssDeclaration(int property, c_css_value_t * value);
+c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeInt(c_css_declaration_set_t * declSet, int property, int valueType, int intVal);
+c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeString(c_css_declaration_set_t * declSet, int property, int valueType, const char * stringVal);
 
 
 #ifdef __cplusplus

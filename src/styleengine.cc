@@ -27,7 +27,6 @@ void print_css_style_sheet(FILE * file, c_css_style_sheet_t * sheet);
 void print_css_rule_map(FILE * file, c_css_rules_map_t * map);
 void print_css_rule_list(FILE * file, c_css_rules_list_t * list);
 void print_css_rule_selector(FILE * file, c_css_cached_complex_selector_t * cached_complex);
-void print_css_rule_properties(FILE * file, c_css_declaration_set_t * props);
 void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t * link);
 
 /**
@@ -1111,7 +1110,7 @@ void print_css_rule_list(FILE * file, c_css_rules_list_t * list)
       fprintf(file, "                rule->specificity = %d\n", rule->c_specificity);
       fprintf(file, "                rule->position    = %d\n", rule->c_position);
       print_css_rule_selector(file, rule->c_cached_complex_selector);
-      print_css_rule_properties(file, rule->c_decl_set);
+      print_css_declaration_set(file, rule->c_decl_set);
       fprintf(file, "\n");
    }
    fprintf(file, "\n");
@@ -1130,8 +1129,12 @@ void print_css_rule_selector(FILE * file, c_css_cached_complex_selector_t * cach
    }
 }
 
-void print_css_rule_properties(FILE * file, c_css_declaration_set_t * props)
+void print_css_declaration_set(FILE * file, c_css_declaration_set_t * props)
 {
+   if (NULL == props) {
+      fprintf(file, "[EE] property set is NULL\n");
+      return;
+   }
    fprintf(file, "                    property list (%d properties):\n", props->c_declarations_size);
    for (int i = 0; i < props->c_declarations_size; i++) {
       c_css_declaration_t * declaration = props->c_declarations[i];
@@ -1226,31 +1229,19 @@ void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t 
 }
 
 
-void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, int int_val)
+void styleEngineSetNonCssHintOfCurrentNodeInt(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, int int_val)
 {
-   c_css_value_t value = {};
-   value.c_int_val = int_val;
-   value.c_type_tag = type;
-
-   c_css_declaration_set_t * newSet = hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+   c_css_declaration_set_t * newSet = hll_styleEngineSetNonCssHintOfCurrentNodeInt(declLists->nonCss, property, type, int_val);
    declLists->nonCss = newSet;
 }
-void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, const char * str_val)
+void styleEngineSetNonCssHintOfCurrentNodeString(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, const char * str_val)
 {
-   c_css_value_t value = {};
-   value.c_text_val = dStrdup(str_val);
-   value.c_type_tag = type;
-
-   c_css_declaration_set_t * newSet = hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+   c_css_declaration_set_t * newSet = hll_styleEngineSetNonCssHintOfCurrentNodeString(declLists->nonCss, property, type, str_val);
    declLists->nonCss = newSet;
 }
-void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
+void styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
 {
-   c_css_value_t value = {};
-   value.c_int_val = cssLength.bits;
-   value.c_type_tag = type;
-
-   c_css_declaration_set_t * newSet = hll_declarationListAddOrUpdateDeclaration(declLists->nonCss, hll_makeCssDeclaration(property, &value));
+   c_css_declaration_set_t * newSet = hll_styleEngineSetNonCssHintOfCurrentNodeInt(declLists->nonCss, property, type, cssLength.bits);
    declLists->nonCss = newSet;
 }
 

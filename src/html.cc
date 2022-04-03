@@ -277,45 +277,47 @@ static int Html_set_new_link(DilloHtml *html, DilloUrl **url)
  * Evaluates the ALIGN attribute (left|center|right|justify) and
  * sets the style at the top of the stack.
  */
-void a_Html_tag_set_align_attr(DilloHtml *html, const char *tag, int tagsize) // kamil
+void a_Html_tag_set_align_attr(HtmlDocument * htmlDocument, StyleNode * currentNode, const char *tag, int tagsize) // kamil
 {
-   const char *align;
-
-   if ((align = html_attribute_get_value(tag, tagsize, "align"))) {
-      TextAlignType textAlignType = TEXT_ALIGN_LEFT;
-
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
-         BUG_MSG("The align attribute is obsolete in HTML5.");
-
-      if (dStrAsciiCasecmp (align, "left") == 0)
-         textAlignType = TEXT_ALIGN_LEFT;
-      else if (dStrAsciiCasecmp (align, "right") == 0)
-         textAlignType = TEXT_ALIGN_RIGHT;
-      else if (dStrAsciiCasecmp (align, "center") == 0)
-         textAlignType = TEXT_ALIGN_CENTER;
-      else if (dStrAsciiCasecmp (align, "justify") == 0)
-         textAlignType = TEXT_ALIGN_JUSTIFY;
-#if 0
-      else if (dStrAsciiCasecmp (align, "char") == 0) {
-         /* TODO: Actually not supported for <p> etc. */
-         v.textAlign = TEXT_ALIGN_STRING;
-         if ((charattr = html_attribute_get_value(tag, tagsize, "char"))) {
-            if (charattr[0] == 0)
-               /* TODO: ALIGN=" ", and even ALIGN="&32;" will reult in
-                * an empty string (don't know whether the latter is
-                * correct, has to be clarified with the specs), so
-                * that for empty strings, " " is assumed. */
-               style_attrs.textAlignChar = ' ';
-            else
-               style_attrs.textAlignChar = charattr[0];
-         } else
-            /* TODO: Examine LANG attr of <html>. */
-            style_attrs.textAlignChar = '.';
-      }
-#endif
-      StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, textAlignType);
+   const char * align = html_attribute_get_value(tag, tagsize, "align");
+   if (NULL == align) {
+      return;
    }
+
+   TextAlignType alignType = TEXT_ALIGN_LEFT;
+
+   if (htmlDocument->DocType == DT_HTML && htmlDocument->DocTypeVersion >= 5.0f) {
+      fprintf(stderr, "The align attribute is obsolete in HTML5.\n");
+   }
+
+   if (dStrAsciiCasecmp (align, "left") == 0)
+      alignType = TEXT_ALIGN_LEFT;
+   else if (dStrAsciiCasecmp (align, "right") == 0)
+      alignType = TEXT_ALIGN_RIGHT;
+   else if (dStrAsciiCasecmp (align, "center") == 0)
+      alignType = TEXT_ALIGN_CENTER;
+   else if (dStrAsciiCasecmp (align, "justify") == 0)
+      alignType = TEXT_ALIGN_JUSTIFY;
+#if 0
+   else if (dStrAsciiCasecmp (align, "char") == 0) {
+      /* TODO: Actually not supported for <p> etc. */
+      v.textAlign = TEXT_ALIGN_STRING;
+      if ((charattr = html_attribute_get_value(tag, tagsize, "char"))) {
+         if (charattr[0] == 0)
+            /* TODO: ALIGN=" ", and even ALIGN="&32;" will reult in
+             * an empty string (don't know whether the latter is
+             * correct, has to be clarified with the specs), so
+             * that for empty strings, " " is assumed. */
+            style_attrs.textAlignChar = ' ';
+         else
+            style_attrs.textAlignChar = charattr[0];
+      } else
+         /* TODO: Examine LANG attr of <html>. */
+         style_attrs.textAlignChar = '.';
+   }
+#endif
+
+   styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, alignType);
 }
 
 /*
@@ -328,7 +330,7 @@ bool a_Html_tag_set_valign_attr(DilloHtml *html, const char *tag, int tagsize)
    VAlignType valign;
 
    if ((attr = html_attribute_get_value(tag, tagsize, "valign"))) {
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("The valign attribute is obsolete in HTML5.");
 
       if (dStrAsciiCasecmp (attr, "top") == 0)
@@ -341,7 +343,7 @@ bool a_Html_tag_set_valign_attr(DilloHtml *html, const char *tag, int tagsize)
          valign = VALIGN_MIDDLE;
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_VERTICAL_ALIGN, CssDeclarationValueTypeENUM, valign);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_VERTICAL_ALIGN, CssDeclarationValueTypeENUM, valign);
       return true;
    } else
       return false;
@@ -395,8 +397,8 @@ DilloHtml::DilloHtml(BrowserWindow *p_bw, const DilloUrl *url,
    CurrOfs = OldOfs = 0;
    OldLine = 1;
 
-   DocType = DT_NONE;    /* assume Tag Soup 0.0!   :-) */
-   DocTypeVersion = 0.0f;
+   htmlDocument.DocType = DT_NONE;    /* assume Tag Soup 0.0!   :-) */
+   htmlDocument.DocTypeVersion = 0.0f;
 
    styleEngine = new StyleEngine (Html2Layout (this), page_url, base_url);
 
@@ -1294,7 +1296,7 @@ int32_t a_Html_color_parse(DilloHtml *html, const char *str,
 static int
 Html_check_name_val(DilloHtml *html, const char *val, const char *attrname) // kamil
 {
-   if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f) {
+   if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f) {
       bool valid = *val && !strchr(val, ' ');
 
       if (!valid) {
@@ -1374,7 +1376,7 @@ static void Html_parse_doctype(DilloHtml *html, const char *tag, int tagsize)
 
    _MSG("New: {%s}\n", ntag);
 
-   if (html->DocType != DT_NONE)
+   if (html->htmlDocument.DocType != DT_NONE)
       BUG_MSG("Multiple DOCTYPE declarations.");
 
    /* The default DT_NONE type is TagSoup */
@@ -1383,25 +1385,25 @@ static void Html_parse_doctype(DilloHtml *html, const char *tag, int tagsize)
       p = ntag + strlen(HTML_SGML_sig) + 1;
       if (!strncmp(p, HTML401, strlen(HTML401)) &&
           dStriAsciiStr(p + strlen(HTML401), HTML401_url)) {
-         html->DocType = DT_HTML;
-         html->DocTypeVersion = 4.01f;
+         html->htmlDocument.DocType = DT_HTML;
+         html->htmlDocument.DocTypeVersion = 4.01f;
       } else if (!strncmp(p, XHTML1, strlen(XHTML1)) &&
                  dStriAsciiStr(p + strlen(XHTML1), XHTML1_url)) {
-         html->DocType = DT_XHTML;
-         html->DocTypeVersion = 1.0f;
+         html->htmlDocument.DocType = DT_XHTML;
+         html->htmlDocument.DocTypeVersion = 1.0f;
       } else if (!strncmp(p, XHTML11, strlen(XHTML11)) &&
                  dStriAsciiStr(p + strlen(XHTML11), XHTML11_url)) {
-         html->DocType = DT_XHTML;
-         html->DocTypeVersion = 1.1f;
+         html->htmlDocument.DocType = DT_XHTML;
+         html->htmlDocument.DocTypeVersion = 1.1f;
       } else if (!strncmp(p, HTML40, strlen(HTML40))) {
-         html->DocType = DT_HTML;
-         html->DocTypeVersion = 4.0f;
+         html->htmlDocument.DocType = DT_HTML;
+         html->htmlDocument.DocTypeVersion = 4.0f;
       } else if (!strncmp(p, HTML32, strlen(HTML32))) {
-         html->DocType = DT_HTML;
-         html->DocTypeVersion = 3.2f;
+         html->htmlDocument.DocType = DT_HTML;
+         html->htmlDocument.DocTypeVersion = 3.2f;
       } else if (!strncmp(p, HTML20, strlen(HTML20))) {
-         html->DocType = DT_HTML;
-         html->DocTypeVersion = 2.0f;
+         html->htmlDocument.DocType = DT_HTML;
+         html->htmlDocument.DocTypeVersion = 2.0f;
       }
    } else if (!dStrAsciiCasecmp(ntag, "<!DOCTYPE html>") ||
               !dStrAsciiCasecmp(ntag, "<!DOCTYPE html >") ||
@@ -1409,11 +1411,11 @@ static void Html_parse_doctype(DilloHtml *html, const char *tag, int tagsize)
                            "<!DOCTYPE html SYSTEM \"about:legacy-compat\">") ||
               !dStrAsciiCasecmp(ntag,
                              "<!DOCTYPE html SYSTEM 'about:legacy-compat'>")) {
-      html->DocType = DT_HTML;
-      html->DocTypeVersion = 5.0f;
+      html->htmlDocument.DocType = DT_HTML;
+      html->htmlDocument.DocTypeVersion = 5.0f;
    }
-   if (html->DocType == DT_NONE) {
-      html->DocType = DT_UNRECOGNIZED;
+   if (html->htmlDocument.DocType == DT_NONE) {
+      html->htmlDocument.DocType = DT_UNRECOGNIZED;
       BUG_MSG("DOCTYPE not recognized: ('%s').", ntag);
    }
    dFree(ntag);
@@ -1559,7 +1561,7 @@ static void Html_tag_open_style(DilloHtml *html, const char *tag, int tagsize)
    html->loadCssFromStash = true;
 
    if (!(attr_value = html_attribute_get_value(tag, tagsize, "type"))) {
-      if (html->DocType != DT_HTML || html->DocTypeVersion <= 4.01f)
+      if (html->htmlDocument.DocType != DT_HTML || html->htmlDocument.DocTypeVersion <= 4.01f)
          BUG_MSG("<style> requires type attribute.");
    } else if (dStrAsciiCasecmp(attr_value, "text/css")) {
       html->loadCssFromStash = false;
@@ -1622,24 +1624,24 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    if ((attr_value = html_attribute_get_value(tag, tagsize, "bgcolor"))) {
       color = a_Html_color_parse(html, attr_value, -1);
 
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<body> bgcolor attribute is obsolete.");
 
       if (color != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, color);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, color);
       }
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "text"))) {
       color = a_Html_color_parse(html, attr_value, -1);
 
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<body> text attribute is obsolete.");
 
       if (color != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color);
       }
    }
 
@@ -1647,13 +1649,13 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "link"))) {
       html->non_css_link_color = a_Html_color_parse(html, attr_value, -1);
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<body> link attribute is obsolete.");
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "vlink"))) {
       html->non_css_visited_color = a_Html_color_parse(html, attr_value, -1);
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<body> vlink attribute is obsolete.");
    }
 
@@ -1679,7 +1681,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    html->styleEngine->setPseudoVisited ();
    if (html->non_css_visited_color != -1) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color);
    }
    html->visited_color = html->styleEngine->getStyle (html->bw)->color->getColor ();
    html->styleEngine->endElement (tag_index_a);
@@ -1713,7 +1715,8 @@ static void Html_tag_close_body(DilloHtml *html)
  */
 static void Html_tag_open_p(DilloHtml *html, const char *tag, int tagsize)
 {
-   a_Html_tag_set_align_attr (html, tag, tagsize);
+   StyleNode * currentNode = getCurrentNode(html->styleEngine);
+   a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
 }
 
 /*
@@ -1741,7 +1744,7 @@ static void Html_tag_open_frame (DilloHtml *html, const char *tag, int tagsize)
    }
 
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
-   styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html,&url));
+   styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html,&url));
 }
 
 static void
@@ -1803,11 +1806,11 @@ static void Html_tag_content_frameset (DilloHtml *html,
  */
 static void Html_tag_open_h(DilloHtml *html, const char *tag, int tagsize)
 {
-   a_Html_tag_set_align_attr (html, tag, tagsize);
+   StyleNode * currentNode = getCurrentNode(html->styleEngine);
+   a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
 
    a_Html_stash_init(html);
-   TopOfParsingStack(html)->parse_mode =
-      DILLO_HTML_PARSE_MODE_STASH_AND_BODY;
+   TopOfParsingStack(html)->parse_mode = DILLO_HTML_PARSE_MODE_STASH_AND_BODY;
 }
 
 /*
@@ -1836,14 +1839,14 @@ static void Html_tag_open_font(DilloHtml *html, const char *tag, int tagsize)
       }
       if (color != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color);
       }
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "face"))) {
       fontFamily = dStrdup(attr_value);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_FONT_FAMILY, CssDeclarationValueTypeSYMBOL, fontFamily);
+      styleEngineSetNonCssHintOfCurrentNodeString(&currentNode->declLists, CSS_PROPERTY_FONT_FAMILY, CssDeclarationValueTypeSYMBOL, fontFamily);
    }
 
    dFree(fontFamily);
@@ -1860,7 +1863,7 @@ static void Html_tag_open_abbr(DilloHtml *html, const char *tag, int tagsize)
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      styleEngineSetNonCssHintOfCurrentNodeString(&currentNode->declLists, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
    }
 }
 
@@ -1879,7 +1882,7 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      styleEngineSetNonCssHintOfCurrentNodeString(&currentNode->declLists, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
    }
    width_ptr = html_attribute_get_value_with_default(tag, tagsize, "width", NULL);
    height_ptr = html_attribute_get_value_with_default(tag, tagsize, "height", NULL);
@@ -1912,10 +1915,10 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
    } else {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       if (hll_cssLengthType(l_w.bits) != CSS_LENGTH_TYPE_AUTO) {
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_w);
+         styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_w);
       }
       if (hll_cssLengthType(l_h.bits) != CSS_LENGTH_TYPE_AUTO) {
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_HEIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_h);
+         styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_HEIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_h);
       }
    }
 
@@ -1929,7 +1932,7 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
    /* x_img is an index to a list of {url,image} pairs.
     * We know a_Html_image_new() will use size() as its next index */
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
-   styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_IMG, CssDeclarationValueTypeINTEGER, html->images->size());
+   styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, PROPERTY_X_IMG, CssDeclarationValueTypeINTEGER, html->images->size());
 
 
    dFree(width_ptr);
@@ -2017,8 +2020,8 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
 	      CssLength space;
 	      space.bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
 	      StyleNode * currentNode = getCurrentNode(html->styleEngine);
-	      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_MARGIN_LEFT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
-	      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_MARGIN_RIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
+	      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_MARGIN_LEFT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
+	      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_MARGIN_RIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
       }
    }
 
@@ -2029,8 +2032,8 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
          CssLength space;
          space.bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_MARGIN_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_MARGIN_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
+         styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_MARGIN_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
+         styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_MARGIN_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
       }
    }
 
@@ -2041,15 +2044,15 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
          CssLength border;
          border.bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_WIDTH,     CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
+         styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_WIDTH,     CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
+         styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
+         styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
+         styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
 
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID);
       }
    }
 
@@ -2288,7 +2291,7 @@ static void Html_tag_open_object(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
    }
    a_Url_free(base_url);
 }
@@ -2326,7 +2329,7 @@ static void Html_tag_open_video(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
 
       Html2TextBlock(html)->addText("[VIDEO]", html->styleEngine->getWordStyle (html->bw));
    }
@@ -2358,7 +2361,7 @@ static void Html_tag_open_audio(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
 
       Html2TextBlock(html)->addText("[AUDIO]", html->styleEngine->getWordStyle (html->bw));
    }
@@ -2392,7 +2395,7 @@ static void Html_tag_open_source(DilloHtml *html, const char *tag,
          html->styleEngine->setPseudoLink ();
       }
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
    }
 }
 
@@ -2431,7 +2434,7 @@ static void Html_tag_open_embed(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
    }
 }
 
@@ -2510,18 +2513,18 @@ static void Html_tag_open_a(DilloHtml *html, const char *tag, int tagsize)
          html->InVisitedLink = true;
          html->styleEngine->setPseudoVisited ();
          if (html->non_css_visited_color != -1)
-            styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color);
+            styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color);
       } else {
          html->styleEngine->setPseudoLink ();
          if (html->non_css_link_color != -1)
-            styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_link_color);
+            styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_link_color);
       }
 
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
    }
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      styleEngineSetNonCssHintOfCurrentNodeString(&currentNode->declLists, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
    }
 
    html->styleEngine->inheritBackgroundColor ();
@@ -2614,8 +2617,8 @@ static void Html_tag_open_ul(DilloHtml *html, const char *tag, int tagsize)
          list_style_type = LIST_STYLE_TYPE_DISC;
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, list_style_type);
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, list_style_type);
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<ul> type attribute is obsolete.");
    }
 
@@ -2654,7 +2657,7 @@ static void Html_tag_open_menu(DilloHtml *html, const char *tag, int tagsize)
     *   (now it's for popup menus and toolbar menus rather than being a
     *   sort of list).
     */
-   if (!(html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f))
+   if (!(html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f))
       Html_tag_open_dir(html, tag, tagsize);
 }
 
@@ -2681,7 +2684,7 @@ static void Html_tag_open_ol(DilloHtml *html, const char *tag, int tagsize)
          listStyleType = LIST_STYLE_TYPE_UPPER_ROMAN;
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, listStyleType);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, listStyleType);
    }
 
    TopOfParsingStack(html)->list_type = HTML_LIST_ORDERED;
@@ -2742,31 +2745,32 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
 
    width_ptr = html_attribute_get_value_with_default(tag, tagsize, "width", NULL);
    if (width_ptr) {
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<hr> width attribute is obsolete.");
       CssLength width = html_parse_attribute_width_or_height(width_ptr);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
       dFree(width_ptr);
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "size"))) {
       size = strtol(attr_value, NULL, 10);
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<hr> size attribute is obsolete.");
    }
 
-   a_Html_tag_set_align_attr(html, tag, tagsize);
+   StyleNode * currentNode = getCurrentNode(html->styleEngine);
+   a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
 
    /* TODO: evaluate attribute */
    if (html_attribute_get_value(tag, tagsize, "noshade")) {
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<hr> noshade attribute is obsolete.");
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID);
 
       if (size <= 0)
          size = 1;
@@ -2778,10 +2782,10 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
       CssLength size_bottom;
       size_bottom.bits = hll_cssCreateLength (size / 2, CSS_LENGTH_TYPE_PX);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, size_bottom);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, size_bottom);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, size_bottom);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, size_bottom);
    }
 
 }
@@ -2849,7 +2853,7 @@ static void Html_tag_close_pre(DilloHtml *html)
  */
 static int Html_tag_pre_excludes(DilloHtml *html, int tag_idx)
 {
-   if (!(html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)) {
+   if (!(html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)) {
       /* HTML5 doesn't say anything about excluding elements */
       const char *es_set[] = {"img", "object", "applet", "big", "small", "sub",
                               "sup", "font", "basefont", NULL};
@@ -2913,7 +2917,7 @@ static void Html_tag_open_meta(DilloHtml *html, const char *tag, int tagsize)
 
    /* only valid inside HEAD */
    if (!(html->InFlags & IN_HEAD)) {
-      if (!((html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f) &&
+      if (!((html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f) &&
             html_attribute_get_value(tag, tagsize, "itemprop"))) {
          /* With the HTML 5.1 draft spec, meta with itemprop may appear
           * in the body.
@@ -2988,7 +2992,7 @@ static void Html_tag_open_meta(DilloHtml *html, const char *tag, int tagsize)
          _MSG("Html_tag_open_meta: content={%s}\n", content);
          Html_update_content_type(html, content);
       }
-   } else if (html->DocType == DT_HTML && html->DocTypeVersion == 5.0f &&
+   } else if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion == 5.0f &&
               (charset = html_attribute_get_value(tag, tagsize, "charset"))) {
       char *content = dStrconcat("text/html; charset=", charset, NULL);
 
@@ -3081,7 +3085,7 @@ static void Html_tag_open_link(DilloHtml *html, const char *tag, int tagsize)
 
    /* Ignore LINK outside HEAD */
    if (!(html->InFlags & IN_HEAD)) {
-      if (!((html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f) &&
+      if (!((html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f) &&
             html_attribute_get_value(tag, tagsize, "itemprop"))) {
          /* With the HTML 5.1 draft spec, link with itemprop may appear
           * in the body.
@@ -3157,7 +3161,7 @@ static void Html_tag_open_span(DilloHtml *html, const char *tag, int tagsize)
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      styleEngineSetNonCssHintOfCurrentNodeString(&currentNode->declLists, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
    }
 }
 
@@ -3171,7 +3175,7 @@ static void Html_tag_open_sectioning(DilloHtml *html, const char *tag,
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      styleEngineSetNonCssHintOfCurrentNodeString(&currentNode->declLists, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
    }
 }
 
@@ -3180,7 +3184,8 @@ static void Html_tag_open_sectioning(DilloHtml *html, const char *tag,
  */
 static void Html_tag_open_div(DilloHtml *html, const char *tag, int tagsize)
 {
-   a_Html_tag_set_align_attr (html, tag, tagsize);
+   StyleNode * currentNode = getCurrentNode(html->styleEngine);
+   a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
    Html_tag_open_sectioning(html, tag, tagsize);
 }
 
@@ -3463,7 +3468,7 @@ static void Html_test_section(DilloHtml *html, int new_idx, int IsCloseTag)
    const char *tag;
    int tag_idx;
 
-   if (!(html->InFlags & IN_HTML) && html->DocType == DT_NONE)
+   if (!(html->InFlags & IN_HTML) && html->htmlDocument.DocType == DT_NONE)
       BUG_MSG("The required DOCTYPE declaration is missing. "
               "Handling as HTML4.");
 
@@ -3560,7 +3565,7 @@ static void Html_parse_common_attrs(DilloHtml *html, char *tag, int tagsize)
    }
    if (lang[0]) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, PROPERTY_X_LANG, CssDeclarationValueTypeSTRING, lang);
+      styleEngineSetNonCssHintOfCurrentNodeString(&currentNode->declLists, PROPERTY_X_LANG, CssDeclarationValueTypeSTRING, lang);
    }
 }
 
@@ -3654,7 +3659,7 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       return;
    }
 
-   if (!IsCloseTag && html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+   if (!IsCloseTag && html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
       Html_check_html5_obsolete(html, new_tag_idx);
 
    /* Handle HTML, HEAD and BODY. Elements with optional open and close */

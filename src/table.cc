@@ -47,53 +47,53 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
       border = isdigit(attr_value[0]) ? strtol (attr_value, NULL, 10) : 1;
    if ((attr_value = html_attribute_get_value(tag, tagsize, "cellspacing"))) {
       cellspacing = strtol (attr_value, NULL, 10);
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<table> cellspacing attribute is obsolete.");
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "cellpadding"))) {
       cellpadding = strtol (attr_value, NULL, 10);
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<table> cellpadding attribute is obsolete.");
    }
 
    if (border != -1) {
       cssLength.bits = hll_cssCreateLength(border, CSS_LENGTH_TYPE_PX);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_OUTSET);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_OUTSET);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_OUTSET);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_OUTSET);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_OUTSET);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_OUTSET);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_OUTSET);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_OUTSET);
    }
 
    if (cellspacing != -1) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       cssLength.bits = hll_cssCreateLength(cellspacing, CSS_LENGTH_TYPE_PX);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_SPACING, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_SPACING, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "width"))) {
       CssLength width = html_parse_attribute_width_or_height(attr_value);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<table> width attribute is obsolete.");
    }
 
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
    if ((attr_value = html_attribute_get_value(tag, tagsize, "align"))) {
       if (dStrAsciiCasecmp (attr_value, "left") == 0) {
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN,  CssDeclarationValueTypeENUM, TEXT_ALIGN_LEFT);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN,  CssDeclarationValueTypeENUM, TEXT_ALIGN_LEFT);
       } else if (dStrAsciiCasecmp (attr_value, "right") == 0) {
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, TEXT_ALIGN_RIGHT);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, TEXT_ALIGN_RIGHT);
       } else if (dStrAsciiCasecmp (attr_value, "center") == 0) {
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, TEXT_ALIGN_CENTER);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, TEXT_ALIGN_CENTER);
       }
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f) {
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f) {
          BUG_MSG("<table> align attribute is obsolete.");
       }
    }
@@ -102,9 +102,9 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
       bgcolor = a_Html_color_parse(html, attr_value, -1);
       if (bgcolor != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
       }
-      if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+      if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
          BUG_MSG("<table> bgcolor attribute is obsolete.");
    }
 
@@ -115,23 +115,23 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    if (border > 0) {
       cssLength.bits = hll_cssCreateLength(1, CSS_LENGTH_TYPE_PX);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_INSET);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_INSET);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_INSET);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_STYLE, CssDeclarationValueTypeENUM, BORDER_INSET);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_INSET);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_INSET);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_INSET);
+      styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_INSET);
    }
 
    if (cellpadding != -1) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       cssLength.bits = hll_cssCreateLength(cellpadding, CSS_LENGTH_TYPE_PX);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_PADDING_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_PADDING_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_PADDING_LEFT,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_PADDING_RIGHT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_PADDING_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_PADDING_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_PADDING_LEFT,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_PADDING_RIGHT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
    }
 
 }
@@ -174,23 +174,24 @@ void Html_tag_open_tr(DilloHtml *html, const char *tag, int tagsize)
          bgcolor = a_Html_color_parse(html, attr_value, -1);
          if (bgcolor != -1) {
             StyleNode * currentNode = getCurrentNode(html->styleEngine);
-            styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
+            styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
          }
-         if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f) {
+         if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f) {
             BUG_MSG("<tr> bgcolor attribute is obsolete.");
          }
       }
 
       if (html_attribute_get_value(tag, tagsize, "align")) {
+         StyleNode * currentNode = getCurrentNode(html->styleEngine);
          TopOfParsingStack(html)->cell_text_align_set = TRUE;
-         a_Html_tag_set_align_attr (html, tag, tagsize);
+         a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
       }
 
       html->styleEngine->inheritBackgroundColor ();
 
       if (bgcolor != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
       }
       a_Html_tag_set_valign_attr (html, tag, tagsize);
       break;
@@ -362,23 +363,26 @@ static void Html_tag_open_table_cell(DilloHtml *html,
       /* text style */
       if (!TopOfParsingStack(html)->cell_text_align_set) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, text_align);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, text_align);
       }
       if (html_attribute_get_value(tag, tagsize, "nowrap")) {
-         if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f) {
+         if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f) {
             BUG_MSG("<t%c> nowrap attribute is obsolete.", (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');
          }
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_WHITE_SPACE, CssDeclarationValueTypeENUM, WHITE_SPACE_NOWRAP);
+         styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_WHITE_SPACE, CssDeclarationValueTypeENUM, WHITE_SPACE_NOWRAP);
       }
 
-      a_Html_tag_set_align_attr (html, tag, tagsize);
+      {
+         StyleNode * currentNode = getCurrentNode(html->styleEngine);
+         a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
+      }
 
       if ((attr_value = html_attribute_get_value(tag, tagsize, "width"))) {
          CssLength width = html_parse_attribute_width_or_height(attr_value);
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
-         if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f)
+         styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
+         if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f)
             BUG_MSG("<t%c> width attribute is obsolete.",
                (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');
       }
@@ -389,9 +393,9 @@ static void Html_tag_open_table_cell(DilloHtml *html,
          bgcolor = a_Html_color_parse(html, attr_value, -1);
          if (bgcolor != -1) {
             StyleNode * currentNode = getCurrentNode(html->styleEngine);
-            styleEngineSetNonCssHintOfCurrentNode(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
+            styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
          }
-         if (html->DocType == DT_HTML && html->DocTypeVersion >= 5.0f) {
+         if (html->htmlDocument.DocType == DT_HTML && html->htmlDocument.DocTypeVersion >= 5.0f) {
             BUG_MSG("<t%c> bgcolor attribute is obsolete.", (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');
          }
       }

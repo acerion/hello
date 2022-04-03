@@ -58,6 +58,8 @@ module Hello.Ffi.Css.Parser( FfiCssComplexSelectorLink (..)
 
                            , FfiCssValue
                            , peekCssValue
+
+                           , cssLengthWordToDistance
                            )
   where
 

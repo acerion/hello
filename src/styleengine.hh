@@ -34,9 +34,11 @@ struct StyleNode {
 class StyleEngine;
 StyleNode * getCurrentNode(StyleEngine * styleEngine);
 
-void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, int value);
-void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, const char *value);
-void styleEngineSetNonCssHintOfCurrentNode(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength);
+void print_css_declaration_set(FILE * file, c_css_declaration_set_t * props);
+
+void styleEngineSetNonCssHintOfCurrentNodeInt(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, int value);
+void styleEngineSetNonCssHintOfCurrentNodeString(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, const char *value);
+void styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, CssLength length);
 
 class StyleEngine {
 public:

@@ -120,6 +120,11 @@ typedef struct {
    bool hand_over_break;
 } DilloHtmlState;
 
+typedef struct HtmlDocument {
+   DilloHtmlDocumentType DocType; /* as given by DOCTYPE tag */
+   float DocTypeVersion;          /* HTML or XHTML version number */
+} HtmlDocument;
+
 /*
  * Classes
  */
@@ -154,8 +159,7 @@ public:  //BUG: for now everything is public
 
    size_t CurrOfs, OldOfs, OldLine;
 
-   DilloHtmlDocumentType DocType; /* as given by DOCTYPE tag */
-   float DocTypeVersion;          /* HTML or XHTML version number */
+   HtmlDocument htmlDocument;
 
    /* vector of remote CSS resources, as given by the LINK element */
    lout::misc::SimpleVector<DilloUrl*> *cssUrls;
@@ -238,7 +242,7 @@ void a_Html_stash_init(DilloHtml *html);
 int32_t a_Html_color_parse(DilloHtml *html, const char *str,
                            int32_t default_color);
 CssLength html_parse_attribute_width_or_height(const char * attr_value);
-void a_Html_tag_set_align_attr(DilloHtml *html, const char *tag, int tagsize);
+void a_Html_tag_set_align_attr(HtmlDocument * htmlDocument, StyleNode * currentNode, const char * tag, int tagsize);
 bool a_Html_tag_set_valign_attr(DilloHtml *html,
                                 const char *tag, int tagsize);
 
