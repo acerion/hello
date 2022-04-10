@@ -61,7 +61,8 @@ import Hello.Html.Document
 
 
 
-foreign export ccall "hll_getDoctypePublic" hll_getDoctypePublic :: Ptr FfiHtmlDocument -> CString -> IO ()
+foreign export ccall "hll_getDoctype4" hll_getDoctype4 :: Ptr FfiHtmlDocument -> CString -> IO ()
+foreign export ccall "hll_getDoctypeFromBuffer" hll_getDoctypeFromBuffer :: Ptr FfiHtmlDocument -> CString -> CInt -> IO ()
 
 
 
@@ -132,14 +133,32 @@ intToDocumentType i = case i of
 
 
 
-hll_getDoctypePublic :: Ptr FfiHtmlDocument -> CString -> IO ()
-hll_getDoctypePublic ptrHtmlDocument cBuf = do
+hll_getDoctype4 :: Ptr FfiHtmlDocument -> CString -> IO ()
+hll_getDoctype4 ptrHtmlDocument cBuf = do
   buf <- BSU.unsafePackCString cBuf
   let bufT = T.E.decodeUtf8 buf
 
   htmlDocument <- peekHtmlDocument ptrHtmlDocument
 
-  let newHtmlDocument = getDoctypePublic bufT htmlDocument
+  let newHtmlDocument = getDoctype4 bufT htmlDocument
+
+  pokeHtmlDocument ptrHtmlDocument newHtmlDocument
+
+  putStrLn $ show newHtmlDocument
+
+  return ()
+
+
+
+
+hll_getDoctypeFromBuffer :: Ptr FfiHtmlDocument -> CString -> CInt -> IO ()
+hll_getDoctypeFromBuffer ptrHtmlDocument cBuf cBufLen = do
+  buf <- BSU.unsafePackCStringLen (cBuf, fromIntegral cBufLen)
+  let bufT = T.E.decodeUtf8 buf
+
+  htmlDocument <- peekHtmlDocument ptrHtmlDocument
+
+  let newHtmlDocument = getDoctypeFromBuffer bufT htmlDocument
 
   pokeHtmlDocument ptrHtmlDocument newHtmlDocument
 

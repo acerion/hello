@@ -1288,85 +1288,6 @@ int32_t a_Html_color_parse(DilloHtml *html, const char *str,
    return color;
 }
 
-
-/*
- * Handle DOCTYPE declaration
- *
- * Follows the convention that HTML 4.01
- * doctypes which include a full w3c DTD url are treated as
- * standards-compliant, but 4.01 without the url and HTML 4.0 and
- * earlier are not. XHTML doctypes are always standards-compliant
- * whether or not an url is present.
- *
- * Note: I'm not sure about this convention. The W3C validator
- * recognizes the "HTML Level" with or without the URL. The convention
- * comes from mozilla (see URLs below), but Dillo doesn't have the same
- * rendering modes, so it may be better to chose another behaviour. --Jcid
- *
- * http://www.mozilla.org/docs/web-developer/quirks/doctypes.html
- * http://lists.auriga.wearlab.de/pipermail/dillo-dev/2004-October/002300.html
- *
- * This is not a full DOCTYPE parser, just enough for what Dillo uses.
- */
-static void Html_parse_doctype(DilloHtml *html, const char *tag, int tagsize)
-{
-   char * sanitizedTag = dStrndup(tag, tagsize);
-   {
-      size_t i;
-      int quote;
-      char * p = NULL;
-      /* Tag sanitization: Collapse whitespace between tokens
-       * and replace '\n' and '\r' with ' ' inside quoted strings. */
-      for (i = 0, p = sanitizedTag; *p; ++p) {
-         if (isspace(*p)) {
-            for (sanitizedTag[i++] = ' '; isspace(p[1]); ++p) ;
-         } else if ((quote = *p) == '"' || *p == '\'') {
-            for (sanitizedTag[i++] = *p++; (sanitizedTag[i] = *p) && sanitizedTag[i++] != quote; ++p) {
-               if (*p == '\n' || *p == '\r') {
-                  sanitizedTag[i - 1] = ' ';
-               }
-               p += (p[0] == '\r' && p[1] == '\n') ? 1 : 0;
-            }
-         } else {
-            sanitizedTag[i++] = *p;
-         }
-         if (!*p) {
-            break;
-         }
-      }
-      sanitizedTag[i] = 0;
-      fprintf(stderr, "Sanitized tag: {%s}\n", sanitizedTag);
-   }
-
-   if (html->htmlDocument.c_doc_type != DT_NONE) {
-      BUG_MSG("Multiple DOCTYPE declarations.");
-   }
-
-   {
-      static const char HTML_SGML_sig[] = "<!DOCTYPE HTML PUBLIC ";
-
-      /* The default DT_NONE type is TagSoup */
-      if (strlen(sanitizedTag) > strlen(HTML_SGML_sig) && !dStrnAsciiCasecmp(sanitizedTag, HTML_SGML_sig, strlen(HTML_SGML_sig))) {
-
-         char * pastPublic = sanitizedTag + strlen(HTML_SGML_sig) + 1;
-         hll_getDoctypePublic(&html->htmlDocument, pastPublic);
-
-      } else if (!dStrAsciiCasecmp(sanitizedTag, "<!DOCTYPE html>") ||
-                 !dStrAsciiCasecmp(sanitizedTag, "<!DOCTYPE html >") ||
-                 !dStrAsciiCasecmp(sanitizedTag, "<!DOCTYPE html SYSTEM \"about:legacy-compat\">") ||
-                 !dStrAsciiCasecmp(sanitizedTag, "<!DOCTYPE html SYSTEM 'about:legacy-compat'>")) {
-         html->htmlDocument.c_doc_type = DT_HTML;
-         html->htmlDocument.c_doc_type_version = 5.0f;
-      }
-   }
-
-   if (html->htmlDocument.c_doc_type == DT_NONE) {
-      html->htmlDocument.c_doc_type = DT_UNRECOGNIZED;
-      BUG_MSG("DOCTYPE not recognized: ('%s').", sanitizedTag);
-   }
-   dFree(sanitizedTag);
-}
-
 /*
  * Handle open HTML element
  */
@@ -3600,7 +3521,7 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       /* TODO: doctype parsing is a bit fuzzy, but enough for the time being */
       if (!(html->InFlags & IN_HTML)) {
          if (tagsize > 9 && !dStrnAsciiCasecmp(tag, "<!doctype", 9))
-            Html_parse_doctype(html, tag, tagsize);
+            hll_getDoctypeFromBuffer(&html->htmlDocument, tag, tagsize);
       }
       /* Ignore unknown tags */
       return;
