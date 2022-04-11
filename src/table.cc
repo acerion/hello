@@ -47,13 +47,13 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
       border = isdigit(attr_value[0]) ? strtol (attr_value, NULL, 10) : 1;
    if ((attr_value = html_attribute_get_value(tag, tagsize, "cellspacing"))) {
       cellspacing = strtol (attr_value, NULL, 10);
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<table> cellspacing attribute is obsolete.");
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "cellpadding"))) {
       cellpadding = strtol (attr_value, NULL, 10);
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<table> cellpadding attribute is obsolete.");
    }
 
@@ -80,7 +80,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
       CssLength width = html_parse_attribute_width_or_height(attr_value);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<table> width attribute is obsolete.");
    }
 
@@ -93,7 +93,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
       } else if (dStrAsciiCasecmp (attr_value, "center") == 0) {
          styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, TEXT_ALIGN_CENTER);
       }
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f) {
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f) {
          BUG_MSG("<table> align attribute is obsolete.");
       }
    }
@@ -104,7 +104,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
          styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
       }
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<table> bgcolor attribute is obsolete.");
    }
 
@@ -176,7 +176,7 @@ void Html_tag_open_tr(DilloHtml *html, const char *tag, int tagsize)
             StyleNode * currentNode = getCurrentNode(html->styleEngine);
             styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
          }
-         if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f) {
+         if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f) {
             BUG_MSG("<tr> bgcolor attribute is obsolete.");
          }
       }
@@ -184,7 +184,7 @@ void Html_tag_open_tr(DilloHtml *html, const char *tag, int tagsize)
       if (html_attribute_get_value(tag, tagsize, "align")) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
          TopOfParsingStack(html)->cell_text_align_set = TRUE;
-         a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
+         a_Html_tag_set_align_attr(&html->doctype, currentNode, tag, tagsize);
       }
 
       html->styleEngine->inheritBackgroundColor ();
@@ -366,7 +366,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
          styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, text_align);
       }
       if (html_attribute_get_value(tag, tagsize, "nowrap")) {
-         if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f) {
+         if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f) {
             BUG_MSG("<t%c> nowrap attribute is obsolete.", (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');
          }
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
@@ -375,14 +375,14 @@ static void Html_tag_open_table_cell(DilloHtml *html,
 
       {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
+         a_Html_tag_set_align_attr(&html->doctype, currentNode, tag, tagsize);
       }
 
       if ((attr_value = html_attribute_get_value(tag, tagsize, "width"))) {
          CssLength width = html_parse_attribute_width_or_height(attr_value);
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
          styleEngineSetNonCssHintOfCurrentNodeLength(&currentNode->declLists, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
-         if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+         if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
             BUG_MSG("<t%c> width attribute is obsolete.",
                (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');
       }
@@ -395,7 +395,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
             StyleNode * currentNode = getCurrentNode(html->styleEngine);
             styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor);
          }
-         if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f) {
+         if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f) {
             BUG_MSG("<t%c> bgcolor attribute is obsolete.", (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');
          }
       }

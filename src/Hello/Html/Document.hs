@@ -28,8 +28,7 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 module Hello.Html.Document
   (
-    HtmlDocument (..)
-  , HtmlDocumentType (..)
+    HtmlDoctype (..)
   , getDoctypeFromBuffer
 
   -- Exported only for tests
@@ -55,21 +54,13 @@ import Hello.Css.Parser
 
 
 
-data HtmlDocumentType =
-    HtmlDocumentTypeNone
-  | HtmlDocumentTypeUnrecognized
-  | HtmlDocumentTypeHtml
-  | HtmlDocumentTypeXhtml
+data HtmlDoctype =
+    HtmlDoctypeNone
+  | HtmlDoctypeUnrecognized
+  | HtmlDoctypeHtml Float
+  | HtmlDoctypeXhtml Float
   deriving (Show, Eq)
 
-
-
-
-data HtmlDocument = HtmlDocument
-  { docType        :: HtmlDocumentType
-  , docTypeVersion :: Float
-  }
-  deriving (Show, Eq)
 
 
 
@@ -89,14 +80,14 @@ xhtml11Url   = T.toLower "http://www.w3.org/TR/xhtml11/DTD/"
 
 
 -- Get doctype of document up to and including 4.x
-getDoctype4 :: T.Text -> HtmlDocument -> HtmlDocument
-getDoctype4 bufL doc | T.isPrefixOf  html401 bufL && urlMatches bufL  html401  html401Url = doc { docType = HtmlDocumentTypeHtml,  docTypeVersion = 4.01 }
-                     | T.isPrefixOf xhtml1   bufL && urlMatches bufL xhtml1   xhtml1Url   = doc { docType = HtmlDocumentTypeXhtml, docTypeVersion = 1.0  }
-                     | T.isPrefixOf xhtml11  bufL && urlMatches bufL xhtml11  xhtml11Url  = doc { docType = HtmlDocumentTypeXhtml, docTypeVersion = 1.1  }
-                     | T.isPrefixOf  html40  bufL = doc { docType = HtmlDocumentTypeHtml,  docTypeVersion = 4.0  }
-                     | T.isPrefixOf  html32  bufL = doc { docType = HtmlDocumentTypeHtml,  docTypeVersion = 3.2  }
-                     | T.isPrefixOf  html20  bufL = doc { docType = HtmlDocumentTypeHtml,  docTypeVersion = 2.0  }
-                     | otherwise                  = doc
+getDoctype4 :: T.Text -> HtmlDoctype -> HtmlDoctype
+getDoctype4 bufL doctype | T.isPrefixOf  html401 bufL && urlMatches bufL  html401  html401Url = HtmlDoctypeHtml  4.01
+                         | T.isPrefixOf xhtml1   bufL && urlMatches bufL xhtml1   xhtml1Url   = HtmlDoctypeXhtml 1.0
+                         | T.isPrefixOf xhtml11  bufL && urlMatches bufL xhtml11  xhtml11Url  = HtmlDoctypeXhtml 1.1
+                         | T.isPrefixOf  html40  bufL = HtmlDoctypeHtml 4.0
+                         | T.isPrefixOf  html32  bufL = HtmlDoctypeHtml 3.2
+                         | T.isPrefixOf  html20  bufL = HtmlDoctypeHtml 2.0
+                         | otherwise                  = doctype
   where
     urlMatches buf tag url = T.isInfixOf urlL remL
       where
@@ -105,8 +96,8 @@ getDoctype4 bufL doc | T.isPrefixOf  html401 bufL && urlMatches bufL  html401  h
 
 
 
-getDoctype5 buffer doc | any (\x -> x == buffer) html5Doctypes = doc { docType = HtmlDocumentTypeHtml, docTypeVersion = 5.0 }
-                       | otherwise                             = doc
+getDoctype5 buffer doctype | any (\x -> x == buffer) html5Doctypes = HtmlDoctypeHtml 5.0
+                           | otherwise                             = doctype
   where
     -- TODO: check how much we can really coerce to lower cases
     html5Doctypes = [ T.toLower "<!DOCTYPE html>"
@@ -193,26 +184,26 @@ http://lists.dillo.org/pipermail/dillo-dev/2004-October/002300.html
 This is not a full DOCTYPE parser, just enough for what Dillo uses.
 "
 -}
-getDoctypeFromBuffer :: T.Text -> HtmlDocument -> HtmlDocument
-getDoctypeFromBuffer buffer doc = setFallbackType . get . warnOnMultiple $ (buffer, doc)
+getDoctypeFromBuffer :: T.Text -> HtmlDoctype -> HtmlDoctype
+getDoctypeFromBuffer buffer doctype = setFallbackType . get . warnOnMultiple $ (buffer, doctype)
   where
-    warnOnMultiple (buffer, doc) = if docType doc /= HtmlDocumentTypeNone
-                                   then (buffer, doc) -- TODO: print warning about the fact that the function was probably called for a second time with this arg ("Multiple DOCTYPE declarations.")
-                                   else (buffer, doc)
+    warnOnMultiple (buffer, doctype) = if doctype /= HtmlDoctypeNone
+                                       then (buffer, doctype) -- TODO: print warning about the fact that the function was probably called for a second time with this arg ("Multiple DOCTYPE declarations.")
+                                       else (buffer, doctype)
 
     get (buffer, doc) = getDoctypeFromSanitizedBuffer (sanitizeDoctypeString buffer) doc
 
-    setFallbackType doc = if docType doc == HtmlDocumentTypeNone
-                          then doc { docType = HtmlDocumentTypeUnrecognized } -- TODO: print warning about unrecognized document type
-                          else doc
+    setFallbackType doctype = if doctype == HtmlDoctypeNone
+                              then HtmlDoctypeUnrecognized -- TODO: print warning about unrecognized document type
+                              else doctype
 
 
 
 
-getDoctypeFromSanitizedBuffer :: T.Text -> HtmlDocument -> HtmlDocument
-getDoctypeFromSanitizedBuffer buffer doc = if T.isPrefixOf (T.toLower htmlPublicSig) (T.toLower buffer)
-                                           then getDoctype4 (T.drop ((T.length htmlPublicSig)) (T.toLower buffer)) doc
-                                           else getDoctype5 (T.toLower buffer) doc
+getDoctypeFromSanitizedBuffer :: T.Text -> HtmlDoctype -> HtmlDoctype
+getDoctypeFromSanitizedBuffer buffer doctype = if T.isPrefixOf (T.toLower htmlPublicSig) (T.toLower buffer)
+                                               then getDoctype4 (T.drop ((T.length htmlPublicSig)) (T.toLower buffer)) doctype
+                                               else getDoctype5 (T.toLower buffer) doctype
   where
     htmlPublicSig = "<!DOCTYPE HTML PUBLIC "
 

@@ -55,7 +55,7 @@ import Hello.Css.Parser
 
 
 foreign export ccall "hll_htmlParseAttributeWidthOrHeight" hll_htmlParseAttributeWidthOrHeight :: CString -> IO Word32
-foreign export ccall "hll_htmlValidateNameOrIdValue" hll_htmlValidateNameOrIdValue :: Ptr FfiHtmlDocument -> CString -> CString -> IO Bool
+foreign export ccall "hll_htmlValidateNameOrIdValue" hll_htmlValidateNameOrIdValue :: Ptr FfiHtmlDoctype -> CString -> CString -> IO Bool
 
 
 
@@ -71,10 +71,10 @@ hll_htmlParseAttributeWidthOrHeight cAttrValue = do
 
 
 
-hll_htmlValidateNameOrIdValue :: Ptr FfiHtmlDocument -> CString -> CString -> IO Bool
-hll_htmlValidateNameOrIdValue ptrHtmlDocument ptrAttrName ptrAttrValue = do
+hll_htmlValidateNameOrIdValue :: Ptr FfiHtmlDoctype -> CString -> CString -> IO Bool
+hll_htmlValidateNameOrIdValue ptrHtmlDoctype ptrAttrName ptrAttrValue = do
 
-  htmlDocument <- peekHtmlDocument ptrHtmlDocument
+  htmlDocument <- peekHtmlDoctype ptrHtmlDoctype
 
   attrName <- BSU.unsafePackCString ptrAttrName
   attrValue <- BSU.unsafePackCString ptrAttrValue

@@ -277,7 +277,7 @@ static int Html_set_new_link(DilloHtml *html, DilloUrl **url)
  * Evaluates the ALIGN attribute (left|center|right|justify) and
  * sets the style at the top of the stack.
  */
-void a_Html_tag_set_align_attr(c_html_document_t * htmlDocument, StyleNode * currentNode, const char *tag, int tagsize) // kamil
+void a_Html_tag_set_align_attr(c_html_doctype_t * doctype, StyleNode * currentNode, const char *tag, int tagsize) // kamil
 {
    const char * align = html_attribute_get_value(tag, tagsize, "align");
    if (NULL == align) {
@@ -286,7 +286,7 @@ void a_Html_tag_set_align_attr(c_html_document_t * htmlDocument, StyleNode * cur
 
    TextAlignType alignType = TEXT_ALIGN_LEFT;
 
-   if (htmlDocument->c_doc_type == DT_HTML && htmlDocument->c_doc_type_version >= 5.0f) {
+   if (doctype->c_doc_type == DT_HTML && doctype->c_doc_type_version >= 5.0f) {
       fprintf(stderr, "The align attribute is obsolete in HTML5.\n");
    }
 
@@ -330,7 +330,7 @@ bool a_Html_tag_set_valign_attr(DilloHtml *html, const char *tag, int tagsize) /
    VAlignType valign;
 
    if ((attr = html_attribute_get_value(tag, tagsize, "valign"))) {
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("The valign attribute is obsolete in HTML5.");
 
       if (dStrAsciiCasecmp (attr, "top") == 0)
@@ -397,8 +397,8 @@ DilloHtml::DilloHtml(BrowserWindow *p_bw, const DilloUrl *url,
    CurrOfs = OldOfs = 0;
    OldLine = 1;
 
-   htmlDocument.c_doc_type = DT_NONE;    /* assume Tag Soup 0.0!   :-) */
-   htmlDocument.c_doc_type_version = 0.0f;
+   doctype.c_doc_type = DT_NONE;    /* assume Tag Soup 0.0!   :-) */
+   doctype.c_doc_type_version = 0.0f;
 
    styleEngine = new StyleEngine (Html2Layout (this), page_url, base_url);
 
@@ -1428,7 +1428,7 @@ static void Html_tag_open_style(DilloHtml *html, const char *tag, int tagsize)
    html->loadCssFromStash = true;
 
    if (!(attr_value = html_attribute_get_value(tag, tagsize, "type"))) {
-      if (html->htmlDocument.c_doc_type != DT_HTML || html->htmlDocument.c_doc_type_version <= 4.01f)
+      if (html->doctype.c_doc_type != DT_HTML || html->doctype.c_doc_type_version <= 4.01f)
          BUG_MSG("<style> requires type attribute.");
    } else if (dStrAsciiCasecmp(attr_value, "text/css")) {
       html->loadCssFromStash = false;
@@ -1491,7 +1491,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    if ((attr_value = html_attribute_get_value(tag, tagsize, "bgcolor"))) {
       color = a_Html_color_parse(html, attr_value, -1);
 
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<body> bgcolor attribute is obsolete.");
 
       if (color != -1) {
@@ -1503,7 +1503,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    if ((attr_value = html_attribute_get_value(tag, tagsize, "text"))) {
       color = a_Html_color_parse(html, attr_value, -1);
 
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<body> text attribute is obsolete.");
 
       if (color != -1) {
@@ -1516,13 +1516,13 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "link"))) {
       html->non_css_link_color = a_Html_color_parse(html, attr_value, -1);
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<body> link attribute is obsolete.");
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "vlink"))) {
       html->non_css_visited_color = a_Html_color_parse(html, attr_value, -1);
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<body> vlink attribute is obsolete.");
    }
 
@@ -1583,7 +1583,7 @@ static void Html_tag_close_body(DilloHtml *html)
 static void Html_tag_open_p(DilloHtml *html, const char *tag, int tagsize)
 {
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
-   a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
+   a_Html_tag_set_align_attr(&html->doctype, currentNode, tag, tagsize);
 }
 
 /*
@@ -1674,7 +1674,7 @@ static void Html_tag_content_frameset (DilloHtml *html,
 static void Html_tag_open_h(DilloHtml *html, const char *tag, int tagsize)
 {
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
-   a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
+   a_Html_tag_set_align_attr(&html->doctype, currentNode, tag, tagsize);
 
    a_Html_stash_init(html);
    TopOfParsingStack(html)->parse_mode = DILLO_HTML_PARSE_MODE_STASH_AND_BODY;
@@ -2401,7 +2401,7 @@ static void Html_tag_open_a(DilloHtml *html, const char *tag, int tagsize)
       const char *id = html->styleEngine->getElementId ();
 
       if (prefs.show_extra_warnings) {
-         hll_htmlValidateNameOrIdValue(&html->htmlDocument, "name", attr_value);
+         hll_htmlValidateNameOrIdValue(&html->doctype, "name", attr_value);
       }
 
       nameVal = a_Url_decode_hex_str(attr_value);
@@ -2486,7 +2486,7 @@ static void Html_tag_open_ul(DilloHtml *html, const char *tag, int tagsize)
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, list_style_type);
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<ul> type attribute is obsolete.");
    }
 
@@ -2525,7 +2525,7 @@ static void Html_tag_open_menu(DilloHtml *html, const char *tag, int tagsize)
     *   (now it's for popup menus and toolbar menus rather than being a
     *   sort of list).
     */
-   if (!(html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f))
+   if (!(html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f))
       Html_tag_open_dir(html, tag, tagsize);
 }
 
@@ -2613,7 +2613,7 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
 
    width_ptr = html_attribute_get_value_with_default(tag, tagsize, "width", NULL);
    if (width_ptr) {
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<hr> width attribute is obsolete.");
       CssLength width = html_parse_attribute_width_or_height(width_ptr);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
@@ -2623,16 +2623,16 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "size"))) {
       size = strtol(attr_value, NULL, 10);
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<hr> size attribute is obsolete.");
    }
 
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
-   a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
+   a_Html_tag_set_align_attr(&html->doctype, currentNode, tag, tagsize);
 
    /* TODO: evaluate attribute */
    if (html_attribute_get_value(tag, tagsize, "noshade")) {
-      if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+      if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<hr> noshade attribute is obsolete.");
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       styleEngineSetNonCssHintOfCurrentNodeInt(&currentNode->declLists, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID);
@@ -2721,7 +2721,7 @@ static void Html_tag_close_pre(DilloHtml *html)
  */
 static int Html_tag_pre_excludes(DilloHtml *html, int tag_idx)
 {
-   if (!(html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)) {
+   if (!(html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)) {
       /* HTML5 doesn't say anything about excluding elements */
       const char *es_set[] = {"img", "object", "applet", "big", "small", "sub",
                               "sup", "font", "basefont", NULL};
@@ -2785,7 +2785,7 @@ static void Html_tag_open_meta(DilloHtml *html, const char *tag, int tagsize)
 
    /* only valid inside HEAD */
    if (!(html->InFlags & IN_HEAD)) {
-      if (!((html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f) &&
+      if (!((html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f) &&
             html_attribute_get_value(tag, tagsize, "itemprop"))) {
          /* With the HTML 5.1 draft spec, meta with itemprop may appear
           * in the body.
@@ -2860,7 +2860,7 @@ static void Html_tag_open_meta(DilloHtml *html, const char *tag, int tagsize)
          _MSG("Html_tag_open_meta: content={%s}\n", content);
          Html_update_content_type(html, content);
       }
-   } else if (html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version == 5.0f &&
+   } else if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version == 5.0f &&
               (charset = html_attribute_get_value(tag, tagsize, "charset"))) {
       char *content = dStrconcat("text/html; charset=", charset, NULL);
 
@@ -2953,7 +2953,7 @@ static void Html_tag_open_link(DilloHtml *html, const char *tag, int tagsize)
 
    /* Ignore LINK outside HEAD */
    if (!(html->InFlags & IN_HEAD)) {
-      if (!((html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f) &&
+      if (!((html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f) &&
             html_attribute_get_value(tag, tagsize, "itemprop"))) {
          /* With the HTML 5.1 draft spec, link with itemprop may appear
           * in the body.
@@ -3053,7 +3053,7 @@ static void Html_tag_open_sectioning(DilloHtml *html, const char *tag,
 static void Html_tag_open_div(DilloHtml *html, const char *tag, int tagsize)
 {
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
-   a_Html_tag_set_align_attr(&html->htmlDocument, currentNode, tag, tagsize);
+   a_Html_tag_set_align_attr(&html->doctype, currentNode, tag, tagsize);
    Html_tag_open_sectioning(html, tag, tagsize);
 }
 
@@ -3336,7 +3336,7 @@ static void Html_test_section(DilloHtml *html, int new_idx, int IsCloseTag)
    const char *tag;
    int tag_idx;
 
-   if (!(html->InFlags & IN_HTML) && html->htmlDocument.c_doc_type == DT_NONE)
+   if (!(html->InFlags & IN_HTML) && html->doctype.c_doc_type == DT_NONE)
       BUG_MSG("The required DOCTYPE declaration is missing. "
               "Handling as HTML4.");
 
@@ -3398,7 +3398,7 @@ static void Html_parse_common_attrs(DilloHtml *html, char *tag, int tagsize)
        * spec states in Sec. 7.5.2 that anchor ids are case-sensitive.
        * So we don't do it and hope for better specs in the future ...
        */
-      hll_htmlValidateNameOrIdValue(&html->htmlDocument, "id", attr_value);
+      hll_htmlValidateNameOrIdValue(&html->doctype, "id", attr_value);
 
       html->styleEngine->setElementId(attr_value);
    }
@@ -3521,13 +3521,13 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       /* TODO: doctype parsing is a bit fuzzy, but enough for the time being */
       if (!(html->InFlags & IN_HTML)) {
          if (tagsize > 9 && !dStrnAsciiCasecmp(tag, "<!doctype", 9))
-            hll_getDoctypeFromBuffer(&html->htmlDocument, tag, tagsize);
+            hll_getDoctypeFromBuffer(&html->doctype, tag, tagsize);
       }
       /* Ignore unknown tags */
       return;
    }
 
-   if (!IsCloseTag && html->htmlDocument.c_doc_type == DT_HTML && html->htmlDocument.c_doc_type_version >= 5.0f)
+   if (!IsCloseTag && html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
       Html_check_html5_obsolete(html, new_tag_idx);
 
    /* Handle HTML, HEAD and BODY. Elements with optional open and close */

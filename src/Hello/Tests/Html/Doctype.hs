@@ -27,6 +27,8 @@ import qualified Data.Text as T
 import Hello.Html.Document
 
 
+
+
 sanitizationData =
   [
     ( "hello", "hello" )
@@ -86,42 +88,42 @@ sanitizationTest (x:xs) = if expected x == sanitizeDoctypeString (toSanitize x)
 getDoctypeData =
   [
     -- HTML 2.0 - PASS
-    ( "<!DOCTYPE HTML PUBLIC -//IETF//DTD HTML",                                          HtmlDocument {docType = HtmlDocumentTypeHtml,  docTypeVersion = 2.0  } )
+    ( "<!DOCTYPE HTML PUBLIC -//IETF//DTD HTML",                                          HtmlDoctypeHtml 2.0  )
 
     -- HTML 3.2 - PASS
-  , ( "<!DOCTYPE HTML PUBLIC -//W3C//DTD HTML 3.2",                                       HtmlDocument {docType = HtmlDocumentTypeHtml,  docTypeVersion = 3.2  } )
+  , ( "<!DOCTYPE HTML PUBLIC -//W3C//DTD HTML 3.2",                                       HtmlDoctypeHtml 3.2  )
 
     -- HTML 4.0 - PASS
-  , ( "<!DOCTYPE HTML PUBLIC -//W3C//DTD HTML 4.0",                                       HtmlDocument {docType = HtmlDocumentTypeHtml,  docTypeVersion = 4.0  } )
+  , ( "<!DOCTYPE HTML PUBLIC -//W3C//DTD HTML 4.0",                                       HtmlDoctypeHtml 4.0  )
 
     -- HTML 4.01 - PASS
-  , ( "<!DOCTYPE HTML PUBLIC -//W3C//DTD HTML 4.01 http://www.w3.org/TR/html4/",          HtmlDocument {docType = HtmlDocumentTypeHtml,  docTypeVersion = 4.01 } )
+  , ( "<!DOCTYPE HTML PUBLIC -//W3C//DTD HTML 4.01 http://www.w3.org/TR/html4/",          HtmlDoctypeHtml 4.01 )
 
     -- HTML 5 - PASS
-  , ( "<!DOCTYPE html>",                                                                  HtmlDocument {docType = HtmlDocumentTypeHtml,  docTypeVersion = 5.0  } )
-  , ( "<!DOCTYPE html >",                                                                 HtmlDocument {docType = HtmlDocumentTypeHtml,  docTypeVersion = 5.0  } )
-  , ( "<!DOCTYPE html SYSTEM \"about:legacy-compat\">",                                   HtmlDocument {docType = HtmlDocumentTypeHtml,  docTypeVersion = 5.0  } )
-  , ( "<!DOCTYPE html SYSTEM 'about:legacy-compat'>",                                     HtmlDocument {docType = HtmlDocumentTypeHtml,  docTypeVersion = 5.0  } )
+  , ( "<!DOCTYPE html>",                                                                  HtmlDoctypeHtml 5.0  )
+  , ( "<!DOCTYPE html >",                                                                 HtmlDoctypeHtml 5.0  )
+  , ( "<!DOCTYPE html SYSTEM \"about:legacy-compat\">",                                   HtmlDoctypeHtml 5.0  )
+  , ( "<!DOCTYPE html SYSTEM 'about:legacy-compat'>",                                     HtmlDoctypeHtml 5.0  )
 
     -- XHTML 1.0 - PASS
-  , ( "<!DOCTYPE HTML PUBLIC -//W3C//DTD XHTML 1.0 http://www.w3.org/TR/xhtml1/DTD/",     HtmlDocument {docType = HtmlDocumentTypeXhtml, docTypeVersion = 1.0  } )
+  , ( "<!DOCTYPE HTML PUBLIC -//W3C//DTD XHTML 1.0 http://www.w3.org/TR/xhtml1/DTD/",     HtmlDoctypeXhtml 1.0  )
 
     -- XHTML 1.1 - PASS
-  , ( "<!DOCTYPE HTML PUBLIC -//W3C//DTD XHTML 1.1 http://www.w3.org/TR/xhtml11/DTD/",    HtmlDocument {docType = HtmlDocumentTypeXhtml, docTypeVersion = 1.1  } )
+  , ( "<!DOCTYPE HTML PUBLIC -//W3C//DTD XHTML 1.1 http://www.w3.org/TR/xhtml11/DTD/",    HtmlDoctypeXhtml 1.1  )
   ]
 
 
 
 
-getDoctypeTest :: [(T.Text, HtmlDocument)] -> T.Text
+getDoctypeTest :: [(T.Text, HtmlDoctype)] -> T.Text
 getDoctypeTest []     = ""
 getDoctypeTest (x:xs) = if expected x == getDoctypeFromBuffer (input x) emptyDoctype
                         then getDoctypeTest xs
                         else trace (show (getDoctypeFromBuffer (input x) emptyDoctype)) (input x)
   where
-    input    = fst
-    expected = snd
-    emptyDoctype = HtmlDocument { docType = HtmlDocumentTypeNone, docTypeVersion = 0 }
+    input        = fst
+    expected     = snd
+    emptyDoctype = HtmlDoctypeNone
 
 
 

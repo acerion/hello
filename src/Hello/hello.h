@@ -13,10 +13,10 @@ extern "C" {
 
 
 
-typedef struct c_html_document_t {
+typedef struct c_html_doctype_t {
    int   c_doc_type; /* DilloHtmlDocumentType, as given by DOCTYPE tag */
    float c_doc_type_version;          /* HTML or XHTML version number */
-} c_html_document_t;
+} c_html_doctype_t;
 
 
 
@@ -250,9 +250,9 @@ int64_t hll_htmlEntityToIsoCode(const char * token, int tokenLen);
 
 
 
-bool hll_htmlValidateNameOrIdValue(c_html_document_t * htmlDocument, const char * attrName, const char * attrValue);
-void hll_getDoctype4(c_html_document_t * htmlDocument, const char * buf);
-void hll_getDoctypeFromBuffer(c_html_document_t * htmlDocument, const char * buf, int buflen);
+bool hll_htmlValidateNameOrIdValue(c_html_doctype_t * doctype, const char * attrName, const char * attrValue);
+void hll_getDoctype4(c_html_doctype_t * doctype, const char * buf);
+void hll_getDoctypeFromBuffer(c_html_doctype_t * doctype, const char * buf, int buflen);
 
 
 

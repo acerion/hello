@@ -33,9 +33,9 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 module Hello.Ffi.Html.Document
   (
-    FfiHtmlDocument (..)
-  , peekHtmlDocument
-  , pokeHtmlDocument
+    FfiHtmlDoctype (..)
+  , peekHtmlDoctype
+  , pokeHtmlDoctype
   )
 where
 
@@ -61,13 +61,13 @@ import Hello.Html.Document
 
 
 
-foreign export ccall "hll_getDoctype4" hll_getDoctype4 :: Ptr FfiHtmlDocument -> CString -> IO ()
-foreign export ccall "hll_getDoctypeFromBuffer" hll_getDoctypeFromBuffer :: Ptr FfiHtmlDocument -> CString -> CInt -> IO ()
+foreign export ccall "hll_getDoctype4" hll_getDoctype4 :: Ptr FfiHtmlDoctype -> CString -> IO ()
+foreign export ccall "hll_getDoctypeFromBuffer" hll_getDoctypeFromBuffer :: Ptr FfiHtmlDoctype -> CString -> CInt -> IO ()
 
 
 
 
-data FfiHtmlDocument = FfiHtmlDocument {
+data FfiHtmlDoctype = FfiHtmlDoctype {
     docTypeC        :: CInt
   , docTypeVersionC :: Float
   } deriving (Show)
@@ -75,94 +75,92 @@ data FfiHtmlDocument = FfiHtmlDocument {
 
 
 
-instance Storable FfiHtmlDocument where
-  sizeOf    _ = #{size c_html_document_t}
-  alignment _ = #{alignment c_html_document_t}
+instance Storable FfiHtmlDoctype where
+  sizeOf    _ = #{size c_html_doctype_t}
+  alignment _ = #{alignment c_html_doctype_t}
 
-  poke ptr (FfiHtmlDocument argType argTypeVersion) = do
-    #{poke c_html_document_t, c_doc_type}         ptr argType
-    #{poke c_html_document_t, c_doc_type_version} ptr argTypeVersion
+  poke ptr (FfiHtmlDoctype argType argTypeVersion) = do
+    #{poke c_html_doctype_t, c_doc_type}         ptr argType
+    #{poke c_html_doctype_t, c_doc_type_version} ptr argTypeVersion
 
   peek ptr = do
-    a <- #{peek c_html_document_t, c_doc_type}         ptr
-    b <- #{peek c_html_document_t, c_doc_type_version} ptr
-    return (FfiHtmlDocument a b)
+    a <- #{peek c_html_doctype_t, c_doc_type}         ptr
+    b <- #{peek c_html_doctype_t, c_doc_type_version} ptr
+    return (FfiHtmlDoctype a b)
 
 
 
 
-peekHtmlDocument :: Ptr FfiHtmlDocument -> IO HtmlDocument
-peekHtmlDocument ptrStructHtmlDocument = do
+peekHtmlDoctype :: Ptr FfiHtmlDoctype -> IO HtmlDoctype
+peekHtmlDoctype ptrStructHtmlDoctype = do
 
-  ffiDoc <- peek ptrStructHtmlDocument
+  ffiDoctype <- peek ptrStructHtmlDoctype
 
-  let t :: HtmlDocumentType = intToDocumentType $ fromIntegral $ docTypeC ffiDoc
-  let v = docTypeVersionC ffiDoc
+  let v :: Float = docTypeVersionC ffiDoctype
 
-  let doc = HtmlDocument { docType = t, docTypeVersion = v }
-  return doc
+  return $ intToDoctype (fromIntegral $ docTypeC ffiDoctype) v
 
 
 
 
 -- Set fields in pointer to struct passed from C code.
-pokeHtmlDocument :: Ptr FfiHtmlDocument-> HtmlDocument -> IO ()
-pokeHtmlDocument ptrStructHtmlDocument doc = do
-  let t = documentTypeToInt $ docType doc
-  let v :: Float = docTypeVersion doc
-  poke ptrStructHtmlDocument $ FfiHtmlDocument t v
+pokeHtmlDoctype :: Ptr FfiHtmlDoctype-> HtmlDoctype -> IO ()
+pokeHtmlDoctype ptrStructHtmlDoctype doctype = do
+  let (t, v) = doctypeToPair $ doctype
+  poke ptrStructHtmlDoctype $ FfiHtmlDoctype t v
 
 
 
 
-documentTypeToInt HtmlDocumentTypeNone         = 0
-documentTypeToInt HtmlDocumentTypeUnrecognized = 1
-documentTypeToInt HtmlDocumentTypeHtml         = 2
-documentTypeToInt HtmlDocumentTypeXhtml        = 3
+doctypeToPair doctype = case doctype of
+                          HtmlDoctypeNone         -> (0, 0)
+                          HtmlDoctypeUnrecognized -> (1, 0)
+                          HtmlDoctypeHtml v       -> (2, v)
+                          HtmlDoctypeXhtml v      -> (3, v)
 
 
 
-intToDocumentType :: Int -> HtmlDocumentType
-intToDocumentType i = case i of
-                        0 -> HtmlDocumentTypeNone
-                        1 -> HtmlDocumentTypeUnrecognized
-                        2 -> HtmlDocumentTypeHtml
-                        3 -> HtmlDocumentTypeXhtml
+intToDoctype :: Int -> Float -> HtmlDoctype
+intToDoctype i v = case i of
+                     0 -> HtmlDoctypeNone
+                     1 -> HtmlDoctypeUnrecognized
+                     2 -> HtmlDoctypeHtml v
+                     3 -> HtmlDoctypeXhtml v
 
 
 
 
 
-hll_getDoctype4 :: Ptr FfiHtmlDocument -> CString -> IO ()
-hll_getDoctype4 ptrHtmlDocument cBuf = do
+hll_getDoctype4 :: Ptr FfiHtmlDoctype -> CString -> IO ()
+hll_getDoctype4 ptrHtmlDoctype cBuf = do
   buf <- BSU.unsafePackCString cBuf
   let bufT = T.E.decodeUtf8 buf
 
-  htmlDocument <- peekHtmlDocument ptrHtmlDocument
+  htmlDocument <- peekHtmlDoctype ptrHtmlDoctype
 
-  let newHtmlDocument = getDoctype4 bufT htmlDocument
+  let newHtmlDoctype = getDoctype4 bufT htmlDocument
 
-  pokeHtmlDocument ptrHtmlDocument newHtmlDocument
+  pokeHtmlDoctype ptrHtmlDoctype newHtmlDoctype
 
-  putStrLn $ show newHtmlDocument
+  putStrLn $ show newHtmlDoctype
 
   return ()
 
 
 
 
-hll_getDoctypeFromBuffer :: Ptr FfiHtmlDocument -> CString -> CInt -> IO ()
-hll_getDoctypeFromBuffer ptrHtmlDocument cBuf cBufLen = do
+hll_getDoctypeFromBuffer :: Ptr FfiHtmlDoctype -> CString -> CInt -> IO ()
+hll_getDoctypeFromBuffer ptrHtmlDoctype cBuf cBufLen = do
   buf <- BSU.unsafePackCStringLen (cBuf, fromIntegral cBufLen)
   let bufT = T.E.decodeUtf8 buf
 
-  htmlDocument <- peekHtmlDocument ptrHtmlDocument
+  htmlDocument <- peekHtmlDoctype ptrHtmlDoctype
 
-  let newHtmlDocument = getDoctypeFromBuffer bufT htmlDocument
+  let newHtmlDoctype = getDoctypeFromBuffer bufT htmlDocument
 
-  pokeHtmlDocument ptrHtmlDocument newHtmlDocument
+  pokeHtmlDoctype ptrHtmlDoctype newHtmlDoctype
 
-  putStrLn $ show newHtmlDocument
+  putStrLn $ show newHtmlDoctype
 
   return ()
 

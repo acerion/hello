@@ -99,6 +99,7 @@ takeValue text = case T.R.double text of
 
 
 
+-- Parsing of values of "height" or "width" attributes in some of html tags.
 parseLengthOrMultiLength2 :: T.Text -> Maybe CssLength
 parseLengthOrMultiLength2 attribute =
   case parseLengthOrMultiLength attribute of
@@ -108,6 +109,7 @@ parseLengthOrMultiLength2 attribute =
 
 
 
+-- Parsing of values of "height" or "width" attributes in some of html tags.
 parseLengthOrMultiLength :: T.Text -> Maybe (Float, Int)
 parseLengthOrMultiLength attribute =
   case takeValue attribute of
@@ -137,25 +139,28 @@ Return value: true if OK, false otherwise.
 
 TODO: this function is written in terrible style
 -}
-validateNameOrIdValue :: HtmlDocument -> T.Text -> T.Text -> Bool
-validateNameOrIdValue htmlDocument attrName attrValue  =
-  if docType htmlDocument == HtmlDocumentTypeHtml && docTypeVersion htmlDocument >= 5.0
-  then
-    if T.length attrValue == 0
-    then False  -- TODO: log error that value of attribute attrName must not be empty
-    else
-      if T.any (\c -> c == ' ') attrValue
-      then False -- TODO: log error that value of attribute attrName must not contain spaces
-      else True
-  else
-    case T.uncons attrValue of
-      Nothing       -> False -- TODO: log error that value of attribute attrName must not be empty
-      Just (c, rem) -> if not (D.C.isLatin1 c && D.C.isLetter c)
-                       then False -- TODO: log error that first char is out of range
-                       else
-                         if not $ T.all (\c -> ((D.C.isLatin1 c) && (D.C.isLetter c)) || (D.C.isDigit c) ||  elem c [':', '_', ',', '-']) rem
-                         then False -- TODO: log error that some char is out of range
-                         else True
+validateNameOrIdValue :: HtmlDoctype -> T.Text -> T.Text -> Bool
+validateNameOrIdValue doctype attrName attrValue =
+  case doctype of
+    HtmlDoctypeHtml v -> if v >= 5.0
+                         then for5 attrValue
+                         else forOlder attrValue
+    otherwise         -> forOlder attrValue
 
+  where
+    for5 attrValue = if T.length attrValue == 0
+                     then False  -- TODO: log error that value of attribute attrName must not be empty
+                     else
+                       if T.any (\c -> c == ' ') attrValue
+                       then False -- TODO: log error that value of attribute attrName must not contain spaces
+                       else True
 
+    forOlder attrValue = case T.uncons attrValue of
+                           Nothing       -> False -- TODO: log error that value of attribute attrName must not be empty
+                           Just (c, rem) -> if not (D.C.isLatin1 c && D.C.isLetter c)
+                                            then False -- TODO: log error that first char is out of range
+                                            else
+                                              if not $ T.all (\c -> ((D.C.isLatin1 c) && (D.C.isLetter c)) || (D.C.isDigit c) ||  elem c [':', '_', ',', '-']) rem
+                                              then False -- TODO: log error that some char is out of range
+                                              else True
 
