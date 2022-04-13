@@ -8,7 +8,7 @@ all:
 	hsc2hs ./Ffi/Css/StyleEngine.hsc
 	hsc2hs ./Ffi/Gif.hsc
 	hsc2hs ./Ffi/Html/Attribute.hsc
-	hsc2hs ./Ffi/Html/Document.hsc
+	hsc2hs ./Ffi/Html/Doctype.hsc
 	hsc2hs ./Ffi/Html/HtmlTag.hsc
 	hsc2hs ./Ffi/Url.hsc
 
@@ -40,7 +40,7 @@ clean:
 	rm -f ./Ffi/Css/StyleEngine.hs
 	rm -f ./Ffi/Gif.hs
 	rm -f ./Ffi/Html/Attribute.hs
-	rm -f ./Ffi/Html/Document.hs
+	rm -f ./Ffi/Html/Doctype.hs
 	rm -f ./Ffi/Html/HtmlTag.hs
 	rm -f ./Ffi/Url.hs
 

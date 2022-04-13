@@ -25,7 +25,7 @@ import Test.HUnit
 import qualified Data.Text as T
 
 import Hello.Html.Attribute
-import Hello.Html.Document
+import Hello.Html.Doctype
 import Hello.Css.Parser
 
 

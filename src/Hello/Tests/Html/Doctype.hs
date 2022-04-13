@@ -24,7 +24,7 @@ import Debug.Trace
 import Test.HUnit
 import qualified Data.Text as T
 
-import Hello.Html.Document
+import Hello.Html.Doctype
 
 
 

@@ -49,7 +49,7 @@ import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Map as M
 
 import Hello.Css.Parser
-import Hello.Html.Document
+import Hello.Html.Doctype
 
 
 
