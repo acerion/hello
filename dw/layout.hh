@@ -31,8 +31,8 @@ private:
       style::StyleImage *getBackgroundImage ();
       style::BackgroundRepeat getBackgroundRepeat ();
       style::BackgroundAttachment getBackgroundAttachment ();
-      style::Length getBackgroundPositionX ();
-      style::Length getBackgroundPositionY ();
+      style::DwLength getBackgroundPositionX ();
+      style::DwLength getBackgroundPositionY ();
       void draw (int x, int y, int width, int height);
    };
 
@@ -159,7 +159,8 @@ private:
    style::StyleImage *bgImage;
    style::BackgroundRepeat bgRepeat;
    style::BackgroundAttachment bgAttachment;
-   style::Length bgPositionX, bgPositionY;
+   style::DwLength bgPositionX;
+   style::DwLength bgPositionY;
 
    style::Cursor cursor;
    int canvasWidth, canvasAscent, canvasDescent;
@@ -415,7 +416,7 @@ public:
    void setBgImage (style::StyleImage *bgImage,
                     style::BackgroundRepeat bgRepeat,
                     style::BackgroundAttachment bgAttachment,
-                    style::Length bgPositionX, style::Length bgPositionY);
+                    style::DwLength bgPositionX, style::DwLength bgPositionY);
 
    inline style::Color* getBgColor () { return bgColor; }
    inline style::StyleImage* getBgImage () { return bgImage; }

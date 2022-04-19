@@ -105,8 +105,8 @@ int main(int argc, char **argv)
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
    styleAttrs.margin.setVal (5);
-   styleAttrs.width = createPerLength (1.0);
-   styleAttrs.height = createPerLength (1.0);
+   styleAttrs.width = createPercentageDwLength (1.0);
+   styleAttrs.height = createPercentageDwLength (1.0);
 
    FontAttrs fontAttrs;
    fontAttrs.name = "Bitstream Charter";

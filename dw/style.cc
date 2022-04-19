@@ -45,8 +45,8 @@ static void calcBackgroundRelatedValues (StyleImage *backgroundImage,
                                          BackgroundRepeat backgroundRepeat,
                                          BackgroundAttachment
                                          backgroundAttachment,
-                                         Length backgroundPositionX,
-                                         Length backgroundPositionY,
+                                         DwLength backgroundPositionX,
+                                         DwLength backgroundPositionY,
                                          int xDraw, int yDraw, int widthDraw,
                                          int heightDraw, int xRef, int yRef,
                                          int widthRef, int heightRef,
@@ -72,12 +72,12 @@ void StyleAttrs::initValues ()
    backgroundImage = NULL;
    backgroundRepeat = BACKGROUND_REPEAT;
    backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
-   backgroundPositionX = createPerLength (0);
-   backgroundPositionY = createPerLength (0);
-   width.bits = LENGTH_AUTO;
-   height.bits = LENGTH_AUTO;
-   lineHeight.bits = LENGTH_AUTO;
-   textIndent.bits = 0;
+   backgroundPositionX = createPercentageDwLength (0);
+   backgroundPositionY = createPercentageDwLength (0);
+   width = createAutoLength();
+   height = createAutoLength();
+   lineHeight = createAutoLength();
+   textIndent = createAutoLength();
    margin.setVal (0);
    borderWidth.setVal (0);
    padding.setVal (0);
@@ -107,10 +107,10 @@ void StyleAttrs::resetValues ()
    backgroundImage = NULL;
    backgroundRepeat = BACKGROUND_REPEAT;
    backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
-   backgroundPositionX = createPerLength (0);
-   backgroundPositionY = createPerLength (0);
-   width.bits = LENGTH_AUTO;
-   height.bits = LENGTH_AUTO;
+   backgroundPositionX = createPercentageDwLength (0);
+   backgroundPositionY = createPercentageDwLength (0);
+   width = createAutoLength();
+   height = createAutoLength();
 
    margin.setVal (0);
    borderWidth.setVal (0);
@@ -152,8 +152,8 @@ bool StyleAttrs::equals (object::Object *other) {
        backgroundImage == otherAttrs->backgroundImage &&
        backgroundRepeat == otherAttrs->backgroundRepeat &&
        backgroundAttachment == otherAttrs->backgroundAttachment &&
-       backgroundPositionX.bits == otherAttrs->backgroundPositionX.bits &&
-       backgroundPositionY.bits == otherAttrs->backgroundPositionY.bits &&
+       backgroundPositionX.dw_length_hash == otherAttrs->backgroundPositionX.dw_length_hash &&
+       backgroundPositionY.dw_length_hash == otherAttrs->backgroundPositionY.dw_length_hash &&
        textAlign == otherAttrs->textAlign &&
        valign == otherAttrs->valign &&
        textAlignChar == otherAttrs->textAlignChar &&
@@ -161,10 +161,10 @@ bool StyleAttrs::equals (object::Object *other) {
        hBorderSpacing == otherAttrs->hBorderSpacing &&
        vBorderSpacing == otherAttrs->vBorderSpacing &&
        wordSpacing == otherAttrs->wordSpacing &&
-       width.bits == otherAttrs->width.bits &&
-       height.bits == otherAttrs->height.bits &&
-       lineHeight.bits == otherAttrs->lineHeight.bits &&
-       textIndent.bits == otherAttrs->textIndent.bits &&
+       width.dw_length_hash == otherAttrs->width.dw_length_hash &&
+       height.dw_length_hash == otherAttrs->height.dw_length_hash &&
+       lineHeight.dw_length_hash == otherAttrs->lineHeight.dw_length_hash &&
+       textIndent.dw_length_hash == otherAttrs->textIndent.dw_length_hash &&
        margin.equals (&otherAttrs->margin) &&
        borderWidth.equals (&otherAttrs->borderWidth) &&
        padding.equals (&otherAttrs->padding) &&
@@ -197,8 +197,8 @@ int StyleAttrs::hashValue () {
       (intptr_t) backgroundImage +
       backgroundRepeat +
       backgroundAttachment +
-      backgroundPositionX.bits +
-      backgroundPositionY.bits +
+      backgroundPositionX.dw_length_hash +
+      backgroundPositionY.dw_length_hash +
       textAlign +
       valign +
       textAlignChar +
@@ -206,10 +206,10 @@ int StyleAttrs::hashValue () {
       hBorderSpacing +
       vBorderSpacing +
       wordSpacing +
-      width.bits +
-      height.bits +
-      lineHeight.bits +
-      textIndent.bits +
+      width.dw_length_hash +
+      height.dw_length_hash +
+      lineHeight.dw_length_hash +
+      textIndent.dw_length_hash +
       margin.hashValue () +
       borderWidth.hashValue () +
       padding.hashValue () +
@@ -684,16 +684,16 @@ BackgroundAttachment
    return style ? style->backgroundAttachment : BACKGROUND_ATTACHMENT_SCROLL;
 }
 
-Length StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionX ()
+DwLength StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionX ()
 {
    Style *style = getStyle ();
-   return style ? style->backgroundPositionX : createPerLength (0);
+   return style ? style->backgroundPositionX : createPercentageDwLength (0);
 }
 
-Length StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionY ()
+DwLength StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionY ()
 {
    Style *style = getStyle ();
-   return style ? style->backgroundPositionY : createPerLength (0);
+   return style ? style->backgroundPositionY : createPercentageDwLength (0);
 }
 
 // ----------------------------------------------------------------------
@@ -1216,8 +1216,8 @@ void drawBackground (View *view, Layout *layout, Rectangle *area,
 void drawBackgroundImage (View *view, StyleImage *backgroundImage,
                           BackgroundRepeat backgroundRepeat,
                           BackgroundAttachment backgroundAttachment,
-                          Length backgroundPositionX,
-                          Length backgroundPositionY,
+                          DwLength backgroundPositionX,
+                          DwLength backgroundPositionY,
                           int x, int y, int width, int height,
                           int xRef, int yRef, int widthRef, int heightRef)
 {
@@ -1270,8 +1270,8 @@ void drawBackgroundImage (View *view, StyleImage *backgroundImage,
 void calcBackgroundRelatedValues (StyleImage *backgroundImage,
                                   BackgroundRepeat backgroundRepeat,
                                   BackgroundAttachment backgroundAttachment,
-                                  Length backgroundPositionX,
-                                  Length backgroundPositionY,
+                                  DwLength backgroundPositionX,
+                                  DwLength backgroundPositionY,
                                   int xDraw, int yDraw, int widthDraw,
                                   int heightDraw, int xRef, int yRef,
                                   int widthRef, int heightRef, bool *repeatX,
@@ -1289,13 +1289,13 @@ void calcBackgroundRelatedValues (StyleImage *backgroundImage,
       backgroundRepeat == BACKGROUND_REPEAT_Y;
 
    *origX = xRef +
-      (isPerLength (backgroundPositionX) ?
-       multiplyWithPerLength (widthRef - imgWidth, backgroundPositionX) :
-       absLengthVal (backgroundPositionX));
+      (isPercentageDwLength (backgroundPositionX) ?
+       multiplyWithPercentageDwLength (widthRef - imgWidth, backgroundPositionX) :
+       getAbsoluteDwLengthValue(backgroundPositionX));
    *origY = yRef +
-      (isPerLength (backgroundPositionY) ?
-       multiplyWithPerLength (heightRef - imgHeight, backgroundPositionY) :
-       absLengthVal (backgroundPositionY));
+      (isPercentageDwLength (backgroundPositionY) ?
+       multiplyWithPercentageDwLength (heightRef - imgHeight, backgroundPositionY) :
+       getAbsoluteDwLengthValue(backgroundPositionY));
 
    *tileX1 = xDraw < *origX ?
       - (*origX - xDraw + imgWidth - 1) / imgWidth :

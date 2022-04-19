@@ -379,20 +379,19 @@ void Textblock::getWordExtremes (Word *word, core::Extremes *extremes)
       if (word->content.widget->usesHints ())
          word->content.widget->getExtremes (extremes);
       else {
-         if (core::style::isPerLength
+         if (core::style::isPercentageDwLength
              (word->content.widget->getStyle()->width)) {
             extremes->minWidth = 0;
             if (word->content.widget->hasContents ())
                extremes->maxWidth = 1000000;
             else
                extremes->maxWidth = 0;
-         } else if (core::style::isAbsLength
+         } else if (core::style::isAbsoluteDwLength
                     (word->content.widget->getStyle()->width)) {
             /* Fixed lengths are only applied to the content, so we have to
              * add padding, border and margin. */
             extremes->minWidth = extremes->maxWidth =
-               core::style::absLengthVal (word->content.widget->getStyle()
-                                          ->width)
+               core::style::getAbsoluteDwLengthValue(word->content.widget->getStyle()->width)
                + word->style->boxDiffWidth ();
          } else
             word->content.widget->getExtremes (extremes);
@@ -885,13 +884,12 @@ core::Iterator *Textblock::iterator (core::Content::Type mask, bool atEnd)
 void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
 {
    core::Requisition requisition;
-   int availWidth, availAscent, availDescent;
    core::style::Style *wstyle = widget->getStyle();
 
    /* We ignore line1_offset[_eff]. */
-   availWidth = this->availWidth - getStyle()->boxDiffWidth () - innerPadding;
-   availAscent = this->availAscent - getStyle()->boxDiffHeight ();
-   availDescent = this->availDescent;
+   int availWidth = this->availWidth - getStyle()->boxDiffWidth () - innerPadding;
+   int availAscent = this->availAscent - getStyle()->boxDiffHeight ();
+   int availDescent = this->availDescent;
 
    if (widget->usesHints ()) {
       widget->setWidth (availWidth);
@@ -899,36 +897,33 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
       widget->setDescent (availDescent);
       widget->sizeRequest (size);
    } else {
-      if (wstyle->width.bits == core::style::LENGTH_AUTO ||
-          wstyle->height.bits == core::style::LENGTH_AUTO)
+      if (isAutoLength(wstyle->width) || isAutoLength(wstyle->height)) {
          widget->sizeRequest (&requisition);
+      }
 
-      if (wstyle->width.bits == core::style::LENGTH_AUTO)
+      if (isAutoLength(wstyle->width)) {
          size->width = requisition.width;
-      else if (core::style::isAbsLength (wstyle->width))
+      } else if (core::style::isAbsoluteDwLength (wstyle->width)) {
          /* Fixed lengths are only applied to the content, so we have to
           * add padding, border and margin. */
-         size->width = core::style::absLengthVal (wstyle->width)
-            + wstyle->boxDiffWidth ();
-      else
-         size->width =
-            core::style::multiplyWithPerLength (availWidth, wstyle->width);
+         size->width = core::style::getAbsoluteDwLengthValue(wstyle->width) + wstyle->boxDiffWidth ();
+      } else {
+         size->width = core::style::multiplyWithPercentageDwLength (availWidth, wstyle->width);
+      }
 
-      if (wstyle->height.bits == core::style::LENGTH_AUTO) {
+      if (isAutoLength(wstyle->height)) {
          size->ascent = requisition.ascent;
          size->descent = requisition.descent;
-      } else if (core::style::isAbsLength (wstyle->height)) {
+      } else if (core::style::isAbsoluteDwLength (wstyle->height)) {
          /* Fixed lengths are only applied to the content, so we have to
           * add padding, border and margin. */
-         size->ascent = core::style::absLengthVal (wstyle->height)
-                        + wstyle->boxDiffHeight ();
+         size->ascent = core::style::getAbsoluteDwLengthValue(wstyle->height) + wstyle->boxDiffHeight ();
          size->descent = 0;
       } else {
-         core::style::Length length;
-         length.bits = availAscent;
-         size->ascent = core::style::multiplyWithPerLength (wstyle->height.bits, length);
-         length.bits = availDescent;
-         size->descent = core::style::multiplyWithPerLength (wstyle->height.bits, length);
+         core::style::DwLength length = dw::core::style::createPercentageDwLength(availAscent);
+         size->ascent = core::style::multiplyWithPercentageDwLength (wstyle->height.dw_length_value, length);
+         length = dw::core::style::createPercentageDwLength(availDescent);
+         size->descent = core::style::multiplyWithPercentageDwLength (wstyle->height.dw_length_value, length);
       }
    }
 
@@ -1632,7 +1627,7 @@ void Textblock::calcTextSize (const char *text, size_t len,
     * For absolute/percentage, line height is relative to font size, which
     * is (irritatingly) smaller than ascent+descent.
     */
-   if (style->lineHeight.bits != core::style::LENGTH_AUTO) {
+   if (!isAutoLength(style->lineHeight)) {
       int height, leading;
       float factor = style->font->size;
 
@@ -1646,12 +1641,11 @@ void Textblock::calcTextSize (const char *text, size_t len,
        * AUTO? Apparently.) Once all block elements make Textblocks or
        * something, this can be handled.
        */
-      if (core::style::isAbsLength (style->lineHeight))
-         height = core::style::absLengthVal(style->lineHeight);
-      else
-         height =
-            core::style::multiplyWithPerLengthRounded (style->font->size,
-                                                       style->lineHeight);
+      if (core::style::isAbsoluteDwLength (style->lineHeight)) {
+         height = core::style::getAbsoluteDwLengthValue(style->lineHeight);
+      } else {
+         height = core::style::multiplyWithPercentageDwLengthRounded (style->font->size, style->lineHeight);
+      }
       leading = height - style->font->size;
 
       size->ascent += leading / 2;

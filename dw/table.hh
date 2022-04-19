@@ -395,7 +395,7 @@ private:
     * hasColPercent becomes true when any cell specifies a percentage width.
     */
    int hasColPercent;
-   lout::misc::SimpleVector<core::style::Length> *colPercents;
+   lout::misc::SimpleVector<core::style::DwLength> *colPercents;
 
    inline bool childDefined(int n)
    {

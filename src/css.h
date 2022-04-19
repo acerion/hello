@@ -2,7 +2,7 @@
 #define _CSS_H_
 
 typedef struct {
-   int bits; /* Vector of bits, in which a length value and type is encoded. */
+   int length_bits; /* Vector of bits, in which a length value and type is encoded. */
 } CssLength;
 
 typedef enum {

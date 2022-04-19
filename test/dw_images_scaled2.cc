@@ -115,8 +115,8 @@ int main(int argc, char **argv)
    styleAttrs.setBorderStyle (BORDER_SOLID);
    styleAttrs.padding.setVal (1);
    styleAttrs.backgroundColor = NULL;
-   styleAttrs.width = createPerLength (0.25);
-   styleAttrs.height = createPerLength (0.25);
+   styleAttrs.width = createPercentageDwLength (0.25);
+   styleAttrs.height = createPercentageDwLength (0.25);
 
    Style *imageStyle1 = Style::create (&styleAttrs);
    image1 = new dw::Image ("A longer ALT Text to demonstrate clipping.");
@@ -125,8 +125,8 @@ int main(int argc, char **argv)
 
    textblock->addParbreak (10, wordStyle);
 
-   styleAttrs.width.bits = LENGTH_AUTO;
-   styleAttrs.height.bits = LENGTH_AUTO;
+   styleAttrs.width = createAutoLength();
+   styleAttrs.height = createAutoLength();
 
    Style *imageStyle2 = Style::create (&styleAttrs);
    image2 = new dw::Image ("A longer ALT Text to demonstrate clipping.");

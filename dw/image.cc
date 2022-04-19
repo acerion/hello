@@ -171,18 +171,18 @@ Image::~Image()
 void Image::sizeRequestImpl (core::Requisition *requisition)
 {
    if (buffer) {
-      if (getStyle ()->height.bits == core::style::LENGTH_AUTO &&
-          core::style::isAbsLength (getStyle ()->width) &&
+      if (isAutoLength(getStyle ()->height) &&
+          core::style::isAbsoluteDwLength (getStyle ()->width) &&
           buffer->getRootWidth () > 0) {
          // preserve aspect ratio when only width is given
-         requisition->width = core::style::absLengthVal (getStyle ()->width);
+         requisition->width = core::style::getAbsoluteDwLengthValue(getStyle ()->width);
          requisition->ascent = buffer->getRootHeight () *
                                requisition->width / buffer->getRootWidth ();
-      } else if (getStyle ()->width.bits == core::style::LENGTH_AUTO &&
-                 core::style::isAbsLength (getStyle ()->height) &&
+      } else if (isAutoLength(getStyle ()->width) &&
+                 core::style::isAbsoluteDwLength (getStyle ()->height) &&
                  buffer->getRootHeight () > 0) {
          // preserve aspect ratio when only height is given
-         requisition->ascent = core::style::absLengthVal (getStyle ()->height);
+         requisition->ascent = core::style::getAbsoluteDwLengthValue(getStyle ()->height);
          requisition->width = buffer->getRootWidth () *
                                requisition->ascent / buffer->getRootHeight ();
       } else {

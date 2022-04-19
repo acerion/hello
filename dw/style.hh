@@ -105,20 +105,20 @@ namespace core {
  * Creating lengths:
  *
  * <ul>
- * <li> dw::core::style::createAbsLength
- * <li> dw::core::style::createPerLength
- * <li> dw::core::style::createRelLength
+ * <li> dw::core::style::createAbsoluteDwLength
+ * <li> dw::core::style::createPercentageDwLength
+ * <li> dw::core::style::createRelativeDwLength
  * </ul>
  *
  * Examine lengths:
  *
  * <ul>
- * <li> dw::core::style::isAbsLength
- * <li> dw::core::style::isPerLength
- * <li> dw::core::style::isRelLength
- * <li> dw::core::style::absLengthVal
- * <li> dw::core::style::perLengthVal
- * <li> dw::core::style::relLengthVal
+ * <li> dw::core::style::isAbsoluteDwLength
+ * <li> dw::core::style::isPercentageDwLength
+ * <li> dw::core::style::isRelativeDwLength
+ * <li> dw::core::style::getAbsoluteDwLengthValue
+ * <li> dw::core::style::getPercentageDwLengthValue
+ * <li> dw::core::style::getRelativeDwLengthValue
  * </ul>
  *
  *
@@ -369,99 +369,129 @@ enum WhiteSpace {
  * Creating lengths:
  *
  * <ul>
- * <li> dw::core::style::createAbsLength
- * <li> dw::core::style::createPerLength
- * <li> dw::core::style::createRelLength
+ * <li> dw::core::style::createAbsoluteDwLength
+ * <li> dw::core::style::createPercentageDwLength
+ * <li> dw::core::style::createRelativeDwLength
  * </ul>
  *
  * Examine lengths:
  *
  * <ul>
- * <li> dw::core::style::isAbsLength
- * <li> dw::core::style::isPerLength
- * <li> dw::core::style::isRelLength
- * <li> dw::core::style::absLengthVal
- * <li> dw::core::style::perLengthVal
- * <li> dw::core::style::relLengthVal
+ * <li> dw::core::style::isAbsoluteDwLength
+ * <li> dw::core::style::isPercentageDwLength
+ * <li> dw::core::style::isRelativeDwLength
+ * <li> dw::core::style::getAbsoluteDwLengthValue
+ * <li> dw::core::style::getPercentageDwLengthValue
+ * <li> dw::core::style::getRelativeDwLengthValue
  * </ul>
  *
  * "auto" lengths are represented as dw::core::style::LENGTH_AUTO.
  */
 typedef struct {
-    int bits;
-} Length;
+   double dw_length_value;
+   int dw_length_type;
+   int dw_length_hash;
+} DwLength;
 
 /** \brief Returns a length of \em n pixels. */
-inline Length createAbsLength(int n)
+inline DwLength createAutoLength(void)
 {
-   Length l;
-   l.bits = (n << 2) | 1;
+   DwLength l = {};
+   l.dw_length_value = 0.0;
+   l.dw_length_type = 0;
+   l.dw_length_hash = 0;
+   return l;
+}
+
+/** \brief Returns a length of \em n pixels. */
+inline DwLength createAbsoluteDwLength(int n)
+{
+   DwLength l = {};
+   l.dw_length_value = (double) n;
+   l.dw_length_type = 1;
+   l.dw_length_hash = (n << 2) | 1;
    return l;
 }
 
 /** \brief Returns a percentage, \em v is relative to 1, not to 100. */
-inline Length createPerLength(double v)
+inline DwLength createPercentageDwLength(double v)
 {
-   Length l;
-   l.bits = ((int)(v * (1 << 18)) & ~3) | 2;
+   DwLength l = {};
+   l.dw_length_value = v;
+   l.dw_length_type = 2;
+   l.dw_length_hash = ((int)(v * (1 << 18)) & ~3) | 2;
    return l;
 }
 
 /** \brief Returns a relative length. */
-inline Length createRelLength(double v)
+inline DwLength createRelativeDwLength(double v)
 {
-   Length l;
-   l.bits = ((int)(v * (1 << 18)) & ~3) | 3;
+   DwLength l = {};
+   l.dw_length_value = v;
+   l.dw_length_type = 3;
+   l.dw_length_hash = ((int)(v * (1 << 18)) & ~3) | 3;
    return l;
 }
 
+inline bool isAutoLength(DwLength l) { return l.dw_length_type == 0; }
+
 /** \brief Returns true if \em l is an absolute length. */
-inline bool isAbsLength(Length l) { return (l.bits & 3) == 1; }
+inline bool isAbsoluteDwLength(DwLength l) { return l.dw_length_type == 1; }
 
 /** \brief Returns true if \em l is a percentage. */
-inline bool isPerLength(Length l) { return (l.bits & 3) == 2; }
+inline bool isPercentageDwLength(DwLength l) { return l.dw_length_type == 2; }
 
 /** \brief Returns true if \em l is a relative length. */
-inline bool isRelLength(Length l) { return (l.bits & 3) == 3; }
+inline bool isRelativeDwLength(DwLength l) { return l.dw_length_type == 3; }
 
 /** \brief Returns the value of a length in pixels, as an integer. */
-inline int absLengthVal(Length l) { return l.bits >> 2; }
+inline int getAbsoluteDwLengthValue(DwLength l)
+{
+   return (int) l.dw_length_value;
+}
 
 /** \brief Returns the value of a percentage, relative to 1, as a double.
  *
  * When possible, do not use this function directly; it may be removed
- * soon. Instead, use multiplyWithPerLength or multiplyWithPerLengthRounded.
+ * soon. Instead, use multiplyWithPercentageDwLength or multiplyWithPercentageDwLengthRounded.
  */
-inline double perLengthVal(Length l) { return (double)(l.bits & ~3) / (1 << 18); }
+inline double getPercentageDwLengthValue(DwLength l)
+{
+   return l.dw_length_value;
+}
 
 /** \brief Returns the value of a relative length, as a float.
  *
  * When possible, do not use this function directly; it may be removed
  * soon.
  */
-inline double relLengthVal(Length l) { return (double)(l.bits & ~3) / (1 << 18); }
+inline double getRelativeDwLengthValue(DwLength l)
+{
+   return l.dw_length_value;
+}
 
 /**
  * \brief Multiply an int with a percentage length, returning int.
  *
- * Use this instead of perLengthVal, when possible.
+ * Use this instead of getPercentageDwLengthValue, when possible.
  */
-inline int multiplyWithPerLength(int x, Length l) {
-   return x * perLengthVal(l);
+inline int multiplyWithPercentageDwLength(int x, DwLength l) {
+   return x * getPercentageDwLengthValue(l);
 }
 
 /**
- * \brief Like multiplyWithPerLength, but rounds to nearest integer
+ * \brief Like multiplyWithPercentageDwLength, but rounds to nearest integer
  *    instead of down.
  *
  * (This function exists for backward compatibility.)
  */
-inline int multiplyWithPerLengthRounded (int x, Length l) {
-   return lout::misc::roundInt (x * perLengthVal(l));
+inline int multiplyWithPercentageDwLengthRounded (int x, DwLength l) {
+   return lout::misc::roundInt (x * getPercentageDwLengthValue(l));
 }
 
-inline int multiplyWithRelLength(int x, Length l) {
-   return x * relLengthVal(l);
+inline int multiplyWithRelativeDwLength(int x, DwLength l)
+{
+   return x * getRelativeDwLengthValue(l);
 }
 
 
@@ -512,8 +542,8 @@ public:
    StyleImage *backgroundImage;
    BackgroundRepeat backgroundRepeat;
    BackgroundAttachment backgroundAttachment;
-   Length backgroundPositionX; // "left" defined by "0%" etc. (see CSS spec)
-   Length backgroundPositionY; // "top" defined by "0%" etc. (see CSS spec)
+   DwLength backgroundPositionX; // "left" defined by "0%" etc. (see CSS spec)
+   DwLength backgroundPositionY; // "top" defined by "0%" etc. (see CSS spec)
 
    TextAlignType textAlign;
    VAlignType valign;
@@ -521,7 +551,7 @@ public:
    TextTransform textTransform;
 
    int hBorderSpacing, vBorderSpacing, wordSpacing;
-   Length width, height, lineHeight, textIndent;
+   DwLength width, height, lineHeight, textIndent;
 
    Box margin, borderWidth, padding;
    BorderCollapse borderCollapse;
@@ -812,8 +842,8 @@ public:
       virtual StyleImage *getBackgroundImage () = 0;
       virtual BackgroundRepeat getBackgroundRepeat () = 0;
       virtual BackgroundAttachment getBackgroundAttachment () = 0;
-      virtual Length getBackgroundPositionX () = 0;
-      virtual Length getBackgroundPositionY () = 0;
+      virtual DwLength getBackgroundPositionX () = 0;
+      virtual DwLength getBackgroundPositionY () = 0;
 
       /**
        * \brief Draw (or queue for drawing) an area, which is given in
@@ -833,8 +863,8 @@ public:
       StyleImage *getBackgroundImage ();
       BackgroundRepeat getBackgroundRepeat ();
       BackgroundAttachment getBackgroundAttachment ();
-      Length getBackgroundPositionX ();
-      Length getBackgroundPositionY ();
+      DwLength getBackgroundPositionX ();
+      DwLength getBackgroundPositionY ();
 
       /**
        * \brief Return the style this background image is part of.
@@ -881,8 +911,8 @@ void drawBackground (View *view, Layout *layout, Rectangle *area,
 void drawBackgroundImage (View *view, StyleImage *backgroundImage,
                           BackgroundRepeat backgroundRepeat,
                           BackgroundAttachment backgroundAttachment,
-                          Length backgroundPositionX,
-                          Length backgroundPositionY,
+                          DwLength backgroundPositionX,
+                          DwLength backgroundPositionY,
                           int x, int y, int width, int height,
                           int xRef, int yRef, int widthRef, int heightRef);
 void numtostr (int num, char *buf, int buflen, ListStyleType listStyleType);

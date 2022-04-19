@@ -58,7 +58,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    }
 
    if (border != -1) {
-      cssLength.bits = hll_cssCreateLength(border, CSS_LENGTH_TYPE_PX);
+      cssLength.length_bits = hll_cssCreateLength(border, CSS_LENGTH_TYPE_PX);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
@@ -72,7 +72,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
 
    if (cellspacing != -1) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cssLength.bits = hll_cssCreateLength(cellspacing, CSS_LENGTH_TYPE_PX);
+      cssLength.length_bits = hll_cssCreateLength(cellspacing, CSS_LENGTH_TYPE_PX);
       currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_SPACING, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
    }
 
@@ -113,7 +113,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    /* The style for the cells */
    html->styleEngine->clearNonCssHints ();
    if (border > 0) {
-      cssLength.bits = hll_cssCreateLength(1, CSS_LENGTH_TYPE_PX);
+      cssLength.length_bits = hll_cssCreateLength(1, CSS_LENGTH_TYPE_PX);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
@@ -127,7 +127,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
 
    if (cellpadding != -1) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cssLength.bits = hll_cssCreateLength(cellpadding, CSS_LENGTH_TYPE_PX);
+      cssLength.length_bits = hll_cssCreateLength(cellpadding, CSS_LENGTH_TYPE_PX);
       currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_PADDING_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_PADDING_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
       currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_PADDING_LEFT,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
