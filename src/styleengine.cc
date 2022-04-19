@@ -1228,21 +1228,9 @@ void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t 
    }
 }
 
-
-void styleEngineSetNonCssHintOfCurrentNodeInt(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, int int_val)
+c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_set_t * set, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
 {
-   c_css_declaration_set_t * newSet = hll_styleEngineSetNonCssHintOfCurrentNodeInt(declLists->nonCss, property, type, int_val);
-   declLists->nonCss = newSet;
-}
-void styleEngineSetNonCssHintOfCurrentNodeString(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, const char * str_val)
-{
-   c_css_declaration_set_t * newSet = hll_styleEngineSetNonCssHintOfCurrentNodeString(declLists->nonCss, property, type, str_val);
-   declLists->nonCss = newSet;
-}
-void styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
-{
-   c_css_declaration_set_t * newSet = hll_styleEngineSetNonCssHintOfCurrentNodeInt(declLists->nonCss, property, type, cssLength.bits);
-   declLists->nonCss = newSet;
+   return hll_styleEngineSetNonCssHintOfCurrentNodeInt(set, property, type, cssLength.bits);
 }
 
 

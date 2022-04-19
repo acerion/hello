@@ -36,9 +36,7 @@ StyleNode * getCurrentNode(StyleEngine * styleEngine);
 
 void print_css_declaration_set(FILE * file, c_css_declaration_set_t * props);
 
-void styleEngineSetNonCssHintOfCurrentNodeInt(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, int value);
-void styleEngineSetNonCssHintOfCurrentNodeString(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, const char *value);
-void styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_lists_t * declLists, CssDeclarationProperty property, CssDeclarationValueType type, CssLength length);
+c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_set_t * set, CssDeclarationProperty property, CssDeclarationValueType type, CssLength length);
 
 class StyleEngine {
 public:
