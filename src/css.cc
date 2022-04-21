@@ -78,7 +78,7 @@ c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * inD
  * The declarations (list property+value) are set as defined by the rules in
  * the stylesheet that match at the given node in the document tree.
  */
-void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_declaration_set_t * decl_set, Doctree *docTree, const c_doctree_node_t *dtn, c_css_match_cache_t * match_cache)
+void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_declaration_set_t * decl_set, c_doctree_t *docTree, const c_doctree_node_t *dtn, c_css_match_cache_t * match_cache)
 {
    static const int maxLists = 32;
    const c_css_rules_list_t * rules_lists[maxLists];
@@ -230,7 +230,7 @@ c_css_context_t * c_css_context_new(void)
  * This allows e.g. user styles to overwrite author styles.
  */
 void css_context_apply_css_context(c_css_context_t * context,
-                                   c_css_declaration_set_t * mergedDeclList, Doctree *docTree,
+                                   c_css_declaration_set_t * mergedDeclList, c_doctree_t *docTree,
                                    c_doctree_node_t * dtn,
                                    c_css_declaration_lists_t * declLists) {
 

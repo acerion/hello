@@ -1,12 +1,6 @@
 #include <stdlib.h>
 #include "doctree.hh"
 
-c_doctree_node_t * DoctreeNodeNew(c_doctree_node_t * root) {
-   c_doctree_node_t * dtn = (c_doctree_node_t *) calloc(1, sizeof (c_doctree_node_t));
-   dtn->c_root_node = root;
-   return dtn;
-};
-
 void DoctreeNodeDelete(c_doctree_node_t * dtn) {
    free(dtn->c_element_selector_id);
 
@@ -38,3 +32,48 @@ void DoctreeNodePrint(FILE * file, const c_doctree_node_t * dtn)
    }
    fprintf(file, "]\n");
 }
+
+
+c_doctree_node_t * doctreePushNode(c_doctree_t * doctree)
+{
+   c_doctree_node_t * dtn = hll_doctreeNodeNew();
+   dtn->c_root_node = doctree->c_root_node;
+   dtn->c_parent = doctree->c_top_node;
+   dtn->c_sibling = dtn->c_parent->c_last_child;
+   dtn->c_parent->c_last_child = dtn;
+   dtn->c_unique_num = doctree->c_num_nodes++;
+   doctree->c_top_node = dtn;
+   return dtn;
+}
+
+c_doctree_node_t * doctreeGetTopNode(c_doctree_t * doctree)
+{
+   if (doctree->c_top_node != doctree->c_root_node)
+      return doctree->c_top_node;
+   else
+      return NULL;
+}
+
+void doctreePopNode(c_doctree_t * doctree)
+{
+   assert (doctree->c_top_node != doctree->c_root_node); // never pop the root node
+   doctree->c_top_node = doctree->c_top_node->c_parent;
+}
+
+c_doctree_t * doctreeCtor(void)
+{
+   c_doctree_t * doctree = (c_doctree_t *) calloc(1, sizeof (c_doctree_t));
+   doctree->c_root_node = hll_doctreeNodeNew();
+   doctree->c_root_node->c_root_node = doctree->c_root_node;
+   doctree->c_top_node = doctree->c_root_node;
+   doctree->c_num_nodes = 0;
+
+   return doctree;
+}
+
+void doctreeDtor(c_doctree_t * doctree)
+{
+   free(doctree->c_root_node);
+}
+
+

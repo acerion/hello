@@ -53,6 +53,11 @@ import Hello.Css.DoctreeNode
 
 
 
+foreign export ccall "hll_doctreeNodeNew" hll_doctreeNodeNew :: IO (Ptr FfiDoctreeNode)
+
+
+
+
 data FfiDoctreeNode = FfiDoctreeNode {
     uniqueNumC      :: CInt -- unique ascending id
   , htmlElementIdxC :: CInt -- Index to html.cc::Tags
@@ -130,3 +135,21 @@ peekDoctreeNode ptrStructDoctreeNode = do
                     , dtnRootNode = case ptrToIntPtr . rootNodeC $ ffiDtn of
                                       IntPtr i -> i
                     }
+
+
+
+
+
+pokeDoctreeNode :: DoctreeNode -> Ptr FfiDoctreeNode -> IO (Ptr FfiDoctreeNode)
+pokeDoctreeNode dtn ptrDoctreeNodeRoot = do
+  ptrStructDoctreeNode <- callocBytes #{size c_doctree_node_t}
+  pokeByteOff ptrStructDoctreeNode #{offset c_doctree_node_t, c_root_node} ptrDoctreeNodeRoot
+
+  return ptrStructDoctreeNode
+
+
+
+
+hll_doctreeNodeNew :: IO (Ptr FfiDoctreeNode)
+hll_doctreeNodeNew = callocBytes #{size c_doctree_node_t}
+

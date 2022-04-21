@@ -71,7 +71,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    StyleAttrs style_attrs;
    FontAttrs font_attrs;
 
-   doctree = new Doctree ();
+   doctree = doctreeCtor();
    //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
    cssContext = c_css_context_new();
    buildUserStyle ();
@@ -104,8 +104,8 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
 }
 
 StyleEngine::~StyleEngine () {
-   while (doctree->top ())
-      endElement (doctree->top()->c_html_element_idx);
+   while (doctreeGetTopNode(this->doctree))
+      endElement (doctreeGetTopNode(this->doctree)->c_html_element_idx);
 
    stackPop (); // dummy node on the bottom of the stack
    assert (styleNodesStackSize == 0);
@@ -150,7 +150,7 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    stackPush ();
    StyleNode *n = &styleNodesStack[styleNodesStackSize - 1];
 
-   n->doctreeNode = doctree->push();
+   n->doctreeNode = doctreePushNode(this->doctree);
    n->doctreeNode->c_html_element_idx = html_element_idx;
 
    if (styleNodesStackSize > 1) {
@@ -164,13 +164,13 @@ void StyleEngine::startElement (const char *tagname, BrowserWindow *bw) {
 }
 
 void StyleEngine::setElementId (const char *id) {
-   c_doctree_node_t * dtn =  doctree->top ();
+   c_doctree_node_t * dtn = doctreeGetTopNode(this->doctree);
    assert (dtn->c_element_selector_id == NULL);
    dtn->c_element_selector_id = strdup (id);
 }
 
 void StyleEngine::setElementClass(const char * element_class) {
-   c_doctree_node_t * dtn = doctree->top ();
+   c_doctree_node_t * dtn = doctreeGetTopNode(this->doctree);
    assert (dtn->c_element_selector_class_size == 0);
 
    char * saveptr = NULL;
@@ -278,7 +278,7 @@ dw::core::style::StyleImage *StyleEngine::getBackgroundImage
  * \brief set the CSS pseudo class :link.
  */
 void StyleEngine::setPseudoLink () {
-   c_doctree_node_t * dtn = doctree->top ();
+   c_doctree_node_t * dtn = doctreeGetTopNode(this->doctree);
    dtn->c_element_selector_pseudo_class = "link";
 }
 
@@ -286,7 +286,7 @@ void StyleEngine::setPseudoLink () {
  * \brief set the CSS pseudo class :visited.
  */
 void StyleEngine::setPseudoVisited () {
-   c_doctree_node_t * dtn = doctree->top ();
+   c_doctree_node_t * dtn = doctreeGetTopNode(this->doctree);
    dtn->c_element_selector_pseudo_class = "visited";
 }
 
@@ -294,10 +294,10 @@ void StyleEngine::setPseudoVisited () {
  * \brief tell the styleEngine that a html element has ended.
  */
 void StyleEngine::endElement (int element) {
-   assert (element == doctree->top ()->c_html_element_idx);
+   assert (element == doctreeGetTopNode(this->doctree)->c_html_element_idx);
 
    stackPop ();
-   doctree->pop ();
+   doctreePopNode(this->doctree);
 }
 
 void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
@@ -974,8 +974,9 @@ void StyleEngine::init () {
       "blockquote, dd {margin-left: 40px; margin-right: 40px}"
       "center {text-align: center}"
       "dt {font-weight: bolder}"
-      ":link {color: blue; text-decoration: underline; cursor: pointer}"
-      ":visited {color: #800080; text-decoration: underline; cursor: pointer}"
+      ":link {color: blue; text-decoration: underline; cursor: crosshair}"
+      ":visited {color: orange; text-decoration: underline; cursor: pointer}"
+      // ":visited {color: #800080; text-decoration: underline; cursor: pointer}"
       "h1, h2, h3, h4, h5, h6, b, strong {font-weight: bolder}"
       "address, article, aside, center, div, figure, figcaption, footer,"
       " h1, h2, h3, h4, h5, h6, header, nav, ol, p, pre, section, ul"

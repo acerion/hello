@@ -55,6 +55,20 @@ typedef struct c_doctree_node_t {
 } c_doctree_node_t;
 
 
+/**
+ * \brief HTML document tree interface.
+ *
+ * The Doctree class defines the interface to the parsed HTML document tree
+ * as it is used for CSS selector matching.
+ */
+typedef struct c_doctree_t {
+        c_doctree_node_t * c_top_node;
+        c_doctree_node_t * c_root_node;
+        int c_num_nodes;
+} c_doctree_t;
+
+c_doctree_node_t * hll_doctreeNodeNew(void);
+
 
 
 typedef struct c_css_parser_t {

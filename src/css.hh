@@ -225,7 +225,7 @@ int css_complex_selector_link_specificity(c_css_complex_selector_link_t * link);
 
 
 /* c_css_style_sheet_t methods. */
-void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_declaration_set_t * decl_set, Doctree * docTree,
+void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_declaration_set_t * decl_set, c_doctree_t * docTree,
                                        const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache);
 
 
@@ -234,7 +234,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
 c_css_context_t * c_css_context_new(void);
 void css_context_apply_css_context(c_css_context_t * context,
                                    c_css_declaration_set_t * mergedDeclList,
-                                   Doctree *docTree, c_doctree_node_t * dtn,
+                                   c_doctree_t *docTree, c_doctree_node_t * dtn,
                                    c_css_declaration_lists_t * declLists);
 
 

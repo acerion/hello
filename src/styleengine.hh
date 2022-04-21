@@ -48,7 +48,7 @@ public:
       dw::core::Layout *layout;
    
       c_css_context_t * cssContext;
-      Doctree * doctree;
+      c_doctree_t * doctree;
       int importDepth;
       DilloUrl *pageUrl, *baseUrl;
 
@@ -80,7 +80,7 @@ public:
       void endElement (int tag);
 
       void setElementId(const char *id);
-      const char * getElementId() { return doctree->top()->c_element_selector_id; };
+      const char * getElementId() { return doctreeGetTopNode(this->doctree)->c_element_selector_id; };
 
       void setElementClass(const char * element_class);
 
