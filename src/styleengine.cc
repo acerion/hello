@@ -72,7 +72,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    FontAttrs font_attrs;
 
    doctree = new Doctree ();
-   styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
+   //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
    cssContext = c_css_context_new();
    buildUserStyle ();
    this->layout = layout;
@@ -81,7 +81,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    importDepth = 0;
 
    stackPush ();
-   StyleNode *n = styleNodesStack->getLastRef ();
+   StyleNode *n = &styleNodesStack[styleNodesStackSize - 1];
 
    /* Create a dummy font, attribute, and tag for the bottom of the stack. */
    font_attrs.name = prefs.font_sans_serif;
@@ -108,12 +108,11 @@ StyleEngine::~StyleEngine () {
       endElement (doctree->top()->c_html_element_idx);
 
    stackPop (); // dummy node on the bottom of the stack
-   assert (styleNodesStack->size () == 0);
+   assert (styleNodesStackSize == 0);
 
    a_Url_free(pageUrl);
    a_Url_free(baseUrl);
 
-   delete styleNodesStack;
    delete doctree;
    delete cssContext;
 }
@@ -123,7 +122,8 @@ void StyleEngine::stackPush () {
       NULL, NULL, NULL, NULL, NULL, NULL, false, false, NULL
    };
 
-   styleNodesStack->setSize(styleNodesStack->size() + 1, emptyNode);
+   memcpy(&styleNodesStack[styleNodesStackSize], &emptyNode, sizeof (emptyNode));
+   styleNodesStackSize++;
 }
 
 void StyleEngine::stackPop () {
@@ -138,7 +138,7 @@ void StyleEngine::stackPop () {
       currentNode->wordStyle->unref ();
    if (currentNode->backgroundStyle)
       currentNode->backgroundStyle->unref ();
-   styleNodesStack->setSize(styleNodesStack->size() - 1);
+   styleNodesStackSize--;
 }
 
 /**
@@ -148,12 +148,12 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    getStyle (bw); // ensure that style of current node is computed
 
    stackPush ();
-   StyleNode *n = styleNodesStack->getLastRef();
+   StyleNode *n = &styleNodesStack[styleNodesStackSize - 1];
 
    n->doctreeNode = doctree->push();
    n->doctreeNode->c_html_element_idx = html_element_idx;
 
-   if (styleNodesStack->size() > 1) {
+   if (styleNodesStackSize > 1) {
       StyleNode * parentNode = getParentNode(this);
       n->displayNone = parentNode->displayNone;
    }
@@ -244,8 +244,8 @@ void StyleEngine::inheritBackgroundColor () {
 }
 
 dw::core::style::Color *StyleEngine::getBackgroundColor () {
-   for (int i = 1; i < styleNodesStack->size (); i++) {
-      StyleNode *n = styleNodesStack->getRef(i);
+   for (int i = 1; i < styleNodesStackSize; i++) {
+      StyleNode *n = &styleNodesStack[i];
 
       if (n->style && n->style->backgroundColor)
          return n->style->backgroundColor;
@@ -259,8 +259,8 @@ dw::core::style::StyleImage *StyleEngine::getBackgroundImage
     dw::core::style::BackgroundAttachment *bgAttachment,
     dw::core::style::DwLength *bgPositionX,
     dw::core::style::DwLength *bgPositionY) {
-   for (int i = 1; i < styleNodesStack->size (); i++) {
-      StyleNode *n = styleNodesStack->getRef (i);
+   for (int i = 1; i < styleNodesStackSize; i++) {
+      StyleNode *n = &styleNodesStack[i];
 
       if (n->style && n->style->backgroundImage) {
          *bgRepeat     = n->style->backgroundRepeat;
@@ -355,7 +355,7 @@ void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
 void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw)
 {
    FontAttrs fontAttrs = *attrs->font;
-   Font *parentFont = styleNodesStack->get(some_idx - 1).style->font;
+   Font *parentFont = styleNodesStack[some_idx - 1].style->font;
    char *c, *fontName;
    int lineHeight;
    DilloUrl *imgUrl = NULL;
@@ -597,7 +597,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_DISPLAY:
             attrs->display = (DisplayType) decl->c_value->c_int_val;
             if (attrs->display == DISPLAY_NONE)
-               styleNodesStack->getRef(some_idx)->displayNone = true;
+               styleNodesStack[some_idx].displayNone = true;
             break;
          case CSS_PROPERTY_LINE_HEIGHT:
             if (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) { //only valid enum value is "normal"
@@ -724,7 +724,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    }
 
    if (imgUrl && prefs.load_background_images &&
-       !styleNodesStack->getRef(some_idx)->displayNone &&
+       !styleNodesStack[some_idx].displayNone &&
        !(URL_FLAGS(pageUrl) & URL_SpamSafe))
    {
       attrs->backgroundImage = StyleImage::create();
@@ -844,8 +844,8 @@ Style * StyleEngine::getBackgroundStyle (BrowserWindow *bw) {
    if (!currentNode->backgroundStyle) {
       StyleAttrs attrs = *getStyle (bw);
 
-      for (int i = styleNodesStack->size() - 1; i >= 0 && ! attrs.backgroundColor; i--) {
-         attrs.backgroundColor = styleNodesStack->getRef (i)->style->backgroundColor;
+      for (int i = styleNodesStackSize - 1; i >= 0 && ! attrs.backgroundColor; i--) {
+         attrs.backgroundColor = styleNodesStack[i].style->backgroundColor;
       }
 
       assert (attrs.backgroundColor);
@@ -862,7 +862,7 @@ Style * StyleEngine::getBackgroundStyle (BrowserWindow *bw) {
 Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
 
    // get previous style from the stack
-   StyleAttrs attrs = * styleNodesStack->getRef(some_idx - 1)->style;
+   StyleAttrs attrs = * styleNodesStack[some_idx - 1].style;
 
    // Ensure that StyleEngine::style0() has not been called before for
    // this element.
@@ -870,27 +870,26 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
    // If this assertion is hit, you need to rearrange the code that is
    // doing styleEngine calls to call setNonCssHintOfCurrentNode() before calling
    // style() or wordStyle() for each new element.
-   assert (styleNodesStack->getRef(some_idx)->style == NULL);
+   assert (styleNodesStack[some_idx].style == NULL);
 
    // reset values that are not inherited according to CSS
    attrs.resetValues ();
    preprocessAttrs (&attrs);
 
-   c_css_declaration_lists_t * declLists = &styleNodesStack->getRef(some_idx)->declLists;
+   c_css_declaration_lists_t * declLists = &styleNodesStack[some_idx].declLists;
 
    // merge style information
    c_css_declaration_set_t * mergedDeclList = declarationListNew();
-   css_context_apply_css_context(cssContext, mergedDeclList, doctree, styleNodesStack->getRef(some_idx)->doctreeNode,
-                                 declLists);
+   css_context_apply_css_context(cssContext, mergedDeclList, doctree, styleNodesStack[some_idx].doctreeNode, declLists);
 
    // apply style
    apply(some_idx, &attrs, mergedDeclList, bw);
 
    postprocessAttrs(&attrs);
 
-   styleNodesStack->getRef(some_idx)->style = Style::create(&attrs);
+   styleNodesStack[some_idx].style = Style::create(&attrs);
 
-   return styleNodesStack->getRef(some_idx)->style;
+   return styleNodesStack[some_idx].style;
 }
 
 Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
@@ -921,8 +920,8 @@ Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
  * Note that restyle() does not change any styles in the widget tree.
  */
 void StyleEngine::restyle (BrowserWindow *bw) {
-   for (int some_idx = 1; some_idx < styleNodesStack->size(); some_idx++) {
-      StyleNode *n = styleNodesStack->getRef (some_idx);
+   for (int some_idx = 1; some_idx < styleNodesStackSize; some_idx++) {
+      StyleNode *n = &styleNodesStack[some_idx];
       if (n->style) {
          n->style->unref ();
          n->style = NULL;

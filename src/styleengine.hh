@@ -40,7 +40,8 @@ c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeLength(c_css_
 
 class StyleEngine {
 public:
-   lout::misc::SimpleVector <StyleNode> *styleNodesStack;
+   StyleNode styleNodesStack[64] = {};
+   int styleNodesStackSize = 0;
 
    private:
 
@@ -106,7 +107,7 @@ public:
          if (s)
             return s;
          else
-            return getStyle0(styleNodesStack->size () - 1, bw);
+            return getStyle0(styleNodesStackSize - 1, bw);
       };
 
       inline dw::core::style::Style *getWordStyle (BrowserWindow *bw) {
@@ -121,12 +122,14 @@ public:
 
 inline StyleNode * getCurrentNode(StyleEngine * styleEngine)
 {
-   return styleEngine->styleNodesStack->getRef(styleEngine->styleNodesStack->size() - 1);
+   int idx = styleEngine->styleNodesStackSize - 1;
+   return &styleEngine->styleNodesStack[idx];
 }
 
 inline StyleNode * getParentNode(StyleEngine * styleEngine)
 {
-   return styleEngine->styleNodesStack->getRef(styleEngine->styleNodesStack->size() - 2);
+   int idx = styleEngine->styleNodesStackSize - 2;
+   return &styleEngine->styleNodesStack[idx];
 }
 
 
