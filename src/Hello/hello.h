@@ -40,6 +40,7 @@ struct c_doctree_node_t;
 typedef struct c_doctree_node_t {
    int c_unique_num; // unique ascending id
    int c_html_element_idx; /* Index to html.cc::Tags */
+   struct c_doctree_node_t * c_this_ptr;
 
    /* Css Selectors. */
    char * c_element_selector_pseudo_class;
@@ -47,11 +48,9 @@ typedef struct c_doctree_node_t {
    char * c_element_selector_class[10];
    int c_element_selector_class_size;
 
-   struct c_doctree_node_t * c_parent;
-   struct c_doctree_node_t * c_sibling;
-   struct c_doctree_node_t * c_last_child;
-
-   struct c_doctree_node_t * c_root_node;
+   struct c_doctree_node_t * c_parent_num;
+   int c_sibling_num;
+   int c_last_child_num;
 } c_doctree_node_t;
 
 
@@ -65,9 +64,11 @@ typedef struct c_doctree_t {
         c_doctree_node_t * c_top_node;
         c_doctree_node_t * c_root_node;
         int c_num_nodes;
+        c_doctree_node_t * c_nodes_array[2048];
 } c_doctree_t;
 
 c_doctree_node_t * hll_doctreeNodeNew(void);
+void hll_doctreePrint(c_doctree_t * doctree);
 
 
 
@@ -333,7 +334,7 @@ typedef enum {
 
 
 /* Function returns boolean. */
-bool hll_cssComplexSelectorMatches(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache);
+bool hll_cssComplexSelectorMatches(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_t * doctree, const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache);
 
 c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);
 

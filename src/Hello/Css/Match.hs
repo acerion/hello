@@ -46,7 +46,7 @@ import Hello.Utils
 
 
 
-cssComplexSelectorMatches :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
+cssComplexSelectorMatches :: CssComplexSelector -> Maybe DoctreeNode -> DoctreeItems -> CssMatchCache -> Int -> (Bool, CssMatchCache)
 cssComplexSelectorMatches _                                      Nothing    _    mc _           = (False, mc)
 cssComplexSelectorMatches (Datum compound)                       (Just dtn) tree mc cacheOffset = (compoundSelectorMatches compound dtn, mc)
 cssComplexSelectorMatches (Link (Datum compound) combinator rem) (Just dtn) tree mc cacheOffset =
@@ -59,7 +59,7 @@ cssComplexSelectorMatches (Link (Datum compound) combinator rem) (Just dtn) tree
 
 -- Test whether a pair of <combinator> + <remainder of complex selector>
 -- matches a doctree.
-matchCombinatorAndRemainder :: CssCombinator -> CssComplexSelector -> DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
+matchCombinatorAndRemainder :: CssCombinator -> CssComplexSelector -> DoctreeNode -> DoctreeItems -> CssMatchCache -> Int -> (Bool, CssMatchCache)
 matchCombinatorAndRemainder combinator complex dtn tree mc cacheOffset =
   case combinator of
     CssCombinatorDescendant      -> matchDescendant    complex (getDtnParent tree dtn)  tree mc cacheOffset
@@ -72,7 +72,7 @@ matchCombinatorAndRemainder combinator complex dtn tree mc cacheOffset =
 -- Try to match inntermost Compound of Complex agains given node (which is
 -- either Sibling or Parent of some other node). On success, try to match
 -- remainder of Complex against remainder of tree.
-matchNonDescendant :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
+matchNonDescendant :: CssComplexSelector -> Maybe DoctreeNode -> DoctreeItems -> CssMatchCache -> Int -> (Bool, CssMatchCache)
 matchNonDescendant = cssComplexSelectorMatches
 
 
@@ -80,7 +80,7 @@ matchNonDescendant = cssComplexSelectorMatches
 
 -- Go upwards of DocTree looking for a matching parent (because of Descendant
 -- combinator), and then try to match remainder of Complex Selector.
-findMatchingDescendantAndFollowers  :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> Int -> (Bool, CssMatchCache)
+findMatchingDescendantAndFollowers  :: CssComplexSelector -> Maybe DoctreeNode -> DoctreeItems -> CssMatchCache -> Int -> Int -> (Bool, CssMatchCache)
 findMatchingDescendantAndFollowers _       Nothing    _    mc _               _           = (False, mc)
 findMatchingDescendantAndFollowers complex (Just dtn) tree mc matchCacheEntry cacheOffset =
   if uniqueNum dtn > matchCacheEntry
@@ -104,7 +104,7 @@ findMatchingDescendantAndFollowers complex (Just dtn) tree mc matchCacheEntry ca
 -- Parent of some other node). If this fails, try to match agains parent, and
 -- grandparent, until you find a match. On success, try to match remainder of
 -- Complex against remainder of tree.
-matchDescendant :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
+matchDescendant :: CssComplexSelector -> Maybe DoctreeNode -> DoctreeItems -> CssMatchCache -> Int -> (Bool, CssMatchCache)
 matchDescendant complex mDtn tree mc cacheOffset =
   case findMatchingDescendantAndFollowers complex mDtn tree mc matchCacheEntry cacheOffset of
     (True, mc2)  -> (True, mc2)

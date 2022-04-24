@@ -71,7 +71,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    StyleAttrs style_attrs;
    FontAttrs font_attrs;
 
-   doctree = doctreeCtor();
+   this->doc_tree = doctreeCtor();
    //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
    cssContext = c_css_context_new();
    buildUserStyle ();
@@ -104,8 +104,8 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
 }
 
 StyleEngine::~StyleEngine () {
-   while (doctreeGetTopNode(this->doctree))
-      endElement (doctreeGetTopNode(this->doctree)->c_html_element_idx);
+   while (doctreeGetTopNode(this->doc_tree))
+      endElement (doctreeGetTopNode(this->doc_tree)->c_html_element_idx);
 
    stackPop (); // dummy node on the bottom of the stack
    assert (styleNodesStackSize == 0);
@@ -113,13 +113,13 @@ StyleEngine::~StyleEngine () {
    a_Url_free(pageUrl);
    a_Url_free(baseUrl);
 
-   delete doctree;
+   delete doc_tree;
    delete cssContext;
 }
 
 void StyleEngine::stackPush () {
    static const StyleNode emptyNode = {
-      NULL, NULL, NULL, NULL, NULL, NULL, false, false, NULL
+      NULL, NULL, NULL, NULL, NULL, NULL, false, false, 0
    };
 
    memcpy(&styleNodesStack[styleNodesStackSize], &emptyNode, sizeof (emptyNode));
@@ -150,8 +150,7 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    stackPush ();
    StyleNode *n = &styleNodesStack[styleNodesStackSize - 1];
 
-   n->doctreeNode = doctreePushNode(this->doctree);
-   n->doctreeNode->c_html_element_idx = html_element_idx;
+   n->doctreeNodeIdx = doctreePushNode(this->doc_tree, html_element_idx);
 
    if (styleNodesStackSize > 1) {
       StyleNode * parentNode = getParentNode(this);
@@ -164,13 +163,13 @@ void StyleEngine::startElement (const char *tagname, BrowserWindow *bw) {
 }
 
 void StyleEngine::setElementId (const char *id) {
-   c_doctree_node_t * dtn = doctreeGetTopNode(this->doctree);
+   c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree);
    assert (dtn->c_element_selector_id == NULL);
    dtn->c_element_selector_id = strdup (id);
 }
 
 void StyleEngine::setElementClass(const char * element_class) {
-   c_doctree_node_t * dtn = doctreeGetTopNode(this->doctree);
+   c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree);
    assert (dtn->c_element_selector_class_size == 0);
 
    char * saveptr = NULL;
@@ -278,7 +277,7 @@ dw::core::style::StyleImage *StyleEngine::getBackgroundImage
  * \brief set the CSS pseudo class :link.
  */
 void StyleEngine::setPseudoLink () {
-   c_doctree_node_t * dtn = doctreeGetTopNode(this->doctree);
+   c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree);
    dtn->c_element_selector_pseudo_class = "link";
 }
 
@@ -286,7 +285,7 @@ void StyleEngine::setPseudoLink () {
  * \brief set the CSS pseudo class :visited.
  */
 void StyleEngine::setPseudoVisited () {
-   c_doctree_node_t * dtn = doctreeGetTopNode(this->doctree);
+   c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree);
    dtn->c_element_selector_pseudo_class = "visited";
 }
 
@@ -294,10 +293,10 @@ void StyleEngine::setPseudoVisited () {
  * \brief tell the styleEngine that a html element has ended.
  */
 void StyleEngine::endElement (int element) {
-   assert (element == doctreeGetTopNode(this->doctree)->c_html_element_idx);
+   assert (element == doctreeGetTopNode(this->doc_tree)->c_html_element_idx);
 
    stackPop ();
-   doctreePopNode(this->doctree);
+   doctreePopNode(this->doc_tree);
 }
 
 void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
@@ -880,7 +879,9 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
 
    // merge style information
    c_css_declaration_set_t * mergedDeclList = declarationListNew();
-   css_context_apply_css_context(cssContext, mergedDeclList, doctree, styleNodesStack[some_idx].doctreeNode, declLists);
+   int idx = styleNodesStack[some_idx].doctreeNodeIdx;
+   c_doctree_node_t * dtn = this->doc_tree->c_nodes_array[idx];
+   css_context_apply_css_context(cssContext, mergedDeclList, this->doc_tree, dtn, declLists);
 
    // apply style
    apply(some_idx, &attrs, mergedDeclList, bw);

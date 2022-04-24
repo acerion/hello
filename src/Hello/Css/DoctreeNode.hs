@@ -31,7 +31,10 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 module Hello.Css.DoctreeNode
   (
-    Doctree (..)
+    DoctreeItems (..)
+  , Doctree (..)
+  , defaultDoctree
+
   , DoctreeNode (..)
   , defaultDoctreeNode
 
@@ -51,7 +54,21 @@ import Debug.Trace
 
 
 
-type Doctree = M.Map Int DoctreeNode
+type DoctreeItems = M.Map Int DoctreeNode
+data Doctree = Doctree {
+    topNode  :: Int
+  , rootNode :: Int
+  , nodes    :: DoctreeItems
+  } deriving (Show)
+
+
+
+
+defaultDoctree = Doctree {
+    topNode  = -1
+  , rootNode = -1
+  , nodes    = M.empty
+  }
 
 
 
@@ -59,15 +76,15 @@ type Doctree = M.Map Int DoctreeNode
 data DoctreeNode = DoctreeNode {
     uniqueNum      :: Int -- unique ascending id
   , htmlElementIdx :: Int -- Index to html.cc::Tags
+  , thisPtr        :: Int -- pointer to this element
 
   , selPseudoClass  :: T.Text
   , selId           :: T.Text
   , selClass        :: [T.Text]
 
-  , dtnParent    :: Int -- Maybe DoctreeNode
-  , dtnSibling   :: Int -- Maybe DoctreeNode
-  , dtnLastChild :: Int -- Maybe DoctreeNode
-  , dtnRootNode  :: Int -- Maybe DoctreeNode -- TODO: this field belongs to DocTree, not to DoctreeNode
+  , dtnParentNum    :: Int
+  , dtnSiblingNum   :: Int
+  , dtnLastChildNum :: Int
   } deriving (Show)
 
 
@@ -76,24 +93,24 @@ data DoctreeNode = DoctreeNode {
 defaultDoctreeNode = DoctreeNode
   { uniqueNum = (-1)
   , htmlElementIdx = (-1)
+  , thisPtr = 0
 
   , selPseudoClass = ""
   , selId = ""
   , selClass = []
 
-  , dtnParent    = 0
-  , dtnSibling   = 0
-  , dtnLastChild = 0
-  , dtnRootNode  = 0
+  , dtnParentNum    = 0
+  , dtnSiblingNum   = 0
+  , dtnLastChildNum = 0
   }
 
 
 
 
-getDtnParent tree dtn = M.lookup (dtnParent dtn) tree
+getDtnParent tree dtn = M.lookup (dtnParentNum dtn) tree
 
 
-getDtnSibling tree dtn = M.lookup (dtnParent dtn) tree
+getDtnSibling tree dtn = M.lookup (dtnSiblingNum dtn) tree
 
 
 

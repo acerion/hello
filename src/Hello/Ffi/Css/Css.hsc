@@ -56,6 +56,7 @@ import Hello.Css.MediaQuery
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Utils
 import Hello.Ffi.Css.DoctreeNode
+import Hello.Ffi.Css.Doctree
 
 
 
@@ -65,7 +66,7 @@ import Hello.Ffi.Css.DoctreeNode
 
 
 
-foreign export ccall "hll_cssComplexSelectorMatches" hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
+foreign export ccall "hll_cssComplexSelectorMatches" hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctree -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
@@ -73,22 +74,29 @@ foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiC
 
 
 
-hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
-hll_cssComplexSelectorMatches ptrStructCachedComplexSelector ptrStructDtn ptrStructMatchCache = do
+hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctree -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
+hll_cssComplexSelectorMatches ptrStructCachedComplexSelector ptrStructDoctree ptrStructDtn ptrStructMatchCache = do
 
   cachedComplex <- peekCssComplexSelector ptrStructCachedComplexSelector
   mDtn <- ptrToMdtn ptrStructDtn
-  tree <- analyzeDtn ptrStructDtn M.empty
+
+  doctree <- peekDoctree ptrStructDoctree
+  let ns = nodes doctree
+
+  --doctreeA <- analyzeDtn ptrStructDtn M.empty
+  --let ns = doctreeA
+
+  --putStrLn (show ns)
   mc <- peekPtrCssMatchCache ptrStructMatchCache
 
-  let (isMatch, outMc) = cssComplexSelectorMatches (chain cachedComplex) mDtn tree mc (matchCacheOffset cachedComplex)
+  let (isMatch, outMc) = cssComplexSelectorMatches (chain cachedComplex) mDtn ns mc (matchCacheOffset cachedComplex)
   pokeCssMatchCache ptrStructMatchCache outMc
 
   return isMatch
 
 
 
-
+{-
 analyzeDtn ptrStructDtn tree = do
   mDtn <- ptrToMdtn ptrStructDtn
   case mDtn of
@@ -106,7 +114,7 @@ analyzeDtn ptrStructDtn tree = do
           tree3 <- analyzeDtn (intPtrToPtr $ (IntPtr $ dtnParent dtn)) tree2
           analyzeDtn (intPtrToPtr $ (IntPtr $ dtnSibling dtn)) tree3
     Nothing  -> return tree
-
+-}
 
 
 

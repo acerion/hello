@@ -139,7 +139,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
          c_css_rule_t * rule = rules_lists[minSpecIndex]->c_rules[index[minSpecIndex]];
 
          /* Apply CSS rule. */
-         if (hll_cssComplexSelectorMatches(rule->c_cached_complex_selector, dtn, match_cache)) {
+         if (hll_cssComplexSelectorMatches(rule->c_cached_complex_selector, docTree, dtn, match_cache)) {
             hll_declarationListAppend(decl_set, rule->c_decl_set);
          }
 

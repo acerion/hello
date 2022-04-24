@@ -40,6 +40,7 @@ import Foreign
 import Foreign.C.String
 import Foreign.C.Types
 import qualified Data.Text as T
+import qualified Data.Map as M
 import Debug.Trace
 
 import Hello.Ffi.Utils
@@ -61,16 +62,16 @@ foreign export ccall "hll_doctreeNodeNew" hll_doctreeNodeNew :: IO (Ptr FfiDoctr
 data FfiDoctreeNode = FfiDoctreeNode {
     uniqueNumC      :: CInt -- unique ascending id
   , htmlElementIdxC :: CInt -- Index to html.cc::Tags
+  , thisPtrC        :: Ptr FfiDoctreeNode
 
   , elementSelectorPseudoClassC     :: CString
   , elementSelectorIdC              :: CString
   , elementSelectorClassC           :: CString
   , elementSelectorClassSizeC       :: CInt
 
-  , parentC    :: Ptr FfiDoctreeNode
-  , siblingC   :: Ptr FfiDoctreeNode
-  , lastChildC :: Ptr FfiDoctreeNode
-  , rootNodeC  :: Ptr FfiDoctreeNode
+  , parentNumC    :: Ptr FfiDoctreeNode
+  , siblingNumC   :: CInt
+  , lastChildNumC :: CInt
   } deriving (Show)
 
 
@@ -83,26 +84,26 @@ instance Storable FfiDoctreeNode where
   poke ptr (FfiDoctreeNode a b c d e f g h i j) = do
     #{poke c_doctree_node_t, c_unique_num}                    ptr a
     #{poke c_doctree_node_t, c_html_element_idx}              ptr b
-    #{poke c_doctree_node_t, c_element_selector_pseudo_class} ptr c
-    #{poke c_doctree_node_t, c_element_selector_id}           ptr d
-    #{poke c_doctree_node_t, c_element_selector_class}        ptr e
-    #{poke c_doctree_node_t, c_element_selector_class_size}   ptr f
-    #{poke c_doctree_node_t, c_parent}                        ptr g
-    #{poke c_doctree_node_t, c_sibling}                       ptr h
-    #{poke c_doctree_node_t, c_last_child}                    ptr i
-    #{poke c_doctree_node_t, c_root_node}                     ptr j
+    #{poke c_doctree_node_t, c_this_ptr}                      ptr c
+    #{poke c_doctree_node_t, c_element_selector_pseudo_class} ptr d
+    #{poke c_doctree_node_t, c_element_selector_id}           ptr e
+    #{poke c_doctree_node_t, c_element_selector_class}        ptr f
+    #{poke c_doctree_node_t, c_element_selector_class_size}   ptr g
+    #{poke c_doctree_node_t, c_parent_num}                    ptr h
+    #{poke c_doctree_node_t, c_sibling_num}                   ptr i
+    #{poke c_doctree_node_t, c_last_child_num}                ptr j
 
   peek ptr = do
     a <- #{peek c_doctree_node_t, c_unique_num}                    ptr
     b <- #{peek c_doctree_node_t, c_html_element_idx}              ptr
-    c <- #{peek c_doctree_node_t, c_element_selector_pseudo_class} ptr
-    d <- #{peek c_doctree_node_t, c_element_selector_id}           ptr
-    e <- #{peek c_doctree_node_t, c_element_selector_class}        ptr
-    f <- #{peek c_doctree_node_t, c_element_selector_class_size}   ptr
-    g <- #{peek c_doctree_node_t, c_parent}                        ptr
-    h <- #{peek c_doctree_node_t, c_sibling}                       ptr
-    i <- #{peek c_doctree_node_t, c_last_child}                    ptr
-    j <- #{peek c_doctree_node_t, c_root_node}                     ptr
+    c <- #{peek c_doctree_node_t, c_this_ptr}                      ptr
+    d <- #{peek c_doctree_node_t, c_element_selector_pseudo_class} ptr
+    e <- #{peek c_doctree_node_t, c_element_selector_id}           ptr
+    f <- #{peek c_doctree_node_t, c_element_selector_class}        ptr
+    g <- #{peek c_doctree_node_t, c_element_selector_class_size}   ptr
+    h <- #{peek c_doctree_node_t, c_parent_num}                    ptr
+    i <- #{peek c_doctree_node_t, c_sibling_num}                   ptr
+    j <- #{peek c_doctree_node_t, c_last_child_num}                ptr
     return (FfiDoctreeNode a b c d e f g h i j)
 
 
@@ -119,37 +120,84 @@ peekDoctreeNode ptrStructDoctreeNode = do
   let cStringArray :: Ptr CString = plusPtr ptrStructDoctreeNode cOffset
   c  <- peekArrayOfPointers cStringArray (fromIntegral . elementSelectorClassSizeC $ ffiDtn) ptrCCharToText
 
-  return DoctreeNode{ uniqueNum = fromIntegral . uniqueNumC $ ffiDtn
-
+  return DoctreeNode{ uniqueNum      = fromIntegral . uniqueNumC $ ffiDtn
                     , htmlElementIdx = fromIntegral . htmlElementIdxC $ ffiDtn
+                    , thisPtr        = case ptrToIntPtr . thisPtrC $ ffiDtn of
+                                         IntPtr i -> i
+
                     , selPseudoClass = pc
                     , selId          = i
                     , selClass       = c
 
-                    , dtnParent    = case ptrToIntPtr . parentC $ ffiDtn of
+                    , dtnParentNum = case ptrToIntPtr . parentNumC $ ffiDtn of
                                        IntPtr i -> i
-                    , dtnSibling   = case ptrToIntPtr . siblingC $ ffiDtn of
-                                       IntPtr i -> i
-                    , dtnLastChild = case ptrToIntPtr . lastChildC $ ffiDtn of
-                                       IntPtr i -> i
-                    , dtnRootNode = case ptrToIntPtr . rootNodeC $ ffiDtn of
-                                      IntPtr i -> i
+                    , dtnSiblingNum   = fromIntegral . siblingNumC $ ffiDtn
+                    , dtnLastChildNum = fromIntegral . lastChildNumC $ ffiDtn
                     }
 
 
 
 
 
+
+{-
 pokeDoctreeNode :: DoctreeNode -> Ptr FfiDoctreeNode -> IO (Ptr FfiDoctreeNode)
 pokeDoctreeNode dtn ptrDoctreeNodeRoot = do
   ptrStructDoctreeNode <- callocBytes #{size c_doctree_node_t}
   pokeByteOff ptrStructDoctreeNode #{offset c_doctree_node_t, c_root_node} ptrDoctreeNodeRoot
 
   return ptrStructDoctreeNode
-
+-}
 
 
 
 hll_doctreeNodeNew :: IO (Ptr FfiDoctreeNode)
 hll_doctreeNodeNew = callocBytes #{size c_doctree_node_t}
 
+
+
+
+
+
+
+{-
+doctreeNodePush doctree htmlElementIdx = (doctree2, dtn)
+  where
+    nodeIdx = M.size . nodes $ doctree
+
+    dtn = defaultDoctreeNode
+          { uniqueNum      = nodeIdx
+          , htmlElementIdx = htmlElementIdx
+
+          , dtnParentNum  = topNode doctree
+          , dtnSiblingNum = dtnLastChildNum top
+          , dtnRootNode   = rootNode doctree
+      }
+
+
+    doctree2 = doctree { topNode  = nodeIdx
+                       , nodes    = M.insert nodeIdx dtn (nodes doctree)
+                       }
+
+    top = case M.lookup (topNode doctree) (nodes doctree) of
+            Just dtn -> dtn
+            otherwise -> defaultDoctreeNode
+
+
+hll_doctreeNodePush doctree htmlElementIdx = do
+  ptrStructDoctreeNode <- hll_doctreeNodeNew
+  let (doctree, dtn) = doctreeNodePush doctree htmlElementIdx
+
+  pokeDoctreeNode dtn ptrStructDoctreeNode
+-}
+  {-
+   dtn->c_parent_num = doctree->c_top_node;
+   dtn->c_sibling = dtn->c_parent_num->c_last_child;
+   dtn->c_parent_num->c_last_child = dtn;
+   dtn->c_unique_num = doctree->c_num_nodes++;
+   dtn->c_html_element_idx = element_idx;
+
+   doctree->c_top_node = dtn;
+
+   doctree->nodes_array[dtn->c_unique_num] = dtn;
+-}

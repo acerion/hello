@@ -13,7 +13,7 @@ void DoctreeNodePrint(FILE * file, const c_doctree_node_t * dtn);
 c_doctree_t * doctreeCtor(void);
 void doctreeDtor(c_doctree_t * doctree);
 
-c_doctree_node_t * doctreePushNode(c_doctree_t * doctree);
+int doctreePushNode(c_doctree_t * doctree, int element_idx);
 c_doctree_node_t * doctreeGetTopNode(c_doctree_t * doctree);
 void doctreePopNode(c_doctree_t * doctree);
 
