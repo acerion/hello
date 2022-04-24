@@ -2,6 +2,20 @@
 #include "doctree.hh"
 #include "html_common.hh"
 
+/*
+  Root node is not placed in doctree::c_nodes_array[], it exists as a
+  separate member of doctree.
+
+  At the same time c_top_node_num functions (most of the time) as an index to
+  doctree::c_nodes_array[]. So when a top node is a root node, the value of
+  c_top_node_num must be special.
+
+  This constant is the special value of c_top_node_num.
+*/
+#define ROOT_NODE_NUM (-1)
+
+
+
 void DoctreeNodeDelete(c_doctree_node_t * dtn) {
    free(dtn->c_element_selector_id);
 #if 0
@@ -60,13 +74,21 @@ int doctreePushNode(c_doctree_t * doctree, int element_idx)
 
 
    /* Set relations. */
-   dtn->c_parent_num = doctree->c_top_node;
+   if (doctree->c_top_node_num == ROOT_NODE_NUM) {
+      /* This is a first real element in html document, placed in the tree
+         under a root element. */
+      dtn->c_parent_num = doctree->c_root_node;
+   } else {
+      /* This is an n-th element in html document, placed in the tree under
+         some tree node. */
+      dtn->c_parent_num = doctree->c_nodes_array[doctree->c_top_node_num];
+   }
    dtn->c_sibling_num = doctree->c_nodes_array[dtn->c_parent_num->c_last_child_num]->c_unique_num;
    dtn->c_parent_num->c_last_child_num = dtn->c_unique_num;
 
 
    /* Update doctree. */
-   doctree->c_top_node = dtn;
+   doctree->c_top_node_num = dtn->c_unique_num;
    doctree->c_num_nodes++;
 
 
@@ -89,7 +111,7 @@ int doctreePushNode(c_doctree_t * doctree, int element_idx)
       fprintf(stderr, "======    its sibling is NONE\n");
    }
 #endif
-   fprintf(stderr, "====== push element %s, after push the top node is %s\n\n", a_Html_tag_name(element_idx), a_Html_tag_name(doctree->c_top_node->c_html_element_idx));
+   //fprintf(stderr, "====== push element %s, after push the top node is %s\n\n", a_Html_tag_name(element_idx), a_Html_tag_name(doctree->c_top_node_num->c_html_element_idx));
 
 #if 0
    int i = 0;
@@ -113,17 +135,17 @@ int doctreePushNode(c_doctree_t * doctree, int element_idx)
 
 c_doctree_node_t * doctreeGetTopNode(c_doctree_t * doctree)
 {
-   if (doctree->c_top_node != doctree->c_root_node)
-      return doctree->c_top_node;
+   if (doctree->c_top_node_num != ROOT_NODE_NUM)
+      return doctree->c_nodes_array[doctree->c_top_node_num];
    else
       return NULL;
 }
 
 void doctreePopNode(c_doctree_t * doctree)
 {
-   assert (doctree->c_top_node != doctree->c_root_node); // never pop the root node
+   assert (doctree->c_top_node_num != ROOT_NODE_NUM); // never pop the root node
 
-   c_doctree_node_t * dtn = doctree->c_top_node;
+   c_doctree_node_t * dtn = doctree->c_nodes_array[doctree->c_top_node_num];
 
 #if 0
    int i = 0;
@@ -156,7 +178,15 @@ void doctreePopNode(c_doctree_t * doctree)
       fprintf(stderr, "======    its sibling is NONE\n");
    }
 #endif
-   doctree->c_top_node = doctree->c_top_node->c_parent_num;
+
+   if (0 == dtn->c_unique_num) {
+      /* We are popping the element of html document that was added to the
+         tree as the first one. What should now remain on top of the doctree
+         is a tree's root element. */
+      doctree->c_top_node_num = ROOT_NODE_NUM;
+   } else {
+      doctree->c_top_node_num = doctree->c_nodes_array[doctree->c_top_node_num]->c_parent_num->c_unique_num;
+   }
    //fprintf(stderr, "====== pop element %s, after pop the top node is %s\n\n", a_Html_tag_name(element_idx), a_Html_tag_name(doctree->c_top_node->c_html_element_idx));
 
 #if 0
@@ -177,7 +207,7 @@ c_doctree_t * doctreeCtor(void)
    fprintf(stderr, "doctree pointer = %lu\n", (long unsigned) doctree);
    doctree->c_root_node = hll_doctreeNodeNew();
    fprintf(stderr, "root node pointer = %lu\n", (long unsigned) doctree->c_root_node);
-   doctree->c_top_node = doctree->c_root_node;
+   doctree->c_top_node_num = ROOT_NODE_NUM;
    doctree->c_num_nodes = 0;
 
    return doctree;

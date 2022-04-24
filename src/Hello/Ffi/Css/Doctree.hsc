@@ -61,7 +61,7 @@ foreign export ccall "hll_doctreePrint" hll_doctreePrint :: Ptr FfiDoctree -> IO
 
 
 data FfiDoctree = FfiDoctree {
-    topNodeC    :: Ptr FfiDoctreeNode
+    topNodeNumC :: CInt
   , rootNode2C  :: Ptr FfiDoctreeNode
   , numNodesC   :: CInt -- nodes counter
   , nodesArrayC :: Ptr (Ptr FfiDoctreeNode)
@@ -75,15 +75,15 @@ instance Storable FfiDoctree where
   alignment _ = #{alignment c_doctree_t}
 
   poke ptr (FfiDoctree a b c d) = do
-    #{poke c_doctree_t, c_top_node}     ptr a
+    #{poke c_doctree_t, c_top_node_num} ptr a
     #{poke c_doctree_t, c_root_node}    ptr b
     #{poke c_doctree_t, c_num_nodes}    ptr c
-    #{poke c_doctree_t, c_nodes_array}  ptr d
+    #{poke c_doctree_t, c_nodes_array}  ptr d -- TODO: array should be set in different way
 
   peek ptr = do
-    a <- #{peek c_doctree_t, c_top_node}   ptr
-    b <- #{peek c_doctree_t, c_root_node}  ptr
-    c <- #{peek c_doctree_t, c_num_nodes}  ptr
+    a <- #{peek c_doctree_t, c_top_node_num} ptr
+    b <- #{peek c_doctree_t, c_root_node}    ptr
+    c <- #{peek c_doctree_t, c_num_nodes}    ptr
     let d = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_doctree_t, c_nodes_array}) ptr
     return (FfiDoctree a b c d)
 
@@ -94,7 +94,6 @@ peekDoctree :: Ptr FfiDoctree -> IO Doctree
 peekDoctree ptrStructDoctree = do
 
   ffiDoctree  <- peek ptrStructDoctree
-  ffiTopNode  <- peek . topNodeC $ ffiDoctree
   ffiRootNode <- peek . rootNode2C $ ffiDoctree
 
   let numNodes = (fromIntegral . numNodesC $ ffiDoctree)
@@ -102,9 +101,9 @@ peekDoctree ptrStructDoctree = do
   list :: [DoctreeNode] <- peekArrayOfPointers array numNodes peekDoctreeNode
   let keyValueList = fmap (\x -> (thisPtr x, x)) list
 
-  return Doctree { topNode  = fromIntegral . uniqueNumC $ ffiTopNode
-                 , rootNode = fromIntegral . uniqueNumC $ ffiRootNode
-                 , nodes    = M.fromList keyValueList
+  return Doctree { topNodeNum  = fromIntegral . topNodeNumC $ ffiDoctree
+                 , rootNode    = fromIntegral . uniqueNumC $ ffiRootNode
+                 , nodes       = M.fromList keyValueList
                  }
 
 

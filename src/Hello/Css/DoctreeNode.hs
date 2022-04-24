@@ -56,18 +56,18 @@ import Debug.Trace
 
 type DoctreeItems = M.Map Int DoctreeNode
 data Doctree = Doctree {
-    topNode  :: Int
-  , rootNode :: Int
-  , nodes    :: DoctreeItems
+    topNodeNum  :: Int
+  , rootNode    :: Int
+  , nodes       :: DoctreeItems
   } deriving (Show)
 
 
 
 
 defaultDoctree = Doctree {
-    topNode  = -1
-  , rootNode = -1
-  , nodes    = M.empty
+    topNodeNum  = -1
+  , rootNode    = -1
+  , nodes       = M.empty
   }
 
 

@@ -61,7 +61,7 @@ typedef struct c_doctree_node_t {
  * as it is used for CSS selector matching.
  */
 typedef struct c_doctree_t {
-        c_doctree_node_t * c_top_node;
+        int c_top_node_num;
         c_doctree_node_t * c_root_node;
         int c_num_nodes;
         c_doctree_node_t * c_nodes_array[2048];
