@@ -74,17 +74,20 @@ int doctreePushNode(c_doctree_t * doctree, int element_idx)
 
 
    /* Set relations. */
+   c_doctree_node_t * parent = NULL;
    if (doctree->c_top_node_num == ROOT_NODE_NUM) {
       /* This is a first real element in html document, placed in the tree
          under a root element. */
-      dtn->c_parent_num = doctree->c_root_node;
+      dtn->c_parent_num = ROOT_NODE_NUM;
+      parent = doctree->c_root_node;
    } else {
       /* This is an n-th element in html document, placed in the tree under
          some tree node. */
-      dtn->c_parent_num = doctree->c_nodes_array[doctree->c_top_node_num];
+      dtn->c_parent_num = doctree->c_top_node_num;
+      parent = doctree->c_nodes_array[dtn->c_parent_num];
    }
-   dtn->c_sibling_num = doctree->c_nodes_array[dtn->c_parent_num->c_last_child_num]->c_unique_num;
-   dtn->c_parent_num->c_last_child_num = dtn->c_unique_num;
+   dtn->c_sibling_num = parent->c_last_child_num;
+   parent->c_last_child_num = dtn->c_unique_num;
 
 
    /* Update doctree. */
@@ -94,7 +97,14 @@ int doctreePushNode(c_doctree_t * doctree, int element_idx)
 
    /* Debug. */
 #if 0
-   fprintf(stderr, "======    its parent is %s\n", a_Html_tag_name(dtn->c_parent_num->c_html_element_idx));
+   c_doctree_node_t * d_parent = NULL;
+   if (0 == dtn->c_unique_num) {
+      d_parent = doctree->c_root_node;
+   } else {
+      d_parent = doctree->c_nodes_array[dtn->c_parent_num];
+   }
+   fprintf(stderr, "======    its parent is %s\n", a_Html_tag_name(d_parent->c_html_element_idx));
+
    if (dtn->c_sibling_num > 0) {
       c_doctree_node_t * sibling = doctree->c_nodes_array[dtn->c_sibling_num];
       fprintf(stderr, "======    its sibling is %s\n", a_Html_tag_name(sibling->c_html_element_idx));
@@ -185,7 +195,7 @@ void doctreePopNode(c_doctree_t * doctree)
          is a tree's root element. */
       doctree->c_top_node_num = ROOT_NODE_NUM;
    } else {
-      doctree->c_top_node_num = doctree->c_nodes_array[doctree->c_top_node_num]->c_parent_num->c_unique_num;
+      doctree->c_top_node_num = dtn->c_parent_num;
    }
    //fprintf(stderr, "====== pop element %s, after pop the top node is %s\n\n", a_Html_tag_name(element_idx), a_Html_tag_name(doctree->c_top_node->c_html_element_idx));
 

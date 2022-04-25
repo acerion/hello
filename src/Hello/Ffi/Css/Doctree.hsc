@@ -99,7 +99,7 @@ peekDoctree ptrStructDoctree = do
   let numNodes = (fromIntegral . numNodesC $ ffiDoctree)
   let array :: Ptr (Ptr FfiDoctreeNode) = nodesArrayC ffiDoctree
   list :: [DoctreeNode] <- peekArrayOfPointers array numNodes peekDoctreeNode
-  let keyValueList = fmap (\x -> (thisPtr x, x)) list
+  let keyValueList = fmap (\x -> (uniqueNum x, x)) list
 
   return Doctree { topNodeNum  = fromIntegral . topNodeNumC $ ffiDoctree
                  , rootNode    = fromIntegral . uniqueNumC $ ffiRootNode

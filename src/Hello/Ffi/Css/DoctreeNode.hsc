@@ -69,7 +69,7 @@ data FfiDoctreeNode = FfiDoctreeNode {
   , elementSelectorClassC           :: CString
   , elementSelectorClassSizeC       :: CInt
 
-  , parentNumC    :: Ptr FfiDoctreeNode
+  , parentNumC    :: CInt
   , siblingNumC   :: CInt
   , lastChildNumC :: CInt
   } deriving (Show)
@@ -129,8 +129,7 @@ peekDoctreeNode ptrStructDoctreeNode = do
                     , selId          = i
                     , selClass       = c
 
-                    , dtnParentNum = case ptrToIntPtr . parentNumC $ ffiDtn of
-                                       IntPtr i -> i
+                    , dtnParentNum    = fromIntegral . parentNumC $ ffiDtn
                     , dtnSiblingNum   = fromIntegral . siblingNumC $ ffiDtn
                     , dtnLastChildNum = fromIntegral . lastChildNumC $ ffiDtn
                     }

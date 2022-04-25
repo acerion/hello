@@ -48,7 +48,7 @@ typedef struct c_doctree_node_t {
    char * c_element_selector_class[10];
    int c_element_selector_class_size;
 
-   struct c_doctree_node_t * c_parent_num;
+   int c_parent_num;
    int c_sibling_num;
    int c_last_child_num;
 } c_doctree_node_t;
