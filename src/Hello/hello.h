@@ -40,7 +40,6 @@ struct c_doctree_node_t;
 typedef struct c_doctree_node_t {
    int c_unique_num; // unique ascending id
    int c_html_element_idx; /* Index to html.cc::Tags */
-   struct c_doctree_node_t * c_this_ptr;
 
    /* Css Selectors. */
    char * c_element_selector_pseudo_class;

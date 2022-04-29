@@ -62,7 +62,6 @@ foreign export ccall "hll_doctreeNodeNew" hll_doctreeNodeNew :: IO (Ptr FfiDoctr
 data FfiDoctreeNode = FfiDoctreeNode {
     uniqueNumC      :: CInt -- unique ascending id
   , htmlElementIdxC :: CInt -- Index to html.cc::Tags
-  , thisPtrC        :: Ptr FfiDoctreeNode
 
   , elementSelectorPseudoClassC     :: CString
   , elementSelectorIdC              :: CString
@@ -81,10 +80,9 @@ instance Storable FfiDoctreeNode where
   sizeOf    _ = #{size c_doctree_node_t}
   alignment _ = #{alignment c_doctree_node_t}
 
-  poke ptr (FfiDoctreeNode a b c d e f g h i j) = do
+  poke ptr (FfiDoctreeNode a b d e f g h i j) = do
     #{poke c_doctree_node_t, c_unique_num}                    ptr a
     #{poke c_doctree_node_t, c_html_element_idx}              ptr b
-    #{poke c_doctree_node_t, c_this_ptr}                      ptr c
     #{poke c_doctree_node_t, c_element_selector_pseudo_class} ptr d
     #{poke c_doctree_node_t, c_element_selector_id}           ptr e
     #{poke c_doctree_node_t, c_element_selector_class}        ptr f
@@ -96,7 +94,6 @@ instance Storable FfiDoctreeNode where
   peek ptr = do
     a <- #{peek c_doctree_node_t, c_unique_num}                    ptr
     b <- #{peek c_doctree_node_t, c_html_element_idx}              ptr
-    c <- #{peek c_doctree_node_t, c_this_ptr}                      ptr
     d <- #{peek c_doctree_node_t, c_element_selector_pseudo_class} ptr
     e <- #{peek c_doctree_node_t, c_element_selector_id}           ptr
     f <- #{peek c_doctree_node_t, c_element_selector_class}        ptr
@@ -104,7 +101,7 @@ instance Storable FfiDoctreeNode where
     h <- #{peek c_doctree_node_t, c_parent_num}                    ptr
     i <- #{peek c_doctree_node_t, c_sibling_num}                   ptr
     j <- #{peek c_doctree_node_t, c_last_child_num}                ptr
-    return (FfiDoctreeNode a b c d e f g h i j)
+    return (FfiDoctreeNode a b d e f g h i j)
 
 
 
@@ -122,8 +119,6 @@ peekDoctreeNode ptrStructDoctreeNode = do
 
   return DoctreeNode{ uniqueNum      = fromIntegral . uniqueNumC $ ffiDtn
                     , htmlElementIdx = fromIntegral . htmlElementIdxC $ ffiDtn
-                    , thisPtr        = case ptrToIntPtr . thisPtrC $ ffiDtn of
-                                         IntPtr i -> i
 
                     , selPseudoClass = pc
                     , selId          = i

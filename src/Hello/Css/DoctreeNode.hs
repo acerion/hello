@@ -76,7 +76,6 @@ defaultDoctree = Doctree {
 data DoctreeNode = DoctreeNode {
     uniqueNum      :: Int -- unique ascending id
   , htmlElementIdx :: Int -- Index to html.cc::Tags
-  , thisPtr        :: Int -- pointer to this element
 
   , selPseudoClass  :: T.Text
   , selId           :: T.Text
@@ -93,7 +92,6 @@ data DoctreeNode = DoctreeNode {
 defaultDoctreeNode = DoctreeNode
   { uniqueNum = (-1)
   , htmlElementIdx = (-1)
-  , thisPtr = 0
 
   , selPseudoClass = ""
   , selId = ""

@@ -64,7 +64,6 @@ int doctreePushNode(c_doctree_t * doctree, int element_idx)
 
 
    /* Set properties. */
-   dtn->c_this_ptr = dtn;
    dtn->c_unique_num = this_num;
    dtn->c_html_element_idx = element_idx;
 
@@ -130,7 +129,6 @@ int doctreePushNode(c_doctree_t * doctree, int element_idx)
       fprintf(stderr, "===\n");
       fprintf(stderr, "=== push node %d\n", i);
       fprintf(stderr, "=== push dtn: unique num = %d\n", n->c_unique_num);
-      fprintf(stderr, "=== push dtn: this ptr   = %lu\n", n->c_this_ptr);
       fprintf(stderr, "=== push dtn: tag name   = '%s'\n", a_Html_tag_name(n->c_html_element_idx));
       fprintf(stderr, "=== push dtn: parent num = %d\n", n->c_parent_num);
       fprintf(stderr, "=== push dtn: parent ptr = %lu\n", n->c_parent_num);
@@ -164,7 +162,6 @@ void doctreePopNode(c_doctree_t * doctree)
       fprintf(stderr, "===\n");
       fprintf(stderr, "=== pop node %d\n", i);
       fprintf(stderr, "=== pop dtn: unique num = %d\n", n->c_unique_num);
-      fprintf(stderr, "=== pop dtn: this ptr   = %lu\n", n->c_this_ptr);
       fprintf(stderr, "=== pop dtn: tag name   = '%s'\n", a_Html_tag_name(n->c_html_element_idx));
       fprintf(stderr, "=== pop dtn: parent num = %d\n", n->c_parent_num);
       fprintf(stderr, "=== pop dtn: parent ptr = %lu\n", n->c_parent_num);
