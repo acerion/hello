@@ -49,6 +49,7 @@ public:
    
       c_css_context_t * cssContext;
       c_doctree_t * doc_tree = NULL;
+      int doc_tree_ref = 0;
       int importDepth;
       DilloUrl *pageUrl, *baseUrl;
 

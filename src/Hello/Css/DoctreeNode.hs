@@ -33,6 +33,7 @@ module Hello.Css.DoctreeNode
   (
     DoctreeItems (..)
   , Doctree (..)
+  , doctreeCtor
   , defaultDoctree
 
   , DoctreeNode (..)
@@ -58,6 +59,7 @@ type DoctreeItems = M.Map Int DoctreeNode
 data Doctree = Doctree {
     topNodeNum  :: Int
   , rootNode    :: Int
+  , root        :: DoctreeNode
   , nodes       :: DoctreeItems
   } deriving (Show)
 
@@ -67,6 +69,7 @@ data Doctree = Doctree {
 defaultDoctree = Doctree {
     topNodeNum  = -1
   , rootNode    = -1
+  , root        = defaultDoctreeNode
   , nodes       = M.empty
   }
 
@@ -109,6 +112,14 @@ getDtnParent tree dtn = M.lookup (dtnParentNum dtn) tree
 
 
 getDtnSibling tree dtn = M.lookup (dtnSiblingNum dtn) tree
+
+
+
+
+
+doctreeCtor :: Doctree
+doctreeCtor = defaultDoctree
+
 
 
 

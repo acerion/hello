@@ -196,13 +196,9 @@ void doctreePopNode(c_doctree_t * doctree)
    }
    //fprintf(stderr, "====== pop element %s, after pop the top node is %s\n\n", a_Html_tag_name(element_idx), a_Html_tag_name(doctree->c_top_node->c_html_element_idx));
 
-#if 0
-   if (element_idx == 42) { /* html element */
+#if 1
+   if (dtn->c_html_element_idx == 42) { /* html element */
       hll_doctreePrint(doctree);
-      if (0 != hll_doctreeTest(doctree)) {
-         fprintf(stderr, "doctree test has failed\n");
-         exit(EXIT_FAILURE);
-      }
    }
 #endif
 }

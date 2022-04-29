@@ -72,6 +72,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    FontAttrs font_attrs;
 
    this->doc_tree = doctreeCtor();
+   this->doc_tree_ref = hll_doctreeCtor();
    //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
    cssContext = c_css_context_new();
    buildUserStyle ();
@@ -151,6 +152,8 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    StyleNode *n = &styleNodesStack[styleNodesStackSize - 1];
 
    n->doctreeNodeIdx = doctreePushNode(this->doc_tree, html_element_idx);
+   //n->doctreeNodeIdx = hll_doctreePushNode(this->doc_tree_ref, html_element_idx);
+   hll_doctreePushNode(this->doc_tree_ref, html_element_idx);
 
    if (styleNodesStackSize > 1) {
       StyleNode * parentNode = getParentNode(this);
@@ -297,6 +300,7 @@ void StyleEngine::endElement (int element) {
 
    stackPop ();
    doctreePopNode(this->doc_tree);
+   hll_doctreePopNode(this->doc_tree_ref);
 }
 
 void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
