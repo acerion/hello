@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2021 Kamil Ignacak acerion@wp.pl
+Copyright (C) 2021-2022 Kamil Ignacak acerion@wp.pl
 
 This file is part of "hello" web browser.
 
@@ -49,6 +49,7 @@ import System.IO.Unsafe
 import Hello.Ffi.Utils
 import Hello.Ffi.Css.DoctreeNode
 import Hello.Css.DoctreeNode
+import Hello.Html.Doctree
 import Hello.Utils
 
 
@@ -153,8 +154,6 @@ hll_doctreePrint ptrStructDoctree = do
 
 
 
-
-
 hll_doctreeModifyPair :: CInt -> CInt -> IO ()
 hll_doctreeModifyPair cRef cIncrement = do
   let increment = fromIntegral cIncrement
@@ -212,76 +211,6 @@ hll_doctreePushNode cRef cElementIdx = do
 
 
 
-doctreePushNode :: Doctree -> Int -> IO (Doctree, DoctreeNode)
-doctreePushNode doctree elementIdx = do
-
-  putStrLn ("---- push " ++ (show elementIdx) ++ "\n")
-
-  let currentNodeNum = M.size . nodes $ doctree
-
-  let dtn = makeNewDtn elementIdx currentNodeNum
-  (doctree2, dtn2) <- setRelations doctree dtn
-
-  -- Insert node, update reference to top node.
-  let doctree3 = doctree2 { topNodeNum = uniqueNum dtn2
-                          , nodes      = M.insert currentNodeNum dtn2 (nodes doctree2)
-                          }
-
-  return (doctree3, dtn2)
-
-
-{-
-Set properties.
-dtn->c_this_ptr = dtn;
-dtn->c_unique_num = this_num;
-dtn->c_html_element_idx = element_idx;
--}
-makeNewDtn elementIdx num = defaultDoctreeNode { uniqueNum = num
-                                               , htmlElementIdx = elementIdx
-                                               }
-
-
-
-{-
-   /* Set relations. */
-   c_doctree_node_t * parent = NULL;
-   if (doctree->c_top_node_num == ROOT_NODE_NUM) {
-      /* This is a first real element in html document, placed in the tree
-         under a root element. */
-      dtn->c_parent_num = ROOT_NODE_NUM;
-      parent = doctree->c_root_node;
-      dtn->c_sibling_num = parent->c_last_child_num;
-      parent->c_last_child_num = dtn->c_unique_num;
-
-   } else {
-      /* This is an n-th element in html document, placed in the tree under
-         some tree node. */
-      dtn->c_parent_num = doctree->c_top_node_num;
-      parent = doctree->c_nodes_array[dtn->c_parent_num];
-      dtn->c_sibling_num = parent->c_last_child_num;
-      parent->c_last_child_num = dtn->c_unique_num;
-   }
--}
-setRelations doctree dtn = if topNodeNum doctree == (-1)
-                           then
-                             do
-                               let dtn3 = dtn { dtnParentNum = (-1) }
-                               let parent = root doctree
-                               let dtn4 = dtn3 { dtnSiblingNum = dtnLastChildNum parent }
-                               let parent2 = parent { dtnLastChildNum = uniqueNum dtn4 }
-                               let tree = doctree { root = parent2 }
-                               return (tree, dtn4)
-                           else
-                             do
-                               let dtn3 = dtn { dtnParentNum = topNodeNum doctree }
-                               let parent = (nodes doctree) M.! (dtnParentNum dtn3)
-                               let dtn4 = dtn3 { dtnSiblingNum = dtnLastChildNum parent }
-                               let parent2 = parent { dtnLastChildNum = uniqueNum dtn4 }
-                               let tree = doctree { nodes = M.insert (uniqueNum parent2) parent2 (nodes doctree) }
-                               return (tree, dtn4)
-
-
-
 hll_doctreePopNode :: CInt -> IO ()
 hll_doctreePopNode cRef = do
   let ref        = fromIntegral cRef
@@ -293,30 +222,6 @@ hll_doctreePopNode cRef = do
 
   writeIORef myGlobalDoctrees new
   putStr ("::::::::::: After popping: " ++ (show doctree2) ++ "\n")
-
-
-
-
-
-
-doctreePopNode :: Doctree -> Doctree
-doctreePopNode doctree = if uniqueNum dtn == 0 -- We are popping the element of html document that was added to the tree as the first one. What should now remain on top of the doctree is a tree's root element.
-                         then doctree { topNodeNum = (-1) }
-                         else doctree { topNodeNum = dtnParentNum dtn }
-
-  where
-    -- c_doctree_node_t * dtn = doctree->c_nodes_array[doctree->c_top_node_num];
-    dtn = (nodes doctree) M.! (topNodeNum doctree)
-
-{-
-   if (0 == dtn->c_unique_num) {
-
-      doctree->c_top_node_num = ROOT_NODE_NUM;
-   } else {
-      doctree->c_top_node_num = dtn->c_parent_num;
-   }
-
--}
 
 
 

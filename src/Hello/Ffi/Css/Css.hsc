@@ -52,6 +52,7 @@ import Hello.Css.Selector
 import Hello.Css.DoctreeNode
 import Hello.Css.Match
 import Hello.Css.MediaQuery
+import Hello.Html.Doctree
 
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Utils

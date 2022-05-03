@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2021 Kamil Ignacak acerion@wp.pl
+Copyright (C) 2021-2022 Kamil Ignacak acerion@wp.pl
 
 This file is part of "hello" web browser.
 
@@ -31,47 +31,16 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 module Hello.Css.DoctreeNode
   (
-    DoctreeItems (..)
-  , Doctree (..)
-  , doctreeCtor
-  , defaultDoctree
-
-  , DoctreeNode (..)
+    DoctreeNode (..)
   , defaultDoctreeNode
-
-  , getDtnParent
-  , getDtnSibling
-
   )
   where
 
 
 
 
-import qualified Data.Map as M
 import qualified Data.Text as T
 import Debug.Trace
-
-
-
-
-type DoctreeItems = M.Map Int DoctreeNode
-data Doctree = Doctree {
-    topNodeNum  :: Int
-  , rootNode    :: Int
-  , root        :: DoctreeNode
-  , nodes       :: DoctreeItems
-  } deriving (Show)
-
-
-
-
-defaultDoctree = Doctree {
-    topNodeNum  = -1
-  , rootNode    = -1
-  , root        = defaultDoctreeNode
-  , nodes       = M.empty
-  }
 
 
 
@@ -104,21 +73,6 @@ defaultDoctreeNode = DoctreeNode
   , dtnSiblingNum   = 0
   , dtnLastChildNum = 0
   }
-
-
-
-
-getDtnParent tree dtn = M.lookup (dtnParentNum dtn) tree
-
-
-getDtnSibling tree dtn = M.lookup (dtnSiblingNum dtn) tree
-
-
-
-
-
-doctreeCtor :: Doctree
-doctreeCtor = defaultDoctree
 
 
 
