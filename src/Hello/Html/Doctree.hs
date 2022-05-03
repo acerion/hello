@@ -91,33 +91,32 @@ doctreeCtor = defaultDoctree
 
 
 
-doctreePushNode :: Doctree -> Int -> IO (Doctree, DoctreeNode)
-doctreePushNode doctree elementIdx = do
+doctreePushNode :: Doctree -> Int -> Doctree
+doctreePushNode doctree elementIdx = insertNode (updateParent doctree (uniqueNum dtn)) dtn
+  where
+    currentNodeNum = M.size . nodes $ doctree
+    dtn            = makeNewDtn (if pushingFirstNode then rootParent else someParent) elementIdx currentNodeNum
 
-  let currentNodeNum = M.size . nodes $ doctree
+    -- Push node into tree.
+    insertNode tree node = tree { topNodeNum = uniqueNum node
+                                , nodes      = M.insert currentNodeNum node (nodes tree)
+                                }
 
-  let dtn = makeNewDtn elementIdx currentNodeNum
-  (doctree2, dtn2) <- setRelations doctree dtn
+    -- Update properties of parent of currently pushed node.
+    updateParent tree nodeNum = if pushingFirstNode
+                                then tree { root = rootParent { dtnLastChildNum = nodeNum } }
+                                else tree { nodes = M.adjust (\x -> x { dtnLastChildNum = nodeNum }) parentNum (nodes tree)}
 
-  -- Insert node, update reference to top node.
-  let doctree3 = doctree2 { topNodeNum = uniqueNum dtn2
-                          , nodes      = M.insert currentNodeNum dtn2 (nodes doctree2)
-                          }
+    pushingFirstNode = topNodeNum doctree == (-1)
+    parentNum  = topNodeNum doctree
+    rootParent = root doctree
+    someParent = (nodes doctree) M.! parentNum
 
-  return (doctree3, dtn2)
-
-
-
-
-{-
-Set properties.
-dtn->c_this_ptr = dtn;
-dtn->c_unique_num = this_num;
-dtn->c_html_element_idx = element_idx;
--}
-makeNewDtn elementIdx num = defaultDoctreeNode { uniqueNum = num
-                                               , htmlElementIdx = elementIdx
-                                               }
+    makeNewDtn parent elementIdx num = defaultDoctreeNode { uniqueNum      = num
+                                                          , htmlElementIdx = elementIdx
+                                                          , dtnParentNum   = uniqueNum parent
+                                                          , dtnSiblingNum  = dtnLastChildNum parent
+                                                          }
 
 
 
@@ -141,24 +140,6 @@ makeNewDtn elementIdx num = defaultDoctreeNode { uniqueNum = num
       parent->c_last_child_num = dtn->c_unique_num;
    }
 -}
-setRelations doctree dtn = if topNodeNum doctree == (-1)
-                           then
-                             do
-                               let dtn3 = dtn { dtnParentNum = (-1) }
-                               let parent = root doctree
-                               let dtn4 = dtn3 { dtnSiblingNum = dtnLastChildNum parent }
-                               let parent2 = parent { dtnLastChildNum = uniqueNum dtn4 }
-                               let tree = doctree { root = parent2 }
-                               return (tree, dtn4)
-                           else
-                             do
-                               let dtn3 = dtn { dtnParentNum = topNodeNum doctree }
-                               let parent = (nodes doctree) M.! (dtnParentNum dtn3)
-                               let dtn4 = dtn3 { dtnSiblingNum = dtnLastChildNum parent }
-                               let parent2 = parent { dtnLastChildNum = uniqueNum dtn4 }
-                               let tree = doctree { nodes = M.insert (uniqueNum parent2) parent2 (nodes doctree) }
-                               return (tree, dtn4)
-
 
 
 

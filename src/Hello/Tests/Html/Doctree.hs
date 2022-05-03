@@ -923,7 +923,7 @@ runDoctreeOps :: Doctree -> [(Bool, Int)] -> IO Doctree
 runDoctreeOps doctree (x:xs) = do
   if fst x
     then do
-    (newDoctree, _) <- doctreePushNode doctree (snd x)
+    let newDoctree = doctreePushNode doctree (snd x)
     runDoctreeOps newDoctree xs
     else do
     let newDoctree = doctreePopNode doctree

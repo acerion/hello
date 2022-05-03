@@ -201,13 +201,13 @@ hll_doctreePushNode cRef cElementIdx = do
 
   old <- readIORef myGlobalDoctrees
   let doctree = old !! ref
-  (doctree2, dtn) <- doctreePushNode doctree elementIdx
+  let doctree2 = doctreePushNode doctree elementIdx
   let new = listReplaceElem old doctree2 ref
 
   writeIORef myGlobalDoctrees new
   putStr ("::::::::::: After pushing " ++ (show elementIdx) ++ ": " ++ (show doctree2) ++ "\n")
 
-  return $ fromIntegral (uniqueNum dtn)
+  return $ fromIntegral (topNodeNum doctree2)
 
 
 
