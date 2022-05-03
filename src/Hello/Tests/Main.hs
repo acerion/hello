@@ -29,18 +29,25 @@ import Hello.Tests.Css.Selector
 import Hello.Tests.Css.Tokenizer
 import Hello.Tests.Css.Value
 
+import Hello.Tests.Html.Attribute
+import Hello.Tests.Html.Doctree
+import Hello.Tests.Html.Doctype
 import Hello.Tests.Html.Entity
 import Hello.Tests.Html.Tag
-import Hello.Tests.Html.Attribute
-import Hello.Tests.Html.Doctype
 
 
 
 
-testFunctions = [testsColors, testsCookies,
-                 testsGif, testsGif2,
-                 testsCssCss, testsCssRule, testsCssComplexSelector, testsCssTokenizer, testsCssValue,
-                 testsHtmlEntity, testsHtmlTag, testsHtmlAttribute, testsHtmlDoctype]
+testFunctions = [ testsColors, testsCookies,
+                  testsGif, testsGif2,
+                  testsCssCss, testsCssRule, testsCssComplexSelector, testsCssTokenizer, testsCssValue
+
+                , testsHtmlAttribute
+                , testsHtmlDoctree
+                , testsHtmlDoctype
+                , testsHtmlEntity
+                , testsHtmlTag
+                ]
 
 
 

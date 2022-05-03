@@ -62,7 +62,7 @@ data Doctree = Doctree {
   , rootNode    :: Int
   , root        :: DoctreeNode
   , nodes       :: DoctreeItems
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 
 
@@ -93,8 +93,6 @@ doctreeCtor = defaultDoctree
 
 doctreePushNode :: Doctree -> Int -> IO (Doctree, DoctreeNode)
 doctreePushNode doctree elementIdx = do
-
-  putStrLn ("---- push " ++ (show elementIdx) ++ "\n")
 
   let currentNodeNum = M.size . nodes $ doctree
 

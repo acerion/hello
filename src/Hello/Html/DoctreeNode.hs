@@ -56,7 +56,7 @@ data DoctreeNode = DoctreeNode {
   , dtnParentNum    :: Int
   , dtnSiblingNum   :: Int
   , dtnLastChildNum :: Int
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 
 
