@@ -43,8 +43,9 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import Debug.Trace
 
+import Hello.Html.DoctreeNode
+
 import Hello.Ffi.Utils
-import Hello.Css.DoctreeNode
 
 
 

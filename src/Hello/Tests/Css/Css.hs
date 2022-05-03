@@ -26,11 +26,13 @@ import Test.HUnit
 
 import Hello.Css.Parser
 import Hello.Css.Selector
-import Hello.Css.DoctreeNode
 import Hello.Css.Match
+import Hello.Html.DoctreeNode
+import Hello.Utils
+
 import Hello.Tests.Css.Data
 import Hello.Tests.Css.Match.Data
-import Hello.Utils
+
 
 
 

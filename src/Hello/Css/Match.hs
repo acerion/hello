@@ -40,8 +40,8 @@ import Debug.Trace
 
 import Hello.Css.StyleSheet
 import Hello.Css.Selector
-import Hello.Css.DoctreeNode
 import Hello.Html.Doctree
+import Hello.Html.DoctreeNode
 import Hello.Utils
 
 

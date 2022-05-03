@@ -46,11 +46,12 @@ import Debug.Trace
 import Data.IORef
 import System.IO.Unsafe
 
+import Hello.Html.Doctree
+import Hello.Html.DoctreeNode
+import Hello.Utils
+
 import Hello.Ffi.Utils
 import Hello.Ffi.Css.DoctreeNode
-import Hello.Css.DoctreeNode
-import Hello.Html.Doctree
-import Hello.Utils
 
 
 

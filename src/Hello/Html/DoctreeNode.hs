@@ -29,7 +29,7 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 
 
-module Hello.Css.DoctreeNode
+module Hello.Html.DoctreeNode
   (
     DoctreeNode (..)
   , defaultDoctreeNode

@@ -49,10 +49,10 @@ import Hello.Css.Parser
 import Hello.Css.Tokenizer
 import Hello.Css.StyleSheet
 import Hello.Css.Selector
-import Hello.Css.DoctreeNode
 import Hello.Css.Match
 import Hello.Css.MediaQuery
 import Hello.Html.Doctree
+import Hello.Html.DoctreeNode
 
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Utils
