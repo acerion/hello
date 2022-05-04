@@ -358,6 +358,9 @@ c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeInt(c_css_dec
 c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeString(c_css_declaration_set_t * declSet, int property, int valueType, const char * stringVal);
 
 
+void hll_styleEngineSetElementId(int doc_tree_ref, const char * element_id);
+void hll_styleEngineSetElementClass(int doc_tree_ref, const char * element_class_tokens);
+void hll_styleEngineSetElementPseudoClass(int doc_tree_ref, const char * element_pseudo_class);
 
 
 

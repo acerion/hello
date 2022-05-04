@@ -169,15 +169,17 @@ void StyleEngine::setElementId (const char *id) {
    c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree);
    assert (dtn->c_element_selector_id == NULL);
    dtn->c_element_selector_id = strdup (id);
+
+   hll_styleEngineSetElementId(this->doc_tree_ref, id);
 }
 
-void StyleEngine::setElementClass(const char * element_class) {
+void StyleEngine::setElementClass(const char * element_class_tokens) {
    c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree);
    assert (dtn->c_element_selector_class_size == 0);
 
    char * saveptr = NULL;
    const char * sep = " ";
-   char * in = strdup(element_class);
+   char * in = strdup(element_class_tokens);
    int i = 0;
    for (char * tok = strtok_r(in, sep, &saveptr); tok; tok = strtok_r(NULL, sep, &saveptr)) {
       dtn->c_element_selector_class[i] = strdup(tok);
@@ -185,6 +187,8 @@ void StyleEngine::setElementClass(const char * element_class) {
    }
    dtn->c_element_selector_class_size = i;
    free(in);
+
+   hll_styleEngineSetElementClass(this->doc_tree_ref, element_class_tokens);
 }
 
 // 'cssStyleAttribute' is contents of element's "style" attribute, describing CSS
@@ -282,6 +286,8 @@ dw::core::style::StyleImage *StyleEngine::getBackgroundImage
 void StyleEngine::setPseudoLink () {
    c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree);
    dtn->c_element_selector_pseudo_class = "link";
+
+   hll_styleEngineSetElementPseudoClass(this->doc_tree_ref, "link");
 }
 
 /**
@@ -290,6 +296,8 @@ void StyleEngine::setPseudoLink () {
 void StyleEngine::setPseudoVisited () {
    c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree);
    dtn->c_element_selector_pseudo_class = "visited";
+
+   hll_styleEngineSetElementPseudoClass(this->doc_tree_ref, "visited");
 }
 
 /**

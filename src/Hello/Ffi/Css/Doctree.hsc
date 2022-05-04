@@ -39,8 +39,14 @@ import Prelude
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
-import qualified Data.Text as T
 import qualified Data.Map as M
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Unsafe as BSU
+import qualified Data.ByteString.Char8 as Char8
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T.E
+
+
 import Debug.Trace
 
 import Data.IORef
@@ -70,6 +76,11 @@ foreign export ccall "hll_doctreeUpdate" hll_doctreeUpdate :: CInt -> CInt -> IO
 foreign export ccall "hll_doctreePushNode" hll_doctreePushNode :: CInt -> CInt -> IO CInt
 foreign export ccall "hll_doctreePopNode" hll_doctreePopNode :: CInt -> IO ()
 foreign export ccall "hll_doctreeGetTopNodeElementSelectorId" hll_doctreeGetTopNodeElementSelectorId :: CInt -> IO CString
+
+foreign export ccall "hll_styleEngineSetElementId" hll_styleEngineSetElementId :: CInt -> CString -> IO ()
+foreign export ccall "hll_styleEngineSetElementClass" hll_styleEngineSetElementClass :: CInt -> CString -> IO ()
+foreign export ccall "hll_styleEngineSetElementPseudoClass" hll_styleEngineSetElementPseudoClass :: CInt -> CString -> IO ()
+
 
 
 
@@ -288,4 +299,59 @@ hll_doctreeGetTopNodeElementSelectorId cRef = do
 
 
 
+
+
+hll_styleEngineSetElementId :: CInt -> CString -> IO ()
+hll_styleEngineSetElementId cRef cElementId = do
+    let ref       = fromIntegral cRef
+    stringVal <- BSU.unsafePackCString $ cElementId
+    let elementId  = T.E.decodeLatin1 stringVal
+
+    old <- readIORef myGlobalDoctrees
+    let doctree = old !! ref
+    let dtn = (nodes doctree) M.! (topNodeNum doctree)
+    let dtn2 = dtn { selId = elementId }
+    let new = listReplaceElem old doctree { nodes = M.insert (uniqueNum dtn2) dtn2 (nodes doctree) } ref
+
+    writeIORef myGlobalDoctrees new
+
+
+
+
+
+hll_styleEngineSetElementClass :: CInt -> CString -> IO ()
+hll_styleEngineSetElementClass cRef cElementClassTokens = do
+    let ref = fromIntegral cRef
+    tokens  <- BSU.unsafePackCString $ cElementClassTokens
+
+    -- With ' ' character as separator of selectors, we can use 'words' to
+    -- get the list of selectors.
+    let ws = words . Char8.unpack $ tokens
+    let classSelectors = fmap T.pack ws
+
+    old <- readIORef myGlobalDoctrees
+    let doctree = old !! ref
+    let dtn = (nodes doctree) M.! (topNodeNum doctree)
+    let dtn2 = dtn { selClass = classSelectors }
+    let new = listReplaceElem old doctree { nodes = M.insert (uniqueNum dtn2) dtn2 (nodes doctree) } ref
+
+    writeIORef myGlobalDoctrees new
+
+
+
+
+
+hll_styleEngineSetElementPseudoClass :: CInt -> CString -> IO ()
+hll_styleEngineSetElementPseudoClass cRef cElementPseudoClass = do
+    let ref       = fromIntegral cRef
+    stringVal <- BSU.unsafePackCString $ cElementPseudoClass
+    let elementPseudoClass  = T.E.decodeLatin1 stringVal
+
+    old <- readIORef myGlobalDoctrees
+    let doctree = old !! ref
+    let dtn = (nodes doctree) M.! (topNodeNum doctree)
+    let dtn2 = dtn { selPseudoClass = elementPseudoClass }
+    let new = listReplaceElem old doctree { nodes = M.insert (uniqueNum dtn2) dtn2 (nodes doctree) } ref
+
+    writeIORef myGlobalDoctrees new
 
