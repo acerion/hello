@@ -121,19 +121,26 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
       int minPos = 1 << 30;
       int minSpecIndex = -1;
 
-      for (int i = 0; i < numLists; i++) {
-         const c_css_rules_list_t *rl = rules_lists[i];
+      for (int listIdx = 0; listIdx < numLists; listIdx++) {
+         const c_css_rules_list_t * rl = hll_rulesListsGetList(rules_lists, listIdx); // rules_lists[listIdx];
+         if (NULL == rl) {
+            continue;
+         }
 
-         if (rl && rl->c_rules_size > index[i] &&
-            (rl->c_rules[index[i]]->c_specificity < minSpec ||
-             (rl->c_rules[index[i]]->c_specificity == minSpec &&
-              rl->c_rules[index[i]]->c_position < minPos))) {
+         int ruleIdx = index[listIdx];
+         if (rl->c_rules_size <= ruleIdx) {
+            continue;
+         }
 
-            minSpec = rl->c_rules[index[i]]->c_specificity;
-            minPos = rl->c_rules[index[i]]->c_position;
-            minSpecIndex = i;
+         c_css_rule_t * rule = rl->c_rules[ruleIdx];
+         if (rule->c_specificity < minSpec || (rule->c_specificity == minSpec && rule->c_position < minPos)) {
+            minSpec = rule->c_specificity;
+            minPos  = rule->c_position;
+            minSpecIndex = listIdx;
          }
       }
+
+      fprintf(stderr, "minSpec = %d, minPos = %d, minSpecIndex = %d\n", minSpec, minPos, minSpecIndex);
 
       if (minSpecIndex >= 0) {
          c_css_rule_t * rule = rules_lists[minSpecIndex]->c_rules[index[minSpecIndex]];
@@ -142,7 +149,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
          if (hll_cssComplexSelectorMatches(rule->c_cached_complex_selector, doc_tree_ref, dtn, match_cache)) {
             hll_declarationListAppend(decl_set, rule->c_decl_set);
          }
-
+         print_css_declaration_set(stderr, decl_set);
          index[minSpecIndex]++;
       } else {
          break;

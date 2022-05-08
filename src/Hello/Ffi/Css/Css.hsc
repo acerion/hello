@@ -73,6 +73,8 @@ foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCss
 foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
 
 
+foreign export ccall "hll_rulesListsGetList" hll_rulesListsGetList :: Ptr (Ptr FfiCssRulesList) -> CInt -> IO (Ptr FfiCssRulesList)
+
 
 
 hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
@@ -590,4 +592,26 @@ hll_parseCss ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
 
 
 
+
+hll_rulesListsGetList :: Ptr (Ptr FfiCssRulesList) -> CInt -> IO (Ptr FfiCssRulesList)
+hll_rulesListsGetList ptrStructRulesLists cIdx = do
+  let idx = fromIntegral cIdx
+  e <- peekElemOff ptrStructRulesLists idx
+  return e
+
+  {-
+  ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
+  key :: T.Text                 <- ptrCCharToText cStringKey
+
+  let stringsArray      = stringsC ffiRulesMap
+  let listsOfRulesArray = rulesListC ffiRulesMap
+  let size :: Int       = fromIntegral . rulesMapSizeC $ ffiRulesMap
+
+  idx <- findString stringsArray size key
+  case idx of
+    (-1) -> return nullPtr
+    _    -> do
+      e <- peekElemOff listsOfRulesArray idx
+      return e
+-}
 
