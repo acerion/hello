@@ -299,59 +299,47 @@ hll_doctreeGetTopNodeElementSelectorId cRef = do
 
 
 
+updateTopNodeInTrees :: Int -> (DoctreeNode -> DoctreeNode) -> IO ()
+updateTopNodeInTrees doctreeRef f = do
+    doctrees <- readIORef myGlobalDoctrees
+    let doctree = doctrees !! doctreeRef
+    let newDoctrees = listReplaceElem doctrees (adjustTopNode doctree f) doctreeRef
+    writeIORef myGlobalDoctrees newDoctrees
+
+
 
 
 hll_styleEngineSetElementId :: CInt -> CString -> IO ()
-hll_styleEngineSetElementId cRef cElementId = do
-    let ref       = fromIntegral cRef
-    stringVal <- BSU.unsafePackCString $ cElementId
+hll_styleEngineSetElementId cDoctreeRef cElementId = do
+    let doctreeRef = fromIntegral cDoctreeRef
+    stringVal     <- BSU.unsafePackCString $ cElementId
     let elementId  = T.E.decodeLatin1 stringVal
 
-    old <- readIORef myGlobalDoctrees
-    let doctree = old !! ref
-    let dtn = (nodes doctree) M.! (topNodeNum doctree)
-    let dtn2 = dtn { selId = elementId }
-    let new = listReplaceElem old doctree { nodes = M.insert (uniqueNum dtn2) dtn2 (nodes doctree) } ref
-
-    writeIORef myGlobalDoctrees new
-
+    updateTopNodeInTrees doctreeRef (\x -> x { selId = elementId })
 
 
 
 
 hll_styleEngineSetElementClass :: CInt -> CString -> IO ()
-hll_styleEngineSetElementClass cRef cElementClassTokens = do
-    let ref = fromIntegral cRef
-    tokens  <- BSU.unsafePackCString $ cElementClassTokens
-
+hll_styleEngineSetElementClass cDoctreeRef cElementClassTokens = do
+    let doctreeRef = fromIntegral cDoctreeRef
+    tokens        <- BSU.unsafePackCString $ cElementClassTokens
     -- With ' ' character as separator of selectors, we can use 'words' to
     -- get the list of selectors.
     let ws = words . Char8.unpack $ tokens
     let classSelectors = fmap T.pack ws
 
-    old <- readIORef myGlobalDoctrees
-    let doctree = old !! ref
-    let dtn = (nodes doctree) M.! (topNodeNum doctree)
-    let dtn2 = dtn { selClass = classSelectors }
-    let new = listReplaceElem old doctree { nodes = M.insert (uniqueNum dtn2) dtn2 (nodes doctree) } ref
-
-    writeIORef myGlobalDoctrees new
+    updateTopNodeInTrees doctreeRef (\x -> x { selClass = classSelectors })
 
 
 
 
 
 hll_styleEngineSetElementPseudoClass :: CInt -> CString -> IO ()
-hll_styleEngineSetElementPseudoClass cRef cElementPseudoClass = do
-    let ref       = fromIntegral cRef
-    stringVal <- BSU.unsafePackCString $ cElementPseudoClass
-    let elementPseudoClass  = T.E.decodeLatin1 stringVal
+hll_styleEngineSetElementPseudoClass cDoctreeRef cElementPseudoClass = do
+    let doctreeRef         = fromIntegral cDoctreeRef
+    stringVal             <- BSU.unsafePackCString $ cElementPseudoClass
+    let elementPseudoClass = T.E.decodeLatin1 stringVal
 
-    old <- readIORef myGlobalDoctrees
-    let doctree = old !! ref
-    let dtn = (nodes doctree) M.! (topNodeNum doctree)
-    let dtn2 = dtn { selPseudoClass = elementPseudoClass }
-    let new = listReplaceElem old doctree { nodes = M.insert (uniqueNum dtn2) dtn2 (nodes doctree) } ref
-
-    writeIORef myGlobalDoctrees new
+    updateTopNodeInTrees doctreeRef (\x -> x { selPseudoClass = elementPseudoClass })
 

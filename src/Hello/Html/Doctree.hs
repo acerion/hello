@@ -41,6 +41,8 @@ module Hello.Html.Doctree
 
   , getDtnParent
   , getDtnSibling
+
+  , adjustTopNode
   )
   where
 
@@ -161,4 +163,17 @@ doctreePopNode doctree = if uniqueNum dtn == 0 -- We are popping the element of 
    }
 
 -}
+
+
+
+
+-- Adjust doctree's node that is a current 'top node'.
+-- Second argument is a function that adjusts the node.
+adjustTopNode :: Doctree -> (DoctreeNode -> DoctreeNode) -> Doctree
+adjustTopNode doctree f = doctree { nodes = M.adjust f (uniqueNum dtn) (nodes doctree)}
+  where
+    dtn = (nodes doctree) M.! (topNodeNum doctree)
+
+
+
 
