@@ -1151,7 +1151,11 @@ void print_css_declaration_set(FILE * file, c_css_declaration_set_t * props)
    fprintf(file, "                    property list (%d properties):\n", props->c_declarations_size);
    for (int i = 0; i < props->c_declarations_size; i++) {
       c_css_declaration_t * declaration = props->c_declarations[i];
-      fprintf(file, "                        property name = %d / %s\n", declaration->c_property, hll_cssPropertyNameString(declaration->c_property));
+      if (declaration->c_property > 84) {
+         fprintf(file, "                        property name = %d / ??\n", declaration->c_property);
+      } else {
+         fprintf(file, "                        property name = %d / %s\n", declaration->c_property, hll_cssPropertyNameString(declaration->c_property));
+      }
       fprintf(file, "                        property type = %d / ",  declaration->c_value->c_type_tag);
       c_css_value_t * value = declaration->c_value;
       switch (value->c_type_tag) {
