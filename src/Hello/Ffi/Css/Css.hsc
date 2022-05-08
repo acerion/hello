@@ -67,7 +67,7 @@ import Hello.Ffi.Css.Doctree
 
 
 
-foreign export ccall "hll_cssComplexSelectorMatches" hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctree -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
+foreign export ccall "hll_cssComplexSelectorMatches" hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
@@ -75,13 +75,15 @@ foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiC
 
 
 
-hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> Ptr FfiDoctree -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
-hll_cssComplexSelectorMatches ptrStructCachedComplexSelector ptrStructDoctree ptrStructDtn ptrStructMatchCache = do
+hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
+hll_cssComplexSelectorMatches ptrStructCachedComplexSelector cDoctreeRef ptrStructDtn ptrStructMatchCache = do
+
+  let doctreeRef = fromIntegral cDoctreeRef
 
   cachedComplex <- peekCssComplexSelector ptrStructCachedComplexSelector
   mDtn <- ptrToMdtn ptrStructDtn
 
-  doctree <- peekDoctree ptrStructDoctree
+  doctree <- getDoctreeFromRef doctreeRef
   let ns = nodes doctree
 
   --doctreeA <- analyzeDtn ptrStructDtn M.empty

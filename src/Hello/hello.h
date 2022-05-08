@@ -338,7 +338,7 @@ typedef enum {
 
 
 /* Function returns boolean. */
-bool hll_cssComplexSelectorMatches(const c_css_cached_complex_selector_t * cached_complex, const c_doctree_t * doctree, const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache);
+bool hll_cssComplexSelectorMatches(const c_css_cached_complex_selector_t * cached_complex, int doc_tree_ref, const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache);
 
 c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);
 

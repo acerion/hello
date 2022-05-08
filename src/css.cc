@@ -78,7 +78,7 @@ c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * inD
  * The declarations (list property+value) are set as defined by the rules in
  * the stylesheet that match at the given node in the document tree.
  */
-void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_declaration_set_t * decl_set, c_doctree_t *docTree, const c_doctree_node_t *dtn, c_css_match_cache_t * match_cache)
+void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_declaration_set_t * decl_set, int doc_tree_ref, const c_doctree_node_t *dtn, c_css_match_cache_t * match_cache)
 {
    static const int maxLists = 32;
    const c_css_rules_list_t * rules_lists[maxLists];
@@ -139,7 +139,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
          c_css_rule_t * rule = rules_lists[minSpecIndex]->c_rules[index[minSpecIndex]];
 
          /* Apply CSS rule. */
-         if (hll_cssComplexSelectorMatches(rule->c_cached_complex_selector, docTree, dtn, match_cache)) {
+         if (hll_cssComplexSelectorMatches(rule->c_cached_complex_selector, doc_tree_ref, dtn, match_cache)) {
             hll_declarationListAppend(decl_set, rule->c_decl_set);
          }
 
@@ -230,30 +230,31 @@ c_css_context_t * c_css_context_new(void)
  * This allows e.g. user styles to overwrite author styles.
  */
 void css_context_apply_css_context(c_css_context_t * context,
-                                   c_css_declaration_set_t * mergedDeclList, c_doctree_t *docTree,
+                                   c_css_declaration_set_t * mergedDeclList,
+                                   int doc_tree_ref,
                                    c_doctree_node_t * dtn,
                                    c_css_declaration_lists_t * declLists) {
 
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_AGENT], mergedDeclList, docTree, dtn, context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_AGENT], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
 
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER], mergedDeclList, docTree, dtn, context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
 
    if (declLists->nonCss)
       hll_declarationListAppend(mergedDeclList, declLists->nonCss);
 
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR], mergedDeclList, docTree, dtn, context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
 
    if (declLists->main) {
       hll_declarationListAppend(mergedDeclList, declLists->main);
    }
 
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR_IMPORTANT], mergedDeclList, docTree, dtn, context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR_IMPORTANT], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
 
    if (declLists->important) {
       hll_declarationListAppend(mergedDeclList, declLists->important);
    }
 
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], mergedDeclList, docTree, dtn, context->c_match_cache);
+   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
 }
 
 

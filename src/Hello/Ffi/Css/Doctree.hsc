@@ -29,6 +29,7 @@ module Hello.Ffi.Css.Doctree
   (
     FfiDoctree (..)
   , peekDoctree
+  , getDoctreeFromRef
   )
 where
 
@@ -305,6 +306,14 @@ updateTopNodeInTrees doctreeRef f = do
     let doctree = doctrees !! doctreeRef
     let newDoctrees = listReplaceElem doctrees (adjustTopNode doctree f) doctreeRef
     writeIORef myGlobalDoctrees newDoctrees
+
+
+
+getDoctreeFromRef :: Int -> IO Doctree
+getDoctreeFromRef doctreeRef = do
+  doctrees <- readIORef myGlobalDoctrees
+  return $ doctrees !! doctreeRef
+
 
 
 
