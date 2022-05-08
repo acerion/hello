@@ -1128,8 +1128,15 @@ cssPropertyInfoIdxByName propertyName = V.findIndex p cssPropertyInfo
 
 
 
+-- TODO: add bounds checking. I've encountered situations where vector's
+-- index passed to the function was larger than vector size.
+--
+-- On the other hand how is it possible that the property value is larger
+-- than set of known properties?
+--
+-- The problem occurred with property == 86 and vector length == 84.
 cssPropertyNameString :: Int -> T.Text
-cssPropertyNameString property = tripletFst (cssPropertyInfo V.! property) -- TODO: no bounds checking?
+cssPropertyNameString property = tripletFst (cssPropertyInfo V.! property)
 
 
 
