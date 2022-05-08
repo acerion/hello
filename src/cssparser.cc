@@ -187,10 +187,10 @@ void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * conte
             if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
                 html != NULL &&
                 importsAreAllowed) {
-               fprintf(stderr, "MEAS: PARSE IMPORT\n");
+               //fprintf(stderr, "MEAS: PARSE IMPORT\n");
                parseImport(html, parser, token, parser_.m_base_url);
             } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
-               fprintf(stderr, "MEAS: PARSE MEDIA\n");
+               //fprintf(stderr, "MEAS: PARSE MEDIA\n");
                parseMedia(parser, token, context);
             } else {
                hll_ignoreStatement(parser, token);
@@ -216,6 +216,6 @@ void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * conte
    struct timeval old_accumulated = accumulated;
    timeradd(&diff, &old_accumulated, &accumulated);
 
-   fprintf(stderr, "MEAS: TIME: %ld.%06ld seconds\n", diff.tv_sec, diff.tv_usec);
-   fprintf(stderr, "MEAS: ACCUMULATED TIME: %ld.%02ld seconds\n", accumulated.tv_sec, accumulated.tv_usec / (1000 * 10));
+   //fprintf(stderr, "MEAS: TIME: %ld.%06ld seconds\n", diff.tv_sec, diff.tv_usec);
+   //fprintf(stderr, "MEAS: ACCUMULATED TIME: %ld.%02ld seconds\n", accumulated.tv_sec, accumulated.tv_usec / (1000 * 10));
 }

@@ -183,7 +183,7 @@ hll_doctreeCtor = do
   old <- readIORef myGlobalDoctrees
   let new = old ++ [ defaultDoctree ]
   writeIORef myGlobalDoctrees new
-  putStr ("::::::::::: ctor of new doctree updated the list to: " ++ (show new) ++ "\n")
+  --putStr ("::::::::::: ctor of new doctree updated the list to: " ++ (show new) ++ "\n")
   return $ fromIntegral ((length new) - 1)
 
 
@@ -217,7 +217,7 @@ hll_doctreePushNode cRef cElementIdx = do
   let new = listReplaceElem old doctree2 ref
 
   writeIORef myGlobalDoctrees new
-  putStr ("::::::::::: After pushing " ++ (show elementIdx) ++ ": " ++ (show doctree2) ++ "\n")
+  --putStr ("::::::::::: After pushing " ++ (show elementIdx) ++ ": " ++ (show doctree2) ++ "\n")
 
   return $ fromIntegral (topNodeNum doctree2)
 
@@ -234,7 +234,7 @@ hll_doctreePopNode cRef = do
   let new = listReplaceElem old doctree2 ref
 
   writeIORef myGlobalDoctrees new
-  putStr ("::::::::::: After popping: " ++ (show doctree2) ++ "\n")
+  --putStr ("::::::::::: After popping: " ++ (show doctree2) ++ "\n")
 
 
 
@@ -306,6 +306,7 @@ updateTopNodeInTrees doctreeRef f = do
     let doctree = doctrees !! doctreeRef
     let newDoctrees = listReplaceElem doctrees (adjustTopNode doctree f) doctreeRef
     writeIORef myGlobalDoctrees newDoctrees
+
 
 
 

@@ -52,7 +52,7 @@ void DoctreeNodePrint(FILE * file, const c_doctree_node_t * dtn)
 
 int doctreePushNode(c_doctree_t * doctree, int element_idx)
 {
-   fprintf(stderr, "====== push element %d/%s\n", element_idx, a_Html_tag_name(element_idx));
+   // fprintf(stderr, "====== push element %d/%s\n", element_idx, a_Html_tag_name(element_idx));
    // fprintf(stderr, "====== push element %s, before push the top node is %s\n", a_Html_tag_name(element_idx), a_Html_tag_name(doctree->c_top_node->c_html_element_idx));
 
    int this_num = doctree->c_num_nodes;
@@ -60,7 +60,7 @@ int doctreePushNode(c_doctree_t * doctree, int element_idx)
 
    /* Allocate. */
    c_doctree_node_t * dtn = hll_doctreeNodeNew();
-   fprintf(stderr, "new doctree node = %lu\n", (long unsigned) dtn);
+   //fprintf(stderr, "new doctree node = %lu\n", (long unsigned) dtn);
 
 
    /* Set properties. */
@@ -170,7 +170,7 @@ void doctreePopNode(c_doctree_t * doctree)
    }
 #endif
 
-   fprintf(stderr, "====== pop element %d/%s\n", dtn->c_html_element_idx, a_Html_tag_name(dtn->c_html_element_idx));
+   // fprintf(stderr, "====== pop element %d/%s\n", dtn->c_html_element_idx, a_Html_tag_name(dtn->c_html_element_idx));
 #if 0
    fprintf(stderr, "======    its parent is %s\n", a_Html_tag_name(dtn->c_parent_num->c_html_element_idx));
    if (dtn->c_sibling) {
@@ -198,7 +198,7 @@ void doctreePopNode(c_doctree_t * doctree)
 
 #if 1
    if (dtn->c_html_element_idx == 42) { /* html element */
-      hll_doctreePrint(doctree);
+      //hll_doctreePrint(doctree);
    }
 #endif
 }
@@ -207,9 +207,9 @@ c_doctree_t * doctreeCtor(void)
 {
    c_doctree_t * doctree = (c_doctree_t *) calloc(1, sizeof (c_doctree_t));
    memset(doctree->c_nodes_array, 0, sizeof (doctree->c_nodes_array[0]) * 2048);
-   fprintf(stderr, "doctree pointer = %lu\n", (long unsigned) doctree);
+   //fprintf(stderr, "doctree pointer = %lu\n", (long unsigned) doctree);
    doctree->c_root_node = hll_doctreeNodeNew();
-   fprintf(stderr, "root node pointer = %lu\n", (long unsigned) doctree->c_root_node);
+   //fprintf(stderr, "root node pointer = %lu\n", (long unsigned) doctree->c_root_node);
    doctree->c_top_node_num = ROOT_NODE_NUM;
    doctree->c_num_nodes = 0;
 
