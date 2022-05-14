@@ -35,6 +35,7 @@ import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Marshal.Array
 import Data.List
+import Data.Bits
 import Data.Maybe
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -53,6 +54,8 @@ import Hello.Css.Match
 import Hello.Css.MediaQuery
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
+
+import Hello.Utils
 
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Utils
@@ -73,7 +76,9 @@ foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCss
 foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
 
 
-foreign export ccall "hll_rulesListsGetList" hll_rulesListsGetList :: Ptr (Ptr FfiCssRulesList) -> CInt -> IO (Ptr FfiCssRulesList)
+
+
+foreign export ccall "hll_fn" hll_fn :: Ptr (Ptr FfiCssRulesList) -> CInt -> Ptr CInt -> Ptr CInt -> Ptr CInt -> Ptr CInt -> IO ()
 
 
 
@@ -593,25 +598,29 @@ hll_parseCss ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
 
 
 
-hll_rulesListsGetList :: Ptr (Ptr FfiCssRulesList) -> CInt -> IO (Ptr FfiCssRulesList)
-hll_rulesListsGetList ptrStructRulesLists cIdx = do
-  let idx = fromIntegral cIdx
-  e <- peekElemOff ptrStructRulesLists idx
-  return e
+hll_fn :: Ptr (Ptr FfiCssRulesList) -> CInt -> Ptr CInt -> Ptr CInt -> Ptr CInt -> Ptr CInt -> IO ()
+hll_fn ptrStructRulesLists cNumLists cPtrIndexArray cPtrMinSpec cPtrMinPos cPtrMinSpecIndex = do
 
-  {-
-  ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
-  key :: T.Text                 <- ptrCCharToText cStringKey
+  let numLists = fromIntegral cNumLists
+  rulesLists :: [[CssRule]] <- peekArrayOfPointers ptrStructRulesLists numLists peekCssRulesList
 
-  let stringsArray      = stringsC ffiRulesMap
-  let listsOfRulesArray = rulesListC ffiRulesMap
-  let size :: Int       = fromIntegral . rulesMapSizeC $ ffiRulesMap
+  -- TODO: why shifting by 30 and not 31?
+  let minSpec :: Int = 1 `shift` 30;
+  let minPos  :: Int = 1 `shift` 30;
+  minSpecIndex <- fmap fromIntegral (peek cPtrMinSpecIndex)
 
-  idx <- findString stringsArray size key
-  case idx of
-    (-1) -> return nullPtr
-    _    -> do
-      e <- peekElemOff listsOfRulesArray idx
-      return e
--}
+  index <- fmap (map fromIntegral) (peekArray 32 cPtrIndexArray)
+
+  let state  = (minSpec, minPos, minSpecIndex)
+  let state2 = minSpecificityForRulesLists rulesLists 0 index state
+
+  poke cPtrMinSpec      (fromIntegral . triplet1st $ state2)
+  poke cPtrMinPos       (fromIntegral . triplet2nd $ state2)
+  poke cPtrMinSpecIndex (fromIntegral . triplet3rd $ state2)
+
+  return ()
+
+
+
+
 

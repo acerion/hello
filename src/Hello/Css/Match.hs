@@ -28,6 +28,9 @@ module Hello.Css.Match
   (
     cssComplexSelectorMatches
   , compoundSelectorMatches' -- For tests code
+
+  , minSpecificityForRulesLists
+  , CssSpecificityState (..)
   )
   where
 
@@ -38,6 +41,7 @@ import Data.Maybe
 import qualified Data.Text as T
 import Debug.Trace
 
+import Hello.Css.Parser
 import Hello.Css.StyleSheet
 import Hello.Css.Selector
 import Hello.Html.Doctree
@@ -182,4 +186,36 @@ compoundSelectorMatches' compound dtn | mismatchOnElement compound dtn     = 4
 
 
 
+type CssSpecificityState = (Int, Int, Int)
+
+
+
+
+minSpecificityForRulesLists :: [[CssRule]] -> Int -> [Int] -> CssSpecificityState -> CssSpecificityState
+minSpecificityForRulesLists []       listIdx index state = state
+minSpecificityForRulesLists (rl:rls) listIdx index state = minSpecificityForRulesLists rls (listIdx + 1) index state2
+  where
+    state2 = minSpecificityForRulesList rl listIdx index state
+
+
+
+
+minSpecificityForRulesList :: [CssRule] -> Int -> [Int] -> CssSpecificityState -> CssSpecificityState
+minSpecificityForRulesList rulesList listIdx index state =
+  if length rulesList <= ruleIdx
+  then state
+  else (minSpecificityForRule rule listIdx state)
+  where
+    rule = rulesList !! ruleIdx
+    ruleIdx = index !! listIdx
+
+
+
+
+minSpecificityForRule :: CssRule -> Int -> CssSpecificityState -> CssSpecificityState
+minSpecificityForRule rule listIdx state =
+  if ((specificity rule < minSpec) || (specificity rule == minSpec && position rule < minPos))
+  then (specificity rule, position rule, listIdx)
+  else (minSpec, minPos, minSpecIndex)
+  where (minSpec, minPos, minSpecIndex) = state
 

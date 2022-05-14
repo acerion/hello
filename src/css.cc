@@ -83,7 +83,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
    static const int maxLists = 32;
    const c_css_rules_list_t * rules_lists[maxLists];
    int numLists = 0;
-   int index[maxLists] = {0};
+
 
    if (dtn->c_element_selector_id) {
       rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_rules_by_id, dtn->c_element_selector_id);
@@ -116,29 +116,13 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
    // ascending specificity.
    // If specificity is equal, rules are applied in order of appearance.
    //  Each rules_list is sorted already.
+   int index[maxLists] = {0};
    while (true) {
-      int minSpec = 1 << 30;
-      int minPos = 1 << 30;
+      int minSpec = 0;
+      int minPos  = 0;
       int minSpecIndex = -1;
 
-      for (int listIdx = 0; listIdx < numLists; listIdx++) {
-         const c_css_rules_list_t * rl = hll_rulesListsGetList(rules_lists, listIdx); // rules_lists[listIdx];
-         if (NULL == rl) {
-            continue;
-         }
-
-         int ruleIdx = index[listIdx];
-         if (rl->c_rules_size <= ruleIdx) {
-            continue;
-         }
-
-         c_css_rule_t * rule = rl->c_rules[ruleIdx];
-         if (rule->c_specificity < minSpec || (rule->c_specificity == minSpec && rule->c_position < minPos)) {
-            minSpec = rule->c_specificity;
-            minPos  = rule->c_position;
-            minSpecIndex = listIdx;
-         }
-      }
+      hll_fn(rules_lists, numLists, index, &minSpec, &minPos, &minSpecIndex);
 
       fprintf(stderr, "minSpec = %d, minPos = %d, minSpecIndex = %d\n", minSpec, minPos, minSpecIndex);
 
@@ -151,6 +135,9 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
          }
          print_css_declaration_set(stderr, decl_set);
          index[minSpecIndex]++;
+         for (int i = 0; i < maxLists; i++) {
+            fprintf(stderr, "%d\n", index[i]);
+         }
       } else {
          break;
       }
