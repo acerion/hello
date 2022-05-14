@@ -273,12 +273,12 @@ void a_Gif_callback(int Op, void *data)
          .size = all_size - gif->start_offset
       };
 
-      MSG("GIF: %d bytes in new chunk\n", chunk.size);
+      //MSG("GIF: %d bytes in new chunk\n", chunk.size);
       /* Process the bytes in the input buffer. */
       const int consumed_size = gif_write(gif, chunk);
       if (consumed_size > 0) {
          gif->start_offset += consumed_size;
-         MSG("GIF: consumed %d bytes\n", consumed_size);
+         //MSG("GIF: consumed %d bytes\n", consumed_size);
       }
 
    } else if (Op == CacheOperationClose) {
@@ -730,7 +730,7 @@ static int gif_parse_logical_screen_descriptor(DilloGif *gif, img_chunk descript
 
 
    if (global_color_table_is_present) {
-      fprintf(stderr, "Detected Global Color Table\n");
+      //fprintf(stderr, "Detected Global Color Table\n");
       const int color_table_triplets_count = get_color_table_triplets_count(flags);
       const int color_table_size = gif_get_color_table(gif, true, descriptor, color_table_triplets_count);
       if (0 == color_table_size) {
@@ -866,7 +866,7 @@ static int GIF_Block(DilloGif * gif, img_chunk chunk)
       switch (block_id) {
       case ExtensionIntroducer:
          {
-            fprintf(stderr, "Extension Introducer\n");
+            //fprintf(stderr, "Extension Introducer\n");
             int consumed_size = gif_do_extension(gif, chunk);
             if (0 != consumed_size) {
                img_chunk_forward(&chunk, consumed_size);
@@ -880,7 +880,7 @@ static int GIF_Block(DilloGif * gif, img_chunk chunk)
       case ImageSeparator:
          {
             /* Image descriptor */
-            fprintf(stderr, "Image Descriptor\n");
+            //fprintf(stderr, "Image Descriptor\n");
             int consumed_size = do_image_descriptor2(gif, chunk);
             if (0 != consumed_size) {
                img_chunk_forward(&chunk, consumed_size);
@@ -952,7 +952,7 @@ int gif_do_extension(DilloGif * gif, img_chunk extension_chunk)
       return 0;
    }
 
-   fprintf(stderr, "======== DO EXTENSION: introducer = %02x, label = %02x\n", extension_chunk.buf[0], extension_chunk.buf[1]);
+   //fprintf(stderr, "======== DO EXTENSION: introducer = %02x, label = %02x\n", extension_chunk.buf[0], extension_chunk.buf[1]);
 
    const int consumed_size = hll_parseExtension(&gif->hll_gif, extension_chunk.buf, extension_chunk.size);
    if (0 == consumed_size) {
@@ -965,7 +965,7 @@ int gif_do_extension(DilloGif * gif, img_chunk extension_chunk)
     * and id, and extension block size */
    img_chunk_forward(&extension_chunk, consumed_size);
 
-   img_chunk_dump_at(extension_chunk, "end of do_extension");
+   //img_chunk_dump_at(extension_chunk, "end of do_extension");
 
    return consumed_size;
 }
