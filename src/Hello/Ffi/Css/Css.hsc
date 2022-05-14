@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2021 Kamil Ignacak acerion@wp.pl
+Copyright (C) 2021-2022 Kamil Ignacak acerion@wp.pl
 
 This file is part of "hello" web browser.
 
@@ -70,39 +70,17 @@ import Hello.Ffi.Css.Doctree
 
 
 
-foreign export ccall "hll_cssComplexSelectorMatches" hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
 foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
 
+foreign export ccall "hll_printCssDeclarationSet" hll_printCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO ()
+foreign export ccall "hll_printCssIndex" hll_printCssIndex :: Ptr CInt -> IO ()
 
 
-
-foreign export ccall "hll_fn" hll_fn :: Ptr (Ptr FfiCssRulesList) -> CInt -> Ptr CInt -> Ptr CInt -> Ptr CInt -> Ptr CInt -> IO ()
-
+foreign export ccall "hll_applyMatchingRules" hll_applyMatchingRules :: CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> Ptr FfiCssDeclarationSet -> Ptr (Ptr FfiCssRulesList) -> CInt -> IO ()
 
 
-hll_cssComplexSelectorMatches :: Ptr FfiCssComplexSelector -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO Bool
-hll_cssComplexSelectorMatches ptrStructCachedComplexSelector cDoctreeRef ptrStructDtn ptrStructMatchCache = do
-
-  let doctreeRef = fromIntegral cDoctreeRef
-
-  cachedComplex <- peekCssComplexSelector ptrStructCachedComplexSelector
-  mDtn <- ptrToMdtn ptrStructDtn
-
-  doctree <- getDoctreeFromRef doctreeRef
-  let ns = nodes doctree
-
-  --doctreeA <- analyzeDtn ptrStructDtn M.empty
-  --let ns = doctreeA
-
-  --putStrLn (show ns)
-  mc <- peekPtrCssMatchCache ptrStructMatchCache
-
-  let (isMatch, outMc) = cssComplexSelectorMatches (chain cachedComplex) mDtn ns mc (matchCacheOffset cachedComplex)
-  pokeCssMatchCache ptrStructMatchCache outMc
-
-  return isMatch
 
 
 
@@ -598,29 +576,101 @@ hll_parseCss ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
 
 
 
-hll_fn :: Ptr (Ptr FfiCssRulesList) -> CInt -> Ptr CInt -> Ptr CInt -> Ptr CInt -> Ptr CInt -> IO ()
-hll_fn ptrStructRulesLists cNumLists cPtrIndexArray cPtrMinSpec cPtrMinPos cPtrMinSpecIndex = do
 
-  let numLists = fromIntegral cNumLists
-  rulesLists :: [[CssRule]] <- peekArrayOfPointers ptrStructRulesLists numLists peekCssRulesList
-
-  -- TODO: why shifting by 30 and not 31?
-  let minSpec :: Int = 1 `shift` 30;
-  let minPos  :: Int = 1 `shift` 30;
-  minSpecIndex <- fmap fromIntegral (peek cPtrMinSpecIndex)
-
-  index <- fmap (map fromIntegral) (peekArray 32 cPtrIndexArray)
-
-  let state  = (minSpec, minPos, minSpecIndex)
-  let state2 = minSpecificityForRulesLists rulesLists 0 index state
-
-  poke cPtrMinSpec      (fromIntegral . triplet1st $ state2)
-  poke cPtrMinPos       (fromIntegral . triplet2nd $ state2)
-  poke cPtrMinSpecIndex (fromIntegral . triplet3rd $ state2)
-
+hll_printCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO ()
+hll_printCssDeclarationSet ptrStructCssDeclarationSet = do
+  declSet:: CssDeclarationSet <- peekCssDeclarationSet ptrStructCssDeclarationSet
+  putStrLn . show $ declSet
   return ()
 
 
 
 
+hll_printCssIndex :: Ptr CInt -> IO ()
+hll_printCssIndex cPtrIndexArray = do
+    index <- fmap (map fromIntegral) (peekArray 32 cPtrIndexArray)
+    let v = V.fromList index
+    putStrLn . show $ v
+    return ()
+
+
+
+
+hll_applyMatchingRules :: CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> Ptr FfiCssDeclarationSet -> Ptr (Ptr FfiCssRulesList) -> CInt -> IO ()
+hll_applyMatchingRules cDoctreeRef ptrStructDtn ptrStructMatchCache ptrStructTarget ptrStructRulesLists cNumLists = do
+  let numLists   = fromIntegral cNumLists
+  let doctreeRef = fromIntegral cDoctreeRef
+
+  rulesLists :: [[CssRule]] <- peekArrayOfPointers ptrStructRulesLists numLists peekCssRulesList
+
+  doctree       <- getDoctreeFromRef doctreeRef
+  dtn           <- peekDoctreeNode ptrStructDtn
+  matchCache    <- peekPtrCssMatchCache ptrStructMatchCache
+  targetDeclSet <- peekCssDeclarationSet ptrStructTarget
+
+  (targetDeclSet', matchCache') <- applyMatchingRules doctree (Just dtn) targetDeclSet matchCache rulesLists
+
+  pokeCssDeclarationSet ptrStructTarget targetDeclSet'
+  pokeCssMatchCache ptrStructMatchCache matchCache'
+
+
+
+
+applyMatchingRules :: Doctree -> Maybe DoctreeNode -> CssDeclarationSet -> CssMatchCache -> [[CssRule]] -> IO (CssDeclarationSet, CssMatchCache)
+applyMatchingRules = applyMatchingRules' index
+  where
+    index = take 32 $ repeat 0
+
+
+
+
+-- Apply potentially matching rules from rules_lists[0-numLists] with
+-- ascending specificity. If specificity is equal, rules are applied in
+-- order of appearance. Each rules_list is sorted already.
+applyMatchingRules' :: [Int] -> Doctree -> Maybe DoctreeNode -> CssDeclarationSet -> CssMatchCache -> [[CssRule]] -> IO (CssDeclarationSet, CssMatchCache)
+applyMatchingRules' index doctree mDtn targetDeclSet matchCache rulesLists = do
+  let minSpecIndex = -1
+  minSpecIndex' <- cssGetMinSpecIndex rulesLists index minSpecIndex
+  if minSpecIndex' >= 0
+    then
+    do
+      let rulesList = rulesLists !! minSpecIndex'
+      let idx = index !! minSpecIndex'
+      let rule = rulesList !! idx
+
+      let (targetDeclSet', matchCache') = applyCssRule targetDeclSet matchCache doctree mDtn rule
+
+      let oldElem = index !! minSpecIndex'
+      let index2 = listReplaceElem index (oldElem + 1) minSpecIndex'
+
+      putStrLn . show $ targetDeclSet'
+      putStrLn . show $ V.fromList $ index2
+
+      applyMatchingRules' index2 doctree mDtn targetDeclSet' matchCache' rulesLists
+    else return (targetDeclSet, matchCache)
+
+
+
+
+{-
+   int index[maxLists] = {0};
+   while (true) {
+      int minSpecIndex = -1;
+
+      hll_fn1(rules_lists, numLists, index, &minSpecIndex);
+
+      if (minSpecIndex >= 0) {
+         /* Apply CSS rule. */
+         hll_applyCssRule(doc_tree_ref, dtn, match_cache, decl_set, rules_lists, numLists, index, minSpecIndex);
+         index[minSpecIndex]++;
+
+         hll_printCssDeclarationSet(decl_set);
+         hll_printCssIndex(index);
+
+      } else {
+         break;
+      }
+   }
+#endif
+-}
 

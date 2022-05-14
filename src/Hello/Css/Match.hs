@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2021 Kamil Ignacak acerion@wp.pl
+Copyright (C) 2021-2022 Kamil Ignacak acerion@wp.pl
 
 This file is part of "hello" web browser.
 
@@ -23,11 +23,16 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 
 
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
+
 
 module Hello.Css.Match
   (
-    cssComplexSelectorMatches
+    cssComplexSelectorMatches2
   , compoundSelectorMatches' -- For tests code
+
+  , applyCssRule
+  , cssGetMinSpecIndex
 
   , minSpecificityForRulesLists
   , CssSpecificityState (..)
@@ -37,6 +42,7 @@ module Hello.Css.Match
 
 
 
+import Data.Bits
 import Data.Maybe
 import qualified Data.Text as T
 import Debug.Trace
@@ -59,6 +65,16 @@ cssComplexSelectorMatches (Link (Datum compound) combinator rem) (Just dtn) tree
   then matchCombinatorAndRemainder combinator rem dtn tree mc cacheOffset
   else (False, mc)
 
+
+
+
+-- TODO: remove duplication between cssComplexSelectorMatches and cssComplexSelectorMatches2
+cssComplexSelectorMatches2 :: CssCachedComplexSelector -> Doctree -> Maybe DoctreeNode -> CssMatchCache -> (Bool, CssMatchCache)
+cssComplexSelectorMatches2 cachedComplexSelector doctree mDtn matchCache = (isMatch, matchCache2)
+  where
+    (isMatch, matchCache2) = cssComplexSelectorMatches (chain cachedComplexSelector) mDtn ns matchCache cacheOffset
+    cacheOffset = matchCacheOffset cachedComplexSelector
+    ns = nodes doctree
 
 
 
@@ -218,4 +234,39 @@ minSpecificityForRule rule listIdx state =
   then (specificity rule, position rule, listIdx)
   else (minSpec, minPos, minSpecIndex)
   where (minSpec, minPos, minSpecIndex) = state
+
+
+
+
+applyCssRule :: CssDeclarationSet -> CssMatchCache -> Doctree -> Maybe DoctreeNode -> CssRule -> (CssDeclarationSet, CssMatchCache)
+applyCssRule targetDeclSet matchCache doctree mDtn rule =
+  case match of
+    True      -> (targetDeclSet', matchCache2)
+    otherwise -> (targetDeclSet,  matchCache2)
+
+  where
+    targetDeclSet'       = declarationsSetAppend targetDeclSet (declarationSet rule)
+    (match, matchCache2) = cssComplexSelectorMatches2 (complexSelector rule) doctree mDtn matchCache
+
+
+
+
+
+cssGetMinSpecIndex :: [[CssRule]] -> [Int] -> Int -> IO Int
+cssGetMinSpecIndex rulesLists index minSpecIndex = do
+
+  -- TODO: why shifting by 30 and not 31?
+  let minSpec :: Int = 1 `shift` 30;
+  let minPos  :: Int = 1 `shift` 30;
+
+  let state = minSpecificityForRulesLists rulesLists 0 index (minSpec, minPos, minSpecIndex)
+
+  let minSpec'      = triplet1st state
+  let minPos'       = triplet2nd state
+  let minSpecIndex' = triplet3rd state
+
+  putStrLn ("minSpec = " ++ (show minSpec') ++ ", minPos = " ++ (show minPos') ++ ", minSpecIndex = " ++ (show minSpecIndex'))
+
+  return minSpecIndex'
+
 

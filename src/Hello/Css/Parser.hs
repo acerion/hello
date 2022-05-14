@@ -1365,7 +1365,7 @@ data CssDeclaration = CssDeclaration
   --
   -- So "important" is per-declaration flag.
   , important :: Bool
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 
 
@@ -1385,7 +1385,7 @@ defaultDeclaration = CssDeclaration
 data CssDeclarationSet = CssDeclarationSet
   { isSafe :: Bool
   , items  :: S.Seq CssDeclaration
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 
 defaultCssDeclarationSet = CssDeclarationSet

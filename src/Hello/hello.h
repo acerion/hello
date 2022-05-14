@@ -337,13 +337,22 @@ typedef enum {
 
 
 
-/* Function returns boolean. */
-bool hll_cssComplexSelectorMatches(const c_css_cached_complex_selector_t * cached_complex, int doc_tree_ref, const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache);
 
 c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);
 
-void hll_fn(const c_css_rules_list_t ** rules_lists, int numLists, int * index, int * minSpec, int * minPos, int * minSpecIndex);
+void hll_fn(const c_css_rules_list_t ** rules_lists, int numLists, int * index, int * minSpecIndex);
 
+void hll_applyCssRule(int doc_tree_ref, const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache,
+                      c_css_declaration_set_t * target,
+                      const c_css_rules_list_t ** rules_lists, int numLists, int * index, int minSpecIndex);
+
+
+void hll_applyMatchingRules(int doc_tree_ref, const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache,
+             c_css_declaration_set_t * target,
+             const c_css_rules_list_t ** rules_lists, int numLists);
+
+void hll_printCssDeclarationSet(c_css_declaration_set_t * declSet);
+void hll_printCssIndex(int * index);
 
 
 void hll_matchCacheSetSize(c_css_match_cache_t * match_cache, int size);

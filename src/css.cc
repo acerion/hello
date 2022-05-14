@@ -112,36 +112,7 @@ void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_
    if (rules_lists[numLists])
       numLists++;
 
-   // Apply potentially matching rules from rules_lists[0-numLists] with
-   // ascending specificity.
-   // If specificity is equal, rules are applied in order of appearance.
-   //  Each rules_list is sorted already.
-   int index[maxLists] = {0};
-   while (true) {
-      int minSpec = 0;
-      int minPos  = 0;
-      int minSpecIndex = -1;
-
-      hll_fn(rules_lists, numLists, index, &minSpec, &minPos, &minSpecIndex);
-
-      fprintf(stderr, "minSpec = %d, minPos = %d, minSpecIndex = %d\n", minSpec, minPos, minSpecIndex);
-
-      if (minSpecIndex >= 0) {
-         c_css_rule_t * rule = rules_lists[minSpecIndex]->c_rules[index[minSpecIndex]];
-
-         /* Apply CSS rule. */
-         if (hll_cssComplexSelectorMatches(rule->c_cached_complex_selector, doc_tree_ref, dtn, match_cache)) {
-            hll_declarationListAppend(decl_set, rule->c_decl_set);
-         }
-         print_css_declaration_set(stderr, decl_set);
-         index[minSpecIndex]++;
-         for (int i = 0; i < maxLists; i++) {
-            fprintf(stderr, "%d\n", index[i]);
-         }
-      } else {
-         break;
-      }
-   }
+   hll_applyMatchingRules(doc_tree_ref, dtn, match_cache, decl_set, rules_lists, numLists);
 }
 
 static void alloc_rules_map(c_css_rules_map_t ** map)

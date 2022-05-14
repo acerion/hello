@@ -60,6 +60,9 @@ module Hello.Ffi.Css.Parser( FfiCssComplexSelectorLink (..)
                            , peekCssValue
 
                            , cssLengthWordToDistance
+
+                           , hll_declarationListAppend
+                           , hll_declarationListAppend2
                            )
   where
 
@@ -865,6 +868,19 @@ hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSe
 hll_declarationListAppend ptrStructTarget ptrStructSource = do
 
   source :: CssDeclarationSet <- peekCssDeclarationSet ptrStructSource
+  target :: CssDeclarationSet <- peekCssDeclarationSet ptrStructTarget
+
+  let merged = declarationsSetAppend target source
+  pokeCssDeclarationSet ptrStructTarget merged
+
+  return ()
+
+
+
+
+hll_declarationListAppend2 :: Ptr FfiCssDeclarationSet -> CssDeclarationSet -> IO ()
+hll_declarationListAppend2 ptrStructTarget source = do
+
   target :: CssDeclarationSet <- peekCssDeclarationSet ptrStructTarget
 
   let merged = declarationsSetAppend target source
