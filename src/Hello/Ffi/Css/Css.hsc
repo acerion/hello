@@ -81,7 +81,7 @@ foreign export ccall "hll_printCssIndex" hll_printCssIndex :: Ptr CInt -> IO ()
 
 foreign export ccall "hll_cssStyleSheetApplyStyleSheet" hll_cssStyleSheetApplyStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssDeclarationSet -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO ()
 
-foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> Ptr FfiCssMatchCache -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> Ptr FfiCssMatchCache -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 
 
 {-
@@ -626,12 +626,12 @@ getSomeDeclSet ptr = if nullPtr == ptr
 
 
 
-hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> Ptr FfiCssMatchCache -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-hll_cssContextApplyCssContext ptrStructCssContext ptrStructTargetDeclSet ptrStructMatchCache cDoctreeRef ptrStructDtn ptrStructMainDeclSet ptrStructImportantDeclSet ptrStructNonCssDeclSet = do
+hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> Ptr FfiCssMatchCache -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+hll_cssContextApplyCssContext ptrStructCssContext ptrStructTargetDeclSet ptrStructMatchCache cDoctreeRef cDtnNum ptrStructMainDeclSet ptrStructImportantDeclSet ptrStructNonCssDeclSet = do
 
   context <- peekCssContext ptrStructCssContext
-  dtn     <- peekDoctreeNode ptrStructDtn
   doctree <- getDoctreeFromRef . fromIntegral $ cDoctreeRef
+  let dtn  = getDtnUnsafe doctree (fromIntegral cDtnNum)
 
   mainDeclSet      <- getSomeDeclSet ptrStructMainDeclSet
   importantDeclSet <- getSomeDeclSet ptrStructImportantDeclSet

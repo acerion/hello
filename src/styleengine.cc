@@ -891,11 +891,10 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
 
    // merge style information
    c_css_declaration_set_t * mergedDeclList = declarationListNew();
-   int idx = styleNodesStack[some_idx].doctreeNodeIdx;
-   c_doctree_node_t * dtn = this->doc_tree_ptr->c_nodes_array[idx];
+   int dtnNum = styleNodesStack[some_idx].doctreeNodeIdx;
    hll_cssContextApplyCssContext(cssContext,
                                  mergedDeclList, cssContext->c_match_cache,
-                                 this->doc_tree_ref, dtn,
+                                 this->doc_tree_ref, dtnNum,
                                  declLists->main, declLists->important, declLists->nonCss);
 
    // apply style

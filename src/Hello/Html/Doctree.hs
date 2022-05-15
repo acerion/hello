@@ -39,6 +39,7 @@ module Hello.Html.Doctree
   , doctreePushNode
   , doctreePopNode
 
+  , getDtnUnsafe
   , getDtnParent
   , getDtnSibling
 
@@ -77,6 +78,10 @@ defaultDoctree = Doctree {
   }
 
 
+
+
+getDtnUnsafe :: Doctree -> Int -> DoctreeNode
+getDtnUnsafe tree dtnNum = (nodes tree) M.! dtnNum
 
 
 getDtnParent tree dtn = M.lookup (dtnParentNum dtn) tree
