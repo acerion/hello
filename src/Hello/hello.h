@@ -355,7 +355,7 @@ void hll_printCssIndex(int * index);
 
 
 void hll_cssContextApplyCssContext(c_css_context_t * context,
-                                   c_css_declaration_set_t * targetDeclSet, c_css_match_cache_t * match_cache,
+                                   c_css_declaration_set_t * targetDeclSet,
                                    int doc_tree_ref, int dtn_num,
                                    c_css_declaration_set_t * mainDeclSet, c_css_declaration_set_t * importnatDeclSet, c_css_declaration_set_t * nonCssDeclSet);
 

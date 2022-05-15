@@ -399,8 +399,8 @@ buildRulesListsForDtn styleSheet dtn = reverse rulesLists
 -- ordering defined by CSS 2.1. Stylesheets that are applied later can
 -- overwrite properties set by previous stylesheets. This allows e.g. user
 -- styles to overwrite author styles.
-cssContextApplyCssContext :: CssContext -> CssDeclarationSet -> CssMatchCache -> Doctree -> DoctreeNode -> CssDeclarationSet -> CssDeclarationSet -> CssDeclarationSet -> IO (CssDeclarationSet, CssMatchCache)
-cssContextApplyCssContext context targetDeclSet matchCache doctree dtn mainDeclSet importantDeclSet nonCssDeclSet = do
+cssContextApplyCssContext :: CssContext -> Doctree -> DoctreeNode -> CssDeclarationSet -> CssDeclarationSet -> CssDeclarationSet -> IO (CssDeclarationSet, CssMatchCache)
+cssContextApplyCssContext context doctree dtn mainDeclSet importantDeclSet nonCssDeclSet = do
 
   let cssPrimaryUserAgent       = 0
   let cssPrimaryUser            = 1
@@ -408,7 +408,10 @@ cssContextApplyCssContext context targetDeclSet matchCache doctree dtn mainDeclS
   let cssPrimaryAuthorImportant = 3
   let cssPrimaryUserImportant   = 4
 
-  (targetDeclSet2, matchCache2) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryUserAgent) targetDeclSet matchCache doctree dtn
+  let targetDeclSet1 = defaultCssDeclarationSet
+  let matchCache1    = matchCache context
+
+  (targetDeclSet2, matchCache2) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryUserAgent) targetDeclSet1 matchCache1 doctree dtn
 
   (targetDeclSet3, matchCache3) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryUser) targetDeclSet2 matchCache2 doctree dtn
 

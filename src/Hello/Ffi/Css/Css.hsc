@@ -81,7 +81,7 @@ foreign export ccall "hll_printCssIndex" hll_printCssIndex :: Ptr CInt -> IO ()
 
 foreign export ccall "hll_cssStyleSheetApplyStyleSheet" hll_cssStyleSheetApplyStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssDeclarationSet -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO ()
 
-foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> Ptr FfiCssMatchCache -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 
 
 {-
@@ -626,8 +626,8 @@ getSomeDeclSet ptr = if nullPtr == ptr
 
 
 
-hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> Ptr FfiCssMatchCache -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-hll_cssContextApplyCssContext ptrStructCssContext ptrStructTargetDeclSet ptrStructMatchCache cDoctreeRef cDtnNum ptrStructMainDeclSet ptrStructImportantDeclSet ptrStructNonCssDeclSet = do
+hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+hll_cssContextApplyCssContext ptrStructCssContext ptrStructTargetDeclSet cDoctreeRef cDtnNum ptrStructMainDeclSet ptrStructImportantDeclSet ptrStructNonCssDeclSet = do
 
   context <- peekCssContext ptrStructCssContext
   doctree <- getDoctreeFromRef . fromIntegral $ cDoctreeRef
@@ -638,12 +638,13 @@ hll_cssContextApplyCssContext ptrStructCssContext ptrStructTargetDeclSet ptrStru
   nonCssDeclSet    <- getSomeDeclSet ptrStructNonCssDeclSet
 
   targetDeclSet <- peekCssDeclarationSet ptrStructTargetDeclSet
-  matchCache    <- peekPtrCssMatchCache ptrStructMatchCache
 
-  (targetDeclSet', matchCache') <- cssContextApplyCssContext context targetDeclSet matchCache doctree dtn mainDeclSet importantDeclSet nonCssDeclSet
+  (targetDeclSet', matchCache') <- cssContextApplyCssContext context doctree dtn mainDeclSet importantDeclSet nonCssDeclSet
 
   pokeCssDeclarationSet ptrStructTargetDeclSet targetDeclSet'
-  pokeCssMatchCache ptrStructMatchCache matchCache'
+
+  let context2 = context { matchCache = matchCache' }
+  pokeCssContext ptrStructCssContext context2
 
   return ()
 

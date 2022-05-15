@@ -896,7 +896,7 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
    c_css_declaration_set_t * mergedDeclList = declarationListNew();
    int dtnNum = styleNodesStack[some_idx].doctreeNodeIdx;
    hll_cssContextApplyCssContext(this->css_context_ptr,
-                                 mergedDeclList, this->css_context_ptr->c_match_cache,
+                                 mergedDeclList,
                                  this->doc_tree_ref, dtnNum,
                                  declLists->main, declLists->important, declLists->nonCss);
 
