@@ -46,10 +46,12 @@ public:
    private:
 
       dw::core::Layout *layout;
-   
-      c_css_context_t * cssContext;
+
+      c_css_context_t * css_context_ptr = NULL;
+
       c_doctree_t * doc_tree_ptr = NULL;
       int doc_tree_ref = 0;
+
       int importDepth;
       DilloUrl *pageUrl, *baseUrl;
 
@@ -74,7 +76,7 @@ public:
                    const DilloUrl *pageUrl, const DilloUrl *baseUrl);
       ~StyleEngine ();
 
-      void parse(DilloHtml *html, DilloUrl *url, const char *buf, int buflen, CssOrigin origin);
+      void parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char *buf, int buflen, CssOrigin origin);
 
       void startElement (int tag, BrowserWindow *bw);
       void startElement (const char *tagname, BrowserWindow *bw);

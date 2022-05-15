@@ -73,8 +73,11 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
 
    this->doc_tree_ptr = doctreeCtor();
    this->doc_tree_ref = hll_doctreeCtor();
+
    //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
-   cssContext = c_css_context_new();
+
+   this->css_context_ptr = c_css_context_new();
+
    buildUserStyle ();
    this->layout = layout;
    this->pageUrl = pageUrl ? a_Url_dup(pageUrl) : NULL;
@@ -115,7 +118,7 @@ StyleEngine::~StyleEngine () {
    a_Url_free(baseUrl);
 
    delete doc_tree_ptr;
-   delete cssContext;
+   delete this->css_context_ptr;
 }
 
 void StyleEngine::stackPush () {
@@ -892,8 +895,8 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
    // merge style information
    c_css_declaration_set_t * mergedDeclList = declarationListNew();
    int dtnNum = styleNodesStack[some_idx].doctreeNodeIdx;
-   hll_cssContextApplyCssContext(cssContext,
-                                 mergedDeclList, cssContext->c_match_cache,
+   hll_cssContextApplyCssContext(this->css_context_ptr,
+                                 mergedDeclList, this->css_context_ptr->c_match_cache,
                                  this->doc_tree_ref, dtnNum,
                                  declLists->main, declLists->important, declLists->nonCss);
 
@@ -954,8 +957,8 @@ void StyleEngine::restyle (BrowserWindow *bw) {
    }
 }
 
-void StyleEngine::parse (DilloHtml *html, DilloUrl *url, const char *buf,
-                         int buflen, CssOrigin origin) {
+void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char *buf, int buflen, CssOrigin origin)
+{
    if (importDepth > 10) { // avoid looping with recursive @import directives
       MSG_WARN("Maximum depth of CSS @import reached--ignoring stylesheet.\n");
       return;
@@ -968,10 +971,10 @@ void StyleEngine::parse (DilloHtml *html, DilloUrl *url, const char *buf,
    i++;
 
    importDepth++;
-   parseCss(html, url, cssContext, buf, buflen, origin);
+   parseCss(html, url, this->css_context_ptr, buf, buflen, origin);
    importDepth--;
 
-   print_css_context(file, cssContext);
+   print_css_context(file, this->css_context_ptr);
    fclose(file);
 }
 
@@ -1053,7 +1056,7 @@ void StyleEngine::buildUserStyle () {
    char *filename = dStrconcat(dGethomedir(), "/.dillo/style.css", NULL);
 
    if ((style = a_Misc_file2dstr(filename))) {
-      parseCss(NULL,NULL,cssContext,style->str, style->len,CSS_ORIGIN_USER);
+      parseCss(NULL, NULL, this->css_context_ptr, style->str, style->len, CSS_ORIGIN_USER);
       dStr_free (style, 1);
    }
    dFree (filename);

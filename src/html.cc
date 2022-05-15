@@ -1453,8 +1453,7 @@ static void Html_tag_open_style(DilloHtml *html, const char *tag, int tagsize)
 static void Html_tag_close_style(DilloHtml *html)
 {
    if (prefs.parse_embedded_css && html->loadCssFromStash)
-      html->styleEngine->parse(html, html->base_url, html->Stash->str,
-                               html->Stash->len, CSS_ORIGIN_AUTHOR);
+      html->styleEngine->parseCssWithOrigin(html, html->base_url, html->Stash->str, html->Stash->len, CSS_ORIGIN_AUTHOR);
 }
 
 /*
@@ -2913,7 +2912,7 @@ void a_Html_load_stylesheet(DilloHtml *html, DilloUrl *url)
                a_Capi_get_buf(url, &data, &len);
             }
          }
-         html->styleEngine->parse(html, url, data, len, CSS_ORIGIN_AUTHOR);
+         html->styleEngine->parseCssWithOrigin(html, url, data, len, CSS_ORIGIN_AUTHOR);
       }
       a_Capi_unref_buf(url);
    } else {
