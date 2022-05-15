@@ -78,10 +78,8 @@ foreign export ccall "hll_printCssDeclarationSet" hll_printCssDeclarationSet :: 
 foreign export ccall "hll_printCssIndex" hll_printCssIndex :: Ptr CInt -> IO ()
 
 
-foreign export ccall "hll_applyMatchingRules" hll_applyMatchingRules :: CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> Ptr FfiCssDeclarationSet -> Ptr (Ptr FfiCssRulesList) -> CInt -> IO ()
 
-
-
+foreign export ccall "hll_cssStyleSheetApplyStyleSheet" hll_cssStyleSheetApplyStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssDeclarationSet -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO ()
 
 
 {-
@@ -596,19 +594,21 @@ hll_printCssIndex cPtrIndexArray = do
 
 
 
-hll_applyMatchingRules :: CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> Ptr FfiCssDeclarationSet -> Ptr (Ptr FfiCssRulesList) -> CInt -> IO ()
-hll_applyMatchingRules cDoctreeRef ptrStructDtn ptrStructMatchCache ptrStructTarget ptrStructRulesLists cNumLists = do
-  let numLists   = fromIntegral cNumLists
-  let doctreeRef = fromIntegral cDoctreeRef
+-- Apply a stylesheet to a list of declarations.
+--
+-- The declarations (list property+value) are set as defined by the rules in
+-- the stylesheet that match at the given node in the document tree.
+hll_cssStyleSheetApplyStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssDeclarationSet -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO ()
+hll_cssStyleSheetApplyStyleSheet ptrStructCssStyleSheet ptrStructTarget cDoctreeRef ptrStructDtn ptrStructMatchCache = do
 
-  rulesLists :: [[CssRule]] <- peekArrayOfPointers ptrStructRulesLists numLists peekCssRulesList
-
-  doctree       <- getDoctreeFromRef doctreeRef
   dtn           <- peekDoctreeNode ptrStructDtn
+  styleSheet    <- peekCssStyleSheet ptrStructCssStyleSheet
+  let doctreeRef = fromIntegral cDoctreeRef
+  doctree       <- getDoctreeFromRef doctreeRef
   matchCache    <- peekPtrCssMatchCache ptrStructMatchCache
   targetDeclSet <- peekCssDeclarationSet ptrStructTarget
 
-  (targetDeclSet', matchCache') <- applyMatchingRules doctree (Just dtn) targetDeclSet matchCache rulesLists
+  (targetDeclSet', matchCache') <- cssStyleSheetApplyStyleSheet styleSheet targetDeclSet doctree dtn matchCache
 
   pokeCssDeclarationSet ptrStructTarget targetDeclSet'
   pokeCssMatchCache ptrStructMatchCache matchCache'
@@ -616,61 +616,4 @@ hll_applyMatchingRules cDoctreeRef ptrStructDtn ptrStructMatchCache ptrStructTar
 
 
 
-applyMatchingRules :: Doctree -> Maybe DoctreeNode -> CssDeclarationSet -> CssMatchCache -> [[CssRule]] -> IO (CssDeclarationSet, CssMatchCache)
-applyMatchingRules = applyMatchingRules' index
-  where
-    index = take 32 $ repeat 0
-
-
-
-
--- Apply potentially matching rules from rules_lists[0-numLists] with
--- ascending specificity. If specificity is equal, rules are applied in
--- order of appearance. Each rules_list is sorted already.
-applyMatchingRules' :: [Int] -> Doctree -> Maybe DoctreeNode -> CssDeclarationSet -> CssMatchCache -> [[CssRule]] -> IO (CssDeclarationSet, CssMatchCache)
-applyMatchingRules' index doctree mDtn targetDeclSet matchCache rulesLists = do
-  let minSpecIndex = -1
-  minSpecIndex' <- cssGetMinSpecIndex rulesLists index minSpecIndex
-  if minSpecIndex' >= 0
-    then
-    do
-      let rulesList = rulesLists !! minSpecIndex'
-      let idx = index !! minSpecIndex'
-      let rule = rulesList !! idx
-
-      let (targetDeclSet', matchCache') = applyCssRule targetDeclSet matchCache doctree mDtn rule
-
-      let oldElem = index !! minSpecIndex'
-      let index2 = listReplaceElem index (oldElem + 1) minSpecIndex'
-
-      putStrLn . show $ targetDeclSet'
-      putStrLn . show $ V.fromList $ index2
-
-      applyMatchingRules' index2 doctree mDtn targetDeclSet' matchCache' rulesLists
-    else return (targetDeclSet, matchCache)
-
-
-
-
-{-
-   int index[maxLists] = {0};
-   while (true) {
-      int minSpecIndex = -1;
-
-      hll_fn1(rules_lists, numLists, index, &minSpecIndex);
-
-      if (minSpecIndex >= 0) {
-         /* Apply CSS rule. */
-         hll_applyCssRule(doc_tree_ref, dtn, match_cache, decl_set, rules_lists, numLists, index, minSpecIndex);
-         index[minSpecIndex]++;
-
-         hll_printCssDeclarationSet(decl_set);
-         hll_printCssIndex(index);
-
-      } else {
-         break;
-      }
-   }
-#endif
--}
 

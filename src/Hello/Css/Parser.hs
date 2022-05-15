@@ -1733,7 +1733,7 @@ data CssRule = CssRule {
   , declarationSet  :: CssDeclarationSet
   , specificity     :: Int
   , position        :: Int
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 
 

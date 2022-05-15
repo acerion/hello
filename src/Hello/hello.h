@@ -347,9 +347,8 @@ void hll_applyCssRule(int doc_tree_ref, const c_doctree_node_t * dtn, c_css_matc
                       const c_css_rules_list_t ** rules_lists, int numLists, int * index, int minSpecIndex);
 
 
-void hll_applyMatchingRules(int doc_tree_ref, const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache,
-             c_css_declaration_set_t * target,
-             const c_css_rules_list_t ** rules_lists, int numLists);
+
+void hll_cssStyleSheetApplyStyleSheet(c_css_style_sheet_t * style_sheet, c_css_declaration_set_t * decl_set, int doc_tree_ref, const c_doctree_node_t *dtn, c_css_match_cache_t * match_cache);
 
 void hll_printCssDeclarationSet(c_css_declaration_set_t * declSet);
 void hll_printCssIndex(int * index);

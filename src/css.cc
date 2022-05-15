@@ -9,6 +9,7 @@
  * (at your option) any later version.
  */
 
+#include <sys/time.h>
 #include <stdio.h>
 #include "../dlib/dlib.h"
 #include "msg.h"
@@ -68,51 +69,6 @@ c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * inD
    }
 
    return out;
-}
-
-
-
-/**
- * \brief Apply a stylesheet to a list of declarations.
- *
- * The declarations (list property+value) are set as defined by the rules in
- * the stylesheet that match at the given node in the document tree.
- */
-void css_style_sheet_apply_style_sheet(c_css_style_sheet_t * style_sheet, c_css_declaration_set_t * decl_set, int doc_tree_ref, const c_doctree_node_t *dtn, c_css_match_cache_t * match_cache)
-{
-   static const int maxLists = 32;
-   const c_css_rules_list_t * rules_lists[maxLists];
-   int numLists = 0;
-
-
-   if (dtn->c_element_selector_id) {
-      rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_rules_by_id, dtn->c_element_selector_id);
-      if (rules_lists[numLists]) {
-         numLists++;
-      }
-   }
-
-   for (int i = 0; i < dtn->c_element_selector_class_size; i++) {
-      if (i >= maxLists - 4) {
-         MSG_WARN("Maximum number of classes per element exceeded.\n");
-         break;
-      }
-
-      rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_rules_by_class, dtn->c_element_selector_class[i]);
-      if (rules_lists[numLists]) {
-         numLists++;
-      }
-   }
-
-   rules_lists[numLists] = style_sheet->c_rules_by_type[dtn->c_html_element_idx];
-   if (rules_lists[numLists])
-      numLists++;
-
-   rules_lists[numLists] = style_sheet->c_rules_by_any_element;
-   if (rules_lists[numLists])
-      numLists++;
-
-   hll_applyMatchingRules(doc_tree_ref, dtn, match_cache, decl_set, rules_lists, numLists);
 }
 
 static void alloc_rules_map(c_css_rules_map_t ** map)
@@ -200,26 +156,52 @@ void css_context_apply_css_context(c_css_context_t * context,
                                    c_doctree_node_t * dtn,
                                    c_css_declaration_lists_t * declLists) {
 
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_AGENT], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
+   static struct timeval accumulated;
+   static bool initialized = false;
+   if (!initialized) {
+      timerclear(&accumulated);
+      initialized = true;
+   }
 
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
+   struct timeval start;
+   timerclear(&start);
+   gettimeofday(&start, NULL);
+
+
+   hll_cssStyleSheetApplyStyleSheet(context->c_sheets[CSS_PRIMARY_USER_AGENT], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
+
+   hll_cssStyleSheetApplyStyleSheet(context->c_sheets[CSS_PRIMARY_USER], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
 
    if (declLists->nonCss)
       hll_declarationListAppend(mergedDeclList, declLists->nonCss);
 
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
+   hll_cssStyleSheetApplyStyleSheet(context->c_sheets[CSS_PRIMARY_AUTHOR], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
 
    if (declLists->main) {
       hll_declarationListAppend(mergedDeclList, declLists->main);
    }
 
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_AUTHOR_IMPORTANT], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
+   hll_cssStyleSheetApplyStyleSheet(context->c_sheets[CSS_PRIMARY_AUTHOR_IMPORTANT], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
 
    if (declLists->important) {
       hll_declarationListAppend(mergedDeclList, declLists->important);
    }
 
-   css_style_sheet_apply_style_sheet(context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
+   hll_cssStyleSheetApplyStyleSheet(context->c_sheets[CSS_PRIMARY_USER_IMPORTANT], mergedDeclList, doc_tree_ref, dtn, context->c_match_cache);
+
+   struct timeval stop;
+   timerclear(&stop);
+   gettimeofday(&stop, NULL);
+
+   struct timeval diff;
+   timerclear(&diff);
+   timersub(&stop, &start, &diff);
+
+   struct timeval old_accumulated = accumulated;
+   timeradd(&diff, &old_accumulated, &accumulated);
+
+   //fprintf(stderr, "MEAS: TIME: %ld.%06ld seconds\n", diff.tv_sec, diff.tv_usec);
+   //fprintf(stderr, "MEAS: ACCUMULATED TIME: %ld.%02ld seconds\n", accumulated.tv_sec, accumulated.tv_usec / (1000 * 10));
 }
 
 

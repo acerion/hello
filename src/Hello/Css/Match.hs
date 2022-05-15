@@ -33,6 +33,8 @@ module Hello.Css.Match
 
   , applyCssRule
   , cssGetMinSpecIndex
+  , applyMatchingRules
+  , cssStyleSheetApplyStyleSheet
 
   , minSpecificityForRulesLists
   , CssSpecificityState (..)
@@ -44,7 +46,9 @@ module Hello.Css.Match
 
 import Data.Bits
 import Data.Maybe
+import qualified Data.Map as M
 import qualified Data.Text as T
+import qualified Data.Vector as V
 import Debug.Trace
 
 import Hello.Css.Parser
@@ -268,5 +272,120 @@ cssGetMinSpecIndex rulesLists index minSpecIndex = do
   putStrLn ("minSpec = " ++ (show minSpec') ++ ", minPos = " ++ (show minPos') ++ ", minSpecIndex = " ++ (show minSpecIndex'))
 
   return minSpecIndex'
+
+
+
+
+
+applyMatchingRules :: Doctree -> Maybe DoctreeNode -> CssDeclarationSet -> CssMatchCache -> [[CssRule]] -> IO (CssDeclarationSet, CssMatchCache)
+applyMatchingRules = applyMatchingRules' index
+  where
+    index = take 32 $ repeat 0
+
+
+
+
+-- Apply potentially matching rules from rules_lists[0-numLists] with
+-- ascending specificity. If specificity is equal, rules are applied in
+-- order of appearance. Each rules_list is sorted already.
+applyMatchingRules' :: [Int] -> Doctree -> Maybe DoctreeNode -> CssDeclarationSet -> CssMatchCache -> [[CssRule]] -> IO (CssDeclarationSet, CssMatchCache)
+applyMatchingRules' index doctree mDtn targetDeclSet matchCache rulesLists = do
+  let minSpecIndex = -1
+  minSpecIndex' <- cssGetMinSpecIndex rulesLists index minSpecIndex
+  if minSpecIndex' >= 0
+    then
+    do
+      let rulesList = rulesLists !! minSpecIndex'
+      let idx = index !! minSpecIndex'
+      let rule = rulesList !! idx
+
+      let (targetDeclSet', matchCache') = applyCssRule targetDeclSet matchCache doctree mDtn rule
+
+      let oldElem = index !! minSpecIndex'
+      let index2 = listReplaceElem index (oldElem + 1) minSpecIndex'
+
+      putStrLn . show $ targetDeclSet'
+      putStrLn . show $ V.fromList $ index2
+
+      applyMatchingRules' index2 doctree mDtn targetDeclSet' matchCache' rulesLists
+    else return (targetDeclSet, matchCache)
+
+
+
+
+-- Apply a stylesheet to a list of declarations.
+--
+-- The declarations (list property+value) are set as defined by the rules in
+-- the stylesheet that match at the given node in the document tree.
+cssStyleSheetApplyStyleSheet :: CssStyleSheet -> CssDeclarationSet -> Doctree -> DoctreeNode -> CssMatchCache -> IO (CssDeclarationSet, CssMatchCache)
+cssStyleSheetApplyStyleSheet styleSheet targetDeclSet doctree dtn matchCache = do
+    let rulesLists :: [[CssRule]] = buildRulesListsForDtn styleSheet dtn
+    (targetDeclSet', matchCache') <- applyMatchingRules doctree (Just dtn) targetDeclSet matchCache rulesLists
+    return (targetDeclSet', matchCache')
+
+
+
+
+buildRulesListsForDtn :: CssStyleSheet -> DoctreeNode -> [[CssRule]]
+buildRulesListsForDtn styleSheet dtn = reverse rulesLists
+  where
+    rulesLists = byAnyElement . byElementId . byClass . bySelId $ []
+
+
+    {-
+    if (dtn->c_element_selector_id) {
+       rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_rules_by_id, dtn->c_element_selector_id);
+       if (rules_lists[numLists]) {
+          numLists++;
+       }
+    }
+    -}
+    bySelId lists = if T.null . selId $ dtn
+                    then lists
+                    else case M.lookup (selId dtn) (rulesById styleSheet) of
+                           Just l    -> l:lists
+                           otherwise -> lists
+
+
+    {-
+    for (int i = 0; i < dtn->c_element_selector_class_size; i++) {
+       if (i >= maxLists - 4) {
+          MSG_WARN("Maximum number of classes per element exceeded.\n");
+          break;
+       }
+
+       rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_rules_by_class, dtn->c_element_selector_class[i]);
+       if (rules_lists[numLists]) {
+          numLists++;
+       }
+    }
+    -}
+    byClass lists = getSelectorClassLists (selClass dtn) lists
+      where
+        getSelectorClassLists []     acc = acc
+        getSelectorClassLists (c:cs) acc = case M.lookup c (rulesByClass styleSheet) of
+                                             Just l    -> getSelectorClassLists cs (l:acc)
+                                             otherwise -> getSelectorClassLists cs acc
+
+
+    {-
+    rules_lists[numLists] = style_sheet->c_rules_by_type[dtn->c_html_element_idx];
+    if (rules_lists[numLists])
+       numLists++;
+    -}
+    byElementId lists = if htmlElementIdx dtn == (-1)
+                        then lists
+                        else ((rulesByType styleSheet) !! (htmlElementIdx dtn)):lists
+
+
+    {-
+    rules_lists[numLists] = style_sheet->c_rules_by_any_element;
+    if (rules_lists[numLists])
+       numLists++;
+    -}
+    byAnyElement lists = if null . rulesByAnyElement $ styleSheet
+                         then lists
+                         else (rulesByAnyElement styleSheet):lists
+
 
 
