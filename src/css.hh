@@ -220,14 +220,7 @@ void css_complex_selector_link_print_flat(FILE * file, const c_css_complex_selec
 int css_complex_selector_link_specificity(c_css_complex_selector_link_t * link);
 
 
-
 c_css_context_t * c_css_context_new(void);
-void css_context_apply_css_context(c_css_context_t * context,
-                                   c_css_declaration_set_t * mergedDeclList,
-                                   int doc_tree_ref,
-                                   c_doctree_node_t * dtn,
-                                   c_css_declaration_lists_t * declLists);
-
 
 
 

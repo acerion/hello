@@ -354,6 +354,13 @@ void hll_printCssDeclarationSet(c_css_declaration_set_t * declSet);
 void hll_printCssIndex(int * index);
 
 
+void hll_cssContextApplyCssContext(c_css_context_t * context,
+                                   c_css_declaration_set_t * targetDeclSet, c_css_match_cache_t * match_cache,
+                                   int doc_tree_ref, const c_doctree_node_t * dtn,
+                                   c_css_declaration_set_t * mainDeclSet, c_css_declaration_set_t * importnatDeclSet, c_css_declaration_set_t * nonCssDeclSet);
+
+
+
 void hll_matchCacheSetSize(c_css_match_cache_t * match_cache, int size);
 void hll_parseCss(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
 

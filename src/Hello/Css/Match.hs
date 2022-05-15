@@ -36,6 +36,8 @@ module Hello.Css.Match
   , applyMatchingRules
   , cssStyleSheetApplyStyleSheet
 
+  , cssContextApplyCssContext
+
   , minSpecificityForRulesLists
   , CssSpecificityState (..)
   )
@@ -317,8 +319,8 @@ applyMatchingRules' index doctree mDtn targetDeclSet matchCache rulesLists = do
 --
 -- The declarations (list property+value) are set as defined by the rules in
 -- the stylesheet that match at the given node in the document tree.
-cssStyleSheetApplyStyleSheet :: CssStyleSheet -> CssDeclarationSet -> Doctree -> DoctreeNode -> CssMatchCache -> IO (CssDeclarationSet, CssMatchCache)
-cssStyleSheetApplyStyleSheet styleSheet targetDeclSet doctree dtn matchCache = do
+cssStyleSheetApplyStyleSheet :: CssStyleSheet -> CssDeclarationSet -> CssMatchCache -> Doctree -> DoctreeNode -> IO (CssDeclarationSet, CssMatchCache)
+cssStyleSheetApplyStyleSheet styleSheet targetDeclSet  matchCache doctree dtn = do
     let rulesLists :: [[CssRule]] = buildRulesListsForDtn styleSheet dtn
     (targetDeclSet', matchCache') <- applyMatchingRules doctree (Just dtn) targetDeclSet matchCache rulesLists
     return (targetDeclSet', matchCache')
@@ -388,4 +390,39 @@ buildRulesListsForDtn styleSheet dtn = reverse rulesLists
                          else (rulesByAnyElement styleSheet):lists
 
 
+
+
+
+-- Apply a CSS context to a property list.
+--
+-- The stylesheets in the context are applied one after the other in the
+-- ordering defined by CSS 2.1. Stylesheets that are applied later can
+-- overwrite properties set by previous stylesheets. This allows e.g. user
+-- styles to overwrite author styles.
+cssContextApplyCssContext :: CssContext -> CssDeclarationSet -> CssMatchCache -> Doctree -> DoctreeNode -> CssDeclarationSet -> CssDeclarationSet -> CssDeclarationSet -> IO (CssDeclarationSet, CssMatchCache)
+cssContextApplyCssContext context targetDeclSet matchCache doctree dtn mainDeclSet importantDeclSet nonCssDeclSet = do
+
+  let cssPrimaryUserAgent       = 0
+  let cssPrimaryUser            = 1
+  let cssPrimaryAuthor          = 2
+  let cssPrimaryAuthorImportant = 3
+  let cssPrimaryUserImportant   = 4
+
+  (targetDeclSet2, matchCache2) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryUserAgent) targetDeclSet matchCache doctree dtn
+
+  (targetDeclSet3, matchCache3) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryUser) targetDeclSet2 matchCache2 doctree dtn
+
+  let targetDeclSet4 = declarationsSetAppend targetDeclSet3 nonCssDeclSet
+
+  (targetDeclSet5, matchCache5) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryAuthor) targetDeclSet4 matchCache3 doctree dtn
+
+  let targetDeclSet6 = declarationsSetAppend targetDeclSet5 mainDeclSet
+
+  (targetDeclSet7, matchCache7) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryAuthorImportant) targetDeclSet6 matchCache5 doctree dtn
+
+  let targetDeclSet8 = declarationsSetAppend targetDeclSet7 importantDeclSet
+
+  (targetDeclSet9, matchCache9) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryUserImportant) targetDeclSet8 matchCache7 doctree dtn
+
+  return (targetDeclSet9, matchCache9)
 

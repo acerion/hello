@@ -81,6 +81,8 @@ foreign export ccall "hll_printCssIndex" hll_printCssIndex :: Ptr CInt -> IO ()
 
 foreign export ccall "hll_cssStyleSheetApplyStyleSheet" hll_cssStyleSheetApplyStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssDeclarationSet -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO ()
 
+foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> Ptr FfiCssMatchCache -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+
 
 {-
 analyzeDtn ptrStructDtn tree = do
@@ -608,10 +610,42 @@ hll_cssStyleSheetApplyStyleSheet ptrStructCssStyleSheet ptrStructTarget cDoctree
   matchCache    <- peekPtrCssMatchCache ptrStructMatchCache
   targetDeclSet <- peekCssDeclarationSet ptrStructTarget
 
-  (targetDeclSet', matchCache') <- cssStyleSheetApplyStyleSheet styleSheet targetDeclSet doctree dtn matchCache
+  (targetDeclSet', matchCache') <- cssStyleSheetApplyStyleSheet styleSheet targetDeclSet matchCache doctree dtn
 
   pokeCssDeclarationSet ptrStructTarget targetDeclSet'
   pokeCssMatchCache ptrStructMatchCache matchCache'
+
+
+
+
+getSomeDeclSet ptr = if nullPtr == ptr
+                     then return defaultCssDeclarationSet
+                     else peekCssDeclarationSet ptr
+
+
+
+
+
+hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> Ptr FfiCssMatchCache -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+hll_cssContextApplyCssContext ptrStructCssContext ptrStructTargetDeclSet ptrStructMatchCache cDoctreeRef ptrStructDtn ptrStructMainDeclSet ptrStructImportantDeclSet ptrStructNonCssDeclSet = do
+
+  context <- peekCssContext ptrStructCssContext
+  dtn     <- peekDoctreeNode ptrStructDtn
+  doctree <- getDoctreeFromRef . fromIntegral $ cDoctreeRef
+
+  mainDeclSet      <- getSomeDeclSet ptrStructMainDeclSet
+  importantDeclSet <- getSomeDeclSet ptrStructImportantDeclSet
+  nonCssDeclSet    <- getSomeDeclSet ptrStructNonCssDeclSet
+
+  targetDeclSet <- peekCssDeclarationSet ptrStructTargetDeclSet
+  matchCache    <- peekPtrCssMatchCache ptrStructMatchCache
+
+  (targetDeclSet', matchCache') <- cssContextApplyCssContext context targetDeclSet matchCache doctree dtn mainDeclSet importantDeclSet nonCssDeclSet
+
+  pokeCssDeclarationSet ptrStructTargetDeclSet targetDeclSet'
+  pokeCssMatchCache ptrStructMatchCache matchCache'
+
+  return ()
 
 
 
