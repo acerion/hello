@@ -1635,54 +1635,18 @@ declarationsSetUpdateOrAdd declSet decl =
 
 
 {-
-Merge two disjoint sequences:
+Merge values from incoming into target, return result of merging
 
-:set +m
-import qualified Data.Sequence as S
-
-let target = CssDeclarationSet {isSafe = True, items = S.fromList [
-CssDeclaration {property = 1, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 11, textVal = "111"}, important = True},
-CssDeclaration {property = 3, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 33, textVal = "222"}, important = False},
-CssDeclaration {property = 4, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 44, textVal = "444"}, important = True}]}
-
-let source = CssDeclarationSet {isSafe = True, items = S.fromList [
-CssDeclaration {property = 7, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 77, textVal = "777"}, important = False},
-CssDeclaration {property = 8, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 88, textVal = "888"}, important = True},
-CssDeclaration {property = 9, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 99, textVal = "999"}, important = False}]}
-
-let merged = declarationsSetAppend target source
-
-
-
-Merge two sequences where the second one contains a property existing in first one (with the same value of 'property' field).
-
-:set +m
-import qualified Data.Sequence as S
-
-let target = CssDeclarationSet {isSafe = True, items = S.fromList [
-CssDeclaration {property = 1, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 11, textVal = "111"}, important = True},
-CssDeclaration {property = 3, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 33, textVal = "333"}, important = False},
-CssDeclaration {property = 4, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 44, textVal = "444"}, important = True}]}
-
-let source = CssDeclarationSet {isSafe = True, items = S.fromList [
-CssDeclaration {property = 7, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 77, textVal = "777"}, important = False},
-CssDeclaration {property = 3, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 3333, textVal = "3333"}, important = True},
-CssDeclaration {property = 9, declValue = CssValue {typeTag = CssValueTypeColor, intVal = 99, textVal = "999"}, important = False}]}
-
-let merged = declarationsSetAppend target source
--}
-{-
-Concatenate values from source to target, return result of concatenation.
-
-I can't use a concatenation operator because the concatenation is not that
+I can't use a concatenation operator because the merging is not that
 simple: it has to use declarationsSetUpdateOrAdd function.
 -}
 declarationsSetAppend :: CssDeclarationSet -> CssDeclarationSet -> CssDeclarationSet
-declarationsSetAppend target source = if S.null . items $ source
-                                      then target
-                                      else declarationsSetAppend
-                                           (declarationsSetUpdateOrAdd target (S.index (items source) 0))
-                                           source{items = S.drop 1 (items source)}
+declarationsSetAppend target incoming = if S.null . items $ incoming
+                                        then target
+                                        else declarationsSetAppend (declarationsSetUpdateOrAdd target iHead) iTail
+  where
+    iHead = S.index (items incoming) 0
+    iTail = incoming {items = S.drop 1 (items incoming)}
 
 
 

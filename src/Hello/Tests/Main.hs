@@ -24,6 +24,7 @@ import Hello.Tests.Gif
 import Hello.Tests.Gif2
 
 import Hello.Tests.Css.Css
+import Hello.Tests.Css.DeclarationSet
 import Hello.Tests.Css.Rule
 import Hello.Tests.Css.Selector
 import Hello.Tests.Css.Tokenizer
@@ -40,7 +41,13 @@ import Hello.Tests.Html.Tag
 
 testFunctions = [ testsColors, testsCookies,
                   testsGif, testsGif2,
-                  testsCssCss, testsCssRule, testsCssComplexSelector, testsCssTokenizer, testsCssValue
+                  testsCssCss
+
+                , testsCssComplexSelector
+                , testsCssDeclarationSet
+                , testsCssRule
+                , testsCssTokenizer
+                , testsCssValue
 
                 , testsHtmlAttribute
                 , testsHtmlDoctree
