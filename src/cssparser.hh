@@ -30,8 +30,6 @@ class CssParser {
    CssParser(CssOrigin origin, const DilloUrl * baseUrl, const char * buf, int buflen);
 };
 
-void parseCss(DilloHtml * html, const DilloUrl * baseUrl, c_css_context_t * context, const char * buf, int buflen, CssOrigin origin);
-
 
 
 #endif

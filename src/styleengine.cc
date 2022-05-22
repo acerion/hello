@@ -78,7 +78,17 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
 
    this->css_context_ptr = c_css_context_new();
 
-   buildUserStyle ();
+#if 1
+   static bool test = false;
+   if (!test) {
+      buildUserAgentStyle(this->css_context_ptr);
+      test = true;
+   }
+#else
+   buildUserAgentStyle(this->css_context_ptr);
+#endif
+   buildUserStyle(this->css_context_ptr);
+
    this->layout = layout;
    this->pageUrl = pageUrl ? a_Url_dup(pageUrl) : NULL;
    this->baseUrl = baseUrl ? a_Url_dup(baseUrl) : NULL;
@@ -971,7 +981,10 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
    i++;
 
    importDepth++;
-   parseCss(html, url, this->css_context_ptr, buf, buflen, origin);
+   {
+      CssParser parser_(origin, url, buf, buflen);
+      hll_parseCss(&parser_.m_parser, &parser_.m_token, this->css_context_ptr);
+   }
    importDepth--;
 
    print_css_context(file, this->css_context_ptr);
@@ -979,14 +992,22 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
 }
 
 /**
- * \brief Create the user agent style.
- *
- * The user agent style defines how dillo renders HTML in the absence of
- * author or user styles.
- */
-void StyleEngine::init () {
+   \brief Create the user agent style.
+
+   The user agent style defines how dillo renders HTML in the absence of
+   author or user styles.
+
+   TODO: in C++ this function was a class static method that was called only
+   once in program's life time, at the beginning of program's run. An user
+   agent style is common for all style sheets, so there is no point in
+   parsing it from scratch for all visited pages. As an optimisation this
+   style was parsed once (in the static method) and inserted into each page's
+   style sheet. TO DO: recreate this in Haskell.
+*/
+void StyleEngine::buildUserAgentStyle(c_css_context_t * context)
+{
    const char *cssBuf =
-#if 1
+
       "body  {margin: 5px}"
       "big {font-size: 1.17em}"
       "blockquote, dd {margin-left: 40px; margin-right: 40px}"
@@ -1042,21 +1063,26 @@ void StyleEngine::init () {
        * has a detailed description of the issue.
        */
       "table, caption {font-size: medium; font-weight: normal}"
-#endif
+
       "";
 
    /* Initialize 'user agent' sheet. All other sheets will be discarded. */
-   c_css_context_t * context = c_css_context_new();
-   parseCss(NULL, NULL, context, cssBuf, strlen (cssBuf), CSS_ORIGIN_USER_AGENT);
-   free(context); // Leaking memory here. Will be solved by migrating this code to Haskell.
+   {
+      CssParser parser_(CSS_ORIGIN_USER_AGENT, NULL, cssBuf, strlen (cssBuf));
+      hll_parseCss(&parser_.m_parser, &parser_.m_token, context);
+   }
 }
 
-void StyleEngine::buildUserStyle () {
+void StyleEngine::buildUserStyle(c_css_context_t * context)
+{
    Dstr *style;
    char *filename = dStrconcat(dGethomedir(), "/.dillo/style.css", NULL);
 
    if ((style = a_Misc_file2dstr(filename))) {
-      parseCss(NULL, NULL, this->css_context_ptr, style->str, style->len, CSS_ORIGIN_USER);
+      {
+         CssParser parser_(CSS_ORIGIN_USER, NULL, style->str, style->len);
+         hll_parseCss(&parser_.m_parser, &parser_.m_token, context);
+      }
       dStr_free (style, 1);
    }
    dFree (filename);

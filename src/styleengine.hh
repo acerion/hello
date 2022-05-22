@@ -57,7 +57,10 @@ public:
 
       void stackPush ();
       void stackPop ();
-      void buildUserStyle ();
+
+      void buildUserStyle(c_css_context_t * context);
+      void buildUserAgentStyle(c_css_context_t * context);
+
       dw::core::style::Style *getStyle0 (int some_idx, BrowserWindow *bw);
       dw::core::style::Style *getWordStyle0 (BrowserWindow *bw);
 
@@ -70,7 +73,7 @@ public:
       void computeBorderWidth (int *dest, c_css_declaration_t * decl, dw::core::style::Font *font);
 
    public:
-      static void init ();
+
 
       StyleEngine (dw::core::Layout *layout,
                    const DilloUrl *pageUrl, const DilloUrl *baseUrl);

@@ -383,6 +383,47 @@ parseRuleset ((parser, token), context) = ((p2, t2), updatedContext)
 
 
 
+{-
+TODO: look how much is still to be implemented in the parser. Only the part
+in first branch of #if is implemented.
+
+void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * context, const char * buf, int buflen, CssOrigin origin)
+{
+#if 1
+   CssParser parser_(origin, baseUrl, buf, buflen);
+   hll_parseCss(&parser_.m_parser, &parser_.m_token, context);
+#else
+   CssParser parser_(origin, baseUrl, buf, buflen);
+   bool importsAreAllowed = true;
+   c_css_token_t * token = &parser_.m_token;
+   c_css_parser_t * parser = &parser_.m_parser;
+   while (token->c_type != CSS_TOKEN_TYPE_END) {
+      if (token->c_type == CSS_TOKEN_TYPE_CHAR &&
+          token->c_value[0] == '@') {
+         nextToken(parser, token);
+         if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
+            if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
+                html != NULL &&
+                importsAreAllowed) {
+               //fprintf(stderr, "MEAS: PARSE IMPORT\n");
+               parseImport(html, parser, token, parser_.m_base_url);
+            } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
+               //fprintf(stderr, "MEAS: PARSE MEDIA\n");
+               parseMedia(parser, token, context);
+            } else {
+               hll_ignoreStatement(parser, token);
+            }
+         } else {
+            hll_ignoreStatement(parser, token);
+         }
+      } else {
+         importsAreAllowed = false;
+         hll_cssParseRuleset(parser, token, context);
+      }
+   }
+#endif
+}
+-}
 parseCss :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
 parseCss ((parser, token), context) =
   case token of

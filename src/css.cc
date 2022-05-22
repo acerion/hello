@@ -121,6 +121,7 @@ c_css_context_t * c_css_context_new(void)
 
    memset(context->c_sheets, 0, sizeof (context->c_sheets));
    for (int order = 0; order < CSS_PRIMARY_ORDER_SIZE; order++) {
+#if 1
       if (CSS_PRIMARY_USER_AGENT == order) {
          if (!g_user_agent_sheet_initialized) {
             alloc_sheet(&context->c_sheets[order]);
@@ -133,6 +134,9 @@ c_css_context_t * c_css_context_new(void)
       } else {
          alloc_sheet(&context->c_sheets[order]);
       }
+#else
+      alloc_sheet(&context->c_sheets[order]);
+#endif
    }
 
    context->c_match_cache = (c_css_match_cache_t *) calloc(1, sizeof (c_css_match_cache_t));
