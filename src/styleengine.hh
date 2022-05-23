@@ -59,7 +59,6 @@ public:
       void stackPop ();
 
       void buildUserStyle(c_css_context_t * context);
-      void buildUserAgentStyle(c_css_context_t * context);
 
       dw::core::style::Style *getStyle0 (int some_idx, BrowserWindow *bw);
       dw::core::style::Style *getWordStyle0 (BrowserWindow *bw);

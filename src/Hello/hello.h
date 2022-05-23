@@ -364,6 +364,8 @@ void hll_cssContextApplyCssContext(c_css_context_t * context,
 void hll_matchCacheSetSize(c_css_match_cache_t * match_cache, int size);
 void hll_parseCss(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
 
+void hll_styleEngineBuildUserAgentStyle(c_css_context_t * context);
+
 
 int hll_isTokenComma(c_css_token_t * token);
 int hll_isTokenSemicolon(c_css_token_t * token);

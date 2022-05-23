@@ -46,12 +46,13 @@ import qualified Data.List as L
 import Control.Monad -- when
 import Debug.Trace
 
-import Hello.Css.Parser
-import Hello.Css.Tokenizer
-import Hello.Css.StyleSheet
-import Hello.Css.Selector
 import Hello.Css.Match
 import Hello.Css.MediaQuery
+import Hello.Css.Parser
+import Hello.Css.StyleSheet
+import Hello.Css.Selector
+import Hello.Css.Tokenizer
+import Hello.Css.UserAgentStyle
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
 
@@ -82,6 +83,10 @@ foreign export ccall "hll_printCssIndex" hll_printCssIndex :: Ptr CInt -> IO ()
 foreign export ccall "hll_cssStyleSheetApplyStyleSheet" hll_cssStyleSheetApplyStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssDeclarationSet -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO ()
 
 foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+
+foreign export ccall "hll_styleEngineBuildUserAgentStyle" hll_styleEngineBuildUserAgentStyle :: Ptr FfiCssContext -> IO ()
+
+
 
 
 {-
@@ -651,4 +656,11 @@ hll_cssContextApplyCssContext ptrStructCssContext ptrStructTargetDeclSet cDoctre
 
 
 
+hll_styleEngineBuildUserAgentStyle :: Ptr FfiCssContext -> IO ()
+hll_styleEngineBuildUserAgentStyle ptrStructCssContext = do
+  context <- peekCssContext ptrStructCssContext
+  let context' = styleEngineBuildUserAgentStyle context
+  pokeCssContext ptrStructCssContext context'
+
+  return ()
 
