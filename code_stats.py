@@ -14,7 +14,7 @@ import datetime as dt
 # src/Hello/Ffi
 
 # C/C++ numbers don't include code in these dirs/files:
-# src/Hello/hello.h
+# src/Hello/
 # test/
 
 
@@ -57,6 +57,7 @@ arr = np.array((
     ["2021-10-03",     30092,     18449,      2539],
     ["2021-10-26",     30039,     18443,      2607],
     ["2022-04-03",     30071,     18442,      2732],
+    ["2022-05-23",     29913,     18428,      3101],
 ))
 
 
