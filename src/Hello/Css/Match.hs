@@ -53,6 +53,7 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 import Debug.Trace
 
+import Hello.Css.MatchCache
 import Hello.Css.Parser
 import Hello.Css.StyleSheet
 import Hello.Css.Selector
@@ -137,14 +138,12 @@ matchDescendant complex mDtn tree mc cacheOffset =
     (True, mc2)  -> (True, mc2)
     (False, mc2) -> case mDtn of
                       Nothing  -> (False, mc2)
-                      Just dtn -> (False, updateMatchCache mc2 dtn elemIdx)
+                      Just dtn -> (False, matchCacheSetItem mc2 (uniqueNum dtn) compoundOffset)
   where
-    updateMatchCache :: CssMatchCache -> DoctreeNode -> Int -> CssMatchCache
-    updateMatchCache mc dtn elemIdx = listReplaceElem mc (uniqueNum dtn) elemIdx
+    compoundIdx     = (chainLength complex) - 1
+    compoundOffset  = cacheOffset + compoundIdx
+    matchCacheEntry = matchCacheGetItem mc compoundOffset
 
-    compoundIdx = (chainLength complex) - 1
-    elemIdx = cacheOffset + compoundIdx
-    matchCacheEntry = mc !! elemIdx
 
 
 

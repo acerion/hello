@@ -47,6 +47,7 @@ import Control.Monad -- when
 import Debug.Trace
 
 import Hello.Css.Match
+import Hello.Css.MatchCache
 import Hello.Css.MediaQuery
 import Hello.Css.Parser
 import Hello.Css.StyleSheet
@@ -472,7 +473,7 @@ peekPtrCssMatchCache ptrStructMatchCache = do
   cCache :: [CInt] <- peekArray size array
   let cache = map fromIntegral cCache
 
-  return cache
+  return . matchCacheFromList $ cache
 
 
 
@@ -482,8 +483,8 @@ pokeCssMatchCache ptrStructMatchCache cache = do
   ffiMatchCache <- peek ptrStructMatchCache
 
   let array :: Ptr CInt = cCacheItems ffiMatchCache
-  let cCache :: [CInt] = fmap fromIntegral cache
-  let cLen :: CInt = fromIntegral . length $ cache
+  let cCache :: [CInt] = fmap fromIntegral (matchCacheToList cache)
+  let cLen :: CInt = fromIntegral . length $ cCache
   pokeArray array cCache
 
   poke ptrStructMatchCache $ FfiCssMatchCache array cLen

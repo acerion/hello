@@ -41,8 +41,7 @@ module Hello.Css.StyleSheet( CssStyleSheet (..)
                            , CssRulesMap (..)
                            , addRuleToStyleSheet
 
-                           , CssMatchCache (..)
-                           , matchCacheResize
+                           , CssMatchCache
 
                            , CssContext (..)
                            , cssContextAddRule
@@ -73,6 +72,7 @@ import Control.Monad -- when
 import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Css.Selector
+import Hello.Css.MatchCache
 import Hello.Css.MediaQuery
 import Hello.Utils
 
@@ -193,7 +193,7 @@ insertRuleInListOfRules list rule = L.concat [smallerOrEqual, [rule], larger]
 
 
 
-type CssMatchCache = [Int]
+type CssMatchCache = CssMatchCacheWrapper Int
 
 
 
@@ -258,7 +258,7 @@ cssContextAddRule context rule sheetSelector =
                               }
                      else rule{ position = rulePosition context }
       where
-        newComplexSelector cplxSel = cplxSel{matchCacheOffset = length . matchCache $ context}
+        newComplexSelector cplxSel = cplxSel{matchCacheOffset = matchCacheSize . matchCache $ context}
 
 
 
@@ -274,7 +274,7 @@ cssContextAddRule' context rule sheetSelector = context{ sheets     = listReplac
                                                        }
   where
     updatedSheet      = addRuleToStyleSheet ((sheets $ context) !! (getSheetIndex sheetSelector)) rule
-    existingCacheSize = length . matchCache $ context
+    existingCacheSize = matchCacheSize . matchCache $ context
     requiredCacheSize = getRequiredMatchCache rule
 
 
@@ -295,14 +295,6 @@ getSheetSelector sheetIndex = case sheetIndex of
                                 3 -> CssPrimaryAuthorImportant
                                 4 -> CssPrimaryUserImportant
                                 5 -> CssPrimaryOrderSize
-
-
-
-
-matchCacheResize cache size = newCache
-  where
-    oldSize = length cache
-    newCache = cache ++ (replicate (size - oldSize) (-1))
 
 
 
