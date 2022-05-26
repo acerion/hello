@@ -45,8 +45,11 @@ import Hello.Css.Tokenizer
 
 
 
+-- FIXME: hello crashes when this list is empty.
 userAgentStyleString = T.unlines
   [
+    --"head { color: red }"
+
     "body  {margin: 5px}"
   , "big {font-size: 1.17em}"
   , "blockquote, dd {margin-left: 40px; margin-right: 40px}"
