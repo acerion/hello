@@ -235,47 +235,58 @@ cssComplexSelectorHasPseudoClass complex = chainAny (\compound -> not . null . s
 
 cssContextAddRules :: CssContext -> [(Maybe CssRule, CssSheetSelector)] -> CssContext
 cssContextAddRules context []                              = context
-cssContextAddRules context ((Just rule, sheetSelector):xs) = cssContextAddRules (cssContextAddRule context rule sheetSelector) xs
+cssContextAddRules context ((Just rule, sheetSelector):xs) = cssContextAddRules (cssContextAddRule context sheetSelector rule) xs
 cssContextAddRules context ((Nothing, _):xs)               = cssContextAddRules context xs
 
 
 
 
-cssContextAddRule :: CssContext -> CssRule -> CssSheetSelector -> CssContext
-cssContextAddRule context rule sheetSelector =
-  -- TODO: should we increpement rulePosition in a context, to which a rule
+cssContextAddRule :: CssContext -> CssSheetSelector -> CssRule -> CssContext
+cssContextAddRule context sheetSelector rule  =
+  -- TODO: should we increment rulePosition in a context, to which a rule
   -- is not being added (in "then" branch)?
   if (sheetSelector == CssPrimaryAuthor || sheetSelector == CssPrimaryAuthorImportant) && (not . cssRuleIsSafe $ rule)
   then trace ("[WW] Ignoring unsafe author style that might reveal browsing history") (context{rulePosition = (rulePosition context) + 1})
-  else cssContextAddRule' context ruleWithOffset sheetSelector
+  else cssContextAddRule' . ruleSetOffsetAndPosition $ (context, sheetSelector, rule)
 
+
+
+
+ruleSetOffsetAndPosition (context, ss, rule) = ( context
+                                               , ss
+                                               , rule { complexSelector = newComplexSelector . complexSelector $ rule
+                                                      , position = rulePosition context
+                                                      }
+                                               )
   where
-    -- Set match cache offset of selector.
-    ruleWithOffset :: CssRule
-    ruleWithOffset = if (-1) == (matchCacheOffset . complexSelector $ rule)
-                     then rule{ complexSelector = newComplexSelector . complexSelector $ rule
-                              , position = rulePosition context
-                              }
-                     else rule{ position = rulePosition context }
-      where
-        newComplexSelector cplxSel = cplxSel{matchCacheOffset = matchCacheSize . matchCache $ context}
+    newComplexSelector cplxSel = cplxSel { matchCacheOffset = matchCacheSize . matchCache $ context}
 
 
 
 
 -- Add given rule to a style sheet in given context. The style sheet is
 -- selected by 'sheetSelector' argument.
-cssContextAddRule' :: CssContext -> CssRule -> CssSheetSelector -> CssContext
-cssContextAddRule' context rule sheetSelector = context{ sheets     = listReplaceElem (sheets context) updatedSheet (getSheetIndex sheetSelector)
-                                                       , matchCache = if requiredCacheSize > existingCacheSize
-                                                                      then matchCacheResize (matchCache context) requiredCacheSize
-                                                                      else (matchCache context)
-                                                       , rulePosition = (rulePosition context) + 1
-                                                       }
+cssContextAddRule' :: (CssContext, CssSheetSelector, CssRule) -> CssContext
+cssContextAddRule' (context, sheetSelector, rule) = context{ sheets     = listReplaceElem (sheets context) updatedSheet (getSheetIndex sheetSelector)
+                                                           , matchCache = if requiredCacheSize > existingCacheSize
+                                                                          then matchCacheResize (matchCache context) requiredCacheSize
+                                                                          else matchCache context
+                                                           , rulePosition = (rulePosition context) + 1
+                                                           }
   where
     updatedSheet      = addRuleToStyleSheet ((sheets $ context) !! (getSheetIndex sheetSelector)) rule
     existingCacheSize = matchCacheSize . matchCache $ context
     requiredCacheSize = getRequiredMatchCache rule
+
+
+
+
+-- TODO: the second form is more obvious: required match cache size is
+-- existing match cache size in the context + size of complex selector.
+-- Rewrite the function to use the second form.
+getRequiredMatchCache :: CssRule -> Int
+getRequiredMatchCache rule = (matchCacheOffset . complexSelector $ rule) + (chainLength . chain . complexSelector $ rule)
+-- getRequiredMatchCache context rule = (matchCacheSize . matchCache $ context) + (chainLength . chain . complexSelector $ rule)
 
 
 

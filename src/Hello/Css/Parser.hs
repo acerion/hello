@@ -119,7 +119,6 @@ module Hello.Css.Parser(
                        , defaultCssDeclarationSet
 
                        , CssRule (..)
-                       , getRequiredMatchCache
 
                        , consumeFunctionBody
 
@@ -1698,12 +1697,6 @@ data CssRule = CssRule {
   , specificity     :: Int
   , position        :: Int
   } deriving (Show, Eq)
-
-
-
-
-getRequiredMatchCache :: CssRule -> Int
-getRequiredMatchCache rule = (matchCacheOffset . complexSelector $ rule) + (chainLength . chain . complexSelector $ rule)
 
 
 
