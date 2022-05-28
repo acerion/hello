@@ -47,6 +47,8 @@ import qualified Data.ByteString.Char8 as Char8
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 
+import System.IO
+
 
 import Debug.Trace
 
@@ -80,6 +82,8 @@ foreign export ccall "hll_cssContextUpdate" hll_cssContextUpdate :: CInt -> Ptr 
 foreign export ccall "hll_cssContextPut" hll_cssContextPut :: Ptr FfiCssContext -> IO CInt
 foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
+
+foreign export ccall "hll_cssContextPrint" hll_cssContextPrint :: CString -> CInt -> Ptr FfiCssContext -> IO ()
 
 
 
@@ -214,3 +218,18 @@ hll_parseCss ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
 
   return ()
 
+
+
+hll_cssContextPrint :: CString -> CInt -> Ptr FfiCssContext -> IO ()
+hll_cssContextPrint cPath cRef ptrStructCssContext = do
+  bufPathstringVal <- BSU.unsafePackCString $ cPath
+  let path :: String  = T.unpack . T.E.decodeLatin1 $ bufPathstringVal
+
+  context <- peekCssContext ptrStructCssContext 
+
+  h <- openFile path WriteMode
+
+  hPrint h context
+  hClose h
+
+  return ()

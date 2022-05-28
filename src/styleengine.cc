@@ -987,7 +987,8 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
    }
    importDepth--;
 
-   print_css_context(file, this->css_context_ptr);
+   hll_cssContextPrint(path, this->css_context_ref, this->css_context_ptr);
+   //print_css_context(file, this->css_context_ptr);
    fclose(file);
 }
 

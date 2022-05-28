@@ -1696,9 +1696,14 @@ data CssRule = CssRule {
   , declarationSet  :: CssDeclarationSet
   , specificity     :: Int
   , position        :: Int
-  } deriving (Show, Eq)
+  } deriving (Eq)
 
 
+instance Show CssRule where
+  show (CssRule cs ds s p) = "Rule {" ++  (show cs) ++ "\n" ++
+                                          (show ds) ++ "\n" ++
+                             "spec = " ++ (show s)  ++ "\n" ++
+                             "pos = "  ++ (show p)  ++ "}\n"
 
 
 -- Get top compound selector

@@ -357,6 +357,7 @@ void hll_cssContextApplyCssContext(c_css_context_t * context,
                                    int doc_tree_ref, int dtn_num,
                                    c_css_declaration_set_t * mainDeclSet, c_css_declaration_set_t * importnatDeclSet, c_css_declaration_set_t * nonCssDeclSet);
 
+void hll_cssContextPrint(const char * path, int css_context_ref, c_css_context_t * context);
 
 
 void hll_matchCacheSetSize(c_css_match_cache_t * match_cache, int size);

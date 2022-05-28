@@ -96,8 +96,16 @@ data CssStyleSheet = CssStyleSheet {
   -- TODO: list of lists to be replaced with vector indexed by element.
   , rulesByType        :: [[CssRule]] -- CSS rules, in which topmost compound selector is characterized by its "specific html element".
   , rulesByAnyElement  :: [CssRule]   -- CSS rules, in which topmost compound selector is characterized by its "any html element".
-  } deriving (Show)
+  }
 
+
+instance Show CssStyleSheet where
+  show (CssStyleSheet i c t a) = "CssStyleSheet {\n" ++
+                                 "rulesById { "     ++ (show i) ++ " }\n\n" ++
+                                 "rulesByClass { "  ++ (show c) ++ " }\n\n" ++
+                                 "rulesByType  { "  ++ (show t) ++ " }\n\n" ++
+                                 "rulesByAny { "    ++ (show a) ++ " }\n" ++
+                                 "}\n\n\n"
 
 
 
