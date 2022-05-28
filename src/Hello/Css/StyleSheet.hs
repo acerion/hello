@@ -37,24 +37,28 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 
 
-module Hello.Css.StyleSheet( CssStyleSheet (..)
-                           , CssRulesMap (..)
-                           , addRuleToStyleSheet
+module Hello.Css.StyleSheet
+  (
+    CssStyleSheet (..)
+  , insertRuleToStyleSheet
 
-                           , CssMatchCache
+  , CssRulesMap (..)
 
-                           , CssContext (..)
-                           , cssContextAddRule
+  , CssMatchCache
 
-                           , parseRuleset
-                           , rulesetToRulesWithOrigin
+  , CssContext (..)
+  , cssContextAddRule
 
-                           , CssSheetSelector (..)
-                           , getSheetIndex
-                           , getSheetSelector
+  , parseRuleset
+  , rulesetToRulesWithOrigin
 
-                           , parseCss
-                           ) where
+  , CssSheetSelector (..)
+  , getSheetIndex
+  , getSheetSelector
+
+  , parseCss
+  )
+where
 
 
 
@@ -96,33 +100,21 @@ data CssStyleSheet = CssStyleSheet {
 
 
 {-
-Insert a rule into style sheet.
+Insert a rule into style sheet
 
 To improve matching performance the rules are organized into rule lists based
 on the topmost compound selector of their selector.
 -}
-addRuleToStyleSheet :: CssStyleSheet -> CssRule -> CssStyleSheet
-addRuleToStyleSheet sheet rule = case insertRuleToStyleSheet rule sheet of
-                                   (0, outSheet) -> outSheet
-                                   (i, outSheet) -> outSheet
-
-
-
-{-
-The returned int value is needed only in FFI code, so that the FFI code knows
-which field of style sheet has changed and which input/output pointer to
-poke.
--}
-insertRuleToStyleSheet :: CssRule -> CssStyleSheet -> (Int, CssStyleSheet)
-insertRuleToStyleSheet rule sheet
+insertRuleToStyleSheet :: CssStyleSheet -> CssRule -> CssStyleSheet
+insertRuleToStyleSheet sheet rule
   -- Put a rule in a bucket. Decide which bucket to choose by looking at
   -- topmost compound selector in the complex selector of given rule.
-  | compoundHasId compound             = (1, sheet { rulesById         = updatedRulesById })
-  | compoundHasClass compound          = (2, sheet { rulesByClass      = updatedRulesByClass })
-  | compoundHasSpecificType compound   = (3, sheet { rulesByType       = updatedRulesByType })
-  | compoundHasUniversalType compound  = (4, sheet { rulesByAnyElement = updatedRulesByAnyElement })
-  | compoundHasUnexpectedType compound = (trace ("[NN] insert rule to stylesheet: unexpected element: " ++ (show . selectorTagName $ compound)) (0, sheet))
-  | otherwise                          = (0, sheet)
+  | compoundHasId compound             = sheet { rulesById         = updatedRulesById }
+  | compoundHasClass compound          = sheet { rulesByClass      = updatedRulesByClass }
+  | compoundHasSpecificType compound   = sheet { rulesByType       = updatedRulesByType }
+  | compoundHasUniversalType compound  = sheet { rulesByAnyElement = updatedRulesByAnyElement }
+  | compoundHasUnexpectedType compound = trace ("[NN] insert rule to stylesheet: unexpected element: " ++ (show . selectorTagName $ compound)) (sheet)
+  | otherwise                          = sheet
 
   where
     compound = getTopCompound rule
@@ -258,12 +250,12 @@ ruleSetOffsetAndPosition (context, ss, rule) = ( context
 -- Add given rule to a style sheet in given context. The style sheet is
 -- selected by 'sheetSelector' argument.
 cssContextAddRule' :: (CssContext, CssSheetSelector, CssRule) -> CssContext
-cssContextAddRule' (context, sheetSelector, rule) = context{ sheets       = listReplaceElem (sheets context) updatedSheet (getSheetIndex sheetSelector)
-                                                           , matchCache   = matchCacheIncreaseBy (matchCache context) delta
-                                                           , rulePosition = (rulePosition context) + 1
-                                                           }
+cssContextAddRule' (context, sheetSelector, rule) = context { sheets       = listReplaceElem (sheets context) updatedSheet (getSheetIndex sheetSelector)
+                                                            , matchCache   = matchCacheIncreaseBy (matchCache context) delta
+                                                            , rulePosition = (rulePosition context) + 1
+                                                            }
   where
-    updatedSheet = addRuleToStyleSheet ((sheets $ context) !! (getSheetIndex sheetSelector)) rule
+    updatedSheet = insertRuleToStyleSheet ((sheets $ context) !! (getSheetIndex sheetSelector)) rule
     delta        = chainLength . chain . complexSelector $ rule
 
 
