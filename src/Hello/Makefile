@@ -4,10 +4,12 @@
 all:
 	hsc2hs ./Ffi/Css/Css.hsc
 	hsc2hs ./Ffi/Css/Context.hsc
-	hsc2hs ./Ffi/Css/Parser.hsc
 	hsc2hs ./Ffi/Css/DoctreeNode.hsc
 	hsc2hs ./Ffi/Css/Doctree.hsc
+	hsc2hs ./Ffi/Css/MatchCache.hsc
+	hsc2hs ./Ffi/Css/Parser.hsc
 	hsc2hs ./Ffi/Css/StyleEngine.hsc
+	hsc2hs ./Ffi/Css/StyleSheet.hsc
 	hsc2hs ./Ffi/Gif.hsc
 	hsc2hs ./Ffi/Html/Attribute.hsc
 	hsc2hs ./Ffi/Html/Doctype.hsc
@@ -38,10 +40,12 @@ clean:
 
 	rm -f ./Ffi/Css/Css.hs
 	rm -f ./Ffi/Css/Context.hs
-	rm -f ./Ffi/Css/Parser.hs
 	rm -f ./Ffi/Css/DoctreeNode.hs
 	rm -f ./Ffi/Css/Doctree.hs
+	rm -f ./Ffi/Css/MatchCache.hs
+	rm -f ./Ffi/Css/Parser.hs
 	rm -f ./Ffi/Css/StyleEngine.hs
+	rm -f ./Ffi/Css/StyleSheet.hs
 	rm -f ./Ffi/Gif.hs
 	rm -f ./Ffi/Html/Attribute.hs
 	rm -f ./Ffi/Html/Doctype.hs

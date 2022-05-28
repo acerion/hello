@@ -43,7 +43,10 @@ import Debug.Trace
 import qualified Data.Text.Encoding as T.E
 
 import Hello.Css.Parser
+import Hello.Css.UserAgentStyle
+
 import Hello.Ffi.Css.Parser
+import Hello.Ffi.Css.Context
 import Hello.Ffi.Utils
 
 
@@ -57,7 +60,7 @@ import Hello.Ffi.Utils
 foreign export ccall "hll_makeCssDeclaration" hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
 foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeInt" hll_styleEngineSetNonCssHintOfCurrentNodeInt :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CInt -> IO (Ptr FfiCssDeclarationSet)
 foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeString" hll_styleEngineSetNonCssHintOfCurrentNodeString :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CString -> IO (Ptr FfiCssDeclarationSet)
-
+foreign export ccall "hll_styleEngineBuildUserAgentStyle" hll_styleEngineBuildUserAgentStyle :: Ptr FfiCssContext -> IO ()
 
 
 
@@ -144,4 +147,13 @@ hll_styleEngineSetNonCssHintOfCurrentNodeString ptrFfiCssDeclarationSet cPropert
 
 
 
+
+
+hll_styleEngineBuildUserAgentStyle :: Ptr FfiCssContext -> IO ()
+hll_styleEngineBuildUserAgentStyle ptrStructCssContext = do
+  context <- peekCssContext ptrStructCssContext
+  let context' = styleEngineBuildUserAgentStyle context
+  pokeCssContext ptrStructCssContext context'
+
+  return ()
 
