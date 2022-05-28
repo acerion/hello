@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2021 Kamil Ignacak acerion@wp.pl
+Copyright (C) 2021-2022 Kamil Ignacak acerion@wp.pl
 
 This file is part of "hello" web browser.
 
@@ -90,8 +90,6 @@ data CssStyleSheet = CssStyleSheet {
   -- TODO: list of lists to be replaced with vector indexed by element.
   , rulesByType        :: [[CssRule]] -- CSS rules, in which topmost compound selector is characterized by its "specific html element".
   , rulesByAnyElement  :: [CssRule]   -- CSS rules, in which topmost compound selector is characterized by its "any html element".
-
-  , requiredMatchCache :: Int
   } deriving (Show)
 
 
@@ -106,14 +104,7 @@ on the topmost compound selector of their selector.
 addRuleToStyleSheet :: CssStyleSheet -> CssRule -> CssStyleSheet
 addRuleToStyleSheet sheet rule = case insertRuleToStyleSheet rule sheet of
                                    (0, outSheet) -> outSheet
-                                   (i, outSheet) -> outSheet { requiredMatchCache = newRequiredMatchCache sheet rule }
-
-  where
-    newRequiredMatchCache s r = if getRequiredMatchCache r > requiredMatchCache s
-                                -- then trace ("Updating from " ++ (show . requiredMatchCache $ s) ++ " to " ++ (show . getRequiredMatchCache $ r)) (getRequiredMatchCache r)
-                                then getRequiredMatchCache r
-                                else requiredMatchCache s
-
+                                   (i, outSheet) -> outSheet
 
 
 
@@ -267,26 +258,13 @@ ruleSetOffsetAndPosition (context, ss, rule) = ( context
 -- Add given rule to a style sheet in given context. The style sheet is
 -- selected by 'sheetSelector' argument.
 cssContextAddRule' :: (CssContext, CssSheetSelector, CssRule) -> CssContext
-cssContextAddRule' (context, sheetSelector, rule) = context{ sheets     = listReplaceElem (sheets context) updatedSheet (getSheetIndex sheetSelector)
-                                                           , matchCache = if requiredCacheSize > existingCacheSize
-                                                                          then matchCacheResize (matchCache context) requiredCacheSize
-                                                                          else matchCache context
+cssContextAddRule' (context, sheetSelector, rule) = context{ sheets       = listReplaceElem (sheets context) updatedSheet (getSheetIndex sheetSelector)
+                                                           , matchCache   = matchCacheIncreaseBy (matchCache context) delta
                                                            , rulePosition = (rulePosition context) + 1
                                                            }
   where
-    updatedSheet      = addRuleToStyleSheet ((sheets $ context) !! (getSheetIndex sheetSelector)) rule
-    existingCacheSize = matchCacheSize . matchCache $ context
-    requiredCacheSize = getRequiredMatchCache rule
-
-
-
-
--- TODO: the second form is more obvious: required match cache size is
--- existing match cache size in the context + size of complex selector.
--- Rewrite the function to use the second form.
-getRequiredMatchCache :: CssRule -> Int
-getRequiredMatchCache rule = (matchCacheOffset . complexSelector $ rule) + (chainLength . chain . complexSelector $ rule)
--- getRequiredMatchCache context rule = (matchCacheSize . matchCache $ context) + (chainLength . chain . complexSelector $ rule)
+    updatedSheet = addRuleToStyleSheet ((sheets $ context) !! (getSheetIndex sheetSelector)) rule
+    delta        = chainLength . chain . complexSelector $ rule
 
 
 

@@ -22,17 +22,12 @@ using namespace dw::core::style;
 static void alloc_rules_list(c_css_rules_list_t ** list);
 static void alloc_rules_map(c_css_rules_map_t ** map);
 static void alloc_sheet(c_css_style_sheet_t ** sheet);
-
-
-
-
 static void css_value_copy(c_css_value_t * dest, c_css_value_t * src);
 
 
 
 
-static c_css_style_sheet_t * g_user_agent_sheet;
-static bool g_user_agent_sheet_initialized;
+extern c_css_context_t * g_user_agent_css_context_ptr;
 
 
 
@@ -116,31 +111,28 @@ static void alloc_sheet(c_css_style_sheet_t ** sheet)
 c_css_context_t * c_css_context_new(void)
 {
    c_css_context_t * context = (c_css_context_t *) calloc(1, sizeof (c_css_context_t));
-
    context->c_rule_position = 0;
-
    memset(context->c_sheets, 0, sizeof (context->c_sheets));
+
    for (int order = 0; order < CSS_PRIMARY_ORDER_SIZE; order++) {
-#if 1
-      if (CSS_PRIMARY_USER_AGENT == order) {
-         if (!g_user_agent_sheet_initialized) {
-            alloc_sheet(&context->c_sheets[order]);
-            g_user_agent_sheet = context->c_sheets[order];
-            g_user_agent_sheet_initialized = true;
-         } else {
-            /* Each context shares the same, single user agent sheet. */
-            context->c_sheets[order] = g_user_agent_sheet;
-         }
+      if (CSS_PRIMARY_USER_AGENT == order && g_user_agent_css_context_ptr) {
+         /* Each context shares the same, single user agent sheet. */
+         context->c_sheets[order] = g_user_agent_css_context_ptr->c_sheets[CSS_PRIMARY_USER_AGENT];
       } else {
          alloc_sheet(&context->c_sheets[order]);
       }
-#else
-      alloc_sheet(&context->c_sheets[order]);
-#endif
    }
 
    context->c_match_cache = (c_css_match_cache_t *) calloc(1, sizeof (c_css_match_cache_t));
-   hll_matchCacheSetSize(context->c_match_cache, context->c_sheets[CSS_PRIMARY_USER_AGENT]->c_required_match_cache); // Initially the size is zero.
+   if (g_user_agent_css_context_ptr) {
+      // Since this new context will contain a sheet with 'primary user
+      // agent' style sheet, the context must have its match cache increased
+      // to be large enough for matching rules form the 'primary user agent'
+      // style sheet.
+      //
+      // TODO: why do we need to put -1?
+      hll_matchCacheSetSize(context->c_match_cache, g_user_agent_css_context_ptr->c_match_cache->c_cache_items_size - 1);
+   }
 
    return context;
 }

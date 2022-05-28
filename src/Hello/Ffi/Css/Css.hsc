@@ -357,7 +357,6 @@ data FfiCssStyleSheet = FfiCssStyleSheet {
   , cRulesByClass       :: Ptr FfiCssRulesMap
   , cRulesByType        :: Ptr (Ptr FfiCssRulesList)
   , cRulesByAnyElement  :: Ptr FfiCssRulesList
-  , cRequiredMatchCache :: CInt
   }
 
 
@@ -372,15 +371,13 @@ instance Storable FfiCssStyleSheet where
     b <- #{peek c_css_style_sheet_t, c_rules_by_class}       ptr
     let c = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_css_style_sheet_t, c_rules_by_type}) ptr
     d <- #{peek c_css_style_sheet_t, c_rules_by_any_element} ptr
-    e <- #{peek c_css_style_sheet_t, c_required_match_cache} ptr
-    return (FfiCssStyleSheet a b c d e)
+    return (FfiCssStyleSheet a b c d)
 
-  poke ptr (FfiCssStyleSheet a b c d e) = do
+  poke ptr (FfiCssStyleSheet a b c d) = do
     #{poke c_css_style_sheet_t, c_rules_by_id}          ptr a
     #{poke c_css_style_sheet_t, c_rules_by_class}       ptr b
     #{poke c_css_style_sheet_t, c_rules_by_type}     ptr c
     #{poke c_css_style_sheet_t, c_rules_by_any_element} ptr d
-    #{poke c_css_style_sheet_t, c_required_match_cache} ptr e
 
 
 
@@ -398,13 +395,11 @@ peekCssStyleSheet ptrStructCssStyleSheet = do
 
   byAnyElement <- peekCssRulesList (cRulesByAnyElement ffiStyleSheet)
 
-  let rmc :: Int = fromIntegral . cRequiredMatchCache $ ffiStyleSheet
 
   return CssStyleSheet{ rulesById          = byId
                       , rulesByClass       = byClass
                       , rulesByType        = byType
                       , rulesByAnyElement  = byAnyElement
-                      , requiredMatchCache = rmc
                       }
 
 
@@ -420,9 +415,6 @@ pokeStyleSheet ptrStructStyleSheet sheet = do
   pokeArrayOfPreallocedPointers (rulesByType sheet) pokeCssRulesList (cRulesByType ffiStyleSheet)
 
   pokeCssRulesList (cRulesByAnyElement ffiStyleSheet) (rulesByAnyElement sheet)
-
-  let cache :: CInt = fromIntegral . requiredMatchCache $ sheet
-  pokeByteOff ptrStructStyleSheet (#offset c_css_style_sheet_t, c_required_match_cache) cache
 
   return ()
 
@@ -500,7 +492,7 @@ hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
 hll_matchCacheSetSize ptrStructMatchCache cNewSize = do
   oldMatchCache <- peekPtrCssMatchCache ptrStructMatchCache
   let newSize = fromIntegral cNewSize
-  let newMatchCache = matchCacheResize oldMatchCache newSize
+  let newMatchCache = matchCacheIncreaseTo oldMatchCache newSize
   pokeCssMatchCache ptrStructMatchCache newMatchCache
 
   return ()

@@ -214,8 +214,6 @@ typedef struct c_css_style_sheet_t {
    c_css_rules_map_t * c_rules_by_class;
    c_css_rules_list_t * c_rules_by_type[90 + 14 /* css_style_sheet_n_tags */];
    c_css_rules_list_t * c_rules_by_any_element;
-
-   int c_required_match_cache;
 } c_css_style_sheet_t;
 
 /* Origin and weight. Used only internally.*/

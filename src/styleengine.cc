@@ -29,6 +29,9 @@ void print_css_rule_list(FILE * file, c_css_rules_list_t * list);
 void print_css_rule_selector(FILE * file, c_css_cached_complex_selector_t * cached_complex);
 void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t * link);
 
+
+c_css_context_t * g_user_agent_css_context_ptr;
+
 /**
  * Signal handler for "delete": This handles the case when an instance
  * of StyleImage is deleted, possibly when the cache client is still
@@ -77,16 +80,6 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
 
    this->css_context_ptr = c_css_context_new();
-
-#if 1
-   static bool test = false;
-   if (!test) {
-      hll_styleEngineBuildUserAgentStyle(this->css_context_ptr);
-      test = true;
-   }
-#else
-   hll_styleEngineBuildUserAgentStyle(this->css_context_ptr);
-#endif
    buildUserStyle(this->css_context_ptr);
 
    this->layout = layout;
