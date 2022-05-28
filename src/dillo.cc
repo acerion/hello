@@ -104,6 +104,7 @@ static const CLI_options Options[] = {
 
 
 extern c_css_context_t * g_user_agent_css_context_ptr;
+extern int g_user_agent_css_context_ref;
 
 void css_length_test(void);
 
@@ -482,8 +483,14 @@ int main(int argc, char **argv)
    a_Auth_init();
    a_UIcmd_init();
 
-   g_user_agent_css_context_ptr = c_css_context_new();
-   hll_styleEngineBuildUserAgentStyle(g_user_agent_css_context_ptr);
+   {
+      g_user_agent_css_context_ptr = c_css_context_new();
+      g_user_agent_css_context_ref = hll_cssContextPut(g_user_agent_css_context_ptr);
+
+      hll_styleEngineBuildUserAgentStyle(g_user_agent_css_context_ptr);
+      hll_cssContextUpdate(g_user_agent_css_context_ref, g_user_agent_css_context_ptr);
+   }
+
 
    dw::Textblock::setPenaltyHyphen (prefs.penalty_hyphen);
    dw::Textblock::setPenaltyHyphen2 (prefs.penalty_hyphen_2);

@@ -21,10 +21,13 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
 
-module Hello.Ffi.Css.Misc( peekCssContext
-                         , pokeCssContext
-                         )
-  where
+module Hello.Ffi.Css.Misc
+  (
+    FfiCssContext (..)
+  , peekCssContext
+  , pokeCssContext
+  )
+where
 
 
 

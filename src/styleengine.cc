@@ -31,6 +31,7 @@ void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t 
 
 
 c_css_context_t * g_user_agent_css_context_ptr;
+int g_user_agent_css_context_ref;
 
 /**
  * Signal handler for "delete": This handles the case when an instance
@@ -79,8 +80,13 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
 
    //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
 
-   this->css_context_ptr = c_css_context_new();
-   buildUserStyle(this->css_context_ptr);
+   {
+      this->css_context_ptr = c_css_context_new();
+      this->css_context_ref = hll_cssContextPut(this->css_context_ptr);
+
+      buildUserStyle(this->css_context_ptr);
+      hll_cssContextUpdate(this->css_context_ref, this->css_context_ptr);
+   }
 
    this->layout = layout;
    this->pageUrl = pageUrl ? a_Url_dup(pageUrl) : NULL;
@@ -977,6 +983,7 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
    {
       CssParser parser_(origin, url, buf, buflen);
       hll_parseCss(&parser_.m_parser, &parser_.m_token, this->css_context_ptr);
+      hll_cssContextUpdate(this->css_context_ref, this->css_context_ptr);
    }
    importDepth--;
 
@@ -993,6 +1000,7 @@ void StyleEngine::buildUserStyle(c_css_context_t * context)
       {
          CssParser parser_(CSS_ORIGIN_USER, NULL, style->str, style->len);
          hll_parseCss(&parser_.m_parser, &parser_.m_token, context);
+         hll_cssContextUpdate(this->css_context_ref, context);
       }
       dStr_free (style, 1);
    }

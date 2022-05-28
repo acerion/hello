@@ -41,12 +41,14 @@ module Hello.Css.StyleSheet
   (
     CssStyleSheet (..)
   , insertRuleToStyleSheet
+  , defaultStyleSheet
 
   , CssRulesMap (..)
 
   , CssMatchCache
 
   , CssContext (..)
+  , defaultCssContext
   , cssContextAddRule
 
   , parseRuleset
@@ -95,6 +97,15 @@ data CssStyleSheet = CssStyleSheet {
   , rulesByType        :: [[CssRule]] -- CSS rules, in which topmost compound selector is characterized by its "specific html element".
   , rulesByAnyElement  :: [CssRule]   -- CSS rules, in which topmost compound selector is characterized by its "any html element".
   } deriving (Show)
+
+
+
+
+defaultStyleSheet = CssStyleSheet { rulesById         = M.empty
+                                  , rulesByClass      = M.empty
+                                  , rulesByType       = replicate styleSheetElementCount []
+                                  , rulesByAnyElement = []
+                                  }
 
 
 
@@ -187,6 +198,13 @@ data CssContext = CssContext {
   , rulePosition :: Int
   } deriving (Show)
 
+
+
+
+defaultCssContext = CssContext { sheets       = replicate 5 defaultStyleSheet
+                               , matchCache   = matchCacheFromList []
+                               , rulePosition = 0
+                               }
 
 
 

@@ -48,6 +48,7 @@ public:
       dw::core::Layout *layout;
 
       c_css_context_t * css_context_ptr = NULL;
+      int css_context_ref = 0;
 
       c_doctree_t * doc_tree_ptr = NULL;
       int doc_tree_ref = 0;
