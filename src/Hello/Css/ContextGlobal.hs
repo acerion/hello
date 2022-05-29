@@ -30,6 +30,7 @@ module Hello.Css.ContextGlobal
     globalContextCtor
   , globalContextUpdate
   , globalContextPut
+  , globalContextGet
   )
 where
 
@@ -85,6 +86,14 @@ globalContextPut context = do
   writeIORef myGlobalContexts newList
 
   return ((length newList) - 1)
+
+
+
+
+globalContextGet :: Int -> IO CssContext
+globalContextGet ref = do
+  list <- readIORef myGlobalContexts
+  return (list !! ref)
 
 
 

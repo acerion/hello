@@ -61,6 +61,7 @@ import Hello.Utils
 
 import Hello.Css.ContextGlobal
 import Hello.Css.Match
+import Hello.Css.MatchCache
 import Hello.Css.Parser
 import Hello.Css.StyleSheet
 
@@ -80,10 +81,10 @@ import Hello.Ffi.Utils
 foreign export ccall "hll_cssContextCtor" hll_cssContextCtor :: IO CInt
 foreign export ccall "hll_cssContextUpdate" hll_cssContextUpdate :: CInt -> Ptr FfiCssContext -> IO ()
 foreign export ccall "hll_cssContextPut" hll_cssContextPut :: Ptr FfiCssContext -> IO CInt
-foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
+foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: CInt -> Ptr FfiCssDeclarationSet -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
 
-foreign export ccall "hll_cssContextPrint" hll_cssContextPrint :: CString -> CInt -> Ptr FfiCssContext -> IO ()
+foreign export ccall "hll_cssContextPrint" hll_cssContextPrint :: CString -> CInt -> IO ()
 
 
 
@@ -145,8 +146,40 @@ pokeCssContext ptrStructContext context = do
 
 
 
+-- Constructor of new context. Right now works only for 1st and following
+-- contexts, doesn't work for 0th context. The 0th context (with User Agent
+-- Sheet) still needs to be created in C++.
 hll_cssContextCtor :: IO CInt
-hll_cssContextCtor = fmap fromIntegral globalContextCtor
+hll_cssContextCtor = do
+  ref     <- fmap fromIntegral globalContextCtor
+  context <- globalContextGet ref
+
+  let primaryUserAgentIdx = 0
+
+  -- Get User Agent Sheet from 0th context (the 0th context should already
+  -- exist in global context container).
+  userAgentContext <- globalContextGet 0
+  let userAgentSheet = (sheets userAgentContext) !! primaryUserAgentIdx
+
+  -- Since this new context will contain a sheet with 'primary user agent'
+  -- style sheet, the context must have its match cache increased to be large
+  -- enough for matching rules form the 'primary user agent' style sheet.
+  --
+  -- TODO: why do we need to put -1?
+  let requiredMatchCacheSize = (matchCacheSize . matchCache $ userAgentContext) - 1
+
+  -- Put the (most probably non-empty) User Agent Sheet in the newly created
+  -- context (it has been created with globalContextCtor on top of this
+  -- function).
+  let oldSheets = sheets context
+  let newSheets = listReplaceElem oldSheets userAgentSheet primaryUserAgentIdx
+  let context'  = context { sheets     = newSheets
+                          , matchCache = matchCacheIncreaseTo (matchCache context) requiredMatchCacheSize
+                          }
+  globalContextUpdate ref context'
+
+  -- This is a constructor, so return a reference to newly created context.
+  return . fromIntegral $ ref
 
 
 
@@ -157,7 +190,6 @@ hll_cssContextUpdate cRef ptrStructCssContext = do
   context <- peekCssContext ptrStructCssContext
 
   globalContextUpdate ref context
-
 
 
 
@@ -179,10 +211,12 @@ getSomeDeclSet ptr = if nullPtr == ptr
 
 
 
-hll_cssContextApplyCssContext :: Ptr FfiCssContext -> Ptr FfiCssDeclarationSet -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-hll_cssContextApplyCssContext ptrStructCssContext ptrStructTargetDeclSet cDoctreeRef cDtnNum ptrStructMainDeclSet ptrStructImportantDeclSet ptrStructNonCssDeclSet = do
+hll_cssContextApplyCssContext :: CInt -> Ptr FfiCssDeclarationSet -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+hll_cssContextApplyCssContext cRef ptrStructTargetDeclSet cDoctreeRef cDtnNum ptrStructMainDeclSet ptrStructImportantDeclSet ptrStructNonCssDeclSet = do
 
-  context <- peekCssContext ptrStructCssContext
+  let ref  = fromIntegral cRef
+  context <- globalContextGet ref
+
   doctree <- getDoctreeFromRef . fromIntegral $ cDoctreeRef
   let dtn  = getDtnUnsafe doctree (fromIntegral cDtnNum)
 
@@ -197,35 +231,39 @@ hll_cssContextApplyCssContext ptrStructCssContext ptrStructTargetDeclSet cDoctre
   pokeCssDeclarationSet ptrStructTargetDeclSet targetDeclSet'
 
   let context2 = context { matchCache = matchCache' }
-  pokeCssContext ptrStructCssContext context2
+  globalContextUpdate ref context2 -- { matchCache = matchCache' }
 
   return ()
 
 
 
 
-hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssContext -> IO ()
-hll_parseCss ptrStructCssParser ptrStructCssToken ptrStructCssContext = do
+hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
+hll_parseCss ptrStructCssParser ptrStructCssToken cRef = do
   parser  <- peekCssParser ptrStructCssParser
   token   <- peekCssToken ptrStructCssToken
-  context <- peekCssContext ptrStructCssContext
+
+  let ref  = fromIntegral cRef
+  context <- globalContextGet ref
 
   let ((p2, t2), c2) = parseCss ((parser, token), context)
 
   pokeCssParser ptrStructCssParser p2
   pokeCssToken ptrStructCssToken t2
-  pokeCssContext ptrStructCssContext c2
+
+  globalContextUpdate ref c2
 
   return ()
 
 
 
-hll_cssContextPrint :: CString -> CInt -> Ptr FfiCssContext -> IO ()
-hll_cssContextPrint cPath cRef ptrStructCssContext = do
+hll_cssContextPrint :: CString -> CInt -> IO ()
+hll_cssContextPrint cPath cRef = do
   bufPathstringVal <- BSU.unsafePackCString $ cPath
   let path :: String  = T.unpack . T.E.decodeLatin1 $ bufPathstringVal
 
-  context <- peekCssContext ptrStructCssContext 
+  let ref  = fromIntegral cRef
+  context <- globalContextGet ref
 
   h <- openFile path WriteMode
 
@@ -233,3 +271,4 @@ hll_cssContextPrint cPath cRef ptrStructCssContext = do
   hClose h
 
   return ()
+

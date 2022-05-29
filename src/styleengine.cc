@@ -81,11 +81,14 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
 
    {
+#if 1
+      this->css_context_ref = hll_cssContextCtor(); //hll_cssContextPut(this->css_context_ptr);
+#else
       this->css_context_ptr = c_css_context_new();
       this->css_context_ref = hll_cssContextPut(this->css_context_ptr);
+#endif
 
-      buildUserStyle(this->css_context_ptr);
-      hll_cssContextUpdate(this->css_context_ref, this->css_context_ptr);
+      buildUserStyle(this->css_context_ref);
    }
 
    this->layout = layout;
@@ -904,7 +907,7 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
    // merge style information
    c_css_declaration_set_t * mergedDeclList = declarationListNew();
    int dtnNum = styleNodesStack[some_idx].doctreeNodeIdx;
-   hll_cssContextApplyCssContext(this->css_context_ptr,
+   hll_cssContextApplyCssContext(this->css_context_ref,
                                  mergedDeclList,
                                  this->doc_tree_ref, dtnNum,
                                  declLists->main, declLists->important, declLists->nonCss);
@@ -982,17 +985,16 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
    importDepth++;
    {
       CssParser parser_(origin, url, buf, buflen);
-      hll_parseCss(&parser_.m_parser, &parser_.m_token, this->css_context_ptr);
-      hll_cssContextUpdate(this->css_context_ref, this->css_context_ptr);
+      hll_parseCss(&parser_.m_parser, &parser_.m_token, this->css_context_ref);
    }
    importDepth--;
 
-   hll_cssContextPrint(path, this->css_context_ref, this->css_context_ptr);
+   hll_cssContextPrint(path, this->css_context_ref);
    //print_css_context(file, this->css_context_ptr);
    fclose(file);
 }
 
-void StyleEngine::buildUserStyle(c_css_context_t * context)
+void StyleEngine::buildUserStyle(int context_ref)
 {
    Dstr *style;
    char *filename = dStrconcat(dGethomedir(), "/.dillo/style.css", NULL);
@@ -1000,8 +1002,7 @@ void StyleEngine::buildUserStyle(c_css_context_t * context)
    if ((style = a_Misc_file2dstr(filename))) {
       {
          CssParser parser_(CSS_ORIGIN_USER, NULL, style->str, style->len);
-         hll_parseCss(&parser_.m_parser, &parser_.m_token, context);
-         hll_cssContextUpdate(this->css_context_ref, context);
+         hll_parseCss(&parser_.m_parser, &parser_.m_token, context_ref);
       }
       dStr_free (style, 1);
    }

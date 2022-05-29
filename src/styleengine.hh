@@ -59,7 +59,7 @@ public:
       void stackPush ();
       void stackPop ();
 
-      void buildUserStyle(c_css_context_t * context);
+      void buildUserStyle(int context_ref);
 
       dw::core::style::Style *getStyle0 (int some_idx, BrowserWindow *bw);
       dw::core::style::Style *getWordStyle0 (BrowserWindow *bw);
