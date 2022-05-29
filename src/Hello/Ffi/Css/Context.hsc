@@ -151,35 +151,47 @@ pokeCssContext ptrStructContext context = do
 -- Sheet) still needs to be created in C++.
 hll_cssContextCtor :: IO CInt
 hll_cssContextCtor = do
-  ref     <- fmap fromIntegral globalContextCtor
-  context <- globalContextGet ref
+  ref <- fmap fromIntegral globalContextCtor
 
-  let primaryUserAgentIdx = 0
+  do
+    if ref == 0
+      then
+      do
+        -- 0th css context will be created for User Agent Style Sheet. Just
+        -- return reference to it. We don't have to modify/add/update
+        -- anything in the context.
+        return . fromIntegral $ ref
 
-  -- Get User Agent Sheet from 0th context (the 0th context should already
-  -- exist in global context container).
-  userAgentContext <- globalContextGet 0
-  let userAgentSheet = (sheets userAgentContext) !! primaryUserAgentIdx
+      else
+      do
+        context <- globalContextGet ref
 
-  -- Since this new context will contain a sheet with 'primary user agent'
-  -- style sheet, the context must have its match cache increased to be large
-  -- enough for matching rules form the 'primary user agent' style sheet.
-  --
-  -- TODO: why do we need to put -1?
-  let requiredMatchCacheSize = (matchCacheSize . matchCache $ userAgentContext) - 1
+        let primaryUserAgentIdx = 0
 
-  -- Put the (most probably non-empty) User Agent Sheet in the newly created
-  -- context (it has been created with globalContextCtor on top of this
-  -- function).
-  let oldSheets = sheets context
-  let newSheets = listReplaceElem oldSheets userAgentSheet primaryUserAgentIdx
-  let context'  = context { sheets     = newSheets
-                          , matchCache = matchCacheIncreaseTo (matchCache context) requiredMatchCacheSize
-                          }
-  globalContextUpdate ref context'
+        -- Get User Agent Sheet from 0th context (the 0th context should already
+        -- exist in global context container).
+        userAgentContext <- globalContextGet 0
+        let userAgentSheet = (sheets userAgentContext) !! primaryUserAgentIdx
 
-  -- This is a constructor, so return a reference to newly created context.
-  return . fromIntegral $ ref
+        -- Since this new context will contain a sheet with 'primary user agent'
+        -- style sheet, the context must have its match cache increased to be large
+        -- enough for matching rules form the 'primary user agent' style sheet.
+        --
+        -- TODO: why do we need to put -1?
+        let requiredMatchCacheSize = (matchCacheSize . matchCache $ userAgentContext) - 1
+
+        -- Put the (most probably non-empty) User Agent Sheet in the newly created
+        -- context (it has been created with globalContextCtor on top of this
+        -- function).
+        let oldSheets = sheets context
+        let newSheets = listReplaceElem oldSheets userAgentSheet primaryUserAgentIdx
+        let context'  = context { sheets     = newSheets
+                                , matchCache = matchCacheIncreaseTo (matchCache context) requiredMatchCacheSize
+                                }
+        globalContextUpdate ref context'
+
+        -- This is a constructor, so return a reference to newly created context.
+        return . fromIntegral $ ref
 
 
 

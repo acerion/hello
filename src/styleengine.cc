@@ -31,7 +31,6 @@ void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t 
 
 
 c_css_context_t * g_user_agent_css_context_ptr;
-int g_user_agent_css_context_ref;
 
 /**
  * Signal handler for "delete": This handles the case when an instance

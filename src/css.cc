@@ -28,7 +28,6 @@ static void css_value_copy(c_css_value_t * dest, c_css_value_t * src);
 
 
 extern c_css_context_t * g_user_agent_css_context_ptr;
-extern int g_user_agent_css_context_ref;
 
 
 
