@@ -22,15 +22,8 @@
 using namespace lout::misc;
 using namespace dw::core::style;
 
-void print_css_context(FILE * file, c_css_context_t * context);
-void print_css_style_sheet(FILE * file, c_css_style_sheet_t * sheet);
-void print_css_rule_map(FILE * file, c_css_rules_map_t * map);
-void print_css_rule_list(FILE * file, c_css_rules_list_t * list);
-void print_css_rule_selector(FILE * file, c_css_cached_complex_selector_t * cached_complex);
-void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t * link);
 
 
-c_css_context_t * g_user_agent_css_context_ptr;
 
 /**
  * Signal handler for "delete": This handles the case when an instance
@@ -80,13 +73,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
 
    {
-#if 1
-      this->css_context_ref = hll_cssContextCtor(); //hll_cssContextPut(this->css_context_ptr);
-#else
-      this->css_context_ptr = c_css_context_new();
-      this->css_context_ref = hll_cssContextPut(this->css_context_ptr);
-#endif
-
+      this->css_context_ref = hll_cssContextCtor();
       buildUserStyle(this->css_context_ref);
    }
 
@@ -129,7 +116,6 @@ StyleEngine::~StyleEngine () {
    a_Url_free(baseUrl);
 
    delete doc_tree_ptr;
-   delete this->css_context_ptr;
 }
 
 void StyleEngine::stackPush () {
@@ -989,7 +975,6 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
    importDepth--;
 
    hll_cssContextPrint(path, this->css_context_ref);
-   //print_css_context(file, this->css_context_ptr);
    fclose(file);
 }
 
@@ -1008,198 +993,8 @@ void StyleEngine::buildUserStyle(int context_ref)
    dFree (filename);
 }
 
-void print_css_context(FILE * file, c_css_context_t * context)
-{
-   fprintf(file, "Context -> user agent sheet:\n");
-   print_css_style_sheet(file, context->c_sheets[CSS_PRIMARY_USER_AGENT]);
-
-   for (int i = CSS_PRIMARY_USER; i <= CSS_PRIMARY_USER_IMPORTANT; i++) {
-      fprintf(file, "Context -> sheet %d:\n", i);
-      print_css_style_sheet(file, context->c_sheets[i]);
-      fprintf(file, "\n");
-   }
-
-   fprintf(file, "Context -> match cache (size = %d):\n", context->c_match_cache->c_cache_items_size);
-   for (int i = 0; i < context->c_match_cache->c_cache_items_size; i++) {
-      int matchCacheEntry = context->c_match_cache->c_cache_items[i];
-      fprintf(file, "    entry %d = %d\n", i, matchCacheEntry);
-   }
-   fprintf(file, "\n");
-}
-
-void print_css_style_sheet(FILE * file, c_css_style_sheet_t * sheet)
-{
-   fprintf(file, "        style sheet -> elementTable:\n");
-   for (int t = 0; t < 90 + 14; t++) {
-      c_css_rules_list_t * rules_list = sheet->c_rules_by_type[t];
-      if (0 != rules_list->c_rules_size) {
-         fprintf(file, "        style sheet -> elementTable[%d]:\n", t);
-         print_css_rule_list(file, rules_list);
-         fprintf(file, "\n");
-      }
-   }
-   fprintf(file, "\n");
-
-   fprintf(file, "        style sheet -> anyTable:\n");
-   print_css_rule_list(file, sheet->c_rules_by_any_element);
-   fprintf(file, "\n");
-
-   fprintf(file, "        style sheet -> idTable:\n");
-   print_css_rule_map(file, sheet->c_rules_by_id);
-   fprintf(file, "\n");
-
-   fprintf(file, "        style sheet -> classTable:\n");
-   print_css_rule_map(file, sheet->c_rules_by_class);
-   fprintf(file, "\n");
-}
-
-void print_css_rule_map(FILE * file, c_css_rules_map_t * map)
-{
-   for (int r = 0; r < RULES_MAP_SIZE; r++) {
-      if (map->c_strings[r]) {
-         fprintf(file, "            classes[%d] = '%s'\n", r, map->c_strings[r]);
-      }
-
-      if (map->c_rules_lists[r]->c_rules_size > 0) {
-         print_css_rule_list(file, map->c_rules_lists[r]);
-      }
-   }
-}
-
-void print_css_rule_list(FILE * file, c_css_rules_list_t * list)
-{
-   fprintf(file, "            Rule list:\n");
-   for (int i = 0; i < list->c_rules_size; i++) {
-      c_css_rule_t * rule = list->c_rules[i];
-      fprintf(file, "                rule->specificity = %d\n", rule->c_specificity);
-      fprintf(file, "                rule->position    = %d\n", rule->c_position);
-      print_css_rule_selector(file, rule->c_cached_complex_selector);
-      print_css_declaration_set(file, rule->c_decl_set);
-      fprintf(file, "\n");
-   }
-   fprintf(file, "\n");
-}
-
-void print_css_rule_selector(FILE * file, c_css_cached_complex_selector_t * cached_complex)
-{
-   if (!cached_complex) {
-      return;
-   }
-   fprintf(file, "                    selector (%d elements):\n", cached_complex->c_links_size);
-   for (int i = 0; i < cached_complex->c_links_size; i++) {
-      c_css_complex_selector_link_t * link = cached_complex->c_links[i];
-      fprintf(file, "                        combinator = %d\n", link->c_combinator);
-      print_css_complex_selector_link(file, link);
-   }
-}
-
-void print_css_declaration_set(FILE * file, c_css_declaration_set_t * props)
-{
-   if (NULL == props) {
-      fprintf(file, "[EE] property set is NULL\n");
-      return;
-   }
-   fprintf(file, "                    property list (%d properties):\n", props->c_declarations_size);
-   for (int i = 0; i < props->c_declarations_size; i++) {
-      c_css_declaration_t * declaration = props->c_declarations[i];
-      if (declaration->c_property > 84) {
-         fprintf(file, "                        property name = %d / ??\n", declaration->c_property);
-      } else {
-         fprintf(file, "                        property name = %d / %s\n", declaration->c_property, hll_cssPropertyNameString(declaration->c_property));
-      }
-      fprintf(file, "                        property type = %d / ",  declaration->c_value->c_type_tag);
-      c_css_value_t * value = declaration->c_value;
-      switch (value->c_type_tag) {
-      case CSS_TYPE_INTEGER:
-         fprintf(file, "integer: ");
-         fprintf(file, "%d\n", value->c_int_val);
-         break;
-      case CSS_TYPE_ENUM:
-         fprintf(file, "enum: ");
-         fprintf(file, "%d\n", value->c_int_val);
-         break;
-      case CSS_TYPE_MULTI_ENUM:
-         fprintf(file, " multi enum: ");
-         fprintf(file, "0x%08x\n", value->c_int_val);
-         break;
-      case CSS_TYPE_LENGTH_PERCENTAGE:
-         fprintf(file, "length percentage: ");
-         fprintf(file, "%d\n", value->c_int_val);
-         break;
-      case CSS_TYPE_LENGTH:
-         fprintf(file, "length: ");
-         fprintf(file, "%d\n", value->c_int_val);
-         break;
-      case CSS_TYPE_SIGNED_LENGTH:
-         fprintf(file, "signed length: ");
-         fprintf(file, "%d\n", value->c_int_val);
-         break;
-      case CSS_TYPE_LENGTH_PERCENTAGE_NUMBER:
-         fprintf(file, "length percentage number: ");
-         fprintf(file, "%d\n", value->c_int_val);
-         break;
-      case CSS_TYPE_AUTO:
-         fprintf(file, "auto: ");
-         fprintf(file, "%d\n", value->c_int_val);
-         break;
-      case CSS_TYPE_COLOR:
-         fprintf(file, "color: ");
-         fprintf(file, "0x%08x\n", value->c_int_val);
-         break;
-      case CSS_TYPE_FONT_WEIGHT:
-         fprintf(file, "weight: ");
-         fprintf(file, "%d\n", value->c_int_val);
-         break;
-      case CSS_TYPE_STRING:
-         fprintf(file, "string: ");
-         fprintf(file, "[%s]\n", value->c_text_val);
-         break;
-      case CSS_TYPE_SYMBOL:
-         fprintf(file, "symbol: ");
-         fprintf(file, "[%s]\n", value->c_text_val);
-         break;
-      case CSS_TYPE_URI:
-         fprintf(file, "uri: ");
-         fprintf(file, "[%s]\n", value->c_text_val);
-         break;
-      case CSS_TYPE_BACKGROUND_POSITION:
-         fprintf(file, "bg position\n");
-         break;
-      case CSS_TYPE_UNUSED:
-         fprintf(file, "unused\n");
-         break;
-      default:
-         fprintf(file, "unknown\n");
-         break;
-      }
-   }
-}
-
-void print_css_complex_selector_link(FILE * file, c_css_complex_selector_link_t * link)
-{
-   fprintf(file, "                        Compound selector:\n");
-   fprintf(file, "                            element = %d/%s\n", link->c_selector_type, a_Html_tag_name(link->c_selector_type));
-
-   fprintf(file, "                            pseudo  = ");
-   for (int p = 0; p == 0 || p < link->c_selector_pseudo_class_size; p++) { // The 'p == 0' condition to keep output format compatible with dillo's
-      fprintf(file, "%s'%s'", p > 0 ? " " : "", link->c_selector_pseudo_class[p]);
-   }
-   if (link->c_selector_pseudo_class_size > 1) {
-      fprintf(file, "(Hello-specific multi-value pseudo)");
-   }
-   fprintf(file, "\n");
-
-   fprintf(file, "                            id      = '%s'\n", link->c_selector_id);
-   fprintf(file, "                            class (%d elems)\n", link->c_selector_class_size);
-   for (int i = 0; i < link->c_selector_class_size; i++) {
-      fprintf(file, "                                class[%d] = '%s'\n", i, link->c_selector_class[i]);
-   }
-}
-
 c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_set_t * set, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
 {
    return hll_styleEngineSetNonCssHintOfCurrentNodeInt(set, property, type, cssLength.length_bits);
 }
-
-
 

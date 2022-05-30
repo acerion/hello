@@ -186,42 +186,13 @@ typedef enum {
 } CssWordSpacingExtensions;
 
 
-void css_declaration_print(FILE * file, c_css_declaration_t * declaration);
 
 
 c_css_declaration_set_t * declarationListNew(void);
 c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * declList);
 
-void css_declaration_set_add_or_update_declaration(c_css_declaration_set_t * decl_set, CssDeclarationProperty property, c_css_value_t value);
-
-enum class CssSelectorType {
-   NONE,
-   CLASS,
-   PSEUDO_CLASS,
-   ID,
-};
-
-
-
-
-
-enum {
-      CssSimpleSelectorElementNone = -1,
-      CssSimpleSelectorElementAny = -2,
-};
-
-
-
-/* c_css_complex_selector_link_t methods. */
-void css_complex_selector_link_print(FILE * file, c_css_complex_selector_link_t * link);
-/* Print compound simple selector in one line. Fields are printed in the same order as
-   in Haskell record. */
-void css_complex_selector_link_print_flat(FILE * file, const c_css_complex_selector_link_t * link);
-int css_complex_selector_link_specificity(c_css_complex_selector_link_t * link);
-
-
-c_css_context_t * c_css_context_new(void);
 
 
 
 #endif
+

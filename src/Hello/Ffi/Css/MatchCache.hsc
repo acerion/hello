@@ -76,9 +76,6 @@ import Hello.Ffi.Utils
 
 
 
-foreign export ccall "hll_matchCacheSetSize" hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
-
-
 
 data FfiCssMatchCache = FfiCssMatchCache {
     cCacheItems     :: Ptr CInt

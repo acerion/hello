@@ -79,8 +79,6 @@ import Hello.Ffi.Utils
 
 
 foreign export ccall "hll_cssContextCtor" hll_cssContextCtor :: IO CInt
-foreign export ccall "hll_cssContextUpdate" hll_cssContextUpdate :: CInt -> Ptr FfiCssContext -> IO ()
-foreign export ccall "hll_cssContextPut" hll_cssContextPut :: Ptr FfiCssContext -> IO CInt
 foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: CInt -> Ptr FfiCssDeclarationSet -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
 

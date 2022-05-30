@@ -25,6 +25,17 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
+{-
+Store global variables with Css Contexts.
+
+This global state is needed until Css Style Engine is moved into Haskell.
+Then Css Context variables will be members of the Style Engine variables (one
+context per one engine).
+-}
+
+
+
+
 module Hello.Css.ContextGlobal
   (
     globalContextCtor

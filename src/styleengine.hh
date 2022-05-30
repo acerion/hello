@@ -34,7 +34,6 @@ struct StyleNode {
 class StyleEngine;
 StyleNode * getCurrentNode(StyleEngine * styleEngine);
 
-void print_css_declaration_set(FILE * file, c_css_declaration_set_t * props);
 
 c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_set_t * set, CssDeclarationProperty property, CssDeclarationValueType type, CssLength length);
 
@@ -47,7 +46,8 @@ public:
 
       dw::core::Layout *layout;
 
-      c_css_context_t * css_context_ptr = NULL;
+      /* Reference to CSS context variable stored in Haskell. The variable(s)
+         is (are) stored in src/Hello/Css/ContextGlobal.hs. */
       int css_context_ref = 0;
 
       c_doctree_t * doc_tree_ptr = NULL;

@@ -360,13 +360,10 @@ void hll_cssContextApplyCssContext(int context_ref,
 void hll_cssContextPrint(const char * path, int css_context_ref);
 
 
-void hll_matchCacheSetSize(c_css_match_cache_t * match_cache, int size);
 void hll_parseCss(c_css_parser_t * parser, c_css_token_t * token, int context_ref);
 
 void hll_styleEngineBuildUserAgentStyle(int context_ref);
 
-int hll_cssContextPut(c_css_context_t * context);
-void hll_cssContextUpdate(int css_context_ref, c_css_context_t * context);
 int hll_cssContextCtor(void);
 
 

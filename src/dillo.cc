@@ -103,8 +103,6 @@ static const CLI_options Options[] = {
 };
 
 
-extern c_css_context_t * g_user_agent_css_context_ptr;
-
 void css_length_test(void);
 
 /*
@@ -483,16 +481,11 @@ int main(int argc, char **argv)
    a_UIcmd_init();
 
    {
-      //g_user_agent_css_context_ptr = c_css_context_new();
-      //g_user_agent_css_context_ref = hll_cssContextPut(g_user_agent_css_context_ptr);
-
       /* We won't be referencing the 0th context (with User Agent Style
          Sheet) anywhere else in C++ code, so we won't need the ref variable
          outside of this scope. */
       int user_agent_css_context_ref = hll_cssContextCtor();
       hll_styleEngineBuildUserAgentStyle(user_agent_css_context_ref);
-
-      //hll_cssContextUpdate(g_user_agent_css_context_ref, g_user_agent_css_context_ptr);
    }
 
 
