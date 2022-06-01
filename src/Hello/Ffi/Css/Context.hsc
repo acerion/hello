@@ -64,6 +64,7 @@ import Hello.Css.Match
 import Hello.Css.MatchCache
 import Hello.Css.Parser
 import Hello.Css.StyleSheet
+import Hello.Css.UserAgentStyle
 
 import Hello.Ffi.Css.Doctree
 import Hello.Ffi.Css.MatchCache
@@ -144,48 +145,27 @@ pokeCssContext ptrStructContext context = do
 
 
 
--- Constructor of new context. Right now works only for 1st and following
--- contexts, doesn't work for 0th context. The 0th context (with User Agent
--- Sheet) still needs to be created in C++.
+-- Constructor of new context.
 hll_cssContextCtor :: IO CInt
 hll_cssContextCtor = do
-  ref <- fmap fromIntegral globalContextCtor
+  ref     <- fmap fromIntegral globalContextCtor
+  context <- globalContextGet ref
 
-  do
-    if ref == 0
-      then
-      do
-        -- 0th css context will be created for User Agent Style Sheet. Just
-        -- return reference to it. We don't have to modify/add/update
-        -- anything in the context.
-        return . fromIntegral $ ref
+  -- Since this new context will contain a sheet with 'primary user agent'
+  -- style sheet, the context must have its match cache increased to be large
+  -- enough for matching rules form the 'primary user agent' style sheet.
+  --
+  -- TODO: why do we need to put -1?
+  let requiredMatchCacheSize = (matchCacheSize . matchCache $ userAgentContext) - 1
 
-      else
-      do
-        context <- globalContextGet ref
+  -- Put the (most probably non-empty) User Agent Sheet in the newly created
+  -- context (it has been created with globalContextCtor on top of this
+  -- function).
+  let context' = (setSheet CssPrimaryUserAgent userAgentStyleSheet) . (increaseMatchCacheSize requiredMatchCacheSize) $ context
+  globalContextUpdate ref context'
 
-        -- Get User Agent Sheet from 0th context (the 0th context should already
-        -- exist in global context container).
-        userAgentContext <- globalContextGet 0
-        let uas = getSheet userAgentContext CssPrimaryUserAgent
-
-        -- Since this new context will contain a sheet with 'primary user agent'
-        -- style sheet, the context must have its match cache increased to be large
-        -- enough for matching rules form the 'primary user agent' style sheet.
-        --
-        -- TODO: why do we need to put -1?
-        let requiredMatchCacheSize = (matchCacheSize . matchCache $ userAgentContext) - 1
-
-        -- Put the (most probably non-empty) User Agent Sheet in the newly created
-        -- context (it has been created with globalContextCtor on top of this
-        -- function).
-        let context' = (setSheet CssPrimaryUserAgent uas) . (increaseMatchCacheSize requiredMatchCacheSize) $ context
-        globalContextUpdate ref context'
-
-        -- This is a constructor, so return a reference to newly created context.
-        return . fromIntegral $ ref
-
-
+  -- This is a constructor, so return a reference to newly created context.
+  return . fromIntegral $ ref
 
 
 

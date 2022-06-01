@@ -61,7 +61,7 @@ import Hello.Ffi.Utils
 foreign export ccall "hll_makeCssDeclaration" hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
 foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeInt" hll_styleEngineSetNonCssHintOfCurrentNodeInt :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CInt -> IO (Ptr FfiCssDeclarationSet)
 foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeString" hll_styleEngineSetNonCssHintOfCurrentNodeString :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CString -> IO (Ptr FfiCssDeclarationSet)
-foreign export ccall "hll_styleEngineBuildUserAgentStyle" hll_styleEngineBuildUserAgentStyle :: CInt -> IO ()
+
 
 
 
@@ -149,7 +149,7 @@ hll_styleEngineSetNonCssHintOfCurrentNodeString ptrFfiCssDeclarationSet cPropert
 
 
 
-
+{-
 hll_styleEngineBuildUserAgentStyle :: CInt -> IO ()
 hll_styleEngineBuildUserAgentStyle cRef = do
 
@@ -161,4 +161,6 @@ hll_styleEngineBuildUserAgentStyle cRef = do
   globalContextUpdate ref context'
 
   return ()
+
+-}
 

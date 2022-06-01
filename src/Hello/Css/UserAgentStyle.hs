@@ -31,7 +31,8 @@ Copyright 2008-2009 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 module Hello.Css.UserAgentStyle
   (
-    styleEngineBuildUserAgentStyle
+    userAgentContext
+  , userAgentStyleSheet
   )
   where
 
@@ -122,12 +123,22 @@ userAgentStyleString = T.unlines
 -- parsing it from scratch for all visited pages. As an optimisation this
 -- style was parsed once (in the static method) and inserted into each page's
 -- style sheet. TO DO: recreate this in Haskell.
-styleEngineBuildUserAgentStyle :: CssContext -> CssContext
-styleEngineBuildUserAgentStyle context = context'
+styleEngineBuildUserAgentStyle :: CssContext
+styleEngineBuildUserAgentStyle = context
   where
-    ((_, _), context') = parseCss ((parser, CssTokNone), context)
+    ((_, _), context) = parseCss ((parser, CssTokNone), defaultCssContext)
     parser = defaultParser { remainder = userAgentStyleString
                            , cssOrigin = CssOriginUserAgent
                            }
+
+
+
+
+userAgentContext = styleEngineBuildUserAgentStyle
+
+
+
+
+userAgentStyleSheet = getSheet userAgentContext CssPrimaryUserAgent
 
 

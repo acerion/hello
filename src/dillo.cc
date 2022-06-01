@@ -480,15 +480,6 @@ int main(int argc, char **argv)
    a_Auth_init();
    a_UIcmd_init();
 
-   {
-      /* We won't be referencing the 0th context (with User Agent Style
-         Sheet) anywhere else in C++ code, so we won't need the ref variable
-         outside of this scope. */
-      int user_agent_css_context_ref = hll_cssContextCtor();
-      hll_styleEngineBuildUserAgentStyle(user_agent_css_context_ref);
-   }
-
-
    dw::Textblock::setPenaltyHyphen (prefs.penalty_hyphen);
    dw::Textblock::setPenaltyHyphen2 (prefs.penalty_hyphen_2);
    dw::Textblock::setPenaltyEmDashLeft (prefs.penalty_em_dash_left);
