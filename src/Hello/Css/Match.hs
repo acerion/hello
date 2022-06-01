@@ -410,21 +410,21 @@ cssContextApplyCssContext context doctree dtn mainDeclSet importantDeclSet nonCs
   let targetDeclSet1 = defaultCssDeclarationSet
   let matchCache1    = matchCache context
 
-  (targetDeclSet2, matchCache2) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryUserAgent) targetDeclSet1 matchCache1 doctree dtn
+  (targetDeclSet2, matchCache2) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUserAgent) targetDeclSet1 matchCache1 doctree dtn
 
-  (targetDeclSet3, matchCache3) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryUser) targetDeclSet2 matchCache2 doctree dtn
+  (targetDeclSet3, matchCache3) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUser) targetDeclSet2 matchCache2 doctree dtn
 
   let targetDeclSet4 = declarationsSetAppend targetDeclSet3 nonCssDeclSet
 
-  (targetDeclSet5, matchCache5) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryAuthor) targetDeclSet4 matchCache3 doctree dtn
+  (targetDeclSet5, matchCache5) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryAuthor) targetDeclSet4 matchCache3 doctree dtn
 
   let targetDeclSet6 = declarationsSetAppend targetDeclSet5 mainDeclSet
 
-  (targetDeclSet7, matchCache7) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryAuthorImportant) targetDeclSet6 matchCache5 doctree dtn
+  (targetDeclSet7, matchCache7) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryAuthorImportant) targetDeclSet6 matchCache5 doctree dtn
 
   let targetDeclSet8 = declarationsSetAppend targetDeclSet7 importantDeclSet
 
-  (targetDeclSet9, matchCache9) <- cssStyleSheetApplyStyleSheet (sheets context !! cssPrimaryUserImportant) targetDeclSet8 matchCache7 doctree dtn
+  (targetDeclSet9, matchCache9) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUserImportant) targetDeclSet8 matchCache7 doctree dtn
 
   return (targetDeclSet9, matchCache9)
 

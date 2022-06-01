@@ -28,8 +28,8 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 module Hello.Ffi.Css.Context
   (
     FfiCssContext (..)
-  , peekCssContext
-  , pokeCssContext
+  --, peekCssContext
+  --, pokeCssContext
   )
 where
 
@@ -113,7 +113,7 @@ instance Storable FfiCssContext where
 
 
 
-
+{-
 peekCssContext :: Ptr FfiCssContext -> IO CssContext
 peekCssContext ptrStructContext = do
   ffiContext <- peek ptrStructContext
@@ -140,7 +140,7 @@ pokeCssContext ptrStructContext context = do
 
   let pos :: CInt = fromIntegral . rulePosition $ context
   pokeByteOff ptrStructContext #{offset c_css_context_t, c_rule_position} pos
-
+-}
 
 
 
@@ -164,12 +164,10 @@ hll_cssContextCtor = do
       do
         context <- globalContextGet ref
 
-        let primaryUserAgentIdx = 0
-
         -- Get User Agent Sheet from 0th context (the 0th context should already
         -- exist in global context container).
         userAgentContext <- globalContextGet 0
-        let userAgentSheet = (sheets userAgentContext) !! primaryUserAgentIdx
+        let uas = getSheet userAgentContext CssPrimaryUserAgent
 
         -- Since this new context will contain a sheet with 'primary user agent'
         -- style sheet, the context must have its match cache increased to be large
@@ -181,11 +179,7 @@ hll_cssContextCtor = do
         -- Put the (most probably non-empty) User Agent Sheet in the newly created
         -- context (it has been created with globalContextCtor on top of this
         -- function).
-        let oldSheets = sheets context
-        let newSheets = listReplaceElem oldSheets userAgentSheet primaryUserAgentIdx
-        let context'  = context { sheets     = newSheets
-                                , matchCache = matchCacheIncreaseTo (matchCache context) requiredMatchCacheSize
-                                }
+        let context' = (setSheet CssPrimaryUserAgent uas) . (increaseMatchCacheSize requiredMatchCacheSize) $ context
         globalContextUpdate ref context'
 
         -- This is a constructor, so return a reference to newly created context.
@@ -194,6 +188,9 @@ hll_cssContextCtor = do
 
 
 
+
+
+{-
 hll_cssContextUpdate :: CInt -> Ptr FfiCssContext -> IO ()
 hll_cssContextUpdate cRef ptrStructCssContext = do
   let ref  = fromIntegral cRef
@@ -210,7 +207,7 @@ hll_cssContextPut ptrStructCssContext = do
   ref <- globalContextPut context
 
   return . fromIntegral $ ref
-
+-}
 
 
 

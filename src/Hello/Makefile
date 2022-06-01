@@ -18,6 +18,7 @@ all:
 
 	ghc -g -O0 -fPIC -c ./wrapper.c
 	ghc -j4 -g -O0 -dynamic -shared -fPIC -o libhello.so \
+		-fwarn-incomplete-patterns \
 		./*.hs \
 		./Css/*.hs \
 		./Ffi/*.hs \

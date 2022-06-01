@@ -43,6 +43,8 @@ module Hello.Css.StyleSheet
   , insertRuleToStyleSheet
   , defaultStyleSheet
 
+  , CssStyleSheets
+
   , CssRulesMap (..)
 
   , CssMatchCache
@@ -50,13 +52,15 @@ module Hello.Css.StyleSheet
   , CssContext (..)
   , defaultCssContext
   , cssContextAddRule
+  , getSheet
+  , setSheet
+  , increaseMatchCacheSize
+
 
   , parseRuleset
   , rulesetToRulesWithOrigin
 
   , CssSheetSelector (..)
-  , getSheetIndex
-  , getSheetSelector
 
   , parseCss
   )
@@ -200,8 +204,31 @@ type CssMatchCache = CssMatchCacheWrapper Int
 
 
 
+-- This type could have been a Data.Map, but I decided to go for a record.
+data CssStyleSheets = CssStyleSheets
+  { sheetUserAgent       :: CssStyleSheet
+  , sheetUser            :: CssStyleSheet
+  , sheetAuthor          :: CssStyleSheet
+  , sheetAuthorImportant :: CssStyleSheet
+  , sheetUserImportant   :: CssStyleSheet
+  } deriving (Show)
+
+
+
+
+defaultStyleSheets = CssStyleSheets
+  { sheetUserAgent       = defaultStyleSheet
+  , sheetUser            = defaultStyleSheet
+  , sheetAuthor          = defaultStyleSheet
+  , sheetAuthorImportant = defaultStyleSheet
+  , sheetUserImportant   = defaultStyleSheet
+  }
+
+
+
+
 data CssContext = CssContext {
-    sheets       :: [CssStyleSheet]
+    sheets       :: CssStyleSheets
   , matchCache   :: CssMatchCache
   , rulePosition :: Int
   } deriving (Show)
@@ -209,7 +236,7 @@ data CssContext = CssContext {
 
 
 
-defaultCssContext = CssContext { sheets       = replicate 5 defaultStyleSheet
+defaultCssContext = CssContext { sheets       = defaultStyleSheets
                                , matchCache   = matchCacheFromList []
                                , rulePosition = 0
                                }
@@ -218,18 +245,30 @@ defaultCssContext = CssContext { sheets       = replicate 5 defaultStyleSheet
 
 
 data CssSheetSelector =
-    CssPrimaryUserAgent       -- = 0
-  | CssPrimaryUser            -- = 1
-  | CssPrimaryAuthor          -- = 2
-  | CssPrimaryAuthorImportant -- = 3
-  | CssPrimaryUserImportant   -- = 4
-  | CssPrimaryOrderSize       -- = 5 -- TODO: to be removed
+    CssPrimaryUserAgent
+  | CssPrimaryUser
+  | CssPrimaryAuthor
+  | CssPrimaryAuthorImportant
+  | CssPrimaryUserImportant
   deriving (Eq, Show)
 
 
 
 
+-- Update one of sheets in a container of sheets.
+updateSheet :: CssStyleSheets -> CssSheetSelector -> CssStyleSheet -> CssStyleSheets
+updateSheet sheets selector sheet = case selector of
+                                      CssPrimaryUserAgent       -> sheets { sheetUserAgent       = sheet }
+                                      CssPrimaryUser            -> sheets { sheetUser            = sheet }
+                                      CssPrimaryAuthor          -> sheets { sheetAuthor          = sheet }
+                                      CssPrimaryAuthorImportant -> sheets { sheetAuthorImportant = sheet }
+                                      CssPrimaryUserImportant   -> sheets { sheetUserImportant   = sheet }
+
+
+
+
 cssRuleIsSafe rule = (not . cssComplexSelectorHasPseudoClass . complexSelector $ rule) || (isSafe . declarationSet $ rule)
+
 
 
 
@@ -276,32 +315,42 @@ ruleSetOffsetAndPosition (context, ss, rule) = ( context
 -- Add given rule to a style sheet in given context. The style sheet is
 -- selected by 'sheetSelector' argument.
 cssContextAddRule' :: (CssContext, CssSheetSelector, CssRule) -> CssContext
-cssContextAddRule' (context, sheetSelector, rule) = context { sheets       = listReplaceElem (sheets context) updatedSheet (getSheetIndex sheetSelector)
+cssContextAddRule' (context, sheetSelector, rule) = context { sheets       = updateSheet (sheets context) sheetSelector updatedSheet
                                                             , matchCache   = matchCacheIncreaseBy (matchCache context) delta
                                                             , rulePosition = (rulePosition context) + 1
                                                             }
   where
-    updatedSheet = insertRuleToStyleSheet ((sheets $ context) !! (getSheetIndex sheetSelector)) rule
+    updatedSheet = insertRuleToStyleSheet (getSheet context sheetSelector) rule
     delta        = chainLength . chain . complexSelector $ rule
 
 
 
 
-getSheetIndex sheetSelector = case sheetSelector of
-                                CssPrimaryUserAgent       -> 0
-                                CssPrimaryUser            -> 1
-                                CssPrimaryAuthor          -> 2
-                                CssPrimaryAuthorImportant -> 3
-                                CssPrimaryUserImportant   -> 4
-                                CssPrimaryOrderSize       -> 5
 
-getSheetSelector sheetIndex = case sheetIndex of
-                                0 -> CssPrimaryUserAgent
-                                1 -> CssPrimaryUser
-                                2 -> CssPrimaryAuthor
-                                3 -> CssPrimaryAuthorImportant
-                                4 -> CssPrimaryUserImportant
-                                5 -> CssPrimaryOrderSize
+getSheet :: CssContext -> CssSheetSelector -> CssStyleSheet
+getSheet context selector = case selector of
+                              CssPrimaryUserAgent       -> sheetUserAgent . sheets $ context
+                              CssPrimaryUser            -> sheetUser . sheets $ context
+                              CssPrimaryAuthor          -> sheetAuthor . sheets $ context
+                              CssPrimaryAuthorImportant -> sheetAuthorImportant . sheets $ context
+                              CssPrimaryUserImportant   -> sheetUserImportant . sheets $ context
+
+
+
+
+setSheet :: CssSheetSelector -> CssStyleSheet -> CssContext -> CssContext
+setSheet selector sheet context = case selector of
+                                    CssPrimaryUserAgent       -> context { sheets = (sheets context) { sheetUserAgent       = sheet } }
+                                    CssPrimaryUser            -> context { sheets = (sheets context) { sheetUser            = sheet } }
+                                    CssPrimaryAuthor          -> context { sheets = (sheets context) { sheetAuthor          = sheet } }
+                                    CssPrimaryAuthorImportant -> context { sheets = (sheets context) { sheetAuthorImportant = sheet } }
+                                    CssPrimaryUserImportant   -> context { sheets = (sheets context) { sheetUserImportant   = sheet } }
+
+
+
+
+increaseMatchCacheSize :: Int -> CssContext -> CssContext
+increaseMatchCacheSize size context = context { matchCache = matchCacheIncreaseTo (matchCache context) size }
 
 
 
@@ -310,7 +359,7 @@ makeRulePairs :: [CssCachedComplexSelector] -> CssDeclarationSet -> CssDeclarati
 makeRulePairs []     _       _          _      acc = reverse acc
 makeRulePairs (x:xs) declSet declSetImp origin acc =
   case origin of
-    CssOriginUserAgent -> makeRulePairs xs declSet declSetImp origin ((rule, CssPrimaryUserAgent) : acc)
+    CssOriginUserAgent -> makeRulePairs xs declSet declSetImp origin ((rule,    CssPrimaryUserAgent) : acc)
     CssOriginUser      -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryUserImportant) : (rule, CssPrimaryUser) : acc)
     CssOriginAuthor    -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryAuthorImportant) : (rule, CssPrimaryAuthor) : acc)
 
