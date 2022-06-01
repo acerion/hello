@@ -326,7 +326,6 @@ cssContextAddRule' (context, sheetSelector, rule) = context { sheets       = upd
 
 
 
-
 getSheet :: CssContext -> CssSheetSelector -> CssStyleSheet
 getSheet context selector = case selector of
                               CssPrimaryUserAgent       -> sheetUserAgent . sheets $ context
@@ -338,6 +337,7 @@ getSheet context selector = case selector of
 
 
 
+-- TODO: this function duplicates updateSheet
 setSheet :: CssSheetSelector -> CssStyleSheet -> CssContext -> CssContext
 setSheet selector sheet context = case selector of
                                     CssPrimaryUserAgent       -> context { sheets = (sheets context) { sheetUserAgent       = sheet } }
