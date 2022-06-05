@@ -50,16 +50,13 @@ module Hello.Ffi.Css.Parser( FfiCssComplexSelectorLink (..)
 
                            , getCssOrigin
 
-                           , hll_cssCreateLength
-                           , cssCreateLength
-
                            , FfiCssDeclaration
                            , allocAndPokeCssDeclaration
 
                            , FfiCssValue
                            , peekCssValue
 
-                           , cssLengthWordToDistance
+                           , cssLengthToDistance
 
                            , hll_declarationListAppend
                            , hll_declarationListAppend2
@@ -87,11 +84,13 @@ import Control.Applicative
 import Control.Monad -- when
 import Debug.Trace
 
-import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Css.Selector
-import Hello.Ffi.Utils
+import Hello.Css.Tokenizer
+
+import Hello.Ffi.Css.Distance
 import Hello.Ffi.Css.SelectorLink
+import Hello.Ffi.Utils
 
 
 
@@ -101,15 +100,9 @@ foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString
 foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 
-foreign export ccall "hll_cssLengthType" hll_cssLengthType :: Word32 -> IO Int
-foreign export ccall "hll_cssLengthValue" hll_cssLengthValue :: Word32 -> IO Float
-foreign export ccall "hll_cssCreateLength" hll_cssCreateLength :: Float -> Int -> IO Word32
-
 foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
-
-foreign export ccall "hll_declarationListAddOrUpdateDeclaration" hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO (Ptr FfiCssDeclarationSet)
 
 foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
@@ -338,30 +331,6 @@ hll_ignoreStatement ptrStructCssParser ptrStructCssToken = do
   pokeCssParser ptrStructCssParser newParser
   pokeCssToken ptrStructCssToken newToken
   return 0
-
-
-
-
-hll_cssLengthType :: Word32 -> IO Int
-hll_cssLengthType word = do
-  return (cssLengthWordToType word)
-
-
-
-
-hll_cssLengthValue :: Word32 -> IO Float
-hll_cssLengthValue word = do
-  let intVal  = fromIntegral word
-  let lenType = cssLengthWordToType word
-  return (cssLengthValue $ CssLength intVal lenType)
-
-
-
-
-hll_cssCreateLength :: Float -> Int -> IO Word32
-hll_cssCreateLength f lenType = do
-  case cssCreateLength f lenType of
-    CssLength word _ -> return (fromIntegral word)
 
 
 
@@ -684,10 +653,23 @@ peekCssDeclaration ptr = do
 
 
 
-distanceToWord :: CssDistance -> Int
-distanceToWord distance = case cssCreateLength2 distance of
-                            CssLength word _ -> word
+distanceToCssLength :: CssDistance -> (Float, Int)
+distanceToCssLength distance = case cssCreateLength2 distance of
+                                 CssLength val t -> (val, t)
 
+  where
+    cssCreateLength2 :: CssDistance -> CssLength
+    cssCreateLength2 distance = CssLength f lenType
+      where
+        (f, lenType) = case distance of
+                         CssDistanceRelEm x     -> (x, cssLengthTypeEM)
+                         CssDistanceRelEx x     -> (x, cssLengthTypeEX)
+                         CssDistanceAbsMm x     -> (x, cssLengthTypeMM)
+                         CssDistanceAbsPx x     -> (x, cssLengthTypePX)
+                         CssNumericPercentage x -> (x, cssLengthTypePercentage)
+                         CssNumericNone     x   -> (x, cssLengthTypeNone)
+                         CssNumericRelative x   -> (x, cssLengthTypeRelative)
+                         CssNumericAuto     x   -> (0.0, cssLengthTypeAuto)
 
 
 
@@ -703,20 +685,23 @@ allocAndPokeCssDeclaration declaration = do
                  CssValueTypeInt i                                  -> i
                  CssValueTypeEnum i                                 -> i
                  CssValueTypeMultiEnum i                            -> i
-                 CssValueTypeLengthPercent distance       -> distanceToWord distance
-                 CssValueTypeLength distance              -> distanceToWord distance
-                 CssValueTypeSignedLength distance        -> distanceToWord distance
-                 CssValueTypeLengthPercentNumber distance -> distanceToWord distance
-                 CssValueTypeAuto distance                -> distanceToWord distance
                  CssValueTypeColor i                                -> i
                  CssValueTypeFontWeight i                           -> i
                  otherwise                                          -> 0
+
+  let (lenVal, lenType) = case declValue declaration of
+                            CssValueTypeLengthPercent distance       -> distanceToCssLength distance
+                            CssValueTypeLength distance              -> distanceToCssLength distance
+                            CssValueTypeSignedLength distance        -> distanceToCssLength distance
+                            CssValueTypeLengthPercentNumber distance -> distanceToCssLength distance
+                            CssValueTypeAuto distance                -> distanceToCssLength distance
+                            otherwise                                -> (0.0, 0)
 
   ptrString <- newCString . T.unpack $ textVal
   let t :: CInt = fromIntegral . cssValueToTypeTag . declValue $ declaration
   let i :: CInt = fromIntegral $ intVal
   ptrStructCssValue <- callocBytes #{size c_css_value_t}
-  poke ptrStructCssValue $ FfiCssValue t i 0 0 ptrString
+  poke ptrStructCssValue $ FfiCssValue t i 0 0 ptrString lenVal (fromIntegral lenType)
 
   let imp :: CInt = if important declaration then 1 else 0
   let prop :: CInt = fromIntegral . property $ declaration
@@ -734,6 +719,9 @@ data FfiCssValue = FfiCssValue {
   , posXC       :: CInt
   , posYC       :: CInt
   , ptrTextValC :: CString
+
+  , lengthValC   :: Float
+  , lengthTypeC  :: CInt
   } deriving (Show)
 
 
@@ -743,12 +731,14 @@ instance Storable FfiCssValue where
   sizeOf    _ = #{size c_css_value_t}
   alignment _ = #{alignment c_css_value_t}
 
-  poke ptr (FfiCssValue argTypeTag argIntVal argX argY argTextVal) = do
+  poke ptr (FfiCssValue argTypeTag argIntVal argX argY argTextVal argLengthVal argLengthType) = do
     #{poke c_css_value_t, c_type_tag} ptr argTypeTag
     #{poke c_css_value_t, c_int_val}  ptr argIntVal
     #{poke c_css_value_t, c_bg_pos_x} ptr argX
     #{poke c_css_value_t, c_bg_pos_y} ptr argY
     #{poke c_css_value_t, c_text_val} ptr argTextVal
+    #{poke c_css_value_t, c_length_val} ptr argLengthVal
+    #{poke c_css_value_t, c_length_type} ptr argLengthType
 
   peek ptr = do
     a <- #{peek c_css_value_t, c_type_tag} ptr
@@ -756,7 +746,9 @@ instance Storable FfiCssValue where
     c <- #{peek c_css_value_t, c_bg_pos_x} ptr
     d <- #{peek c_css_value_t, c_bg_pos_y} ptr
     e <- #{peek c_css_value_t, c_text_val} ptr
-    return (FfiCssValue a b c d e)
+    f <- #{peek c_css_value_t, c_length_val} ptr
+    g <- #{peek c_css_value_t, c_length_type} ptr
+    return (FfiCssValue a b c d e f g)
 
 
 
@@ -822,7 +814,7 @@ pokeCssDeclarationSet ptrStructDeclarationSet newDeclSet = do
 
 
 
-
+{-
 hll_parseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken ptrStructCssDeclarationSet ptrStructCssDeclarationSetImp = do
   parser <- peekCssParser ptrStructCssParser
@@ -861,6 +853,7 @@ hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDecla
   pokeCssDeclarationSet newPtrStructDeclarationSet newDeclSet
 
   return newPtrStructDeclarationSet
+-}
 
 
 
@@ -902,14 +895,19 @@ peekCssValue ffiCssValue = do
   let valType = fromIntegral . typeTagC $ ffiCssValue
   let intVal = fromIntegral . intValC $ ffiCssValue
   let textVal = T.E.decodeLatin1 $ buf
+
+  let lengthVal = lengthValC ffiCssValue
+  let lengthType = fromIntegral . lengthTypeC $ ffiCssValue
+
+  -- TODO: this duplicates makeValue
   let v | valType ==  0 = CssValueTypeInt intVal
         | valType ==  1 = CssValueTypeEnum intVal
         | valType ==  2 = CssValueTypeMultiEnum intVal
-        | valType ==  3 = CssValueTypeLengthPercent $ cssLengthWordToDistance intVal
-        | valType ==  4 = CssValueTypeLength $ cssLengthWordToDistance intVal
-        | valType ==  5 = CssValueTypeSignedLength $ cssLengthWordToDistance intVal
-        | valType ==  6 = CssValueTypeLengthPercentNumber $ cssLengthWordToDistance intVal
-        | valType ==  7 = CssValueTypeAuto $ cssLengthWordToDistance intVal
+        | valType ==  3 = CssValueTypeLengthPercent       $ cssLengthToDistance lengthVal lengthType
+        | valType ==  4 = CssValueTypeLength              $ cssLengthToDistance lengthVal lengthType
+        | valType ==  5 = CssValueTypeSignedLength        $ cssLengthToDistance lengthVal lengthType
+        | valType ==  6 = CssValueTypeLengthPercentNumber $ cssLengthToDistance lengthVal lengthType
+        | valType ==  7 = CssValueTypeAuto                $ cssLengthToDistance lengthVal lengthType
         | valType ==  8 = CssValueTypeColor intVal
         | valType ==  9 = CssValueTypeFontWeight intVal
         | valType == 10 = CssValueTypeString textVal
@@ -1019,114 +1017,23 @@ take.
 
 
 
+cssLengthToDistance :: Float -> Int -> CssDistance
+cssLengthToDistance lenValue lenType | lenType == cssLengthTypeNone       = CssNumericNone lenValue
+                                     | lenType == cssLengthTypeMM         = CssDistanceAbsMm lenValue
+                                     | lenType == cssLengthTypePX         = CssDistanceAbsPx lenValue
+                                     | lenType == cssLengthTypeEM         = CssDistanceRelEm lenValue
+                                     | lenType == cssLengthTypeEX         = CssDistanceRelEx lenValue
+                                     | lenType == cssLengthTypePercentage = CssNumericPercentage lenValue
+                                     | lenType == cssLengthTypeRelative   = CssNumericRelative lenValue
+                                     | lenType == cssLengthTypeAuto       = CssNumericAuto (round lenValue)
+                                     | otherwise                          = CssNumericNone 0.0
 
-
-
-cssLengthWordToType :: Word32 -> Int
-cssLengthWordToType word = fromIntegral (word .&. 0x07)
-
-
-
-
-cssLengthWordToDistance :: Int -> CssDistance
-cssLengthWordToDistance word | lenType == cssLengthTypeNone       = CssNumericNone f
-                             | lenType == cssLengthTypeMM         = CssDistanceAbsMm f
-                             | lenType == cssLengthTypePX         = CssDistanceAbsPx f
-                             | lenType == cssLengthTypeEM         = CssDistanceRelEm f
-                             | lenType == cssLengthTypeEX         = CssDistanceRelEx f
-                             | lenType == cssLengthTypePercentage = CssNumericPercentage f
-                             | lenType == cssLengthTypeRelative   = CssNumericRelative f
-                             | lenType == cssLengthTypeAuto       = CssNumericAuto (round f)
-                             | otherwise                          = CssNumericNone 0.0
-
-  where
-    len = CssLength word lenType
-    f = cssLengthValue len
-    lenType = cssLengthWordToType (fromIntegral word)
 
 
 
 
 cssLengthValue :: CssLength -> Float
-cssLengthValue (CssLength word lenType) | lenType == cssLengthTypePX = let
-                                            z = (word `shiftR` 3)
-                                          in
-                                            if (0xf0000000 .&. word) == 0xf0000000
-                                            then fromIntegral ((-1) * ((4294967295 - word) `shiftR` 3) - 1)
-                                            else fromIntegral z
-                                        | lenType == cssLengthTypeNone
-                                          || lenType == cssLengthTypeMM
-                                          || lenType == cssLengthTypeEM
-                                          || lenType == cssLengthTypeEX
-                                          || lenType == cssLengthTypePercentage
-                                          || lenType == cssLengthTypeRelative =
-                                          (fromIntegral (up2 word)) / (fromIntegral down2)
-                                        | lenType == cssLengthTypeAuto = 0.0
-                                        | otherwise = 0.0
-  where
-    up2 lenA = let
-      z = lenA .&. (complement 0x00000007) :: Int
-      in
-        if (0xf0000000 .&. z) == 0xf0000000
-        then (-1) * (4294967295 - z - 1)
-        else z
-    down2 = 1 `shiftL` 15 :: Int
-
-
-
-
-
-
-
-
-cssCreateLength2 :: CssDistance -> CssLength
-cssCreateLength2 distance = cssCreateLength f lenType
-  where
-    (f, lenType) = case distance of
-                     CssDistanceRelEm x     -> (x, cssLengthTypeEM)
-                     CssDistanceRelEx x     -> (x, cssLengthTypeEX)
-                     CssDistanceAbsMm x     -> (x, cssLengthTypeMM)
-                     CssDistanceAbsPx x     -> (x, cssLengthTypePX)
-                     CssNumericPercentage x -> (x, cssLengthTypePercentage)
-                     CssNumericNone     x   -> (x, cssLengthTypeNone)
-                     CssNumericRelative x   -> (x, cssLengthTypeRelative)
-                     CssNumericAuto     x   -> (0.0, cssLengthTypeAuto)
-
-
-
-
-cssCreateLength :: Float -> Int -> CssLength
-cssCreateLength f lenType | lenType == cssLengthTypePX = CssLength word1 lenType
-                          | lenType == cssLengthTypeNone
-                            || lenType == cssLengthTypeMM
-                            || lenType == cssLengthTypeEM
-                            || lenType == cssLengthTypeEX
-                            || lenType == cssLengthTypePercentage
-                            || lenType == cssLengthTypeRelative = CssLength word2 lenType
-                          | lenType == cssLengthTypeAuto = CssLength lenType lenType
-                          | otherwise = CssLength cssLengthTypeAuto cssLengthTypeAuto
-
-  where
-    word1 = (((asInt1 (round f)) `shiftL` 3) .|. lenType)
-    word2 = (((round ((asInt2 f) * (fromIntegral shift15L))) .&. (complement 7)) .|. lenType)
-
-    shift15L = (1 `shiftL` 15) :: Int
-
-    asInt1 :: Int -> Int
-    asInt1 f = if f > css_LENGTH_INT_MAX
-               then css_LENGTH_INT_MAX
-               else if f < (-css_LENGTH_INT_MAX)
-                    then (-css_LENGTH_INT_MAX)
-                    else f
-
-    asInt2 :: Float -> Float
-    asInt2 f = if f > fromIntegral css_LENGTH_FRAC_MAX
-               then fromIntegral css_LENGTH_FRAC_MAX
-               else if f < fromIntegral (-css_LENGTH_FRAC_MAX)
-                    then fromIntegral (-css_LENGTH_FRAC_MAX)
-                    else f
-
-    autoAsWord = cssLengthTypeAuto
+cssLengthValue (CssLength value _) = value
 
 
 

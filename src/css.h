@@ -17,4 +17,9 @@ typedef enum {
 } CssLengthType;
 
 
+CssLengthType cpp_cssLengthType(CssLength len);
+float         cpp_cssLengthValue(CssLength len);
+CssLength     cpp_cssCreateLength(float v, CssLengthType t);
+
+
 #endif // #ifndef _CSS_H_

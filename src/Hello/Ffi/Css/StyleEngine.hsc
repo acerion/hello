@@ -59,7 +59,7 @@ import Hello.Ffi.Utils
 
 
 foreign export ccall "hll_makeCssDeclaration" hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
-foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeInt" hll_styleEngineSetNonCssHintOfCurrentNodeInt :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CInt -> IO (Ptr FfiCssDeclarationSet)
+foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeInt" hll_styleEngineSetNonCssHintOfCurrentNodeInt :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CInt -> Float -> CInt -> IO (Ptr FfiCssDeclarationSet)
 foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeString" hll_styleEngineSetNonCssHintOfCurrentNodeString :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CString -> IO (Ptr FfiCssDeclarationSet)
 
 
@@ -79,27 +79,27 @@ hll_makeCssDeclaration cProperty ptrFfiCssValue = do
 
 
 
-makeValue valType intVal textVal | valType ==  0 = CssValueTypeInt intVal
-                                 | valType ==  1 = CssValueTypeEnum intVal
-                                 | valType ==  2 = CssValueTypeMultiEnum intVal
-                                 | valType ==  3 = CssValueTypeLengthPercent $ cssLengthWordToDistance intVal
-                                 | valType ==  4 = CssValueTypeLength $ cssLengthWordToDistance intVal
-                                 | valType ==  5 = CssValueTypeSignedLength $ cssLengthWordToDistance intVal
-                                 | valType ==  6 = CssValueTypeLengthPercentNumber $ cssLengthWordToDistance intVal
-                                 | valType ==  7 = CssValueTypeAuto $ cssLengthWordToDistance intVal
-                                 | valType ==  8 = CssValueTypeColor intVal
-                                 | valType ==  9 = CssValueTypeFontWeight intVal
-                                 | valType == 10 = CssValueTypeString textVal
-                                 | valType == 11 = CssValueTypeStringList textVal
-                                 | valType == 12 = CssValueTypeURI textVal
-                                 | valType == 13 = CssValueTypeBgPosition
-                                 | otherwise = CssValueTypeUnused
+makeValue valType intVal textVal lengthVal lengthType | valType ==  0 = CssValueTypeInt intVal
+                                                      | valType ==  1 = CssValueTypeEnum intVal
+                                                      | valType ==  2 = CssValueTypeMultiEnum intVal
+                                                      | valType ==  3 = CssValueTypeLengthPercent       $ cssLengthToDistance lengthVal lengthType
+                                                      | valType ==  4 = CssValueTypeLength              $ cssLengthToDistance lengthVal lengthType
+                                                      | valType ==  5 = CssValueTypeSignedLength        $ cssLengthToDistance lengthVal lengthType
+                                                      | valType ==  6 = CssValueTypeLengthPercentNumber $ cssLengthToDistance lengthVal lengthType
+                                                      | valType ==  7 = CssValueTypeAuto                $ cssLengthToDistance lengthVal lengthType
+                                                      | valType ==  8 = CssValueTypeColor intVal
+                                                      | valType ==  9 = CssValueTypeFontWeight intVal
+                                                      | valType == 10 = CssValueTypeString textVal
+                                                      | valType == 11 = CssValueTypeStringList textVal
+                                                      | valType == 12 = CssValueTypeURI textVal
+                                                      | valType == 13 = CssValueTypeBgPosition
+                                                      | otherwise = CssValueTypeUnused
 
 
 
 
-hll_styleEngineSetNonCssHintOfCurrentNodeInt :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CInt -> IO (Ptr FfiCssDeclarationSet)
-hll_styleEngineSetNonCssHintOfCurrentNodeInt ptrFfiCssDeclarationSet cProperty cValueType cIntVal = do
+hll_styleEngineSetNonCssHintOfCurrentNodeInt :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CInt -> Float -> CInt -> IO (Ptr FfiCssDeclarationSet)
+hll_styleEngineSetNonCssHintOfCurrentNodeInt ptrFfiCssDeclarationSet cProperty cValueType cIntVal cLengthValue cLengthType  = do
 
   declSet :: CssDeclarationSet <- if nullPtr == ptrFfiCssDeclarationSet
                                   then return defaultCssDeclarationSet
@@ -109,8 +109,10 @@ hll_styleEngineSetNonCssHintOfCurrentNodeInt ptrFfiCssDeclarationSet cProperty c
   let valType  = fromIntegral cValueType
   let intVal   = fromIntegral cIntVal
   let textVal  = ""
+  let lengthValue = cLengthValue
+  let lengthType  = fromIntegral cLengthType
 
-  let cssValue :: CssValue = makeValue valType intVal textVal
+  let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
   let decl :: CssDeclaration = CssDeclaration property cssValue False
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
@@ -135,8 +137,10 @@ hll_styleEngineSetNonCssHintOfCurrentNodeString ptrFfiCssDeclarationSet cPropert
   let intVal   = 0
   stringVal <- BSU.unsafePackCString $ cStringVal
   let textVal  = T.E.decodeLatin1 stringVal
+  let lengthValue = 0 -- cLengthValue
+  let lengthType  = 0 -- fromIntegral cLengthType
 
-  let cssValue :: CssValue = makeValue valType intVal textVal
+  let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
   let decl :: CssDeclaration = CssDeclaration property cssValue False
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl

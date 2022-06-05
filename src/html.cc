@@ -317,7 +317,7 @@ void a_Html_tag_set_align_attr(c_html_doctype_t * doctype, StyleNode * currentNo
    }
 #endif
 
-   currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, alignType);
+   currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, alignType, 0.0, 0);
 }
 
 /*
@@ -343,7 +343,7 @@ bool a_Html_tag_set_valign_attr(DilloHtml *html, const char *tag, int tagsize) /
          valign = VALIGN_MIDDLE;
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_VERTICAL_ALIGN, CssDeclarationValueTypeENUM, valign);
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_VERTICAL_ALIGN, CssDeclarationValueTypeENUM, valign, 0.0, 0);
       return true;
    } else
       return false;
@@ -1267,9 +1267,10 @@ static void Html_tag_cleanup_nested_inputs(DilloHtml *html, int new_idx)
  */
 CssLength html_parse_attribute_width_or_height(const char * attr_value)
 {
-   CssLength l;
-   l.length_bits = hll_htmlParseAttributeWidthOrHeight(attr_value);
-   return l;
+   c_css_length_t length = {};
+   hll_htmlParseAttributeWidthOrHeight(attr_value, &length);
+
+   return cpp_cssCreateLength(length.c_length_value, (CssLengthType) length.c_length_type);
 }
 
 /*
@@ -1495,7 +1496,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 
       if (color != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, color);
+         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, color, 0.0, 0);
       }
    }
 
@@ -1507,7 +1508,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 
       if (color != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color);
+         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color, 0.0, 0);
       }
    }
 
@@ -1547,7 +1548,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    html->styleEngine->setPseudoVisited ();
    if (html->non_css_visited_color != -1) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color);
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color, 0.0, 0);
    }
    html->visited_color = html->styleEngine->getStyle (html->bw)->color->getColor ();
    html->styleEngine->endElement (tag_index_a);
@@ -1610,7 +1611,7 @@ static void Html_tag_open_frame (DilloHtml *html, const char *tag, int tagsize)
    }
 
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
-   currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html,&url));
+   currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html,&url), 0.0, 0);
 }
 
 static void
@@ -1705,7 +1706,7 @@ static void Html_tag_open_font(DilloHtml *html, const char *tag, int tagsize)
       }
       if (color != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color);
+         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color, 0.0, 0);
       }
    }
 
@@ -1740,10 +1741,8 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
 {
    char *width_ptr, *height_ptr;
    const char *attr_value;
-   CssLength l_w;
-   l_w.length_bits = hll_cssCreateLength(0.0, CSS_LENGTH_TYPE_AUTO);
-   CssLength l_h;
-   l_h.length_bits = hll_cssCreateLength(0.0, CSS_LENGTH_TYPE_AUTO);
+   CssLength l_w = cpp_cssCreateLength(0.0, CSS_LENGTH_TYPE_AUTO);
+   CssLength l_h = cpp_cssCreateLength(0.0, CSS_LENGTH_TYPE_AUTO);
    int w = 0, h = 0;
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
@@ -1756,11 +1755,11 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
    // TODO: the same for percentage and relative lengths.
    if (width_ptr) {
       l_w = html_parse_attribute_width_or_height(width_ptr);
-      w = (int) (hll_cssLengthType(l_w.length_bits) == CSS_LENGTH_TYPE_PX ? hll_cssLengthValue(l_w.length_bits) : 0);
+      w = (int) (cpp_cssLengthType(l_w) == CSS_LENGTH_TYPE_PX ? cpp_cssLengthValue(l_w) : 0);
    }
    if (height_ptr) {
       l_h = html_parse_attribute_width_or_height(height_ptr);
-      h = (int) (hll_cssLengthType(l_h.length_bits) == CSS_LENGTH_TYPE_PX ? hll_cssLengthValue(l_h.length_bits) : 0);
+      h = (int) (cpp_cssLengthType(l_h) == CSS_LENGTH_TYPE_PX ? cpp_cssLengthValue(l_h) : 0);
    }
    /* Check for suspicious image size request that would cause
     * an excessive amount of memory to be allocated for the
@@ -1780,10 +1779,10 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
       MSG("a_Html_common_image_attrs: suspicious image size request %d x %d\n", w, h);
    } else {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      if (hll_cssLengthType(l_w.length_bits) != CSS_LENGTH_TYPE_AUTO) {
+      if (cpp_cssLengthType(l_w) != CSS_LENGTH_TYPE_AUTO) {
          currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_w);
       }
-      if (hll_cssLengthType(l_h.length_bits) != CSS_LENGTH_TYPE_AUTO) {
+      if (cpp_cssLengthType(l_h) != CSS_LENGTH_TYPE_AUTO) {
          currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_HEIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_h);
       }
    }
@@ -1798,7 +1797,7 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
    /* x_img is an index to a list of {url,image} pairs.
     * We know a_Html_image_new() will use size() as its next index */
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
-   currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_IMG, CssDeclarationValueTypeINTEGER, html->images->size());
+   currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_IMG, CssDeclarationValueTypeINTEGER, html->images->size(), 0.0, 0);
 
 
    dFree(width_ptr);
@@ -1883,8 +1882,7 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
    if ((attr_value = html_attribute_get_value(tag, tagsize, "hspace"))) {
       int i = strtol(attr_value, NULL, 10);
       if (i > 0) {
-	      CssLength space;
-	      space.length_bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
+	      CssLength space = cpp_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
 	      StyleNode * currentNode = getCurrentNode(html->styleEngine);
 	      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_MARGIN_LEFT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
 	      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_MARGIN_RIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
@@ -1895,8 +1893,7 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
    if ((attr_value = html_attribute_get_value(tag, tagsize, "vspace"))) {
       int i = strtol(attr_value, NULL, 10);
       if (i > 0) {
-         CssLength space;
-         space.length_bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
+         CssLength space = cpp_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
          currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_MARGIN_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
          currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_MARGIN_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, space);
@@ -1907,18 +1904,17 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
    if ((attr_value = html_attribute_get_value(tag, tagsize, "border"))) {
       int i = strtol(attr_value, NULL, 10);
       if (i >= 0) {
-         CssLength border;
-         border.length_bits = hll_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
+         CssLength border = cpp_cssCreateLength(i, CSS_LENGTH_TYPE_PX);
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
          currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_TOP_WIDTH,     CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
          currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
          currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
          currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
 
-         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID);
-         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID);
-         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID);
-         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID);
+         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
+         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
+         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
+         currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
       }
    }
 
@@ -2157,7 +2153,7 @@ static void Html_tag_open_object(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
    }
    a_Url_free(base_url);
 }
@@ -2195,7 +2191,7 @@ static void Html_tag_open_video(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
 
       Html2TextBlock(html)->addText("[VIDEO]", html->styleEngine->getWordStyle (html->bw));
    }
@@ -2227,7 +2223,7 @@ static void Html_tag_open_audio(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
 
       Html2TextBlock(html)->addText("[AUDIO]", html->styleEngine->getWordStyle (html->bw));
    }
@@ -2261,7 +2257,7 @@ static void Html_tag_open_source(DilloHtml *html, const char *tag,
          html->styleEngine->setPseudoLink ();
       }
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
    }
 }
 
@@ -2300,7 +2296,7 @@ static void Html_tag_open_embed(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
    }
 }
 
@@ -2379,14 +2375,14 @@ static void Html_tag_open_a(DilloHtml *html, const char *tag, int tagsize)
          html->InVisitedLink = true;
          html->styleEngine->setPseudoVisited ();
          if (html->non_css_visited_color != -1)
-            currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color);
+            currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color, 0.0, 0);
       } else {
          html->styleEngine->setPseudoLink ();
          if (html->non_css_link_color != -1)
-            currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_link_color);
+            currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_link_color, 0.0, 0);
       }
 
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url));
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
    }
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
@@ -2484,7 +2480,7 @@ static void Html_tag_open_ul(DilloHtml *html, const char *tag, int tagsize)
          list_style_type = LIST_STYLE_TYPE_DISC;
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, list_style_type);
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, list_style_type, 0.0, 0);
       if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<ul> type attribute is obsolete.");
    }
@@ -2551,7 +2547,7 @@ static void Html_tag_open_ol(DilloHtml *html, const char *tag, int tagsize)
          listStyleType = LIST_STYLE_TYPE_UPPER_ROMAN;
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, listStyleType);
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, listStyleType, 0.0, 0);
    }
 
    TopOfParsingStack(html)->list_type = HTML_LIST_ORDERED;
@@ -2634,20 +2630,18 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
       if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<hr> noshade attribute is obsolete.");
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID);
-      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID);
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
+      currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeInt(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
 
       if (size <= 0)
          size = 1;
    }
 
    if (size > 0) {
-      CssLength size_top;
-      size_top.length_bits = hll_cssCreateLength ((size+1)/2, CSS_LENGTH_TYPE_PX);
-      CssLength size_bottom;
-      size_bottom.length_bits = hll_cssCreateLength (size / 2, CSS_LENGTH_TYPE_PX);
+      CssLength size_top = cpp_cssCreateLength ((size+1)/2, CSS_LENGTH_TYPE_PX);
+      CssLength size_bottom = cpp_cssCreateLength (size / 2, CSS_LENGTH_TYPE_PX);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);
       currentNode->declLists.nonCss = hll_styleEngineSetNonCssHintOfCurrentNodeLength(currentNode->declLists.nonCss, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, size_top);

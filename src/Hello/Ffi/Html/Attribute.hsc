@@ -26,6 +26,7 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 
 
@@ -46,26 +47,35 @@ import Foreign.C.String
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString.Unsafe as BSU
+
+import Hello.Css.Parser
 import Hello.Html.Attribute
+
+import Hello.Ffi.Css.Distance
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Html.Document
-import Hello.Css.Parser
 
 
 
 
-foreign export ccall "hll_htmlParseAttributeWidthOrHeight" hll_htmlParseAttributeWidthOrHeight :: CString -> IO Word32
+foreign export ccall "hll_htmlParseAttributeWidthOrHeight" hll_htmlParseAttributeWidthOrHeight :: CString -> Ptr FfiCssLength -> IO ()
 foreign export ccall "hll_htmlValidateNameOrIdValue" hll_htmlValidateNameOrIdValue :: Ptr FfiHtmlDoctype -> CString -> CString -> IO Bool
 
 
 
 
-hll_htmlParseAttributeWidthOrHeight :: CString -> IO Word32
-hll_htmlParseAttributeWidthOrHeight cAttrValue = do
+hll_htmlParseAttributeWidthOrHeight :: CString -> Ptr FfiCssLength -> IO ()
+hll_htmlParseAttributeWidthOrHeight cAttrValue ptrStructCssLength = do
   attrValue <- BSU.unsafePackCString cAttrValue
-  case parseLengthOrMultiLength (T.E.decodeUtf8 attrValue) of
-    Just (l, t) -> hll_cssCreateLength l t
-    Nothing     -> hll_cssCreateLength 0.0 cssLengthTypeAuto
+  ffiCssLength :: FfiCssLength <- peek ptrStructCssLength
+
+  let (v, t) = case parseLengthOrMultiLength (T.E.decodeUtf8 attrValue) of
+                 Just (l, t) -> (l, t)
+                 Nothing     -> (0.0, cssLengthTypeAuto)
+
+  poke ptrStructCssLength $ FfiCssLength v (fromIntegral t)
+
+  return ()
 
 
 

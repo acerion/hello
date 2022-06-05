@@ -28,10 +28,8 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 {-# LANGUAGE ForeignFunctionInterface #-}
 
 module Hello.Html.Attribute(
-    parseLengthOrMultiLength2
-
   -- Only for tests
-  , parseLengthOrMultiLength
+    parseLengthOrMultiLength
   , validateNameOrIdValue
   ) where
 
@@ -54,57 +52,10 @@ import Hello.Html.Doctype
 
 
 
--- TODO: this code is a duplicate of code from other file
-cssCreateLength :: Float -> Int -> CssLength
-cssCreateLength f lenType | lenType == cssLengthTypePX = CssLength word1 lenType
-                          | lenType == cssLengthTypeNone
-                            || lenType == cssLengthTypeMM
-                            || lenType == cssLengthTypeEM
-                            || lenType == cssLengthTypeEX
-                            || lenType == cssLengthTypePercentage
-                            || lenType == cssLengthTypeRelative = CssLength word2 lenType
-                          | lenType == cssLengthTypeAuto = CssLength lenType lenType
-                          | otherwise = CssLength cssLengthTypeAuto cssLengthTypeAuto
-
-  where
-    word1 = (((asInt1 (round f)) `shiftL` 3) .|. lenType)
-    word2 = (((round ((asInt2 f) * (fromIntegral shift15L))) .&. (complement 7)) .|. lenType)
-
-    shift15L = (1 `shiftL` 15) :: Int
-
-    asInt1 :: Int -> Int
-    asInt1 f = if f > css_LENGTH_INT_MAX
-               then css_LENGTH_INT_MAX
-               else if f < (-css_LENGTH_INT_MAX)
-                    then (-css_LENGTH_INT_MAX)
-                    else f
-
-    asInt2 :: Float -> Float
-    asInt2 f = if f > fromIntegral css_LENGTH_FRAC_MAX
-               then fromIntegral css_LENGTH_FRAC_MAX
-               else if f < fromIntegral (-css_LENGTH_FRAC_MAX)
-                    then fromIntegral (-css_LENGTH_FRAC_MAX)
-                    else f
-
-    autoAsWord = cssLengthTypeAuto
-
-
-
-
 
 takeValue text = case T.R.double text of
                    Right (f, rem) -> Just (f, rem)
                    Left _         -> Nothing
-
-
-
-
--- Parsing of values of "height" or "width" attributes in some of html tags.
-parseLengthOrMultiLength2 :: T.Text -> Maybe CssLength
-parseLengthOrMultiLength2 attribute =
-  case parseLengthOrMultiLength attribute of
-    Just (f, t) -> Just (cssCreateLength f t)
-    Nothing     -> Nothing
 
 
 
