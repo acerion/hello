@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2021 Kamil Ignacak acerion@wp.pl
+Copyright (C) 2021-2022 Kamil Ignacak acerion@wp.pl
 
 This file is part of "hello" web browser.
 
@@ -36,14 +36,22 @@ where
 
 import Prelude
 import Foreign
-import Foreign.C.String
 import Foreign.C.Types
 import Debug.Trace
+
+import Hello.Css.Distance
+import Hello.Css.Parser
 
 
 
 
 #include "../../hello.h"
+
+
+
+
+data CssLength = CssLength Float Int -- value + type
+  deriving (Show, Eq)
 
 
 
@@ -68,6 +76,7 @@ instance Storable FfiCssLength where
     a <- #{peek c_css_length_t, c_length_value} ptr
     b <- #{peek c_css_length_t, c_length_type}  ptr
     return (FfiCssLength a b)
+
 
 
 

@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2021 Kamil Ignacak acerion@wp.pl
+Copyright (C) 2021-2022 Kamil Ignacak acerion@wp.pl
 
 This file is part of "hello" web browser.
 
@@ -55,11 +55,6 @@ module Hello.Ffi.Css.Parser( FfiCssComplexSelectorLink (..)
 
                            , FfiCssValue
                            , peekCssValue
-
-                           , cssLengthToDistance
-
-                           , hll_declarationListAppend
-                           , hll_declarationListAppend2
                            )
   where
 
@@ -84,12 +79,15 @@ import Control.Applicative
 import Control.Monad -- when
 import Debug.Trace
 
+import Hello.Css.Distance
 import Hello.Css.Parser
 import Hello.Css.Selector
 import Hello.Css.Tokenizer
+import Hello.Css.Value
 
 import Hello.Ffi.Css.Distance
 import Hello.Ffi.Css.SelectorLink
+import Hello.Ffi.Css.Value
 import Hello.Ffi.Utils
 
 
@@ -653,26 +651,6 @@ peekCssDeclaration ptr = do
 
 
 
-distanceToCssLength :: CssDistance -> (Float, Int)
-distanceToCssLength distance = case cssCreateLength2 distance of
-                                 CssLength val t -> (val, t)
-
-  where
-    cssCreateLength2 :: CssDistance -> CssLength
-    cssCreateLength2 distance = CssLength f lenType
-      where
-        (f, lenType) = case distance of
-                         CssDistanceRelEm x     -> (x, cssLengthTypeEM)
-                         CssDistanceRelEx x     -> (x, cssLengthTypeEX)
-                         CssDistanceAbsMm x     -> (x, cssLengthTypeMM)
-                         CssDistanceAbsPx x     -> (x, cssLengthTypePX)
-                         CssNumericPercentage x -> (x, cssLengthTypePercentage)
-                         CssNumericNone     x   -> (x, cssLengthTypeNone)
-                         CssNumericRelative x   -> (x, cssLengthTypeRelative)
-                         CssNumericAuto     x   -> (0.0, cssLengthTypeAuto)
-
-
-
 allocAndPokeCssDeclaration :: CssDeclaration -> IO (Ptr FfiCssDeclaration)
 allocAndPokeCssDeclaration declaration = do
   let textVal = case declValue declaration of
@@ -689,13 +667,9 @@ allocAndPokeCssDeclaration declaration = do
                  CssValueTypeFontWeight i                           -> i
                  otherwise                                          -> 0
 
-  let (lenVal, lenType) = case declValue declaration of
-                            CssValueTypeLengthPercent distance       -> distanceToCssLength distance
-                            CssValueTypeLength distance              -> distanceToCssLength distance
-                            CssValueTypeSignedLength distance        -> distanceToCssLength distance
-                            CssValueTypeLengthPercentNumber distance -> distanceToCssLength distance
-                            CssValueTypeAuto distance                -> distanceToCssLength distance
-                            otherwise                                -> (0.0, 0)
+  let (lenVal, lenType) = case distanceFromValue . declValue $ declaration of
+                            Just distance -> distanceToCssLength distance
+                            otherwise     -> (0.0, 0)
 
   ptrString <- newCString . T.unpack $ textVal
   let t :: CInt = fromIntegral . cssValueToTypeTag . declValue $ declaration
@@ -871,6 +845,7 @@ hll_declarationListAppend ptrStructTarget ptrStructSource = do
 
 
 
+{-
 hll_declarationListAppend2 :: Ptr FfiCssDeclarationSet -> CssDeclarationSet -> IO ()
 hll_declarationListAppend2 ptrStructTarget source = do
 
@@ -880,6 +855,7 @@ hll_declarationListAppend2 ptrStructTarget source = do
   pokeCssDeclarationSet ptrStructTarget merged
 
   return ()
+-}
 
 
 
@@ -899,23 +875,7 @@ peekCssValue ffiCssValue = do
   let lengthVal = lengthValC ffiCssValue
   let lengthType = fromIntegral . lengthTypeC $ ffiCssValue
 
-  -- TODO: this duplicates makeValue
-  let v | valType ==  0 = CssValueTypeInt intVal
-        | valType ==  1 = CssValueTypeEnum intVal
-        | valType ==  2 = CssValueTypeMultiEnum intVal
-        | valType ==  3 = CssValueTypeLengthPercent       $ cssLengthToDistance lengthVal lengthType
-        | valType ==  4 = CssValueTypeLength              $ cssLengthToDistance lengthVal lengthType
-        | valType ==  5 = CssValueTypeSignedLength        $ cssLengthToDistance lengthVal lengthType
-        | valType ==  6 = CssValueTypeLengthPercentNumber $ cssLengthToDistance lengthVal lengthType
-        | valType ==  7 = CssValueTypeAuto                $ cssLengthToDistance lengthVal lengthType
-        | valType ==  8 = CssValueTypeColor intVal
-        | valType ==  9 = CssValueTypeFontWeight intVal
-        | valType == 10 = CssValueTypeString textVal
-        | valType == 11 = CssValueTypeStringList textVal
-        | valType == 12 = CssValueTypeURI textVal
-        | valType == 13 = CssValueTypeBgPosition
-        | otherwise = CssValueTypeUnused
-
+  let v = makeValue valType intVal textVal lengthVal lengthType
   return v
 
 
@@ -991,53 +951,6 @@ getIntOrigin origin = case origin of
 
 
 
-{-
-  Lengths are represented as int in the following way:
-
-     | <------   integer value   ------> |
-
-     +---+ - - - +---+---+- - - - - -+---+---+---+---+
-     |          integer part             |   type    |
-     +---+ - - - +---+---+- - - - - -+---+---+---+---+
-     | integer part  | decimal fraction  |   type    |
-     +---+ - - - +---+---+- - - - - -+---+---+---+---+
-      n-1          15  14              3   2  1   0
-
-     | <------ fixed point value ------> |
-
-  where type is one of the CSS_LENGTH_TYPE_* values.
-  CSS_LENGTH_TYPE_PX values are stored as
-  29 bit signed integer, all other types as fixed point values.
-
-What you see below is some wild attempt to make Haskell code correctly
-interpret floats encoded in upper bits of integers. Not the best approach to
-take.
--}
-
-
-
-
-cssLengthToDistance :: Float -> Int -> CssDistance
-cssLengthToDistance lenValue lenType | lenType == cssLengthTypeNone       = CssNumericNone lenValue
-                                     | lenType == cssLengthTypeMM         = CssDistanceAbsMm lenValue
-                                     | lenType == cssLengthTypePX         = CssDistanceAbsPx lenValue
-                                     | lenType == cssLengthTypeEM         = CssDistanceRelEm lenValue
-                                     | lenType == cssLengthTypeEX         = CssDistanceRelEx lenValue
-                                     | lenType == cssLengthTypePercentage = CssNumericPercentage lenValue
-                                     | lenType == cssLengthTypeRelative   = CssNumericRelative lenValue
-                                     | lenType == cssLengthTypeAuto       = CssNumericAuto (round lenValue)
-                                     | otherwise                          = CssNumericNone 0.0
-
-
-
-
-
-cssLengthValue :: CssLength -> Float
-cssLengthValue (CssLength value _) = value
-
-
-
-
 hll_isTokenComma :: Ptr FfiCssToken -> IO Int
 hll_isTokenComma ptrStructCssToken = do
   token <- peekCssToken ptrStructCssToken
@@ -1051,3 +964,4 @@ hll_isTokenSemicolon ptrStructCssToken = do
   case token of
     CssTokSemicolon -> return 1
     otherwise    -> return 0
+

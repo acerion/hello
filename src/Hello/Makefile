@@ -11,6 +11,7 @@ all:
 	hsc2hs ./Ffi/Css/Parser.hsc
 	hsc2hs ./Ffi/Css/StyleEngine.hsc
 	hsc2hs ./Ffi/Css/StyleSheet.hsc
+	hsc2hs ./Ffi/Css/Value.hsc
 	hsc2hs ./Ffi/Gif.hsc
 	hsc2hs ./Ffi/Html/Attribute.hsc
 	hsc2hs ./Ffi/Html/Doctype.hsc
@@ -49,6 +50,7 @@ clean:
 	rm -f ./Ffi/Css/Parser.hs
 	rm -f ./Ffi/Css/StyleEngine.hs
 	rm -f ./Ffi/Css/StyleSheet.hs
+	rm -f ./Ffi/Css/Value.hs
 	rm -f ./Ffi/Gif.hs
 	rm -f ./Ffi/Html/Attribute.hs
 	rm -f ./Ffi/Html/Doctype.hs

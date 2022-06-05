@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2021 Kamil Ignacak acerion@wp.pl
+Copyright (C) 2021-2022 Kamil Ignacak acerion@wp.pl
 
 This file is part of "hello" web browser.
 
@@ -46,8 +46,9 @@ import Hello.Css.ContextGlobal
 import Hello.Css.Parser
 import Hello.Css.UserAgentStyle
 
-import Hello.Ffi.Css.Parser
 import Hello.Ffi.Css.Context
+import Hello.Ffi.Css.Parser
+import Hello.Ffi.Css.Value
 import Hello.Ffi.Utils
 
 
@@ -75,25 +76,6 @@ hll_makeCssDeclaration cProperty ptrFfiCssValue = do
   let declaration = CssDeclaration property cssValue False
 
   allocAndPokeCssDeclaration declaration
-
-
-
-
-makeValue valType intVal textVal lengthVal lengthType | valType ==  0 = CssValueTypeInt intVal
-                                                      | valType ==  1 = CssValueTypeEnum intVal
-                                                      | valType ==  2 = CssValueTypeMultiEnum intVal
-                                                      | valType ==  3 = CssValueTypeLengthPercent       $ cssLengthToDistance lengthVal lengthType
-                                                      | valType ==  4 = CssValueTypeLength              $ cssLengthToDistance lengthVal lengthType
-                                                      | valType ==  5 = CssValueTypeSignedLength        $ cssLengthToDistance lengthVal lengthType
-                                                      | valType ==  6 = CssValueTypeLengthPercentNumber $ cssLengthToDistance lengthVal lengthType
-                                                      | valType ==  7 = CssValueTypeAuto                $ cssLengthToDistance lengthVal lengthType
-                                                      | valType ==  8 = CssValueTypeColor intVal
-                                                      | valType ==  9 = CssValueTypeFontWeight intVal
-                                                      | valType == 10 = CssValueTypeString textVal
-                                                      | valType == 11 = CssValueTypeStringList textVal
-                                                      | valType == 12 = CssValueTypeURI textVal
-                                                      | valType == 13 = CssValueTypeBgPosition
-                                                      | otherwise = CssValueTypeUnused
 
 
 

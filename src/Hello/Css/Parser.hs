@@ -85,9 +85,6 @@ module Hello.Css.Parser(
                        , cssPropertyInfoIdxByName
                        , cssPropertyNameString
 
-                       , CssDistance (..)
-                       , CssLength (..)
-
                        , parseDeclarationMultiple
                        , parseDeclarationDirections
                        , parseDeclarationBorder
@@ -137,48 +134,11 @@ import Data.Bits
 import Debug.Trace
 
 import Hello.Utils
+import Hello.Css.Distance
 import Hello.Css.Tokenizer
 import Hello.Css.Selector
 import Colors
 import HtmlTag
-
-
-
-data CssLength = CssLength Float Int -- value + type
-  deriving (Show, Eq)
-
-
-
-
--- This data type is not meant (yet) to be a good reflection of CSS standard.
--- For now it is only a better replacement for CssLength type. The CssLenght
--- type used an integer to encode (as bits in a bit word) different types of
--- length, with three leftmost bits used for a type tag.
---
--- This data type is a step in a better direction.
-data CssDistance =
-    CssDistanceRelEm Float
-  | CssDistanceRelEx Float
-  | CssDistanceAbsMm Float
-  | CssDistanceAbsPx Float
-
-  | CssNumericPercentage Float
-
-  | CssNumericNone     Float
-  | CssNumericRelative Float
-  | CssNumericAuto     Int
-  deriving (Show, Eq)
-
-
-
-cssLengthTypeNone       = 0 :: Int
-cssLengthTypePX         = 1 :: Int
-cssLengthTypeMM         = 2 :: Int -- "cm", "in", "pt" and "pc" are converted into millimeters.
-cssLengthTypeEM         = 3 :: Int
-cssLengthTypeEX         = 4 :: Int
-cssLengthTypePercentage = 5 :: Int
-cssLengthTypeRelative   = 6 :: Int -- This does not exist in CSS but is used in HTML
-cssLengthTypeAuto       = 7 :: Int -- This can be used as a simple value.
 
 
 
