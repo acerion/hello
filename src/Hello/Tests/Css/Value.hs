@@ -24,6 +24,7 @@ where
 import qualified Data.Text as T
 import Test.HUnit
 
+import Hello.Css.Distance
 import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Utils

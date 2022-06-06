@@ -24,9 +24,11 @@ import Debug.Trace
 import Test.HUnit
 import qualified Data.Text as T
 
+import Hello.Css.Distance
+import Hello.Css.Parser
+
 import Hello.Html.Attribute
 import Hello.Html.Doctype
-import Hello.Css.Parser
 
 
 
