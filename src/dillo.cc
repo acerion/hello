@@ -104,6 +104,7 @@ static const CLI_options Options[] = {
 
 
 void css_length_test(void);
+void roundInt_test();
 
 /*
  * SIGCHLD handling ----------------------------------------------------------
@@ -387,6 +388,8 @@ int main(int argc, char **argv)
    DBG_OBJ_COLOR("#ffe0a0", "dw::core::style::*");
 
    css_length_test();
+
+   roundInt_test();
 
    uint_t opt_id;
    uint_t options_got = 0;
@@ -1190,3 +1193,40 @@ void css_length_test(void)
    }
 
 }
+
+
+void roundInt_test()
+{
+   struct {
+      float in;
+      int out;
+   } table[] = {
+      {    0.00,    0 },
+
+      {    0.10,    0 },
+      {    0.51,    1 },
+      {   12.00,   12 },
+      {  122.41,  122 },
+      {  135.72,  136 },
+      {  142.50,  143 }, // Haskell's 'round' function returns 142
+
+      {   -0.44,    0 },
+      {   -0.90,   -1 },
+      {   -1.00,   -1 },
+      {   -5.60,   -6 },
+      {   -6.02,   -6 },
+      {  -12.00,  -12 },
+      {  -30.50,  -31 }, // Haskell's 'round' function returns -30
+      { -100.00, -100 }
+   };
+
+   for (int i = 0; i < sizeof (table) / sizeof (table[0]); i++) {
+      int res = lout::misc::roundInt(table[i].in);
+      if (res != table[i].out) {
+         fprintf(stderr, "roundInt test failed for %d: %d != %d\n", i, res, table[i].out);
+         exit(-1);
+      }
+   }
+}
+
+

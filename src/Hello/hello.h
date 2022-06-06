@@ -378,6 +378,7 @@ int hll_isTokenSemicolon(c_css_token_t * token);
 c_css_declaration_t * hll_makeCssDeclaration(int property, c_css_value_t * value);
 c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeInt(c_css_declaration_set_t * declSet, int property, int valueType, int intVal, float lengthValue, int lengthType);
 c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeString(c_css_declaration_set_t * declSet, int property, int valueType, const char * stringVal);
+int hll_styleEngineComputeAbsoluteLengthValue(float lengthValue, int lengthType, int fontSize, int fontXHeight, int percentageBase, float dpiX, float dpiY, int * ptrOut);
 
 
 void hll_styleEngineSetElementId(int doc_tree_ref, const char * element_id);

@@ -27,6 +27,7 @@ import Hello.Tests.Css.Css
 import Hello.Tests.Css.DeclarationSet
 import Hello.Tests.Css.Rule
 import Hello.Tests.Css.Selector
+import Hello.Tests.Css.StyleEngine
 import Hello.Tests.Css.Tokenizer
 import Hello.Tests.Css.Value
 
@@ -35,6 +36,8 @@ import Hello.Tests.Html.Doctree
 import Hello.Tests.Html.Doctype
 import Hello.Tests.Html.Entity
 import Hello.Tests.Html.Tag
+
+import Hello.Tests.Utils
 
 
 
@@ -46,6 +49,7 @@ testFunctions = [ testsColors, testsCookies,
                 , testsCssComplexSelector
                 , testsCssDeclarationSet
                 , testsCssRule
+                , testsCssStyleEngine
                 , testsCssTokenizer
                 , testsCssValue
 
@@ -54,6 +58,8 @@ testFunctions = [ testsColors, testsCookies,
                 , testsHtmlDoctype
                 , testsHtmlEntity
                 , testsHtmlTag
+
+                , testsUtils
                 ]
 
 

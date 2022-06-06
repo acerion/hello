@@ -70,15 +70,6 @@ module Hello.Css.Parser(
                        , declValueAsLength
                        , declValueAsURI
 
-                       , cssLengthTypeNone
-                       , cssLengthTypePX
-                       , cssLengthTypeMM
-                       , cssLengthTypeEM
-                       , cssLengthTypeEX
-                       , cssLengthTypePercentage
-                       , cssLengthTypeRelative
-                       , cssLengthTypeAuto
-
                        , takeBgTokens
 
                        , cssShorthandInfoIdxByName

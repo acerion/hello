@@ -43,12 +43,15 @@ import Debug.Trace
 import qualified Data.Text.Encoding as T.E
 
 import Hello.Css.ContextGlobal
+import Hello.Css.Distance
 import Hello.Css.Parser
+import Hello.Css.StyleEngine
 import Hello.Css.UserAgentStyle
 
 import Hello.Ffi.Css.Context
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Css.Value
+
 import Hello.Ffi.Utils
 
 
@@ -62,7 +65,7 @@ import Hello.Ffi.Utils
 foreign export ccall "hll_makeCssDeclaration" hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
 foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeInt" hll_styleEngineSetNonCssHintOfCurrentNodeInt :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CInt -> Float -> CInt -> IO (Ptr FfiCssDeclarationSet)
 foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeString" hll_styleEngineSetNonCssHintOfCurrentNodeString :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CString -> IO (Ptr FfiCssDeclarationSet)
-
+foreign export ccall "hll_styleEngineComputeAbsoluteLengthValue" hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> CInt -> CInt -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
 
 
 
@@ -149,4 +152,22 @@ hll_styleEngineBuildUserAgentStyle cRef = do
   return ()
 
 -}
+
+
+
+hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> CInt -> CInt -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
+hll_styleEngineComputeAbsoluteLengthValue lengthValue cLengthType cFontSize cFontXHeight cPercentageBase dpiX dpiY ptrOut = do
+  let lengthType     = fromIntegral cLengthType
+  let fontSize       = fromIntegral cFontSize
+  let fontXHeight    = fromIntegral fontXHeight
+  let percentageBase = fromIntegral cPercentageBase
+  let distance       = cssLengthToDistance lengthValue lengthType
+
+  case styleEngineComputeAbsoluteLengthValue distance fontSize fontXHeight percentageBase dpiX dpiY of
+    Just val -> do
+      let out = round val -- TODO: a type of Float -> Int function to be verified here
+      poke ptrOut (fromIntegral out)
+      return 1 -- True
+    Nothing -> return 0 -- False
+
 

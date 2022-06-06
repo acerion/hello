@@ -38,6 +38,8 @@ module Hello.Utils (
   , skipEnclosed
 
   , listReplaceElem
+
+  , roundInt
   ) where
 
 
@@ -87,5 +89,15 @@ listReplaceElem list new idx = concat [front, [new], back]
     front = take idx list
     back  = drop (idx + 1) list
 
+
+
+
+-- Re-implementation of lout/misc.hh/roundInt()
+--
+-- Unit tests: yes
+roundInt :: Float -> Int
+roundInt f = if f > 0
+             then floor (f + 0.5)
+             else ceiling (f - 0.5)
 
 

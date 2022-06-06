@@ -48,7 +48,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString.Unsafe as BSU
 
+import Hello.Css.Distance
 import Hello.Css.Parser
+
 import Hello.Html.Attribute
 
 import Hello.Ffi.Css.Distance
