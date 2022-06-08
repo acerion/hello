@@ -22,9 +22,6 @@
 using namespace lout::misc;
 using namespace dw::core::style;
 
-
-
-
 /**
  * Signal handler for "delete": This handles the case when an instance
  * of StyleImage is deleted, possibly when the cache client is still
@@ -86,16 +83,16 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    StyleNode *n = &styleNodesStack[styleNodesStackSize - 1];
 
    /* Create a dummy font, attribute, and tag for the bottom of the stack. */
-   font_attrs.name = prefs.font_sans_serif;
-   font_attrs.size = roundInt(14 * prefs.font_factor);
-   if (font_attrs.size < prefs.font_min_size)
-      font_attrs.size = prefs.font_min_size;
-   if (font_attrs.size > prefs.font_max_size)
-      font_attrs.size = prefs.font_max_size;
-   font_attrs.weight = 400;
-   font_attrs.style = FONT_STYLE_NORMAL;
-   font_attrs.letterSpacing = 0;
-   font_attrs.fontVariant = FONT_VARIANT_NORMAL;
+   font_attrs.font_attrs.name = prefs.preferences.font_sans_serif;
+   font_attrs.font_attrs.size = roundInt(14 * prefs.preferences.font_factor);
+   if (font_attrs.font_attrs.size < prefs.preferences.font_min_size)
+      font_attrs.font_attrs.size = prefs.preferences.font_min_size;
+   if (font_attrs.font_attrs.size > prefs.preferences.font_max_size)
+      font_attrs.font_attrs.size = prefs.preferences.font_max_size;
+   font_attrs.font_attrs.weight = 400;
+   font_attrs.font_attrs.style = FONT_STYLE_NORMAL;
+   font_attrs.font_attrs.letterSpacing = 0;
+   font_attrs.font_attrs.fontVariant = FONT_VARIANT_NORMAL;
 
    style_attrs.initValues ();
    style_attrs.font = Font::create (layout, &font_attrs);
@@ -360,6 +357,161 @@ void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
       attrs->borderWidth.right = 0;
 }
 
+// https://www.w3schools.com/cssref/pr_font_font-family.asp
+// https://developer.mozilla.org/pl/docs/Web/CSS/font-family
+void setFontFamily(c_font_attrs_t * font_attrs, c_css_value_t * c_value, c_prefs_t * preferences, dw::core::Layout * layout)
+{
+   // Check font names in comma separated list.
+   // Note, that decl->value_.strVal is modified, so that in future calls
+   // the matching font name can be used directly.
+   char * fontName = NULL;
+
+   while (c_value->c_text_val) {
+      char * c = NULL;
+      if ((c = strchr(c_value->c_text_val, ',')))
+         *c = '\0';
+      dStrstrip(c_value->c_text_val);
+
+      if (dStrAsciiCasecmp (c_value->c_text_val, "serif") == 0)
+         fontName = preferences->font_serif;
+      else if (dStrAsciiCasecmp (c_value->c_text_val, "sans-serif") == 0)
+         fontName = preferences->font_sans_serif;
+      else if (dStrAsciiCasecmp (c_value->c_text_val, "cursive") == 0)
+         fontName = preferences->font_cursive;
+      else if (dStrAsciiCasecmp (c_value->c_text_val, "fantasy") == 0)
+         fontName = preferences->font_fantasy;
+      else if (dStrAsciiCasecmp (c_value->c_text_val, "monospace") == 0)
+         fontName = preferences->font_monospace;
+      else if (Font::exists(layout, c_value->c_text_val))
+         fontName = c_value->c_text_val;
+
+      if (fontName) {   // font found
+         font_attrs->name = fontName;
+         break;
+      } else if (c) {   // try next from list
+         memmove(c_value->c_text_val, c + 1, strlen(c + 1) + 1);
+      } else {          // no font found
+         break;
+      }
+   }
+}
+
+// https://developer.mozilla.org/pl/docs/Web/CSS/font-size
+// https://www.w3schools.com/cssref/pr_font_font-size.asp
+void setFontSize(c_font_attrs_t * font_attrs, c_font_attrs_t * parent_font_attrs, c_css_value_t * c_value, c_prefs_t * preferences, float dpiX, float dpiY)
+{
+   if (c_value->c_type_tag == CssDeclarationValueTypeENUM) {
+      switch (c_value->c_int_val) {
+      case CSS_FONT_SIZE_XX_SMALL:
+         font_attrs->size = roundInt(8.1 * preferences->font_factor);
+         break;
+      case CSS_FONT_SIZE_X_SMALL:
+         font_attrs->size = roundInt(9.7 * preferences->font_factor);
+         break;
+      case CSS_FONT_SIZE_SMALL:
+         font_attrs->size = roundInt(11.7 * preferences->font_factor);
+         break;
+      case CSS_FONT_SIZE_MEDIUM:
+         font_attrs->size = roundInt(14.0 * preferences->font_factor);
+         break;
+      case CSS_FONT_SIZE_LARGE:
+         font_attrs->size = roundInt(16.8 * preferences->font_factor);
+         break;
+      case CSS_FONT_SIZE_X_LARGE:
+         font_attrs->size = roundInt(20.2 * preferences->font_factor);
+         break;
+      case CSS_FONT_SIZE_XX_LARGE:
+         font_attrs->size = roundInt(24.2 * preferences->font_factor);
+         break;
+      case CSS_FONT_SIZE_SMALLER:
+         font_attrs->size = roundInt(font_attrs->size * 0.83);
+         break;
+      case CSS_FONT_SIZE_LARGER:
+         font_attrs->size = roundInt(font_attrs->size * 1.2);
+         break;
+      default:
+         assert(false); // invalid font-size enum
+      }
+   } else {
+      CssLength cssLength = cpp_cssCreateLength(c_value->c_length_val, (CssLengthType) c_value->c_length_type);
+      computeAbsoluteLengthValue(&font_attrs->size, cssLength, parent_font_attrs, parent_font_attrs->size, dpiX, dpiY);
+   }
+
+   if (font_attrs->size < preferences->font_min_size)
+      font_attrs->size = preferences->font_min_size;
+   if (font_attrs->size > preferences->font_max_size)
+      font_attrs->size = preferences->font_max_size;
+}
+
+// https://developer.mozilla.org/pl/docs/Web/CSS/font-style
+// https://www.w3schools.com/cssref/pr_font_font-style.asp
+void setFontStyle(c_font_attrs_t * font_attrs, c_css_value_t * c_value)
+{
+   font_attrs->style = (FontStyle) c_value->c_int_val;
+}
+
+// https://www.w3schools.com/cssref/pr_font_weight.asp
+// https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight
+void setFontWeight(c_font_attrs_t * font_attrs, c_css_value_t * c_value)
+{
+   if (c_value->c_type_tag == CssDeclarationValueTypeENUM) {
+      switch (c_value->c_int_val) {
+      case CSS_FONT_WEIGHT_BOLD:
+         font_attrs->weight = 700;
+         break;
+      case CSS_FONT_WEIGHT_BOLDER:
+         font_attrs->weight += 300;
+         break;
+      case CSS_FONT_WEIGHT_LIGHT:
+         font_attrs->weight = 100;
+         break;
+      case CSS_FONT_WEIGHT_LIGHTER:
+         font_attrs->weight -= 300;
+         break;
+      case CSS_FONT_WEIGHT_NORMAL:
+         font_attrs->weight = 400;
+         break;
+      default:
+         assert(false); // invalid font weight value
+         break;
+      }
+   } else {
+      font_attrs->weight = c_value->c_int_val;
+   }
+
+   // TODO: the limit may be 1000, not 900.
+   if (font_attrs->weight < 100)
+      font_attrs->weight = 100;
+   if (font_attrs->weight > 900)
+      font_attrs->weight = 900;
+}
+
+void setFontLetterSpacing(c_font_attrs_t * font_attrs, c_font_attrs_t * parent_font_attrs, c_css_value_t * c_value, float dpiX, float dpiY)
+{
+   if (c_value->c_type_tag == CssDeclarationValueTypeENUM) {
+      if (c_value->c_int_val == CSS_LETTER_SPACING_NORMAL) {
+         font_attrs->letterSpacing = 0;
+      }
+   } else {
+      CssLength cssLength = cpp_cssCreateLength(c_value->c_length_val, (CssLengthType) c_value->c_length_type);
+      computeAbsoluteLengthValue(&font_attrs->letterSpacing, cssLength, parent_font_attrs, parent_font_attrs->size, dpiX, dpiY);
+   }
+
+   /* Limit letterSpacing to reasonable values to avoid overflows e.g,
+    * when measuring word width.
+    */
+   if (font_attrs->letterSpacing > 1000)
+      font_attrs->letterSpacing = 1000;
+   else if (font_attrs->letterSpacing < -1000)
+      font_attrs->letterSpacing = -1000;
+}
+
+// https://www.w3schools.com/cssref/pr_font_font-variant.asp
+void setFontVariant(c_font_attrs_t * font_attrs, c_css_value_t * c_value)
+{
+   font_attrs->fontVariant = (FontVariant) c_value->c_int_val;
+}
+
 /**
  * \brief Make changes to StyleAttrs attrs according to c_css_declaration_set_t props.
  */
@@ -367,7 +519,6 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 {
    FontAttrs fontAttrs = *attrs->font;
    Font *parentFont = styleNodesStack[some_idx - 1].style->font;
-   char *c, *fontName;
    int lineHeight;
    DilloUrl *imgUrl = NULL;
 
@@ -377,139 +528,22 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 
       switch (decl->c_property) {
          case CSS_PROPERTY_FONT_FAMILY:
-            // Check font names in comma separated list.
-            // Note, that decl->value_.strVal is modified, so that in future calls
-            // the matching font name can be used directly.
-            fontName = NULL;
-            while (decl->c_value->c_text_val) {
-               if ((c = strchr(decl->c_value->c_text_val, ',')))
-                  *c = '\0';
-               dStrstrip(decl->c_value->c_text_val);
-
-               if (dStrAsciiCasecmp (decl->c_value->c_text_val, "serif") == 0)
-                  fontName = prefs.font_serif;
-               else if (dStrAsciiCasecmp (decl->c_value->c_text_val, "sans-serif") == 0)
-                  fontName = prefs.font_sans_serif;
-               else if (dStrAsciiCasecmp (decl->c_value->c_text_val, "cursive") == 0)
-                  fontName = prefs.font_cursive;
-               else if (dStrAsciiCasecmp (decl->c_value->c_text_val, "fantasy") == 0)
-                  fontName = prefs.font_fantasy;
-               else if (dStrAsciiCasecmp (decl->c_value->c_text_val, "monospace") == 0)
-                  fontName = prefs.font_monospace;
-               else if (Font::exists(layout, decl->c_value->c_text_val))
-                  fontName = decl->c_value->c_text_val;
-
-               if (fontName) {   // font found
-                  fontAttrs.name = fontName;
-                  break;
-               } else if (c) {   // try next from list
-                  memmove(decl->c_value->c_text_val, c + 1, strlen(c + 1) + 1);
-               } else {          // no font found
-                  break;
-               }
-            }
-
+            setFontFamily(&fontAttrs.font_attrs, decl->c_value, &prefs.preferences, this->layout);
             break;
          case CSS_PROPERTY_FONT_SIZE:
-            if (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) {
-               switch (decl->c_value->c_int_val) {
-                  case CSS_FONT_SIZE_XX_SMALL:
-                     fontAttrs.size = roundInt(8.1 * prefs.font_factor);
-                     break;
-                  case CSS_FONT_SIZE_X_SMALL:
-                     fontAttrs.size = roundInt(9.7 * prefs.font_factor);
-                     break;
-                  case CSS_FONT_SIZE_SMALL:
-                     fontAttrs.size = roundInt(11.7 * prefs.font_factor);
-                     break;
-                  case CSS_FONT_SIZE_MEDIUM:
-                     fontAttrs.size = roundInt(14.0 * prefs.font_factor);
-                     break;
-                  case CSS_FONT_SIZE_LARGE:
-                     fontAttrs.size = roundInt(16.8 * prefs.font_factor);
-                     break;
-                  case CSS_FONT_SIZE_X_LARGE:
-                     fontAttrs.size = roundInt(20.2 * prefs.font_factor);
-                     break;
-                  case CSS_FONT_SIZE_XX_LARGE:
-                     fontAttrs.size = roundInt(24.2 * prefs.font_factor);
-                     break;
-                  case CSS_FONT_SIZE_SMALLER:
-                     fontAttrs.size = roundInt(fontAttrs.size * 0.83);
-                     break;
-                  case CSS_FONT_SIZE_LARGER:
-                     fontAttrs.size = roundInt(fontAttrs.size * 1.2);
-                     break;
-                  default:
-                     assert(false); // invalid font-size enum
-               }
-            } else {
-               CssLength cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-               computeAbsoluteLengthValue(&fontAttrs.size, cssLength, parentFont, parentFont->size, layout->dpiX(), layout->dpiY());
-            }
-
-            if (fontAttrs.size < prefs.font_min_size)
-               fontAttrs.size = prefs.font_min_size;
-            if (fontAttrs.size > prefs.font_max_size)
-               fontAttrs.size = prefs.font_max_size;
-
+            setFontSize(&fontAttrs.font_attrs, &parentFont->font_attrs, decl->c_value, &prefs.preferences, layout->dpiX(), layout->dpiY());
             break;
          case CSS_PROPERTY_FONT_STYLE:
-            fontAttrs.style = (FontStyle) decl->c_value->c_int_val;
+            setFontStyle(&fontAttrs.font_attrs, decl->c_value);
             break;
          case CSS_PROPERTY_FONT_WEIGHT:
-
-            if (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) {
-               switch (decl->c_value->c_int_val) {
-                  case CSS_FONT_WEIGHT_BOLD:
-                     fontAttrs.weight = 700;
-                     break;
-                  case CSS_FONT_WEIGHT_BOLDER:
-                     fontAttrs.weight += 300;
-                     break;
-                  case CSS_FONT_WEIGHT_LIGHT:
-                     fontAttrs.weight = 100;
-                     break;
-                  case CSS_FONT_WEIGHT_LIGHTER:
-                     fontAttrs.weight -= 300;
-                     break;
-                  case CSS_FONT_WEIGHT_NORMAL:
-                     fontAttrs.weight = 400;
-                     break;
-                  default:
-                     assert(false); // invalid font weight value
-                     break;
-               }
-            } else {
-               fontAttrs.weight = decl->c_value->c_int_val;
-            }
-
-            if (fontAttrs.weight < 100)
-               fontAttrs.weight = 100;
-            if (fontAttrs.weight > 900)
-               fontAttrs.weight = 900;
-
+            setFontWeight(&fontAttrs.font_attrs, decl->c_value);
             break;
          case CSS_PROPERTY_LETTER_SPACING:
-            if (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) {
-               if (decl->c_value->c_int_val == CSS_LETTER_SPACING_NORMAL) {
-                  fontAttrs.letterSpacing = 0;
-               }
-            } else {
-               CssLength cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-               computeAbsoluteLengthValue (&fontAttrs.letterSpacing, cssLength, parentFont, parentFont->size, layout->dpiX(), layout->dpiY());
-            }
-
-            /* Limit letterSpacing to reasonable values to avoid overflows e.g,
-             * when measuring word width.
-             */
-            if (fontAttrs.letterSpacing > 1000)
-               fontAttrs.letterSpacing = 1000;
-            else if (fontAttrs.letterSpacing < -1000)
-               fontAttrs.letterSpacing = -1000;
+            setFontLetterSpacing(&fontAttrs.font_attrs, &parentFont->font_attrs, decl->c_value, layout->dpiX(), layout->dpiY());
             break;
          case CSS_PROPERTY_FONT_VARIANT:
-            fontAttrs.fontVariant = (FontVariant) decl->c_value->c_int_val;
+            setFontVariant(&fontAttrs.font_attrs, decl->c_value);
             break;
          default:
             break;
@@ -593,9 +627,9 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             break;
          case CSS_PROPERTY_BORDER_SPACING:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->hBorderSpacing, cssLength, attrs->font, 0, layout->dpiX(), layout->dpiY());
+            computeAbsoluteLengthValue (&attrs->hBorderSpacing, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->vBorderSpacing, cssLength, attrs->font, 0, layout->dpiX(), layout->dpiY());
+            computeAbsoluteLengthValue (&attrs->vBorderSpacing, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
             break;
          case CSS_PROPERTY_COLOR:
             attrs->color = Color::create (layout, decl->c_value->c_int_val);
@@ -616,7 +650,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
                CssLength cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
                if (cpp_cssLengthType(cssLength) == CSS_LENGTH_TYPE_NONE) {
                   attrs->lineHeight = createPercentageDwLength(cpp_cssLengthValue(cssLength));
-               } else if (computeAbsoluteLengthValue (&lineHeight, cssLength, attrs->font, attrs->font->size, layout->dpiX(), layout->dpiY())) {
+               } else if (computeAbsoluteLengthValue (&lineHeight, cssLength, &attrs->font->font_attrs, attrs->font->font_attrs.size, layout->dpiX(), layout->dpiY())) {
                   attrs->lineHeight = createAbsoluteDwLength(lineHeight);
                }
             }
@@ -629,43 +663,43 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             break;
          case CSS_PROPERTY_MARGIN_BOTTOM:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->margin.bottom, cssLength, attrs->font, 0, layout->dpiX(), layout->dpiY());
+            computeAbsoluteLengthValue (&attrs->margin.bottom, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
             if (attrs->margin.bottom < 0) // \todo fix negative margins in dw/*
                attrs->margin.bottom = 0;
             break;
          case CSS_PROPERTY_MARGIN_LEFT:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->margin.left, cssLength, attrs->font, 0, layout->dpiX(), layout->dpiY());
+            computeAbsoluteLengthValue (&attrs->margin.left, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
             if (attrs->margin.left < 0) // \todo fix negative margins in dw/*
                attrs->margin.left = 0;
             break;
          case CSS_PROPERTY_MARGIN_RIGHT:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->margin.right, cssLength, attrs->font, 0, layout->dpiX(), layout->dpiY());
+            computeAbsoluteLengthValue (&attrs->margin.right, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
             if (attrs->margin.right < 0) // \todo fix negative margins in dw/*
                attrs->margin.right = 0;
             break;
          case CSS_PROPERTY_MARGIN_TOP:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->margin.top, cssLength, attrs->font, 0, layout->dpiX(), layout->dpiY());
+            computeAbsoluteLengthValue (&attrs->margin.top, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
             if (attrs->margin.top < 0) // \todo fix negative margins in dw/*
                attrs->margin.top = 0;
             break;
          case CSS_PROPERTY_PADDING_TOP:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->padding.top, cssLength, attrs->font, 0, layout->dpiX(), layout->dpiY());
+            computeAbsoluteLengthValue (&attrs->padding.top, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
             break;
          case CSS_PROPERTY_PADDING_BOTTOM:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->padding.bottom, cssLength, attrs->font, 0, layout->dpiX(), layout->dpiY());
+            computeAbsoluteLengthValue (&attrs->padding.bottom, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
             break;
          case CSS_PROPERTY_PADDING_LEFT:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->padding.left, cssLength, attrs->font, 0, layout->dpiX(), layout->dpiY());
+            computeAbsoluteLengthValue (&attrs->padding.left, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
             break;
          case CSS_PROPERTY_PADDING_RIGHT:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->padding.right, cssLength, attrs->font, 0, layout->dpiX(), layout->dpiY());
+            computeAbsoluteLengthValue (&attrs->padding.right, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
             break;
          case CSS_PROPERTY_TEXT_ALIGN:
             attrs->textAlign = (TextAlignType) decl->c_value->c_int_val;
@@ -701,7 +735,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
                }
             } else {
                cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-               computeAbsoluteLengthValue(&attrs->wordSpacing, cssLength, attrs->font, 0, layout->dpiX(), layout->dpiY());
+               computeAbsoluteLengthValue(&attrs->wordSpacing, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
             }
 
             /* Limit to reasonable values to avoid overflows */
@@ -758,9 +792,9 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 /**
  * \brief Resolve relative lengths to absolute values.
  */
-bool StyleEngine::computeAbsoluteLengthValue(int *dest, CssLength value, Font *font, int percentageBase, float dpiX, float dpiY)
+bool computeAbsoluteLengthValue(int *dest, CssLength value, c_font_attrs_t * font_attrs, int percentageBase, float dpiX, float dpiY)
 {
-   return (bool) hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(value), cpp_cssLengthType(value), font->size, font->xHeight, percentageBase, dpiX, dpiY, dest);
+   return (bool) hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(value), cpp_cssLengthType(value), font_attrs->size, font_attrs->xHeight, percentageBase, dpiX, dpiY, dest);
 }
 
 bool StyleEngine::computeDwLength (dw::core::style::DwLength *dest,
@@ -773,7 +807,7 @@ bool StyleEngine::computeDwLength (dw::core::style::DwLength *dest,
    } else if (cpp_cssLengthType(value) == CSS_LENGTH_TYPE_AUTO) {
       *dest = createAutoLength();
       return true;
-   } else if (computeAbsoluteLengthValue (&v, value, font, 0, layout->dpiX(), layout->dpiY())) {
+   } else if (computeAbsoluteLengthValue (&v, value, &font->font_attrs, 0, layout->dpiX(), layout->dpiY())) {
       *dest = createAbsoluteDwLength (v);
       return true;
    }
@@ -799,7 +833,7 @@ void StyleEngine::computeBorderWidth (int *dest, c_css_declaration_t * decl, dw:
       }
    } else {
       CssLength cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-      computeAbsoluteLengthValue (dest, cssLength, font, 0, layout->dpiX(), layout->dpiY());
+      computeAbsoluteLengthValue (dest, cssLength, &font->font_attrs, 0, layout->dpiX(), layout->dpiY());
    }
 }
 

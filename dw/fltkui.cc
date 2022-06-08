@@ -489,7 +489,7 @@ void FltkResource::setWidgetStyle (Fl_Widget *widget,
                                    core::style::Style *style)
 {
    FltkFont *font = (FltkFont*)style->font;
-   widget->labelsize (font->size);
+   widget->labelsize (font->font_attrs.size);
    widget->labelfont (font->font);
 
    FltkColor *bg = (FltkColor*)style->backgroundColor;
@@ -622,7 +622,7 @@ void FltkLabelButtonResource::sizeRequest (core::Requisition *requisition)
 {
    if (style) {
       FltkFont *font = (FltkFont*)style->font;
-      fl_font(font->font,font->size);
+      fl_font(font->font,font->font_attrs.size);
       requisition->width =
          (int)fl_width (label, strlen (label))
          + 2 * RELIEF_X_THICKNESS;
@@ -894,7 +894,7 @@ void FltkEntryResource::sizeRequest (core::Requisition *requisition)
 {
    if (displayed() && style) {
       FltkFont *font = (FltkFont*)style->font;
-      fl_font(font->font,font->size);
+      fl_font(font->font,font->font_attrs.size);
       // WORKAROUND: A bug with fl_width(uint_t) on non-xft X was present in
       // 1.3.0 (STR #2688).
       requisition->width =
@@ -1037,7 +1037,7 @@ void FltkMultiLineTextResource::sizeRequest (core::Requisition *requisition)
 {
    if (style) {
       FltkFont *font = (FltkFont*)style->font;
-      fl_font(font->font,font->size);
+      fl_font(font->font,font->font_attrs.size);
       // WORKAROUND: A bug with fl_width(uint_t) on non-xft X was present in
       // 1.3.0 (STR #2688).
       requisition->width =
@@ -1118,7 +1118,7 @@ void FltkToggleButtonResource<I>::sizeRequest (core::Requisition *requisition)
       (this->FltkResource::style ? this->FltkResource::style->font : NULL);
 
    if (font) {
-      fl_font(font->font, font->size);
+      fl_font(font->font, font->font_attrs.size);
       requisition->width = font->ascent + font->descent + 2*RELIEF_X_THICKNESS;
       requisition->ascent = font->ascent + RELIEF_Y_THICKNESS;
       requisition->descent = font->descent + RELIEF_Y_THICKNESS;
@@ -1368,7 +1368,7 @@ void FltkOptionMenuResource::sizeRequest (core::Requisition *requisition)
 {
    if (style) {
       FltkFont *font = (FltkFont*)style->font;
-      fl_font(font->font, font->size);
+      fl_font(font->font, font->font_attrs.size);
       int maxItemWidth = getMaxItemWidth ();
       requisition->ascent = font->ascent + RELIEF_Y_THICKNESS;
       requisition->descent = font->descent + RELIEF_Y_THICKNESS;

@@ -350,39 +350,39 @@ bool FontAttrs::equals(object::Object *other)
    FontAttrs *otherAttrs = (FontAttrs*)other;
    return
       this == otherAttrs ||
-      (size == otherAttrs->size &&
-       weight == otherAttrs->weight &&
-       style == otherAttrs->style &&
-       letterSpacing == otherAttrs->letterSpacing &&
-       fontVariant == otherAttrs->fontVariant &&
-       strcmp (name, otherAttrs->name) == 0);
+      (this->font_attrs.size == otherAttrs->font_attrs.size &&
+       this->font_attrs.weight == otherAttrs->font_attrs.weight &&
+       this->font_attrs.style == otherAttrs->font_attrs.style &&
+       this->font_attrs.letterSpacing == otherAttrs->font_attrs.letterSpacing &&
+       this->font_attrs.fontVariant   == otherAttrs->font_attrs.fontVariant &&
+       strcmp (this->font_attrs.name, otherAttrs->font_attrs.name) == 0);
 }
 
 int FontAttrs::hashValue()
 {
-   int h = object::String::hashValue (name);
-   h = (h << 5) - h + size;
-   h = (h << 5) - h + weight;
-   h = (h << 5) - h + style;
-   h = (h << 5) - h + letterSpacing;
-   h = (h << 5) - h + fontVariant;
+   int h = object::String::hashValue (this->font_attrs.name);
+   h = (h << 5) - h + this->font_attrs.size;
+   h = (h << 5) - h + this->font_attrs.weight;
+   h = (h << 5) - h + this->font_attrs.style;
+   h = (h << 5) - h + this->font_attrs.letterSpacing;
+   h = (h << 5) - h + this->font_attrs.fontVariant;
    return h;
 }
 
 Font::~Font ()
 {
-   free ((char*)name);
+   free ((char*)this->font_attrs.name);
    DBG_OBJ_DELETE ();
 }
 
 void Font::copyAttrs (FontAttrs *attrs)
 {
-   name = strdup (attrs->name);
-   size = attrs->size;
-   weight = attrs->weight;
-   style = attrs->style;
-   letterSpacing = attrs->letterSpacing;
-   fontVariant = attrs->fontVariant;
+   this->font_attrs.name          = strdup(attrs->font_attrs.name);
+   this->font_attrs.size          = attrs->font_attrs.size;
+   this->font_attrs.weight        = attrs->font_attrs.weight;
+   this->font_attrs.style         = attrs->font_attrs.style;
+   this->font_attrs.letterSpacing = attrs->font_attrs.letterSpacing;
+   this->font_attrs.fontVariant   = attrs->font_attrs.fontVariant;
 }
 
 Font *Font::create0 (Layout *layout, FontAttrs *attrs,

@@ -13,6 +13,7 @@
 #define __PREFS_H__
 
 #include "url.h"
+#include "Hello/hello.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,9 +69,7 @@ typedef struct {
    bool_t limit_text_width;
    bool_t w3c_plus_heuristics;
    bool_t focus_new_tab;
-   double font_factor;
-   int32_t font_max_size;
-   int32_t font_min_size;
+
    bool_t show_back;
    bool_t show_forw;
    bool_t show_home;
@@ -92,11 +91,9 @@ typedef struct {
    bool_t load_stylesheets;
    bool_t parse_embedded_css;
    int32_t buffered_drawing;
-   char *font_serif;
-   char *font_sans_serif;
-   char *font_cursive;
-   char *font_fantasy;
-   char *font_monospace;
+
+   c_prefs_t preferences;
+
    bool_t enterpress_forces_submit;
    bool_t middle_click_opens_new_tab;
    bool_t right_click_closes_tab;

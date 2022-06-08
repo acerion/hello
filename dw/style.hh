@@ -10,6 +10,7 @@
 #include "../lout/signal.hh"
 #include "../lout/debug.hh"
 #include "../src/css.h"
+#include "../src/Hello/hello.h"
 
 namespace dw {
 namespace core {
@@ -684,12 +685,7 @@ public:
 class FontAttrs: public lout::object::Object
 {
 public:
-   const char *name;
-   int size;
-   int weight;
-   int letterSpacing;
-   FontVariant fontVariant;
-   FontStyle style;
+   c_font_attrs_t font_attrs;
 
    bool equals(lout::object::Object *other);
    int hashValue();
@@ -718,7 +714,6 @@ protected:
 public:
    int ascent, descent;
    int spaceWidth;
-   int xHeight;
 
    static Font *create (Layout *layout, FontAttrs *attrs);
    static bool exists (Layout *layout, const char *name);

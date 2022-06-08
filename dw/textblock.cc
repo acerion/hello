@@ -941,7 +941,7 @@ void Textblock::decorateText(core::View *view, core::style::Style *style,
 {
    int y, height;
 
-   height = 1 + style->font->xHeight / 12;
+   height = 1 + style->font->font_attrs.xHeight / 12;
    if (style->textDecoration & core::style::TEXT_DECORATION_UNDERLINE) {
       y = yBase + style->font->descent / 3;
       view->drawRectangle (style->color, shading, true, x, y, width, height);
@@ -1629,7 +1629,7 @@ void Textblock::calcTextSize (const char *text, size_t len,
     */
    if (!isAutoLength(style->lineHeight)) {
       int height, leading;
-      float factor = style->font->size;
+      float factor = style->font->font_attrs.size;
 
       factor /= (style->font->ascent + style->font->descent);
 
@@ -1644,9 +1644,9 @@ void Textblock::calcTextSize (const char *text, size_t len,
       if (core::style::isAbsoluteDwLength (style->lineHeight)) {
          height = core::style::getAbsoluteDwLengthValue(style->lineHeight);
       } else {
-         height = core::style::multiplyWithPercentageDwLengthRounded (style->font->size, style->lineHeight);
+         height = core::style::multiplyWithPercentageDwLengthRounded (style->font->font_attrs.size, style->lineHeight);
       }
-      leading = height - style->font->size;
+      leading = height - style->font->font_attrs.size;
 
       size->ascent += leading / 2;
       size->descent += leading - (leading / 2);

@@ -31,8 +31,8 @@ Bullet::Bullet ()
 
 void Bullet::sizeRequestImpl (core::Requisition *requisition)
 {
-   requisition->width = lout::misc::max (getStyle()->font->xHeight * 4 / 5, 1);
-   requisition->ascent = lout::misc::max (getStyle()->font->xHeight, 1);
+   requisition->width = lout::misc::max (getStyle()->font->font_attrs.xHeight * 4 / 5, 1);
+   requisition->ascent = lout::misc::max (getStyle()->font->font_attrs.xHeight, 1);
    requisition->descent = 0;
 }
 
@@ -43,7 +43,7 @@ void Bullet::draw (core::View *view, core::Rectangle *area)
 
    l = lout::misc::min (allocation.width, allocation.ascent);
    x = allocation.x;
-   y = allocation.y + allocation.ascent - getStyle()->font->xHeight;
+   y = allocation.y + allocation.ascent - getStyle()->font->font_attrs.xHeight;
 
    switch (getStyle()->listStyleType) {
    case core::style::LIST_STYLE_TYPE_SQUARE:

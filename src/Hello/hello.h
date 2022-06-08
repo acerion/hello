@@ -387,6 +387,34 @@ void hll_styleEngineSetElementPseudoClass(int doc_tree_ref, const char * element
 
 
 
+typedef struct c_font_attrs_t {
+        int size;
+        int weight;
+
+        const char * name;
+        int fontVariant; // TODO: change to enum FontVariant
+        int style;       // TODO: change to enum FontStyle
+
+        int xHeight;       // TODO: in dillo this field was in font attrs' parent class "Font".
+        int letterSpacing; // TODO: in dillo this field was in font attrs' parent class "Font".
+} c_font_attrs_t;
+
+
+
+typedef struct c_prefs_t {
+
+        // Font preferences.
+        char * font_serif;
+        char * font_sans_serif;
+        char * font_cursive;
+        char * font_fantasy;
+        char * font_monospace;
+        double font_factor;
+        int32_t font_max_size;
+        int32_t font_min_size;
+} c_prefs_t;
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

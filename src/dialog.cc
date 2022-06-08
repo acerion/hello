@@ -304,7 +304,7 @@ void a_Dialog_text_window(const char *title, const char *txt)
     buf->text(txt);
     Fl_Text_Display *td = new Fl_Text_Display(0,0,ww, wh-bh);
     td->buffer(buf);
-    td->textsize((int) rint(14.0 * prefs.font_factor));
+    td->textsize((int) rint(14.0 * prefs.preferences.font_factor));
 
     /* enable wrapping lines; text uses entire width of window */
     td->wrap_mode(Fl_Text_Display::WRAP_AT_BOUNDS, 0);

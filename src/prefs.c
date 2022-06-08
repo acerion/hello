@@ -43,14 +43,14 @@ void a_Prefs_init(void)
    prefs.contrast_visited_color = TRUE;
    prefs.enterpress_forces_submit = FALSE;
    prefs.focus_new_tab = TRUE;
-   prefs.font_cursive = dStrdup(PREFS_FONT_CURSIVE);
-   prefs.font_factor = 1.0;
-   prefs.font_max_size = 100;
-   prefs.font_min_size = 6;
-   prefs.font_fantasy = dStrdup(PREFS_FONT_FANTASY);
-   prefs.font_monospace = dStrdup(PREFS_FONT_MONOSPACE);
-   prefs.font_sans_serif = dStrdup(PREFS_FONT_SANS_SERIF);
-   prefs.font_serif = dStrdup(PREFS_FONT_SERIF);
+   prefs.preferences.font_cursive = dStrdup(PREFS_FONT_CURSIVE);
+   prefs.preferences.font_factor = 1.0;
+   prefs.preferences.font_max_size = 100;
+   prefs.preferences.font_min_size = 6;
+   prefs.preferences.font_fantasy = dStrdup(PREFS_FONT_FANTASY);
+   prefs.preferences.font_monospace = dStrdup(PREFS_FONT_MONOSPACE);
+   prefs.preferences.font_sans_serif = dStrdup(PREFS_FONT_SANS_SERIF);
+   prefs.preferences.font_serif = dStrdup(PREFS_FONT_SERIF);
    prefs.fullwindow_start = FALSE;
 
    /* these four constitute the geometry */
@@ -129,11 +129,11 @@ void a_Prefs_freeall(void)
 {
    int i;
 
-   dFree(prefs.font_cursive);
-   dFree(prefs.font_fantasy);
-   dFree(prefs.font_monospace);
-   dFree(prefs.font_sans_serif);
-   dFree(prefs.font_serif);
+   dFree(prefs.preferences.font_cursive);
+   dFree(prefs.preferences.font_fantasy);
+   dFree(prefs.preferences.font_monospace);
+   dFree(prefs.preferences.font_sans_serif);
+   dFree(prefs.preferences.font_serif);
    a_Url_free(prefs.home);
    dFree(prefs.http_language);
    a_Url_free(prefs.http_proxy);

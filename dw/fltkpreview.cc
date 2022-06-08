@@ -124,7 +124,7 @@ void FltkPreview::drawText (core::style::Font *font,
     * else that measures text).
     */
    FltkFont *ff = (FltkFont*)font;
-   Fl::set_font(ff->font, translateCanvasXToViewX (ff->size));
+   Fl::set_font(ff->font, translateCanvasXToViewX (ff->font_attrs.size));
 #if 0
    /**
     * \todo Normally, this should already be known, maybe it

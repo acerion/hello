@@ -58,6 +58,11 @@ import Hello.Utils
 --
 -- TODO: there is a lot of Float/Int conversion here, make sure that the
 -- conversions are correct from CSS standard's point of view.
+--
+-- TODO: it's a bit strange that a function calculating length value (in
+-- theory for any html element) is accepting arguments specific to font (font
+-- size and font X heigth arguments). is it because of EM and EX distance
+-- types?
 styleEngineComputeAbsoluteLengthValue :: CssDistance -> Int -> Int -> Int -> Float -> Float -> Maybe Float
 styleEngineComputeAbsoluteLengthValue distance fontSize fontXHeight percentageBase dpiX dpiY =
   case distance of

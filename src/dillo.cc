@@ -297,11 +297,11 @@ static void checkFont(const char *name, const char *type)
 
 static void checkPreferredFonts()
 {
-   checkFont(prefs.font_sans_serif, "sans-serif");
-   checkFont(prefs.font_serif, "serif");
-   checkFont(prefs.font_monospace, "monospace");
-   checkFont(prefs.font_cursive, "cursive");
-   checkFont(prefs.font_fantasy, "fantasy");
+   checkFont(prefs.preferences.font_sans_serif, "sans-serif");
+   checkFont(prefs.preferences.font_serif, "serif");
+   checkFont(prefs.preferences.font_monospace, "monospace");
+   checkFont(prefs.preferences.font_cursive, "cursive");
+   checkFont(prefs.preferences.font_fantasy, "fantasy");
 }
 
 /*
@@ -523,7 +523,7 @@ int main(int argc, char **argv)
    checkPreferredFonts();
 
    /* use preferred font for UI */
-   Fl_Font defaultFont = dw::fltk::FltkFont::get (prefs.font_sans_serif, 0);
+   Fl_Font defaultFont = dw::fltk::FltkFont::get (prefs.preferences.font_sans_serif, 0);
    Fl::set_font(FL_HELVETICA, defaultFont); // this seems to be the
                                             // only way to set the
                                             // default font in fltk1.3

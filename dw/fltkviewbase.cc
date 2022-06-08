@@ -620,10 +620,10 @@ void FltkWidgetView::drawText (core::style::Font *font,
    //printf ("'\n");
 
    FltkFont *ff = (FltkFont*)font;
-   fl_font(ff->font, ff->size);
+   fl_font(ff->font, ff->font_attrs.size);
    fl_color(((FltkColor*)color)->colors[shading]);
 
-   if (!font->letterSpacing && !font->fontVariant) {
+   if (!font->font_attrs.letterSpacing && !font->font_attrs.fontVariant) {
       fl_draw(text, len,
               translateCanvasXToViewX (X), translateCanvasYToViewY (Y));
    } else {
@@ -634,17 +634,17 @@ void FltkWidgetView::drawText (core::style::Font *font,
       char chbuf[4];
       int c, cu, width;
 
-      if (font->fontVariant == core::style::FONT_VARIANT_SMALL_CAPS) {
-         int sc_fontsize = lout::misc::roundInt(ff->size * 0.78);
+      if (font->font_attrs.fontVariant == core::style::FONT_VARIANT_SMALL_CAPS) {
+         int sc_fontsize = lout::misc::roundInt(ff->font_attrs.size * 0.78);
          for (curr = 0; next < len; curr = next) {
             next = theLayout->nextGlyph(text, curr);
             c = fl_utf8decode(text + curr, text + next, &nb);
             if ((cu = fl_toupper(c)) == c) {
                /* already uppercase, just draw the character */
-               fl_font(ff->font, ff->size);
+               fl_font(ff->font, ff->font_attrs.size);
                width = (int)fl_width(text + curr, next - curr);
                if (curr && width)
-                  viewX += font->letterSpacing;
+                  viewX += font->font_attrs.letterSpacing;
                fl_draw(text + curr, next - curr, viewX, viewY);
                viewX += width;
             } else {
@@ -653,7 +653,7 @@ void FltkWidgetView::drawText (core::style::Font *font,
                fl_font(ff->font, sc_fontsize);
                width = (int)fl_width(chbuf, nb);
                if (curr && width)
-                  viewX += font->letterSpacing;
+                  viewX += font->font_attrs.letterSpacing;
                fl_draw(chbuf, nb, viewX, viewY);
                viewX += width;
             }
@@ -663,7 +663,7 @@ void FltkWidgetView::drawText (core::style::Font *font,
             next = theLayout->nextGlyph(text, curr);
             width = (int)fl_width(text + curr, next - curr);
             if (curr && width)
-               viewX += font->letterSpacing;
+               viewX += font->font_attrs.letterSpacing;
             fl_draw(text + curr, next - curr, viewX, viewY);
             viewX += width;
             curr = next;
@@ -683,7 +683,7 @@ void FltkWidgetView::drawSimpleWrappedText (core::style::Font *font,
                                             const char *text)
 {
    FltkFont *ff = (FltkFont*)font;
-   fl_font(ff->font, ff->size);
+   fl_font(ff->font, ff->font_attrs.size);
    fl_color(((FltkColor*)color)->colors[shading]);
    fl_draw(text,
            translateCanvasXToViewX (X), translateCanvasYToViewY (Y),

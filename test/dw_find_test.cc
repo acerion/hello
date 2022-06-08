@@ -94,12 +94,12 @@ int main(int argc, char **argv)
    resultLabel->box(FL_FLAT_BOX);
 
    FontAttrs fontAttrs;
-   fontAttrs.name = "Bitstream Charter";
-   fontAttrs.size = 14;
-   fontAttrs.weight = 400;
-   fontAttrs.style = FONT_STYLE_NORMAL;
-   fontAttrs.letterSpacing = 0;
-   fontAttrs.fontVariant = FONT_VARIANT_NORMAL;
+   fontAttrs.font_attrs.name = "Bitstream Charter";
+   fontAttrs.font_attrs.size = 14;
+   fontAttrs.font_attrs.weight = 400;
+   fontAttrs.font_attrs.style = FONT_STYLE_NORMAL;
+   fontAttrs.font_attrs.letterSpacing = 0;
+   fontAttrs.font_attrs.fontVariant = FONT_VARIANT_NORMAL;
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();

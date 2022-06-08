@@ -57,12 +57,12 @@ int main(int argc, char **argv)
    styleAttrs.backgroundColor = Color::create (layout, 0xffffff);
 
    FontAttrs fontAttrs;
-   fontAttrs.name = "Helvetica";
-   fontAttrs.size = 14;
-   fontAttrs.weight = 400;
-   fontAttrs.style = FONT_STYLE_NORMAL;
-   fontAttrs.letterSpacing = 0;
-   fontAttrs.fontVariant = FONT_VARIANT_NORMAL;
+   fontAttrs.font_attrs.name = "Helvetica";
+   fontAttrs.font_attrs.size = 14;
+   fontAttrs.font_attrs.weight = 400;
+   fontAttrs.font_attrs.style = FONT_STYLE_NORMAL;
+   fontAttrs.font_attrs.letterSpacing = 0;
+   fontAttrs.font_attrs.fontVariant = FONT_VARIANT_NORMAL;
    styleAttrs.font = dw::core::style::Font::create (layout, &fontAttrs);
 
    Style *tableStyle = Style::create (&styleAttrs);

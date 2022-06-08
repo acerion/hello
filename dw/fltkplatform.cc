@@ -102,25 +102,25 @@ FltkFont::FltkFont (core::style::FontAttrs *attrs)
    copyAttrs (attrs);
 
    int fa = 0;
-   if (weight >= 500)
+   if (this->font_attrs.weight >= 500)
       fa |= FL_BOLD;
-   if (style != core::style::FONT_STYLE_NORMAL)
+   if (this->font_attrs.style != core::style::FONT_STYLE_NORMAL)
       fa |= FL_ITALIC;
 
-   object::ConstString nameString (name);
+   object::ConstString nameString (this->font_attrs.name);
    FontFamily *family = systemFonts->get (&nameString);
    if (!family)
       family = &standardFontFamily;
 
    font = family->get (fa);
 
-   fl_font(font, size);
+   fl_font(font, this->font_attrs.size);
    // WORKAROUND: A bug with fl_width(uint_t) on non-xft X was present in
    // 1.3.0 (STR #2688).
-   spaceWidth = misc::max(0, (int)fl_width(" ") + letterSpacing);
+   spaceWidth = misc::max(0, (int)fl_width(" ") + this->font_attrs.letterSpacing);
    int xx, xy, xw, xh;
    fl_text_extents("x", xx, xy, xw, xh);
-   xHeight = xh;
+   this->font_attrs.xHeight = xh;
    descent = fl_descent();
    ascent = fl_height() - descent;
 }
@@ -517,16 +517,16 @@ int FltkPlatform::textWidth (core::style::Font *font, const char *text,
    FltkFont *ff = (FltkFont*) font;
    int curr = 0, next = 0, nb;
 
-   if (font->fontVariant == core::style::FONT_VARIANT_SMALL_CAPS) {
-      int sc_fontsize = lout::misc::roundInt(ff->size * 0.78);
+   if (font->font_attrs.fontVariant == core::style::FONT_VARIANT_SMALL_CAPS) {
+      int sc_fontsize = lout::misc::roundInt(ff->font_attrs.size * 0.78);
       for (curr = 0; next < len; curr = next) {
          next = nextGlyph(text, curr);
          c = fl_utf8decode(text + curr, text + next, &nb);
          if ((cu = fl_toupper(c)) == c) {
             /* already uppercase, just draw the character */
-            fl_font(ff->font, ff->size);
+            fl_font(ff->font, ff->font_attrs.size);
             if (fl_nonspacing(cu) == 0) {
-               width += font->letterSpacing;
+               width += font->font_attrs.letterSpacing;
                width += (int)fl_width(text + curr, next - curr);
             }
          } else {
@@ -534,23 +534,23 @@ int FltkPlatform::textWidth (core::style::Font *font, const char *text,
             nb = fl_utf8encode(cu, chbuf);
             fl_font(ff->font, sc_fontsize);
             if (fl_nonspacing(cu) == 0) {
-               width += font->letterSpacing;
+               width += font->font_attrs.letterSpacing;
                width += (int)fl_width(chbuf, nb);
             }
          }
       }
    } else {
-      fl_font (ff->font, ff->size);
+      fl_font (ff->font, ff->font_attrs.size);
       width = (int) fl_width (text, len);
 
-      if (font->letterSpacing) {
+      if (font->font_attrs.letterSpacing) {
          int curr = 0, next = 0;
 
          while (next < len) {
             next = nextGlyph(text, curr);
             c = fl_utf8decode(text + curr, text + next, &nb);
             if (fl_nonspacing(c) == 0)
-               width += font->letterSpacing;
+               width += font->font_attrs.letterSpacing;
             curr = next;
          }
       }

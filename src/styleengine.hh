@@ -36,6 +36,7 @@ StyleNode * getCurrentNode(StyleEngine * styleEngine);
 
 
 c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_set_t * set, CssDeclarationProperty property, CssDeclarationValueType type, CssLength length);
+bool computeAbsoluteLengthValue(int *dest, CssLength value, c_font_attrs_t * font_attrs, int percentageBase, float dpiX, float dpiY);
 
 class StyleEngine {
 public:
@@ -67,7 +68,6 @@ public:
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void apply(int some_idx, dw::core::style::StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw);
-      bool computeAbsoluteLengthValue(int *dest, CssLength value, dw::core::style::Font *font, int percentageBase, float dpiX, float dpiY);
       bool computeDwLength (dw::core::style::DwLength *dest, CssLength value, dw::core::style::Font *font);
       void computeBorderWidth (int *dest, c_css_declaration_t * decl, dw::core::style::Font *font);
 
