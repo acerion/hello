@@ -158,14 +158,6 @@ typedef enum {
 } CssBorderWidthExtensions;
 
 typedef enum {
-   CSS_FONT_WEIGHT_BOLD,
-   CSS_FONT_WEIGHT_BOLDER,
-   CSS_FONT_WEIGHT_LIGHT,
-   CSS_FONT_WEIGHT_LIGHTER,
-   CSS_FONT_WEIGHT_NORMAL,
-} CssFontWeightExtensions;
-
-typedef enum {
    CSS_FONT_SIZE_LARGE,
    CSS_FONT_SIZE_LARGER,
    CSS_FONT_SIZE_MEDIUM,

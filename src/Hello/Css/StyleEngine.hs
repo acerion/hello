@@ -32,6 +32,9 @@ Copyright assignments from the file:
 module Hello.Css.StyleEngine
   (
     styleEngineComputeAbsoluteLengthValue
+
+  , FontAttrs (..)
+  , styleEngineSetFontWeight
   )
 where
 
@@ -45,6 +48,7 @@ import qualified Data.Text as T
 import Debug.Trace
 
 import Hello.Css.Distance
+import Hello.Css.Parser
 
 import Hello.Utils
 
@@ -87,5 +91,58 @@ styleEngineComputeAbsoluteLengthValue distance fontSize fontXHeight percentageBa
     -- TODO: is this assumption always correct? Data in
     -- src/Hello/Tests/Css/StyleEngine.hs shows that it's not correct.
     dpmm = dpiX / 25.4
+
+
+
+
+css_FONT_WEIGHT_BOLD    = 0
+css_FONT_WEIGHT_BOLDER  = 1
+css_FONT_WEIGHT_LIGHT   = 2
+css_FONT_WEIGHT_LIGHTER = 3
+css_FONT_WEIGHT_NORMAL  = 4
+
+
+
+
+-- TODO: this type probably should go elsewhere.
+data FontAttrs = FontAttrs
+  {
+    fontSize          :: Int
+  , fontWeight        :: Int
+  , fontName          :: T.Text
+  , fontVariant       :: Int
+  , fontStyle         :: Int
+
+  , fontXHeight       :: Int
+  , fontLetterSpacing :: Int
+  } deriving (Show)
+
+
+
+
+-- https://www.w3schools.com/cssref/pr_font_weight.asp
+-- https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight
+styleEngineSetFontWeight :: CssValue -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontWeight value attrs = clipWeight . setWeight $ attrs
+  where
+    setWeight attrs = case value of
+                        CssValueTypeEnum       i -> byEnum attrs i
+                        -- Per Parser.hs, a special type for weight. TODO: do we need this type?
+                        CssValueTypeFontWeight i -> Just attrs { fontWeight = i }
+                        otherwise                -> Nothing
+
+    clipWeight = fmap clipFunction
+
+    -- TODO: the limit may be 1000, not 900.
+    clipFunction a | fontWeight a < 100 = a { fontWeight = 100 }
+                   | fontWeight a > 900 = a { fontWeight = 900 }
+                   | otherwise          = a
+
+    byEnum attrs i | i == css_FONT_WEIGHT_BOLD    = Just $ attrs { fontWeight = 700 }
+                   | i == css_FONT_WEIGHT_BOLDER  = Just $ attrs { fontWeight = (fontWeight attrs) + 300 }
+                   | i == css_FONT_WEIGHT_LIGHT   = Just $ attrs { fontWeight = 100 }
+                   | i == css_FONT_WEIGHT_LIGHTER = Just $ attrs { fontWeight = (fontWeight attrs) - 300 }
+                   | i == css_FONT_WEIGHT_NORMAL  = Just $ attrs { fontWeight = 400 }
+                   | otherwise                    = Nothing
 
 

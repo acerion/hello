@@ -450,42 +450,6 @@ void setFontStyle(c_font_attrs_t * font_attrs, c_css_value_t * c_value)
    font_attrs->style = (FontStyle) c_value->c_int_val;
 }
 
-// https://www.w3schools.com/cssref/pr_font_weight.asp
-// https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight
-void setFontWeight(c_font_attrs_t * font_attrs, c_css_value_t * c_value)
-{
-   if (c_value->c_type_tag == CssDeclarationValueTypeENUM) {
-      switch (c_value->c_int_val) {
-      case CSS_FONT_WEIGHT_BOLD:
-         font_attrs->weight = 700;
-         break;
-      case CSS_FONT_WEIGHT_BOLDER:
-         font_attrs->weight += 300;
-         break;
-      case CSS_FONT_WEIGHT_LIGHT:
-         font_attrs->weight = 100;
-         break;
-      case CSS_FONT_WEIGHT_LIGHTER:
-         font_attrs->weight -= 300;
-         break;
-      case CSS_FONT_WEIGHT_NORMAL:
-         font_attrs->weight = 400;
-         break;
-      default:
-         assert(false); // invalid font weight value
-         break;
-      }
-   } else {
-      font_attrs->weight = c_value->c_int_val;
-   }
-
-   // TODO: the limit may be 1000, not 900.
-   if (font_attrs->weight < 100)
-      font_attrs->weight = 100;
-   if (font_attrs->weight > 900)
-      font_attrs->weight = 900;
-}
-
 void setFontLetterSpacing(c_font_attrs_t * font_attrs, c_font_attrs_t * parent_font_attrs, c_css_value_t * c_value, float dpiX, float dpiY)
 {
    if (c_value->c_type_tag == CssDeclarationValueTypeENUM) {
@@ -537,7 +501,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             setFontStyle(&fontAttrs.font_attrs, decl->c_value);
             break;
          case CSS_PROPERTY_FONT_WEIGHT:
-            setFontWeight(&fontAttrs.font_attrs, decl->c_value);
+            hll_setFontWeight(&fontAttrs.font_attrs, decl->c_value);
             break;
          case CSS_PROPERTY_LETTER_SPACING:
             setFontLetterSpacing(&fontAttrs.font_attrs, &parentFont->font_attrs, decl->c_value, layout->dpiX(), layout->dpiY());

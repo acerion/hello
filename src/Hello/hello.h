@@ -400,6 +400,8 @@ typedef struct c_font_attrs_t {
 } c_font_attrs_t;
 
 
+void hll_setFontWeight(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
+
 
 typedef struct c_prefs_t {
 
