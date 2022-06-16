@@ -655,8 +655,8 @@ allocAndPokeCssDeclaration :: CssDeclaration -> IO (Ptr FfiCssDeclaration)
 allocAndPokeCssDeclaration declaration = do
   let textVal = case declValue declaration of
                   CssValueTypeString t     -> t
-                  CssValueTypeStringList (x:xs) -> x -- We lose the tail of a list in FFI/C++, but that's the cost of migrating go a proper list in Haskell code.
-                  CssValueTypeStringList []     -> ""
+                  CssValueTypeStringList (x:xs) -> x -- Unfortunately we drop here the tail of the list
+                  CssValueTypeStringList [] -> ""
                   CssValueTypeURI t        -> t
                   otherwise                -> ""
 

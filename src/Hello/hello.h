@@ -416,11 +416,15 @@ void hll_styleEngineSetElementPseudoClass(int doc_tree_ref, const char * element
 
 
 
+
+void hll_setFontFamily(c_css_value_t * value, c_prefs_t * prefs, c_font_attrs_t * fontAttrs);
 void hll_setFontWeight(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
 void hll_setFontSize(c_css_value_t * cssValue, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_font_attrs_t * fontAttrs);
 void hll_setFontStyle(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
 void hll_setFontLetterSpacing(c_css_value_t * value, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_font_attrs_t * fontAttrs);
 void hll_setFontVariant(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
+
+
 
 
 #ifdef __cplusplus

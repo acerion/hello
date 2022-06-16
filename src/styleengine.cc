@@ -357,45 +357,6 @@ void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
       attrs->borderWidth.right = 0;
 }
 
-// https://www.w3schools.com/cssref/pr_font_font-family.asp
-// https://developer.mozilla.org/pl/docs/Web/CSS/font-family
-void setFontFamily(c_font_attrs_t * font_attrs, c_css_value_t * c_value, c_prefs_t * preferences, dw::core::Layout * layout)
-{
-   // Check font names in comma separated list.
-   // Note, that decl->value_.strVal is modified, so that in future calls
-   // the matching font name can be used directly.
-   char * fontName = NULL;
-
-   while (c_value->c_text_val) {
-      char * c = NULL;
-      if ((c = strchr(c_value->c_text_val, ',')))
-         *c = '\0';
-      dStrstrip(c_value->c_text_val);
-
-      if (dStrAsciiCasecmp (c_value->c_text_val, "serif") == 0)
-         fontName = preferences->font_serif;
-      else if (dStrAsciiCasecmp (c_value->c_text_val, "sans-serif") == 0)
-         fontName = preferences->font_sans_serif;
-      else if (dStrAsciiCasecmp (c_value->c_text_val, "cursive") == 0)
-         fontName = preferences->font_cursive;
-      else if (dStrAsciiCasecmp (c_value->c_text_val, "fantasy") == 0)
-         fontName = preferences->font_fantasy;
-      else if (dStrAsciiCasecmp (c_value->c_text_val, "monospace") == 0)
-         fontName = preferences->font_monospace;
-      else if (Font::exists(layout, c_value->c_text_val))
-         fontName = c_value->c_text_val;
-
-      if (fontName) {   // font found
-         font_attrs->name = fontName;
-         break;
-      } else if (c) {   // try next from list
-         memmove(c_value->c_text_val, c + 1, strlen(c + 1) + 1);
-      } else {          // no font found
-         break;
-      }
-   }
-}
-
 /**
  * \brief Make changes to StyleAttrs attrs according to c_css_declaration_set_t props.
  */
@@ -411,7 +372,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 
       switch (decl->c_property) {
          case CSS_PROPERTY_FONT_FAMILY:
-            setFontFamily(&fontAttrs.font_attrs, decl->c_value, &prefs.preferences, this->layout);
+            hll_setFontFamily(decl->c_value, &prefs.preferences, &fontAttrs.font_attrs);
             break;
          case CSS_PROPERTY_FONT_SIZE:
             hll_setFontSize(decl->c_value, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);

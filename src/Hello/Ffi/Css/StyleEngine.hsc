@@ -69,6 +69,7 @@ foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeInt" hll_styleEng
 foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeString" hll_styleEngineSetNonCssHintOfCurrentNodeString :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CString -> IO (Ptr FfiCssDeclarationSet)
 foreign export ccall "hll_styleEngineComputeAbsoluteLengthValue" hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> Ptr FfiFontAttrs -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
 
+foreign export ccall "hll_setFontFamily" hll_setFontFamily :: Ptr FfiCssValue -> Ptr FfiPreferences -> Ptr FfiFontAttrs -> IO ()
 foreign export ccall "hll_setFontWeight" hll_setFontWeight :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
 foreign export ccall "hll_setFontSize" hll_setFontSize :: Ptr FfiCssValue -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
 foreign export ccall "hll_setFontStyle" hll_setFontStyle :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
@@ -255,6 +256,24 @@ pokeFontAttrs fontAttrs ptrStructFontAttrs = do
   let spacing = fromIntegral . fontLetterSpacing $ fontAttrs
 
   poke ptrStructFontAttrs $ FfiFontAttrs size weight name variant style height spacing
+
+
+
+
+hll_setFontFamily :: Ptr FfiCssValue -> Ptr FfiPreferences -> Ptr FfiFontAttrs -> IO ()
+hll_setFontFamily ptrStructCssValue ptrStructPreferences ptrStructFontAttrs = do
+  ffiCssValue <- peek ptrStructCssValue
+  value       <- peekCssValue ffiCssValue
+  fontAttrs   <- peekFontAttrs ptrStructFontAttrs
+  prefs       <- peekPreferences ptrStructPreferences
+
+  let fontAttrs' = styleEngineSetFontFamily value prefs fontAttrs
+
+  case fontAttrs' of
+    Just attrs -> do
+      pokeFontAttrs attrs ptrStructFontAttrs
+      return ()
+    otherwise  -> return ()
 
 
 

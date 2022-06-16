@@ -35,6 +35,8 @@ module Hello.Css.StyleEngine
 
   , FontAttrs (..)
   , defaultFontAttrs
+
+  , styleEngineSetFontFamily
   , styleEngineSetFontWeight
   , styleEngineSetFontSize
   , styleEngineSetFontSize'
@@ -143,8 +145,33 @@ defaultFontAttrs = FontAttrs
 
 
 
--- https://www.w3schools.com/cssref/pr_font_weight.asp
--- https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight
+-- https://www.w3schools.com/cssref/pr_font_font-family.asp
+-- https://developer.mozilla.org/pl/docs/Web/CSS/font-family
+styleEngineSetFontFamily :: CssValue -> Preferences -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontFamily value prefs fontAttrs = case value of
+                                                   CssValueTypeStringList xs -> setName xs prefs fontAttrs
+                                                   otherwise                 -> Nothing
+
+  where
+    setName (x:xs) prefs fontAttrs | x == "serif"      = Just $ fontAttrs { fontName = prefsFontSerif prefs }
+                                   | x == "sans-serif" = Just $ fontAttrs { fontName = prefsFontSansSerif prefs }
+                                   | x == "cursive"    = Just $ fontAttrs { fontName = prefsFontCursive prefs }
+                                   | x == "fantasy"    = Just $ fontAttrs { fontName = prefsFontFantasy prefs }
+                                   | x == "monospace"  = Just $ fontAttrs { fontName = prefsFontMonospace prefs }
+                                   | fontExists x      = Just $ fontAttrs { fontName = x }
+                                   | otherwise         = setName xs prefs fontAttrs
+    setName [] _ _                                     = Nothing
+
+    -- TODO: implement lookup of font name in Operating System. In dillo this
+    -- has been done through Font::exists(layout, c_value->c_text_val).
+    --
+    -- For now this program doesn't access list of fonts available on OS, so
+    -- fontExists must always return False.
+    fontExists _ = False
+
+
+
+
 styleEngineSetFontWeight :: CssValue -> FontAttrs -> Maybe FontAttrs
 styleEngineSetFontWeight value attrs = clipWeight . setWeight $ attrs
   where
@@ -167,7 +194,6 @@ styleEngineSetFontWeight value attrs = clipWeight . setWeight $ attrs
                    | i == css_FONT_WEIGHT_LIGHTER = Just $ attrs { fontWeight = (fontWeight attrs) - 300 }
                    | i == css_FONT_WEIGHT_NORMAL  = Just $ attrs { fontWeight = 400 }
                    | otherwise                    = Nothing
-
 
 
 
