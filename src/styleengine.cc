@@ -396,53 +396,6 @@ void setFontFamily(c_font_attrs_t * font_attrs, c_css_value_t * c_value, c_prefs
    }
 }
 
-// https://developer.mozilla.org/pl/docs/Web/CSS/font-size
-// https://www.w3schools.com/cssref/pr_font_font-size.asp
-void setFontSize(c_font_attrs_t * font_attrs, c_font_attrs_t * parent_font_attrs, c_css_value_t * c_value, c_prefs_t * preferences, float dpiX, float dpiY)
-{
-   if (c_value->c_type_tag == CssDeclarationValueTypeENUM) {
-      switch (c_value->c_int_val) {
-      case CSS_FONT_SIZE_XX_SMALL:
-         font_attrs->size = roundInt(8.1 * preferences->font_factor);
-         break;
-      case CSS_FONT_SIZE_X_SMALL:
-         font_attrs->size = roundInt(9.7 * preferences->font_factor);
-         break;
-      case CSS_FONT_SIZE_SMALL:
-         font_attrs->size = roundInt(11.7 * preferences->font_factor);
-         break;
-      case CSS_FONT_SIZE_MEDIUM:
-         font_attrs->size = roundInt(14.0 * preferences->font_factor);
-         break;
-      case CSS_FONT_SIZE_LARGE:
-         font_attrs->size = roundInt(16.8 * preferences->font_factor);
-         break;
-      case CSS_FONT_SIZE_X_LARGE:
-         font_attrs->size = roundInt(20.2 * preferences->font_factor);
-         break;
-      case CSS_FONT_SIZE_XX_LARGE:
-         font_attrs->size = roundInt(24.2 * preferences->font_factor);
-         break;
-      case CSS_FONT_SIZE_SMALLER:
-         font_attrs->size = roundInt(font_attrs->size * 0.83);
-         break;
-      case CSS_FONT_SIZE_LARGER:
-         font_attrs->size = roundInt(font_attrs->size * 1.2);
-         break;
-      default:
-         assert(false); // invalid font-size enum
-      }
-   } else {
-      CssLength cssLength = cpp_cssCreateLength(c_value->c_length_val, (CssLengthType) c_value->c_length_type);
-      hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), parent_font_attrs, parent_font_attrs->size, dpiX, dpiY, &font_attrs->size);
-   }
-
-   if (font_attrs->size < preferences->font_min_size)
-      font_attrs->size = preferences->font_min_size;
-   if (font_attrs->size > preferences->font_max_size)
-      font_attrs->size = preferences->font_max_size;
-}
-
 // https://developer.mozilla.org/pl/docs/Web/CSS/font-style
 // https://www.w3schools.com/cssref/pr_font_font-style.asp
 void setFontStyle(c_font_attrs_t * font_attrs, c_css_value_t * c_value)
@@ -495,7 +448,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             setFontFamily(&fontAttrs.font_attrs, decl->c_value, &prefs.preferences, this->layout);
             break;
          case CSS_PROPERTY_FONT_SIZE:
-            setFontSize(&fontAttrs.font_attrs, &parentFont->font_attrs, decl->c_value, &prefs.preferences, layout->dpiX(), layout->dpiY());
+            hll_setFontSize(decl->c_value, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
             break;
          case CSS_PROPERTY_FONT_STYLE:
             setFontStyle(&fontAttrs.font_attrs, decl->c_value);

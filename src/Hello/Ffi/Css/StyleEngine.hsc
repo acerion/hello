@@ -53,6 +53,7 @@ import Hello.Ffi.Css.Context
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Css.Value
 
+import Hello.Ffi.Preferences
 import Hello.Ffi.Utils
 
 
@@ -69,6 +70,7 @@ foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeString" hll_style
 foreign export ccall "hll_styleEngineComputeAbsoluteLengthValue" hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> Ptr FfiFontAttrs -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
 
 foreign export ccall "hll_setFontWeight" hll_setFontWeight :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
+foreign export ccall "hll_setFontSize" hll_setFontSize :: Ptr FfiCssValue -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
 
 
 
@@ -158,14 +160,15 @@ hll_styleEngineBuildUserAgentStyle cRef = do
 
 
 
+
 hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> Ptr FfiFontAttrs -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
-hll_styleEngineComputeAbsoluteLengthValue lengthValue cLengthType ptrStructFontAttrs cReferenceValue dpiX dpiY ptrOut = do
+hll_styleEngineComputeAbsoluteLengthValue lengthValue cLengthType ptrStructFontAttrs cPercentageBase dpiX dpiY ptrOut = do
   let lengthType     = fromIntegral cLengthType
   fontAttrs         <- peekFontAttrs ptrStructFontAttrs
-  let referenceValue = fromIntegral cReferenceValue
+  let percentageBase = fromIntegral cPercentageBase
   let distance       = cssLengthToDistance lengthValue lengthType
 
-  case styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue dpiX dpiY of
+  case styleEngineComputeAbsoluteLengthValue distance fontAttrs percentageBase dpiX dpiY of
     Just val -> do
       let out = round val -- TODO: a type of Float -> Int function to be verified here
       poke ptrOut (fromIntegral out)
@@ -260,6 +263,25 @@ hll_setFontWeight ptrStructFontAttrs ptrStructCssValue = do
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
 
   let fontAttrs' = styleEngineSetFontWeight value fontAttrs
+
+  case fontAttrs' of
+    Just attrs -> do
+      pokeFontAttrs attrs ptrStructFontAttrs
+      return ()
+    otherwise  -> return ()
+
+
+
+
+hll_setFontSize :: Ptr FfiCssValue -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
+hll_setFontSize ptrStructCssValue ptrStructPreferences dpiX dpiY ptrStructParentFontAttrs ptrStructFontAttrs = do
+  ffiCssValue <- peek ptrStructCssValue
+  value       <- peekCssValue ffiCssValue
+  fontAttrs   <- peekFontAttrs ptrStructFontAttrs
+  parentFontAttrs   <- peekFontAttrs ptrStructParentFontAttrs
+  prefs       <- peekPreferences ptrStructPreferences
+
+  let fontAttrs' = styleEngineSetFontSize' value prefs dpiX dpiY parentFontAttrs fontAttrs
 
   case fontAttrs' of
     Just attrs -> do

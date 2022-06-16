@@ -16,6 +16,7 @@ all:
 	hsc2hs ./Ffi/Html/Attribute.hsc
 	hsc2hs ./Ffi/Html/Doctype.hsc
 	hsc2hs ./Ffi/Html/HtmlTag.hsc
+	hsc2hs ./Ffi/Preferences.hsc
 	hsc2hs ./Ffi/Url.hsc
 
 	ghc -g -O0 -fPIC -c ./wrapper.c
@@ -55,5 +56,6 @@ clean:
 	rm -f ./Ffi/Html/Attribute.hs
 	rm -f ./Ffi/Html/Doctype.hs
 	rm -f ./Ffi/Html/HtmlTag.hs
+	rm -f ./Ffi/Preferences.hs
 	rm -f ./Ffi/Url.hs
 

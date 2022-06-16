@@ -158,18 +158,6 @@ typedef enum {
 } CssBorderWidthExtensions;
 
 typedef enum {
-   CSS_FONT_SIZE_LARGE,
-   CSS_FONT_SIZE_LARGER,
-   CSS_FONT_SIZE_MEDIUM,
-   CSS_FONT_SIZE_SMALL,
-   CSS_FONT_SIZE_SMALLER,
-   CSS_FONT_SIZE_XX_LARGE,
-   CSS_FONT_SIZE_XX_SMALL,
-   CSS_FONT_SIZE_X_LARGE,
-   CSS_FONT_SIZE_X_SMALL,
-} CssFontSizeExtensions;
-
-typedef enum {
    CSS_LETTER_SPACING_NORMAL
 } CssLetterSpacingExtensions;
 

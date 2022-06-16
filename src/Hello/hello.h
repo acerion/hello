@@ -35,9 +35,9 @@ typedef struct c_prefs_t {
         char * font_cursive;
         char * font_fantasy;
         char * font_monospace;
-        double font_factor;
-        int32_t font_max_size;
+        float font_factor;
         int32_t font_min_size;
+        int32_t font_max_size;
 } c_prefs_t;
 
 
@@ -417,6 +417,7 @@ void hll_styleEngineSetElementPseudoClass(int doc_tree_ref, const char * element
 
 
 void hll_setFontWeight(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
+void hll_setFontSize(c_css_value_t * cssValue, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_font_attrs_t * fontAttrs);
 
 
 

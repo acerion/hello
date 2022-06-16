@@ -36,6 +36,8 @@ module Hello.Css.StyleEngine
   , FontAttrs (..)
   , defaultFontAttrs
   , styleEngineSetFontWeight
+  , styleEngineSetFontSize
+  , styleEngineSetFontSize'
   )
 where
 
@@ -51,6 +53,7 @@ import Debug.Trace
 import Hello.Css.Distance
 import Hello.Css.Parser
 
+import Hello.Preferences
 import Hello.Utils
 
 
@@ -162,4 +165,97 @@ styleEngineSetFontWeight value attrs = clipWeight . setWeight $ attrs
                    | i == css_FONT_WEIGHT_NORMAL  = Just $ attrs { fontWeight = 400 }
                    | otherwise                    = Nothing
 
+
+
+
+
+data FontSize = FontSizeXXSmall
+              | FontSizeXSmall
+              | FontSizeSmall
+              | FontSizeMedium
+              | FontSizeLarge
+              | FontSizeXLarge
+              | FontSizeXXLarge
+              | FontSizeSmaller
+              | FontSizeLarger
+              | FontSize CssDistance
+
+css_FONT_SIZE_LARGE    = 0
+css_FONT_SIZE_LARGER   = 1
+css_FONT_SIZE_MEDIUM   = 2
+css_FONT_SIZE_SMALL    = 3
+css_FONT_SIZE_SMALLER  = 4
+css_FONT_SIZE_XX_LARGE = 5
+css_FONT_SIZE_XX_SMALL = 6
+css_FONT_SIZE_X_LARGE  = 7
+css_FONT_SIZE_X_SMALL  = 8
+
+
+
+
+styleEngineSetFontSize' :: CssValue -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontSize' value prefs dpiX dpiY parentFontAttrs fontAttrs = styleEngineSetFontSize input prefs dpiX dpiY parentFontAttrs fontAttrs
+  where
+    input = case value of
+              CssValueTypeEnum enum              -> integerToFontSize enum
+              CssValueTypeLengthPercent distance -> Just $ FontSize distance
+
+    integerToFontSize e | e == css_FONT_SIZE_XX_SMALL = Just FontSizeXXSmall
+                        | e == css_FONT_SIZE_X_SMALL  = Just FontSizeXSmall
+                        | e == css_FONT_SIZE_SMALL    = Just FontSizeSmall
+                        | e == css_FONT_SIZE_MEDIUM   = Just FontSizeMedium
+                        | e == css_FONT_SIZE_LARGE    = Just FontSizeLarge
+                        | e == css_FONT_SIZE_X_LARGE  = Just FontSizeXLarge
+                        | e == css_FONT_SIZE_XX_LARGE = Just FontSizeXXLarge
+                        | e == css_FONT_SIZE_SMALLER  = Just FontSizeSmaller
+                        | e == css_FONT_SIZE_LARGER   = Just FontSizeLarger
+                        | otherwise                   = Nothing
+
+
+
+
+-- https://developer.mozilla.org/pl/docs/Web/CSS/font-size
+-- https://www.w3schools.com/cssref/pr_font_font-size.asp
+styleEngineSetFontSize :: Maybe FontSize -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontSize input prefs dpiX dpiY parentFontAttrs fontAttrs = clipSize (setAbsSize input fontAttrs)
+  where
+    setAbsSize :: Maybe FontSize -> FontAttrs -> Maybe FontAttrs
+    setAbsSize input fontAttrs = case fontSizeToAbs' input prefs dpiX dpiY fontAttrs parentFontAttrs of
+                                   Just size -> Just $ fontAttrs { fontSize = size }
+                                   otherwise -> Nothing
+
+    clipSize = fmap clipFunction
+    clipFunction :: FontAttrs -> FontAttrs
+    clipFunction attrs | fontSize fontAttrs < prefsFontMinSize prefs = attrs { fontSize = prefsFontMinSize prefs }
+                       | fontSize fontAttrs > prefsFontMaxSize prefs = attrs { fontSize = prefsFontMaxSize prefs }
+                       | otherwise                                   = attrs
+
+
+
+
+fontSizeToAbs :: FontSize -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> Maybe Int
+fontSizeToAbs input prefs dpiX dpiY fontAttrs parentFontAttrs = case input of
+                                                                  FontSizeXXSmall   -> Just $ roundInt ( 8.1  * (prefsFontFactor prefs))
+                                                                  FontSizeXSmall    -> Just $ roundInt ( 9.7  * (prefsFontFactor prefs))
+                                                                  FontSizeSmall     -> Just $ roundInt (11.7  * (prefsFontFactor prefs))
+                                                                  FontSizeMedium    -> Just $ roundInt (14.0  * (prefsFontFactor prefs))
+                                                                  FontSizeLarge     -> Just $ roundInt (16.8  * (prefsFontFactor prefs))
+                                                                  FontSizeXLarge    -> Just $ roundInt (20.2  * (prefsFontFactor prefs))
+                                                                  FontSizeXXLarge   -> Just $ roundInt (24.2  * (prefsFontFactor prefs))
+                                                                  FontSizeSmaller   -> Just $ roundInt ( 0.83 * (fromIntegral . fontSize $ fontAttrs))
+                                                                  FontSizeLarger    -> Just $ roundInt ( 1.2  * (fromIntegral . fontSize $ fontAttrs))
+                                                                  FontSize distance -> case size of
+                                                                                         Just s  -> Just $ roundInt s
+                                                                                         Nothing -> Nothing
+                                                                    where
+                                                                      size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue dpiX dpiY
+                                                                      referenceValue = fontSize parentFontAttrs
+
+
+
+
+fontSizeToAbs' :: Maybe FontSize -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> Maybe Int
+fontSizeToAbs' input prefs dpiX dpiY fontAttrs parentFontAttrs = case input of
+                                                                   Just s -> fontSizeToAbs s prefs dpiX dpiY fontAttrs parentFontAttrs
+                                                                   otherwise -> Nothing
 
