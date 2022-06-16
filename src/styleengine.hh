@@ -36,7 +36,6 @@ StyleNode * getCurrentNode(StyleEngine * styleEngine);
 
 
 c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_set_t * set, CssDeclarationProperty property, CssDeclarationValueType type, CssLength length);
-bool computeAbsoluteLengthValue(int *dest, CssLength value, c_font_attrs_t * font_attrs, int percentageBase, float dpiX, float dpiY);
 
 class StyleEngine {
 public:

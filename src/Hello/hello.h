@@ -13,6 +13,35 @@ extern "C" {
 
 
 
+typedef struct c_font_attrs_t {
+        int size;
+        int weight;
+
+        const char * name;
+        int fontVariant; // TODO: change to enum FontVariant
+        int style;       // TODO: change to enum FontStyle
+
+        int xHeight;       // TODO: in dillo this field was in font attrs' parent class "Font".
+        int letterSpacing; // TODO: in dillo this field was in font attrs' parent class "Font".
+} c_font_attrs_t;
+
+
+
+typedef struct c_prefs_t {
+
+        // Font preferences.
+        char * font_serif;
+        char * font_sans_serif;
+        char * font_cursive;
+        char * font_fantasy;
+        char * font_monospace;
+        double font_factor;
+        int32_t font_max_size;
+        int32_t font_min_size;
+} c_prefs_t;
+
+
+
 typedef struct c_html_doctype_t {
    int   c_doc_type; /* DilloHtmlDocumentType, as given by DOCTYPE tag */
    float c_doc_type_version;          /* HTML or XHTML version number */
@@ -378,7 +407,7 @@ int hll_isTokenSemicolon(c_css_token_t * token);
 c_css_declaration_t * hll_makeCssDeclaration(int property, c_css_value_t * value);
 c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeInt(c_css_declaration_set_t * declSet, int property, int valueType, int intVal, float lengthValue, int lengthType);
 c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeString(c_css_declaration_set_t * declSet, int property, int valueType, const char * stringVal);
-int hll_styleEngineComputeAbsoluteLengthValue(float lengthValue, int lengthType, int fontSize, int fontXHeight, int percentageBase, float dpiX, float dpiY, int * ptrOut);
+int hll_styleEngineComputeAbsoluteLengthValue(float lengthValue, int lengthType, c_font_attrs_t * fontAttrs, int percentageBase, float dpiX, float dpiY, int * ptrOut);
 
 
 void hll_styleEngineSetElementId(int doc_tree_ref, const char * element_id);
@@ -387,34 +416,8 @@ void hll_styleEngineSetElementPseudoClass(int doc_tree_ref, const char * element
 
 
 
-typedef struct c_font_attrs_t {
-        int size;
-        int weight;
-
-        const char * name;
-        int fontVariant; // TODO: change to enum FontVariant
-        int style;       // TODO: change to enum FontStyle
-
-        int xHeight;       // TODO: in dillo this field was in font attrs' parent class "Font".
-        int letterSpacing; // TODO: in dillo this field was in font attrs' parent class "Font".
-} c_font_attrs_t;
-
-
 void hll_setFontWeight(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
 
-
-typedef struct c_prefs_t {
-
-        // Font preferences.
-        char * font_serif;
-        char * font_sans_serif;
-        char * font_cursive;
-        char * font_fantasy;
-        char * font_monospace;
-        double font_factor;
-        int32_t font_max_size;
-        int32_t font_min_size;
-} c_prefs_t;
 
 
 #ifdef __cplusplus

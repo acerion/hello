@@ -66,7 +66,7 @@ import Hello.Ffi.Utils
 foreign export ccall "hll_makeCssDeclaration" hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
 foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeInt" hll_styleEngineSetNonCssHintOfCurrentNodeInt :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CInt -> Float -> CInt -> IO (Ptr FfiCssDeclarationSet)
 foreign export ccall "hll_styleEngineSetNonCssHintOfCurrentNodeString" hll_styleEngineSetNonCssHintOfCurrentNodeString :: Ptr FfiCssDeclarationSet -> CInt -> CInt -> CString -> IO (Ptr FfiCssDeclarationSet)
-foreign export ccall "hll_styleEngineComputeAbsoluteLengthValue" hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> CInt -> CInt -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
+foreign export ccall "hll_styleEngineComputeAbsoluteLengthValue" hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> Ptr FfiFontAttrs -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
 
 foreign export ccall "hll_setFontWeight" hll_setFontWeight :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
 
@@ -158,15 +158,14 @@ hll_styleEngineBuildUserAgentStyle cRef = do
 
 
 
-hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> CInt -> CInt -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
-hll_styleEngineComputeAbsoluteLengthValue lengthValue cLengthType cFontSize cFontXHeight cPercentageBase dpiX dpiY ptrOut = do
+hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> Ptr FfiFontAttrs -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
+hll_styleEngineComputeAbsoluteLengthValue lengthValue cLengthType ptrStructFontAttrs cReferenceValue dpiX dpiY ptrOut = do
   let lengthType     = fromIntegral cLengthType
-  let fontSize       = fromIntegral cFontSize
-  let fontXHeight    = fromIntegral fontXHeight
-  let percentageBase = fromIntegral cPercentageBase
+  fontAttrs         <- peekFontAttrs ptrStructFontAttrs
+  let referenceValue = fromIntegral cReferenceValue
   let distance       = cssLengthToDistance lengthValue lengthType
 
-  case styleEngineComputeAbsoluteLengthValue distance fontSize fontXHeight percentageBase dpiX dpiY of
+  case styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue dpiX dpiY of
     Just val -> do
       let out = round val -- TODO: a type of Float -> Int function to be verified here
       poke ptrOut (fromIntegral out)

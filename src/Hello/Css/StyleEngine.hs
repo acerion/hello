@@ -34,6 +34,7 @@ module Hello.Css.StyleEngine
     styleEngineComputeAbsoluteLengthValue
 
   , FontAttrs (..)
+  , defaultFontAttrs
   , styleEngineSetFontWeight
   )
 where
@@ -55,7 +56,7 @@ import Hello.Utils
 
 
 
--- Recalculate CSS distance to absolute value
+-- Recalculate (relative) CSS distance to absolute value
 --
 -- TODO: should this function return Maybe Float or Maybe Int? Original dillo
 -- function returned Int.
@@ -67,13 +68,13 @@ import Hello.Utils
 -- theory for any html element) is accepting arguments specific to font (font
 -- size and font X heigth arguments). is it because of EM and EX distance
 -- types?
-styleEngineComputeAbsoluteLengthValue :: CssDistance -> Int -> Int -> Int -> Float -> Float -> Maybe Float
-styleEngineComputeAbsoluteLengthValue distance fontSize fontXHeight percentageBase dpiX dpiY =
+styleEngineComputeAbsoluteLengthValue :: CssDistance -> FontAttrs -> Int -> Float -> Float -> Maybe Float
+styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue dpiX dpiY =
   case distance of
     CssDistanceAbsPx d     -> Just d
     CssDistanceAbsMm d     -> Just (fromIntegral (roundInt (d * dpmm)))
-    CssDistanceRelEm d     -> Just (fromIntegral (roundInt (d * (fromIntegral fontSize))))
-    CssDistanceRelEx d     -> Just (fromIntegral (roundInt (d * (fromIntegral fontXHeight))))
+    CssDistanceRelEm d     -> Just (fromIntegral (roundInt (d * (fromIntegral . fontSize $ fontAttrs))))
+    CssDistanceRelEx d     -> Just (fromIntegral (roundInt (d * (fromIntegral . fontXHeight $ fontAttrs))))
     CssNumericNone _       -> Just 0
                               -- Length values other than 0 without unit are
                               -- only allowed in special cases (line-height)
@@ -81,7 +82,7 @@ styleEngineComputeAbsoluteLengthValue distance fontSize fontXHeight percentageBa
                               --
                               -- TODO this line should be uncommented
                               -- assert ((int) cpp_cssLengthValue(value) == 0);
-    CssNumericPercentage d -> Just (fromIntegral (roundInt (d * (fromIntegral percentageBase))))
+    CssNumericPercentage d -> Just (fromIntegral (roundInt (d * (fromIntegral referenceValue))))
     CssNumericRelative _   -> Nothing
     CssNumericAuto _       -> Nothing
 
@@ -116,6 +117,22 @@ data FontAttrs = FontAttrs
   , fontXHeight       :: Int
   , fontLetterSpacing :: Int
   } deriving (Show)
+
+
+
+
+defaultFontAttrs = FontAttrs
+  {
+    fontSize    = 0
+  , fontWeight  = 0
+  , fontName    = ""
+  , fontVariant = 0
+  , fontStyle   = 0
+
+  , fontXHeight       = 0
+  , fontLetterSpacing = 0
+
+  }
 
 
 

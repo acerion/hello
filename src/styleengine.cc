@@ -434,7 +434,7 @@ void setFontSize(c_font_attrs_t * font_attrs, c_font_attrs_t * parent_font_attrs
       }
    } else {
       CssLength cssLength = cpp_cssCreateLength(c_value->c_length_val, (CssLengthType) c_value->c_length_type);
-      computeAbsoluteLengthValue(&font_attrs->size, cssLength, parent_font_attrs, parent_font_attrs->size, dpiX, dpiY);
+      hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), parent_font_attrs, parent_font_attrs->size, dpiX, dpiY, &font_attrs->size);
    }
 
    if (font_attrs->size < preferences->font_min_size)
@@ -458,7 +458,7 @@ void setFontLetterSpacing(c_font_attrs_t * font_attrs, c_font_attrs_t * parent_f
       }
    } else {
       CssLength cssLength = cpp_cssCreateLength(c_value->c_length_val, (CssLengthType) c_value->c_length_type);
-      computeAbsoluteLengthValue(&font_attrs->letterSpacing, cssLength, parent_font_attrs, parent_font_attrs->size, dpiX, dpiY);
+      hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), parent_font_attrs, parent_font_attrs->size, dpiX, dpiY, &font_attrs->letterSpacing);
    }
 
    /* Limit letterSpacing to reasonable values to avoid overflows e.g,
@@ -591,9 +591,9 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             break;
          case CSS_PROPERTY_BORDER_SPACING:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->hBorderSpacing, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->hBorderSpacing);
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->vBorderSpacing, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->vBorderSpacing);
             break;
          case CSS_PROPERTY_COLOR:
             attrs->color = Color::create (layout, decl->c_value->c_int_val);
@@ -614,7 +614,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
                CssLength cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
                if (cpp_cssLengthType(cssLength) == CSS_LENGTH_TYPE_NONE) {
                   attrs->lineHeight = createPercentageDwLength(cpp_cssLengthValue(cssLength));
-               } else if (computeAbsoluteLengthValue (&lineHeight, cssLength, &attrs->font->font_attrs, attrs->font->font_attrs.size, layout->dpiX(), layout->dpiY())) {
+               } else if ((bool) hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, attrs->font->font_attrs.size, layout->dpiX(), layout->dpiY(), &lineHeight)) {
                   attrs->lineHeight = createAbsoluteDwLength(lineHeight);
                }
             }
@@ -627,43 +627,43 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             break;
          case CSS_PROPERTY_MARGIN_BOTTOM:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->margin.bottom, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->margin.bottom);
             if (attrs->margin.bottom < 0) // \todo fix negative margins in dw/*
                attrs->margin.bottom = 0;
             break;
          case CSS_PROPERTY_MARGIN_LEFT:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->margin.left, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->margin.left);
             if (attrs->margin.left < 0) // \todo fix negative margins in dw/*
                attrs->margin.left = 0;
             break;
          case CSS_PROPERTY_MARGIN_RIGHT:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->margin.right, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->margin.right);
             if (attrs->margin.right < 0) // \todo fix negative margins in dw/*
                attrs->margin.right = 0;
             break;
          case CSS_PROPERTY_MARGIN_TOP:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->margin.top, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->margin.top);
             if (attrs->margin.top < 0) // \todo fix negative margins in dw/*
                attrs->margin.top = 0;
             break;
          case CSS_PROPERTY_PADDING_TOP:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->padding.top, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->padding.top);
             break;
          case CSS_PROPERTY_PADDING_BOTTOM:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->padding.bottom, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->padding.bottom);
             break;
          case CSS_PROPERTY_PADDING_LEFT:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->padding.left, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->padding.left);
             break;
          case CSS_PROPERTY_PADDING_RIGHT:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeAbsoluteLengthValue (&attrs->padding.right, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->padding.right);
             break;
          case CSS_PROPERTY_TEXT_ALIGN:
             attrs->textAlign = (TextAlignType) decl->c_value->c_int_val;
@@ -699,7 +699,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
                }
             } else {
                cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-               computeAbsoluteLengthValue(&attrs->wordSpacing, cssLength, &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+               hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->wordSpacing);
             }
 
             /* Limit to reasonable values to avoid overflows */
@@ -753,14 +753,6 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    a_Url_free (imgUrl);
 }
 
-/**
- * \brief Resolve relative lengths to absolute values.
- */
-bool computeAbsoluteLengthValue(int *dest, CssLength value, c_font_attrs_t * font_attrs, int percentageBase, float dpiX, float dpiY)
-{
-   return (bool) hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(value), cpp_cssLengthType(value), font_attrs->size, font_attrs->xHeight, percentageBase, dpiX, dpiY, dest);
-}
-
 bool StyleEngine::computeDwLength (dw::core::style::DwLength *dest,
                                  CssLength value, Font *font) {
    int v;
@@ -771,7 +763,7 @@ bool StyleEngine::computeDwLength (dw::core::style::DwLength *dest,
    } else if (cpp_cssLengthType(value) == CSS_LENGTH_TYPE_AUTO) {
       *dest = createAutoLength();
       return true;
-   } else if (computeAbsoluteLengthValue (&v, value, &font->font_attrs, 0, layout->dpiX(), layout->dpiY())) {
+   } else if ((bool) hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(value), cpp_cssLengthType(value), &font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &v)) {
       *dest = createAbsoluteDwLength (v);
       return true;
    }
@@ -797,7 +789,7 @@ void StyleEngine::computeBorderWidth (int *dest, c_css_declaration_t * decl, dw:
       }
    } else {
       CssLength cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-      computeAbsoluteLengthValue (dest, cssLength, &font->font_attrs, 0, layout->dpiX(), layout->dpiY());
+      hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &font->font_attrs, 0, layout->dpiX(), layout->dpiY(), dest);
    }
 }
 
