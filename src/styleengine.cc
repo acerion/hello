@@ -396,39 +396,6 @@ void setFontFamily(c_font_attrs_t * font_attrs, c_css_value_t * c_value, c_prefs
    }
 }
 
-// https://developer.mozilla.org/pl/docs/Web/CSS/font-style
-// https://www.w3schools.com/cssref/pr_font_font-style.asp
-void setFontStyle(c_font_attrs_t * font_attrs, c_css_value_t * c_value)
-{
-   font_attrs->style = (FontStyle) c_value->c_int_val;
-}
-
-void setFontLetterSpacing(c_font_attrs_t * font_attrs, c_font_attrs_t * parent_font_attrs, c_css_value_t * c_value, float dpiX, float dpiY)
-{
-   if (c_value->c_type_tag == CssDeclarationValueTypeENUM) {
-      if (c_value->c_int_val == CSS_LETTER_SPACING_NORMAL) {
-         font_attrs->letterSpacing = 0;
-      }
-   } else {
-      CssLength cssLength = cpp_cssCreateLength(c_value->c_length_val, (CssLengthType) c_value->c_length_type);
-      hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), parent_font_attrs, parent_font_attrs->size, dpiX, dpiY, &font_attrs->letterSpacing);
-   }
-
-   /* Limit letterSpacing to reasonable values to avoid overflows e.g,
-    * when measuring word width.
-    */
-   if (font_attrs->letterSpacing > 1000)
-      font_attrs->letterSpacing = 1000;
-   else if (font_attrs->letterSpacing < -1000)
-      font_attrs->letterSpacing = -1000;
-}
-
-// https://www.w3schools.com/cssref/pr_font_font-variant.asp
-void setFontVariant(c_font_attrs_t * font_attrs, c_css_value_t * c_value)
-{
-   font_attrs->fontVariant = (FontVariant) c_value->c_int_val;
-}
-
 /**
  * \brief Make changes to StyleAttrs attrs according to c_css_declaration_set_t props.
  */
@@ -436,7 +403,6 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 {
    FontAttrs fontAttrs = *attrs->font;
    Font *parentFont = styleNodesStack[some_idx - 1].style->font;
-   int lineHeight;
    DilloUrl *imgUrl = NULL;
 
    /* Determine font first so it can be used to resolve relative lengths. */
@@ -451,16 +417,16 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             hll_setFontSize(decl->c_value, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
             break;
          case CSS_PROPERTY_FONT_STYLE:
-            setFontStyle(&fontAttrs.font_attrs, decl->c_value);
+            hll_setFontStyle(&fontAttrs.font_attrs, decl->c_value);
             break;
          case CSS_PROPERTY_FONT_WEIGHT:
             hll_setFontWeight(&fontAttrs.font_attrs, decl->c_value);
             break;
          case CSS_PROPERTY_LETTER_SPACING:
-            setFontLetterSpacing(&fontAttrs.font_attrs, &parentFont->font_attrs, decl->c_value, layout->dpiX(), layout->dpiY());
+            hll_setFontLetterSpacing(decl->c_value, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
             break;
          case CSS_PROPERTY_FONT_VARIANT:
-            setFontVariant(&fontAttrs.font_attrs, decl->c_value);
+            hll_setFontVariant(&fontAttrs.font_attrs, decl->c_value);
             break;
          default:
             break;
@@ -564,6 +530,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
                attrs->lineHeight = createAutoLength();
             } else if (decl->c_value->c_type_tag == CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER) {
 
+               int lineHeight;
                CssLength cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
                if (cpp_cssLengthType(cssLength) == CSS_LENGTH_TYPE_NONE) {
                   attrs->lineHeight = createPercentageDwLength(cpp_cssLengthValue(cssLength));

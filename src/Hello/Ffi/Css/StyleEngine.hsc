@@ -71,6 +71,9 @@ foreign export ccall "hll_styleEngineComputeAbsoluteLengthValue" hll_styleEngine
 
 foreign export ccall "hll_setFontWeight" hll_setFontWeight :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
 foreign export ccall "hll_setFontSize" hll_setFontSize :: Ptr FfiCssValue -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
+foreign export ccall "hll_setFontStyle" hll_setFontStyle :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
+foreign export ccall "hll_setFontLetterSpacing" hll_setFontLetterSpacing :: Ptr FfiCssValue -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
+foreign export ccall "hll_setFontVariant" hll_setFontVariant :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
 
 
 
@@ -243,12 +246,12 @@ peekFontAttrs ptrStructFontAttrs = do
 pokeFontAttrs :: FontAttrs -> Ptr FfiFontAttrs -> IO ()
 pokeFontAttrs fontAttrs ptrStructFontAttrs = do
 
-  let size = fromIntegral . fontSize $ fontAttrs
+  let size   = fromIntegral . fontSize $ fontAttrs
   let weight = fromIntegral . fontWeight $ fontAttrs
   name <- newCString . T.unpack . fontName $ fontAttrs
   let variant = fromIntegral . fontVariant $ fontAttrs
-  let style = fromIntegral . fontStyle $ fontAttrs
-  let height = fromIntegral . fontXHeight $ fontAttrs
+  let style   = fromIntegral . fontStyle $ fontAttrs
+  let height  = fromIntegral . fontXHeight $ fontAttrs
   let spacing = fromIntegral . fontLetterSpacing $ fontAttrs
 
   poke ptrStructFontAttrs $ FfiFontAttrs size weight name variant style height spacing
@@ -288,4 +291,57 @@ hll_setFontSize ptrStructCssValue ptrStructPreferences dpiX dpiY ptrStructParent
       pokeFontAttrs attrs ptrStructFontAttrs
       return ()
     otherwise  -> return ()
+
+
+
+
+hll_setFontStyle :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
+hll_setFontStyle ptrStructFontAttrs ptrStructCssValue = do
+  ffiCssValue <- peek ptrStructCssValue
+  value       <- peekCssValue ffiCssValue
+  fontAttrs   <- peekFontAttrs ptrStructFontAttrs
+
+  let fontAttrs' = styleEngineSetFontStyle value fontAttrs
+
+  case fontAttrs' of
+    Just attrs -> do
+      pokeFontAttrs attrs ptrStructFontAttrs
+      return ()
+    otherwise  -> return ()
+
+
+
+
+hll_setFontLetterSpacing :: Ptr FfiCssValue -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
+hll_setFontLetterSpacing ptrStructCssValue dpiX dpiY ptrStructParentFontAttrs ptrStructFontAttrs = do
+  ffiCssValue <- peek ptrStructCssValue
+  value       <- peekCssValue ffiCssValue
+  fontAttrs   <- peekFontAttrs ptrStructFontAttrs
+  parentFontAttrs   <- peekFontAttrs ptrStructParentFontAttrs
+
+  let fontAttrs' = styleEngineSetFontLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs
+
+  case fontAttrs' of
+    Just attrs -> do
+      pokeFontAttrs attrs ptrStructFontAttrs
+      return ()
+    otherwise  -> return ()
+
+
+
+
+hll_setFontVariant :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
+hll_setFontVariant ptrStructFontAttrs ptrStructCssValue = do
+  ffiCssValue <- peek ptrStructCssValue
+  value       <- peekCssValue ffiCssValue
+  fontAttrs   <- peekFontAttrs ptrStructFontAttrs
+
+  let fontAttrs' = styleEngineSetFontVariant value fontAttrs
+
+  case fontAttrs' of
+    Just attrs -> do
+      pokeFontAttrs attrs ptrStructFontAttrs
+      return ()
+    otherwise  -> return ()
+
 

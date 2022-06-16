@@ -38,6 +38,9 @@ module Hello.Css.StyleEngine
   , styleEngineSetFontWeight
   , styleEngineSetFontSize
   , styleEngineSetFontSize'
+  , styleEngineSetFontStyle
+  , styleEngineSetFontLetterSpacing
+  , styleEngineSetFontVariant
   )
 where
 
@@ -258,4 +261,68 @@ fontSizeToAbs' :: Maybe FontSize -> Preferences -> Float -> Float -> FontAttrs -
 fontSizeToAbs' input prefs dpiX dpiY fontAttrs parentFontAttrs = case input of
                                                                    Just s -> fontSizeToAbs s prefs dpiX dpiY fontAttrs parentFontAttrs
                                                                    otherwise -> Nothing
+
+
+
+
+-- https://developer.mozilla.org/pl/docs/Web/CSS/font-style
+-- https://www.w3schools.com/cssref/pr_font_font-style.asp
+styleEngineSetFontStyle :: CssValue -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontStyle value fontAttrs = case value of
+                                            CssValueTypeEnum idx -> Just $ fontAttrs { fontStyle = idx }
+                                            otherwise            -> Nothing
+
+
+
+
+css_LETTER_SPACING_NORMAL = 0
+
+styleEngineSetFontLetterSpacing :: CssValue -> Float -> Float -> FontAttrs -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs = clipSpacing . setSpacing $ fontAttrs
+  where
+    setSpacing fontAttrs = case value of
+                             CssValueTypeEnum idx | idx == css_LETTER_SPACING_NORMAL -> Just $ fontAttrs { fontLetterSpacing = 0 }
+                                                  | otherwise  -> Just fontAttrs
+                             CssValueTypeSignedLength distance -> case size of
+                                                                    Just s  -> Just $ fontAttrs { fontLetterSpacing = roundInt s }
+                                                                    Nothing -> Nothing
+                               where
+                                 size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue dpiX dpiY
+                                 referenceValue = fontSize parentFontAttrs
+                             otherwise                         -> Nothing
+
+    --Limit letterSpacing to reasonable values to avoid overflows e.g, when
+    --measuring word width.
+    clipSpacing = fmap clipFunction
+    clipFunction a | fontLetterSpacing a < -1000 = a { fontLetterSpacing = -1000 }
+                   | fontLetterSpacing a >  1000 = a { fontLetterSpacing =  1000 }
+                   | otherwise                   = a
+
+{-
+void setFontLetterSpacing(c_font_attrs_t * font_attrs, c_font_attrs_t * parent_font_attrs, c_css_value_t * c_value, float dpiX, float dpiY)
+{
+   if (c_value->c_type_tag == CssDeclarationValueTypeENUM) {
+      if (c_value->c_int_val == CSS_LETTER_SPACING_NORMAL) {
+         font_attrs->letterSpacing = 0;
+      }
+   } else {
+      CssLength cssLength = cpp_cssCreateLength(c_value->c_length_val, (CssLengthType) c_value->c_length_type);
+      hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), parent_font_attrs, parent_font_attrs->size, dpiX, dpiY, &font_attrs->letterSpacing);
+   }
+
+
+   if (font_attrs->letterSpacing > 1000)
+      font_attrs->letterSpacing = 1000;
+   else if (font_attrs->letterSpacing < -1000)
+      font_attrs->letterSpacing = -1000;
+}
+
+-}
+
+-- https://www.w3schools.com/cssref/pr_font_font-variant.asp
+styleEngineSetFontVariant :: CssValue -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontVariant value fontAttrs = case value of
+                                              CssValueTypeEnum idx -> Just $ fontAttrs { fontVariant = idx }
+                                              otherwise            -> Nothing
+
 

@@ -158,10 +158,6 @@ typedef enum {
 } CssBorderWidthExtensions;
 
 typedef enum {
-   CSS_LETTER_SPACING_NORMAL
-} CssLetterSpacingExtensions;
-
-typedef enum {
    CSS_WORD_SPACING_NORMAL
 } CssWordSpacingExtensions;
 
