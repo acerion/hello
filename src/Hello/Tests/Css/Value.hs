@@ -329,7 +329,7 @@ tokenAsValueStringListTestManualData = [
                 , remainderBefore2 = ",tuesday, wednesday , thursday; next-property"
                 , remainderAfter2  = " next-property"
                 , tokenAfter2 = CssTokSemicolon
-                , expectedCssValue2 = Just (CssValueTypeStringList "monday,tuesday,wednesday,thursday")
+                , expectedCssValue2 = Just (CssValueTypeStringList ["monday", "tuesday", "wednesday", "thursday"])
                 }
   , AsTestData2 { testedFunction2 = tokensAsValueStringList
                 , enums2 = [] -- Doesn't matter for this tested function.
@@ -337,7 +337,7 @@ tokenAsValueStringListTestManualData = [
                 , remainderBefore2 = "; next-property"
                 , remainderAfter2  = " next-property"
                 , tokenAfter2 = CssTokSemicolon
-                , expectedCssValue2 = Just (CssValueTypeStringList "monday")
+                , expectedCssValue2 = Just (CssValueTypeStringList ["monday"])
                 }
 
   -- Hash token won't be interpreted as valid token for a list, and none of

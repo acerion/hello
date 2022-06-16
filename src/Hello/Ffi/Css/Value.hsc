@@ -62,7 +62,7 @@ makeValue valType intVal textVal lengthVal lengthType | valType ==  0 = CssValue
                                                       | valType ==  8 = CssValueTypeColor intVal
                                                       | valType ==  9 = CssValueTypeFontWeight intVal
                                                       | valType == 10 = CssValueTypeString textVal
-                                                      | valType == 11 = CssValueTypeStringList textVal
+                                                      | valType == 11 = CssValueTypeStringList [textVal]
                                                       | valType == 12 = CssValueTypeURI textVal
                                                       | valType == 13 = CssValueTypeBgPosition
                                                       | otherwise = CssValueTypeUnused

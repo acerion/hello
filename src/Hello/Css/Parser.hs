@@ -178,14 +178,11 @@ data CssValue =
   | CssValueTypeColor Int           -- Represented as integer.
   | CssValueTypeFontWeight Int      -- This very special and only used by 'font-weight'
   | CssValueTypeString T.Text       -- <string>
-  | CssValueTypeStringList T.Text   -- List of symbols, which are directly
+  | CssValueTypeStringList [T.Text] -- List of symbols, which are directly
                                     -- copied (as opposed to
                                     -- CSS_PROPERTY_DATA_TYPE_ENUM and
                                     -- CSS_PROPERTY_DATA_TYPE_MULTI_ENUM).
-                                    -- Used for 'font-family'. TODO: this
-                                    -- should really be a Haskell list. No
-                                    -- need to deconstruct the string to a
-                                    -- list later.
+                                    -- Used for 'font-family'.
   | CssValueTypeURI T.Text          -- <uri>
   | CssValueTypeBgPosition          -- TODO: add values to this constructor
   | CssValueTypeUnused              -- Not yet used. Will itself get unused some day.
@@ -919,7 +916,7 @@ tokensAsValueStringList (parser, token) enums = asList (parser, token) []
     asList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
     asList (p, (CssTokIdent sym)) acc = asList (nextToken1 p) (sym:acc)
     asList (p, (CssTokStr str)) acc   = asList (nextToken1 p) (str:acc)
-    asList (p, (CssTokComma)) acc     = asList (nextToken1 p) (",":acc)
+    asList (p, (CssTokComma)) acc     = asList (nextToken1 p) acc
     asList (p, t@(CssTokSemicolon)) acc       = final (p, t) acc
     asList (p, t@(CssTokBraceCurlyClose)) acc = final (p, t) acc
     asList (p, t@(CssTokEnd)) acc     = final (p, t) acc
@@ -927,7 +924,7 @@ tokensAsValueStringList (parser, token) enums = asList (parser, token) []
 
     final (p, t) acc = if 0 == length acc
                        then ((p, t), Nothing)
-                       else ((p, t), Just (CssValueTypeStringList . T.concat . reverse $ acc))
+                       else ((p, t), Just (CssValueTypeStringList . reverse $ acc))
 
 
 
