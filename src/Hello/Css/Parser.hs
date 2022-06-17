@@ -109,6 +109,13 @@ module Hello.Css.Parser(
                        , consumeFunctionBody
 
                        , getTopCompound
+
+                       , cssDeclPropertyFontFamily
+                       , cssDeclPropertyFontSize
+                       , cssDeclPropertyFontStyle
+                       , cssDeclPropertyFontVariant
+                       , cssDeclPropertyFontWeight
+                       , cssDeclPropertyLetterSpacing
                        )
   where
 
@@ -233,7 +240,7 @@ cssDeclPropertyFontVariant = 37
 cssDeclPropertyFontWeight = 38
 cssDeclPropertyHeight = 39
 cssDeclPropertyLeft = 40
-cssDeclPropertyLetterSpacing = 41
+cssDeclPropertyLetterSpacing :: Int = 41
 cssDeclPropertyLineHeight = 42
 cssDeclPropertyListStyleImage = 43
 cssDeclPropertyListStylePosition = 44

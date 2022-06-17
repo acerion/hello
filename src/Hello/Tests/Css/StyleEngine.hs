@@ -21,6 +21,7 @@ where
 
 
 import qualified Data.Text as T
+import qualified Data.Sequence as S
 import Test.HUnit
 
 import Hello.Css.Distance
@@ -28,6 +29,7 @@ import Hello.Css.Parser
 import Hello.Css.StyleEngine
 import Hello.Css.Tokenizer
 
+import Hello.Preferences
 import Hello.Utils
 
 
@@ -179,7 +181,7 @@ makeFontAttrs size xHeight = defaultFontAttrs { fontSize = size, fontXHeight = x
 
 
 
-  -- On success return empty string. On failure return string representation of
+-- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
 computeAbsoluteLengthValueTest :: [ValueTestType] -> Maybe T.Text
 computeAbsoluteLengthValueTest []     = Nothing
@@ -192,10 +194,481 @@ computeAbsoluteLengthValueTest (x:xs) = if expected /= styleEngineComputeAbsolut
 
 
 
-testCases = [
-  -- If some error is found, test function returns some data (e.g. non-empty
-  -- string or test index) which can help identify which test failed.
-     TestCase (do assertEqual "manual tests of css distance absolute value"            Nothing (computeAbsoluteLengthValueTest computeAbsoluteLengthValueTestData))
+-------------------------------------------------------
+
+
+
+
+data ApplyToFontTestData = ApplyToFontTestData
+  {
+    testDeclSet :: CssDeclarationSet
+  , testPrefs   :: Preferences
+  , testDpiX    :: Float
+  , testDpiY    :: Float
+  , testParentFontAttrs :: FontAttrs
+  , testFontAttrs       :: FontAttrs
+  , testOutFontAttrs    :: FontAttrs
+  } deriving (Show)
+
+
+
+
+styleEngineApplyStyleToFontTestData =
+  [
+    -- weight
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 38, declValue = CssValueTypeEnum 0, important = False}]} -- font weight, 0 == bold
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 700, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    -- variant
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 37, declValue = CssValueTypeEnum 1, important = False}]} -- font variant
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 1, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    -- family
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 32, declValue = CssValueTypeStringList ["serif"], important = False}]} -- font family
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Serif", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    -- size, with standard font factor
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 33, declValue = CssValueTypeEnum 6, important = False}]} -- font size, 6 == xx-small, 8.1 * prefs.prefsFontFactor
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 8, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    -- size, with increased font factor
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 33, declValue = CssValueTypeEnum 6, important = False}]} -- font size, 6 == xx-small, 8.1 * prefs.prefsFontFactor
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 2.0 -- increased from 2.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 16, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    -- size, clipped from bottom (prefxFontMinSize)
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 33, declValue = CssValueTypeEnum 6, important = False}]} -- font size, 6 == xx-small, 8.1 * prefs.prefsFontFactor
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 12  -- this will clip value from 8 to 12
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 12, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    -- size, clipped from top (prefxFontMaxSize)
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 33, declValue = CssValueTypeEnum 5, important = False}]} -- font size, 5 == xx-large, 24.2 * prefs.prefsFontFactor
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 17} -- this will clip value from 24 to 17
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 17, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+
+
+
+    -- letter spacing
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 41, declValue = CssValueTypeSignedLength (CssDistanceAbsPx 5.0), important = False}]} -- letter spacing
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 5}
+    }
+    ,
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 41, declValue = CssValueTypeSignedLength (CssDistanceAbsPx 2.0), important = False}
+                                                               , CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]} -- letter spacing
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 2}
+    }
+    ,
+
+
+
+    -- font style
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclaration {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclaration {property = 36, declValue = CssValueTypeEnum 2, important = False}]} -- font style
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 2, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+    ,
+
+
+
+    -- Just some random tests from some webpage
+
+
+
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclaration {property = 38, declValue = CssValueTypeEnum 1, important = False}]} -- font weight, 1 == bolder
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 700, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 38, declValue = CssValueTypeEnum 1, important = False} -- font weight, 1 == bolder
+                                                               , CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 33, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 2.0), important = False} -- font size
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.67), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 28, fontWeight = 700, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 38, declValue = CssValueTypeEnum 1, important = False} -- font weight, 1 == bolder
+                                                               , CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 33, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.75), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 21, fontWeight = 700, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclaration {property = 32, declValue = CssValueTypeStringList ["monospace"], important = False}]} -- font family
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans Mono", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList
+                                                              [
+                                                                CssDeclaration {property = 32, declValue = CssValueTypeStringList ["monospace"], important = False} -- font family
+                                                              , CssDeclaration {property = 33, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
+                                                              ]}
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 21, fontWeight = 400, fontName = "DejaVu Sans Mono", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 38, declValue = CssValueTypeEnum 1, important = False} -- font weight, 1 == bolder
+                                                               , CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 33, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.75), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 21, fontWeight = 700, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ,
+    ApplyToFontTestData
+    {
+      testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
+                                                               [
+                                                                 CssDeclaration {property = 38, declValue = CssValueTypeFontWeight 600, important = False} -- font weight, specific value
+                                                               , CssDeclaration {property = 29, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclaration {property = 33, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
+                                                               , CssDeclaration {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.75), important = False}
+                                                               , CssDeclaration {property = 46, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
+    , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
+                              , prefsFontSansSerif = "DejaVu Sans"
+                              , prefsFontCursive = "URW Chancery L"
+                              , prefsFontFantasy = "DejaVu Sans"
+                              , prefsFontMonospace = "DejaVu Sans Mono"
+                              , prefsFontFactor = 1.0
+                              , prefsFontMinSize = 6
+                              , prefsFontMaxSize = 100}
+    , testDpiX = 141.76744
+    , testDpiY = 141.40207
+    , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    , testOutFontAttrs    = FontAttrs {fontSize = 21, fontWeight = 600, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
+    }
+  ]
+
+
+
+
+-- On success return empty string. On failure return string representation of
+-- remainder string in a row, for which test failed.
+styleEngineApplyStyleToFontTest :: [ApplyToFontTestData] -> Maybe T.Text
+styleEngineApplyStyleToFontTest []     = Nothing
+styleEngineApplyStyleToFontTest (x:xs) = if expected /= styleEngineApplyStyleToFont (testDeclSet x) (testPrefs x) (testDpiX x) (testDpiY x) (testParentFontAttrs x) (testFontAttrs x)
+                                         then Just . T.pack . show $ x
+                                         else styleEngineApplyStyleToFontTest xs
+  where
+    expected = testOutFontAttrs x
+
+
+
+
+-------------------------------------------------------
+
+
+
+
+testCases =
+  [
+    -- If some error is found, test function returns some data (e.g. non-empty
+    -- string or test index) which can help identify which test failed.
+    TestCase (do assertEqual "manual tests of css distance absolute value"            Nothing (computeAbsoluteLengthValueTest computeAbsoluteLengthValueTestData))
+  , TestCase (do assertEqual "manual tests of css applyint style to font"             Nothing (styleEngineApplyStyleToFontTest styleEngineApplyStyleToFontTestData))
   ]
 
 

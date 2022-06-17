@@ -367,32 +367,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    DilloUrl *imgUrl = NULL;
 
    /* Determine font first so it can be used to resolve relative lengths. */
-   for (int d_idx = 0; d_idx < declList->c_declarations_size; d_idx++) {
-      c_css_declaration_t * decl = declList->c_declarations[d_idx];
-
-      switch (decl->c_property) {
-         case CSS_PROPERTY_FONT_FAMILY:
-            hll_setFontFamily(decl->c_value, &prefs.preferences, &fontAttrs.font_attrs);
-            break;
-         case CSS_PROPERTY_FONT_SIZE:
-            hll_setFontSize(decl->c_value, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
-            break;
-         case CSS_PROPERTY_FONT_STYLE:
-            hll_setFontStyle(&fontAttrs.font_attrs, decl->c_value);
-            break;
-         case CSS_PROPERTY_FONT_WEIGHT:
-            hll_setFontWeight(&fontAttrs.font_attrs, decl->c_value);
-            break;
-         case CSS_PROPERTY_LETTER_SPACING:
-            hll_setFontLetterSpacing(decl->c_value, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
-            break;
-         case CSS_PROPERTY_FONT_VARIANT:
-            hll_setFontVariant(&fontAttrs.font_attrs, decl->c_value);
-            break;
-         default:
-            break;
-      }
-   }
+   hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
 
    attrs->font = Font::create (layout, &fontAttrs);
 

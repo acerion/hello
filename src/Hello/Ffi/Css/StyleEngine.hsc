@@ -76,6 +76,7 @@ foreign export ccall "hll_setFontStyle" hll_setFontStyle :: Ptr FfiFontAttrs -> 
 foreign export ccall "hll_setFontLetterSpacing" hll_setFontLetterSpacing :: Ptr FfiCssValue -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
 foreign export ccall "hll_setFontVariant" hll_setFontVariant :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
 
+foreign export ccall "hll_styleEngineApplyStyleToFont" hll_styleEngineApplyStyleToFont :: Ptr FfiCssDeclarationSet -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
 
 
 hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
@@ -316,7 +317,7 @@ hll_setFontLetterSpacing ptrStructCssValue dpiX dpiY ptrStructParentFontAttrs pt
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
   parentFontAttrs   <- peekFontAttrs ptrStructParentFontAttrs
 
-  let fontAttrs' = styleEngineSetFontLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs
+  let fontAttrs' = styleEngineSetLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs
   pokeFontAttrs fontAttrs' ptrStructFontAttrs
 
 
@@ -332,4 +333,15 @@ hll_setFontVariant ptrStructFontAttrs ptrStructCssValue = do
   pokeFontAttrs fontAttrs' ptrStructFontAttrs
 
 
+
+
+hll_styleEngineApplyStyleToFont :: Ptr FfiCssDeclarationSet -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
+hll_styleEngineApplyStyleToFont ptrStructDeclSet ptrStructPrefs dpiX dpiY ptrStructParentFontAttrs ptrStructFontAttrs = do
+  declSet         <- peekCssDeclarationSet ptrStructDeclSet
+  prefs           <- peekPreferences ptrStructPrefs
+  fontAttrs       <- peekFontAttrs ptrStructFontAttrs
+  parentFontAttrs <- peekFontAttrs ptrStructParentFontAttrs
+
+  let fontAttrs' = styleEngineApplyStyleToFont declSet prefs dpiX dpiY parentFontAttrs fontAttrs
+  pokeFontAttrs fontAttrs' ptrStructFontAttrs
 

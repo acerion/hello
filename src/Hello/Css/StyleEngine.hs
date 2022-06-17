@@ -24,8 +24,7 @@ Copyright assignments from the file:
 
 
 
-{-# LANGUAGE OverloadedStrings #-}
-
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
 
 
@@ -36,12 +35,14 @@ module Hello.Css.StyleEngine
   , FontAttrs (..)
   , defaultFontAttrs
 
+  , styleEngineApplyStyleToFont
+
   , styleEngineSetFontFamily
   , styleEngineSetFontWeight
   , styleEngineSetFontSize
   , styleEngineSetFontSize'
   , styleEngineSetFontStyle
-  , styleEngineSetFontLetterSpacing
+  , styleEngineSetLetterSpacing
   , styleEngineSetFontVariant
   )
 where
@@ -52,6 +53,7 @@ where
 import Prelude
 import Data.List
 import Data.Maybe
+import qualified Data.Sequence as S
 import qualified Data.Text as T
 import Debug.Trace
 
@@ -124,7 +126,7 @@ data FontAttrs = FontAttrs
 
   , fontXHeight       :: Int
   , fontLetterSpacing :: Int
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 
 
@@ -300,8 +302,8 @@ styleEngineSetFontStyle value fontAttrs = case value of
 
 css_LETTER_SPACING_NORMAL = 0
 
-styleEngineSetFontLetterSpacing :: CssValue -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
-styleEngineSetFontLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs = clipSpacing . setSpacing $ fontAttrs
+styleEngineSetLetterSpacing :: CssValue -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
+styleEngineSetLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs = clipSpacing . setSpacing $ fontAttrs
   where
     setSpacing :: FontAttrs -> FontAttrs
     setSpacing fontAttrs = case value of
@@ -322,31 +324,36 @@ styleEngineSetFontLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs = clip
                   | fontLetterSpacing a >  1000 = a { fontLetterSpacing =  1000 }
                   | otherwise                   = a
 
-{-
-void setFontLetterSpacing(c_font_attrs_t * font_attrs, c_font_attrs_t * parent_font_attrs, c_css_value_t * c_value, float dpiX, float dpiY)
-{
-   if (c_value->c_type_tag == CssDeclarationValueTypeENUM) {
-      if (c_value->c_int_val == CSS_LETTER_SPACING_NORMAL) {
-         font_attrs->letterSpacing = 0;
-      }
-   } else {
-      CssLength cssLength = cpp_cssCreateLength(c_value->c_length_val, (CssLengthType) c_value->c_length_type);
-      hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), parent_font_attrs, parent_font_attrs->size, dpiX, dpiY, &font_attrs->letterSpacing);
-   }
 
 
-   if (font_attrs->letterSpacing > 1000)
-      font_attrs->letterSpacing = 1000;
-   else if (font_attrs->letterSpacing < -1000)
-      font_attrs->letterSpacing = -1000;
-}
-
--}
 
 -- https://www.w3schools.com/cssref/pr_font_font-variant.asp
 styleEngineSetFontVariant :: CssValue -> FontAttrs -> FontAttrs
 styleEngineSetFontVariant value fontAttrs = case value of
                                               CssValueTypeEnum idx -> fontAttrs { fontVariant = idx }
                                               otherwise            -> fontAttrs
+
+
+
+
+
+styleEngineApplyStyleToFont :: CssDeclarationSet -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
+styleEngineApplyStyleToFont declSet prefs dpiX dpiY parentFontAttrs fontAttrs = apply (items declSet) prefs dpiX dpiY parentFontAttrs fontAttrs
+  where
+    apply :: S.Seq CssDeclaration -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
+    apply decls prefs dpiX dpiY parentFontAttrs fontAttrs =
+      case S.null decls of
+        True -> fontAttrs
+        False  | property x == cssDeclPropertyFontFamily    {- 32 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
+               | property x == cssDeclPropertyFontSize      {- 33 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontSize' value prefs dpiX dpiY parentFontAttrs fontAttrs
+               | property x == cssDeclPropertyFontStyle     {- 36 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontStyle value fontAttrs
+               | property x == cssDeclPropertyFontVariant   {- 37 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontVariant value fontAttrs
+               | property x == cssDeclPropertyFontWeight    {- 38 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontWeight value fontAttrs
+               | property x == cssDeclPropertyLetterSpacing {- 41 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs
+               | otherwise                                  -> apply xs prefs dpiX dpiY parentFontAttrs $ fontAttrs
+          where
+            x  :: CssDeclaration       = S.index decls 0
+            xs :: S.Seq CssDeclaration = S.drop 1 decls
+            value :: CssValue = declValue x
 
 
