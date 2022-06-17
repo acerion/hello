@@ -147,20 +147,20 @@ defaultFontAttrs = FontAttrs
 
 -- https://www.w3schools.com/cssref/pr_font_font-family.asp
 -- https://developer.mozilla.org/pl/docs/Web/CSS/font-family
-styleEngineSetFontFamily :: CssValue -> Preferences -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontFamily :: CssValue -> Preferences -> FontAttrs -> FontAttrs
 styleEngineSetFontFamily value prefs fontAttrs = case value of
                                                    CssValueTypeStringList xs -> setName xs prefs fontAttrs
-                                                   otherwise                 -> Nothing
+                                                   otherwise                 -> fontAttrs
 
   where
-    setName (x:xs) prefs fontAttrs | x == "serif"      = Just $ fontAttrs { fontName = prefsFontSerif prefs }
-                                   | x == "sans-serif" = Just $ fontAttrs { fontName = prefsFontSansSerif prefs }
-                                   | x == "cursive"    = Just $ fontAttrs { fontName = prefsFontCursive prefs }
-                                   | x == "fantasy"    = Just $ fontAttrs { fontName = prefsFontFantasy prefs }
-                                   | x == "monospace"  = Just $ fontAttrs { fontName = prefsFontMonospace prefs }
-                                   | fontExists x      = Just $ fontAttrs { fontName = x }
+    setName (x:xs) prefs fontAttrs | x == "serif"      = fontAttrs { fontName = prefsFontSerif prefs }
+                                   | x == "sans-serif" = fontAttrs { fontName = prefsFontSansSerif prefs }
+                                   | x == "cursive"    = fontAttrs { fontName = prefsFontCursive prefs }
+                                   | x == "fantasy"    = fontAttrs { fontName = prefsFontFantasy prefs }
+                                   | x == "monospace"  = fontAttrs { fontName = prefsFontMonospace prefs }
+                                   | fontExists x      = fontAttrs { fontName = x }
                                    | otherwise         = setName xs prefs fontAttrs
-    setName [] _ _                                     = Nothing
+    setName [] _ _                                     = fontAttrs
 
     -- TODO: implement lookup of font name in Operating System. In dillo this
     -- has been done through Font::exists(layout, c_value->c_text_val).
@@ -172,28 +172,26 @@ styleEngineSetFontFamily value prefs fontAttrs = case value of
 
 
 
-styleEngineSetFontWeight :: CssValue -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontWeight :: CssValue -> FontAttrs -> FontAttrs
 styleEngineSetFontWeight value attrs = clipWeight . setWeight $ attrs
   where
     setWeight attrs = case value of
                         CssValueTypeEnum       i -> byEnum attrs i
                         -- Per Parser.hs, a special type for weight. TODO: do we need this type?
-                        CssValueTypeFontWeight i -> Just attrs { fontWeight = i }
-                        otherwise                -> Nothing
-
-    clipWeight = fmap clipFunction
+                        CssValueTypeFontWeight i -> attrs { fontWeight = i }
+                        otherwise                -> attrs
 
     -- TODO: the limit may be 1000, not 900.
-    clipFunction a | fontWeight a < 100 = a { fontWeight = 100 }
-                   | fontWeight a > 900 = a { fontWeight = 900 }
-                   | otherwise          = a
+    clipWeight a | fontWeight a < 100 = a { fontWeight = 100 }
+                 | fontWeight a > 900 = a { fontWeight = 900 }
+                 | otherwise          = a
 
-    byEnum attrs i | i == css_FONT_WEIGHT_BOLD    = Just $ attrs { fontWeight = 700 }
-                   | i == css_FONT_WEIGHT_BOLDER  = Just $ attrs { fontWeight = (fontWeight attrs) + 300 }
-                   | i == css_FONT_WEIGHT_LIGHT   = Just $ attrs { fontWeight = 100 }
-                   | i == css_FONT_WEIGHT_LIGHTER = Just $ attrs { fontWeight = (fontWeight attrs) - 300 }
-                   | i == css_FONT_WEIGHT_NORMAL  = Just $ attrs { fontWeight = 400 }
-                   | otherwise                    = Nothing
+    byEnum attrs i | i == css_FONT_WEIGHT_BOLD    = attrs { fontWeight = 700 }
+                   | i == css_FONT_WEIGHT_BOLDER  = attrs { fontWeight = (fontWeight attrs) + 300 }
+                   | i == css_FONT_WEIGHT_LIGHT   = attrs { fontWeight = 100 }
+                   | i == css_FONT_WEIGHT_LIGHTER = attrs { fontWeight = (fontWeight attrs) - 300 }
+                   | i == css_FONT_WEIGHT_NORMAL  = attrs { fontWeight = 400 }
+                   | otherwise                    = attrs
 
 
 
@@ -222,7 +220,7 @@ css_FONT_SIZE_X_SMALL  = 8
 
 
 
-styleEngineSetFontSize' :: CssValue -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontSize' :: CssValue -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
 styleEngineSetFontSize' value prefs dpiX dpiY parentFontAttrs fontAttrs = styleEngineSetFontSize input prefs dpiX dpiY parentFontAttrs fontAttrs
   where
     input = case value of
@@ -245,19 +243,18 @@ styleEngineSetFontSize' value prefs dpiX dpiY parentFontAttrs fontAttrs = styleE
 
 -- https://developer.mozilla.org/pl/docs/Web/CSS/font-size
 -- https://www.w3schools.com/cssref/pr_font_font-size.asp
-styleEngineSetFontSize :: Maybe FontSize -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontSize :: Maybe FontSize -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
 styleEngineSetFontSize input prefs dpiX dpiY parentFontAttrs fontAttrs = clipSize (setAbsSize input fontAttrs)
   where
-    setAbsSize :: Maybe FontSize -> FontAttrs -> Maybe FontAttrs
+    setAbsSize :: Maybe FontSize -> FontAttrs -> FontAttrs
     setAbsSize input fontAttrs = case fontSizeToAbs' input prefs dpiX dpiY fontAttrs parentFontAttrs of
-                                   Just size -> Just $ fontAttrs { fontSize = size }
-                                   otherwise -> Nothing
+                                   Just size -> fontAttrs { fontSize = size }
+                                   otherwise -> fontAttrs
 
-    clipSize = fmap clipFunction
-    clipFunction :: FontAttrs -> FontAttrs
-    clipFunction attrs | fontSize fontAttrs < prefsFontMinSize prefs = attrs { fontSize = prefsFontMinSize prefs }
-                       | fontSize fontAttrs > prefsFontMaxSize prefs = attrs { fontSize = prefsFontMaxSize prefs }
-                       | otherwise                                   = attrs
+    clipSize :: FontAttrs -> FontAttrs
+    clipSize a | fontSize a < prefsFontMinSize prefs = a { fontSize = prefsFontMinSize prefs }
+               | fontSize a > prefsFontMaxSize prefs = a { fontSize = prefsFontMaxSize prefs }
+               | otherwise                           = a
 
 
 
@@ -293,36 +290,37 @@ fontSizeToAbs' input prefs dpiX dpiY fontAttrs parentFontAttrs = case input of
 
 -- https://developer.mozilla.org/pl/docs/Web/CSS/font-style
 -- https://www.w3schools.com/cssref/pr_font_font-style.asp
-styleEngineSetFontStyle :: CssValue -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontStyle :: CssValue -> FontAttrs -> FontAttrs
 styleEngineSetFontStyle value fontAttrs = case value of
-                                            CssValueTypeEnum idx -> Just $ fontAttrs { fontStyle = idx }
-                                            otherwise            -> Nothing
+                                            CssValueTypeEnum idx -> fontAttrs { fontStyle = idx }
+                                            otherwise            -> fontAttrs
 
 
 
 
 css_LETTER_SPACING_NORMAL = 0
 
-styleEngineSetFontLetterSpacing :: CssValue -> Float -> Float -> FontAttrs -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontLetterSpacing :: CssValue -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
 styleEngineSetFontLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs = clipSpacing . setSpacing $ fontAttrs
   where
+    setSpacing :: FontAttrs -> FontAttrs
     setSpacing fontAttrs = case value of
-                             CssValueTypeEnum idx | idx == css_LETTER_SPACING_NORMAL -> Just $ fontAttrs { fontLetterSpacing = 0 }
-                                                  | otherwise  -> Just fontAttrs
+                             CssValueTypeEnum idx | idx == css_LETTER_SPACING_NORMAL -> fontAttrs { fontLetterSpacing = 0 }
+                                                  | otherwise                        -> fontAttrs
                              CssValueTypeSignedLength distance -> case size of
-                                                                    Just s  -> Just $ fontAttrs { fontLetterSpacing = roundInt s }
-                                                                    Nothing -> Nothing
+                                                                    Just s  -> fontAttrs { fontLetterSpacing = roundInt s }
+                                                                    Nothing -> fontAttrs
                                where
                                  size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue dpiX dpiY
                                  referenceValue = fontSize parentFontAttrs
-                             otherwise                         -> Nothing
+                             otherwise                         -> fontAttrs
 
     --Limit letterSpacing to reasonable values to avoid overflows e.g, when
     --measuring word width.
-    clipSpacing = fmap clipFunction
-    clipFunction a | fontLetterSpacing a < -1000 = a { fontLetterSpacing = -1000 }
-                   | fontLetterSpacing a >  1000 = a { fontLetterSpacing =  1000 }
-                   | otherwise                   = a
+    clipSpacing :: FontAttrs -> FontAttrs
+    clipSpacing a | fontLetterSpacing a < -1000 = a { fontLetterSpacing = -1000 }
+                  | fontLetterSpacing a >  1000 = a { fontLetterSpacing =  1000 }
+                  | otherwise                   = a
 
 {-
 void setFontLetterSpacing(c_font_attrs_t * font_attrs, c_font_attrs_t * parent_font_attrs, c_css_value_t * c_value, float dpiX, float dpiY)
@@ -346,9 +344,9 @@ void setFontLetterSpacing(c_font_attrs_t * font_attrs, c_font_attrs_t * parent_f
 -}
 
 -- https://www.w3schools.com/cssref/pr_font_font-variant.asp
-styleEngineSetFontVariant :: CssValue -> FontAttrs -> Maybe FontAttrs
+styleEngineSetFontVariant :: CssValue -> FontAttrs -> FontAttrs
 styleEngineSetFontVariant value fontAttrs = case value of
-                                              CssValueTypeEnum idx -> Just $ fontAttrs { fontVariant = idx }
-                                              otherwise            -> Nothing
+                                              CssValueTypeEnum idx -> fontAttrs { fontVariant = idx }
+                                              otherwise            -> fontAttrs
 
 

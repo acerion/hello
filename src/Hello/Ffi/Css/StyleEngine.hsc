@@ -246,7 +246,6 @@ peekFontAttrs ptrStructFontAttrs = do
 
 pokeFontAttrs :: FontAttrs -> Ptr FfiFontAttrs -> IO ()
 pokeFontAttrs fontAttrs ptrStructFontAttrs = do
-
   let size   = fromIntegral . fontSize $ fontAttrs
   let weight = fromIntegral . fontWeight $ fontAttrs
   name <- newCString . T.unpack . fontName $ fontAttrs
@@ -268,13 +267,7 @@ hll_setFontFamily ptrStructCssValue ptrStructPreferences ptrStructFontAttrs = do
   prefs       <- peekPreferences ptrStructPreferences
 
   let fontAttrs' = styleEngineSetFontFamily value prefs fontAttrs
-
-  case fontAttrs' of
-    Just attrs -> do
-      pokeFontAttrs attrs ptrStructFontAttrs
-      return ()
-    otherwise  -> return ()
-
+  pokeFontAttrs fontAttrs' ptrStructFontAttrs
 
 
 
@@ -285,12 +278,7 @@ hll_setFontWeight ptrStructFontAttrs ptrStructCssValue = do
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
 
   let fontAttrs' = styleEngineSetFontWeight value fontAttrs
-
-  case fontAttrs' of
-    Just attrs -> do
-      pokeFontAttrs attrs ptrStructFontAttrs
-      return ()
-    otherwise  -> return ()
+  pokeFontAttrs fontAttrs' ptrStructFontAttrs
 
 
 
@@ -304,12 +292,7 @@ hll_setFontSize ptrStructCssValue ptrStructPreferences dpiX dpiY ptrStructParent
   prefs       <- peekPreferences ptrStructPreferences
 
   let fontAttrs' = styleEngineSetFontSize' value prefs dpiX dpiY parentFontAttrs fontAttrs
-
-  case fontAttrs' of
-    Just attrs -> do
-      pokeFontAttrs attrs ptrStructFontAttrs
-      return ()
-    otherwise  -> return ()
+  pokeFontAttrs fontAttrs' ptrStructFontAttrs
 
 
 
@@ -321,12 +304,7 @@ hll_setFontStyle ptrStructFontAttrs ptrStructCssValue = do
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
 
   let fontAttrs' = styleEngineSetFontStyle value fontAttrs
-
-  case fontAttrs' of
-    Just attrs -> do
-      pokeFontAttrs attrs ptrStructFontAttrs
-      return ()
-    otherwise  -> return ()
+  pokeFontAttrs fontAttrs' ptrStructFontAttrs
 
 
 
@@ -339,12 +317,7 @@ hll_setFontLetterSpacing ptrStructCssValue dpiX dpiY ptrStructParentFontAttrs pt
   parentFontAttrs   <- peekFontAttrs ptrStructParentFontAttrs
 
   let fontAttrs' = styleEngineSetFontLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs
-
-  case fontAttrs' of
-    Just attrs -> do
-      pokeFontAttrs attrs ptrStructFontAttrs
-      return ()
-    otherwise  -> return ()
+  pokeFontAttrs fontAttrs' ptrStructFontAttrs
 
 
 
@@ -356,11 +329,7 @@ hll_setFontVariant ptrStructFontAttrs ptrStructCssValue = do
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
 
   let fontAttrs' = styleEngineSetFontVariant value fontAttrs
+  pokeFontAttrs fontAttrs' ptrStructFontAttrs
 
-  case fontAttrs' of
-    Just attrs -> do
-      pokeFontAttrs attrs ptrStructFontAttrs
-      return ()
-    otherwise  -> return ()
 
 
