@@ -59,6 +59,7 @@ arr = np.array((
     ["2022-04-03",     30071,     18442,      2732],
     ["2022-05-23",     29913,     18428,      3101],
     ["2022-05-30",     29660,     18412,      3183],
+    ["2022-06-17",     29573,     18385,      3457],
 ))
 
 
@@ -74,7 +75,7 @@ total    = np.add(np.add(lang_cpp, lang_c), lang_hs)
 
 
 plt.plot(dates, lang_cpp, color='red',      label='C++')
-plt.plot(dates, lang_c,   color='green',    label='C')
+plt.plot(dates, lang_c,   color='orange',   label='C')
 plt.plot(dates, lang_hs,  color='blue',     label='Haskell')
 plt.plot(dates, total,    color='silver',   label='Total')
 
