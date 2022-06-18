@@ -44,6 +44,12 @@ module Hello.Css.StyleEngine
   , styleEngineSetFontStyle
   , styleEngineSetLetterSpacing
   , styleEngineSetFontVariant
+
+  , styleEngineComputeBorderWidth
+  , CssBorderWidth (..)
+  , styleEngineSetBorderWidth
+  , CssBorderStyle (..)
+  , styleEngineSetBorderStyle
   )
 where
 
@@ -356,4 +362,82 @@ styleEngineApplyStyleToFont declSet prefs dpiX dpiY parentFontAttrs fontAttrs = 
             xs :: S.Seq CssDeclaration = S.drop 1 decls
             value :: CssValue = declValue x
 
+
+
+
+css_BORDER_WIDTH_THIN   = 0
+css_BORDER_WIDTH_MEDIUM = 1
+css_BORDER_WIDTH_THICK  = 2
+
+styleEngineComputeBorderWidth :: CssValue -> Float -> Float -> FontAttrs -> Maybe Int
+styleEngineComputeBorderWidth value dpiX dpiY fontAttrs =
+  case value of
+    CssValueTypeEnum i | i == css_BORDER_WIDTH_THIN   -> Just 1
+                       | i == css_BORDER_WIDTH_MEDIUM -> Just 2
+                       | i == css_BORDER_WIDTH_THICK  -> Just 3
+                       | otherwise                    -> Nothing
+    CssValueTypeLength distance -> fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY
+                                   -- TODO: re-think value returned by
+                                   -- styleEngineComputeAbsoluteLengthValue:
+                                   -- it most probably should be Int, not
+                                   -- Float. Then the Float->int conversion
+                                   -- won't be necessary.
+    otherwise                   -> Nothing
+
+
+
+
+
+data CssBorderStyle = CssBorderStyle
+  {
+    borderStyleTop    :: Int
+  , borderStyleRight  :: Int
+  , borderStyleBottom :: Int
+  , borderStyleLeft   :: Int
+  } deriving (Show)
+
+
+-- TODO: in dillo the borderWidth variables were of type Box. The comment for
+-- Box type was:
+--
+-- "Represents a dimension box according to the CSS box model."
+data CssBorderWidth = CssBorderWidth
+  {
+    borderWidthTop    :: Int
+  , borderWidthRight  :: Int
+  , borderWidthBottom :: Int
+  , borderWidthLeft   :: Int
+  } deriving (Show)
+
+
+
+
+styleEngineSetBorderStyle :: Int -> CssValue -> CssBorderStyle -> CssBorderStyle
+styleEngineSetBorderStyle property value borderStyle
+  | property == cssDeclPropertyBorderTopStyle    = borderStyle { borderStyleTop    = style }
+  | property == cssDeclPropertyBorderRightStyle  = borderStyle { borderStyleRight  = style }
+  | property == cssDeclPropertyBorderBottomStyle = borderStyle { borderStyleBottom = style }
+  | property == cssDeclPropertyBorderLeftStyle   = borderStyle { borderStyleLeft   = style }
+  | otherwise                                    = borderStyle
+  where
+    style = case value of
+              CssValueTypeEnum i -> i
+              otherwise          -> 0
+
+
+
+
+styleEngineSetBorderWidth :: Int -> CssValue -> Float -> Float -> FontAttrs -> CssBorderWidth -> CssBorderWidth
+styleEngineSetBorderWidth property value dpiX dpiY fontAttrs borderWidth
+  | property == cssDeclPropertyBorderTopWidth    = borderWidth { borderWidthTop    = width }
+  | property == cssDeclPropertyBorderRightWidth  = borderWidth { borderWidthRight  = width }
+  | property == cssDeclPropertyBorderBottomWidth = borderWidth { borderWidthBottom = width }
+  | property == cssDeclPropertyBorderLeftWidth   = borderWidth { borderWidthLeft   = width }
+  | otherwise                                    = borderWidth
+  where
+    width = case styleEngineComputeBorderWidth value dpiX dpiY fontAttrs of
+              -- TODO: another place where Maybe returned by Compute function
+              -- causes unnecessary trouble.
+              Just x  -> x
+              Nothing -> 0
 

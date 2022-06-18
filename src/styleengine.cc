@@ -420,29 +420,18 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             attrs->borderColor.right = (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) ? NULL :
                                        Color::create (layout, decl->c_value->c_int_val);
             break;
+
          case CSS_PROPERTY_BORDER_BOTTOM_STYLE:
-            attrs->borderStyle.bottom = (BorderStyle) decl->c_value->c_int_val;
-            break;
          case CSS_PROPERTY_BORDER_LEFT_STYLE:
-            attrs->borderStyle.left = (BorderStyle) decl->c_value->c_int_val;
-            break;
          case CSS_PROPERTY_BORDER_RIGHT_STYLE:
-            attrs->borderStyle.right = (BorderStyle) decl->c_value->c_int_val;
-            break;
          case CSS_PROPERTY_BORDER_TOP_STYLE:
-            attrs->borderStyle.top = (BorderStyle) decl->c_value->c_int_val;
+            hll_styleEngineSetBorderStyle(decl->c_property, decl->c_value, &attrs->borderStyle);
             break;
          case CSS_PROPERTY_BORDER_BOTTOM_WIDTH:
-            computeBorderWidth (&attrs->borderWidth.bottom, decl, attrs->font);
-            break;
          case CSS_PROPERTY_BORDER_LEFT_WIDTH:
-            computeBorderWidth (&attrs->borderWidth.left, decl, attrs->font);
-            break;
          case CSS_PROPERTY_BORDER_RIGHT_WIDTH:
-            computeBorderWidth (&attrs->borderWidth.right, decl, attrs->font);
-            break;
          case CSS_PROPERTY_BORDER_TOP_WIDTH:
-            computeBorderWidth (&attrs->borderWidth.top, decl, attrs->font);
+            hll_styleEngineSetBorderWidth(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), &attrs->borderWidth);
             break;
          case CSS_PROPERTY_BORDER_SPACING:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
@@ -625,28 +614,6 @@ bool StyleEngine::computeDwLength (dw::core::style::DwLength *dest,
    }
 
    return false;
-}
-
-void StyleEngine::computeBorderWidth (int *dest, c_css_declaration_t * decl, dw::core::style::Font *font)
-{
-   if (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) {
-      switch (decl->c_value->c_int_val) {
-         case CSS_BORDER_WIDTH_THIN:
-            *dest = 1;
-            break;
-         case CSS_BORDER_WIDTH_MEDIUM:
-            *dest = 2;
-            break;
-         case CSS_BORDER_WIDTH_THICK:
-            *dest = 3;
-            break;
-         default:
-            assert(false);
-      }
-   } else {
-      CssLength cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-      hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &font->font_attrs, 0, layout->dpiX(), layout->dpiY(), dest);
-   }
 }
 
 /**

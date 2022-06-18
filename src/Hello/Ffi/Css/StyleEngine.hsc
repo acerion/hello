@@ -78,6 +78,12 @@ foreign export ccall "hll_setFontVariant" hll_setFontVariant :: Ptr FfiFontAttrs
 
 foreign export ccall "hll_styleEngineApplyStyleToFont" hll_styleEngineApplyStyleToFont :: Ptr FfiCssDeclarationSet -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
 
+foreign export ccall "hll_styleEngineComputeBorderWidth" hll_styleEngineComputeBorderWidth :: Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
+foreign export ccall "hll_styleEngineSetBorderWidth" hll_styleEngineSetBorderWidth :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiCssBorderWidth -> IO ()
+foreign export ccall "hll_styleEngineSetBorderStyle" hll_styleEngineSetBorderStyle :: CInt -> Ptr FfiCssValue -> Ptr FfiCssBorderStyle -> IO ()
+
+
+
 
 hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
 hll_makeCssDeclaration cProperty ptrFfiCssValue = do
@@ -344,4 +350,166 @@ hll_styleEngineApplyStyleToFont ptrStructDeclSet ptrStructPrefs dpiX dpiY ptrStr
 
   let fontAttrs' = styleEngineApplyStyleToFont declSet prefs dpiX dpiY parentFontAttrs fontAttrs
   pokeFontAttrs fontAttrs' ptrStructFontAttrs
+
+
+
+
+
+hll_styleEngineComputeBorderWidth :: Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
+hll_styleEngineComputeBorderWidth ptrStructCssValue ptrStructFontAttrs dpiX dpiY  = do
+  ffiCssValue <- peek ptrStructCssValue
+  value       <- peekCssValue ffiCssValue
+  fontAttrs   <- peekFontAttrs ptrStructFontAttrs
+
+  case styleEngineComputeBorderWidth value dpiX dpiY fontAttrs of
+    Just x    -> return x
+    otherwise -> return 0
+
+
+
+
+
+data FfiCssBorderStyle = FfiCssBorderStyle
+  {
+    cBorderStyleTop    :: CInt
+  , cBorderStyleRight  :: CInt
+  , cBorderStyleBottom :: CInt
+  , cBorderStyleLeft   :: CInt
+  } deriving (Show)
+
+
+
+
+instance Storable FfiCssBorderStyle where
+  sizeOf    _ = #{size c_border_style_t}
+  alignment _ = #{alignment c_border_style_t}
+
+  poke ptr (FfiCssBorderStyle t r b l) = do
+    #{poke c_border_style_t, top}    ptr t
+    #{poke c_border_style_t, right}  ptr r
+    #{poke c_border_style_t, bottom} ptr b
+    #{poke c_border_style_t, left}   ptr l
+
+
+  peek ptr = do
+    t <- #{peek c_border_style_t, top} ptr
+    r <- #{peek c_border_style_t, right}  ptr
+    b <- #{peek c_border_style_t, bottom} ptr
+    l <- #{peek c_border_style_t, left} ptr
+    return (FfiCssBorderStyle t r b l)
+
+
+
+
+peekBorderStyle :: Ptr FfiCssBorderStyle -> IO CssBorderStyle
+peekBorderStyle ptrStructBorderStyle = do
+  ffiStyle <- peek ptrStructBorderStyle
+  return CssBorderStyle
+    {
+      borderStyleTop    = fromIntegral . cBorderStyleTop    $ ffiStyle
+    , borderStyleRight  = fromIntegral . cBorderStyleRight  $ ffiStyle
+    , borderStyleBottom = fromIntegral . cBorderStyleBottom $ ffiStyle
+    , borderStyleLeft   = fromIntegral . cBorderStyleLeft   $ ffiStyle
+    }
+
+
+
+
+pokeBorderStyle :: CssBorderStyle -> Ptr FfiCssBorderStyle -> IO ()
+pokeBorderStyle style ptrStructBorderStyle = do
+  let top    = fromIntegral . borderStyleTop    $ style
+  let right  = fromIntegral . borderStyleRight  $ style
+  let bottom = fromIntegral . borderStyleBottom $ style
+  let left   = fromIntegral . borderStyleLeft   $ style
+
+  poke ptrStructBorderStyle $ FfiCssBorderStyle top right bottom left
+
+
+
+
+
+data FfiCssBorderWidth = FfiCssBorderWidth
+  {
+    cBorderWidthTop    :: CInt
+  , cBorderWidthRight  :: CInt
+  , cBorderWidthBottom :: CInt
+  , cBorderWidthLeft   :: CInt
+  } deriving (Show)
+
+
+
+
+
+instance Storable FfiCssBorderWidth where
+  sizeOf    _ = #{size c_border_style_t}
+  alignment _ = #{alignment c_border_style_t}
+
+  poke ptr (FfiCssBorderWidth t r b l) = do
+    #{poke c_border_style_t, top}    ptr t
+    #{poke c_border_style_t, right}  ptr r
+    #{poke c_border_style_t, bottom} ptr b
+    #{poke c_border_style_t, left}   ptr l
+
+
+  peek ptr = do
+    t <- #{peek c_border_style_t, top} ptr
+    r <- #{peek c_border_style_t, right}  ptr
+    b <- #{peek c_border_style_t, bottom} ptr
+    l <- #{peek c_border_style_t, left} ptr
+    return (FfiCssBorderWidth t r b l)
+
+
+
+
+peekBorderWidth :: Ptr FfiCssBorderWidth -> IO CssBorderWidth
+peekBorderWidth ptrStructBorderWidth = do
+  ffiWidth <- peek ptrStructBorderWidth
+  return CssBorderWidth
+    {
+      borderWidthTop    = fromIntegral . cBorderWidthTop    $ ffiWidth
+    , borderWidthRight  = fromIntegral . cBorderWidthRight  $ ffiWidth
+    , borderWidthBottom = fromIntegral . cBorderWidthBottom $ ffiWidth
+    , borderWidthLeft   = fromIntegral . cBorderWidthLeft   $ ffiWidth
+    }
+
+
+
+
+pokeBorderWidth :: CssBorderWidth -> Ptr FfiCssBorderWidth -> IO ()
+pokeBorderWidth style ptrStructBorderWidth = do
+  let top    = fromIntegral . borderWidthTop    $ style
+  let right  = fromIntegral . borderWidthRight  $ style
+  let bottom = fromIntegral . borderWidthBottom $ style
+  let left   = fromIntegral . borderWidthLeft   $ style
+
+  poke ptrStructBorderWidth $ FfiCssBorderWidth top right bottom left
+
+
+
+
+hll_styleEngineSetBorderWidth :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiCssBorderWidth -> IO ()
+hll_styleEngineSetBorderWidth cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpiY ptrStructBorderWidth = do
+  let property = fromIntegral cProperty
+  ffiCssValue <- peek ptrStructCssValue
+  value       <- peekCssValue ffiCssValue
+  fontAttrs   <- peekFontAttrs ptrStructFontAttrs
+  borderWidth <- peekBorderWidth ptrStructBorderWidth
+
+  let borderWidth' = styleEngineSetBorderWidth property value dpiX dpiY fontAttrs borderWidth
+
+  pokeBorderWidth borderWidth' ptrStructBorderWidth
+
+
+
+
+hll_styleEngineSetBorderStyle :: CInt -> Ptr FfiCssValue -> Ptr FfiCssBorderStyle -> IO ()
+hll_styleEngineSetBorderStyle cProperty ptrStructCssValue ptrStructBorderStyle = do
+  let property = fromIntegral cProperty
+  ffiCssValue <- peek ptrStructCssValue
+  value       <- peekCssValue ffiCssValue
+  borderStyle <- peekBorderStyle ptrStructBorderStyle
+
+  let borderStyle' = styleEngineSetBorderStyle property value borderStyle
+
+  pokeBorderStyle borderStyle' ptrStructBorderStyle
 

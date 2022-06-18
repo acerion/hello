@@ -48,7 +48,7 @@ int main(int argc, char **argv)
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
    styleAttrs.margin.setVal (5);
-   styleAttrs.borderWidth.setVal (2);
+   borderWidthSetVal(&styleAttrs.borderWidth, 2);
    styleAttrs.setBorderColor (Color::create (layout, 0xffffff));
    styleAttrs.setBorderStyle (BORDER_INSET);
    styleAttrs.padding.setVal (5);
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 
    styleAttrs.backgroundColor = Color::create (layout, 0xffff80);
    styleAttrs.margin.setVal (0);
-   styleAttrs.borderWidth.setVal (1);
+   borderWidthSetVal(&styleAttrs.borderWidth, 1);
    styleAttrs.setBorderColor (Color::create (layout, 0x4040ff));
    styleAttrs.setBorderStyle (BORDER_SOLID);
    styleAttrs.padding.setVal (1);
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 
    widgetStyle1->unref();
 
-   styleAttrs.borderWidth.setVal (0);
+   borderWidthSetVal(&styleAttrs.borderWidth, 0);
    styleAttrs.padding.setVal (0);
    styleAttrs.backgroundColor = NULL;
    styleAttrs.cursor = CURSOR_TEXT;

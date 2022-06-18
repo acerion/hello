@@ -110,12 +110,94 @@ module Hello.Css.Parser(
 
                        , getTopCompound
 
+                       , cssDeclPropertyBackgroundAttachment
+                       , cssDeclPropertyBackgroundColor
+                       , cssDeclPropertyBackgroundImage
+                       , cssDeclPropertyBackgroundPosition
+                       , cssDeclPropertyBackgroundRepeat
+                       , cssDeclPropertyBorderBottomColor
+                       , cssDeclPropertyBorderBottomStyle
+                       , cssDeclPropertyBorderBottomWidth
+                       , cssDeclPropertyBorderCollapse
+                       , cssDeclPropertyBorderLeftColor
+                       , cssDeclPropertyBorderLeftStyle
+                       , cssDeclPropertyBorderLeftWidth
+                       , cssDeclPropertyBorderRightColor
+                       , cssDeclPropertyBorderRightStyle
+                       , cssDeclPropertyBorderRightWidth
+                       , cssDeclPropertyBorderSpacing
+                       , cssDeclPropertyBorderTopColor
+                       , cssDeclPropertyBorderTopStyle
+                       , cssDeclPropertyBorderTopWidth
+                       , cssDeclPropertyBottom
+                       , cssDeclPropertyCaptionSide
+                       , cssDeclPropertyClear
+                       , cssDeclPropertyClip
+                       , cssDeclPropertyColor
+                       , cssDeclPropertyContent
+                       , cssDeclPropertyCounterIncrement
+                       , cssDeclPropertyCounterReset
+                       , cssDeclPropertyCursor
+                       , cssDeclPropertyDirection
+                       , cssDeclPropertyDisplay
+                       , cssDeclPropertyEmptyCells
+                       , cssDeclPropertyFloat
                        , cssDeclPropertyFontFamily
                        , cssDeclPropertyFontSize
+                       , cssDeclPropertyFontSizeAdjust
+                       , cssDeclPropertyFontStretch
                        , cssDeclPropertyFontStyle
                        , cssDeclPropertyFontVariant
                        , cssDeclPropertyFontWeight
+                       , cssDeclPropertyHeight
+                       , cssDeclPropertyLeft
                        , cssDeclPropertyLetterSpacing
+                       , cssDeclPropertyLineHeight
+                       , cssDeclPropertyListStyleImage
+                       , cssDeclPropertyListStylePosition
+                       , cssDeclPropertyListStyleType
+                       , cssDeclPropertyMarginBottom
+                       , cssDeclPropertyMarginLeft
+                       , cssDeclPropertyMarginRight
+                       , cssDeclPropertyMarginTop
+                       , cssDeclPropertyMarkerOffset
+                       , cssDeclPropertyMarks
+                       , cssDeclPropertyMaxHeight
+                       , cssDeclPropertyMaxWidth
+                       , cssDeclPropertyMinHeight
+                       , cssDeclPropertyMinWidth
+                       , cssDeclPropertyOutlineColor
+                       , cssDeclPropertyOutlineStyle
+                       , cssDeclPropertyOutlineWidth
+                       , cssDeclPropertyOverflow
+                       , cssDeclPropertyPaddingBottom
+                       , cssDeclPropertyPaddingLeft
+                       , cssDeclPropertyPaddingRight
+                       , cssDeclPropertyPaddingTop
+                       , cssDeclPropertyPosition
+                       , cssDeclPropertyQuotes
+                       , cssDeclPropertyRight
+                       , cssDeclPropertyTextAlign
+                       , cssDeclPropertyTextDecoration
+                       , cssDeclPropertyTextIndent
+                       , cssDeclPropertyTextShadow
+                       , cssDeclPropertyTextTransform
+                       , cssDeclPropertyTop
+                       , cssDeclPropertyUnicodeBiDi
+                       , cssDeclPropertyVerticalAlign
+                       , cssDeclPropertyVisibility
+                       , cssDeclPropertyWhitespace
+                       , cssDeclPropertyWidth
+                       , cssDeclPropertyWordSpacing
+                       , cssDeclPropertyZIndex
+                       , cssDeclPropertyXLink
+                       , cssDeclPropertyXColSpan
+                       , cssDeclPropertyXRowSpan
+                       , cssPropertyXLink
+                       , cssPropertyXLang
+                       , cssPropertyXImg
+                       , cssPropertyXTooltip
+                       , cssDeclProperty_LAST
                        )
   where
 
@@ -230,7 +312,7 @@ cssDeclPropertyCursor = 27
 cssDeclPropertyDirection = 28
 cssDeclPropertyDisplay = 29
 cssDeclPropertyEmptyCells = 30
-cssDeclPropertyFlaot = 31
+cssDeclPropertyFloat = 31
 cssDeclPropertyFontFamily = 32
 cssDeclPropertyFontSize = 33
 cssDeclPropertyFontSizeAdjust = 34

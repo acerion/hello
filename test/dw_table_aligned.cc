@@ -48,7 +48,7 @@ int main(int argc, char **argv)
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
    styleAttrs.margin.setVal (5);
-   styleAttrs.borderWidth.setVal (1);
+   borderWidthSetVal(&styleAttrs.borderWidth, 1);
    styleAttrs.setBorderStyle (BORDER_OUTSET);
    styleAttrs.setBorderColor (Color::create (layout, 0x808080));
 
@@ -74,12 +74,12 @@ int main(int argc, char **argv)
 
    tableStyle->unref();
 
-   styleAttrs.borderWidth.setVal (1);
+   borderWidthSetVal(&styleAttrs.borderWidth, 1);
    styleAttrs.setBorderStyle (BORDER_INSET);
 
    Style *cellStyle = Style::create (&styleAttrs);
 
-   styleAttrs.borderWidth.setVal (0);
+   borderWidthSetVal(&styleAttrs.borderWidth, 0);
    styleAttrs.margin.setVal (0);
    styleAttrs.backgroundColor = NULL;
    styleAttrs.cursor = CURSOR_TEXT;

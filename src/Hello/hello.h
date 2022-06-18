@@ -12,6 +12,44 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+typedef struct {
+        int top; // TODO: use BorderStyle type instead of int
+        int right;
+        int bottom;
+        int left;
+} c_border_style_t;
+
+
+// TODO: in dillo the borderWidth variables were of type Box. The comment for
+// Box type was:
+//
+// Represents a dimension box according to the CSS box model.
+typedef struct {
+        int top; // TODO: use BorderStyle type instead of int
+        int right;
+        int bottom;
+        int left;
+} c_border_width_t;
+
+inline void borderWidthSetVal(c_border_width_t * w, int val)
+{
+        w->top = w->right = w->bottom = w->left = val;
+}
+inline int borderWidthHashValue(c_border_width_t * w)
+{
+        return w->top + w->right + w->bottom + w->left;
+}
+
+inline bool borderWidthEquals(c_border_width_t * w, c_border_width_t * other)
+{
+        return w->top == other->top &&
+                w->right == other->right &&
+                w->bottom == other->bottom &&
+                w->left == other->left;
+}
+
+
+
 
 typedef struct c_font_attrs_t {
         int size;
@@ -426,7 +464,9 @@ void hll_setFontVariant(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
 
 void hll_styleEngineApplyStyleToFont(c_css_declaration_set_t * declSet, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_font_attrs_t * fontAttrs);
 
-
+float hll_styleEngineComputeBorderWidth(c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY);
+void hll_styleEngineSetBorderWidth(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_border_width_t * borderWidth);
+void hll_styleEngineSetBorderStyle(int property, c_css_value_t * value, c_border_style_t * borderStyle);
 
 
 #ifdef __cplusplus

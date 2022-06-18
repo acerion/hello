@@ -80,7 +80,7 @@ int main(int argc, char **argv)
    styleAttrs.backgroundColor = Color::create (layout, 0xffff40);
    styleAttrs.setBorderColor (Color::create (layout, 0x000000));
    styleAttrs.setBorderStyle (BORDER_SOLID);
-   styleAttrs.borderWidth.setVal (1);
+   borderWidthSetVal(&styleAttrs.borderWidth, 1);
 
    Style *itemStyle = Style::create (&styleAttrs);
 

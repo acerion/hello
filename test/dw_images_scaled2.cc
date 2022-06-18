@@ -104,13 +104,13 @@ int main(int argc, char **argv)
    widgetStyle->unref();
 
    styleAttrs.margin.setVal (0);
-   styleAttrs.borderWidth.setVal (0);
+   borderWidthSetVal(&styleAttrs.borderWidth, 0);
    styleAttrs.padding.setVal (0);
    styleAttrs.backgroundColor = NULL;
 
    Style *wordStyle = Style::create (&styleAttrs);
 
-   styleAttrs.borderWidth.setVal (1);
+   borderWidthSetVal(&styleAttrs.borderWidth, 1);
    styleAttrs.setBorderColor (Color::create (layout, 0x000080));
    styleAttrs.setBorderStyle (BORDER_SOLID);
    styleAttrs.padding.setVal (1);
