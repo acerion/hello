@@ -31,6 +31,11 @@ typedef struct {
         int left;
 } c_border_width_t;
 
+typedef struct c_style_attrs_t {
+        c_border_style_t * c_border_style;
+        c_border_width_t * c_border_width;
+} c_style_attrs_t;
+
 inline void borderWidthSetVal(c_border_width_t * w, int val)
 {
         w->top = w->right = w->bottom = w->left = val;

@@ -366,6 +366,12 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    Font *parentFont = styleNodesStack[some_idx - 1].style->font;
    DilloUrl *imgUrl = NULL;
 
+   c_style_attrs_t * style_attrs = (c_style_attrs_t *) calloc(1, sizeof (c_style_attrs_t));
+   style_attrs->c_border_width = (c_border_width_t *) calloc(1, sizeof (c_border_width_t));
+   style_attrs->c_border_style = (c_border_style_t *) calloc(1, sizeof (c_border_style_t));
+   *(style_attrs->c_border_width) = attrs->borderWidth;
+   *(style_attrs->c_border_style) = attrs->borderStyle;
+
    /* Determine font first so it can be used to resolve relative lengths. */
    hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
 
@@ -425,13 +431,13 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_BORDER_LEFT_STYLE:
          case CSS_PROPERTY_BORDER_RIGHT_STYLE:
          case CSS_PROPERTY_BORDER_TOP_STYLE:
-            hll_styleEngineSetBorderStyle(decl->c_property, decl->c_value, &attrs->borderStyle);
+            hll_styleEngineSetBorderStyle(decl->c_property, decl->c_value, style_attrs->c_border_style);
             break;
          case CSS_PROPERTY_BORDER_BOTTOM_WIDTH:
          case CSS_PROPERTY_BORDER_LEFT_WIDTH:
          case CSS_PROPERTY_BORDER_RIGHT_WIDTH:
          case CSS_PROPERTY_BORDER_TOP_WIDTH:
-            hll_styleEngineSetBorderWidth(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), &attrs->borderWidth);
+            hll_styleEngineSetBorderWidth(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs->c_border_width);
             break;
          case CSS_PROPERTY_BORDER_SPACING:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
@@ -573,6 +579,13 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             break;
       }
    }
+
+   attrs->borderWidth = *(style_attrs->c_border_width);
+   attrs->borderStyle = *(style_attrs->c_border_style);
+   free(style_attrs->c_border_width);
+   free(style_attrs->c_border_style);
+   free(style_attrs);
+
 
    if (imgUrl && prefs.load_background_images &&
        !styleNodesStack[some_idx].displayNone &&
