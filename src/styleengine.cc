@@ -369,8 +369,12 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    c_style_attrs_t * style_attrs = (c_style_attrs_t *) calloc(1, sizeof (c_style_attrs_t));
    style_attrs->c_border_width = (c_border_width_t *) calloc(1, sizeof (c_border_width_t));
    style_attrs->c_border_style = (c_border_style_t *) calloc(1, sizeof (c_border_style_t));
+   style_attrs->c_margin = (c_style_margin_t *) calloc(1, sizeof (c_style_margin_t));
+   style_attrs->c_padding = (c_style_padding_t *) calloc(1, sizeof (c_style_padding_t));
    *(style_attrs->c_border_width) = attrs->borderWidth;
    *(style_attrs->c_border_style) = attrs->borderStyle;
+   *(style_attrs->c_margin) = attrs->margin;
+   *(style_attrs->c_padding) = attrs->padding;
 
    /* Determine font first so it can be used to resolve relative lengths. */
    hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
@@ -476,46 +480,20 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_LIST_STYLE_TYPE:
             attrs->listStyleType = (ListStyleType) decl->c_value->c_int_val;
             break;
+
          case CSS_PROPERTY_MARGIN_BOTTOM:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->margin.bottom);
-            if (attrs->margin.bottom < 0) // \todo fix negative margins in dw/*
-               attrs->margin.bottom = 0;
-            break;
          case CSS_PROPERTY_MARGIN_LEFT:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->margin.left);
-            if (attrs->margin.left < 0) // \todo fix negative margins in dw/*
-               attrs->margin.left = 0;
-            break;
          case CSS_PROPERTY_MARGIN_RIGHT:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->margin.right);
-            if (attrs->margin.right < 0) // \todo fix negative margins in dw/*
-               attrs->margin.right = 0;
-            break;
          case CSS_PROPERTY_MARGIN_TOP:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->margin.top);
-            if (attrs->margin.top < 0) // \todo fix negative margins in dw/*
-               attrs->margin.top = 0;
+            hll_styleEngineSetMargin(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs->c_margin);
             break;
          case CSS_PROPERTY_PADDING_TOP:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->padding.top);
-            break;
          case CSS_PROPERTY_PADDING_BOTTOM:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->padding.bottom);
-            break;
          case CSS_PROPERTY_PADDING_LEFT:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->padding.left);
-            break;
          case CSS_PROPERTY_PADDING_RIGHT:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->padding.right);
+            hll_styleEngineSetPadding(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs->c_padding);
             break;
+
          case CSS_PROPERTY_TEXT_ALIGN:
             attrs->textAlign = (TextAlignType) decl->c_value->c_int_val;
             break;
@@ -582,8 +560,12 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 
    attrs->borderWidth = *(style_attrs->c_border_width);
    attrs->borderStyle = *(style_attrs->c_border_style);
+   attrs->margin = *(style_attrs->c_margin);
+   attrs->padding = *(style_attrs->c_padding);
    free(style_attrs->c_border_width);
    free(style_attrs->c_border_style);
+   free(style_attrs->c_margin);
+   free(style_attrs->c_padding);
    free(style_attrs);
 
 

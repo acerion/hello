@@ -294,7 +294,7 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
    marginWidth = tableStyle->margin.top;
 
    collapseCellAttrs = *(html->styleEngine->getStyle (html->bw));
-   collapseCellAttrs.margin.setVal (0);
+   styleMarginSetVal(&collapseCellAttrs.margin, 0);
    collapseCellAttrs.borderWidth.left = 0;
    collapseCellAttrs.borderWidth.top = 0;
    collapseCellAttrs.borderWidth.right = borderWidth;
@@ -307,7 +307,7 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
    if (Html_table_get_border_model(html) != DILLO_HTML_TABLE_BORDER_COLLAPSE) {
       Html_table_set_border_model(html, DILLO_HTML_TABLE_BORDER_COLLAPSE);
       collapseTableAttrs = *tableStyle;
-      collapseTableAttrs.margin.setVal (marginWidth);
+      styleMarginSetVal(&collapseTableAttrs.margin, marginWidth);
       collapseTableAttrs.borderWidth.left = borderWidth;
       collapseTableAttrs.borderWidth.top = borderWidth;
       collapseTableAttrs.borderWidth.right = 0;
@@ -317,7 +317,7 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
       collapseTableAttrs.borderColor = collapseCellAttrs.borderColor;
       collapseTableAttrs.borderStyle = collapseCellAttrs.borderStyle;
       /* CSS2 17.6.2: table does not have padding (in collapsing mode) */
-      collapseTableAttrs.padding.setVal (0);
+      stylePaddingSetVal(&collapseTableAttrs.padding, 0);
       collapseStyle = Style::create(&collapseTableAttrs);
       ((dw::Table*)TopOfParsingStack(html)->table)->setStyle (collapseStyle);
    }
@@ -334,7 +334,7 @@ static void Html_set_separate_border_model(DilloHtml *html, Widget *col_tb)
 
    separateCellAttrs = *(html->styleEngine->getStyle (html->bw));
    /* CSS2 17.5: Internal table elements do not have margins */
-   separateCellAttrs.margin.setVal (0);
+   styleMarginSetVal(&separateCellAttrs.margin, 0);
    separateStyle = Style::create(&separateCellAttrs);
    col_tb->setStyle (separateStyle);
 }

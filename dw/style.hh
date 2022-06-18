@@ -554,11 +554,13 @@ public:
    int hBorderSpacing, vBorderSpacing, wordSpacing;
    DwLength width, height, lineHeight, textIndent;
 
-   Box margin, padding;
    BorderCollapse borderCollapse;
    struct { Color *top, *right, *bottom, *left; } borderColor;
+
    c_border_width_t borderWidth;
    c_border_style_t borderStyle;
+   c_style_margin_t margin;
+   c_style_padding_t padding;
 
    DisplayType display;
    WhiteSpace whiteSpace;

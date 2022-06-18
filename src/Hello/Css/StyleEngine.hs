@@ -50,6 +50,8 @@ module Hello.Css.StyleEngine
   , styleEngineSetBorderWidth
   , CssBorderStyle (..)
   , styleEngineSetBorderStyle
+  , styleEngineSetMargin
+  , styleEngineSetPadding
   )
 where
 
@@ -66,6 +68,7 @@ import Debug.Trace
 import Hello.Css.Distance
 import Hello.Css.Parser
 
+import Hello.Dw.Style
 import Hello.Preferences
 import Hello.Utils
 
@@ -440,4 +443,47 @@ styleEngineSetBorderWidth property value dpiX dpiY fontAttrs borderWidth
               -- causes unnecessary trouble.
               Just x  -> x
               Nothing -> 0
+
+
+
+
+styleEngineSetMargin :: Int -> CssValue -> Float -> Float -> FontAttrs -> StyleMargin -> StyleMargin
+styleEngineSetMargin property value dpiX dpiY fontAttrs margin
+  | property == cssDeclPropertyMarginBottom = margin { styleMarginBottom = clip m }
+  | property == cssDeclPropertyMarginLeft   = margin { styleMarginLeft   = clip m }
+  | property == cssDeclPropertyMarginRight  = margin { styleMarginRight  = clip m }
+  | property == cssDeclPropertyMarginTop    = margin { styleMarginTop    = clip m }
+  | otherwise                               = margin
+  where
+    clip x = if x > 0 then x else 0   -- TODO: fix negative margins in dw/*
+    m = case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+          -- TODO: another place where Maybe returned by Compute function
+          -- causes unnecessary trouble.
+          Just x  -> roundInt x
+          Nothing -> 0
+
+    distance = case value of
+                 CssValueTypeSignedLength d -> d
+                 CssValueTypeAuto d         -> d -- TODO: 'auto' appears to be handled incorrectly this function
+
+
+
+
+styleEngineSetPadding :: Int -> CssValue -> Float -> Float -> FontAttrs -> StylePadding -> StylePadding
+styleEngineSetPadding property value dpiX dpiY fontAttrs padding
+  | property == cssDeclPropertyPaddingBottom = padding { stylePaddingBottom = p }
+  | property == cssDeclPropertyPaddingLeft   = padding { stylePaddingLeft   = p }
+  | property == cssDeclPropertyPaddingRight  = padding { stylePaddingRight  = p }
+  | property == cssDeclPropertyPaddingTop    = padding { stylePaddingTop    = p }
+  | otherwise                                = padding
+  where
+    p = case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+          -- TODO: another place where Maybe returned by Compute function
+          -- causes unnecessary trouble.
+          Just x  -> roundInt x
+          Nothing -> 0
+
+    distance = case value of
+                 CssValueTypeLength d -> d
+
 

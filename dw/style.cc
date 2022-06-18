@@ -78,9 +78,9 @@ void StyleAttrs::initValues ()
    height = createAutoLength();
    lineHeight = createAutoLength();
    textIndent = createAutoLength();
-   margin.setVal (0);
+   styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
-   padding.setVal (0);
+   stylePaddingSetVal(&padding, 0);
    borderCollapse = BORDER_MODEL_SEPARATE;
    setBorderColor (NULL);
    setBorderStyle (BORDER_NONE);
@@ -112,9 +112,9 @@ void StyleAttrs::resetValues ()
    width = createAutoLength();
    height = createAutoLength();
 
-   margin.setVal (0);
+   styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
-   padding.setVal (0);
+   stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
    setBorderStyle (BORDER_NONE);
    hBorderSpacing = 0;
@@ -165,9 +165,11 @@ bool StyleAttrs::equals (object::Object *other) {
        height.dw_length_hash == otherAttrs->height.dw_length_hash &&
        lineHeight.dw_length_hash == otherAttrs->lineHeight.dw_length_hash &&
        textIndent.dw_length_hash == otherAttrs->textIndent.dw_length_hash &&
-       margin.equals (&otherAttrs->margin) &&
+
+       styleMarginEquals(&this->margin, &otherAttrs->margin) &&
        borderWidthEquals(&this->borderWidth, &otherAttrs->borderWidth) &&
-       padding.equals (&otherAttrs->padding) &&
+       stylePaddingEquals(&this->padding, &otherAttrs->padding) &&
+
        borderCollapse == otherAttrs->borderCollapse &&
        borderColor.top == otherAttrs->borderColor.top &&
        borderColor.right == otherAttrs->borderColor.right &&
@@ -210,9 +212,9 @@ int StyleAttrs::hashValue () {
       height.dw_length_hash +
       lineHeight.dw_length_hash +
       textIndent.dw_length_hash +
-      margin.hashValue () +
+      styleMarginHashValue(&this->margin) +
       borderWidthHashValue(&this->borderWidth) +
-      padding.hashValue () +
+      stylePaddingHashValue(&this->padding) +
       borderCollapse +
       (intptr_t) borderColor.top +
       (intptr_t) borderColor.right +

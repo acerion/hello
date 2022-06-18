@@ -25,16 +25,11 @@ typedef struct {
 //
 // Represents a dimension box according to the CSS box model.
 typedef struct {
-        int top; // TODO: use BorderStyle type instead of int
+        int top;
         int right;
         int bottom;
         int left;
 } c_border_width_t;
-
-typedef struct c_style_attrs_t {
-        c_border_style_t * c_border_style;
-        c_border_width_t * c_border_width;
-} c_style_attrs_t;
 
 inline void borderWidthSetVal(c_border_width_t * w, int val)
 {
@@ -44,7 +39,6 @@ inline int borderWidthHashValue(c_border_width_t * w)
 {
         return w->top + w->right + w->bottom + w->left;
 }
-
 inline bool borderWidthEquals(c_border_width_t * w, c_border_width_t * other)
 {
         return w->top == other->top &&
@@ -53,6 +47,76 @@ inline bool borderWidthEquals(c_border_width_t * w, c_border_width_t * other)
                 w->left == other->left;
 }
 
+
+
+
+
+// TODO: in dillo the margin variables were of type Box. The comment for
+// Box type was:
+//
+// Represents a dimension box according to the CSS box model.
+typedef struct c_style_margin_t {
+        int top;
+        int right;
+        int bottom;
+        int left;
+} c_style_margin_t;
+
+inline void styleMarginSetVal(c_style_margin_t * m, int val)
+{
+        m->top = m->right = m->bottom = m->left = val;
+}
+inline int styleMarginHashValue(c_style_margin_t * m)
+{
+        return m->top + m->right + m->bottom + m->left;
+}
+inline bool styleMarginEquals(c_style_margin_t * m, c_style_margin_t * other)
+{
+        return m->top == other->top &&
+                m->right == other->right &&
+                m->bottom == other->bottom &&
+                m->left == other->left;
+}
+
+
+
+
+// TODO: in dillo the padding variables were of type Box. The comment for
+// Box type was:
+//
+// Represents a dimension box according to the CSS box model.
+typedef struct c_style_padding_t {
+        int top;
+        int right;
+        int bottom;
+        int left;
+} c_style_padding_t;
+
+inline void stylePaddingSetVal(c_style_padding_t * p, int val)
+{
+        p->top = p->right = p->bottom = p->left = val;
+}
+inline int stylePaddingHashValue(c_style_padding_t * p)
+{
+        return p->top + p->right + p->bottom + p->left;
+}
+inline bool stylePaddingEquals(c_style_padding_t * p, c_style_padding_t * other)
+{
+        return p->top == other->top &&
+                p->right == other->right &&
+                p->bottom == other->bottom &&
+                p->left == other->left;
+}
+
+
+
+
+typedef struct c_style_attrs_t {
+        c_border_style_t * c_border_style;
+        c_border_width_t * c_border_width;
+        c_style_margin_t * c_margin;
+        c_style_padding_t * c_padding;
+} c_style_attrs_t;
 
 
 
@@ -472,6 +536,8 @@ void hll_styleEngineApplyStyleToFont(c_css_declaration_set_t * declSet, c_prefs_
 float hll_styleEngineComputeBorderWidth(c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY);
 void hll_styleEngineSetBorderWidth(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_border_width_t * borderWidth);
 void hll_styleEngineSetBorderStyle(int property, c_css_value_t * value, c_border_style_t * borderStyle);
+void hll_styleEngineSetMargin(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_style_margin_t * margin);
+void hll_styleEngineSetPadding(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_style_padding_t * padding);
 
 
 #ifdef __cplusplus

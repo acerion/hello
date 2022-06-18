@@ -49,6 +49,10 @@ import Hello.Css.Parser
 import Hello.Css.StyleEngine
 import Hello.Css.UserAgentStyle
 
+import Hello.Dw.Style
+
+import Hello.Ffi.Dw.Style
+
 import Hello.Ffi.Css.Context
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Css.Value
@@ -81,6 +85,8 @@ foreign export ccall "hll_styleEngineApplyStyleToFont" hll_styleEngineApplyStyle
 foreign export ccall "hll_styleEngineComputeBorderWidth" hll_styleEngineComputeBorderWidth :: Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
 foreign export ccall "hll_styleEngineSetBorderWidth" hll_styleEngineSetBorderWidth :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiCssBorderWidth -> IO ()
 foreign export ccall "hll_styleEngineSetBorderStyle" hll_styleEngineSetBorderStyle :: CInt -> Ptr FfiCssValue -> Ptr FfiCssBorderStyle -> IO ()
+foreign export ccall "hll_styleEngineSetMargin" hll_styleEngineSetMargin :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleMargin -> IO ()
+foreign export ccall "hll_styleEngineSetPadding" hll_styleEngineSetPadding :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStylePadding -> IO ()
 
 
 
@@ -512,4 +518,35 @@ hll_styleEngineSetBorderStyle cProperty ptrStructCssValue ptrStructBorderStyle =
   let borderStyle' = styleEngineSetBorderStyle property value borderStyle
 
   pokeBorderStyle borderStyle' ptrStructBorderStyle
+
+
+
+
+hll_styleEngineSetMargin :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleMargin -> IO ()
+hll_styleEngineSetMargin cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpiY ptrStructStyleMargin = do
+  let property = fromIntegral cProperty
+  ffiCssValue <- peek ptrStructCssValue
+  value       <- peekCssValue ffiCssValue
+  fontAttrs   <- peekFontAttrs ptrStructFontAttrs
+  margin      <- peekStyleMargin ptrStructStyleMargin
+
+  let margin' = styleEngineSetMargin property value dpiX dpiY fontAttrs margin
+
+  pokeStyleMargin margin' ptrStructStyleMargin
+
+
+
+
+hll_styleEngineSetPadding :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStylePadding -> IO ()
+hll_styleEngineSetPadding cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpiY ptrStructStylePadding = do
+  let property  = fromIntegral cProperty
+  ffiCssValue  <- peek ptrStructCssValue
+  value        <- peekCssValue ffiCssValue
+  fontAttrs    <- peekFontAttrs ptrStructFontAttrs
+  padding      <- peekStylePadding ptrStructStylePadding
+
+  let padding' = styleEngineSetPadding property value dpiX dpiY fontAttrs padding
+
+  pokeStylePadding padding' ptrStructStylePadding
+
 

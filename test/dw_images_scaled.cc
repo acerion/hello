@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   styleAttrs.margin.setVal (5);
+   styleMarginSetVal(&styleAttrs.margin, 5);
    styleAttrs.width = createPercentageDwLength (1.0);
    styleAttrs.height = createPercentageDwLength (1.0);
 
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 
    widgetStyle->unref();
 
-   styleAttrs.margin.setVal (0);
+   styleMarginSetVal(&styleAttrs.margin, 0);
    styleAttrs.backgroundColor = NULL;
 
    Style *imageStyle = Style::create (&styleAttrs);

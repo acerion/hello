@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   styleAttrs.margin.setVal (5);
+   styleMarginSetVal(&styleAttrs.margin, 5);
    styleAttrs.x_lang[0] = 'e';
    styleAttrs.x_lang[1] = 'n';
 
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 
    widgetStyle->unref();
 
-   styleAttrs.margin.setVal (0);
+   styleMarginSetVal(&styleAttrs.margin, 0);
    styleAttrs.backgroundColor = NULL;
    styleAttrs.backgroundImage = NULL;
 

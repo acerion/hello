@@ -12,6 +12,7 @@ all:
 	hsc2hs ./Ffi/Css/StyleEngine.hsc
 	hsc2hs ./Ffi/Css/StyleSheet.hsc
 	hsc2hs ./Ffi/Css/Value.hsc
+	hsc2hs ./Ffi/Dw/Style.hsc
 	hsc2hs ./Ffi/Gif.hsc
 	hsc2hs ./Ffi/Html/Attribute.hsc
 	hsc2hs ./Ffi/Html/Doctype.hsc
@@ -24,8 +25,10 @@ all:
 		-fwarn-incomplete-patterns \
 		./*.hs \
 		./Css/*.hs \
+		./Dw/*.hs \
 		./Ffi/*.hs \
 		./Ffi/Css/*.hs \
+		./Ffi/Dw/*.hs \
 		./Ffi/Html/*.hs \
 		./Html/*.hs \
 		./wrapper.o -lHSrts-ghc8.8.4
@@ -52,6 +55,7 @@ clean:
 	rm -f ./Ffi/Css/StyleEngine.hs
 	rm -f ./Ffi/Css/StyleSheet.hs
 	rm -f ./Ffi/Css/Value.hs
+	rm -f ./Ffi/Dw/Style.hs
 	rm -f ./Ffi/Gif.hs
 	rm -f ./Ffi/Html/Attribute.hs
 	rm -f ./Ffi/Html/Doctype.hs

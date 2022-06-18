@@ -104,12 +104,12 @@ int main(int argc, char **argv)
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
    styleAttrs.font = dw::core::style::Font::create (layout, &fontAttrs);
-   styleAttrs.margin.setVal (10);
+   styleMarginSetVal(&styleAttrs.margin, 10);
    styleAttrs.color = Color::create (layout, 0x000000);
    styleAttrs.backgroundColor = Color::create (layout, 0xffffff);
    Style *topWidgetStyle = Style::create (&styleAttrs);
 
-   styleAttrs.margin.setVal (0);
+   styleMarginSetVal(&styleAttrs.margin, 0);
    styleAttrs.margin.left = 30;
    styleAttrs.backgroundColor = NULL;
    Style *widgetStyle = Style::create (&styleAttrs);

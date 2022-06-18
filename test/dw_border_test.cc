@@ -47,11 +47,11 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   styleAttrs.margin.setVal (5);
+   styleMarginSetVal(&styleAttrs.margin, 5);
    borderWidthSetVal(&styleAttrs.borderWidth, 2);
    styleAttrs.setBorderColor (Color::create (layout, 0xffffff));
    styleAttrs.setBorderStyle (BORDER_INSET);
-   styleAttrs.padding.setVal (5);
+   stylePaddingSetVal(&styleAttrs.padding, 5);
 
    FontAttrs fontAttrs;
    fontAttrs.font_attrs.name = "Bitstream Charter";
@@ -68,11 +68,11 @@ int main(int argc, char **argv)
    Style *widgetStyle1 = Style::create (&styleAttrs);
 
    styleAttrs.backgroundColor = Color::create (layout, 0xffff80);
-   styleAttrs.margin.setVal (0);
+   styleMarginSetVal(&styleAttrs.margin, 0);
    borderWidthSetVal(&styleAttrs.borderWidth, 1);
    styleAttrs.setBorderColor (Color::create (layout, 0x4040ff));
    styleAttrs.setBorderStyle (BORDER_SOLID);
-   styleAttrs.padding.setVal (1);
+   stylePaddingSetVal(&styleAttrs.padding, 1);
 
    Style *widgetStyle2 = Style::create (&styleAttrs);
 
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
    widgetStyle1->unref();
 
    borderWidthSetVal(&styleAttrs.borderWidth, 0);
-   styleAttrs.padding.setVal (0);
+   stylePaddingSetVal(&styleAttrs.padding, 0);
    styleAttrs.backgroundColor = NULL;
    styleAttrs.cursor = CURSOR_TEXT;
 

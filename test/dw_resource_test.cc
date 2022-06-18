@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   styleAttrs.margin.setVal (5);
+   styleMarginSetVal(&styleAttrs.margin, 5);
 
    FontAttrs fontAttrs;
    fontAttrs.font_attrs.name = "Bitstream Charter";
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 
    widgetStyle->unref();
 
-   styleAttrs.margin.setVal (0);
+   styleMarginSetVal(&styleAttrs.margin, 0);
    styleAttrs.backgroundColor = NULL;
 
    widgetStyle = Style::create (&styleAttrs);
