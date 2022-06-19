@@ -46,9 +46,7 @@ module Hello.Css.StyleEngine
   , styleEngineSetFontVariant
 
   , styleEngineComputeBorderWidth
-  , CssBorderWidth (..)
   , styleEngineSetBorderWidth
-  , CssBorderStyle (..)
   , styleEngineSetBorderStyle
   , styleEngineSetMargin
   , styleEngineSetPadding
@@ -391,36 +389,12 @@ styleEngineComputeBorderWidth value dpiX dpiY fontAttrs =
 
 
 
-data CssBorderStyle = CssBorderStyle
-  {
-    borderStyleTop    :: Int
-  , borderStyleRight  :: Int
-  , borderStyleBottom :: Int
-  , borderStyleLeft   :: Int
-  } deriving (Show)
-
-
--- TODO: in dillo the borderWidth variables were of type Box. The comment for
--- Box type was:
---
--- "Represents a dimension box according to the CSS box model."
-data CssBorderWidth = CssBorderWidth
-  {
-    borderWidthTop    :: Int
-  , borderWidthRight  :: Int
-  , borderWidthBottom :: Int
-  , borderWidthLeft   :: Int
-  } deriving (Show)
-
-
-
-
-styleEngineSetBorderStyle :: Int -> CssValue -> CssBorderStyle -> CssBorderStyle
+styleEngineSetBorderStyle :: Int -> CssValue -> StyleBorderStyle -> StyleBorderStyle
 styleEngineSetBorderStyle property value borderStyle
-  | property == cssDeclPropertyBorderTopStyle    = borderStyle { borderStyleTop    = style }
-  | property == cssDeclPropertyBorderRightStyle  = borderStyle { borderStyleRight  = style }
-  | property == cssDeclPropertyBorderBottomStyle = borderStyle { borderStyleBottom = style }
-  | property == cssDeclPropertyBorderLeftStyle   = borderStyle { borderStyleLeft   = style }
+  | property == cssDeclPropertyBorderTopStyle    = borderStyle { styleBorderStyleTop    = style }
+  | property == cssDeclPropertyBorderRightStyle  = borderStyle { styleBorderStyleRight  = style }
+  | property == cssDeclPropertyBorderBottomStyle = borderStyle { styleBorderStyleBottom = style }
+  | property == cssDeclPropertyBorderLeftStyle   = borderStyle { styleBorderStyleLeft   = style }
   | otherwise                                    = borderStyle
   where
     style = case value of
@@ -430,12 +404,12 @@ styleEngineSetBorderStyle property value borderStyle
 
 
 
-styleEngineSetBorderWidth :: Int -> CssValue -> Float -> Float -> FontAttrs -> CssBorderWidth -> CssBorderWidth
+styleEngineSetBorderWidth :: Int -> CssValue -> Float -> Float -> FontAttrs -> StyleBorderWidth -> StyleBorderWidth
 styleEngineSetBorderWidth property value dpiX dpiY fontAttrs borderWidth
-  | property == cssDeclPropertyBorderTopWidth    = borderWidth { borderWidthTop    = width }
-  | property == cssDeclPropertyBorderRightWidth  = borderWidth { borderWidthRight  = width }
-  | property == cssDeclPropertyBorderBottomWidth = borderWidth { borderWidthBottom = width }
-  | property == cssDeclPropertyBorderLeftWidth   = borderWidth { borderWidthLeft   = width }
+  | property == cssDeclPropertyBorderTopWidth    = borderWidth { styleBorderWidthTop    = width }
+  | property == cssDeclPropertyBorderRightWidth  = borderWidth { styleBorderWidthRight  = width }
+  | property == cssDeclPropertyBorderBottomWidth = borderWidth { styleBorderWidthBottom = width }
+  | property == cssDeclPropertyBorderLeftWidth   = borderWidth { styleBorderWidthLeft   = width }
   | otherwise                                    = borderWidth
   where
     width = case styleEngineComputeBorderWidth value dpiX dpiY fontAttrs of

@@ -29,9 +29,12 @@ Copyright 2005-2007 Sebastian Geerken <sgeerken@dillo.org>
 
 
 
+
 module Hello.Dw.Style
   (
-    StyleMargin (..)
+    StyleBorderStyle (..)
+  , StyleBorderWidth (..)
+  , StyleMargin (..)
   , StylePadding (..)
   )
   where
@@ -40,6 +43,32 @@ module Hello.Dw.Style
 
 
 import Debug.Trace
+
+
+
+
+data StyleBorderStyle = StyleBorderStyle
+  {
+    styleBorderStyleTop    :: Int
+  , styleBorderStyleRight  :: Int
+  , styleBorderStyleBottom :: Int
+  , styleBorderStyleLeft   :: Int
+  } deriving (Show)
+
+
+
+
+-- TODO: in dillo the borderWidth variables were of type Box. The comment for
+-- Box type was:
+--
+-- "Represents a dimension box according to the CSS box model."
+data StyleBorderWidth = StyleBorderWidth
+  {
+    styleBorderWidthTop    :: Int
+  , styleBorderWidthRight  :: Int
+  , styleBorderWidthBottom :: Int
+  , styleBorderWidthLeft   :: Int
+  } deriving (Show)
 
 
 

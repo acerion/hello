@@ -152,12 +152,6 @@ typedef enum {
 } CssDeclarationProperty;
 
 typedef enum {
-   CSS_BORDER_WIDTH_THIN,
-   CSS_BORDER_WIDTH_MEDIUM,
-   CSS_BORDER_WIDTH_THICK,
-} CssBorderWidthExtensions;
-
-typedef enum {
    CSS_WORD_SPACING_NORMAL
 } CssWordSpacingExtensions;
 
