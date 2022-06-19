@@ -350,51 +350,9 @@ enum WhiteSpace {
    WHITE_SPACE_PRE_LINE,
 };
 
-/**
- * \brief Type for representing all lengths within dw::core::style.
- *
- * Lengths are int's. Absolute lengths are represented in the following way:
- *
- * \image html dw-style-length-absolute.png
- *
- * Percentages:
- *
- * \image html dw-style-length-percentage.png
- *
- * Relative lengths (only used in HTML):
- *
- * \image html dw-style-length-relative.png
- *
- * This is an implementation detail, use one of the following functions:
- *
- * Creating lengths:
- *
- * <ul>
- * <li> dw::core::style::createAbsoluteDwLength
- * <li> dw::core::style::createPercentageDwLength
- * <li> dw::core::style::createRelativeDwLength
- * </ul>
- *
- * Examine lengths:
- *
- * <ul>
- * <li> dw::core::style::isAbsoluteDwLength
- * <li> dw::core::style::isPercentageDwLength
- * <li> dw::core::style::isRelativeDwLength
- * <li> dw::core::style::getAbsoluteDwLengthValue
- * <li> dw::core::style::getPercentageDwLengthValue
- * <li> dw::core::style::getRelativeDwLengthValue
- * </ul>
- *
- * "auto" lengths are represented as dw::core::style::LENGTH_AUTO.
- */
-typedef struct {
-   double dw_length_value;
-   int dw_length_type;
-   int dw_length_hash;
-} DwLength;
 
 /** \brief Returns a length of \em n pixels. */
+// Notice that this function is already re-implemented in Haskell with hll_createAutoDwLength()
 inline DwLength createAutoLength(void)
 {
    DwLength l = {};
@@ -405,6 +363,7 @@ inline DwLength createAutoLength(void)
 }
 
 /** \brief Returns a length of \em n pixels. */
+// Notice that this function is already re-implemented in Haskell with hll_createAbsoluteDwLength.
 inline DwLength createAbsoluteDwLength(int n)
 {
    DwLength l = {};
@@ -415,22 +374,13 @@ inline DwLength createAbsoluteDwLength(int n)
 }
 
 /** \brief Returns a percentage, \em v is relative to 1, not to 100. */
+// Notice that this function is already re-implemented in Haskell with hll_createPercentageDwLength.
 inline DwLength createPercentageDwLength(double v)
 {
    DwLength l = {};
    l.dw_length_value = v;
    l.dw_length_type = 2;
    l.dw_length_hash = ((int)(v * (1 << 18)) & ~3) | 2;
-   return l;
-}
-
-/** \brief Returns a relative length. */
-inline DwLength createRelativeDwLength(double v)
-{
-   DwLength l = {};
-   l.dw_length_value = v;
-   l.dw_length_type = 3;
-   l.dw_length_hash = ((int)(v * (1 << 18)) & ~3) | 3;
    return l;
 }
 

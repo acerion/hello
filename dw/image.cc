@@ -171,14 +171,14 @@ Image::~Image()
 void Image::sizeRequestImpl (core::Requisition *requisition)
 {
    if (buffer) {
-      if (isAutoLength(getStyle ()->height) &&
+      if (dw::core::style::isAutoLength(getStyle ()->height) &&
           core::style::isAbsoluteDwLength (getStyle ()->width) &&
           buffer->getRootWidth () > 0) {
          // preserve aspect ratio when only width is given
          requisition->width = core::style::getAbsoluteDwLengthValue(getStyle ()->width);
          requisition->ascent = buffer->getRootHeight () *
                                requisition->width / buffer->getRootWidth ();
-      } else if (isAutoLength(getStyle ()->width) &&
+      } else if (dw::core::style::isAutoLength(getStyle ()->width) &&
                  core::style::isAbsoluteDwLength (getStyle ()->height) &&
                  buffer->getRootHeight () > 0) {
          // preserve aspect ratio when only height is given

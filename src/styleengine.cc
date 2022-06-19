@@ -260,8 +260,8 @@ dw::core::style::Color *StyleEngine::getBackgroundColor () {
 dw::core::style::StyleImage *StyleEngine::getBackgroundImage
    (dw::core::style::BackgroundRepeat *bgRepeat,
     dw::core::style::BackgroundAttachment *bgAttachment,
-    dw::core::style::DwLength *bgPositionX,
-    dw::core::style::DwLength *bgPositionY) {
+    DwLength *bgPositionX,
+    DwLength *bgPositionY) {
    for (int i = 1; i < styleNodesStackSize; i++) {
       StyleNode *n = &styleNodesStack[i];
 
@@ -365,6 +365,8 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    FontAttrs fontAttrs = *attrs->font;
    Font *parentFont = styleNodesStack[some_idx - 1].style->font;
    DilloUrl *imgUrl = NULL;
+   double val_ = 0;
+   int type_   = 0;
 
    c_style_attrs_t * style_attrs = (c_style_attrs_t *) calloc(1, sizeof (c_style_attrs_t));
    style_attrs->c_border_width = (c_border_width_t *) calloc(1, sizeof (c_border_width_t));
@@ -403,10 +405,17 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             break;
          case CSS_PROPERTY_BACKGROUND_POSITION:
             CssLength cssLength;
+
             cssLength.length_bits = decl->c_value->c_bg_pos_x;
-            computeDwLength (&attrs->backgroundPositionX, cssLength, attrs->font);
+            val_  = (double) cpp_cssLengthValue(cssLength);
+            type_ = cpp_cssLengthType(cssLength);
+            hll_computeDwLength(&attrs->backgroundPositionX, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
+
             cssLength.length_bits = decl->c_value->c_bg_pos_y;
-            computeDwLength (&attrs->backgroundPositionY, cssLength, attrs->font);
+            val_  = (double) cpp_cssLengthValue(cssLength);
+            type_ = cpp_cssLengthType(cssLength);
+            hll_computeDwLength(&attrs->backgroundPositionY, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
+
             break;
          case CSS_PROPERTY_BACKGROUND_REPEAT:
             attrs->backgroundRepeat = (BackgroundRepeat) decl->c_value->c_int_val;
@@ -502,7 +511,9 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             break;
          case CSS_PROPERTY_TEXT_INDENT:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeDwLength (&attrs->textIndent, cssLength, attrs->font);
+            val_  = (double) cpp_cssLengthValue(cssLength);
+            type_ = cpp_cssLengthType(cssLength);
+            hll_computeDwLength(&attrs->textIndent, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
             break;
          case CSS_PROPERTY_TEXT_TRANSFORM:
             attrs->textTransform = (TextTransform) decl->c_value->c_int_val;
@@ -515,11 +526,15 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             break;
          case CSS_PROPERTY_WIDTH:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeDwLength (&attrs->width, cssLength, attrs->font);
+            val_  = (double) cpp_cssLengthValue(cssLength);
+            type_ = cpp_cssLengthType(cssLength);
+            hll_computeDwLength(&attrs->width, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
             break;
          case CSS_PROPERTY_HEIGHT:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            computeDwLength (&attrs->height, cssLength, attrs->font);
+            val_  = (double) cpp_cssLengthValue(cssLength);
+            type_ = cpp_cssLengthType(cssLength);
+            hll_computeDwLength(&attrs->height, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
             break;
          case CSS_PROPERTY_WORD_SPACING:
             if (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) {
@@ -591,24 +606,6 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
       }
    }
    a_Url_free (imgUrl);
-}
-
-bool StyleEngine::computeDwLength (dw::core::style::DwLength *dest,
-                                 CssLength value, Font *font) {
-   int v;
-
-   if (cpp_cssLengthType(value) == CSS_LENGTH_TYPE_PERCENTAGE) {
-      *dest = createPercentageDwLength (cpp_cssLengthValue(value));
-      return true;
-   } else if (cpp_cssLengthType(value) == CSS_LENGTH_TYPE_AUTO) {
-      *dest = createAutoLength();
-      return true;
-   } else if ((bool) hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(value), cpp_cssLengthType(value), &font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &v)) {
-      *dest = createAbsoluteDwLength (v);
-      return true;
-   }
-
-   return false;
 }
 
 /**

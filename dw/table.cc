@@ -63,7 +63,7 @@ Table::Table(bool limitTextWidth)
    rowStyle = new misc::SimpleVector <core::style::Style*> (8);
 
    hasColPercent = 0;
-   colPercents = new misc::SimpleVector <core::style::DwLength> (8);
+   colPercents = new misc::SimpleVector <DwLength> (8);
 
    redrawX = 0;
    redrawY = 0;
@@ -508,7 +508,7 @@ void Table::forceCalcCellSizes ()
       totalWidth =
          misc::min (core::style::multiplyWithPercentageDwLength(availWidth, getStyle()->width),
                     availWidth);
-   } else if (isAutoLength(getStyle()->width)) {
+   } else if (dw::core::style::isAutoLength(getStyle()->width)) {
       totalWidth = availWidth;
       forceTotalWidth = 0;
    }
@@ -663,7 +663,7 @@ void Table::forceCalcColumnExtremes ()
       colExtremes->getRef(col)->minWidth = 0;
       colExtremes->getRef(col)->maxWidth = 0;
 
-      core::style::DwLength length;
+      DwLength length;
       length = dw::core::style::createAutoLength();
       colPercents->set(col, length);
 
@@ -674,7 +674,7 @@ void Table::forceCalcColumnExtremes ()
          if (children->get(n)->cell.colspanEff == 1) {
             core::Extremes cellExtremes;
             int cellMinW, cellMaxW, pbm;
-            core::style::DwLength width = children->get(n)->cell.widget->getStyle()->width;
+            DwLength width = children->get(n)->cell.widget->getStyle()->width;
             pbm = (numCols + 1) * getStyle()->hBorderSpacing
                   + children->get(n)->cell.widget->getStyle()->boxDiffWidth ();
             children->get(n)->cell.widget->getExtremes (&cellExtremes);
@@ -703,7 +703,7 @@ void Table::forceCalcColumnExtremes ()
             // Also fill the colPercents array in this pass
             if (core::style::isPercentageDwLength (width)) {
                hasColPercent = 1;
-               if (isAutoLength(colPercents->get(col))) {
+               if (dw::core::style::isAutoLength(colPercents->get(col))) {
                   colPercents->set(col, width);
                }
             } else if (core::style::isAbsoluteDwLength (width)) {
@@ -730,7 +730,7 @@ void Table::forceCalcColumnExtremes ()
       int n = colSpanCells->get(c);
       int col = n % numCols;
       int cs = children->get(n)->cell.colspanEff;
-      core::style::DwLength width = children->get(n)->cell.widget->getStyle()->width;
+      DwLength width = children->get(n)->cell.widget->getStyle()->width;
       pbm = (numCols + 1) * getStyle()->hBorderSpacing
             + children->get(n)->cell.widget->getStyle()->boxDiffWidth ();
       children->get(n)->cell.widget->getExtremes (&cellExtremes);
@@ -862,7 +862,7 @@ void Table::apportion2 (int totalWidth, int forceTotalWidth)
          // set absolute lengths
          setColWidth (col, colExtremes->get(col).minWidth);
       }
-      if (isAutoLength(colPercents->get(col))) {
+      if (dw::core::style::isAutoLength(colPercents->get(col))) {
          maxAutoWidth += colExtremes->get(col).maxWidth;
          minAutoWidth += colExtremes->get(col).minWidth;
       } else
@@ -889,7 +889,7 @@ void Table::apportion2 (int totalWidth, int forceTotalWidth)
            col, colExtremes->getRef(col)->minWidth,
            colExtremes->get(col).maxWidth);
 
-      if (!isAutoLength(colPercents->get(col))) {
+      if (!dw::core::style::isAutoLength(colPercents->get(col))) {
          continue;
       }
 
@@ -988,7 +988,7 @@ void Table::apportion_percentages2(int totalWidth, int forceTotalWidth)
          } else {
             sumMinNonPer += colExtremes->getRef(col)->minWidth;
             sumMaxNonPer += colExtremes->getRef(col)->maxWidth;
-            if (isAutoLength(colPercents->get(col))) {
+            if (dw::core::style::isAutoLength(colPercents->get(col))) {
                hasAutoCol++;
             }
          }

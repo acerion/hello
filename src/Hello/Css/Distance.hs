@@ -72,16 +72,16 @@ import Hello.Utils
 --
 -- This data type is a step in a better direction.
 data CssDistance =
-    CssDistanceRelEm Float
-  | CssDistanceRelEx Float
-  | CssDistanceAbsMm Float
-  | CssDistanceAbsPx Float
+    CssDistanceRelEm Float       -- CSS_LENGTH_TYPE_EM
+  | CssDistanceRelEx Float       -- CSS_LENGTH_TYPE_EX
+  | CssDistanceAbsMm Float       -- CSS_LENGTH_TYPE_MM; "cm", "in", "pt" and "pc" are converted into millimeters.
+  | CssDistanceAbsPx Float       -- CSS_LENGTH_TYPE_PX
 
-  | CssNumericPercentage Float
+  | CssNumericPercentage Float   -- CSS_LENGTH_TYPE_PERCENTAGE
 
-  | CssNumericNone     Float
-  | CssNumericRelative Float
-  | CssNumericAuto     Int
+  | CssNumericNone     Float     -- CSS_LENGTH_TYPE_NONE
+  | CssNumericRelative Float     -- CSS_LENGTH_TYPE_RELATIVE; This does not exist in CSS but is used in HTML
+  | CssNumericAuto     Int       -- CSS_LENGTH_TYPE_AUTO; This can be used as a simple value
   deriving (Show, Eq)
 
 

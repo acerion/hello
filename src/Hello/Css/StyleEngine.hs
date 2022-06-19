@@ -50,6 +50,8 @@ module Hello.Css.StyleEngine
   , styleEngineSetBorderStyle
   , styleEngineSetMargin
   , styleEngineSetPadding
+
+  , styleEngineCalculateDwLength
   )
 where
 
@@ -66,7 +68,9 @@ import Debug.Trace
 import Hello.Css.Distance
 import Hello.Css.Parser
 
+import Hello.Dw.DwLength
 import Hello.Dw.Style
+
 import Hello.Preferences
 import Hello.Utils
 
@@ -459,5 +463,17 @@ styleEngineSetPadding property value dpiX dpiY fontAttrs padding
 
     distance = case value of
                  CssValueTypeLength d -> d
+
+
+
+
+styleEngineCalculateDwLength :: CssDistance -> FontAttrs -> Float -> Float -> Maybe DwLength
+styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
+  case distance of
+    CssNumericPercentage v -> Just $ createPercentageDwLength (realToFrac v)
+    CssNumericAuto _       -> Just createAutoDwLength -- TODO: why the value of Auto is ignored?
+    otherwise              -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+                                Just val -> Just $ createAbsoluteDwLength (round val) -- TODO: a type of Float -> Int function to be verified here
+                                Nothing  -> Nothing
 
 

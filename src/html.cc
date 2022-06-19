@@ -1469,7 +1469,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    style::StyleImage *bgImage;
    style::BackgroundRepeat bgRepeat;
    style::BackgroundAttachment bgAttachment;
-   style::DwLength bgPositionX, bgPositionY;
+   DwLength bgPositionX, bgPositionY;
 
    _MSG("Html_tag_open_body Num_BODY=%d\n", html->Num_BODY);
    if (!(html->InFlags & IN_BODY))

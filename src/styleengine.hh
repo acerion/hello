@@ -67,7 +67,6 @@ public:
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void apply(int some_idx, dw::core::style::StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw);
-      bool computeDwLength (dw::core::style::DwLength *dest, CssLength value, dw::core::style::Font *font);
       void computeBorderWidth (int *dest, c_css_declaration_t * decl, dw::core::style::Font *font);
 
    public:
@@ -102,8 +101,8 @@ public:
       dw::core::style::StyleImage *getBackgroundImage
          (dw::core::style::BackgroundRepeat *bgRepeat,
           dw::core::style::BackgroundAttachment *bgAttachment,
-          dw::core::style::DwLength *bgPositionX,
-          dw::core::style::DwLength *bgPositionY);
+          DwLength *bgPositionX,
+          DwLength *bgPositionY);
 
       inline dw::core::style::Style *getStyle (BrowserWindow *bw) {
          StyleNode * currentNode = getCurrentNode(this);

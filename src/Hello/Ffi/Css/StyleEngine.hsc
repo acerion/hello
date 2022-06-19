@@ -49,13 +49,15 @@ import Hello.Css.Parser
 import Hello.Css.StyleEngine
 import Hello.Css.UserAgentStyle
 
+import Hello.Dw.DwLength
 import Hello.Dw.Style
-
-import Hello.Ffi.Dw.Style
 
 import Hello.Ffi.Css.Context
 import Hello.Ffi.Css.Parser
 import Hello.Ffi.Css.Value
+
+import Hello.Ffi.Dw.DwLength
+import Hello.Ffi.Dw.Style
 
 import Hello.Ffi.Preferences
 import Hello.Ffi.Utils
@@ -87,6 +89,8 @@ foreign export ccall "hll_styleEngineSetBorderWidth" hll_styleEngineSetBorderWid
 foreign export ccall "hll_styleEngineSetBorderStyle" hll_styleEngineSetBorderStyle :: CInt -> Ptr FfiCssValue -> Ptr FfiStyleBorderStyle -> IO ()
 foreign export ccall "hll_styleEngineSetMargin" hll_styleEngineSetMargin :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleMargin -> IO ()
 foreign export ccall "hll_styleEngineSetPadding" hll_styleEngineSetPadding :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStylePadding -> IO ()
+
+foreign export ccall "hll_computeDwLength" hll_computeDwLength :: Ptr FfiDwLength -> CDouble -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
 
 
 
@@ -430,5 +434,23 @@ hll_styleEngineSetPadding cProperty ptrStructCssValue ptrStructFontAttrs dpiX dp
   let padding' = styleEngineSetPadding property value dpiX dpiY fontAttrs padding
 
   pokeStylePadding padding' ptrStructStylePadding
+
+
+
+
+hll_computeDwLength :: Ptr FfiDwLength -> CDouble -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
+hll_computeDwLength ptrStructDwLength cLenValue cLenType ptrStructFontAttrs dpiX dpiY = do
+  let lenType  = fromIntegral cLenType
+  let lenValue = cDoubleToDouble cLenValue
+  let distance = cssLengthToDistance (realToFrac lenValue) lenType
+  fontAttrs   <- peekFontAttrs ptrStructFontAttrs
+
+  case styleEngineCalculateDwLength distance fontAttrs dpiX dpiY of
+    Just len -> do
+      pokeDwLength len ptrStructDwLength
+      return 1
+    Nothing -> return 0
+
+
 
 

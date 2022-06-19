@@ -387,6 +387,56 @@ typedef struct c_css_context_t {
 } c_css_context_t;
 
 
+
+
+
+
+/**
+ * \brief Type for representing all lengths within dw::core::style.
+ *
+ * Lengths are int's. Absolute lengths are represented in the following way:
+ *
+ * \image html dw-style-length-absolute.png
+ *
+ * Percentages:
+ *
+ * \image html dw-style-length-percentage.png
+ *
+ * Relative lengths (only used in HTML):
+ *
+ * \image html dw-style-length-relative.png
+ *
+ * This is an implementation detail, use one of the following functions:
+ *
+ * Creating lengths:
+ *
+ * <ul>
+ * <li> dw::core::style::createAbsoluteDwLength
+ * <li> dw::core::style::createPercentageDwLength
+ * <li> dw::core::style::createRelativeDwLength
+ * </ul>
+ *
+ * Examine lengths:
+ *
+ * <ul>
+ * <li> dw::core::style::isAbsoluteDwLength
+ * <li> dw::core::style::isPercentageDwLength
+ * <li> dw::core::style::isRelativeDwLength
+ * <li> dw::core::style::getAbsoluteDwLengthValue
+ * <li> dw::core::style::getPercentageDwLengthValue
+ * <li> dw::core::style::getRelativeDwLengthValue
+ * </ul>
+ *
+ * "auto" lengths are represented as dw::core::style::LENGTH_AUTO.
+ */
+typedef struct {
+   double dw_length_value;
+   int dw_length_type;
+   int dw_length_hash;
+} DwLength;
+
+
+
 /* URL */
 bool hll_hostIsIP(const char * hostname);
 
@@ -538,6 +588,13 @@ void hll_styleEngineSetBorderWidth(int property, c_css_value_t * value, c_font_a
 void hll_styleEngineSetBorderStyle(int property, c_css_value_t * value, c_border_style_t * borderStyle);
 void hll_styleEngineSetMargin(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_style_margin_t * margin);
 void hll_styleEngineSetPadding(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_style_padding_t * padding);
+
+
+
+void hll_createPercentageDwLength(DwLength * length, double v);
+void hll_createAbsoluteDwLength(DwLength * length, int v);
+
+int hll_computeDwLength(DwLength * length, double val, int type, c_font_attrs_t * fontAttrs, float dpiX, float dpiY);
 
 
 #ifdef __cplusplus

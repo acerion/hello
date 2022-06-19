@@ -25,14 +25,18 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
-module Hello.Ffi.Utils( ptrCCharToText
-                      , allocAndPokeCString
+module Hello.Ffi.Utils
+  (
+    ptrCCharToText
+  , allocAndPokeCString
 
-                      , peekArrayOfPointers
-                      , pokeArrayOfPointersWithAlloc
-                      , pokeArrayOfPreallocedPointers
-                      )
-  where
+  , peekArrayOfPointers
+  , pokeArrayOfPointersWithAlloc
+  , pokeArrayOfPreallocedPointers
+
+  , cDoubleToDouble
+  )
+where
 
 
 
@@ -132,6 +136,13 @@ pokeArrayOfPreallocedPointers xs setter array = pokeArrayOfPointers' xs setter a
       setter ptr x
       pokeElemOff array idx ptr
       pokeArrayOfPointers' xs setter array (idx + 1)
+
+
+
+
+
+cDoubleToDouble :: CDouble -> Double
+cDoubleToDouble = realToFrac
 
 
 

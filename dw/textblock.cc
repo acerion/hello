@@ -897,11 +897,11 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
       widget->setDescent (availDescent);
       widget->sizeRequest (size);
    } else {
-      if (isAutoLength(wstyle->width) || isAutoLength(wstyle->height)) {
+      if (dw::core::style::isAutoLength(wstyle->width) || dw::core::style::isAutoLength(wstyle->height)) {
          widget->sizeRequest (&requisition);
       }
 
-      if (isAutoLength(wstyle->width)) {
+      if (dw::core::style::isAutoLength(wstyle->width)) {
          size->width = requisition.width;
       } else if (core::style::isAbsoluteDwLength (wstyle->width)) {
          /* Fixed lengths are only applied to the content, so we have to
@@ -911,7 +911,7 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
          size->width = core::style::multiplyWithPercentageDwLength (availWidth, wstyle->width);
       }
 
-      if (isAutoLength(wstyle->height)) {
+      if (dw::core::style::isAutoLength(wstyle->height)) {
          size->ascent = requisition.ascent;
          size->descent = requisition.descent;
       } else if (core::style::isAbsoluteDwLength (wstyle->height)) {
@@ -920,7 +920,7 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
          size->ascent = core::style::getAbsoluteDwLengthValue(wstyle->height) + wstyle->boxDiffHeight ();
          size->descent = 0;
       } else {
-         core::style::DwLength length = dw::core::style::createPercentageDwLength(availAscent);
+         DwLength length = dw::core::style::createPercentageDwLength(availAscent);
          size->ascent = core::style::multiplyWithPercentageDwLength (wstyle->height.dw_length_value, length);
          length = dw::core::style::createPercentageDwLength(availDescent);
          size->descent = core::style::multiplyWithPercentageDwLength (wstyle->height.dw_length_value, length);
@@ -1627,7 +1627,7 @@ void Textblock::calcTextSize (const char *text, size_t len,
     * For absolute/percentage, line height is relative to font size, which
     * is (irritatingly) smaller than ascent+descent.
     */
-   if (!isAutoLength(style->lineHeight)) {
+   if (!dw::core::style::isAutoLength(style->lineHeight)) {
       int height, leading;
       float factor = style->font->font_attrs.size;
 

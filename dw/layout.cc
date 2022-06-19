@@ -74,12 +74,12 @@ style::BackgroundAttachment
    return layout->bgAttachment;
 }
 
-style::DwLength Layout::LayoutImgRenderer::getBackgroundPositionX ()
+DwLength Layout::LayoutImgRenderer::getBackgroundPositionX ()
 {
    return layout->bgPositionX;
 }
 
-style::DwLength Layout::LayoutImgRenderer::getBackgroundPositionY ()
+DwLength Layout::LayoutImgRenderer::getBackgroundPositionY ()
 {
    return layout->bgPositionY;
 }
@@ -746,7 +746,7 @@ void Layout::setBgColor (style::Color *color)
 void Layout::setBgImage (style::StyleImage *bgImage,
                          style::BackgroundRepeat bgRepeat,
                          style::BackgroundAttachment bgAttachment,
-                         style::DwLength bgPositionX, style::DwLength bgPositionY)
+                         DwLength bgPositionX, DwLength bgPositionY)
 {
    if (layoutImgRenderer && this->bgImage)
       this->bgImage->removeExternalImgRenderer (layoutImgRenderer);
