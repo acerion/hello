@@ -593,12 +593,11 @@ void hll_setFontVariant(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
 void hll_styleEngineApplyStyleToFont(c_css_declaration_set_t * declSet, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_font_attrs_t * fontAttrs);
 
 float hll_styleEngineComputeBorderWidth(c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY);
-void hll_styleEngineSetBorderWidth(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_border_width_t * borderWidth);
-void hll_styleEngineSetBorderStyle(int property, c_css_value_t * value, c_border_style_t * borderStyle);
-void hll_styleEngineSetMargin(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_style_margin_t * margin);
-void hll_styleEngineSetPadding(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_style_padding_t * padding);
-void hll_styleEngineSetTextStyle(int property, c_css_value_t * value, float lenVal, int lenType, c_font_attrs_t * fontAttrs, float dpiX, float dpiY,
-                                 int * textAlign, int * textDecoration, DwLength * textIndent, int * textTransform);
+void hll_styleEngineSetBorderWidth(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_style_attrs_t * style_attrs);
+void hll_styleEngineSetBorderStyle(int property, c_css_value_t * value, c_style_attrs_t * style_attrs);
+void hll_styleEngineSetMargin(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_style_attrs_t * style_attrs);
+void hll_styleEngineSetPadding(int property, c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_style_attrs_t * style_attrs);
+void hll_styleEngineSetTextStyle(int property, c_css_value_t * value, float lenVal, int lenType, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_style_attrs_t * style_attrs);
 
 
 

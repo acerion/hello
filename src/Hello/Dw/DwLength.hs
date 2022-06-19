@@ -53,7 +53,7 @@ data DwLength = DwLength
     dwLengthValue :: Double
   , dwLengthType  :: Int
   , dwLengthHash  :: Int
-  }
+  } deriving (Show)
 
 
 

@@ -451,13 +451,13 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_BORDER_LEFT_STYLE:
          case CSS_PROPERTY_BORDER_RIGHT_STYLE:
          case CSS_PROPERTY_BORDER_TOP_STYLE:
-            hll_styleEngineSetBorderStyle(decl->c_property, decl->c_value, style_attrs->c_border_style);
+            hll_styleEngineSetBorderStyle(decl->c_property, decl->c_value, style_attrs);
             break;
          case CSS_PROPERTY_BORDER_BOTTOM_WIDTH:
          case CSS_PROPERTY_BORDER_LEFT_WIDTH:
          case CSS_PROPERTY_BORDER_RIGHT_WIDTH:
          case CSS_PROPERTY_BORDER_TOP_WIDTH:
-            hll_styleEngineSetBorderWidth(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs->c_border_width);
+            hll_styleEngineSetBorderWidth(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs);
             break;
          case CSS_PROPERTY_BORDER_SPACING:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
@@ -501,13 +501,13 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_MARGIN_LEFT:
          case CSS_PROPERTY_MARGIN_RIGHT:
          case CSS_PROPERTY_MARGIN_TOP:
-            hll_styleEngineSetMargin(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs->c_margin);
+            hll_styleEngineSetMargin(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs);
             break;
          case CSS_PROPERTY_PADDING_TOP:
          case CSS_PROPERTY_PADDING_BOTTOM:
          case CSS_PROPERTY_PADDING_LEFT:
          case CSS_PROPERTY_PADDING_RIGHT:
-            hll_styleEngineSetPadding(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs->c_padding);
+            hll_styleEngineSetPadding(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs);
             break;
 
          case CSS_PROPERTY_TEXT_ALIGN:
@@ -517,8 +517,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
             val_  = (double) cpp_cssLengthValue(cssLength);
             type_ = cpp_cssLengthType(cssLength);
-            hll_styleEngineSetTextStyle(decl->c_property, decl->c_value, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(),
-                                        &style_attrs->c_text_align, &style_attrs->c_text_decoration, style_attrs->c_text_indent, &style_attrs->c_text_transform);
+            hll_styleEngineSetTextStyle(decl->c_property, decl->c_value, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs);
             break;
 
          case CSS_PROPERTY_VERTICAL_ALIGN:

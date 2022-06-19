@@ -32,7 +32,8 @@ Copyright 2005-2007 Sebastian Geerken <sgeerken@dillo.org>
 
 module Hello.Dw.Style
   (
-    StyleBorderStyle (..)
+    StyleAttrs (..)
+  , StyleBorderStyle (..)
   , StyleBorderWidth (..)
   , StyleMargin (..)
   , StylePadding (..)
@@ -43,6 +44,8 @@ module Hello.Dw.Style
 
 
 import Debug.Trace
+
+import Hello.Dw.DwLength
 
 
 
@@ -100,4 +103,18 @@ data StylePadding = StylePadding
   , stylePaddingLeft   :: Int
   } deriving (Show)
 
+
+
+
+data StyleAttrs = StyleAttrs
+  {
+    styleBorderStyle       :: StyleBorderStyle
+  , styleBorderWidth       :: StyleBorderWidth
+  , styleMargin            :: StyleMargin
+  , stylePadding           :: StylePadding
+  , styleTextAlign         :: Int
+  , styleTextDecoration    :: Int
+  , styleTextIndent        :: DwLength
+  , styleTextTransform     :: Int
+  } deriving (Show)
 
