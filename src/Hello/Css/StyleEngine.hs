@@ -50,6 +50,7 @@ module Hello.Css.StyleEngine
   , styleEngineSetBorderStyle
   , styleEngineSetMargin
   , styleEngineSetPadding
+  , styleEngineSetTextStyle
 
   , styleEngineCalculateDwLength
   )
@@ -59,6 +60,7 @@ where
 
 
 import Prelude
+import Data.Bits
 import Data.List
 import Data.Maybe
 import qualified Data.Sequence as S
@@ -477,3 +479,25 @@ styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
                                 Nothing  -> Nothing
 
 
+
+
+styleEngineSetTextStyle :: Int -> CssValue -> CssDistance -> FontAttrs -> Float -> Float -> Int -> Int -> DwLength -> Int -> (Int, Int, DwLength, Int)
+styleEngineSetTextStyle property value distance fontAttrs dpiX dpiY textAlign textDecoration textIndent textTransform
+  | property == cssDeclPropertyTextAlign      = (textAlign',   textDecoration, textIndent, textTransform)
+  | property == cssDeclPropertyTextDecoration = (textAlign,    textDecoration',   textIndent, textTransform)
+  | property == cssDeclPropertyTextIndent     = (textAlign, textDecoration,    textIndent',    textTransform)
+  | property == cssDeclPropertyTextTransform  = (textAlign, textDecoration, textIndent,     textTransform')
+  | otherwise                                 = (textAlign, textDecoration, textIndent, textTransform)
+  where
+    textAlign' = case value of
+                   CssValueTypeEnum e -> e
+                   otherwise          -> 0
+    textDecoration' = textDecoration .|. case value of
+                                           CssValueTypeMultiEnum e -> e
+                                           otherwise               -> 0
+    textIndent' = case styleEngineCalculateDwLength distance fontAttrs dpiX dpiY of
+                    Just length -> length
+                    Nothing     -> createAbsoluteDwLength 0 -- "0" seems to be a sane default
+    textTransform' = case value of
+                       CssValueTypeEnum e -> e
+                       otherwise          -> 0

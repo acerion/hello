@@ -487,8 +487,7 @@ class StyleAttrs : public lout::object::Object
 {
 public:
    Font *font;
-   int textDecoration; /* No TextDecoration because of problems converting
-                        * TextDecoration <-> int */
+
    Color *color, *backgroundColor;
    StyleImage *backgroundImage;
    BackgroundRepeat backgroundRepeat;
@@ -496,13 +495,12 @@ public:
    DwLength backgroundPositionX; // "left" defined by "0%" etc. (see CSS spec)
    DwLength backgroundPositionY; // "top" defined by "0%" etc. (see CSS spec)
 
-   TextAlignType textAlign;
    VAlignType valign;
    char textAlignChar; /* In future, strings will be supported. */
-   TextTransform textTransform;
+
 
    int hBorderSpacing, vBorderSpacing, wordSpacing;
-   DwLength width, height, lineHeight, textIndent;
+   DwLength width, height, lineHeight;
 
    BorderCollapse borderCollapse;
    struct { Color *top, *right, *bottom, *left; } borderColor;
@@ -511,6 +509,10 @@ public:
    c_border_style_t borderStyle;
    c_style_margin_t margin;
    c_style_padding_t padding;
+   int textAlign; // TODO: use TextAlignType type
+   int textDecoration; /* No TextDecoration because of problems converting TextDecoration <-> int */
+   DwLength textIndent;
+   int textTransform; // TODO: use TextTransform type
 
    DisplayType display;
    WhiteSpace whiteSpace;

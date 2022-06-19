@@ -89,6 +89,7 @@ foreign export ccall "hll_styleEngineSetBorderWidth" hll_styleEngineSetBorderWid
 foreign export ccall "hll_styleEngineSetBorderStyle" hll_styleEngineSetBorderStyle :: CInt -> Ptr FfiCssValue -> Ptr FfiStyleBorderStyle -> IO ()
 foreign export ccall "hll_styleEngineSetMargin" hll_styleEngineSetMargin :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleMargin -> IO ()
 foreign export ccall "hll_styleEngineSetPadding" hll_styleEngineSetPadding :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStylePadding -> IO ()
+foreign export ccall "hll_styleEngineSetTextStyle" hll_styleEngineSetTextStyle :: CInt -> Ptr FfiCssValue -> Float -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> Ptr CInt -> Ptr CInt -> Ptr FfiDwLength -> Ptr CInt -> IO ()
 
 foreign export ccall "hll_computeDwLength" hll_computeDwLength :: Ptr FfiDwLength -> CDouble -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
 
@@ -453,4 +454,35 @@ hll_computeDwLength ptrStructDwLength cLenValue cLenType ptrStructFontAttrs dpiX
 
 
 
+
+
+hll_styleEngineSetTextStyle :: CInt -> Ptr FfiCssValue -> Float -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> Ptr CInt -> Ptr CInt -> Ptr FfiDwLength -> Ptr CInt -> IO ()
+hll_styleEngineSetTextStyle cProperty ptrStructCssValue lenValue cLenType ptrStructFontAttrs dpiX dpiY ptrCTextAlign ptrCTextDecoration ptrStructTextIndent ptrCTextTransform = do
+  let property  = fromIntegral cProperty
+  ffiCssValue  <- peek ptrStructCssValue
+  value        <- peekCssValue ffiCssValue
+  fontAttrs    <- peekFontAttrs ptrStructFontAttrs
+
+  cTextAlign   <- peek ptrCTextAlign
+  let textAlign = fromIntegral cTextAlign
+
+  cTextDecoration   <- peek ptrCTextDecoration
+  let textDecoration = fromIntegral cTextDecoration
+
+  textIndent <- peekDwLength ptrStructTextIndent
+
+  cTextTransform   <- peek ptrCTextTransform
+  let textTransform = fromIntegral cTextTransform
+
+  let lenType = fromIntegral cLenType
+  let distance = cssLengthToDistance lenValue lenType
+
+  let (textAlign', textDecoration', textIndent', textTransform') = styleEngineSetTextStyle property value distance fontAttrs dpiX dpiY textAlign textDecoration textIndent textTransform
+
+  poke ptrCTextAlign (fromIntegral textAlign')
+  poke ptrCTextDecoration (fromIntegral textDecoration')
+  pokeDwLength textIndent' ptrStructTextIndent
+  poke ptrCTextTransform (fromIntegral textTransform')
+
+  return ()
 

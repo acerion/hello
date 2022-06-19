@@ -373,10 +373,17 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_border_style = (c_border_style_t *) calloc(1, sizeof (c_border_style_t));
    style_attrs->c_margin = (c_style_margin_t *) calloc(1, sizeof (c_style_margin_t));
    style_attrs->c_padding = (c_style_padding_t *) calloc(1, sizeof (c_style_padding_t));
+   style_attrs->c_text_indent = (DwLength *) calloc(1, sizeof (DwLength));
+
    *(style_attrs->c_border_width) = attrs->borderWidth;
    *(style_attrs->c_border_style) = attrs->borderStyle;
    *(style_attrs->c_margin) = attrs->margin;
    *(style_attrs->c_padding) = attrs->padding;
+   style_attrs->c_text_align      = attrs->textAlign;
+   style_attrs->c_text_decoration = attrs->textDecoration;
+   *(style_attrs->c_text_indent)  = attrs->textIndent;
+   style_attrs->c_text_transform  = attrs->textTransform;
+
 
    /* Determine font first so it can be used to resolve relative lengths. */
    hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
@@ -504,20 +511,16 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             break;
 
          case CSS_PROPERTY_TEXT_ALIGN:
-            attrs->textAlign = (TextAlignType) decl->c_value->c_int_val;
-            break;
          case CSS_PROPERTY_TEXT_DECORATION:
-            attrs->textDecoration |= decl->c_value->c_int_val;
-            break;
          case CSS_PROPERTY_TEXT_INDENT:
+         case CSS_PROPERTY_TEXT_TRANSFORM:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
             val_  = (double) cpp_cssLengthValue(cssLength);
             type_ = cpp_cssLengthType(cssLength);
-            hll_computeDwLength(&attrs->textIndent, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
+            hll_styleEngineSetTextStyle(decl->c_property, decl->c_value, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(),
+                                        &style_attrs->c_text_align, &style_attrs->c_text_decoration, style_attrs->c_text_indent, &style_attrs->c_text_transform);
             break;
-         case CSS_PROPERTY_TEXT_TRANSFORM:
-            attrs->textTransform = (TextTransform) decl->c_value->c_int_val;
-            break;
+
          case CSS_PROPERTY_VERTICAL_ALIGN:
             attrs->valign = (VAlignType) decl->c_value->c_int_val;
             break;
@@ -575,12 +578,19 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 
    attrs->borderWidth = *(style_attrs->c_border_width);
    attrs->borderStyle = *(style_attrs->c_border_style);
-   attrs->margin = *(style_attrs->c_margin);
+   attrs->margin  = *(style_attrs->c_margin);
    attrs->padding = *(style_attrs->c_padding);
+
+   attrs->textAlign      = style_attrs->c_text_align;
+   attrs->textDecoration = style_attrs->c_text_decoration;
+   attrs->textIndent     = *(style_attrs->c_text_indent);
+   attrs->textTransform  = style_attrs->c_text_transform;
+
    free(style_attrs->c_border_width);
    free(style_attrs->c_border_style);
    free(style_attrs->c_margin);
    free(style_attrs->c_padding);
+   free(style_attrs->c_text_indent);
    free(style_attrs);
 
 
