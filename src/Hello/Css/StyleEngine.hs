@@ -48,9 +48,8 @@ module Hello.Css.StyleEngine
   , styleEngineComputeBorderWidth
   , styleEngineSetBorderWidth
   , styleEngineSetBorderStyle
-  , styleEngineSetMargin
-  , styleEngineSetPadding
-  , styleEngineSetTextStyle
+
+  , styleEngineSetStyle
 
   , styleEngineCalculateDwLength
   )
@@ -426,7 +425,7 @@ styleEngineSetBorderWidth property value dpiX dpiY fontAttrs borderWidth
 
 
 
-
+{-
 styleEngineSetMargin :: Int -> CssValue -> Float -> Float -> FontAttrs -> StyleMargin -> StyleMargin
 styleEngineSetMargin property value dpiX dpiY fontAttrs margin
   | property == cssDeclPropertyMarginBottom = margin { styleMarginBottom = clip m }
@@ -465,6 +464,7 @@ styleEngineSetPadding property value dpiX dpiY fontAttrs padding
 
     distance = case value of
                  CssValueTypeLength d -> d
+-}
 
 
 
@@ -481,23 +481,79 @@ styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
 
 
 
-styleEngineSetTextStyle :: Int -> CssValue -> CssDistance -> FontAttrs -> Float -> Float -> Int -> Int -> DwLength -> Int -> (Int, Int, DwLength, Int)
-styleEngineSetTextStyle property value distance fontAttrs dpiX dpiY textAlign textDecoration textIndent textTransform
-  | property == cssDeclPropertyTextAlign      = (textAlign',   textDecoration, textIndent, textTransform)
-  | property == cssDeclPropertyTextDecoration = (textAlign,    textDecoration',   textIndent, textTransform)
-  | property == cssDeclPropertyTextIndent     = (textAlign, textDecoration,    textIndent',    textTransform)
-  | property == cssDeclPropertyTextTransform  = (textAlign, textDecoration, textIndent,     textTransform')
-  | otherwise                                 = (textAlign, textDecoration, textIndent, textTransform)
-  where
-    textAlign' = case value of
-                   CssValueTypeEnum e -> e
-                   otherwise          -> 0
-    textDecoration' = textDecoration .|. case value of
-                                           CssValueTypeMultiEnum e -> e
-                                           otherwise               -> 0
-    textIndent' = case styleEngineCalculateDwLength distance fontAttrs dpiX dpiY of
-                    Just length -> length
-                    Nothing     -> createAbsoluteDwLength 0 -- "0" seems to be a sane default
-    textTransform' = case value of
+styleEngineSetStyle :: Int -> CssValue -> CssDistance -> FontAttrs -> Float -> Float -> StyleAttrs -> StyleAttrs
+styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
+  -- Probably because of code like this someone invented lenses.
+  | property == cssDeclPropertyMarginBottom   = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin distance fontAttrs dpiX dpiY }}
+  | property == cssDeclPropertyMarginLeft     = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin distance fontAttrs dpiX dpiY }}
+  | property == cssDeclPropertyMarginRight    = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin distance fontAttrs dpiX dpiY }}
+  | property == cssDeclPropertyMarginTop      = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin distance fontAttrs dpiX dpiY }}
+  | property == cssDeclPropertyPaddingBottom  = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding distance fontAttrs dpiX dpiY }}
+  | property == cssDeclPropertyPaddingLeft    = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding distance fontAttrs dpiX dpiY }}
+  | property == cssDeclPropertyPaddingRight   = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding distance fontAttrs dpiX dpiY }}
+  | property == cssDeclPropertyPaddingTop     = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding distance fontAttrs dpiX dpiY }}
+  | property == cssDeclPropertyTextAlign      = styleAttrs { styleTextAlign      = getTextAlign value }
+  | property == cssDeclPropertyTextDecoration = styleAttrs { styleTextDecoration = getTextDecoration value (styleTextDecoration styleAttrs) }
+  | property == cssDeclPropertyTextIndent     = styleAttrs { styleTextIndent     = getTextIndent distance fontAttrs dpiX dpiY }
+  | property == cssDeclPropertyTextTransform  = styleAttrs { styleTextTransform  = getTextTransform value }
+  | otherwise                                 = styleAttrs
+{-
+    distance = case value of
+                 CssValueTypeSignedLength d -> d
+                 CssValueTypeAuto d         -> d -- TODO: 'auto' appears to be handled incorrectly this function
+                 CssValueTypeLength d       -> d
+
+-}
+
+
+
+
+getTextAlign value = case value of
                        CssValueTypeEnum e -> e
                        otherwise          -> 0
+
+
+
+
+getTextDecoration value decoration = decoration .|. case value of
+                                                      CssValueTypeMultiEnum e -> e
+                                                      otherwise               -> 0
+
+
+
+
+getTextIndent distance fontAttrs dpiX dpiY =
+  case styleEngineCalculateDwLength distance fontAttrs dpiX dpiY of
+    Just length -> length
+    Nothing     -> createAbsoluteDwLength 0 -- "0" seems to be a sane default
+
+
+
+
+getTextTransform value = case value of
+                           CssValueTypeEnum e -> e
+                           otherwise          -> 0
+
+
+
+
+getMargin distance fontAttrs dpiX dpiY = clip . calculate $ distance
+  where
+    calculate dist = case styleEngineComputeAbsoluteLengthValue dist fontAttrs 0 dpiX dpiY of
+                       -- TODO: another place where Maybe returned by Compute function
+                       -- causes unnecessary trouble.
+                       Just x  -> roundInt x
+                       Nothing -> 0
+    clip x = if x > 0 then x else 0   -- TODO: fix negative margins in dw/*
+
+
+
+
+getPadding distance fontAttrs dpiX dpiY =
+  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+    -- TODO: another place where Maybe returned by Compute function
+    -- causes unnecessary trouble.
+    Just x  -> roundInt x
+    Nothing -> 0
+
+

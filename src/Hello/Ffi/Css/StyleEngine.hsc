@@ -87,9 +87,7 @@ foreign export ccall "hll_styleEngineApplyStyleToFont" hll_styleEngineApplyStyle
 foreign export ccall "hll_styleEngineComputeBorderWidth" hll_styleEngineComputeBorderWidth :: Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
 foreign export ccall "hll_styleEngineSetBorderWidth" hll_styleEngineSetBorderWidth :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
 foreign export ccall "hll_styleEngineSetBorderStyle" hll_styleEngineSetBorderStyle :: CInt -> Ptr FfiCssValue -> Ptr FfiStyleAttrs -> IO ()
-foreign export ccall "hll_styleEngineSetMargin" hll_styleEngineSetMargin :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
-foreign export ccall "hll_styleEngineSetPadding" hll_styleEngineSetPadding :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
-foreign export ccall "hll_styleEngineSetTextStyle" hll_styleEngineSetTextStyle :: CInt -> Ptr FfiCssValue -> Float -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
+foreign export ccall "hll_styleEngineSetStyle" hll_styleEngineSetStyle :: CInt -> Ptr FfiCssValue -> Float -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
 
 foreign export ccall "hll_computeDwLength" hll_computeDwLength :: Ptr FfiDwLength -> CDouble -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
 
@@ -413,7 +411,7 @@ hll_styleEngineSetBorderStyle cProperty ptrStructCssValue ptrStructStyleAttrs = 
 
 
 
-
+{-
 hll_styleEngineSetMargin :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
 hll_styleEngineSetMargin cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpiY ptrStructStyleAttrs = do
   let property = fromIntegral cProperty
@@ -432,6 +430,7 @@ hll_styleEngineSetMargin cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpi
 
 
 
+
 hll_styleEngineSetPadding :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
 hll_styleEngineSetPadding cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpiY ptrStructStyleAttrs = do
   let property  = fromIntegral cProperty
@@ -446,6 +445,7 @@ hll_styleEngineSetPadding cProperty ptrStructCssValue ptrStructFontAttrs dpiX dp
   let styleAttrs' = styleAttrs { stylePadding = padding' }
 
   pokeStyleAttrs styleAttrs' ptrStructStyleAttrs
+-}
 
 
 
@@ -467,31 +467,17 @@ hll_computeDwLength ptrStructDwLength cLenValue cLenType ptrStructFontAttrs dpiX
 
 
 
-hll_styleEngineSetTextStyle :: CInt -> Ptr FfiCssValue -> Float -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
-hll_styleEngineSetTextStyle cProperty ptrStructCssValue lenValue cLenType ptrStructFontAttrs dpiX dpiY ptrStructStyleAttrs = do
+hll_styleEngineSetStyle :: CInt -> Ptr FfiCssValue -> Float -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
+hll_styleEngineSetStyle cProperty ptrStructCssValue lenValue cLenType ptrStructFontAttrs dpiX dpiY ptrStructStyleAttrs = do
   let property  = fromIntegral cProperty
   ffiCssValue  <- peek ptrStructCssValue
   value        <- peekCssValue ffiCssValue
   fontAttrs    <- peekFontAttrs ptrStructFontAttrs
+  styleAttrs   <- peekStyleAttrs ptrStructStyleAttrs
+  let lenType   = fromIntegral cLenType
+  let distance  = cssLengthToDistance lenValue lenType
 
-  styleAttrs  <- peekStyleAttrs ptrStructStyleAttrs
-  let textAlign      = styleTextAlign styleAttrs
-  let textDecoration = styleTextDecoration styleAttrs
-  let textIndent     = styleTextIndent styleAttrs
-  let textTransform  = styleTextTransform styleAttrs
-
-  let lenType = fromIntegral cLenType
-  let distance = cssLengthToDistance lenValue lenType
-
-  let (textAlign', textDecoration', textIndent', textTransform') = styleEngineSetTextStyle property value distance fontAttrs dpiX dpiY textAlign textDecoration textIndent textTransform
-
-  let styleAttrs' = styleAttrs
-                    {
-                      styleTextAlign      = textAlign'
-                    , styleTextDecoration = textDecoration'
-                    , styleTextIndent     = textIndent'
-                    , styleTextTransform  = textTransform'
-                    }
+  let styleAttrs' = styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
 
   pokeStyleAttrs styleAttrs' ptrStructStyleAttrs
 
