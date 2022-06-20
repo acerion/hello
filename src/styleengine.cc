@@ -447,18 +447,6 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
                                        Color::create (layout, decl->c_value->c_int_val);
             break;
 
-         case CSS_PROPERTY_BORDER_BOTTOM_STYLE:
-         case CSS_PROPERTY_BORDER_LEFT_STYLE:
-         case CSS_PROPERTY_BORDER_RIGHT_STYLE:
-         case CSS_PROPERTY_BORDER_TOP_STYLE:
-            hll_styleEngineSetBorderStyle(decl->c_property, decl->c_value, style_attrs);
-            break;
-         case CSS_PROPERTY_BORDER_BOTTOM_WIDTH:
-         case CSS_PROPERTY_BORDER_LEFT_WIDTH:
-         case CSS_PROPERTY_BORDER_RIGHT_WIDTH:
-         case CSS_PROPERTY_BORDER_TOP_WIDTH:
-            hll_styleEngineSetBorderWidth(decl->c_property, decl->c_value, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs);
-            break;
          case CSS_PROPERTY_BORDER_SPACING:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
             hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->hBorderSpacing);
@@ -497,6 +485,14 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             attrs->listStyleType = (ListStyleType) decl->c_value->c_int_val;
             break;
 
+         case CSS_PROPERTY_BORDER_BOTTOM_STYLE:
+         case CSS_PROPERTY_BORDER_LEFT_STYLE:
+         case CSS_PROPERTY_BORDER_RIGHT_STYLE:
+         case CSS_PROPERTY_BORDER_TOP_STYLE:
+         case CSS_PROPERTY_BORDER_BOTTOM_WIDTH:
+         case CSS_PROPERTY_BORDER_LEFT_WIDTH:
+         case CSS_PROPERTY_BORDER_RIGHT_WIDTH:
+         case CSS_PROPERTY_BORDER_TOP_WIDTH:
          case CSS_PROPERTY_MARGIN_BOTTOM:
          case CSS_PROPERTY_MARGIN_LEFT:
          case CSS_PROPERTY_MARGIN_RIGHT:

@@ -46,8 +46,6 @@ module Hello.Css.StyleEngine
   , styleEngineSetFontVariant
 
   , styleEngineComputeBorderWidth
-  , styleEngineSetBorderWidth
-  , styleEngineSetBorderStyle
 
   , styleEngineSetStyle
 
@@ -393,7 +391,7 @@ styleEngineComputeBorderWidth value dpiX dpiY fontAttrs =
 
 
 
-
+{-
 styleEngineSetBorderStyle :: Int -> CssValue -> StyleBorderStyle -> StyleBorderStyle
 styleEngineSetBorderStyle property value borderStyle
   | property == cssDeclPropertyBorderTopStyle    = borderStyle { styleBorderStyleTop    = style }
@@ -425,7 +423,7 @@ styleEngineSetBorderWidth property value dpiX dpiY fontAttrs borderWidth
 
 
 
-{-
+
 styleEngineSetMargin :: Int -> CssValue -> Float -> Float -> FontAttrs -> StyleMargin -> StyleMargin
 styleEngineSetMargin property value dpiX dpiY fontAttrs margin
   | property == cssDeclPropertyMarginBottom = margin { styleMarginBottom = clip m }
@@ -484,6 +482,14 @@ styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
 styleEngineSetStyle :: Int -> CssValue -> CssDistance -> FontAttrs -> Float -> Float -> StyleAttrs -> StyleAttrs
 styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
   -- Probably because of code like this someone invented lenses.
+  | property == cssDeclPropertyBorderTopStyle    = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyle value }}
+  | property == cssDeclPropertyBorderRightStyle  = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyle value }}
+  | property == cssDeclPropertyBorderBottomStyle = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyle value }}
+  | property == cssDeclPropertyBorderLeftStyle   = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleLeft   = getBorderStyle value }}
+  | property == cssDeclPropertyBorderTopWidth    = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthTop    = getBorderWidth value dpiX dpiY fontAttrs }}
+  | property == cssDeclPropertyBorderRightWidth  = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidth value dpiX dpiY fontAttrs }}
+  | property == cssDeclPropertyBorderBottomWidth = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidth value dpiX dpiY fontAttrs }}
+  | property == cssDeclPropertyBorderLeftWidth   = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidth value dpiX dpiY fontAttrs }}
   | property == cssDeclPropertyMarginBottom   = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin distance fontAttrs dpiX dpiY }}
   | property == cssDeclPropertyMarginLeft     = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin distance fontAttrs dpiX dpiY }}
   | property == cssDeclPropertyMarginRight    = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin distance fontAttrs dpiX dpiY }}
@@ -504,6 +510,22 @@ styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
                  CssValueTypeLength d       -> d
 
 -}
+
+
+
+
+getBorderStyle value = case value of
+                         CssValueTypeEnum i -> i
+                         otherwise          -> 0
+
+
+
+
+getBorderWidth value dpiX dpiY fontAttrs = case styleEngineComputeBorderWidth value dpiX dpiY fontAttrs of
+                                             -- TODO: another place where Maybe returned by Compute function
+                                             -- causes unnecessary trouble.
+                                             Just x  -> x
+                                             Nothing -> 0
 
 
 
