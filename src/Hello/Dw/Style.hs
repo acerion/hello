@@ -116,5 +116,7 @@ data StyleAttrs = StyleAttrs
   , styleTextDecoration    :: Int
   , styleTextIndent        :: DwLength
   , styleTextTransform     :: Int
+  , styleVerticalAlign     :: Int
+  , styleWhiteSpace        :: Int
   } deriving (Show)
 

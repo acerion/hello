@@ -337,6 +337,8 @@ data FfiStyleAttrs = FfiStyleAttrs
   , iTextDecoration            :: CInt
   , ptrStructStyleTextIndent   :: Ptr FfiDwLength
   , iTextTransform             :: CInt
+  , iVerticalAlign             :: CInt
+  , iWhiteSpace                :: CInt
   } deriving (Show)
 
 
@@ -355,10 +357,12 @@ instance Storable FfiStyleAttrs where
     textDecoration   <- #{peek c_style_attrs_t, c_text_decoration}   ptr
     textIndent       <- #{peek c_style_attrs_t, c_text_indent}       ptr
     textTransform    <- #{peek c_style_attrs_t, c_text_transform}    ptr
-    return (FfiStyleAttrs borderStyle borderWidth margin padding textAlign textDecoration textIndent textTransform)
+    verticalAlign    <- #{peek c_style_attrs_t, c_vertical_align}    ptr
+    whiteSpace       <- #{peek c_style_attrs_t, c_white_space}       ptr
+    return (FfiStyleAttrs borderStyle borderWidth margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace)
 
 
-  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform) = do
+  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace) = do
     #{poke c_style_attrs_t, c_border_style}    ptr cBorderStyle
     #{poke c_style_attrs_t, c_border_width}    ptr cBorderWidth
     #{poke c_style_attrs_t, c_margin}          ptr cMargin
@@ -367,6 +371,8 @@ instance Storable FfiStyleAttrs where
     #{poke c_style_attrs_t, c_text_decoration} ptr cTextDecoration
     #{poke c_style_attrs_t, c_text_indent}     ptr cTextIndent
     #{poke c_style_attrs_t, c_text_transform}  ptr cTextTransform
+    #{poke c_style_attrs_t, c_vertical_align}  ptr cVerticalAlign
+    #{poke c_style_attrs_t, c_white_space}     ptr cWhiteSpace
 
 
 
@@ -392,6 +398,9 @@ peekStyleAttrs ptrStructStyleAttrs = do
     , styleTextDecoration = fromIntegral . iTextDecoration $ ffiAttrs
     , styleTextIndent     = tIndent
     , styleTextTransform  = fromIntegral . iTextTransform $ ffiAttrs
+
+    , styleVerticalAlign  = fromIntegral . iVerticalAlign $ ffiAttrs
+    , styleWhiteSpace     = fromIntegral . iWhiteSpace $ ffiAttrs
     }
 
 
@@ -426,7 +435,10 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let cTextDecoration :: CInt = fromIntegral . styleTextDecoration $ attrs
   let cTextTransform  :: CInt = fromIntegral . styleTextTransform $ attrs
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform
+  let cVerticalAlign  :: CInt = fromIntegral . styleVerticalAlign $ attrs
+  let cWhiteSpace     :: CInt = fromIntegral . styleWhiteSpace $ attrs
+
+  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace
 
 
 

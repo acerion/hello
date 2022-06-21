@@ -495,7 +495,6 @@ public:
    DwLength backgroundPositionX; // "left" defined by "0%" etc. (see CSS spec)
    DwLength backgroundPositionY; // "top" defined by "0%" etc. (see CSS spec)
 
-   VAlignType valign;
    char textAlignChar; /* In future, strings will be supported. */
 
 
@@ -513,9 +512,11 @@ public:
    int textDecoration; /* No TextDecoration because of problems converting TextDecoration <-> int */
    DwLength textIndent;
    int textTransform; // TODO: use TextTransform type
+   int verticalAlign;  // TODO: use VAlignType
+   int whiteSpace; // TODO: use WhiteSpace
 
    DisplayType display;
-   WhiteSpace whiteSpace;
+
    ListStylePosition listStylePosition;
    ListStyleType listStyleType;
    Cursor cursor;

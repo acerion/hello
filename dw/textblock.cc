@@ -1094,9 +1094,9 @@ void Textblock::drawWord0 (int wordIndex1, int wordIndex2,
    int yWorldBase;
 
    /* Adjust the text baseline if the word is <SUP>-ed or <SUB>-ed. */
-   if (style->valign == core::style::VALIGN_SUB)
+   if (style->verticalAlign == core::style::VALIGN_SUB)
       yWidgetBase += style->font->ascent / 3;
-   else if (style->valign == core::style::VALIGN_SUPER) {
+   else if (style->verticalAlign == core::style::VALIGN_SUPER) {
       yWidgetBase -= style->font->ascent / 2;
    }
    yWorldBase = yWidgetBase + allocation.y;
@@ -1199,9 +1199,9 @@ void Textblock::drawSpace(int wordIndex, core::View *view,
    bool highlight = false;
 
    /* Adjust the space baseline if it is <SUP>-ed or <SUB>-ed */
-   if (style->valign == core::style::VALIGN_SUB)
+   if (style->verticalAlign == core::style::VALIGN_SUB)
       yWidgetBase += style->font->ascent / 3;
-   else if (style->valign == core::style::VALIGN_SUPER) {
+   else if (style->verticalAlign == core::style::VALIGN_SUPER) {
       yWidgetBase -= style->font->ascent / 2;
    }
    yWorldBase = allocation.y + yWidgetBase;
@@ -1655,10 +1655,10 @@ void Textblock::calcTextSize (const char *text, size_t len,
    /* In case of a sub or super script we increase the word's height and
     * potentially the line's height.
     */
-   if (style->valign == core::style::VALIGN_SUB) {
+   if (style->verticalAlign == core::style::VALIGN_SUB) {
       int requiredDescent = style->font->descent + style->font->ascent / 3;
       size->descent = misc::max (size->descent, requiredDescent);
-   } else if (style->valign == core::style::VALIGN_SUPER) {
+   } else if (style->verticalAlign == core::style::VALIGN_SUPER) {
       int requiredAscent = style->font->ascent + style->font->ascent / 2;
       size->ascent = misc::max (size->ascent, requiredAscent);
    }

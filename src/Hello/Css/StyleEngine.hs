@@ -502,6 +502,8 @@ styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
   | property == cssDeclPropertyTextDecoration = styleAttrs { styleTextDecoration = getTextDecoration value (styleTextDecoration styleAttrs) }
   | property == cssDeclPropertyTextIndent     = styleAttrs { styleTextIndent     = getTextIndent distance fontAttrs dpiX dpiY }
   | property == cssDeclPropertyTextTransform  = styleAttrs { styleTextTransform  = getTextTransform value }
+  | property == cssDeclPropertyVerticalAlign  = styleAttrs { styleVerticalAlign  = getVerticalAlign value }
+  | property == cssDeclPropertyWhitespace     = styleAttrs { styleWhiteSpace     = getWhiteSpace value }
   | otherwise                                 = styleAttrs
 {-
     distance = case value of
@@ -578,4 +580,17 @@ getPadding distance fontAttrs dpiX dpiY =
     Just x  -> roundInt x
     Nothing -> 0
 
+
+
+
+getVerticalAlign value = case value of
+                           CssValueTypeEnum e -> e
+                           otherwise          -> 3 -- '3' corresponds to "vertical-align: baseline"
+
+
+
+
+getWhiteSpace value = case value of
+                           CssValueTypeEnum e -> e
+                           otherwise          -> 0 -- '0' corresponds to "white-space: normal"
 

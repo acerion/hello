@@ -318,7 +318,7 @@ void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
       attrs->backgroundAttachment = parentNode->style->backgroundAttachment;
       attrs->backgroundPositionX  = parentNode->style->backgroundPositionX;
       attrs->backgroundPositionY  = parentNode->style->backgroundPositionY;
-      attrs->valign               = parentNode->style->valign;
+      attrs->verticalAlign        = parentNode->style->verticalAlign;
    }
    attrs->borderColor.top = (Color *) -1;
    attrs->borderColor.bottom = (Color *) -1;
@@ -383,6 +383,8 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_text_decoration = attrs->textDecoration;
    *(style_attrs->c_text_indent)  = attrs->textIndent;
    style_attrs->c_text_transform  = attrs->textTransform;
+   style_attrs->c_vertical_align  = attrs->verticalAlign;
+   style_attrs->c_white_space     = attrs->whiteSpace;
 
 
    /* Determine font first so it can be used to resolve relative lengths. */
@@ -505,17 +507,12 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_TEXT_DECORATION:
          case CSS_PROPERTY_TEXT_INDENT:
          case CSS_PROPERTY_TEXT_TRANSFORM:
+         case CSS_PROPERTY_VERTICAL_ALIGN:
+         case CSS_PROPERTY_WHITE_SPACE:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
             val_  = (double) cpp_cssLengthValue(cssLength);
             type_ = cpp_cssLengthType(cssLength);
             hll_styleEngineSetStyle(decl->c_property, decl->c_value, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs);
-            break;
-
-         case CSS_PROPERTY_VERTICAL_ALIGN:
-            attrs->valign = (VAlignType) decl->c_value->c_int_val;
-            break;
-         case CSS_PROPERTY_WHITE_SPACE:
-            attrs->whiteSpace = (WhiteSpace) decl->c_value->c_int_val;
             break;
          case CSS_PROPERTY_WIDTH:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
@@ -575,6 +572,9 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    attrs->textDecoration = style_attrs->c_text_decoration;
    attrs->textIndent     = *(style_attrs->c_text_indent);
    attrs->textTransform  = style_attrs->c_text_transform;
+
+   attrs->verticalAlign = style_attrs->c_vertical_align;
+   attrs->whiteSpace    = style_attrs->c_white_space;
 
    free(style_attrs->c_border_width);
    free(style_attrs->c_border_style);
@@ -684,7 +684,7 @@ Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
       attrs.backgroundPositionY  = getStyle (bw)->backgroundPositionY;
    }
 
-   attrs.valign = getStyle(bw)->valign;
+   attrs.verticalAlign = getStyle(bw)->verticalAlign;
 
    node->wordStyle = Style::create(&attrs);
    return node->wordStyle;

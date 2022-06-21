@@ -168,6 +168,9 @@ typedef struct c_style_attrs_t {
         int c_text_decoration;
         DwLength * c_text_indent;
         int c_text_transform;
+
+        int c_vertical_align;
+        int c_white_space;
 } c_style_attrs_t;
 
 

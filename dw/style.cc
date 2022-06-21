@@ -67,7 +67,7 @@ void StyleAttrs::initValues ()
    textTransform = TEXT_TRANSFORM_NONE;
    listStylePosition = LIST_STYLE_POSITION_OUTSIDE;
    listStyleType = LIST_STYLE_TYPE_DISC;
-   valign = VALIGN_BASELINE;
+   verticalAlign = VALIGN_BASELINE;
    backgroundColor = NULL;
    backgroundImage = NULL;
    backgroundRepeat = BACKGROUND_REPEAT;
@@ -101,7 +101,7 @@ void StyleAttrs::resetValues ()
 {
    x_img = -1;
 
-   valign = VALIGN_BASELINE;
+   verticalAlign = VALIGN_BASELINE;
    textAlignChar = '.';
    backgroundColor = NULL;
    backgroundImage = NULL;
@@ -155,7 +155,7 @@ bool StyleAttrs::equals (object::Object *other) {
        backgroundPositionX.dw_length_hash == otherAttrs->backgroundPositionX.dw_length_hash &&
        backgroundPositionY.dw_length_hash == otherAttrs->backgroundPositionY.dw_length_hash &&
        textAlign == otherAttrs->textAlign &&
-       valign == otherAttrs->valign &&
+       verticalAlign == otherAttrs->verticalAlign &&
        textAlignChar == otherAttrs->textAlignChar &&
        textTransform == otherAttrs->textTransform &&
        hBorderSpacing == otherAttrs->hBorderSpacing &&
@@ -202,7 +202,7 @@ int StyleAttrs::hashValue () {
       backgroundPositionX.dw_length_hash +
       backgroundPositionY.dw_length_hash +
       textAlign +
-      valign +
+      verticalAlign +
       textAlignChar +
       textTransform +
       hBorderSpacing +
@@ -317,7 +317,7 @@ void Style::copyAttrs (StyleAttrs *attrs)
    backgroundPositionX = attrs->backgroundPositionX;
    backgroundPositionY = attrs->backgroundPositionY;
    textAlign = attrs->textAlign;
-   valign = attrs->valign;
+   verticalAlign = attrs->verticalAlign;
    textAlignChar = attrs->textAlignChar;
    textTransform = attrs->textTransform;
    hBorderSpacing = attrs->hBorderSpacing;
