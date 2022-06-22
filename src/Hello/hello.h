@@ -171,6 +171,12 @@ typedef struct c_style_attrs_t {
 
         int c_vertical_align;
         int c_white_space;
+
+        DwLength * c_width;
+        DwLength * c_height;
+
+        int c_list_style_position;
+        int c_list_style_type;
 } c_style_attrs_t;
 
 

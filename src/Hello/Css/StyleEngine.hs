@@ -504,6 +504,10 @@ styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
   | property == cssDeclPropertyTextTransform  = styleAttrs { styleTextTransform  = getTextTransform value }
   | property == cssDeclPropertyVerticalAlign  = styleAttrs { styleVerticalAlign  = getVerticalAlign value }
   | property == cssDeclPropertyWhitespace     = styleAttrs { styleWhiteSpace     = getWhiteSpace value }
+  | property == cssDeclPropertyWidth          = styleAttrs { styleWidth          = getWidthOrHeight distance fontAttrs dpiX dpiY }
+  | property == cssDeclPropertyHeight         = styleAttrs { styleHeight         = getWidthOrHeight distance fontAttrs dpiX dpiY }
+  | property == cssDeclPropertyListStylePosition = styleAttrs { styleListStylePosition    = getListStylePosition value }
+  | property == cssDeclPropertyListStyleType     = styleAttrs { styleListStyleType        = getListStyleType value }
   | otherwise                                 = styleAttrs
 {-
     distance = case value of
@@ -593,4 +597,28 @@ getVerticalAlign value = case value of
 getWhiteSpace value = case value of
                            CssValueTypeEnum e -> e
                            otherwise          -> 0 -- '0' corresponds to "white-space: normal"
+
+
+
+getWidthOrHeight distance fontAttrs dpiX dpiY =
+  case styleEngineCalculateDwLength distance fontAttrs dpiX dpiY of
+    Just length -> length
+    Nothing     -> createPercentageDwLength 100 -- "100%" seems to be a sane default; TODO: is it really
+
+
+
+
+getListStylePosition value = case value of
+                               CssValueTypeEnum e -> e
+                               otherwise          -> 0 -- 'o' corresponds to "list-style-position: inside"
+
+
+
+
+getListStyleType value = case value of
+                           CssValueTypeEnum e -> e
+                           otherwise          -> 0 -- '0' corresponds to "list-style-type: disc"
+
+
+
 

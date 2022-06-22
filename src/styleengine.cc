@@ -374,6 +374,8 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_margin = (c_style_margin_t *) calloc(1, sizeof (c_style_margin_t));
    style_attrs->c_padding = (c_style_padding_t *) calloc(1, sizeof (c_style_padding_t));
    style_attrs->c_text_indent = (DwLength *) calloc(1, sizeof (DwLength));
+   style_attrs->c_width  = (DwLength *) calloc(1, sizeof (DwLength));
+   style_attrs->c_height = (DwLength *) calloc(1, sizeof (DwLength));
 
    *(style_attrs->c_border_width) = attrs->borderWidth;
    *(style_attrs->c_border_style) = attrs->borderStyle;
@@ -385,7 +387,10 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_text_transform  = attrs->textTransform;
    style_attrs->c_vertical_align  = attrs->verticalAlign;
    style_attrs->c_white_space     = attrs->whiteSpace;
-
+   *(style_attrs->c_width)        = attrs->width;
+   *(style_attrs->c_height)       = attrs->height;
+   style_attrs->c_list_style_position = attrs->listStylePosition;
+   style_attrs->c_list_style_type     = attrs->listStyleType;
 
    /* Determine font first so it can be used to resolve relative lengths. */
    hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
@@ -480,13 +485,9 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
                }
             }
             break;
-         case CSS_PROPERTY_LIST_STYLE_POSITION:
-            attrs->listStylePosition = (ListStylePosition) decl->c_value->c_int_val;
-            break;
-         case CSS_PROPERTY_LIST_STYLE_TYPE:
-            attrs->listStyleType = (ListStyleType) decl->c_value->c_int_val;
-            break;
 
+         case CSS_PROPERTY_LIST_STYLE_POSITION:
+         case CSS_PROPERTY_LIST_STYLE_TYPE:
          case CSS_PROPERTY_BORDER_BOTTOM_STYLE:
          case CSS_PROPERTY_BORDER_LEFT_STYLE:
          case CSS_PROPERTY_BORDER_RIGHT_STYLE:
@@ -509,23 +510,14 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_TEXT_TRANSFORM:
          case CSS_PROPERTY_VERTICAL_ALIGN:
          case CSS_PROPERTY_WHITE_SPACE:
+         case CSS_PROPERTY_WIDTH:
+         case CSS_PROPERTY_HEIGHT:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
             val_  = (double) cpp_cssLengthValue(cssLength);
             type_ = cpp_cssLengthType(cssLength);
             hll_styleEngineSetStyle(decl->c_property, decl->c_value, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs);
             break;
-         case CSS_PROPERTY_WIDTH:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            val_  = (double) cpp_cssLengthValue(cssLength);
-            type_ = cpp_cssLengthType(cssLength);
-            hll_computeDwLength(&attrs->width, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
-            break;
-         case CSS_PROPERTY_HEIGHT:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            val_  = (double) cpp_cssLengthValue(cssLength);
-            type_ = cpp_cssLengthType(cssLength);
-            hll_computeDwLength(&attrs->height, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
-            break;
+
          case CSS_PROPERTY_WORD_SPACING:
             if (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) {
                if (decl->c_value->c_int_val == CSS_WORD_SPACING_NORMAL) {
@@ -575,12 +567,18 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 
    attrs->verticalAlign = style_attrs->c_vertical_align;
    attrs->whiteSpace    = style_attrs->c_white_space;
+   attrs->width  = *(style_attrs->c_width);
+   attrs->height = *(style_attrs->c_height);
+   attrs->listStylePosition = style_attrs->c_list_style_position;
+   attrs->listStyleType     = style_attrs->c_list_style_type;
 
    free(style_attrs->c_border_width);
    free(style_attrs->c_border_style);
    free(style_attrs->c_margin);
    free(style_attrs->c_padding);
    free(style_attrs->c_text_indent);
+   free(style_attrs->c_width);
+   free(style_attrs->c_height);
    free(style_attrs);
 
 

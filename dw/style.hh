@@ -497,9 +497,8 @@ public:
 
    char textAlignChar; /* In future, strings will be supported. */
 
-
    int hBorderSpacing, vBorderSpacing, wordSpacing;
-   DwLength width, height, lineHeight;
+   DwLength lineHeight;
 
    BorderCollapse borderCollapse;
    struct { Color *top, *right, *bottom, *left; } borderColor;
@@ -514,11 +513,13 @@ public:
    int textTransform; // TODO: use TextTransform type
    int verticalAlign;  // TODO: use VAlignType
    int whiteSpace; // TODO: use WhiteSpace
+   DwLength width;
+   DwLength height;
+   int listStylePosition; // TODO: use ListStylePosition
+   int listStyleType; // TODO: use ListStyleType
 
    DisplayType display;
 
-   ListStylePosition listStylePosition;
-   ListStyleType listStyleType;
    Cursor cursor;
 
    int x_link;

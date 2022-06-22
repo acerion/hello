@@ -339,6 +339,10 @@ data FfiStyleAttrs = FfiStyleAttrs
   , iTextTransform             :: CInt
   , iVerticalAlign             :: CInt
   , iWhiteSpace                :: CInt
+  , ptrStructWidth             :: Ptr FfiDwLength
+  , ptrStructHeight            :: Ptr FfiDwLength
+  , iListStylePosition         :: CInt
+  , iListStyleType             :: CInt
   } deriving (Show)
 
 
@@ -359,10 +363,14 @@ instance Storable FfiStyleAttrs where
     textTransform    <- #{peek c_style_attrs_t, c_text_transform}    ptr
     verticalAlign    <- #{peek c_style_attrs_t, c_vertical_align}    ptr
     whiteSpace       <- #{peek c_style_attrs_t, c_white_space}       ptr
-    return (FfiStyleAttrs borderStyle borderWidth margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace)
+    width            <- #{peek c_style_attrs_t, c_width}             ptr
+    height           <- #{peek c_style_attrs_t, c_height}            ptr
+    listStylePosition  <- #{peek c_style_attrs_t, c_list_style_position}  ptr
+    listStyleType      <- #{peek c_style_attrs_t, c_list_style_type}      ptr
+    return (FfiStyleAttrs borderStyle borderWidth margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace width height listStylePosition listStyleType)
 
 
-  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace) = do
+  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cListStylePosition cListStyleType) = do
     #{poke c_style_attrs_t, c_border_style}    ptr cBorderStyle
     #{poke c_style_attrs_t, c_border_width}    ptr cBorderWidth
     #{poke c_style_attrs_t, c_margin}          ptr cMargin
@@ -373,6 +381,10 @@ instance Storable FfiStyleAttrs where
     #{poke c_style_attrs_t, c_text_transform}  ptr cTextTransform
     #{poke c_style_attrs_t, c_vertical_align}  ptr cVerticalAlign
     #{poke c_style_attrs_t, c_white_space}     ptr cWhiteSpace
+    #{poke c_style_attrs_t, c_width}           ptr cWidth
+    #{poke c_style_attrs_t, c_height}          ptr cHeight
+    #{poke c_style_attrs_t, c_list_style_position}  ptr cListStylePosition
+    #{poke c_style_attrs_t, c_list_style_type}      ptr cListStyleType
 
 
 
@@ -386,6 +398,9 @@ peekStyleAttrs ptrStructStyleAttrs = do
   margin      <- peekStyleMargin . ptrStructStyleMargin $ ffiAttrs
   padding     <- peekStylePadding . ptrStructStylePadding $ ffiAttrs
   tIndent     <- peekDwLength . ptrStructStyleTextIndent $ ffiAttrs
+
+  width  <- peekDwLength . ptrStructWidth $ ffiAttrs
+  height <- peekDwLength . ptrStructHeight $ ffiAttrs
 
   return StyleAttrs
     {
@@ -401,6 +416,12 @@ peekStyleAttrs ptrStructStyleAttrs = do
 
     , styleVerticalAlign  = fromIntegral . iVerticalAlign $ ffiAttrs
     , styleWhiteSpace     = fromIntegral . iWhiteSpace $ ffiAttrs
+
+    , styleWidth          = width
+    , styleHeight         = height
+
+    , styleListStylePosition      = fromIntegral . iListStylePosition $ ffiAttrs
+    , styleListStyleType          = fromIntegral . iListStyleType $ ffiAttrs
     }
 
 
@@ -431,6 +452,12 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let pTextIndent :: Ptr FfiDwLength = ptrStructStyleTextIndent ffiStyleAttrs
   pokeDwLength (styleTextIndent attrs) pTextIndent
 
+  let pWidth :: Ptr FfiDwLength = ptrStructWidth ffiStyleAttrs
+  pokeDwLength (styleWidth attrs) pWidth
+
+  let pHeight :: Ptr FfiDwLength = ptrStructHeight ffiStyleAttrs
+  pokeDwLength (styleHeight attrs) pHeight
+
   let cTextAlign      :: CInt = fromIntegral . styleTextAlign $ attrs
   let cTextDecoration :: CInt = fromIntegral . styleTextDecoration $ attrs
   let cTextTransform  :: CInt = fromIntegral . styleTextTransform $ attrs
@@ -438,7 +465,10 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let cVerticalAlign  :: CInt = fromIntegral . styleVerticalAlign $ attrs
   let cWhiteSpace     :: CInt = fromIntegral . styleWhiteSpace $ attrs
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace
+  let cListStylePosition    :: CInt = fromIntegral . styleListStylePosition $ attrs
+  let cListStyleType        :: CInt = fromIntegral . styleListStyleType $ attrs
+
+  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight cListStylePosition cListStyleType
 
 
 

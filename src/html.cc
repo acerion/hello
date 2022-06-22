@@ -3488,7 +3488,7 @@ static void Html_display_listitem(DilloHtml *html)
       // none
    } else if (style->listStyleType >= LIST_STYLE_TYPE_DECIMAL) {
       // ordered
-      numtostr((*list_number)++, buf, 16, style->listStyleType);
+      numtostr((*list_number)++, buf, 16, (dw::core::style::ListStyleType) style->listStyleType);
       list_item->initWithText (buf, wordStyle);
    } else {
       // unordered
