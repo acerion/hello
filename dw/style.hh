@@ -498,7 +498,7 @@ public:
    char textAlignChar; /* In future, strings will be supported. */
 
    int hBorderSpacing, vBorderSpacing, wordSpacing;
-   DwLength lineHeight;
+
 
    BorderCollapse borderCollapse;
    struct { Color *top, *right, *bottom, *left; } borderColor;
@@ -515,6 +515,7 @@ public:
    int whiteSpace; // TODO: use WhiteSpace
    DwLength width;
    DwLength height;
+   DwLength lineHeight;
    int listStylePosition; // TODO: use ListStylePosition
    int listStyleType; // TODO: use ListStyleType
 

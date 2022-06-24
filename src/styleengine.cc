@@ -376,6 +376,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_text_indent = (DwLength *) calloc(1, sizeof (DwLength));
    style_attrs->c_width  = (DwLength *) calloc(1, sizeof (DwLength));
    style_attrs->c_height = (DwLength *) calloc(1, sizeof (DwLength));
+   style_attrs->c_line_height = (DwLength *) calloc(1, sizeof (DwLength));
 
    *(style_attrs->c_border_width) = attrs->borderWidth;
    *(style_attrs->c_border_style) = attrs->borderStyle;
@@ -389,6 +390,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_white_space     = attrs->whiteSpace;
    *(style_attrs->c_width)        = attrs->width;
    *(style_attrs->c_height)       = attrs->height;
+   *(style_attrs->c_line_height)  = attrs->lineHeight;
    style_attrs->c_list_style_position = attrs->listStylePosition;
    style_attrs->c_list_style_type     = attrs->listStyleType;
 
@@ -472,20 +474,6 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
                styleNodesStack[some_idx].displayNone = true;
             break;
          case CSS_PROPERTY_LINE_HEIGHT:
-            if (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) { //only valid enum value is "normal"
-               attrs->lineHeight = createAutoLength();
-            } else if (decl->c_value->c_type_tag == CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER) {
-
-               int lineHeight;
-               CssLength cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-               if (cpp_cssLengthType(cssLength) == CSS_LENGTH_TYPE_NONE) {
-                  attrs->lineHeight = createPercentageDwLength(cpp_cssLengthValue(cssLength));
-               } else if ((bool) hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, attrs->font->font_attrs.size, layout->dpiX(), layout->dpiY(), &lineHeight)) {
-                  attrs->lineHeight = createAbsoluteDwLength(lineHeight);
-               }
-            }
-            break;
-
          case CSS_PROPERTY_LIST_STYLE_POSITION:
          case CSS_PROPERTY_LIST_STYLE_TYPE:
          case CSS_PROPERTY_BORDER_BOTTOM_STYLE:
@@ -569,6 +557,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    attrs->whiteSpace    = style_attrs->c_white_space;
    attrs->width  = *(style_attrs->c_width);
    attrs->height = *(style_attrs->c_height);
+   attrs->lineHeight = *(style_attrs->c_line_height);
    attrs->listStylePosition = style_attrs->c_list_style_position;
    attrs->listStyleType     = style_attrs->c_list_style_type;
 

@@ -508,6 +508,7 @@ styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
   | property == cssDeclPropertyHeight         = styleAttrs { styleHeight         = getWidthOrHeight distance fontAttrs dpiX dpiY }
   | property == cssDeclPropertyListStylePosition = styleAttrs { styleListStylePosition    = getListStylePosition value }
   | property == cssDeclPropertyListStyleType     = styleAttrs { styleListStyleType        = getListStyleType value }
+  | property == cssDeclPropertyLineHeight        = styleAttrs { styleLineHeight           = getLineHeight value distance fontAttrs dpiX dpiY }
   | otherwise                                 = styleAttrs
 {-
     distance = case value of
@@ -620,5 +621,37 @@ getListStyleType value = case value of
                            otherwise          -> 0 -- '0' corresponds to "list-style-type: disc"
 
 
+
+
+
+getLineHeight value distance fontAttrs dpiX dpiY =
+  case value of
+    CssValueTypeEnum _                -> createAutoDwLength -- only valid enum value is "normal"
+    CssValueTypeLengthPercentNumber d -> case d of -- TODO: 'd' duplicates 'distance' function arg
+                                           CssNumericNone f -> createPercentageDwLength . realToFrac $ f
+                                           otherwise        -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue dpiX dpiY of
+                                                                 Just len -> createAbsoluteDwLength . roundInt $ len
+                                                                 Nothing  -> createAutoDwLength -- TODO: is it the best choice?
+    otherwise                         -> createAutoDwLength -- safe default?
+
+    where
+      referenceValue = fontSize fontAttrs
+
+{-
+         case CSS_PROPERTY_LINE_HEIGHT:
+            if (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) { //only valid enum value is "normal"
+               attrs->lineHeight = createAutoLength();
+            } else if (decl->c_value->c_type_tag == CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER) {
+
+               int lineHeight;
+               CssLength cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
+               if (cpp_cssLengthType(cssLength) == CSS_LENGTH_TYPE_NONE) {
+                  attrs->lineHeight = createPercentageDwLength(cpp_cssLengthValue(cssLength));
+               } else if ((bool) hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, attrs->font->font_attrs.size, layout->dpiX(), layout->dpiY(), &lineHeight)) {
+                  attrs->lineHeight = createAbsoluteDwLength(lineHeight);
+               }
+            }
+            break;
+-}
 
 

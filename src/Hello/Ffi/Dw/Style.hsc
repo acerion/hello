@@ -341,6 +341,7 @@ data FfiStyleAttrs = FfiStyleAttrs
   , iWhiteSpace                :: CInt
   , ptrStructWidth             :: Ptr FfiDwLength
   , ptrStructHeight            :: Ptr FfiDwLength
+  , ptrStructLineHeight        :: Ptr FfiDwLength
   , iListStylePosition         :: CInt
   , iListStyleType             :: CInt
   } deriving (Show)
@@ -365,12 +366,13 @@ instance Storable FfiStyleAttrs where
     whiteSpace       <- #{peek c_style_attrs_t, c_white_space}       ptr
     width            <- #{peek c_style_attrs_t, c_width}             ptr
     height           <- #{peek c_style_attrs_t, c_height}            ptr
+    lineHeight       <- #{peek c_style_attrs_t, c_line_height}       ptr
     listStylePosition  <- #{peek c_style_attrs_t, c_list_style_position}  ptr
     listStyleType      <- #{peek c_style_attrs_t, c_list_style_type}      ptr
-    return (FfiStyleAttrs borderStyle borderWidth margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace width height listStylePosition listStyleType)
+    return (FfiStyleAttrs borderStyle borderWidth margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace width height lineHeight listStylePosition listStyleType)
 
 
-  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cListStylePosition cListStyleType) = do
+  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cLineHeight cListStylePosition cListStyleType) = do
     #{poke c_style_attrs_t, c_border_style}    ptr cBorderStyle
     #{poke c_style_attrs_t, c_border_width}    ptr cBorderWidth
     #{poke c_style_attrs_t, c_margin}          ptr cMargin
@@ -383,6 +385,7 @@ instance Storable FfiStyleAttrs where
     #{poke c_style_attrs_t, c_white_space}     ptr cWhiteSpace
     #{poke c_style_attrs_t, c_width}           ptr cWidth
     #{poke c_style_attrs_t, c_height}          ptr cHeight
+    #{poke c_style_attrs_t, c_line_height}          ptr cLineHeight
     #{poke c_style_attrs_t, c_list_style_position}  ptr cListStylePosition
     #{poke c_style_attrs_t, c_list_style_type}      ptr cListStyleType
 
@@ -401,6 +404,7 @@ peekStyleAttrs ptrStructStyleAttrs = do
 
   width  <- peekDwLength . ptrStructWidth $ ffiAttrs
   height <- peekDwLength . ptrStructHeight $ ffiAttrs
+  lineHeight <- peekDwLength . ptrStructLineHeight $ ffiAttrs
 
   return StyleAttrs
     {
@@ -419,6 +423,7 @@ peekStyleAttrs ptrStructStyleAttrs = do
 
     , styleWidth          = width
     , styleHeight         = height
+    , styleLineHeight     = lineHeight
 
     , styleListStylePosition      = fromIntegral . iListStylePosition $ ffiAttrs
     , styleListStyleType          = fromIntegral . iListStyleType $ ffiAttrs
@@ -458,6 +463,9 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let pHeight :: Ptr FfiDwLength = ptrStructHeight ffiStyleAttrs
   pokeDwLength (styleHeight attrs) pHeight
 
+  let pLineHeight :: Ptr FfiDwLength = ptrStructLineHeight ffiStyleAttrs
+  pokeDwLength (styleLineHeight attrs) pLineHeight
+
   let cTextAlign      :: CInt = fromIntegral . styleTextAlign $ attrs
   let cTextDecoration :: CInt = fromIntegral . styleTextDecoration $ attrs
   let cTextTransform  :: CInt = fromIntegral . styleTextTransform $ attrs
@@ -468,7 +476,7 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let cListStylePosition    :: CInt = fromIntegral . styleListStylePosition $ attrs
   let cListStyleType        :: CInt = fromIntegral . styleListStyleType $ attrs
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight cListStylePosition cListStyleType
+  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight pLineHeight cListStylePosition cListStyleType
 
 
 

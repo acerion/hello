@@ -174,6 +174,7 @@ typedef struct c_style_attrs_t {
 
         DwLength * c_width;
         DwLength * c_height;
+        DwLength * c_line_height;
 
         int c_list_style_position;
         int c_list_style_type;

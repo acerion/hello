@@ -120,6 +120,7 @@ data StyleAttrs = StyleAttrs
   , styleWhiteSpace        :: Int
   , styleWidth             :: DwLength
   , styleHeight            :: DwLength
+  , styleLineHeight        :: DwLength
   , styleListStylePosition :: Int
   , styleListStyleType     :: Int
   } deriving (Show)
