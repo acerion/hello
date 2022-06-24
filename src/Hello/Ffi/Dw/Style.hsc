@@ -344,6 +344,11 @@ data FfiStyleAttrs = FfiStyleAttrs
   , ptrStructLineHeight        :: Ptr FfiDwLength
   , iListStylePosition         :: CInt
   , iListStyleType             :: CInt
+  , iDisplay                   :: CInt
+  , iColor                     :: CInt
+  , iCursor                    :: CInt
+  , iHBorderSpacing            :: CInt
+  , iVBorderSpacing            :: CInt
   } deriving (Show)
 
 
@@ -369,10 +374,17 @@ instance Storable FfiStyleAttrs where
     lineHeight       <- #{peek c_style_attrs_t, c_line_height}       ptr
     listStylePosition  <- #{peek c_style_attrs_t, c_list_style_position}  ptr
     listStyleType      <- #{peek c_style_attrs_t, c_list_style_type}      ptr
-    return (FfiStyleAttrs borderStyle borderWidth margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace width height lineHeight listStylePosition listStyleType)
+    display            <- #{peek c_style_attrs_t, c_display}              ptr
+    color              <- #{peek c_style_attrs_t, c_color}                ptr
+    cursor             <- #{peek c_style_attrs_t, c_cursor}               ptr
+    hBorderSpacing     <- #{peek c_style_attrs_t, c_h_border_spacing}     ptr
+    vBorderSpacing     <- #{peek c_style_attrs_t, c_v_border_spacing}     ptr
+    return (FfiStyleAttrs borderStyle borderWidth margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace width height lineHeight listStylePosition listStyleType display color cursor hBorderSpacing vBorderSpacing)
 
 
-  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cLineHeight cListStylePosition cListStyleType) = do
+
+
+  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing) = do
     #{poke c_style_attrs_t, c_border_style}    ptr cBorderStyle
     #{poke c_style_attrs_t, c_border_width}    ptr cBorderWidth
     #{poke c_style_attrs_t, c_margin}          ptr cMargin
@@ -388,6 +400,11 @@ instance Storable FfiStyleAttrs where
     #{poke c_style_attrs_t, c_line_height}          ptr cLineHeight
     #{poke c_style_attrs_t, c_list_style_position}  ptr cListStylePosition
     #{poke c_style_attrs_t, c_list_style_type}      ptr cListStyleType
+    #{poke c_style_attrs_t, c_display}              ptr cDisplay
+    #{poke c_style_attrs_t, c_color}                ptr cColor
+    #{poke c_style_attrs_t, c_cursor}               ptr cCursor
+    #{poke c_style_attrs_t, c_h_border_spacing}     ptr cHBorderSpacing
+    #{poke c_style_attrs_t, c_v_border_spacing}     ptr cVBorderSpacing
 
 
 
@@ -427,6 +444,12 @@ peekStyleAttrs ptrStructStyleAttrs = do
 
     , styleListStylePosition      = fromIntegral . iListStylePosition $ ffiAttrs
     , styleListStyleType          = fromIntegral . iListStyleType $ ffiAttrs
+
+    , styleDisplay                = fromIntegral . iDisplay $ ffiAttrs
+    , styleColor                  = fromIntegral . iColor $ ffiAttrs
+    , styleCursor                 = fromIntegral . iCursor $ ffiAttrs
+    , styleHBorderSpacing         = fromIntegral . iHBorderSpacing $ ffiAttrs
+    , styleVBorderSpacing         = fromIntegral . iVBorderSpacing $ ffiAttrs
     }
 
 
@@ -476,7 +499,13 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let cListStylePosition    :: CInt = fromIntegral . styleListStylePosition $ attrs
   let cListStyleType        :: CInt = fromIntegral . styleListStyleType $ attrs
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight pLineHeight cListStylePosition cListStyleType
+  let cDisplay        :: CInt = fromIntegral . styleDisplay $ attrs
+  let cColor          :: CInt = fromIntegral . styleColor $ attrs
+  let cCursor         :: CInt = fromIntegral . styleCursor $ attrs
+  let cHBorderSpacing :: CInt = fromIntegral . styleHBorderSpacing $ attrs
+  let cVBorderSpacing :: CInt = fromIntegral . styleVBorderSpacing $ attrs
+
+  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight pLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing
 
 
 

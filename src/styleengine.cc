@@ -394,6 +394,12 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_list_style_position = attrs->listStylePosition;
    style_attrs->c_list_style_type     = attrs->listStyleType;
 
+   style_attrs->c_display     = attrs->display;
+   style_attrs->c_color       = -1;// TODO: this probably should be moved to style_attrs' constructor
+   style_attrs->c_cursor      = attrs->cursor;
+   style_attrs->c_h_border_spacing      = attrs->hBorderSpacing;
+   style_attrs->c_v_border_spacing      = attrs->vBorderSpacing;
+
    /* Determine font first so it can be used to resolve relative lengths. */
    hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
 
@@ -457,22 +463,9 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             break;
 
          case CSS_PROPERTY_BORDER_SPACING:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->hBorderSpacing);
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->vBorderSpacing);
-            break;
          case CSS_PROPERTY_COLOR:
-            attrs->color = Color::create (layout, decl->c_value->c_int_val);
-            break;
          case CSS_PROPERTY_CURSOR:
-            attrs->cursor = (Cursor) decl->c_value->c_int_val;
-            break;
          case CSS_PROPERTY_DISPLAY:
-            attrs->display = (DisplayType) decl->c_value->c_int_val;
-            if (attrs->display == DISPLAY_NONE)
-               styleNodesStack[some_idx].displayNone = true;
-            break;
          case CSS_PROPERTY_LINE_HEIGHT:
          case CSS_PROPERTY_LIST_STYLE_POSITION:
          case CSS_PROPERTY_LIST_STYLE_TYPE:
@@ -543,6 +536,11 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
       }
    }
 
+   /* Handle additional things that were not handled in Haskell. */
+   if (attrs->display == DISPLAY_NONE) {
+      styleNodesStack[some_idx].displayNone = true;
+   }
+
    attrs->borderWidth = *(style_attrs->c_border_width);
    attrs->borderStyle = *(style_attrs->c_border_style);
    attrs->margin  = *(style_attrs->c_margin);
@@ -560,6 +558,14 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    attrs->lineHeight = *(style_attrs->c_line_height);
    attrs->listStylePosition = style_attrs->c_list_style_position;
    attrs->listStyleType     = style_attrs->c_list_style_type;
+   attrs->display           = style_attrs->c_display;
+   if (style_attrs->c_color != -1) {
+      // -1 is a special initial value set on top of this function
+      attrs->color = Color::create(layout, style_attrs->c_color);
+   }
+   attrs->cursor            = style_attrs->c_cursor;
+   attrs->hBorderSpacing    = style_attrs->c_h_border_spacing;
+   attrs->vBorderSpacing    = style_attrs->c_v_border_spacing;
 
    free(style_attrs->c_border_width);
    free(style_attrs->c_border_style);

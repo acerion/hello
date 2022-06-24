@@ -675,12 +675,12 @@ bool Textblock::motionNotifyImpl (core::EventMotion *event)
 
       // cursor from word or widget style
       if (word == NULL) {
-         setCursor (getStyle()->cursor);
+         setCursor ((dw::core::style::Cursor) getStyle()->cursor);
          hoverLink = -1;
          hoverTooltip = NULL;
       } else {
          core::style::Style *style = inSpace ? word->spaceStyle : word->style;
-         setCursor (style->cursor);
+         setCursor ((dw::core::style::Cursor) style->cursor);
          hoverLink = style->x_link;
          hoverTooltip = style->x_tooltip;
       }

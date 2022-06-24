@@ -509,6 +509,10 @@ styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
   | property == cssDeclPropertyListStylePosition = styleAttrs { styleListStylePosition    = getListStylePosition value }
   | property == cssDeclPropertyListStyleType     = styleAttrs { styleListStyleType        = getListStyleType value }
   | property == cssDeclPropertyLineHeight        = styleAttrs { styleLineHeight           = getLineHeight value distance fontAttrs dpiX dpiY }
+  | property == cssDeclPropertyDisplay           = styleAttrs { styleDisplay              = getDisplay value }
+  | property == cssDeclPropertyColor             = styleAttrs { styleColor                = getColor value }
+  | property == cssDeclPropertyCursor            = styleAttrs { styleCursor               = getCursor value }
+  | property == cssDeclPropertyBorderSpacing     = styleAttrs { styleHBorderSpacing = getBorderSpacing distance fontAttrs dpiX dpiY, styleVBorderSpacing = getBorderSpacing distance fontAttrs dpiX dpiY }
   | otherwise                                 = styleAttrs
 {-
     distance = case value of
@@ -632,7 +636,7 @@ getLineHeight value distance fontAttrs dpiX dpiY =
                                            otherwise        -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue dpiX dpiY of
                                                                  Just len -> createAbsoluteDwLength . roundInt $ len
                                                                  Nothing  -> createAutoDwLength -- TODO: is it the best choice?
-    otherwise                         -> createAutoDwLength -- safe default?
+    otherwise                         -> createAutoDwLength -- TODO: is it safe default?
 
     where
       referenceValue = fontSize fontAttrs
@@ -653,5 +657,36 @@ getLineHeight value distance fontAttrs dpiX dpiY =
             }
             break;
 -}
+
+
+
+
+getDisplay value = case value of
+                     CssValueTypeEnum e -> e
+                     otherwise          -> 1 -- '1' corresponds to "display: inline"; TODO: is it the best fallback value?
+
+
+
+
+getColor value = case value of
+                   CssValueTypeColor c -> c
+                   otherwise           -> 0xffffff -- Black
+
+
+
+
+getCursor value = case value of
+                    CssValueTypeEnum e -> e
+                    otherwise          -> 1 -- '1' corresponds to "cursor: default"
+
+
+
+-- TODO: border spacing uses the same value for H and V border spacing. If
+-- CSS file specifies two separate values for H and V, the second one is
+-- ignored.
+getBorderSpacing distance fontAttrs dpiX dpiY =
+  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+    Just val -> round val -- TODO: a type of Float -> Int function to be verified here
+    Nothing  -> 0         -- TODO: is it a good default?
 
 

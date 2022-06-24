@@ -488,7 +488,7 @@ class StyleAttrs : public lout::object::Object
 public:
    Font *font;
 
-   Color *color, *backgroundColor;
+   Color *backgroundColor;
    StyleImage *backgroundImage;
    BackgroundRepeat backgroundRepeat;
    BackgroundAttachment backgroundAttachment;
@@ -497,7 +497,7 @@ public:
 
    char textAlignChar; /* In future, strings will be supported. */
 
-   int hBorderSpacing, vBorderSpacing, wordSpacing;
+   int wordSpacing;
 
 
    BorderCollapse borderCollapse;
@@ -518,10 +518,11 @@ public:
    DwLength lineHeight;
    int listStylePosition; // TODO: use ListStylePosition
    int listStyleType; // TODO: use ListStyleType
-
-   DisplayType display;
-
-   Cursor cursor;
+   int display; // TODO: use DisplayType type
+   Color * color = nullptr;
+   int cursor; // TODO: use Cursor type
+   int hBorderSpacing;
+   int vBorderSpacing;
 
    int x_link;
    int x_img;

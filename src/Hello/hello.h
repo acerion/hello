@@ -178,6 +178,13 @@ typedef struct c_style_attrs_t {
 
         int c_list_style_position;
         int c_list_style_type;
+
+        int c_display;
+        int c_color;
+        int c_cursor;
+
+        int c_h_border_spacing;
+        int c_v_border_spacing;
 } c_style_attrs_t;
 
 
