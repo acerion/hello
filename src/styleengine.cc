@@ -371,6 +371,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    c_style_attrs_t * style_attrs = (c_style_attrs_t *) calloc(1, sizeof (c_style_attrs_t));
    style_attrs->c_border_width = (c_border_width_t *) calloc(1, sizeof (c_border_width_t));
    style_attrs->c_border_style = (c_border_style_t *) calloc(1, sizeof (c_border_style_t));
+   style_attrs->c_border_color = (c_border_color_t *) calloc(1, sizeof (c_border_color_t));
    style_attrs->c_margin = (c_style_margin_t *) calloc(1, sizeof (c_style_margin_t));
    style_attrs->c_padding = (c_style_padding_t *) calloc(1, sizeof (c_style_padding_t));
    style_attrs->c_text_indent = (DwLength *) calloc(1, sizeof (DwLength));
@@ -380,6 +381,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 
    *(style_attrs->c_border_width) = attrs->borderWidth;
    *(style_attrs->c_border_style) = attrs->borderStyle;
+   //*(style_attrs->c_border_color) = { -1, -1, -1, -1 }; TODO: uncommenting this line breaks block-quote markings in comments on SoylentNews
    *(style_attrs->c_margin) = attrs->margin;
    *(style_attrs->c_padding) = attrs->padding;
    style_attrs->c_text_align      = attrs->textAlign;
@@ -445,22 +447,6 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_BORDER_COLLAPSE:
             attrs->borderCollapse = (BorderCollapse) decl->c_value->c_int_val;
             break;
-         case CSS_PROPERTY_BORDER_TOP_COLOR:
-            attrs->borderColor.top = (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) ? NULL :
-                                     Color::create (layout, decl->c_value->c_int_val);
-            break;
-         case CSS_PROPERTY_BORDER_BOTTOM_COLOR:
-            attrs->borderColor.bottom = (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) ? NULL :
-                                       Color::create (layout, decl->c_value->c_int_val);
-            break;
-         case CSS_PROPERTY_BORDER_LEFT_COLOR:
-            attrs->borderColor.left = (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) ? NULL :
-                                      Color::create (layout, decl->c_value->c_int_val);
-            break;
-         case CSS_PROPERTY_BORDER_RIGHT_COLOR:
-            attrs->borderColor.right = (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) ? NULL :
-                                       Color::create (layout, decl->c_value->c_int_val);
-            break;
 
          case CSS_PROPERTY_BORDER_SPACING:
          case CSS_PROPERTY_COLOR:
@@ -477,6 +463,10 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_BORDER_LEFT_WIDTH:
          case CSS_PROPERTY_BORDER_RIGHT_WIDTH:
          case CSS_PROPERTY_BORDER_TOP_WIDTH:
+         case CSS_PROPERTY_BORDER_TOP_COLOR:
+         case CSS_PROPERTY_BORDER_BOTTOM_COLOR:
+         case CSS_PROPERTY_BORDER_LEFT_COLOR:
+         case CSS_PROPERTY_BORDER_RIGHT_COLOR:
          case CSS_PROPERTY_MARGIN_BOTTOM:
          case CSS_PROPERTY_MARGIN_LEFT:
          case CSS_PROPERTY_MARGIN_RIGHT:
@@ -543,6 +533,12 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 
    attrs->borderWidth = *(style_attrs->c_border_width);
    attrs->borderStyle = *(style_attrs->c_border_style);
+
+   attrs->borderColor.top    = style_attrs->c_border_color->top == -1    ? NULL : Color::create(layout, style_attrs->c_border_color->top);
+   attrs->borderColor.right  = style_attrs->c_border_color->right == -1  ? NULL : Color::create(layout, style_attrs->c_border_color->right);
+   attrs->borderColor.bottom = style_attrs->c_border_color->bottom == -1 ? NULL : Color::create(layout, style_attrs->c_border_color->bottom);
+   attrs->borderColor.left   = style_attrs->c_border_color->left == -1   ? NULL : Color::create(layout, style_attrs->c_border_color->left);
+
    attrs->margin  = *(style_attrs->c_margin);
    attrs->padding = *(style_attrs->c_padding);
 
@@ -569,6 +565,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 
    free(style_attrs->c_border_width);
    free(style_attrs->c_border_style);
+   free(style_attrs->c_border_color);
    free(style_attrs->c_margin);
    free(style_attrs->c_padding);
    free(style_attrs->c_text_indent);

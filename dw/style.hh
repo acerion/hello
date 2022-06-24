@@ -501,10 +501,10 @@ public:
 
 
    BorderCollapse borderCollapse;
-   struct { Color *top, *right, *bottom, *left; } borderColor;
 
    c_border_width_t borderWidth;
    c_border_style_t borderStyle;
+   struct { Color *top, *right, *bottom, *left; } borderColor;
    c_style_margin_t margin;
    c_style_padding_t padding;
    int textAlign; // TODO: use TextAlignType type

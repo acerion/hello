@@ -201,6 +201,69 @@ pokeStyleBorderWidth style ptrStructBorderWidth = do
 
 
 
+data FfiStyleBorderColor = FfiStyleBorderColor
+  {
+    cStyleBorderColorTop    :: CInt
+  , cStyleBorderColorRight  :: CInt
+  , cStyleBorderColorBottom :: CInt
+  , cStyleBorderColorLeft   :: CInt
+  } deriving (Show)
+
+
+
+
+instance Storable FfiStyleBorderColor where
+  sizeOf    _ = #{size c_border_color_t}
+  alignment _ = #{alignment c_border_color_t}
+
+  poke ptr (FfiStyleBorderColor t r b l) = do
+    #{poke c_border_color_t, top}    ptr t
+    #{poke c_border_color_t, right}  ptr r
+    #{poke c_border_color_t, bottom} ptr b
+    #{poke c_border_color_t, left}   ptr l
+
+
+  peek ptr = do
+    t <- #{peek c_border_color_t, top} ptr
+    r <- #{peek c_border_color_t, right}  ptr
+    b <- #{peek c_border_color_t, bottom} ptr
+    l <- #{peek c_border_color_t, left} ptr
+    return (FfiStyleBorderColor t r b l)
+
+
+
+
+peekStyleBorderColor :: Ptr FfiStyleBorderColor -> IO StyleBorderColor
+peekStyleBorderColor ptrStructBorderColor = do
+  ffiStyle <- peek ptrStructBorderColor
+  return StyleBorderColor
+    {
+      styleBorderColorTop    = fromIntegral . cStyleBorderColorTop    $ ffiStyle
+    , styleBorderColorRight  = fromIntegral . cStyleBorderColorRight  $ ffiStyle
+    , styleBorderColorBottom = fromIntegral . cStyleBorderColorBottom $ ffiStyle
+    , styleBorderColorLeft   = fromIntegral . cStyleBorderColorLeft   $ ffiStyle
+    }
+
+
+
+
+pokeStyleBorderColor :: StyleBorderColor -> Ptr FfiStyleBorderColor -> IO ()
+pokeStyleBorderColor color ptrStructBorderColor = do
+  let top    = fromIntegral . styleBorderColorTop    $ color
+  let right  = fromIntegral . styleBorderColorRight  $ color
+  let bottom = fromIntegral . styleBorderColorBottom $ color
+  let left   = fromIntegral . styleBorderColorLeft   $ color
+
+  poke ptrStructBorderColor $ FfiStyleBorderColor top right bottom left
+
+
+
+
+----------------------------------------
+
+
+
+
 data FfiStyleMargin = FfiStyleMargin
   {
     cStyleMarginTop    :: CInt
@@ -331,6 +394,7 @@ data FfiStyleAttrs = FfiStyleAttrs
   {
     ptrStructStyleBorderStyle  :: Ptr FfiStyleBorderStyle
   , ptrStructStyleBorderWidth  :: Ptr FfiStyleBorderWidth
+  , ptrStructStyleBorderColor  :: Ptr FfiStyleBorderColor
   , ptrStructStyleMargin       :: Ptr FfiStyleMargin
   , ptrStructStylePadding      :: Ptr FfiStylePadding
   , iStyleTextAlign            :: CInt
@@ -361,6 +425,7 @@ instance Storable FfiStyleAttrs where
   peek ptr = do
     borderStyle      <- #{peek c_style_attrs_t, c_border_style}      ptr
     borderWidth      <- #{peek c_style_attrs_t, c_border_width}      ptr
+    borderColor      <- #{peek c_style_attrs_t, c_border_color}      ptr
     margin           <- #{peek c_style_attrs_t, c_margin}            ptr
     padding          <- #{peek c_style_attrs_t, c_padding}           ptr
     textAlign        <- #{peek c_style_attrs_t, c_text_align}        ptr
@@ -379,14 +444,15 @@ instance Storable FfiStyleAttrs where
     cursor             <- #{peek c_style_attrs_t, c_cursor}               ptr
     hBorderSpacing     <- #{peek c_style_attrs_t, c_h_border_spacing}     ptr
     vBorderSpacing     <- #{peek c_style_attrs_t, c_v_border_spacing}     ptr
-    return (FfiStyleAttrs borderStyle borderWidth margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace width height lineHeight listStylePosition listStyleType display color cursor hBorderSpacing vBorderSpacing)
+    return (FfiStyleAttrs borderStyle borderWidth borderColor margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace width height lineHeight listStylePosition listStyleType display color cursor hBorderSpacing vBorderSpacing)
 
 
 
 
-  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing) = do
+  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing) = do
     #{poke c_style_attrs_t, c_border_style}    ptr cBorderStyle
     #{poke c_style_attrs_t, c_border_width}    ptr cBorderWidth
+    #{poke c_style_attrs_t, c_border_color}    ptr cBorderColor
     #{poke c_style_attrs_t, c_margin}          ptr cMargin
     #{poke c_style_attrs_t, c_padding}         ptr cPadding
     #{poke c_style_attrs_t, c_text_align}      ptr cTextAlign
@@ -415,6 +481,7 @@ peekStyleAttrs ptrStructStyleAttrs = do
 
   borderStyle <- peekStyleBorderStyle . ptrStructStyleBorderStyle $ ffiAttrs
   borderWidth <- peekStyleBorderWidth . ptrStructStyleBorderWidth $ ffiAttrs
+  borderColor <- peekStyleBorderColor . ptrStructStyleBorderColor $ ffiAttrs
   margin      <- peekStyleMargin . ptrStructStyleMargin $ ffiAttrs
   padding     <- peekStylePadding . ptrStructStylePadding $ ffiAttrs
   tIndent     <- peekDwLength . ptrStructStyleTextIndent $ ffiAttrs
@@ -427,6 +494,7 @@ peekStyleAttrs ptrStructStyleAttrs = do
     {
       styleBorderStyle = borderStyle
     , styleBorderWidth = borderWidth
+    , styleBorderColor = borderColor
     , styleMargin      = margin
     , stylePadding     = padding
 
@@ -471,6 +539,9 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let pBorderWidth :: Ptr FfiStyleBorderWidth = ptrStructStyleBorderWidth ffiStyleAttrs
   pokeStyleBorderWidth (styleBorderWidth attrs) pBorderWidth
 
+  let pBorderColor :: Ptr FfiStyleBorderColor = ptrStructStyleBorderColor ffiStyleAttrs
+  pokeStyleBorderColor (styleBorderColor attrs) pBorderColor
+
   let pMargin :: Ptr FfiStyleMargin = ptrStructStyleMargin ffiStyleAttrs
   pokeStyleMargin (styleMargin attrs) pMargin
 
@@ -505,7 +576,7 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let cHBorderSpacing :: CInt = fromIntegral . styleHBorderSpacing $ attrs
   let cVBorderSpacing :: CInt = fromIntegral . styleVBorderSpacing $ attrs
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight pLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing
+  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pBorderColor pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight pLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing
 
 
 

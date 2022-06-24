@@ -97,6 +97,15 @@ inline bool borderWidthEquals(c_border_width_t * w, c_border_width_t * other)
 
 
 
+typedef struct {
+        int top;
+        int right;
+        int bottom;
+        int left;
+} c_border_color_t;
+
+
+
 
 // TODO: in dillo the margin variables were of type Box. The comment for
 // Box type was:
@@ -161,6 +170,7 @@ inline bool stylePaddingEquals(c_style_padding_t * p, c_style_padding_t * other)
 typedef struct c_style_attrs_t {
         c_border_style_t * c_border_style;
         c_border_width_t * c_border_width;
+        c_border_color_t * c_border_color;
         c_style_margin_t * c_margin;
         c_style_padding_t * c_padding;
 

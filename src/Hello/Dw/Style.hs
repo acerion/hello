@@ -35,6 +35,7 @@ module Hello.Dw.Style
     StyleAttrs (..)
   , StyleBorderStyle (..)
   , StyleBorderWidth (..)
+  , StyleBorderColor (..)
   , StyleMargin (..)
   , StylePadding (..)
   )
@@ -76,6 +77,17 @@ data StyleBorderWidth = StyleBorderWidth
 
 
 
+data StyleBorderColor = StyleBorderColor
+  {
+    styleBorderColorTop    :: Int -- TODO: replace the Int type with Color type
+  , styleBorderColorRight  :: Int
+  , styleBorderColorBottom :: Int
+  , styleBorderColorLeft   :: Int
+  } deriving (Show)
+
+
+
+
 -- TODO: in dillo the margin variables were of type Box. The comment for Box
 -- type was:
 --
@@ -110,6 +122,7 @@ data StyleAttrs = StyleAttrs
   {
     styleBorderStyle       :: StyleBorderStyle
   , styleBorderWidth       :: StyleBorderWidth
+  , styleBorderColor       :: StyleBorderColor
   , styleMargin            :: StyleMargin
   , stylePadding           :: StylePadding
   , styleTextAlign         :: Int

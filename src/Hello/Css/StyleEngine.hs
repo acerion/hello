@@ -490,6 +490,10 @@ styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
   | property == cssDeclPropertyBorderRightWidth  = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidth value dpiX dpiY fontAttrs }}
   | property == cssDeclPropertyBorderBottomWidth = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidth value dpiX dpiY fontAttrs }}
   | property == cssDeclPropertyBorderLeftWidth   = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidth value dpiX dpiY fontAttrs }}
+  | property == cssDeclPropertyBorderTopColor    = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorTop    = getBorderColor value }}
+  | property == cssDeclPropertyBorderRightColor  = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorRight  = getBorderColor value }}
+  | property == cssDeclPropertyBorderBottomColor = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColor value }}
+  | property == cssDeclPropertyBorderLeftColor   = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColor value }}
   | property == cssDeclPropertyMarginBottom   = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin distance fontAttrs dpiX dpiY }}
   | property == cssDeclPropertyMarginLeft     = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin distance fontAttrs dpiX dpiY }}
   | property == cssDeclPropertyMarginRight    = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin distance fontAttrs dpiX dpiY }}
@@ -537,6 +541,14 @@ getBorderWidth value dpiX dpiY fontAttrs = case styleEngineComputeBorderWidth va
                                              -- causes unnecessary trouble.
                                              Just x  -> x
                                              Nothing -> 0
+
+
+
+
+getBorderColor value = case value of
+                         CssValueTypeEnum e  -> 0x000000 -- Handling of enum keywords for border color is not implemented yet. Fall back to black. TODO: implement the enum.
+                         CssValueTypeColor c -> c
+                         otherwise           -> (-1) -- '-1' will be caught in temporary workaround in C++ code.
 
 
 
