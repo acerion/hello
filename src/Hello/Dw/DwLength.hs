@@ -45,6 +45,8 @@ module Hello.Dw.DwLength
 import Data.Bits
 import Data.Coerce (coerce)
 
+import Hello.Utils
+
 
 
 
@@ -63,10 +65,14 @@ createPercentageDwLength :: Double -> DwLength
 createPercentageDwLength value = DwLength {
     dwLengthValue = value
   , dwLengthType  = 2
-  , dwLengthHash  = ((iValue * (1 `shiftL` 18)) .&. (complement 3)) .|. 2
+  , dwLengthHash  = (iValue .&. (complement 3)) .|. 2
   }
   where
-    iValue = round value -- TODO: probably bad conversion from float to int
+    -- TODO: this is a strange code made to properly encode a double value
+    -- into integer hash. Be careful with it.
+    shifted    :: Int    = 1 `shiftL` 18
+    multiplied :: Double = value * (realToFrac shifted)
+    iValue     :: Int    = roundInt . realToFrac $ multiplied
 
 
 

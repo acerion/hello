@@ -380,13 +380,14 @@ styleEngineComputeBorderWidth value dpiX dpiY fontAttrs =
                        | i == css_BORDER_WIDTH_MEDIUM -> Just 2
                        | i == css_BORDER_WIDTH_THICK  -> Just 3
                        | otherwise                    -> Nothing
-    CssValueTypeLength distance -> fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY
-                                   -- TODO: re-think value returned by
-                                   -- styleEngineComputeAbsoluteLengthValue:
-                                   -- it most probably should be Int, not
-                                   -- Float. Then the Float->int conversion
-                                   -- won't be necessary.
-    otherwise                   -> Nothing
+    CssValueTypeLength distance         -> fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY
+                                           -- TODO: re-think value returned by
+                                           -- styleEngineComputeAbsoluteLengthValue:
+                                           -- it most probably should be Int, not
+                                           -- Float. Then the Float->int conversion
+                                           -- won't be necessary.
+    CssValueTypeLengthPercent distance -> fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY
+    otherwise                          -> trace ("[EE] unhandled css value type " ++ (show value)) Nothing -- TODO: handle all value types
 
 
 
