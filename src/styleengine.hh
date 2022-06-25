@@ -35,7 +35,10 @@ class StyleEngine;
 StyleNode * getCurrentNode(StyleEngine * styleEngine);
 
 
-c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_set_t * set, CssDeclarationProperty property, CssDeclarationValueType type, CssLength length);
+void cpp_styleEngineSetNonCssHintOfNodeLength(StyleNode * styleNode, CssDeclarationProperty property, CssDeclarationValueType type, CssLength length);
+void cpp_styleEngineSetNonCssHintOfNodeInt(StyleNode * styleNode, int property, int valueType, int intVal, float lengthValue, int lengthType);
+void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, int valueType, const char * stringVal);
+
 
 class StyleEngine {
 public:

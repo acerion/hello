@@ -746,10 +746,28 @@ void StyleEngine::buildUserStyle(int context_ref)
    dFree (filename);
 }
 
-c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfCurrentNodeLength(c_css_declaration_set_t * set, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
+void cpp_styleEngineSetNonCssHintOfNodeLength(StyleNode * styleNode, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
 {
    float lengthValue = cpp_cssLengthValue(cssLength);
    int lengthType  = (int) cpp_cssLengthType(cssLength);
-   return hll_styleEngineSetNonCssHintOfCurrentNodeInt(set, property, type, 0, lengthValue, lengthType);
+   cpp_styleEngineSetNonCssHintOfNodeInt(styleNode, property, type, 0, lengthValue, lengthType);
+   return;
 }
+
+void cpp_styleEngineSetNonCssHintOfNodeInt(StyleNode * styleNode, int property, int valueType, int intVal, float lengthValue, int lengthType)
+{
+   c_css_declaration_set_t * inDeclSet = styleNode->declLists.nonCss;
+   c_css_declaration_set_t * outDeclSet = hll_styleEngineSetNonCssHintOfNodeInt(inDeclSet, property, valueType, intVal, lengthValue, lengthType);
+   styleNode->declLists.nonCss = outDeclSet;
+   return;
+}
+
+void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, int valueType, const char * stringVal)
+{
+   c_css_declaration_set_t * inDeclSet = styleNode->declLists.nonCss;
+   c_css_declaration_set_t * outDeclSet = hll_styleEngineSetNonCssHintOfNodeString(inDeclSet, property, valueType, stringVal);
+   styleNode->declLists.nonCss = outDeclSet;
+   return;
+}
+
 
