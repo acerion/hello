@@ -121,7 +121,8 @@ data StylePadding = StylePadding
 
 data StyleAttrs = StyleAttrs
   {
-    styleBorderStyle       :: StyleBorderStyle
+    styleBorderCollapse    :: Int
+  , styleBorderStyle       :: StyleBorderStyle
   , styleBorderWidth       :: StyleBorderWidth
   , styleBorderColor       :: StyleBorderColor
   , styleMargin            :: StyleMargin
@@ -150,6 +151,7 @@ data StyleAttrs = StyleAttrs
   --allowed, currently.)
   , styleXLang             :: T.Text
   , styleXImg              :: Int
+  , styleXTooltip          :: T.Text
 
   } deriving (Show)
 

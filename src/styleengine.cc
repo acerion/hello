@@ -379,6 +379,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_height = (DwLength *) calloc(1, sizeof (DwLength));
    style_attrs->c_line_height = (DwLength *) calloc(1, sizeof (DwLength));
 
+   style_attrs->c_border_collapse = attrs->borderCollapse;
    *(style_attrs->c_border_width) = attrs->borderWidth;
    *(style_attrs->c_border_style) = attrs->borderStyle;
    //*(style_attrs->c_border_color) = { -1, -1, -1, -1 }; TODO: uncommenting this line breaks block-quote markings in comments on SoylentNews
@@ -406,6 +407,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_x_link    = attrs->x_link;
    memcpy(style_attrs->c_x_lang, attrs->x_lang, sizeof (style_attrs->c_x_lang));
    style_attrs->c_x_img     = attrs->x_img;
+   style_attrs->c_x_tooltip = nullptr; // TODO: this probably should be moved to style_attrs' constructor
 
    /* Determine font first so it can be used to resolve relative lengths. */
    hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
@@ -449,10 +451,8 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_BACKGROUND_REPEAT:
             attrs->backgroundRepeat = (BackgroundRepeat) decl->c_value->c_int_val;
             break;
-         case CSS_PROPERTY_BORDER_COLLAPSE:
-            attrs->borderCollapse = (BorderCollapse) decl->c_value->c_int_val;
-            break;
 
+         case CSS_PROPERTY_BORDER_COLLAPSE:
          case CSS_PROPERTY_BORDER_SPACING:
          case CSS_PROPERTY_COLOR:
          case CSS_PROPERTY_CURSOR:
@@ -492,14 +492,11 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_X_LINK:
          case CSS_PROPERTY_X_LANG:
          case CSS_PROPERTY_X_IMG:
+         case PROPERTY_X_TOOLTIP:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
             val_  = (double) cpp_cssLengthValue(cssLength);
             type_ = cpp_cssLengthType(cssLength);
             hll_styleEngineSetStyle(decl->c_property, decl->c_value, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs);
-            break;
-
-         case PROPERTY_X_TOOLTIP:
-            attrs->x_tooltip = Tooltip::create(layout, decl->c_value->c_text_val);
             break;
          default:
             break;
@@ -511,6 +508,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
       styleNodesStack[some_idx].displayNone = true;
    }
 
+   attrs->borderCollapse = style_attrs->c_border_collapse;
    attrs->borderWidth = *(style_attrs->c_border_width);
    attrs->borderStyle = *(style_attrs->c_border_style);
 
@@ -546,7 +544,14 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
 
    attrs->x_link            = style_attrs->c_x_link;
    memcpy(attrs->x_lang, style_attrs->c_x_lang, sizeof (attrs->x_lang));
-   attrs->x_img            = style_attrs->c_x_img;
+   attrs->x_img             = style_attrs->c_x_img;
+   if (style_attrs->c_x_tooltip) {
+      attrs->x_tooltip = Tooltip::create(layout, style_attrs->c_x_tooltip);
+      // Here we should free() style_attrs->c_x_tooltip, but it has been
+      // allocated in Haskell so I don't want to dig into freeing of such
+      // pointers. As in other cases where FFI code is leaking memory: this
+      // is only temporary, until all code is moved to Haskell.
+   }
 
    free(style_attrs->c_border_width);
    free(style_attrs->c_border_style);

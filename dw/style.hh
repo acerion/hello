@@ -497,8 +497,7 @@ public:
 
    char textAlignChar; /* In future, strings will be supported. */
 
-   BorderCollapse borderCollapse;
-
+   int borderCollapse; // TODO: use BorderCollapse type
    c_border_width_t borderWidth;
    c_border_style_t borderStyle;
    struct { Color *top, *right, *bottom, *left; } borderColor;
@@ -527,8 +526,7 @@ public:
                       code in lower case letters. (Only two letters
                       allowed, currently.) */
    int x_img;
-
-   Tooltip *x_tooltip;
+   Tooltip * x_tooltip;
 
 
    void initValues ();

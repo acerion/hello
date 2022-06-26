@@ -1736,6 +1736,7 @@ static void Html_tag_open_abbr(DilloHtml *html, const char *tag, int tagsize)
 
 /*
  * Read image-associated tag attributes and create new image.
+ * FIXME: if "src" attribute is missing, dillo doesn't display value of "alt" nor it shows a tooltip (through x-tooltip pseudo-property).
  */
 void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
 {

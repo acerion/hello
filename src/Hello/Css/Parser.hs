@@ -195,7 +195,7 @@ module Hello.Css.Parser(
                        , cssDeclPropertyXRowSpan
                        , cssDeclPropertyXLang
                        , cssDeclPropertyXImg
-                       , cssPropertyXTooltip
+                       , cssDeclPropertyXTooltip
                        , cssDeclProperty_LAST
                        )
   where
@@ -288,7 +288,7 @@ cssDeclPropertyBackgroundRepeat = 4
 cssDeclPropertyBorderBottomColor :: Int = 5
 cssDeclPropertyBorderBottomStyle = 6
 cssDeclPropertyBorderBottomWidth = 7
-cssDeclPropertyBorderCollapse = 8
+cssDeclPropertyBorderCollapse :: Int = 8
 cssDeclPropertyBorderLeftColor :: Int = 9
 cssDeclPropertyBorderLeftStyle = 10
 cssDeclPropertyBorderLeftWidth = 11
@@ -373,7 +373,7 @@ cssDeclPropertyXLang :: Int = 83
 
 -- Pseudo-property used (probably) to index images in a html document.
 cssDeclPropertyXImg :: Int = 84
-cssPropertyXTooltip = 85
+cssDeclPropertyXTooltip :: Int = 85
 
 cssDeclProperty_LAST = 86
 
@@ -476,6 +476,7 @@ cssPropertyInfo = V.fromList [
    , ("x-rowspan",              [ declValueAsInt ],                                                   [])
    , ("x-lang",                 [],                                                                   [])
    , ("x-img",                  [],                                                                   [])
+   , ("x-tooltip",              [],                                                                   [])
    -- TODO: verify if we still need "last" property.
    , ("last",                   [], [])
    ] :: V.Vector CssPropertyInfo

@@ -484,6 +484,7 @@ styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
 styleEngineSetStyle :: Int -> CssValue -> CssDistance -> FontAttrs -> Float -> Float -> StyleAttrs -> StyleAttrs
 styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
   -- Probably because of code like this someone invented lenses.
+  | property == cssDeclPropertyBorderCollapse    = styleAttrs { styleBorderCollapse = getBorderCollapse value }
   | property == cssDeclPropertyBorderTopStyle    = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyle value }}
   | property == cssDeclPropertyBorderRightStyle  = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyle value }}
   | property == cssDeclPropertyBorderBottomStyle = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyle value }}
@@ -523,6 +524,7 @@ styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
   | property == cssDeclPropertyXLink             = styleAttrs { styleXLink          = getXLink value }
   | property == cssDeclPropertyXLang             = styleAttrs { styleXLang          = getXLang value }
   | property == cssDeclPropertyXImg              = styleAttrs { styleXImg           = getXImg value }
+  | property == cssDeclPropertyXTooltip          = styleAttrs { styleXTooltip       = getXTooltip value }
   | otherwise                                    = styleAttrs
 {-
     distance = case value of
@@ -531,6 +533,13 @@ styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
                  CssValueTypeLength d       -> d
 
 -}
+
+
+
+
+getBorderCollapse value = case value of
+                         CssValueTypeEnum i -> i
+                         otherwise          -> 0
 
 
 
@@ -754,6 +763,13 @@ getXLang value = case value of
 getXImg value = case value of
                   CssValueTypeInt i -> i
                   otherwise         -> 0
+
+
+
+
+getXTooltip value = case value of
+                      CssValueTypeString s -> s
+                      otherwise            -> ""
 
 
 

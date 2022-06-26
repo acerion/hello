@@ -392,7 +392,8 @@ pokeStylePadding style ptrStructStylePadding = do
 
 data FfiStyleAttrs = FfiStyleAttrs
   {
-    ptrStructStyleBorderStyle  :: Ptr FfiStyleBorderStyle
+    iBorderCollapse            :: CInt
+  , ptrStructStyleBorderStyle  :: Ptr FfiStyleBorderStyle
   , ptrStructStyleBorderWidth  :: Ptr FfiStyleBorderWidth
   , ptrStructStyleBorderColor  :: Ptr FfiStyleBorderColor
   , ptrStructStyleMargin       :: Ptr FfiStyleMargin
@@ -415,8 +416,9 @@ data FfiStyleAttrs = FfiStyleAttrs
   , iVBorderSpacing            :: CInt
   , iWordSpacing               :: CInt
   , iXLink                     :: CInt
-  , ptrCharXLang               :: Ptr CChar
+  , ptrCharXLang               :: Ptr CChar -- buffer of specified size.
   , iXImg                      :: CInt
+  , ptrCharXTooltip            :: Ptr CChar -- pointer to to-be-allocated memory
   } deriving (Show)
 
 
@@ -427,6 +429,7 @@ instance Storable FfiStyleAttrs where
   alignment _ = #{alignment c_style_attrs_t}
 
   peek ptr = do
+    borderCollapse   <- #{peek c_style_attrs_t, c_border_collapse}   ptr
     borderStyle      <- #{peek c_style_attrs_t, c_border_style}      ptr
     borderWidth      <- #{peek c_style_attrs_t, c_border_width}      ptr
     borderColor      <- #{peek c_style_attrs_t, c_border_color}      ptr
@@ -452,13 +455,16 @@ instance Storable FfiStyleAttrs where
     xLink              <- #{peek c_style_attrs_t, c_x_link}               ptr
     let xLang = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_style_attrs_t, c_x_lang}) ptr
     xImg               <- #{peek c_style_attrs_t, c_x_img}                ptr
+    xTooltip           <- #{peek c_style_attrs_t, c_x_tooltip}            ptr
 
-    return (FfiStyleAttrs borderStyle borderWidth borderColor margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace width height lineHeight listStylePosition listStyleType display color cursor hBorderSpacing vBorderSpacing wordSpacing xLink xLang xImg)
+    return (FfiStyleAttrs borderCollapse borderStyle borderWidth borderColor margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace width height lineHeight listStylePosition listStyleType display color cursor hBorderSpacing vBorderSpacing wordSpacing xLink xLang xImg xTooltip)
 
 
 
 
-  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing cWordSpacing cXLink cXLang cXImg) = do
+  poke ptr (FfiStyleAttrs cBorderCollapse cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing cWordSpacing cXLink cXLang cXImg cXTooltip) = do
+
+    #{poke c_style_attrs_t, c_border_collapse} ptr cBorderCollapse
     #{poke c_style_attrs_t, c_border_style}    ptr cBorderStyle
     #{poke c_style_attrs_t, c_border_width}    ptr cBorderWidth
     #{poke c_style_attrs_t, c_border_color}    ptr cBorderColor
@@ -484,6 +490,7 @@ instance Storable FfiStyleAttrs where
     #{poke c_style_attrs_t, c_x_link}               ptr cXLink
     -- #{poke c_style_attrs_t, c_x_lang}               ptr cXLang -- Poking of this field is done in pokeStyleAttrs
     #{poke c_style_attrs_t, c_x_img}                ptr cXImg
+    #{poke c_style_attrs_t, c_x_tooltip}            ptr cXTooltip
 
 
 
@@ -504,10 +511,12 @@ peekStyleAttrs ptrStructStyleAttrs = do
   lineHeight <- peekDwLength . ptrStructLineHeight $ ffiAttrs
 
   xLang  <- peekCharBuffer (ptrCharXLang $ ffiAttrs)
+  xTooltip  <- peekCharBuffer (ptrCharXTooltip $ ffiAttrs)
 
   return StyleAttrs
     {
-      styleBorderStyle = borderStyle
+      styleBorderCollapse = fromIntegral . iBorderCollapse $ ffiAttrs
+    , styleBorderStyle = borderStyle
     , styleBorderWidth = borderWidth
     , styleBorderColor = borderColor
     , styleMargin      = margin
@@ -537,6 +546,7 @@ peekStyleAttrs ptrStructStyleAttrs = do
     , styleXLink                  = fromIntegral . iXLink $ ffiAttrs
     , styleXLang                  = xLang
     , styleXImg                   = fromIntegral . iXImg $ ffiAttrs
+    , styleXTooltip               = xTooltip
     }
 
 
@@ -550,6 +560,8 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   -- pointer-members, I will be able to poke them with values passed through
   -- 'attrs'.
   ffiStyleAttrs :: FfiStyleAttrs <- peek ptrStructStyleAttrs
+
+  let cBorderCollapse :: CInt = fromIntegral . styleBorderCollapse $ attrs
 
   -- getAccess to member-pointers, and then poke them
   let pBorderStyle :: Ptr FfiStyleBorderStyle = ptrStructStyleBorderStyle ffiStyleAttrs
@@ -605,9 +617,11 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   -- has been already done in two lines above.
   let cXLang = nullPtr
 
-  let cXImg           :: CInt = fromIntegral . styleXImg $ attrs
+  let cXImg :: CInt = fromIntegral . styleXImg $ attrs
+  cXTooltip :: Ptr CChar <- allocAndPokeCString . styleXTooltip $ attrs -- TODO: this allocates memory that is not freed anywhere
+  putStrLn ("tooltip = " ++ (show . styleXTooltip $ attrs))
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pBorderColor pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight pLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing cWordSpacing cXLink cXLang cXImg
+  poke ptrStructStyleAttrs $ FfiStyleAttrs cBorderCollapse pBorderStyle pBorderWidth pBorderColor pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight pLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing cWordSpacing cXLink cXLang cXImg cXTooltip
 
 
 

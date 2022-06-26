@@ -168,6 +168,7 @@ inline bool stylePaddingEquals(c_style_padding_t * p, c_style_padding_t * other)
 
 
 typedef struct c_style_attrs_t {
+        int c_border_collapse;
         c_border_style_t * c_border_style;
         c_border_width_t * c_border_width;
         c_border_color_t * c_border_color;
@@ -203,6 +204,7 @@ typedef struct c_style_attrs_t {
                              code in lower case letters. (Only two letters
                              allowed, currently.) */
         int c_x_img;
+        char * c_x_tooltip; /* TODO: what is the limit of size of this buffer? */
 } c_style_attrs_t;
 
 
