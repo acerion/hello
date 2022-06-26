@@ -403,6 +403,10 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_v_border_spacing      = attrs->vBorderSpacing;
    style_attrs->c_word_spacing          = attrs->wordSpacing;
 
+   style_attrs->c_x_link    = attrs->x_link;
+   memcpy(style_attrs->c_x_lang, attrs->x_lang, sizeof (style_attrs->c_x_lang));
+   style_attrs->c_x_img     = attrs->x_img;
+
    /* Determine font first so it can be used to resolve relative lengths. */
    hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
 
@@ -485,25 +489,15 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_WIDTH:
          case CSS_PROPERTY_HEIGHT:
          case CSS_PROPERTY_WORD_SPACING:
+         case CSS_PROPERTY_X_LINK:
+         case CSS_PROPERTY_X_LANG:
+         case CSS_PROPERTY_X_IMG:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
             val_  = (double) cpp_cssLengthValue(cssLength);
             type_ = cpp_cssLengthType(cssLength);
             hll_styleEngineSetStyle(decl->c_property, decl->c_value, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs);
             break;
 
-         case PROPERTY_X_LINK:
-            attrs->x_link = decl->c_value->c_int_val;
-            break;
-         case PROPERTY_X_LANG:
-            attrs->x_lang[0] = D_ASCII_TOLOWER(decl->c_value->c_text_val[0]);
-            if (attrs->x_lang[0])
-               attrs->x_lang[1] = D_ASCII_TOLOWER(decl->c_value->c_text_val[1]);
-            else
-               attrs->x_lang[1] = 0;
-            break;
-         case PROPERTY_X_IMG:
-            attrs->x_img = decl->c_value->c_int_val;
-            break;
          case PROPERTY_X_TOOLTIP:
             attrs->x_tooltip = Tooltip::create(layout, decl->c_value->c_text_val);
             break;
@@ -549,6 +543,10 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    attrs->hBorderSpacing    = style_attrs->c_h_border_spacing;
    attrs->vBorderSpacing    = style_attrs->c_v_border_spacing;
    attrs->wordSpacing       = style_attrs->c_word_spacing;
+
+   attrs->x_link            = style_attrs->c_x_link;
+   memcpy(attrs->x_lang, style_attrs->c_x_lang, sizeof (attrs->x_lang));
+   attrs->x_img            = style_attrs->c_x_img;
 
    free(style_attrs->c_border_width);
    free(style_attrs->c_border_style);

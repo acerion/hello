@@ -521,14 +521,15 @@ public:
    int hBorderSpacing;
    int vBorderSpacing;
    int wordSpacing;
-
    int x_link;
-   int x_img;
-   Tooltip *x_tooltip;
    char x_lang[2]; /* Either x_lang[0] == x_lang[1] == 0 (no language
                       set), or x_lang contains the RFC 1766 country
                       code in lower case letters. (Only two letters
                       allowed, currently.) */
+   int x_img;
+
+   Tooltip *x_tooltip;
+
 
    void initValues ();
    void resetValues ();

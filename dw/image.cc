@@ -333,6 +333,7 @@ bool Image::buttonPressImpl (core::EventButton *event)
 
 bool Image::buttonReleaseImpl (core::EventButton *event)
 {
+   fprintf(stderr, "button release event for x_img = %d\n", getStyle()->x_img);
    currLink = mapList ? mapList->link(mapKey,contentX(event),contentY(event)) :
       getStyle()->x_link;
    if (clicking) {

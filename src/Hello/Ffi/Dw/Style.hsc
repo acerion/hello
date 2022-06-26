@@ -414,6 +414,9 @@ data FfiStyleAttrs = FfiStyleAttrs
   , iHBorderSpacing            :: CInt
   , iVBorderSpacing            :: CInt
   , iWordSpacing               :: CInt
+  , iXLink                     :: CInt
+  , ptrCharXLang               :: Ptr CChar
+  , iXImg                      :: CInt
   } deriving (Show)
 
 
@@ -446,12 +449,16 @@ instance Storable FfiStyleAttrs where
     hBorderSpacing     <- #{peek c_style_attrs_t, c_h_border_spacing}     ptr
     vBorderSpacing     <- #{peek c_style_attrs_t, c_v_border_spacing}     ptr
     wordSpacing        <- #{peek c_style_attrs_t, c_word_spacing}         ptr
-    return (FfiStyleAttrs borderStyle borderWidth borderColor margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace width height lineHeight listStylePosition listStyleType display color cursor hBorderSpacing vBorderSpacing wordSpacing)
+    xLink              <- #{peek c_style_attrs_t, c_x_link}               ptr
+    let xLang = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_style_attrs_t, c_x_lang}) ptr
+    xImg               <- #{peek c_style_attrs_t, c_x_img}                ptr
+
+    return (FfiStyleAttrs borderStyle borderWidth borderColor margin padding textAlign textDecoration textIndent textTransform verticalAlign whiteSpace width height lineHeight listStylePosition listStyleType display color cursor hBorderSpacing vBorderSpacing wordSpacing xLink xLang xImg)
 
 
 
 
-  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing cWordSpacing) = do
+  poke ptr (FfiStyleAttrs cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing cWordSpacing cXLink cXLang cXImg) = do
     #{poke c_style_attrs_t, c_border_style}    ptr cBorderStyle
     #{poke c_style_attrs_t, c_border_width}    ptr cBorderWidth
     #{poke c_style_attrs_t, c_border_color}    ptr cBorderColor
@@ -474,6 +481,9 @@ instance Storable FfiStyleAttrs where
     #{poke c_style_attrs_t, c_h_border_spacing}     ptr cHBorderSpacing
     #{poke c_style_attrs_t, c_v_border_spacing}     ptr cVBorderSpacing
     #{poke c_style_attrs_t, c_word_spacing}         ptr cWordSpacing
+    #{poke c_style_attrs_t, c_x_link}               ptr cXLink
+    -- #{poke c_style_attrs_t, c_x_lang}               ptr cXLang -- Poking of this field is done in pokeStyleAttrs
+    #{poke c_style_attrs_t, c_x_img}                ptr cXImg
 
 
 
@@ -492,6 +502,8 @@ peekStyleAttrs ptrStructStyleAttrs = do
   width  <- peekDwLength . ptrStructWidth $ ffiAttrs
   height <- peekDwLength . ptrStructHeight $ ffiAttrs
   lineHeight <- peekDwLength . ptrStructLineHeight $ ffiAttrs
+
+  xLang  <- peekCharBuffer (ptrCharXLang $ ffiAttrs)
 
   return StyleAttrs
     {
@@ -521,7 +533,10 @@ peekStyleAttrs ptrStructStyleAttrs = do
     , styleCursor                 = fromIntegral . iCursor $ ffiAttrs
     , styleHBorderSpacing         = fromIntegral . iHBorderSpacing $ ffiAttrs
     , styleVBorderSpacing         = fromIntegral . iVBorderSpacing $ ffiAttrs
-    , styleWordSpacing         = fromIntegral . iWordSpacing $ ffiAttrs
+    , styleWordSpacing            = fromIntegral . iWordSpacing $ ffiAttrs
+    , styleXLink                  = fromIntegral . iXLink $ ffiAttrs
+    , styleXLang                  = xLang
+    , styleXImg                   = fromIntegral . iXImg $ ffiAttrs
     }
 
 
@@ -581,7 +596,18 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let cVBorderSpacing :: CInt = fromIntegral . styleVBorderSpacing $ attrs
   let cWordSpacing    :: CInt = fromIntegral . styleWordSpacing $ attrs
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pBorderColor pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight pLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing cWordSpacing
+  let cXLink          :: CInt = fromIntegral . styleXLink $ attrs
+
+  let bufXLang :: Ptr CChar = ptrCharXLang ffiStyleAttrs
+  -- "((c_style_attrs_t *)0)->c_x_lang" is a C trick that happens to work with hsc2hs.
+  pokeCharBuffer bufXLang #{size ((c_style_attrs_t *)0)->c_x_lang} (styleXLang attrs)
+  -- Dummy arg. 'poke' function won't be poking a field in the struct - it
+  -- has been already done in two lines above.
+  let cXLang = nullPtr
+
+  let cXImg           :: CInt = fromIntegral . styleXImg $ attrs
+
+  poke ptrStructStyleAttrs $ FfiStyleAttrs pBorderStyle pBorderWidth pBorderColor pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight pLineHeight cListStylePosition cListStyleType cDisplay cColor cCursor cHBorderSpacing cVBorderSpacing cWordSpacing cXLink cXLang cXImg
 
 
 

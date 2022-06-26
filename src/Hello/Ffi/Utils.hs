@@ -34,6 +34,9 @@ module Hello.Ffi.Utils
   , pokeArrayOfPointersWithAlloc
   , pokeArrayOfPreallocedPointers
 
+  , peekCharBuffer
+  , pokeCharBuffer
+
   , cDoubleToDouble
   )
 where
@@ -42,6 +45,7 @@ where
 
 
 import Foreign
+import Foreign.Ptr
 import Foreign.C.String
 import Foreign.C.Types
 import qualified Data.Text as T
@@ -146,4 +150,62 @@ cDoubleToDouble = realToFrac
 
 
 
+
+peekCharBuffer :: Ptr CChar -> IO T.Text
+peekCharBuffer = ptrCCharToText
+
+
+
+
+{-
+-- Not tested in real code.
+pokeCharBuffer :: Ptr CChar -> T.Text -> IO ()
+pokeCharBuffer ptr text = pokeArray0 0 ptr cstring
+  where
+    cstring = fmap castCharToCChar (T.unpack text)
+-}
+
+
+
+-- Write given ASCII text to pre-allocated char array of given size.
+--
+-- Function can be used to write to e.g. to something like this:
+--
+-- char buf[10].
+--
+-- The size of the target array (including space for terminating NUL) is
+-- passed as third argument. If the buffer is a member of struct, then the
+-- size of the buffer can be calculated in 'peek' function with this
+-- expression:
+--
+-- pokeCharBuffer buf #{size ((struct_type_t *)0)->buf} text
+--
+-- The function does not allocate memory for output buffer.
+--
+-- The function always writes terminating NUL.
+--
+-- If if 'text' argument is larger than space available in target buffer, the
+-- text in target buffer is truncated.
+--
+-- Loss of data may occur if input text is non-ASCII.
+--
+-- Tested in real code.
+--
+-- I know that it's too complicated and that I should rather use the other
+-- implementation from above.
+pokeCharBuffer :: Ptr CChar -> Int -> T.Text -> IO ()
+pokeCharBuffer ptr n text = if ptr == nullPtr
+                            then return ()
+                            else pokeCharBuffer' ptr n text
+  where
+    pokeCharBuffer'       _ 0    _ = return ()
+    pokeCharBuffer'     ptr 1    _ = poke ptr 0
+    pokeCharBuffer'     ptr n text =
+      do
+        case T.uncons text of
+          Just (c, rem) ->
+            do
+              poke ptr (castCharToCChar c)
+              pokeCharBuffer (plusPtr ptr 1) (n - 1) rem
+          Nothing -> poke ptr 0
 

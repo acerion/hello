@@ -28,6 +28,7 @@ Copyright assignments from the file:
 
 
 
+
 module Hello.Css.StyleEngine
   (
     styleEngineComputeAbsoluteLengthValue
@@ -519,6 +520,9 @@ styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
   | property == cssDeclPropertyCursor            = styleAttrs { styleCursor               = getCursor value }
   | property == cssDeclPropertyBorderSpacing     = styleAttrs { styleHBorderSpacing = getBorderSpacing distance fontAttrs dpiX dpiY, styleVBorderSpacing = getBorderSpacing distance fontAttrs dpiX dpiY }
   | property == cssDeclPropertyWordSpacing       = styleAttrs { styleWordSpacing    = getWordSpacig value distance fontAttrs dpiX dpiY }
+  | property == cssDeclPropertyXLink             = styleAttrs { styleXLink          = getXLink value }
+  | property == cssDeclPropertyXLang             = styleAttrs { styleXLang          = getXLang value }
+  | property == cssDeclPropertyXImg              = styleAttrs { styleXImg           = getXImg value }
   | otherwise                                    = styleAttrs
 {-
     distance = case value of
@@ -727,5 +731,30 @@ getWordSpacig value distance fontAttrs dpiX dpiY = clipSpacing (getSpacing value
     clipSpacing s | s > 1000  = 1000
                   | s < -1000 = -1000
                   | otherwise = s
+
+
+
+
+getXLink value = case value of
+                   CssValueTypeInt i -> i
+                   otherwise         -> 0
+
+
+
+
+getXLang value = case value of
+                   CssValueTypeString s -> if T.length s == 2 -- Only two-letter values of 'lang' attribute are allowed. TODO: is style engine the best place to validate the length?
+                                           then T.toLower s
+                                           else ""
+                   otherwise            -> ""
+
+
+
+
+getXImg value = case value of
+                  CssValueTypeInt i -> i
+                  otherwise         -> 0
+
+
 
 

@@ -44,6 +44,7 @@ module Hello.Dw.Style
 
 
 
+import Data.Text as T
 import Debug.Trace
 
 import Hello.Dw.DwLength
@@ -142,5 +143,13 @@ data StyleAttrs = StyleAttrs
   , styleHBorderSpacing    :: Int
   , styleVBorderSpacing    :: Int
   , styleWordSpacing       :: Int
+
+  , styleXLink             :: Int
+  --Either x_lang[0] == x_lang[1] == 0 (no language set), or x_lang contains
+  --the RFC 1766 country code in lower case letters. (Only two letters
+  --allowed, currently.)
+  , styleXLang             :: T.Text
+  , styleXImg              :: Int
+
   } deriving (Show)
 

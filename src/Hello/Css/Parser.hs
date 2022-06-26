@@ -193,9 +193,8 @@ module Hello.Css.Parser(
                        , cssDeclPropertyXLink
                        , cssDeclPropertyXColSpan
                        , cssDeclPropertyXRowSpan
-                       , cssPropertyXLink
-                       , cssPropertyXLang
-                       , cssPropertyXImg
+                       , cssDeclPropertyXLang
+                       , cssDeclPropertyXImg
                        , cssPropertyXTooltip
                        , cssDeclProperty_LAST
                        )
@@ -361,16 +360,22 @@ cssDeclPropertyWhitespace :: Int = 76
 cssDeclPropertyWidth :: Int = 77
 cssDeclPropertyWordSpacing :: Int = 78
 cssDeclPropertyZIndex = 79
-cssDeclPropertyXLink = 80
+
+ -- Pseudo-property used internally by dillo/hello. Without it following
+ -- a/href links won't work.
+cssDeclPropertyXLink :: Int = 80
+
 cssDeclPropertyXColSpan = 81
 cssDeclPropertyXRowSpan = 82
 
-cssPropertyXLink = 83
-cssPropertyXLang = 84
-cssPropertyXImg = 85
-cssPropertyXTooltip = 86
+-- Pseudo-property for "lang" or "xml:lang" attribute of html element.
+cssDeclPropertyXLang :: Int = 83
 
-cssDeclProperty_LAST = 87
+-- Pseudo-property used (probably) to index images in a html document.
+cssDeclPropertyXImg :: Int = 84
+cssPropertyXTooltip = 85
+
+cssDeclProperty_LAST = 86
 
 
 
@@ -463,12 +468,15 @@ cssPropertyInfo = V.fromList [
    , ("word-spacing",           [ tokensAsValueEnum, declValueAsSignedLength ],                       css_word_spacing_enum_vals)
    , ("z-index",                [],                                                                   [])
 
-   -- These are extensions, for internal used, and never parsed.
-   -- TODO: verify whether we need them.
-   -- TODO: verify if we still need "last" property.
+   -- These are extensions for internal use, and never parsed by CSS parser.
+   -- Related CSS "pseudo-properties" are set from HTML parser.
    , ("x-link",                 [ declValueAsInt ],                                                   [])
+   -- TODO: verify whether we need x-colspan and x-rowspan.
    , ("x-colspan",              [ declValueAsInt ],                                                   [])
    , ("x-rowspan",              [ declValueAsInt ],                                                   [])
+   , ("x-lang",                 [],                                                                   [])
+   , ("x-img",                  [],                                                                   [])
+   -- TODO: verify if we still need "last" property.
    , ("last",                   [], [])
    ] :: V.Vector CssPropertyInfo
 

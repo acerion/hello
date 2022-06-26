@@ -196,6 +196,13 @@ typedef struct c_style_attrs_t {
         int c_h_border_spacing;
         int c_v_border_spacing;
         int c_word_spacing;
+
+        int c_x_link;
+        char c_x_lang[3]; /* Either x_lang[0] == x_lang[1] == 0 (no language
+                             set), or x_lang contains the RFC 1766 country
+                             code in lower case letters. (Only two letters
+                             allowed, currently.) */
+        int c_x_img;
 } c_style_attrs_t;
 
 

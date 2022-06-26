@@ -789,11 +789,13 @@ bool Textblock::sendSelectionEvent (core::SelectionState::EventType eventType,
                          (event->yWidget >
                           yWidgetBase - word->spaceStyle->font->ascent)) {
                         link = word->spaceStyle->x_link;
+                        fprintf(stderr, "selection event for x_link %d\n", word->spaceStyle->x_link);
                      }
                   } else {
                      if (event->yWidget <= yWidgetBase + word->size.descent &&
                          event->yWidget > yWidgetBase - word->size.ascent) {
                         link = word->style->x_link;
+                        fprintf(stderr, "selection event for x_link %d\n", word->style->x_link);
                      }
                      if (word->content.type == core::Content::TEXT) {
                         int glyphX = wordStartX;

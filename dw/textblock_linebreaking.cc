@@ -756,6 +756,7 @@ int Textblock::considerHyphenation (int firstIndex, int breakPos)
 
 bool Textblock::isHyphenationCandidate (Word *word)
 {
+   fprintf(stderr, "is hyphenation candidate: '%s'\n", word->style->x_lang);
    return (word->flags & Word::CAN_BE_HYPHENATED) &&
       word->style->x_lang[0] &&
       isBreakAllowed(word) &&
