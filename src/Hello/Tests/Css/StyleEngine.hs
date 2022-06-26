@@ -29,6 +29,8 @@ import Hello.Css.Parser
 import Hello.Css.StyleEngine
 import Hello.Css.Tokenizer
 
+import Hello.Dw.FontAttrs
+
 import Hello.Preferences
 import Hello.Utils
 

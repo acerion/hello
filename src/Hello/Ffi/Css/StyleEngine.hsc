@@ -57,6 +57,7 @@ import Hello.Ffi.Css.Parser
 import Hello.Ffi.Css.Value
 
 import Hello.Ffi.Dw.DwLength
+import Hello.Ffi.Dw.FontAttrs
 import Hello.Ffi.Dw.Style
 
 import Hello.Ffi.Preferences
@@ -192,83 +193,6 @@ hll_styleEngineComputeAbsoluteLengthValue lengthValue cLengthType ptrStructFontA
       poke ptrOut (fromIntegral out)
       return 1 -- True
     Nothing -> return 0 -- False
-
-
-
-
-data FfiFontAttrs = FfiFontAttrs
-  {
-    cFontSize          :: CInt
-  , cFontWeight        :: CInt
-  , cFontName          :: Ptr CChar
-  , cFontVariant       :: CInt
-  , cFontStyle         :: CInt
-
-  , cFontXHeight       :: CInt
-  , cFontLetterSpacing :: CInt
-  } deriving (Show)
-
-
-
-
-instance Storable FfiFontAttrs where
-  sizeOf    _ = #{size c_font_attrs_t}
-  alignment _ = #{alignment c_font_attrs_t}
-
-  poke ptr (FfiFontAttrs argSize argWeight argName argFontVariant argStyle argXHeight argLetterSpacing) = do
-    #{poke c_font_attrs_t, size}          ptr argSize
-    #{poke c_font_attrs_t, weight}        ptr argWeight
-    #{poke c_font_attrs_t, name}          ptr argName
-    #{poke c_font_attrs_t, fontVariant}   ptr argFontVariant
-    #{poke c_font_attrs_t, style}         ptr argStyle
-    #{poke c_font_attrs_t, xHeight}       ptr argXHeight
-    #{poke c_font_attrs_t, letterSpacing} ptr argLetterSpacing
-
-  peek ptr = do
-    a <- #{peek c_font_attrs_t, size} ptr
-    b <- #{peek c_font_attrs_t, weight}  ptr
-    c <- #{peek c_font_attrs_t, name} ptr
-    d <- #{peek c_font_attrs_t, fontVariant} ptr
-    e <- #{peek c_font_attrs_t, style} ptr
-    f <- #{peek c_font_attrs_t, xHeight} ptr
-    g <- #{peek c_font_attrs_t, letterSpacing} ptr
-    return (FfiFontAttrs a b c d e f g)
-
-
-
-
-peekFontAttrs :: Ptr FfiFontAttrs -> IO FontAttrs
-peekFontAttrs ptrStructFontAttrs = do
-  ffiAttrs <- peek ptrStructFontAttrs
-  name     <- ptrCCharToText . cFontName $ ffiAttrs
-
-  let fontAttrs = FontAttrs
-        {
-          fontSize          = fromIntegral . cFontSize $ ffiAttrs
-        , fontWeight        = fromIntegral . cFontWeight $ ffiAttrs
-        , fontName          = name
-        , fontVariant       = fromIntegral . cFontVariant $ ffiAttrs
-        , fontStyle         = fromIntegral . cFontStyle $ ffiAttrs
-        , fontXHeight       = fromIntegral . cFontXHeight $ ffiAttrs
-        , fontLetterSpacing = fromIntegral . cFontLetterSpacing $ ffiAttrs
-        }
-
-  return fontAttrs
-
-
-
-
-pokeFontAttrs :: FontAttrs -> Ptr FfiFontAttrs -> IO ()
-pokeFontAttrs fontAttrs ptrStructFontAttrs = do
-  let size   = fromIntegral . fontSize $ fontAttrs
-  let weight = fromIntegral . fontWeight $ fontAttrs
-  name <- newCString . T.unpack . fontName $ fontAttrs
-  let variant = fromIntegral . fontVariant $ fontAttrs
-  let style   = fromIntegral . fontStyle $ fontAttrs
-  let height  = fromIntegral . fontXHeight $ fontAttrs
-  let spacing = fromIntegral . fontLetterSpacing $ fontAttrs
-
-  poke ptrStructFontAttrs $ FfiFontAttrs size weight name variant style height spacing
 
 
 

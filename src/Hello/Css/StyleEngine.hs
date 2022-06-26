@@ -33,9 +33,6 @@ module Hello.Css.StyleEngine
   (
     styleEngineComputeAbsoluteLengthValue
 
-  , FontAttrs (..)
-  , defaultFontAttrs
-
   , styleEngineApplyStyleToFont
 
   , styleEngineSetFontFamily
@@ -69,6 +66,7 @@ import Hello.Css.Distance
 import Hello.Css.Parser
 
 import Hello.Dw.DwLength
+import Hello.Dw.FontAttrs
 import Hello.Dw.Style
 
 import Hello.Preferences
@@ -117,47 +115,6 @@ styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue dpiX dpi
 
 
 
-css_FONT_WEIGHT_BOLD    = 0
-css_FONT_WEIGHT_BOLDER  = 1
-css_FONT_WEIGHT_LIGHT   = 2
-css_FONT_WEIGHT_LIGHTER = 3
-css_FONT_WEIGHT_NORMAL  = 4
-
-
-
-
--- TODO: this type probably should go elsewhere.
-data FontAttrs = FontAttrs
-  {
-    fontSize          :: Int
-  , fontWeight        :: Int
-  , fontName          :: T.Text
-  , fontVariant       :: Int
-  , fontStyle         :: Int
-
-  , fontXHeight       :: Int
-  , fontLetterSpacing :: Int
-  } deriving (Show, Eq)
-
-
-
-
-defaultFontAttrs = FontAttrs
-  {
-    fontSize    = 0
-  , fontWeight  = 0
-  , fontName    = ""
-  , fontVariant = 0
-  , fontStyle   = 0
-
-  , fontXHeight       = 0
-  , fontLetterSpacing = 0
-
-  }
-
-
-
-
 -- https://www.w3schools.com/cssref/pr_font_font-family.asp
 -- https://developer.mozilla.org/pl/docs/Web/CSS/font-family
 styleEngineSetFontFamily :: CssValue -> Preferences -> FontAttrs -> FontAttrs
@@ -199,6 +156,7 @@ styleEngineSetFontWeight value attrs = clipWeight . setWeight $ attrs
                  | fontWeight a > 900 = a { fontWeight = 900 }
                  | otherwise          = a
 
+    byEnum :: FontAttrs -> Int -> FontAttrs
     byEnum attrs i | i == css_FONT_WEIGHT_BOLD    = attrs { fontWeight = 700 }
                    | i == css_FONT_WEIGHT_BOLDER  = attrs { fontWeight = (fontWeight attrs) + 300 }
                    | i == css_FONT_WEIGHT_LIGHT   = attrs { fontWeight = 100 }
