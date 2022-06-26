@@ -401,6 +401,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_cursor      = attrs->cursor;
    style_attrs->c_h_border_spacing      = attrs->hBorderSpacing;
    style_attrs->c_v_border_spacing      = attrs->vBorderSpacing;
+   style_attrs->c_word_spacing          = attrs->wordSpacing;
 
    /* Determine font first so it can be used to resolve relative lengths. */
    hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
@@ -483,28 +484,13 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_WHITE_SPACE:
          case CSS_PROPERTY_WIDTH:
          case CSS_PROPERTY_HEIGHT:
+         case CSS_PROPERTY_WORD_SPACING:
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
             val_  = (double) cpp_cssLengthValue(cssLength);
             type_ = cpp_cssLengthType(cssLength);
             hll_styleEngineSetStyle(decl->c_property, decl->c_value, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs);
             break;
 
-         case CSS_PROPERTY_WORD_SPACING:
-            if (decl->c_value->c_type_tag == CssDeclarationValueTypeENUM) {
-               if (decl->c_value->c_int_val == CSS_WORD_SPACING_NORMAL) {
-                  attrs->wordSpacing = 0;
-               }
-            } else {
-               cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-               hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, 0, layout->dpiX(), layout->dpiY(), &attrs->wordSpacing);
-            }
-
-            /* Limit to reasonable values to avoid overflows */
-            if (attrs->wordSpacing > 1000)
-               attrs->wordSpacing = 1000;
-            else if (attrs->wordSpacing < -1000)
-               attrs->wordSpacing = -1000;
-            break;
          case PROPERTY_X_LINK:
             attrs->x_link = decl->c_value->c_int_val;
             break;
@@ -562,6 +548,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    attrs->cursor            = style_attrs->c_cursor;
    attrs->hBorderSpacing    = style_attrs->c_h_border_spacing;
    attrs->vBorderSpacing    = style_attrs->c_v_border_spacing;
+   attrs->wordSpacing       = style_attrs->c_word_spacing;
 
    free(style_attrs->c_border_width);
    free(style_attrs->c_border_style);

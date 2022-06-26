@@ -151,13 +151,6 @@ typedef enum {
    CSS_PROPERTY_LAST
 } CssDeclarationProperty;
 
-typedef enum {
-   CSS_WORD_SPACING_NORMAL
-} CssWordSpacingExtensions;
-
-
-
-
 c_css_declaration_set_t * declarationListNew(void);
 c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * declList);
 

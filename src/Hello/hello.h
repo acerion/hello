@@ -195,6 +195,7 @@ typedef struct c_style_attrs_t {
 
         int c_h_border_spacing;
         int c_v_border_spacing;
+        int c_word_spacing;
 } c_style_attrs_t;
 
 

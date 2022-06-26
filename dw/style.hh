@@ -497,9 +497,6 @@ public:
 
    char textAlignChar; /* In future, strings will be supported. */
 
-   int wordSpacing;
-
-
    BorderCollapse borderCollapse;
 
    c_border_width_t borderWidth;
@@ -523,6 +520,7 @@ public:
    int cursor; // TODO: use Cursor type
    int hBorderSpacing;
    int vBorderSpacing;
+   int wordSpacing;
 
    int x_link;
    int x_img;

@@ -518,7 +518,8 @@ styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
   | property == cssDeclPropertyColor             = styleAttrs { styleColor                = getColor value }
   | property == cssDeclPropertyCursor            = styleAttrs { styleCursor               = getCursor value }
   | property == cssDeclPropertyBorderSpacing     = styleAttrs { styleHBorderSpacing = getBorderSpacing distance fontAttrs dpiX dpiY, styleVBorderSpacing = getBorderSpacing distance fontAttrs dpiX dpiY }
-  | otherwise                                 = styleAttrs
+  | property == cssDeclPropertyWordSpacing       = styleAttrs { styleWordSpacing    = getWordSpacig value distance fontAttrs dpiX dpiY }
+  | otherwise                                    = styleAttrs
 {-
     distance = case value of
                  CssValueTypeSignedLength d -> d
@@ -701,5 +702,30 @@ getBorderSpacing distance fontAttrs dpiX dpiY =
   case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
     Just val -> round val -- TODO: a type of Float -> Int function to be verified here
     Nothing  -> 0         -- TODO: is it a good default?
+
+
+
+
+
+css_WORD_SPACING_NORMAL = 0
+
+getWordSpacig :: CssValue -> CssDistance -> FontAttrs -> Float -> Float -> Int
+getWordSpacig value distance fontAttrs dpiX dpiY = clipSpacing (getSpacing value distance fontAttrs dpiX dpiY)
+
+  where
+    getSpacing :: CssValue -> CssDistance -> FontAttrs -> Float -> Float -> Int
+    getSpacing value distance fontAttrs dpiX dpiY =
+      case value of
+        CssValueTypeEnum css_WORD_SPACING_NORMAL -> 0
+        CssValueTypeEnum _                       -> 0 -- TODO: implement remaining enum values
+        otherwise                                ->  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+                                                       Just val -> round val -- TODO: a type of Float -> Int function to be verified here
+                                                       Nothing  -> 0         -- TODO: is it a good default?
+
+    -- Limit to reasonable values to avoid overflows
+    clipSpacing :: Int -> Int
+    clipSpacing s | s > 1000  = 1000
+                  | s < -1000 = -1000
+                  | otherwise = s
 
 

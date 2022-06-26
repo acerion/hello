@@ -141,5 +141,6 @@ data StyleAttrs = StyleAttrs
   , styleCursor            :: Int
   , styleHBorderSpacing    :: Int
   , styleVBorderSpacing    :: Int
+  , styleWordSpacing       :: Int
   } deriving (Show)
 
