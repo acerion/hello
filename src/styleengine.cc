@@ -497,10 +497,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
          case CSS_PROPERTY_X_LANG:
          case CSS_PROPERTY_X_IMG:
          case PROPERTY_X_TOOLTIP:
-            cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
-            val_  = (double) cpp_cssLengthValue(cssLength);
-            type_ = cpp_cssLengthType(cssLength);
-            hll_styleEngineSetStyle(decl->c_property, decl->c_value, val_, type_, layout->dpiX(), layout->dpiY(), style_attrs);
+            hll_styleEngineSetStyle(decl->c_property, decl->c_value, layout->dpiX(), layout->dpiY(), style_attrs);
             break;
          default:
             break;

@@ -86,7 +86,7 @@ foreign export ccall "hll_setFontVariant" hll_setFontVariant :: Ptr FfiFontAttrs
 foreign export ccall "hll_styleEngineApplyStyleToFont" hll_styleEngineApplyStyleToFont :: Ptr FfiCssDeclarationSet -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
 
 foreign export ccall "hll_styleEngineComputeBorderWidth" hll_styleEngineComputeBorderWidth :: Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
-foreign export ccall "hll_styleEngineSetStyle" hll_styleEngineSetStyle :: CInt -> Ptr FfiCssValue -> Float -> CInt -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
+foreign export ccall "hll_styleEngineSetStyle" hll_styleEngineSetStyle :: CInt -> Ptr FfiCssValue -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
 
 foreign export ccall "hll_computeDwLength" hll_computeDwLength :: Ptr FfiDwLength -> CDouble -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
 
@@ -389,16 +389,14 @@ hll_computeDwLength ptrStructDwLength cLenValue cLenType ptrStructFontAttrs dpiX
 
 
 
-hll_styleEngineSetStyle :: CInt -> Ptr FfiCssValue -> Float -> CInt -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
-hll_styleEngineSetStyle cProperty ptrStructCssValue lenValue cLenType dpiX dpiY ptrStructStyleAttrs = do
+hll_styleEngineSetStyle :: CInt -> Ptr FfiCssValue -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
+hll_styleEngineSetStyle cProperty ptrStructCssValue dpiX dpiY ptrStructStyleAttrs = do
   let property  = fromIntegral cProperty
   ffiCssValue  <- peek ptrStructCssValue
   value        <- peekCssValue ffiCssValue
   styleAttrs   <- peekStyleAttrs ptrStructStyleAttrs
-  let lenType   = fromIntegral cLenType
-  let distance  = cssLengthToDistance lenValue lenType
 
-  let styleAttrs' = styleEngineSetStyle property value distance dpiX dpiY styleAttrs
+  let styleAttrs' = styleEngineSetStyle property value dpiX dpiY styleAttrs
 
   pokeStyleAttrs styleAttrs' ptrStructStyleAttrs
 

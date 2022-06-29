@@ -439,8 +439,8 @@ styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
 
 
 
-styleEngineSetStyle :: Int -> CssValue -> CssDistance -> Float -> Float -> StyleAttrs -> StyleAttrs
-styleEngineSetStyle property value distance dpiX dpiY styleAttrs
+styleEngineSetStyle :: Int -> CssValue -> Float -> Float -> StyleAttrs -> StyleAttrs
+styleEngineSetStyle property value dpiX dpiY styleAttrs
   -- Probably because of code like this someone invented lenses.
   | property == cssDeclPropertyBorderCollapse    = styleAttrs { styleBorderCollapse = getBorderCollapse value }
   | property == cssDeclPropertyBorderTopStyle    = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyle value }}
@@ -486,13 +486,13 @@ styleEngineSetStyle property value distance dpiX dpiY styleAttrs
   | otherwise                                    = styleAttrs
   where
     fontAttrs = styleFontAttrs styleAttrs
-{-
     distance = case value of
-                 CssValueTypeSignedLength d -> d
-                 CssValueTypeAuto d         -> d -- TODO: 'auto' appears to be handled incorrectly this function
-                 CssValueTypeLength d       -> d
-
--}
+                 CssValueTypeLengthPercent d       -> d
+                 CssValueTypeLength d              -> d
+                 CssValueTypeSignedLength d        -> d
+                 CssValueTypeLengthPercentNumber d -> d
+                 CssValueTypeAuto d                -> d  -- TODO: 'auto' appears to be handled incorrectly this function
+                 otherwise                         -> CssNumericAuto 0 -- TODO: I'm not sure if this is the best 'otherwise' value
 
 
 
