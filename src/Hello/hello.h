@@ -209,6 +209,7 @@ typedef struct c_style_attrs_t {
 
         int c_display;
         int c_color;
+        int c_background_color;
         int c_cursor;
 
         int c_h_border_spacing;

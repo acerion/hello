@@ -442,7 +442,8 @@ styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
 styleEngineSetStyle :: Int -> CssValue -> Float -> Float -> StyleAttrs -> StyleAttrs
 styleEngineSetStyle property value dpiX dpiY styleAttrs
   -- Probably because of code like this someone invented lenses.
-  | property == cssDeclPropertyBorderCollapse    = styleAttrs { styleBorderCollapse = getBorderCollapse value }
+  | property == cssDeclPropertyBackgroundColor   = styleAttrs { styleBackgroundColor = getBackgroundColor value }
+  | property == cssDeclPropertyBorderCollapse    = styleAttrs { styleBorderCollapse  = getBorderCollapse value }
   | property == cssDeclPropertyBorderTopStyle    = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyle value }}
   | property == cssDeclPropertyBorderRightStyle  = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyle value }}
   | property == cssDeclPropertyBorderBottomStyle = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyle value }}
@@ -657,7 +658,14 @@ getDisplay value = case value of
 
 getColor value = case value of
                    CssValueTypeColor c -> c
-                   otherwise           -> 0xffffff -- Black
+                   otherwise           -> 0x000000 -- Black
+
+
+
+
+getBackgroundColor value = case value of
+                             CssValueTypeColor c -> c
+                             otherwise           -> 0xffffff -- White
 
 
 

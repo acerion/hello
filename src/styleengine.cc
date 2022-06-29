@@ -357,32 +357,63 @@ void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
       attrs->borderWidth.right = 0;
 }
 
-/**
- * \brief Make changes to StyleAttrs attrs according to c_css_declaration_set_t props.
- */
-void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw)
+c_style_attrs_t * c_style_attrs_calloc(void)
 {
-   Font *parentFont = styleNodesStack[some_idx - 1].style->font;
-   DilloUrl *imgUrl = NULL;
-   double val_ = 0;
-   int type_   = 0;
-
    c_style_attrs_t * style_attrs = (c_style_attrs_t *) calloc(1, sizeof (c_style_attrs_t));
    style_attrs->c_border_width = (c_border_width_t *) calloc(1, sizeof (c_border_width_t));
    style_attrs->c_border_style = (c_border_style_t *) calloc(1, sizeof (c_border_style_t));
    style_attrs->c_border_color = (c_border_color_t *) calloc(1, sizeof (c_border_color_t));
-   style_attrs->c_margin = (c_style_margin_t *) calloc(1, sizeof (c_style_margin_t));
-   style_attrs->c_padding = (c_style_padding_t *) calloc(1, sizeof (c_style_padding_t));
-   style_attrs->c_font_attrs = (c_font_attrs_t *) calloc(1, sizeof (c_font_attrs_t));
-   style_attrs->c_text_indent = (DwLength *) calloc(1, sizeof (DwLength));
-   style_attrs->c_width  = (DwLength *) calloc(1, sizeof (DwLength));
-   style_attrs->c_height = (DwLength *) calloc(1, sizeof (DwLength));
-   style_attrs->c_line_height = (DwLength *) calloc(1, sizeof (DwLength));
+   style_attrs->c_margin       = (c_style_margin_t *) calloc(1, sizeof (c_style_margin_t));
+   style_attrs->c_padding      = (c_style_padding_t *) calloc(1, sizeof (c_style_padding_t));
+   style_attrs->c_font_attrs   = (c_font_attrs_t *) calloc(1, sizeof (c_font_attrs_t));
+   style_attrs->c_text_indent  = (DwLength *) calloc(1, sizeof (DwLength));
+   style_attrs->c_width        = (DwLength *) calloc(1, sizeof (DwLength));
+   style_attrs->c_height       = (DwLength *) calloc(1, sizeof (DwLength));
+   style_attrs->c_line_height  = (DwLength *) calloc(1, sizeof (DwLength));
 
+   return style_attrs;
+}
+
+void c_style_attrs_dealloc(c_style_attrs_t ** style_attrs)
+{
+   if (nullptr == style_attrs) {
+      return;
+   }
+   if (nullptr == *style_attrs) {
+      return;
+   }
+   free((*style_attrs)->c_border_width);
+   free((*style_attrs)->c_border_style);
+   free((*style_attrs)->c_border_color);
+   free((*style_attrs)->c_margin);
+   free((*style_attrs)->c_padding);
+
+   if ((*style_attrs)->c_font_attrs) {
+      if ((*style_attrs)->c_font_attrs->name) {
+         free((*style_attrs)->c_font_attrs->name);
+      }
+   }
+
+   free((*style_attrs)->c_font_attrs);
+   free((*style_attrs)->c_text_indent);
+   free((*style_attrs)->c_width);
+   free((*style_attrs)->c_height);
+   free((*style_attrs));
+}
+
+void c_style_attrs_init(c_style_attrs_t * style_attrs)
+{
+   // *(style_attrs->c_border_color)     = { -1, -1, -1, -1 }; TODO: uncommenting this line breaks block-quote markings in comments on SoylentNews
+   style_attrs->c_color               = -1; // TODO: this probably should be moved to style_attrs' constructor
+   style_attrs->c_background_color    = -1; // TODO: this probably should be moved to style_attrs' constructor
+   style_attrs->c_x_tooltip           = nullptr; // TODO: this probably should be moved to style_attrs' constructor
+}
+
+void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
+{
    style_attrs->c_border_collapse = attrs->borderCollapse;
    *(style_attrs->c_border_width) = attrs->borderWidth;
    *(style_attrs->c_border_style) = attrs->borderStyle;
-   //*(style_attrs->c_border_color) = { -1, -1, -1, -1 }; TODO: uncommenting this line breaks block-quote markings in comments on SoylentNews
    *(style_attrs->c_margin) = attrs->margin;
    *(style_attrs->c_padding) = attrs->padding;
 
@@ -404,7 +435,6 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_list_style_type     = attrs->listStyleType;
 
    style_attrs->c_display     = attrs->display;
-   style_attrs->c_color       = -1;// TODO: this probably should be moved to style_attrs' constructor
    style_attrs->c_cursor      = attrs->cursor;
    style_attrs->c_h_border_spacing      = attrs->hBorderSpacing;
    style_attrs->c_v_border_spacing      = attrs->vBorderSpacing;
@@ -413,7 +443,98 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_x_link    = attrs->x_link;
    memcpy(style_attrs->c_x_lang, attrs->x_lang, sizeof (style_attrs->c_x_lang));
    style_attrs->c_x_img     = attrs->x_img;
-   style_attrs->c_x_tooltip = nullptr; // TODO: this probably should be moved to style_attrs' constructor
+}
+
+void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw::core::Layout * layout)
+{
+   attrs->borderCollapse = style_attrs->c_border_collapse;
+   attrs->borderWidth = *(style_attrs->c_border_width);
+   attrs->borderStyle = *(style_attrs->c_border_style);
+
+   attrs->borderColor.top    = style_attrs->c_border_color->top == -1    ? NULL : Color::create(layout, style_attrs->c_border_color->top);
+   attrs->borderColor.right  = style_attrs->c_border_color->right == -1  ? NULL : Color::create(layout, style_attrs->c_border_color->right);
+   attrs->borderColor.bottom = style_attrs->c_border_color->bottom == -1 ? NULL : Color::create(layout, style_attrs->c_border_color->bottom);
+   attrs->borderColor.left   = style_attrs->c_border_color->left == -1   ? NULL : Color::create(layout, style_attrs->c_border_color->left);
+
+   attrs->margin  = *(style_attrs->c_margin);
+   attrs->padding = *(style_attrs->c_padding);
+
+   attrs->textAlign      = style_attrs->c_text_align;
+   attrs->textDecoration = style_attrs->c_text_decoration;
+   attrs->textIndent     = *(style_attrs->c_text_indent);
+   attrs->textTransform  = style_attrs->c_text_transform;
+
+   attrs->verticalAlign = style_attrs->c_vertical_align;
+   attrs->whiteSpace    = style_attrs->c_white_space;
+   attrs->width  = *(style_attrs->c_width);
+   attrs->height = *(style_attrs->c_height);
+   attrs->lineHeight = *(style_attrs->c_line_height);
+   attrs->listStylePosition = style_attrs->c_list_style_position;
+   attrs->listStyleType     = style_attrs->c_list_style_type;
+   attrs->display           = style_attrs->c_display;
+   if (style_attrs->c_color != -1) {
+      // -1 is a special initial value set on top of this function
+      attrs->color = Color::create(layout, style_attrs->c_color);
+   }
+   if (style_attrs->c_background_color != -1) {
+      // -1 is a special initial value set on top of this function
+      //
+      // TODO: check the logic in if(). Wouldn't it be more natural to write it this way?
+      // if (color attribute == white && don't allow white bg
+      //    then use white bg replacement
+      // else
+      //    use given color attribute
+      if (prefs.allow_white_bg || style_attrs->c_background_color != 0xffffff) {
+         attrs->backgroundColor = Color::create(layout, style_attrs->c_background_color);
+      } else {
+         attrs->backgroundColor = Color::create(layout, prefs.white_bg_replacement);
+      }
+   }
+   attrs->cursor            = style_attrs->c_cursor;
+   attrs->hBorderSpacing    = style_attrs->c_h_border_spacing;
+   attrs->vBorderSpacing    = style_attrs->c_v_border_spacing;
+   attrs->wordSpacing       = style_attrs->c_word_spacing;
+
+   attrs->x_link            = style_attrs->c_x_link;
+   memcpy(attrs->x_lang, style_attrs->c_x_lang, sizeof (attrs->x_lang));
+   attrs->x_img             = style_attrs->c_x_img;
+   if (style_attrs->c_x_tooltip) {
+      attrs->x_tooltip = Tooltip::create(layout, style_attrs->c_x_tooltip);
+      // Here we should free() style_attrs->c_x_tooltip, but it has been
+      // allocated in Haskell so I don't want to dig into freeing of such
+      // pointers. As in other cases where FFI code is leaking memory: this
+      // is only temporary, until all code is moved to Haskell.
+   }
+
+   {
+      FontAttrs fontAttrs = *attrs->font;
+      fontAttrs.font_attrs = *(style_attrs->c_font_attrs);
+      if (style_attrs->c_font_attrs->name) {
+         if (fontAttrs.font_attrs.name) {
+            // TODO: for some reason this crashes. Maybe because some default
+            // font name is made from string literal?
+            // free(fontAttrs.font_attrs.name);
+         }
+         fontAttrs.font_attrs.name = strdup(style_attrs->c_font_attrs->name);
+      }
+      attrs->font = Font::create(layout, &fontAttrs);
+   }
+}
+
+
+/**
+ * \brief Make changes to StyleAttrs attrs according to c_css_declaration_set_t props.
+ */
+void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw)
+{
+   Font *parentFont = styleNodesStack[styleNodeIndex - 1].style->font;
+   DilloUrl *imgUrl = NULL;
+   double val_ = 0;
+   int type_   = 0;
+
+   c_style_attrs_t * style_attrs = c_style_attrs_calloc();
+   c_style_attrs_init(style_attrs);
+   c_style_attrs_copy_from(style_attrs, attrs);
 
    /* Determine font first so it can be used to resolve relative lengths. */
    hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, style_attrs->c_font_attrs);
@@ -424,15 +545,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
       switch (decl->c_property) {
          /* \todo missing cases */
          case CSS_PROPERTY_BACKGROUND_ATTACHMENT:
-            attrs->backgroundAttachment =
-               (BackgroundAttachment) decl->c_value->c_int_val;
-            break;
-         case CSS_PROPERTY_BACKGROUND_COLOR:
-            if (prefs.allow_white_bg || decl->c_value->c_int_val != 0xffffff)
-               attrs->backgroundColor = Color::create(layout, decl->c_value->c_int_val);
-            else
-               attrs->backgroundColor =
-                  Color::create(layout, prefs.white_bg_replacement);
+            attrs->backgroundAttachment = (BackgroundAttachment) decl->c_value->c_int_val;
             break;
          case CSS_PROPERTY_BACKGROUND_IMAGE:
             // decl->value.c_text_val should be absolute, so baseUrl is not needed
@@ -456,6 +569,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             attrs->backgroundRepeat = (BackgroundRepeat) decl->c_value->c_int_val;
             break;
 
+         case CSS_PROPERTY_BACKGROUND_COLOR:
          case CSS_PROPERTY_BORDER_COLLAPSE:
          case CSS_PROPERTY_BORDER_SPACING:
          case CSS_PROPERTY_COLOR:
@@ -504,85 +618,16 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
       }
    }
 
+   c_style_attrs_copy_to(attrs, style_attrs, this->layout);
+   c_style_attrs_dealloc(&style_attrs);
+
    /* Handle additional things that were not handled in Haskell. */
-   if (attrs->display == DISPLAY_NONE) {
-      styleNodesStack[some_idx].displayNone = true;
+   if (style_attrs->c_display == DISPLAY_NONE) {
+      styleNodesStack[styleNodeIndex].displayNone = true;
    }
-
-   attrs->borderCollapse = style_attrs->c_border_collapse;
-   attrs->borderWidth = *(style_attrs->c_border_width);
-   attrs->borderStyle = *(style_attrs->c_border_style);
-
-   attrs->borderColor.top    = style_attrs->c_border_color->top == -1    ? NULL : Color::create(layout, style_attrs->c_border_color->top);
-   attrs->borderColor.right  = style_attrs->c_border_color->right == -1  ? NULL : Color::create(layout, style_attrs->c_border_color->right);
-   attrs->borderColor.bottom = style_attrs->c_border_color->bottom == -1 ? NULL : Color::create(layout, style_attrs->c_border_color->bottom);
-   attrs->borderColor.left   = style_attrs->c_border_color->left == -1   ? NULL : Color::create(layout, style_attrs->c_border_color->left);
-
-   attrs->margin  = *(style_attrs->c_margin);
-   attrs->padding = *(style_attrs->c_padding);
-
-   attrs->textAlign      = style_attrs->c_text_align;
-   attrs->textDecoration = style_attrs->c_text_decoration;
-   attrs->textIndent     = *(style_attrs->c_text_indent);
-   attrs->textTransform  = style_attrs->c_text_transform;
-
-   attrs->verticalAlign = style_attrs->c_vertical_align;
-   attrs->whiteSpace    = style_attrs->c_white_space;
-   attrs->width  = *(style_attrs->c_width);
-   attrs->height = *(style_attrs->c_height);
-   attrs->lineHeight = *(style_attrs->c_line_height);
-   attrs->listStylePosition = style_attrs->c_list_style_position;
-   attrs->listStyleType     = style_attrs->c_list_style_type;
-   attrs->display           = style_attrs->c_display;
-   if (style_attrs->c_color != -1) {
-      // -1 is a special initial value set on top of this function
-      attrs->color = Color::create(layout, style_attrs->c_color);
-   }
-   attrs->cursor            = style_attrs->c_cursor;
-   attrs->hBorderSpacing    = style_attrs->c_h_border_spacing;
-   attrs->vBorderSpacing    = style_attrs->c_v_border_spacing;
-   attrs->wordSpacing       = style_attrs->c_word_spacing;
-
-   attrs->x_link            = style_attrs->c_x_link;
-   memcpy(attrs->x_lang, style_attrs->c_x_lang, sizeof (attrs->x_lang));
-   attrs->x_img             = style_attrs->c_x_img;
-   if (style_attrs->c_x_tooltip) {
-      attrs->x_tooltip = Tooltip::create(layout, style_attrs->c_x_tooltip);
-      // Here we should free() style_attrs->c_x_tooltip, but it has been
-      // allocated in Haskell so I don't want to dig into freeing of such
-      // pointers. As in other cases where FFI code is leaking memory: this
-      // is only temporary, until all code is moved to Haskell.
-   }
-
-   {
-      FontAttrs fontAttrs = *attrs->font;
-      fontAttrs.font_attrs = *(style_attrs->c_font_attrs);
-      if (style_attrs->c_font_attrs->name) {
-         if (fontAttrs.font_attrs.name) {
-            //free(fontAttrs.font_attrs.name); // TODO: for some reason this crashes
-         }
-         fontAttrs.font_attrs.name = strdup(style_attrs->c_font_attrs->name);
-      }
-      attrs->font = Font::create(layout, &fontAttrs);
-   }
-
-   free(style_attrs->c_border_width);
-   free(style_attrs->c_border_style);
-   free(style_attrs->c_border_color);
-   free(style_attrs->c_margin);
-   free(style_attrs->c_padding);
-   if (style_attrs->c_font_attrs->name) {
-      free(style_attrs->c_font_attrs->name);
-   }
-   free(style_attrs->c_font_attrs);
-   free(style_attrs->c_text_indent);
-   free(style_attrs->c_width);
-   free(style_attrs->c_height);
-   free(style_attrs);
-
 
    if (imgUrl && prefs.load_background_images &&
-       !styleNodesStack[some_idx].displayNone &&
+       !styleNodesStack[styleNodeIndex].displayNone &&
        !(URL_FLAGS(pageUrl) & URL_SpamSafe))
    {
       attrs->backgroundImage = StyleImage::create();
@@ -630,10 +675,17 @@ Style * StyleEngine::getBackgroundStyle (BrowserWindow *bw) {
  * HTML elements and the declListNonCss that have been set.
  * This method is private. Call style() to get a current style object.
  */
-Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
+Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw)
+{
+   int styleNodeIndex = some_idx;
 
    // get previous style from the stack
-   StyleAttrs attrs = * styleNodesStack[some_idx - 1].style;
+   //
+   // Here "attrs" are the style attributes of previous/parent node, but
+   // after they are passed to applyStyleToGivenNode and processed in the
+   // function, they are then used to create new style of current node when
+   // the "attrs" are passed to "Style::create(&attrs)".
+   StyleAttrs attrs = * styleNodesStack[styleNodeIndex - 1].style;
 
    // Ensure that StyleEngine::style0() has not been called before for
    // this element.
@@ -641,30 +693,30 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw) {
    // If this assertion is hit, you need to rearrange the code that is
    // doing styleEngine calls to call setNonCssHintOfCurrentNode() before calling
    // style() or wordStyle() for each new element.
-   assert (styleNodesStack[some_idx].style == NULL);
+   assert (styleNodesStack[styleNodeIndex].style == NULL);
 
    // reset values that are not inherited according to CSS
    attrs.resetValues ();
    preprocessAttrs (&attrs);
 
-   c_css_declaration_lists_t * declLists = &styleNodesStack[some_idx].declLists;
+   c_css_declaration_lists_t * declLists = &styleNodesStack[styleNodeIndex].declLists;
 
    // merge style information
    c_css_declaration_set_t * mergedDeclList = declarationListNew();
-   int dtnNum = styleNodesStack[some_idx].doctreeNodeIdx;
+   int dtnNum = styleNodesStack[styleNodeIndex].doctreeNodeIdx;
    hll_cssContextApplyCssContext(this->css_context_ref,
                                  mergedDeclList,
                                  this->doc_tree_ref, dtnNum,
                                  declLists->main, declLists->important, declLists->nonCss);
 
    // apply style
-   apply(some_idx, &attrs, mergedDeclList, bw);
+   applyStyleToGivenNode(styleNodeIndex, &attrs, mergedDeclList, bw);
 
    postprocessAttrs(&attrs);
 
-   styleNodesStack[some_idx].style = Style::create(&attrs);
+   styleNodesStack[styleNodeIndex].style = Style::create(&attrs);
 
-   return styleNodesStack[some_idx].style;
+   return styleNodesStack[styleNodeIndex].style;
 }
 
 Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {

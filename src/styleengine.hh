@@ -69,7 +69,7 @@ public:
 
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
-      void apply(int some_idx, dw::core::style::StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw);
+      void applyStyleToGivenNode(int some_idx, dw::core::style::StyleAttrs * attrs, c_css_declaration_set_t * declList, BrowserWindow *bw);
       void computeBorderWidth (int *dest, c_css_declaration_t * decl, dw::core::style::Font *font);
 
    public:

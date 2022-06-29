@@ -488,7 +488,6 @@ class StyleAttrs : public lout::object::Object
 public:
    Font *font;
 
-   Color *backgroundColor;
    StyleImage *backgroundImage;
    BackgroundRepeat backgroundRepeat;
    BackgroundAttachment backgroundAttachment;
@@ -516,6 +515,7 @@ public:
    int listStyleType; // TODO: use ListStyleType
    int display; // TODO: use DisplayType type
    Color * color = nullptr;
+   Color * backgroundColor = nullptr;
    int cursor; // TODO: use Cursor type
    int hBorderSpacing;
    int vBorderSpacing;

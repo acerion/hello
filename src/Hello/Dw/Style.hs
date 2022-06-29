@@ -142,6 +142,7 @@ data StyleAttrs = StyleAttrs
   , styleListStyleType     :: Int
   , styleDisplay           :: Int
   , styleColor             :: Int -- TODO: change the type to Color
+  , styleBackgroundColor   :: Int -- TODO: change the type to Color
   , styleCursor            :: Int
   , styleHBorderSpacing    :: Int
   , styleVBorderSpacing    :: Int
