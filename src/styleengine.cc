@@ -362,7 +362,6 @@ void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
  */
 void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw)
 {
-   FontAttrs fontAttrs = *attrs->font;
    Font *parentFont = styleNodesStack[some_idx - 1].style->font;
    DilloUrl *imgUrl = NULL;
    double val_ = 0;
@@ -374,6 +373,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_border_color = (c_border_color_t *) calloc(1, sizeof (c_border_color_t));
    style_attrs->c_margin = (c_style_margin_t *) calloc(1, sizeof (c_style_margin_t));
    style_attrs->c_padding = (c_style_padding_t *) calloc(1, sizeof (c_style_padding_t));
+   style_attrs->c_font_attrs = (c_font_attrs_t *) calloc(1, sizeof (c_font_attrs_t));
    style_attrs->c_text_indent = (DwLength *) calloc(1, sizeof (DwLength));
    style_attrs->c_width  = (DwLength *) calloc(1, sizeof (DwLength));
    style_attrs->c_height = (DwLength *) calloc(1, sizeof (DwLength));
@@ -385,6 +385,12 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    //*(style_attrs->c_border_color) = { -1, -1, -1, -1 }; TODO: uncommenting this line breaks block-quote markings in comments on SoylentNews
    *(style_attrs->c_margin) = attrs->margin;
    *(style_attrs->c_padding) = attrs->padding;
+
+   *(style_attrs->c_font_attrs) = attrs->font->font_attrs;
+   if (attrs->font->font_attrs.name) {
+      style_attrs->c_font_attrs->name = strdup(attrs->font->font_attrs.name);
+   }
+
    style_attrs->c_text_align      = attrs->textAlign;
    style_attrs->c_text_decoration = attrs->textDecoration;
    *(style_attrs->c_text_indent)  = attrs->textIndent;
@@ -410,9 +416,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
    style_attrs->c_x_tooltip = nullptr; // TODO: this probably should be moved to style_attrs' constructor
 
    /* Determine font first so it can be used to resolve relative lengths. */
-   hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, &fontAttrs.font_attrs);
-
-   attrs->font = Font::create (layout, &fontAttrs);
+   hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, style_attrs->c_font_attrs);
 
    for (int j = 0; j < declList->c_declarations_size; j++) {
       c_css_declaration_t * decl = declList->c_declarations[j];
@@ -496,7 +500,7 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
             cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
             val_  = (double) cpp_cssLengthValue(cssLength);
             type_ = cpp_cssLengthType(cssLength);
-            hll_styleEngineSetStyle(decl->c_property, decl->c_value, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY(), style_attrs);
+            hll_styleEngineSetStyle(decl->c_property, decl->c_value, val_, type_, layout->dpiX(), layout->dpiY(), style_attrs);
             break;
          default:
             break;
@@ -553,11 +557,27 @@ void StyleEngine::apply(int some_idx, StyleAttrs *attrs, c_css_declaration_set_t
       // is only temporary, until all code is moved to Haskell.
    }
 
+   {
+      FontAttrs fontAttrs = *attrs->font;
+      fontAttrs.font_attrs = *(style_attrs->c_font_attrs);
+      if (style_attrs->c_font_attrs->name) {
+         if (fontAttrs.font_attrs.name) {
+            //free(fontAttrs.font_attrs.name); // TODO: for some reason this crashes
+         }
+         fontAttrs.font_attrs.name = strdup(style_attrs->c_font_attrs->name);
+      }
+      attrs->font = Font::create(layout, &fontAttrs);
+   }
+
    free(style_attrs->c_border_width);
    free(style_attrs->c_border_style);
    free(style_attrs->c_border_color);
    free(style_attrs->c_margin);
    free(style_attrs->c_padding);
+   if (style_attrs->c_font_attrs->name) {
+      free(style_attrs->c_font_attrs->name);
+   }
+   free(style_attrs->c_font_attrs);
    free(style_attrs->c_text_indent);
    free(style_attrs->c_width);
    free(style_attrs->c_height);

@@ -167,7 +167,24 @@ inline bool stylePaddingEquals(c_style_padding_t * p, c_style_padding_t * other)
 
 
 
+typedef struct c_font_attrs_t {
+        int size;
+        int weight;
+
+        char * name;
+        int fontVariant; // TODO: change to enum FontVariant
+        int style;       // TODO: change to enum FontStyle
+
+        int xHeight;       // TODO: in dillo this field was in font attrs' parent class "Font".
+        int letterSpacing; // TODO: in dillo this field was in font attrs' parent class "Font".
+} c_font_attrs_t;
+
+
+
+
 typedef struct c_style_attrs_t {
+        c_font_attrs_t * c_font_attrs;
+
         int c_border_collapse;
         c_border_style_t * c_border_style;
         c_border_width_t * c_border_width;
@@ -207,20 +224,6 @@ typedef struct c_style_attrs_t {
         char * c_x_tooltip; /* TODO: what is the limit of size of this buffer? */
 } c_style_attrs_t;
 
-
-
-
-typedef struct c_font_attrs_t {
-        int size;
-        int weight;
-
-        const char * name;
-        int fontVariant; // TODO: change to enum FontVariant
-        int style;       // TODO: change to enum FontStyle
-
-        int xHeight;       // TODO: in dillo this field was in font attrs' parent class "Font".
-        int letterSpacing; // TODO: in dillo this field was in font attrs' parent class "Font".
-} c_font_attrs_t;
 
 
 
@@ -630,7 +633,7 @@ void hll_setFontVariant(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
 void hll_styleEngineApplyStyleToFont(c_css_declaration_set_t * declSet, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_font_attrs_t * fontAttrs);
 
 float hll_styleEngineComputeBorderWidth(c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY);
-void hll_styleEngineSetStyle(int property, c_css_value_t * value, float lenVal, int lenType, c_font_attrs_t * fontAttrs, float dpiX, float dpiY, c_style_attrs_t * style_attrs);
+void hll_styleEngineSetStyle(int property, c_css_value_t * value, float lenVal, int lenType, float dpiX, float dpiY, c_style_attrs_t * style_attrs);
 
 
 

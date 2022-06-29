@@ -48,6 +48,7 @@ import Data.Text as T
 import Debug.Trace
 
 import Hello.Dw.DwLength
+import Hello.Dw.FontAttrs
 
 
 
@@ -121,7 +122,8 @@ data StylePadding = StylePadding
 
 data StyleAttrs = StyleAttrs
   {
-    styleBorderCollapse    :: Int
+    styleFontAttrs         :: FontAttrs
+  , styleBorderCollapse    :: Int
   , styleBorderStyle       :: StyleBorderStyle
   , styleBorderWidth       :: StyleBorderWidth
   , styleBorderColor       :: StyleBorderColor

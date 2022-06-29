@@ -439,8 +439,8 @@ styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
 
 
 
-styleEngineSetStyle :: Int -> CssValue -> CssDistance -> FontAttrs -> Float -> Float -> StyleAttrs -> StyleAttrs
-styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
+styleEngineSetStyle :: Int -> CssValue -> CssDistance -> Float -> Float -> StyleAttrs -> StyleAttrs
+styleEngineSetStyle property value distance dpiX dpiY styleAttrs
   -- Probably because of code like this someone invented lenses.
   | property == cssDeclPropertyBorderCollapse    = styleAttrs { styleBorderCollapse = getBorderCollapse value }
   | property == cssDeclPropertyBorderTopStyle    = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyle value }}
@@ -484,6 +484,8 @@ styleEngineSetStyle property value distance fontAttrs dpiX dpiY styleAttrs
   | property == cssDeclPropertyXImg              = styleAttrs { styleXImg           = getXImg value }
   | property == cssDeclPropertyXTooltip          = styleAttrs { styleXTooltip       = getXTooltip value }
   | otherwise                                    = styleAttrs
+  where
+    fontAttrs = styleFontAttrs styleAttrs
 {-
     distance = case value of
                  CssValueTypeSignedLength d -> d
