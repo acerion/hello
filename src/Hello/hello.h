@@ -592,10 +592,9 @@ void hll_printCssDeclarationSet(c_css_declaration_set_t * declSet);
 void hll_printCssIndex(int * index);
 
 
-void hll_cssContextApplyCssContext(int context_ref,
-                                   c_css_declaration_set_t * targetDeclSet,
-                                   int doc_tree_ref, int dtn_num,
-                                   c_css_declaration_set_t * mainDeclSet, c_css_declaration_set_t * importnatDeclSet, c_css_declaration_set_t * nonCssDeclSet);
+int hll_cssContextApplyCssContext(int context_ref,
+                                  int doc_tree_ref, int dtn_num,
+                                  c_css_declaration_set_t * mainDeclSet, c_css_declaration_set_t * importnatDeclSet, c_css_declaration_set_t * nonCssDeclSet);
 
 void hll_cssContextPrint(const char * path, int css_context_ref);
 
@@ -632,7 +631,7 @@ void hll_setFontLetterSpacing(c_css_value_t * value, float dpiX, float dpiY, c_f
 void hll_setFontVariant(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
 
 void hll_styleEngineApplyStyleToFont(c_css_declaration_set_t * declSet, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_style_attrs_t * style_attrs);
-void hll_styleEngineApplyStyleToGivenNode(c_css_declaration_set_t * declSet, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_style_attrs_t * style_attrs);
+void hll_styleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_style_attrs_t * style_attrs);
 
 float hll_styleEngineComputeBorderWidth(c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY);
 void hll_styleEngineSetStyle(int property, c_css_value_t * value, float dpiX, float dpiY, c_style_attrs_t * style_attrs);

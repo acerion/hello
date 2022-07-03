@@ -30,6 +30,7 @@ module Hello.Ffi.Css.Context
     FfiCssContext (..)
   --, peekCssContext
   --, pokeCssContext
+  , mergedDeclSetsGet
   )
 where
 
@@ -81,7 +82,7 @@ import Hello.Ffi.Utils
 
 
 foreign export ccall "hll_cssContextCtor" hll_cssContextCtor :: IO CInt
-foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: CInt -> Ptr FfiCssDeclarationSet -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: CInt -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO CInt
 foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
 
 foreign export ccall "hll_cssContextPrint" hll_cssContextPrint :: CString -> CInt -> IO ()
@@ -199,8 +200,31 @@ getSomeDeclSet ptr = if nullPtr == ptr
 
 
 
-hll_cssContextApplyCssContext :: CInt -> Ptr FfiCssDeclarationSet -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-hll_cssContextApplyCssContext cRef ptrStructTargetDeclSet cDoctreeRef cDtnNum ptrStructMainDeclSet ptrStructImportantDeclSet ptrStructNonCssDeclSet = do
+-- This is only temporary, until more C++ code is moved to Haskell.
+myGlobalMergedDeclSets :: IORef [CssDeclarationSet]
+{-# NOINLINE myGlobalMergedDeclSets #-}
+myGlobalMergedDeclSets = unsafePerformIO (newIORef [])
+
+
+mergedDeclSetsCtor :: CssDeclarationSet -> IO Int
+mergedDeclSetsCtor declSet = do
+  old <- readIORef myGlobalMergedDeclSets
+  let new = old ++ [ declSet ]
+  writeIORef myGlobalMergedDeclSets new
+  return $ fromIntegral ((length new) - 1)
+
+
+mergedDeclSetsGet :: Int -> IO CssDeclarationSet
+mergedDeclSetsGet ref = do
+  list <- readIORef myGlobalMergedDeclSets
+  let declSet = list !! ref
+  return declSet
+
+
+
+
+hll_cssContextApplyCssContext :: CInt -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO CInt
+hll_cssContextApplyCssContext cRef cDoctreeRef cDtnNum ptrStructMainDeclSet ptrStructImportantDeclSet ptrStructNonCssDeclSet = do
 
   let ref  = fromIntegral cRef
   context <- globalContextGet ref
@@ -218,16 +242,14 @@ hll_cssContextApplyCssContext cRef ptrStructTargetDeclSet cDoctreeRef cDtnNum pt
                                , nonCssDeclSet = nonCssDeclSet
                                }
 
-  targetDeclSet <- peekCssDeclarationSet ptrStructTargetDeclSet
+  (mergedDeclSet, matchCache') <- cssContextApplyCssContext context doctree dtn styleNode
 
-  (targetDeclSet', matchCache') <- cssContextApplyCssContext context doctree dtn styleNode
-
-  pokeCssDeclarationSet ptrStructTargetDeclSet targetDeclSet'
+  declSetRef <- mergedDeclSetsCtor mergedDeclSet
 
   let context2 = context { matchCache = matchCache' }
   globalContextUpdate ref context2 -- { matchCache = matchCache' }
 
-  return ()
+  return . fromIntegral $ declSetRef
 
 
 

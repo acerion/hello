@@ -529,9 +529,9 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
 
 
 /**
- * \brief Make changes to StyleAttrs attrs according to c_css_declaration_set_t props.
+ * \brief Make changes to StyleAttrs attrs according to c_css_declaration_set_t props (referenced by merged_decl_set_ref)
  */
-void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw)
+void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs *attrs, int merged_decl_set_ref, BrowserWindow *bw)
 {
    Font * parentFont = styleNodesStack[styleNodeIndex - 1].style->font;
 
@@ -544,7 +544,7 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs *attrs, c
    c_style_attrs_init(style_attrs);
    c_style_attrs_copy_from(style_attrs, attrs);
 
-   hll_styleEngineApplyStyleToGivenNode(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, style_attrs);
+   hll_styleEngineApplyStyleToGivenNode(merged_decl_set_ref, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, style_attrs);
 
    c_style_attrs_copy_to(attrs, style_attrs, this->layout);
    c_style_attrs_dealloc(&style_attrs);
@@ -630,15 +630,13 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw)
    c_css_declaration_lists_t * declLists = &styleNodesStack[styleNodeIndex].declLists;
 
    // merge style information
-   c_css_declaration_set_t * mergedDeclList = declarationListNew();
    int dtnNum = styleNodesStack[styleNodeIndex].doctreeNodeIdx;
-   hll_cssContextApplyCssContext(this->css_context_ref,
-                                 mergedDeclList,
-                                 this->doc_tree_ref, dtnNum,
-                                 declLists->main, declLists->important, declLists->nonCss);
+   int merged_decl_set_ref = hll_cssContextApplyCssContext(this->css_context_ref,
+                                                           this->doc_tree_ref, dtnNum,
+                                                           declLists->main, declLists->important, declLists->nonCss);
 
    // apply style
-   applyStyleToGivenNode(styleNodeIndex, &attrs, mergedDeclList, bw);
+   applyStyleToGivenNode(styleNodeIndex, &attrs, merged_decl_set_ref, bw);
 
    postprocessAttrs(&attrs);
 
