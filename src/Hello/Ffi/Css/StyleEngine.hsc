@@ -87,6 +87,7 @@ foreign export ccall "hll_styleEngineApplyStyleToFont" hll_styleEngineApplyStyle
 
 foreign export ccall "hll_styleEngineComputeBorderWidth" hll_styleEngineComputeBorderWidth :: Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
 foreign export ccall "hll_styleEngineSetStyle" hll_styleEngineSetStyle :: CInt -> Ptr FfiCssValue -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
+foreign export ccall "hll_styleEngineApplyStyleToGivenNode" hll_styleEngineApplyStyleToGivenNode :: Ptr FfiCssDeclarationSet -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
 
 foreign export ccall "hll_computeDwLength" hll_computeDwLength :: Ptr FfiDwLength -> CDouble -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
 
@@ -401,4 +402,21 @@ hll_styleEngineSetStyle cProperty ptrStructCssValue dpiX dpiY ptrStructStyleAttr
   pokeStyleAttrs styleAttrs' ptrStructStyleAttrs
 
   return ()
+
+
+
+
+hll_styleEngineApplyStyleToGivenNode :: Ptr FfiCssDeclarationSet -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
+hll_styleEngineApplyStyleToGivenNode ptrStructDeclSet dpiX dpiY ptrStructStyleAttrs = do
+  declSet :: CssDeclarationSet <- peekCssDeclarationSet ptrStructDeclSet
+  styleAttrs :: StyleAttrs     <- peekStyleAttrs ptrStructStyleAttrs
+
+  let styleAttrs' = styleEngineApplyStyleToGivenNode declSet dpiX dpiY styleAttrs
+
+  pokeStyleAttrs styleAttrs' ptrStructStyleAttrs
+
+  return ()
+
+
+
 

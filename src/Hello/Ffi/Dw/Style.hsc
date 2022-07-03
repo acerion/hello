@@ -634,7 +634,7 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
 
   let cXImg :: CInt = fromIntegral . styleXImg $ attrs
   cXTooltip :: Ptr CChar <- allocAndPokeCString . styleXTooltip $ attrs -- TODO: this allocates memory that is not freed anywhere
-  putStrLn ("tooltip = " ++ (show . styleXTooltip $ attrs))
+  --putStrLn ("tooltip = " ++ (show . styleXTooltip $ attrs))
 
   poke ptrStructStyleAttrs $ FfiStyleAttrs pFontAttrs cBorderCollapse pBorderStyle pBorderWidth pBorderColor pMargin pPadding cTextAlign cTextDecoration pTextIndent cTextTransform cVerticalAlign cWhiteSpace pWidth pHeight pLineHeight cListStylePosition cListStyleType cDisplay cColor cBackgroundColor cCursor cHBorderSpacing cVBorderSpacing cWordSpacing cXLink cXLang cXImg cXTooltip
 

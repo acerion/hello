@@ -46,6 +46,7 @@ module Hello.Css.StyleEngine
   , styleEngineComputeBorderWidth
 
   , styleEngineSetStyle
+  , styleEngineApplyStyleToGivenNode
 
   , styleEngineCalculateDwLength
   )
@@ -439,8 +440,54 @@ styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
 
 
 
+styleEngineApplyStyleToGivenNode :: CssDeclarationSet -> Float -> Float -> StyleAttrs -> StyleAttrs
+styleEngineApplyStyleToGivenNode declSet dpiX dpiY styleAttrs = apply (items declSet) dpiX dpiY styleAttrs
+  where
+    apply :: S.Seq CssDeclaration -> Float -> Float -> StyleAttrs -> StyleAttrs
+    apply decls dpiX dpiY styleAttrs =
+      case S.null decls of
+        True  -> styleAttrs
+        False -> apply xs dpiX dpiY $ styleEngineSetStyle (property x) value dpiX dpiY styleAttrs
+          where
+            x  :: CssDeclaration       = S.index decls 0
+            xs :: S.Seq CssDeclaration = S.drop 1 decls
+            value :: CssValue = declValue x
+
+
+
+
 styleEngineSetStyle :: Int -> CssValue -> Float -> Float -> StyleAttrs -> StyleAttrs
 styleEngineSetStyle property value dpiX dpiY styleAttrs
+{-
+TODO: re-implement these missing cases from C++. They were not re-implemented
+yet because a full support for them in dillo seems to be missing or broken.
+         case CSS_PROPERTY_BACKGROUND_ATTACHMENT:
+            attrs->backgroundAttachment = (BackgroundAttachment) decl->c_value->c_int_val;
+            break;
+         case CSS_PROPERTY_BACKGROUND_IMAGE:
+            // decl->value.c_text_val should be absolute, so baseUrl is not needed
+            imgUrl = a_Url_new (decl->c_value->c_text_val, NULL);
+            break;
+         case CSS_PROPERTY_BACKGROUND_POSITION:
+            CssLength cssLength;
+
+            cssLength.length_bits = decl->c_value->c_bg_pos_x;
+            val_  = (double) cpp_cssLengthValue(cssLength);
+            type_ = cpp_cssLengthType(cssLength);
+            hll_computeDwLength(&attrs->backgroundPositionX, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
+
+            cssLength.length_bits = decl->c_value->c_bg_pos_y;
+            val_  = (double) cpp_cssLengthValue(cssLength);
+            type_ = cpp_cssLengthType(cssLength);
+            hll_computeDwLength(&attrs->backgroundPositionY, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
+
+            break;
+         case CSS_PROPERTY_BACKGROUND_REPEAT:
+            attrs->backgroundRepeat = (BackgroundRepeat) decl->c_value->c_int_val;
+            break;
+
+-}
+
   -- Probably because of code like this someone invented lenses.
   | property == cssDeclPropertyBackgroundColor   = styleAttrs { styleBackgroundColor = getBackgroundColor value }
   | property == cssDeclPropertyBorderCollapse    = styleAttrs { styleBorderCollapse  = getBorderCollapse value }
@@ -485,6 +532,8 @@ styleEngineSetStyle property value dpiX dpiY styleAttrs
   | property == cssDeclPropertyXImg              = styleAttrs { styleXImg           = getXImg value }
   | property == cssDeclPropertyXTooltip          = styleAttrs { styleXTooltip       = getXTooltip value }
   | otherwise                                    = styleAttrs
+    -- TODO: add support for missing cases
+
   where
     fontAttrs = styleFontAttrs styleAttrs
     distance = case value of
