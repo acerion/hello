@@ -631,8 +631,8 @@ void hll_setFontStyle(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
 void hll_setFontLetterSpacing(c_css_value_t * value, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_font_attrs_t * fontAttrs);
 void hll_setFontVariant(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
 
-void hll_styleEngineApplyStyleToFont(c_css_declaration_set_t * declSet, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_font_attrs_t * fontAttrs);
-void hll_styleEngineApplyStyleToGivenNode(c_css_declaration_set_t * declSet, float dpiX, float dpiY, c_style_attrs_t * style_attrs);
+void hll_styleEngineApplyStyleToFont(c_css_declaration_set_t * declSet, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_style_attrs_t * style_attrs);
+void hll_styleEngineApplyStyleToGivenNode(c_css_declaration_set_t * declSet, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_style_attrs_t * style_attrs);
 
 float hll_styleEngineComputeBorderWidth(c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY);
 void hll_styleEngineSetStyle(int property, c_css_value_t * value, float dpiX, float dpiY, c_style_attrs_t * style_attrs);

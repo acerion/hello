@@ -527,18 +527,18 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
  */
 void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs *attrs, c_css_declaration_set_t * declList, BrowserWindow *bw)
 {
-   Font *parentFont = styleNodesStack[styleNodeIndex - 1].style->font;
-   DilloUrl *imgUrl = NULL;
-   double val_ = 0;
-   int type_   = 0;
+   Font * parentFont = styleNodesStack[styleNodeIndex - 1].style->font;
+
+   // TODO: this should be set from style_attrs calculated by
+   // hll_styleEngineApplyStyleToGivenNode for CSS_PROPERTY_BACKGROUND_IMAGE
+   // property.
+   DilloUrl *imgUrl = nullptr;
 
    c_style_attrs_t * style_attrs = c_style_attrs_calloc();
    c_style_attrs_init(style_attrs);
    c_style_attrs_copy_from(style_attrs, attrs);
 
-   /* Determine font first so it can be used to resolve relative lengths. */
-   hll_styleEngineApplyStyleToFont(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, style_attrs->c_font_attrs);
-   hll_styleEngineApplyStyleToGivenNode(declList, layout->dpiX(), layout->dpiY(), style_attrs);
+   hll_styleEngineApplyStyleToGivenNode(declList, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, style_attrs);
 
    c_style_attrs_copy_to(attrs, style_attrs, this->layout);
    c_style_attrs_dealloc(&style_attrs);

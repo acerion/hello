@@ -440,14 +440,18 @@ styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
 
 
 
-styleEngineApplyStyleToGivenNode :: CssDeclarationSet -> Float -> Float -> StyleAttrs -> StyleAttrs
-styleEngineApplyStyleToGivenNode declSet dpiX dpiY styleAttrs = apply (items declSet) dpiX dpiY styleAttrs
+styleEngineApplyStyleToGivenNode :: CssDeclarationSet -> Preferences -> Float -> Float -> FontAttrs -> StyleAttrs -> StyleAttrs
+styleEngineApplyStyleToGivenNode declSet prefs dpiX dpiY parentFontAttrs styleAttrs = styleAttrs'
   where
-    apply :: S.Seq CssDeclaration -> Float -> Float -> StyleAttrs -> StyleAttrs
-    apply decls dpiX dpiY styleAttrs =
+    -- Determine font first so it can be used to resolve relative lengths of other elements.
+    fontAttrs'  = styleEngineApplyStyleToFont declSet prefs dpiX dpiY parentFontAttrs (styleFontAttrs styleAttrs)
+    styleAttrs' = setRemainingAttrs (items declSet) dpiX dpiY styleAttrs { styleFontAttrs = fontAttrs' }
+
+    setRemainingAttrs :: S.Seq CssDeclaration -> Float -> Float -> StyleAttrs -> StyleAttrs
+    setRemainingAttrs decls dpiX dpiY styleAttrs =
       case S.null decls of
         True  -> styleAttrs
-        False -> apply xs dpiX dpiY $ styleEngineSetStyle (property x) value dpiX dpiY styleAttrs
+        False -> setRemainingAttrs xs dpiX dpiY $ styleEngineSetStyle (property x) value dpiX dpiY styleAttrs
           where
             x  :: CssDeclaration       = S.index decls 0
             xs :: S.Seq CssDeclaration = S.drop 1 decls
@@ -461,12 +465,13 @@ styleEngineSetStyle property value dpiX dpiY styleAttrs
 {-
 TODO: re-implement these missing cases from C++. They were not re-implemented
 yet because a full support for them in dillo seems to be missing or broken.
+
          case CSS_PROPERTY_BACKGROUND_ATTACHMENT:
             attrs->backgroundAttachment = (BackgroundAttachment) decl->c_value->c_int_val;
             break;
          case CSS_PROPERTY_BACKGROUND_IMAGE:
             // decl->value.c_text_val should be absolute, so baseUrl is not needed
-            imgUrl = a_Url_new (decl->c_value->c_text_val, NULL);
+            DilloUrl *imgUrl = imgUrl = a_Url_new (decl->c_value->c_text_val, NULL);
             break;
          case CSS_PROPERTY_BACKGROUND_POSITION:
             CssLength cssLength;

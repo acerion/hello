@@ -50,6 +50,7 @@ import Hello.Css.StyleEngine
 import Hello.Css.UserAgentStyle
 
 import Hello.Dw.DwLength
+import Hello.Dw.FontAttrs
 import Hello.Dw.Style
 
 import Hello.Ffi.Css.Context
@@ -87,7 +88,7 @@ foreign export ccall "hll_styleEngineApplyStyleToFont" hll_styleEngineApplyStyle
 
 foreign export ccall "hll_styleEngineComputeBorderWidth" hll_styleEngineComputeBorderWidth :: Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
 foreign export ccall "hll_styleEngineSetStyle" hll_styleEngineSetStyle :: CInt -> Ptr FfiCssValue -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
-foreign export ccall "hll_styleEngineApplyStyleToGivenNode" hll_styleEngineApplyStyleToGivenNode :: Ptr FfiCssDeclarationSet -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
+foreign export ccall "hll_styleEngineApplyStyleToGivenNode" hll_styleEngineApplyStyleToGivenNode :: Ptr FfiCssDeclarationSet -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiStyleAttrs -> IO ()
 
 foreign export ccall "hll_computeDwLength" hll_computeDwLength :: Ptr FfiDwLength -> CDouble -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
 
@@ -406,12 +407,14 @@ hll_styleEngineSetStyle cProperty ptrStructCssValue dpiX dpiY ptrStructStyleAttr
 
 
 
-hll_styleEngineApplyStyleToGivenNode :: Ptr FfiCssDeclarationSet -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
-hll_styleEngineApplyStyleToGivenNode ptrStructDeclSet dpiX dpiY ptrStructStyleAttrs = do
+hll_styleEngineApplyStyleToGivenNode :: Ptr FfiCssDeclarationSet -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiStyleAttrs -> IO ()
+hll_styleEngineApplyStyleToGivenNode ptrStructDeclSet ptrStructPrefs dpiX dpiY ptrStructParentFontAttrs ptrStructStyleAttrs = do
   declSet :: CssDeclarationSet <- peekCssDeclarationSet ptrStructDeclSet
+  prefs                        <- peekPreferences ptrStructPrefs
   styleAttrs :: StyleAttrs     <- peekStyleAttrs ptrStructStyleAttrs
+  parentFontAttrs :: FontAttrs <- peekFontAttrs ptrStructParentFontAttrs
 
-  let styleAttrs' = styleEngineApplyStyleToGivenNode declSet dpiX dpiY styleAttrs
+  let styleAttrs' = styleEngineApplyStyleToGivenNode declSet prefs dpiX dpiY parentFontAttrs styleAttrs
 
   pokeStyleAttrs styleAttrs' ptrStructStyleAttrs
 
