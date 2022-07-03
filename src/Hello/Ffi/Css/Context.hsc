@@ -63,6 +63,7 @@ import Hello.Css.ContextGlobal
 import Hello.Css.Match
 import Hello.Css.MatchCache
 import Hello.Css.Parser
+import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
 import Hello.Css.UserAgentStyle
 
@@ -211,9 +212,15 @@ hll_cssContextApplyCssContext cRef ptrStructTargetDeclSet cDoctreeRef cDtnNum pt
   importantDeclSet <- getSomeDeclSet ptrStructImportantDeclSet
   nonCssDeclSet    <- getSomeDeclSet ptrStructNonCssDeclSet
 
+  let styleNode :: StyleNode = StyleNode
+                               { mainDeclSet = mainDeclSet
+                               , importantDeclSet = importantDeclSet
+                               , nonCssDeclSet = nonCssDeclSet
+                               }
+
   targetDeclSet <- peekCssDeclarationSet ptrStructTargetDeclSet
 
-  (targetDeclSet', matchCache') <- cssContextApplyCssContext context doctree dtn mainDeclSet importantDeclSet nonCssDeclSet
+  (targetDeclSet', matchCache') <- cssContextApplyCssContext context doctree dtn styleNode
 
   pokeCssDeclarationSet ptrStructTargetDeclSet targetDeclSet'
 

@@ -117,7 +117,13 @@ StyleEngine::~StyleEngine () {
 
 void StyleEngine::stackPush () {
    static const StyleNode emptyNode = {
-      NULL, NULL, NULL, NULL, NULL, NULL, false, false, 0
+      .declLists = { NULL, NULL, NULL },
+      .style = NULL,
+      .wordStyle = NULL,
+      .backgroundStyle = NULL,
+      .inheritBackgroundColor = false,
+      .displayNone = false,
+      .doctreeNodeIdx = 0
    };
 
    memcpy(&styleNodesStack[styleNodesStackSize], &emptyNode, sizeof (emptyNode));

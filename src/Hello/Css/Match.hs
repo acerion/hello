@@ -55,6 +55,7 @@ import Debug.Trace
 
 import Hello.Css.MatchCache
 import Hello.Css.Parser
+import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
 import Hello.Css.Selector
 import Hello.Html.Doctree
@@ -398,8 +399,8 @@ buildRulesListsForDtn styleSheet dtn = reverse rulesLists
 -- ordering defined by CSS 2.1. Stylesheets that are applied later can
 -- overwrite properties set by previous stylesheets. This allows e.g. user
 -- styles to overwrite author styles.
-cssContextApplyCssContext :: CssContext -> Doctree -> DoctreeNode -> CssDeclarationSet -> CssDeclarationSet -> CssDeclarationSet -> IO (CssDeclarationSet, CssMatchCache)
-cssContextApplyCssContext context doctree dtn mainDeclSet importantDeclSet nonCssDeclSet = do
+cssContextApplyCssContext :: CssContext -> Doctree -> DoctreeNode -> StyleNode -> IO (CssDeclarationSet, CssMatchCache)
+cssContextApplyCssContext context doctree dtn styleNode = do
 
   let cssPrimaryUserAgent       = 0
   let cssPrimaryUser            = 1
@@ -414,15 +415,15 @@ cssContextApplyCssContext context doctree dtn mainDeclSet importantDeclSet nonCs
 
   (targetDeclSet3, matchCache3) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUser) targetDeclSet2 matchCache2 doctree dtn
 
-  let targetDeclSet4 = declarationsSetAppend targetDeclSet3 nonCssDeclSet
+  let targetDeclSet4 = declarationsSetAppend targetDeclSet3 (nonCssDeclSet styleNode)
 
   (targetDeclSet5, matchCache5) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryAuthor) targetDeclSet4 matchCache3 doctree dtn
 
-  let targetDeclSet6 = declarationsSetAppend targetDeclSet5 mainDeclSet
+  let targetDeclSet6 = declarationsSetAppend targetDeclSet5 (mainDeclSet styleNode)
 
   (targetDeclSet7, matchCache7) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryAuthorImportant) targetDeclSet6 matchCache5 doctree dtn
 
-  let targetDeclSet8 = declarationsSetAppend targetDeclSet7 importantDeclSet
+  let targetDeclSet8 = declarationsSetAppend targetDeclSet7 (importantDeclSet styleNode)
 
   (targetDeclSet9, matchCache9) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUserImportant) targetDeclSet8 matchCache7 doctree dtn
 
