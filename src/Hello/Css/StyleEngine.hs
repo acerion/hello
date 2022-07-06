@@ -49,6 +49,8 @@ module Hello.Css.StyleEngine
   , styleEngineApplyStyleToGivenNode
 
   , styleEngineCalculateDwLength
+
+  , styleEngineInheritNonCssHints
   )
 where
 
@@ -793,6 +795,34 @@ getXTooltip value = case value of
                       CssValueTypeString s -> s
                       otherwise            -> ""
 
+
+
+
+-- Inherit non-CSS hints from current element's parent to current element.
+--
+-- TODO: check order of arguments to 'append' function. Comment in C++ says
+-- "original declListNonCss have precedence", which suggests that current
+-- element's hints should have precenence.
+--
+-- The order is most probably correct because 'current' will overwrite
+-- (update) any existing declarations in 'inherited', so 'current' will have
+-- precedence.
+--
+-- TODO: there are at least two ways to improve this function:
+--
+-- 1. Get rid of Maybe. Non-existent declarations of 'current' will be
+-- indicated by an empty 'current' set.
+--
+-- 2. Consider just calling 'declarationsSetAppend parent current'. It will
+-- work well if current is empty or non-empty, and if parent is empty or
+-- non-empty.
+styleEngineInheritNonCssHints :: CssDeclarationSet -> Maybe CssDeclarationSet -> CssDeclarationSet
+styleEngineInheritNonCssHints parent mCurrent = inheritedAndCurrent
+  where
+    inheritedAndCurrent = case mCurrent of
+                            Just current -> declarationsSetAppend inherited current
+                            Nothing      -> inherited
+    inherited = parent -- "copy constructor"
 
 
 

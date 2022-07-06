@@ -30,7 +30,6 @@ module Hello.Ffi.Css.Context
     FfiCssContext (..)
   --, peekCssContext
   --, pokeCssContext
-  , mergedDeclSetsGet
   )
 where
 
@@ -61,6 +60,7 @@ import Hello.Html.DoctreeNode
 import Hello.Utils
 
 import Hello.Css.ContextGlobal
+import Hello.Css.DeclarationSetsGlobal
 import Hello.Css.Match
 import Hello.Css.MatchCache
 import Hello.Css.Parser
@@ -82,7 +82,7 @@ import Hello.Ffi.Utils
 
 
 foreign export ccall "hll_cssContextCtor" hll_cssContextCtor :: IO CInt
-foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: CInt -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO CInt
+foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
 
 foreign export ccall "hll_cssContextPrint" hll_cssContextPrint :: CString -> CInt -> IO ()
@@ -199,32 +199,14 @@ getSomeDeclSet ptr = if nullPtr == ptr
 
 
 
-
--- This is only temporary, until more C++ code is moved to Haskell.
-myGlobalMergedDeclSets :: IORef [CssDeclarationSet]
-{-# NOINLINE myGlobalMergedDeclSets #-}
-myGlobalMergedDeclSets = unsafePerformIO (newIORef [])
-
-
-mergedDeclSetsCtor :: CssDeclarationSet -> IO Int
-mergedDeclSetsCtor declSet = do
-  old <- readIORef myGlobalMergedDeclSets
-  let new = old ++ [ declSet ]
-  writeIORef myGlobalMergedDeclSets new
-  return $ fromIntegral ((length new) - 1)
-
-
-mergedDeclSetsGet :: Int -> IO CssDeclarationSet
-mergedDeclSetsGet ref = do
-  list <- readIORef myGlobalMergedDeclSets
-  let declSet = list !! ref
-  return declSet
+getSomeDeclSet2 ref = if (-1) == ref
+                      then return defaultCssDeclarationSet
+                      else globalDeclarationSetGet ref
 
 
 
-
-hll_cssContextApplyCssContext :: CInt -> CInt -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO CInt
-hll_cssContextApplyCssContext cRef cDoctreeRef cDtnNum ptrStructMainDeclSet ptrStructImportantDeclSet ptrStructNonCssDeclSet = do
+hll_cssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO CInt
+hll_cssContextApplyCssContext cRef cDoctreeRef cDtnNum cMainDeclSetRef cImportantDeclSetRef cNonCssDeclSetRef = do
 
   let ref  = fromIntegral cRef
   context <- globalContextGet ref
@@ -232,19 +214,24 @@ hll_cssContextApplyCssContext cRef cDoctreeRef cDtnNum ptrStructMainDeclSet ptrS
   doctree <- getDoctreeFromRef . fromIntegral $ cDoctreeRef
   let dtn  = getDtnUnsafe doctree (fromIntegral cDtnNum)
 
-  mainDeclSet      <- getSomeDeclSet ptrStructMainDeclSet
-  importantDeclSet <- getSomeDeclSet ptrStructImportantDeclSet
-  nonCssDeclSet    <- getSomeDeclSet ptrStructNonCssDeclSet
+  let mainDeclSetRef = fromIntegral cMainDeclSetRef
+  mainDeclSet :: CssDeclarationSet <- getSomeDeclSet2 mainDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
+
+  let importantDeclSetRef = fromIntegral cImportantDeclSetRef
+  importantDeclSet :: CssDeclarationSet <- getSomeDeclSet2 importantDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
+
+  let nonCssDeclSetRef = fromIntegral cNonCssDeclSetRef
+  nonCssDeclSet :: CssDeclarationSet <- getSomeDeclSet2 nonCssDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
 
   let styleNode :: StyleNode = StyleNode
-                               { mainDeclSet = mainDeclSet
+                               { mainDeclSet      = mainDeclSet
                                , importantDeclSet = importantDeclSet
-                               , nonCssDeclSet = nonCssDeclSet
+                               , nonCssDeclSet    = nonCssDeclSet
                                }
 
   (mergedDeclSet, matchCache') <- cssContextApplyCssContext context doctree dtn styleNode
 
-  declSetRef <- mergedDeclSetsCtor mergedDeclSet
+  declSetRef <- globalDeclarationSetPut mergedDeclSet
 
   let context2 = context { matchCache = matchCache' }
   globalContextUpdate ref context2 -- { matchCache = matchCache' }

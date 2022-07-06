@@ -79,6 +79,7 @@ import Control.Applicative
 import Control.Monad -- when
 import Debug.Trace
 
+import Hello.Css.DeclarationSetsGlobal
 import Hello.Css.Distance
 import Hello.Css.Parser
 import Hello.Css.Selector
@@ -103,7 +104,7 @@ foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
 foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> CInt -> CInt -> IO ()
 
 foreign export ccall "hll_isTokenComma" hll_isTokenComma :: Ptr FfiCssToken -> IO Int
 foreign export ccall "hll_isTokenSemicolon" hll_isTokenSemicolon :: Ptr FfiCssToken -> IO Int
@@ -882,18 +883,21 @@ peekCssValue ffiCssValue = do
 
 
 
-hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-hll_cssParseElementStyleAttribute ptrBaseUrl ptrStringCssStyleAttribute buflen ptrStructDeclSet ptrStructDeclSetImp = do
+hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> CInt -> CInt -> IO ()
+hll_cssParseElementStyleAttribute ptrBaseUrl ptrStringCssStyleAttribute buflen cMainDeclSetRef cImportantDeclSetRef = do
 
   cssStyleAttribute <- BSU.unsafePackCStringLen (ptrStringCssStyleAttribute, fromIntegral buflen)
 
-  declSet    :: CssDeclarationSet <- peekCssDeclarationSet ptrStructDeclSet
-  declSetImp :: CssDeclarationSet <- peekCssDeclarationSet ptrStructDeclSetImp
+  let mainDeclSetRef = fromIntegral cMainDeclSetRef
+  mainDeclSet :: CssDeclarationSet <- globalDeclarationSetGet mainDeclSetRef
 
-  let (newDeclSet, newDeclSetImp) = parseElementStyleAttribute "" (T.E.decodeLatin1 cssStyleAttribute) (declSet, declSetImp)
+  let importantDeclSetRef = fromIntegral cImportantDeclSetRef
+  importantDeclSet :: CssDeclarationSet <- globalDeclarationSetGet importantDeclSetRef
 
-  pokeCssDeclarationSet ptrStructDeclSet newDeclSet
-  pokeCssDeclarationSet ptrStructDeclSetImp newDeclSetImp
+  let (mainDeclSet', importantDeclSet') = parseElementStyleAttribute "" (T.E.decodeLatin1 cssStyleAttribute) (mainDeclSet, importantDeclSet)
+
+  globalDeclarationSetUpdate mainDeclSetRef mainDeclSet'
+  globalDeclarationSetUpdate importantDeclSetRef importantDeclSet'
 
   return ()
 

@@ -4,6 +4,7 @@
 all:
 	hsc2hs ./Ffi/Css/Css.hsc
 	hsc2hs ./Ffi/Css/Context.hsc
+	hsc2hs ./Ffi/Css/DeclarationSetsGlobal.hsc
 	hsc2hs ./Ffi/Css/Distance.hsc
 	hsc2hs ./Ffi/Css/DoctreeNode.hsc
 	hsc2hs ./Ffi/Css/Doctree.hsc
@@ -49,6 +50,7 @@ clean:
 
 	rm -f ./Ffi/Css/Css.hs
 	rm -f ./Ffi/Css/Context.hs
+	rm -f ./Ffi/Css/DeclarationSetsGlobal.hs
 	rm -f ./Ffi/Css/Distance.hs
 	rm -f ./Ffi/Css/DoctreeNode.hs
 	rm -f ./Ffi/Css/Doctree.hs

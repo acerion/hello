@@ -7,9 +7,9 @@
 #include "Hello/hello.h"
 
 typedef struct c_css_declaration_lists_t {
-   c_css_declaration_set_t * main;
-   c_css_declaration_set_t * important;
-   c_css_declaration_set_t * nonCss;
+   int main_decl_set_ref;
+   int important_decl_set_ref;
+   int non_css_decl_set_ref;
 } c_css_declaration_lists_t;
 
 /* This is needed only for debug prints. */
@@ -149,9 +149,6 @@ typedef enum {
    PROPERTY_X_TOOLTIP,
    CSS_PROPERTY_LAST
 } CssDeclarationProperty;
-
-c_css_declaration_set_t * declarationListNew(void);
-c_css_declaration_set_t * declarationListNew(const c_css_declaration_set_t * declList);
 
 
 

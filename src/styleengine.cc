@@ -117,7 +117,7 @@ StyleEngine::~StyleEngine () {
 
 void StyleEngine::stackPush () {
    static const StyleNode emptyNode = {
-      .declLists = { NULL, NULL, NULL },
+      .declLists = { -1, -1, -1 },
       .style = NULL,
       .wordStyle = NULL,
       .backgroundStyle = NULL,
@@ -133,9 +133,9 @@ void StyleEngine::stackPush () {
 void StyleEngine::stackPop () {
    StyleNode * currentNode = getCurrentNode(this);
 
-   delete currentNode->declLists.main;
-   delete currentNode->declLists.important;
-   delete currentNode->declLists.nonCss;
+   //delete currentNode->declLists.main;
+   //delete currentNode->declLists.important;
+   //delete currentNode->declLists.nonCss;
    if (currentNode->style)
       currentNode->style->unref ();
    if (currentNode->wordStyle)
@@ -199,14 +199,15 @@ void StyleEngine::setElementClass(const char * element_class_tokens) {
 void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
 {
    StyleNode * currentNode = getCurrentNode(this);
-   assert (currentNode->declLists.main == NULL);
+   //assert (currentNode->declLists.main == NULL);
    // parse style information from style="" attribute, if it exists
    if (cssStyleAttribute && prefs.parse_embedded_css) {
-      currentNode->declLists.main      = declarationListNew();
-      currentNode->declLists.important = declarationListNew();
+      currentNode->declLists.main_decl_set_ref      = hll_declarationSetCtor();
+      currentNode->declLists.important_decl_set_ref = hll_declarationSetCtor();
 
       hll_cssParseElementStyleAttribute(baseUrl, cssStyleAttribute, strlen (cssStyleAttribute),
-                                        currentNode->declLists.main, currentNode->declLists.important);
+                                        currentNode->declLists.main_decl_set_ref,
+                                        currentNode->declLists.important_decl_set_ref);
    }
 }
 
@@ -217,28 +218,20 @@ void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
  */
 void StyleEngine::inheritNonCssHints()
 {
-   StyleNode * parentNode = getParentNode(this);
+   StyleNode * currentNode = getCurrentNode(this);
+   StyleNode * parentNode  = getParentNode(this);
 
-   if (parentNode->declLists.nonCss) {
-      StyleNode * currentNode = getCurrentNode(this);
-      c_css_declaration_set_t * origDeclListNonCss = currentNode->declLists.nonCss;
-
-      currentNode->declLists.nonCss = declarationListNew(parentNode->declLists.nonCss); // NOTICE: copy constructor
-
-      if (origDeclListNonCss) {// original declListNonCss have precedence
-         hll_declarationListAppend(currentNode->declLists.nonCss, origDeclListNonCss);
-      }
-
-      delete origDeclListNonCss;
-   }
+   int ref = currentNode->declLists.non_css_decl_set_ref;
+   currentNode->declLists.non_css_decl_set_ref = hll_inheritNonCssHints(parentNode->declLists.non_css_decl_set_ref, ref);
 }
 
 void StyleEngine::clearNonCssHints()
 {
    StyleNode * currentNode = getCurrentNode(this);
 
-   delete currentNode->declLists.nonCss;
-   currentNode->declLists.nonCss = NULL;
+   // TODO: how to delete this in Haskell?
+   //delete currentNode->declLists.nonCss;
+   currentNode->declLists.non_css_decl_set_ref = -1;
 }
 
 /**
@@ -529,7 +522,7 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
 
 
 /**
- * \brief Make changes to StyleAttrs attrs according to c_css_declaration_set_t props (referenced by merged_decl_set_ref)
+ * \brief Make changes to StyleAttrs attrs according to element's declarations set (referenced by merged_decl_set_ref)
  */
 void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs *attrs, int merged_decl_set_ref, BrowserWindow *bw)
 {
@@ -633,7 +626,9 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw)
    int dtnNum = styleNodesStack[styleNodeIndex].doctreeNodeIdx;
    int merged_decl_set_ref = hll_cssContextApplyCssContext(this->css_context_ref,
                                                            this->doc_tree_ref, dtnNum,
-                                                           declLists->main, declLists->important, declLists->nonCss);
+                                                           declLists->main_decl_set_ref,
+                                                           declLists->important_decl_set_ref,
+                                                           declLists->non_css_decl_set_ref);
 
    // apply style
    applyStyleToGivenNode(styleNodeIndex, &attrs, merged_decl_set_ref, bw);
@@ -741,17 +736,13 @@ void cpp_styleEngineSetNonCssHintOfNodeLength(StyleNode * styleNode, CssDeclarat
 
 void cpp_styleEngineSetNonCssHintOfNodeInt(StyleNode * styleNode, int property, int valueType, int intVal, float lengthValue, int lengthType)
 {
-   c_css_declaration_set_t * inDeclSet = styleNode->declLists.nonCss;
-   c_css_declaration_set_t * outDeclSet = hll_styleEngineSetNonCssHintOfNodeInt(inDeclSet, property, valueType, intVal, lengthValue, lengthType);
-   styleNode->declLists.nonCss = outDeclSet;
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeInt(styleNode->declLists.non_css_decl_set_ref, property, valueType, intVal, lengthValue, lengthType);
    return;
 }
 
 void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, int valueType, const char * stringVal)
 {
-   c_css_declaration_set_t * inDeclSet = styleNode->declLists.nonCss;
-   c_css_declaration_set_t * outDeclSet = hll_styleEngineSetNonCssHintOfNodeString(inDeclSet, property, valueType, stringVal);
-   styleNode->declLists.nonCss = outDeclSet;
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeString(styleNode->declLists.non_css_decl_set_ref, property, valueType, stringVal);
    return;
 }
 

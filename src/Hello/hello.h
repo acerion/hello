@@ -545,7 +545,7 @@ int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, c_
 
 void hll_declarationListAppend(c_css_declaration_set_t * target, const c_css_declaration_set_t * source);
 
-void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const char * cssStyleAttribute, int buflen, c_css_declaration_set_t * declSet, c_css_declaration_set_t * declSetImp);
+void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const char * cssStyleAttribute, int buflen, int main_decl_set_ref, int important_decl_set_ref);
 
 
 
@@ -594,7 +594,9 @@ void hll_printCssIndex(int * index);
 
 int hll_cssContextApplyCssContext(int context_ref,
                                   int doc_tree_ref, int dtn_num,
-                                  c_css_declaration_set_t * mainDeclSet, c_css_declaration_set_t * importnatDeclSet, c_css_declaration_set_t * nonCssDeclSet);
+                                  int main_decl_set_ref,
+                                  int important_decl_set_ref,
+                                  int non_css_decl_set_ref);
 
 void hll_cssContextPrint(const char * path, int css_context_ref);
 
@@ -611,8 +613,8 @@ int hll_isTokenSemicolon(c_css_token_t * token);
 
 /* StyleEngine */
 c_css_declaration_t * hll_makeCssDeclaration(int property, c_css_value_t * value);
-c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfNodeInt(c_css_declaration_set_t * declSet, int property, int valueType, int intVal, float lengthValue, int lengthType);
-c_css_declaration_set_t * hll_styleEngineSetNonCssHintOfNodeString(c_css_declaration_set_t * declSet, int property, int valueType, const char * stringVal);
+int hll_styleEngineSetNonCssHintOfNodeInt(int non_css_decl_set_ref, int property, int valueType, int intVal, float lengthValue, int lengthType);
+int hll_styleEngineSetNonCssHintOfNodeString(int non_css_decl_set_ref, int property, int valueType, const char * stringVal);
 int hll_styleEngineComputeAbsoluteLengthValue(float lengthValue, int lengthType, c_font_attrs_t * fontAttrs, int percentageBase, float dpiX, float dpiY, int * ptrOut);
 
 
@@ -637,6 +639,9 @@ float hll_styleEngineComputeBorderWidth(c_css_value_t * value, c_font_attrs_t * 
 void hll_styleEngineSetStyle(int property, c_css_value_t * value, float dpiX, float dpiY, c_style_attrs_t * style_attrs);
 
 
+int hll_declarationSetCtor(void);
+
+int hll_inheritNonCssHints(int parent_non_css_decl_set_ref, int non_css_decl_set_ref);
 
 void hll_createPercentageDwLength(DwLength * length, double v);
 void hll_createAbsoluteDwLength(DwLength * length, int v);
