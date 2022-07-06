@@ -23,13 +23,6 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 module Hello.Ffi.Css.Misc
   (
-    FfiCssRulesList (..)
-  , peekCssRulesList
-  , pokeCssRulesList
-
-  , FfiCssRulesMap (..)
-  , peekCssRulesMap
-  , pokeCssRulesMap
   )
 where
 
@@ -81,12 +74,12 @@ import Hello.Ffi.Utils
 
 
 
-foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
+--foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
 
 
 
-foreign export ccall "hll_printCssDeclarationSet" hll_printCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO ()
-foreign export ccall "hll_printCssIndex" hll_printCssIndex :: Ptr CInt -> IO ()
+--foreign export ccall "hll_printCssDeclarationSet" hll_printCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO ()
+--foreign export ccall "hll_printCssIndex" hll_printCssIndex :: Ptr CInt -> IO ()
 
 
 
@@ -124,7 +117,7 @@ ptrToMdtn ptrStructDtn = do
 
 
 
-
+{-
 data FfiCssRulesList = FfiCssRulesList {
     rulesC     :: Ptr (Ptr FfiCssRule)
   , rulesSizeC :: CInt
@@ -181,6 +174,19 @@ data FfiCssRule = FfiCssRule {
   , positionC       :: CInt
   } deriving (Show)
 
+
+
+/**
+ * \brief A pair of CSS selector and CSS declarations set.
+ *
+ *  The c_css_declaration_set_t is applied if the c_css_cached_complex_selector_t matches.
+ */
+typedef struct c_css_rule_t {
+      c_css_cached_complex_selector_t * c_cached_complex_selector;
+      c_css_declaration_set_t * c_decl_set;
+      int c_specificity;
+      int c_position;
+} c_css_rule_t;
 
 
 
@@ -275,6 +281,23 @@ pokeCssRule rule = do
 
 
 
+#define RULES_LIST_SIZE 128
+typedef struct c_css_rules_list_t {
+   c_css_rule_t * c_rules[RULES_LIST_SIZE];
+   int c_rules_size;
+} c_css_rules_list_t;
+
+
+/* Hash map: key: string, value: rules list */
+   #define RULES_MAP_SIZE 256
+typedef struct c_css_rules_map_t {
+   char * c_strings[RULES_MAP_SIZE];
+   c_css_rules_list_t * c_rules_lists[RULES_MAP_SIZE];
+   int c_rules_map_size;
+} c_css_rules_map_t;
+
+
+
 
 data FfiCssRulesMap = FfiCssRulesMap {
     stringsC      :: Ptr (Ptr CChar)
@@ -350,7 +373,7 @@ hll_rulesMapGetList ptrStructRulesMap cStringKey = do
     _    -> do
       e <- peekElemOff listsOfRulesArray idx
       return e
-
+-}
 
 
 
@@ -364,6 +387,7 @@ findString array size string = do
 
 
 
+{-
 hll_printCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO ()
 hll_printCssDeclarationSet ptrStructCssDeclarationSet = do
   declSet:: CssDeclarationSet <- peekCssDeclarationSet ptrStructCssDeclarationSet
@@ -381,5 +405,5 @@ hll_printCssIndex cPtrIndexArray = do
     return ()
 
 
-
+-}
 

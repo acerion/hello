@@ -38,7 +38,7 @@ using namespace dw::core::style;
 
 void nextToken(c_css_parser_t * hll_parser, c_css_token_t * token);
 void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url);
-void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
+//void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
 static void parse_media_query(c_css_parser_t * parser, c_css_token_t * token, int * mediaSyntaxIsOk, int * mediaIsSelected);
 
 /* ----------------------------------------------------------------------

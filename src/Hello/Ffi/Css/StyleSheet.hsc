@@ -23,9 +23,6 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 module Hello.Ffi.Css.StyleSheet
   (
-    FfiCssStyleSheet
-  , peekCssStyleSheet
-  , pokeStyleSheet
   )
 where
 
@@ -77,7 +74,24 @@ import Hello.Ffi.Utils
 
 
 
+
+{-
 foreign export ccall "hll_cssStyleSheetApplyStyleSheet" hll_cssStyleSheetApplyStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssDeclarationSet -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO ()
+
+
+
+
+/**
+ * \brief A list of c_css_rule_t rules.
+ *
+ * In apply_style_sheet() all matching rules are applied.
+ */
+typedef struct c_css_style_sheet_t {
+   c_css_rules_map_t * c_rules_by_id;
+   c_css_rules_map_t * c_rules_by_class;
+   c_css_rules_list_t * c_rules_by_type[90 + 14 /* css_style_sheet_n_tags */];
+   c_css_rules_list_t * c_rules_by_any_element;
+} c_css_style_sheet_t;
 
 
 
@@ -170,3 +184,4 @@ hll_cssStyleSheetApplyStyleSheet ptrStructCssStyleSheet ptrStructTarget cDoctree
   pokeCssDeclarationSet ptrStructTarget targetDeclSet'
   pokeCssMatchCache ptrStructMatchCache matchCache'
 
+-}

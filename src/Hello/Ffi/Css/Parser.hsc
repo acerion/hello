@@ -25,38 +25,25 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
-module Hello.Ffi.Css.Parser( FfiCssComplexSelectorLink (..)
-                           , peekCssComplexSelectorLink
-                           , pokeCssComplexSelectorLink
+module Hello.Ffi.Css.Parser
+  (
+    FfiCssParser (..)
+  , peekCssParser
+  , pokeCssParser
 
-                           , FfiCssCompoundSelector (..)
-                           , peekCssCompoundSelector
+  , FfiCssToken (..)
+  , peekCssToken
+  , pokeCssToken
 
-                           , FfiCssComplexSelector (..)
-                           , peekCssComplexSelector
-                           , pokeCssComplexSelector
+  , getCssOrigin
 
-                           , FfiCssDeclarationSet (..)
-                           , peekCssDeclarationSet
-                           , pokeCssDeclarationSet
+  , FfiCssDeclaration
+  , allocAndPokeCssDeclaration
 
-                           , FfiCssParser (..)
-                           , peekCssParser
-                           , pokeCssParser
-
-                           , FfiCssToken (..)
-                           , peekCssToken
-                           , pokeCssToken
-
-                           , getCssOrigin
-
-                           , FfiCssDeclaration
-                           , allocAndPokeCssDeclaration
-
-                           , FfiCssValue
-                           , peekCssValue
-                           )
-  where
+  , FfiCssValue
+  , peekCssValue
+  )
+where
 
 
 
@@ -103,7 +90,7 @@ foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByNa
 foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
 foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
-foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+--foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> CInt -> CInt -> IO ()
 
 foreign export ccall "hll_isTokenComma" hll_isTokenComma :: Ptr FfiCssToken -> IO Int
@@ -362,6 +349,53 @@ hll_cssPropertyNameString property = do
 
 
 
+
+{-
+typedef struct c_css_complex_selector_link_t {
+   /* It's possible that more than one of these is set in a single
+      CssComplexSelectorLink struct. */
+   char * c_selector_class[10];
+   int c_selector_class_size;
+
+   /* In CSS there can be more pseudo-classes and Haskell can read them, but
+      for now C/C++ code will only use first one. */
+   char * c_selector_pseudo_class[10];
+   int c_selector_pseudo_class_size;
+
+   char * c_selector_id;
+   int c_selector_type; /* Index corresponding to html.cc::Tags[]. */
+
+   int c_combinator;
+} c_css_complex_selector_link_t;
+
+
+typedef struct c_css_compound_selector_t {
+   /* It's possible that more than one of these is set in a single
+      CssComplexSelectorLink struct. */
+   char * c_selector_class[10];
+   int c_selector_class_size;
+
+   /* In CSS there can be more pseudo-classes and Haskell can read them, but
+      for now C/C++ code will only use first one. */
+   char * c_selector_pseudo_class[10];
+   int c_selector_pseudo_class_size;
+
+   char * c_selector_id;
+   int c_selector_type; /* Index corresponding to html.cc::Tags[]. */
+} c_css_compound_selector_t;
+
+
+
+typedef struct c_css_cached_complex_selector_t {
+   int c_match_cache_offset;
+   c_css_complex_selector_link_t * c_links[10];
+   int c_links_size;
+} c_css_cached_complex_selector_t;
+
+
+
+
+
 data FfiCssComplexSelectorLink = FfiCssComplexSelectorLink {
   -- equals to <char * c_selector_class[10]>,
   -- which equals to <char ** c_selector_class>
@@ -604,7 +638,7 @@ pokeCssComplexSelector ptrStructCssComplexSelector selector = do
   pokeByteOff ptrStructCssComplexSelector (#offset c_css_cached_complex_selector_t, c_links_size) len
 
   pokeByteOff ptrStructCssComplexSelector (#offset c_css_cached_complex_selector_t, c_match_cache_offset) (matchCacheOffset selector)
-
+-}
 
 
 
@@ -729,11 +763,25 @@ instance Storable FfiCssValue where
 
 
 
+{-
 data FfiCssDeclarationSet = FfiCssDeclarationSet {
     isSafeC           :: CInt
   , ptrDeclarationsC  :: Ptr (Ptr FfiCssDeclaration)
   , declarationsSizeC :: CInt
   } deriving (Show)
+
+
+
+/**
+ * \brief A list of c_css_declaration_t objects.
+ */
+#define DECLARATIONS_COUNT_IN_SET 100
+typedef struct c_css_declaration_set_t {
+   int c_is_safe; // TODO: this should be true by default
+   c_css_declaration_t * c_declarations[DECLARATIONS_COUNT_IN_SET];
+   int c_declarations_size;
+} c_css_declaration_set_t;
+
 
 
 
@@ -790,7 +838,7 @@ pokeCssDeclarationSet ptrStructDeclarationSet newDeclSet = do
 
 
 
-{-
+
 hll_parseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken ptrStructCssDeclarationSet ptrStructCssDeclarationSetImp = do
   parser <- peekCssParser ptrStructCssParser
@@ -829,7 +877,7 @@ hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDecla
   pokeCssDeclarationSet newPtrStructDeclarationSet newDeclSet
 
   return newPtrStructDeclarationSet
--}
+
 
 
 
@@ -843,7 +891,7 @@ hll_declarationListAppend ptrStructTarget ptrStructSource = do
   pokeCssDeclarationSet ptrStructTarget merged
 
   return ()
-
+-}
 
 
 

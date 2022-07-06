@@ -27,9 +27,6 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 module Hello.Ffi.Css.Context
   (
-    FfiCssContext (..)
-  --, peekCssContext
-  --, pokeCssContext
   )
 where
 
@@ -89,12 +86,25 @@ foreign export ccall "hll_cssContextPrint" hll_cssContextPrint :: CString -> CIn
 
 
 
-
+{-
 data FfiCssContext = FfiCssContext {
     cSheets              :: Ptr (Ptr FfiCssStyleSheet)
   , cStructPtrMatchCache :: Ptr FfiCssMatchCache
   , cRulePosition        :: CInt
   } deriving (Show)
+
+
+
+
+/**
+ * \brief A set of c_css_style_sheet_t sheets
+ */
+typedef struct c_css_context_t {
+   c_css_style_sheet_t * c_sheets[CSS_PRIMARY_ORDER_SIZE];
+   c_css_match_cache_t * c_match_cache;
+   int c_rule_position;
+} c_css_context_t;
+
 
 
 
@@ -116,7 +126,7 @@ instance Storable FfiCssContext where
 
 
 
-{-
+
 peekCssContext :: Ptr FfiCssContext -> IO CssContext
 peekCssContext ptrStructContext = do
   ffiContext <- peek ptrStructContext
@@ -191,11 +201,6 @@ hll_cssContextPut ptrStructCssContext = do
   return . fromIntegral $ ref
 -}
 
-
-
-getSomeDeclSet ptr = if nullPtr == ptr
-                     then return defaultCssDeclarationSet
-                     else peekCssDeclarationSet ptr
 
 
 

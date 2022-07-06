@@ -320,48 +320,6 @@ typedef struct c_css_parser_t {
 
 
 
-typedef struct c_css_complex_selector_link_t {
-   /* It's possible that more than one of these is set in a single
-      CssComplexSelectorLink struct. */
-   char * c_selector_class[10];
-   int c_selector_class_size;
-
-   /* In CSS there can be more pseudo-classes and Haskell can read them, but
-      for now C/C++ code will only use first one. */
-   char * c_selector_pseudo_class[10];
-   int c_selector_pseudo_class_size;
-
-   char * c_selector_id;
-   int c_selector_type; /* Index corresponding to html.cc::Tags[]. */
-
-   int c_combinator;
-} c_css_complex_selector_link_t;
-
-
-typedef struct c_css_compound_selector_t {
-   /* It's possible that more than one of these is set in a single
-      CssComplexSelectorLink struct. */
-   char * c_selector_class[10];
-   int c_selector_class_size;
-
-   /* In CSS there can be more pseudo-classes and Haskell can read them, but
-      for now C/C++ code will only use first one. */
-   char * c_selector_pseudo_class[10];
-   int c_selector_pseudo_class_size;
-
-   char * c_selector_id;
-   int c_selector_type; /* Index corresponding to html.cc::Tags[]. */
-} c_css_compound_selector_t;
-
-
-
-typedef struct c_css_cached_complex_selector_t {
-   int c_match_cache_offset;
-   c_css_complex_selector_link_t * c_links[10];
-   int c_links_size;
-} c_css_cached_complex_selector_t;
-
-
 typedef struct c_css_value_t {
    int c_type_tag;
    int c_int_val;
@@ -382,49 +340,10 @@ typedef struct c_css_declaration_t {
    c_css_value_t * c_value;
 } c_css_declaration_t;
 
-/**
- * \brief A list of c_css_declaration_t objects.
- */
-#define DECLARATIONS_COUNT_IN_SET 100
-typedef struct c_css_declaration_set_t {
-   int c_is_safe; // TODO: this should be true by default
-   c_css_declaration_t * c_declarations[DECLARATIONS_COUNT_IN_SET];
-   int c_declarations_size;
-} c_css_declaration_set_t;
-
 typedef struct c_css_token_t {
    int c_type;
    char * c_value;
 } c_css_token_t;
-
-
-/**
- * \brief A pair of CSS selector and CSS declarations set.
- *
- *  The c_css_declaration_set_t is applied if the c_css_cached_complex_selector_t matches.
- */
-typedef struct c_css_rule_t {
-      c_css_cached_complex_selector_t * c_cached_complex_selector;
-      c_css_declaration_set_t * c_decl_set;
-      int c_specificity;
-      int c_position;
-} c_css_rule_t;
-
-
-#define RULES_LIST_SIZE 128
-typedef struct c_css_rules_list_t {
-   c_css_rule_t * c_rules[RULES_LIST_SIZE];
-   int c_rules_size;
-} c_css_rules_list_t;
-
-
-/* Hash map: key: string, value: rules list */
-   #define RULES_MAP_SIZE 256
-typedef struct c_css_rules_map_t {
-   char * c_strings[RULES_MAP_SIZE];
-   c_css_rules_list_t * c_rules_lists[RULES_MAP_SIZE];
-   int c_rules_map_size;
-} c_css_rules_map_t;
 
 
 /*
@@ -435,19 +354,6 @@ typedef struct c_css_rules_map_t {
   section, aside, figure, figcaption, wbr, audio, video, source, embed.
 */
 static const int css_style_sheet_n_tags = 90 + 14;
-
-
-/**
- * \brief A list of c_css_rule_t rules.
- *
- * In apply_style_sheet() all matching rules are applied.
- */
-typedef struct c_css_style_sheet_t {
-   c_css_rules_map_t * c_rules_by_id;
-   c_css_rules_map_t * c_rules_by_class;
-   c_css_rules_list_t * c_rules_by_type[90 + 14 /* css_style_sheet_n_tags */];
-   c_css_rules_list_t * c_rules_by_any_element;
-} c_css_style_sheet_t;
 
 /* Origin and weight. Used only internally.*/
 typedef enum {
@@ -470,19 +376,6 @@ typedef struct c_css_match_cache_t {
    int c_cache_items[2000]; // For soylentnews.net it's over 1000.
    int c_cache_items_size;
 } c_css_match_cache_t;
-
-/**
- * \brief A set of c_css_style_sheet_t sheets
- */
-typedef struct c_css_context_t {
-   c_css_style_sheet_t * c_sheets[CSS_PRIMARY_ORDER_SIZE];
-   c_css_match_cache_t * c_match_cache;
-   int c_rule_position;
-} c_css_context_t;
-
-
-
-
 
 
 
@@ -538,13 +431,6 @@ const char * hll_cssPropertyNameString(int property);
 
 
 
-// Return count of selectors in @p selectors
-int hll_cssParseSelectors(c_css_parser_t * hll_parser, c_css_token_t * token, c_css_cached_complex_selector_t ** selectors);
-
-//c_css_declaration_set_t * hll_declarationListAddOrUpdateDeclaration(c_css_declaration_set_t * declList, c_css_declaration_t * declaration);
-
-void hll_declarationListAppend(c_css_declaration_set_t * target, const c_css_declaration_set_t * source);
-
 void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const char * cssStyleAttribute, int buflen, int main_decl_set_ref, int important_decl_set_ref);
 
 
@@ -556,40 +442,6 @@ typedef struct {
 } c_css_length_t;
 void hll_htmlParseAttributeWidthOrHeight(const char * attribute_value, c_css_length_t * length);
 
-
-
-/* Css.hsc */
-
-   
-/**
- * \brief CSS selector class.
- *
- * \todo Implement missing selector options.
- */
-typedef enum {
-              CssSelectorCombinatorNone,
-              CssSelectorCombinatorDescendant,      // ' '
-              CssSelectorCombinatorChild,           // '>'
-              CssSelectorCombinatorAdjacentSibling, // '+'
-} Combinator;
-
-
-
-
-c_css_rules_list_t * hll_rulesMapGetList(const c_css_rules_map_t * rules_map, const char * key);
-
-void hll_fn(const c_css_rules_list_t ** rules_lists, int numLists, int * index, int * minSpecIndex);
-
-void hll_applyCssRule(int doc_tree_ref, const c_doctree_node_t * dtn, c_css_match_cache_t * match_cache,
-                      c_css_declaration_set_t * target,
-                      const c_css_rules_list_t ** rules_lists, int numLists, int * index, int minSpecIndex);
-
-
-
-void hll_cssStyleSheetApplyStyleSheet(c_css_style_sheet_t * style_sheet, c_css_declaration_set_t * decl_set, int doc_tree_ref, const c_doctree_node_t *dtn, c_css_match_cache_t * match_cache);
-
-void hll_printCssDeclarationSet(c_css_declaration_set_t * declSet);
-void hll_printCssIndex(int * index);
 
 
 int hll_cssContextApplyCssContext(int context_ref,
@@ -611,8 +463,7 @@ int hll_isTokenComma(c_css_token_t * token);
 int hll_isTokenSemicolon(c_css_token_t * token);
 
 
-/* StyleEngine */
-c_css_declaration_t * hll_makeCssDeclaration(int property, c_css_value_t * value);
+
 int hll_styleEngineSetNonCssHintOfNodeInt(int non_css_decl_set_ref, int property, int valueType, int intVal, float lengthValue, int lengthType);
 int hll_styleEngineSetNonCssHintOfNodeString(int non_css_decl_set_ref, int property, int valueType, const char * stringVal);
 int hll_styleEngineComputeAbsoluteLengthValue(float lengthValue, int lengthType, c_font_attrs_t * fontAttrs, int percentageBase, float dpiX, float dpiY, int * ptrOut);
@@ -625,18 +476,8 @@ void hll_styleEngineSetElementPseudoClass(int doc_tree_ref, const char * element
 
 
 
-void hll_setFontFamily(c_css_value_t * value, c_prefs_t * prefs, c_font_attrs_t * fontAttrs);
-void hll_setFontWeight(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
-void hll_setFontSize(c_css_value_t * cssValue, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_font_attrs_t * fontAttrs);
-void hll_setFontStyle(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
-void hll_setFontLetterSpacing(c_css_value_t * value, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_font_attrs_t * fontAttrs);
-void hll_setFontVariant(c_font_attrs_t * fontAttrs, c_css_value_t * cssValue);
-
-void hll_styleEngineApplyStyleToFont(c_css_declaration_set_t * declSet, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_style_attrs_t * style_attrs);
 void hll_styleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_style_attrs_t * style_attrs);
 
-float hll_styleEngineComputeBorderWidth(c_css_value_t * value, c_font_attrs_t * fontAttrs, float dpiX, float dpiY);
-void hll_styleEngineSetStyle(int property, c_css_value_t * value, float dpiX, float dpiY, c_style_attrs_t * style_attrs);
 
 
 int hll_declarationSetCtor(void);
