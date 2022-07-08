@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2021 Kamil Ignacak acerion@wp.pl
+Copyright (C) 2021-2022 Kamil Ignacak acerion@wp.pl
 
 This file is part of "hello" web browser.
 
@@ -72,10 +72,6 @@ module Hello.Css.Parser(
 
                        , takeBgTokens
 
-                       , cssShorthandInfoIdxByName
-                       , cssPropertyInfoIdxByName
-                       , cssPropertyNameString
-
                        , parseDeclarationMultiple
                        , parseDeclarationDirections
                        , parseDeclarationBorder
@@ -109,94 +105,6 @@ module Hello.Css.Parser(
                        , consumeFunctionBody
 
                        , getTopCompound
-
-                       , cssDeclPropertyBackgroundAttachment
-                       , cssDeclPropertyBackgroundColor
-                       , cssDeclPropertyBackgroundImage
-                       , cssDeclPropertyBackgroundPosition
-                       , cssDeclPropertyBackgroundRepeat
-                       , cssDeclPropertyBorderBottomColor
-                       , cssDeclPropertyBorderBottomStyle
-                       , cssDeclPropertyBorderBottomWidth
-                       , cssDeclPropertyBorderCollapse
-                       , cssDeclPropertyBorderLeftColor
-                       , cssDeclPropertyBorderLeftStyle
-                       , cssDeclPropertyBorderLeftWidth
-                       , cssDeclPropertyBorderRightColor
-                       , cssDeclPropertyBorderRightStyle
-                       , cssDeclPropertyBorderRightWidth
-                       , cssDeclPropertyBorderSpacing
-                       , cssDeclPropertyBorderTopColor
-                       , cssDeclPropertyBorderTopStyle
-                       , cssDeclPropertyBorderTopWidth
-                       , cssDeclPropertyBottom
-                       , cssDeclPropertyCaptionSide
-                       , cssDeclPropertyClear
-                       , cssDeclPropertyClip
-                       , cssDeclPropertyColor
-                       , cssDeclPropertyContent
-                       , cssDeclPropertyCounterIncrement
-                       , cssDeclPropertyCounterReset
-                       , cssDeclPropertyCursor
-                       , cssDeclPropertyDirection
-                       , cssDeclPropertyDisplay
-                       , cssDeclPropertyEmptyCells
-                       , cssDeclPropertyFloat
-                       , cssDeclPropertyFontFamily
-                       , cssDeclPropertyFontSize
-                       , cssDeclPropertyFontSizeAdjust
-                       , cssDeclPropertyFontStretch
-                       , cssDeclPropertyFontStyle
-                       , cssDeclPropertyFontVariant
-                       , cssDeclPropertyFontWeight
-                       , cssDeclPropertyHeight
-                       , cssDeclPropertyLeft
-                       , cssDeclPropertyLetterSpacing
-                       , cssDeclPropertyLineHeight
-                       , cssDeclPropertyListStyleImage
-                       , cssDeclPropertyListStylePosition
-                       , cssDeclPropertyListStyleType
-                       , cssDeclPropertyMarginBottom
-                       , cssDeclPropertyMarginLeft
-                       , cssDeclPropertyMarginRight
-                       , cssDeclPropertyMarginTop
-                       , cssDeclPropertyMarkerOffset
-                       , cssDeclPropertyMarks
-                       , cssDeclPropertyMaxHeight
-                       , cssDeclPropertyMaxWidth
-                       , cssDeclPropertyMinHeight
-                       , cssDeclPropertyMinWidth
-                       , cssDeclPropertyOutlineColor
-                       , cssDeclPropertyOutlineStyle
-                       , cssDeclPropertyOutlineWidth
-                       , cssDeclPropertyOverflow
-                       , cssDeclPropertyPaddingBottom
-                       , cssDeclPropertyPaddingLeft
-                       , cssDeclPropertyPaddingRight
-                       , cssDeclPropertyPaddingTop
-                       , cssDeclPropertyPosition
-                       , cssDeclPropertyQuotes
-                       , cssDeclPropertyRight
-                       , cssDeclPropertyTextAlign
-                       , cssDeclPropertyTextDecoration
-                       , cssDeclPropertyTextIndent
-                       , cssDeclPropertyTextShadow
-                       , cssDeclPropertyTextTransform
-                       , cssDeclPropertyTop
-                       , cssDeclPropertyUnicodeBiDi
-                       , cssDeclPropertyVerticalAlign
-                       , cssDeclPropertyVisibility
-                       , cssDeclPropertyWhitespace
-                       , cssDeclPropertyWidth
-                       , cssDeclPropertyWordSpacing
-                       , cssDeclPropertyZIndex
-                       , cssDeclPropertyXLink
-                       , cssDeclPropertyXColSpan
-                       , cssDeclPropertyXRowSpan
-                       , cssDeclPropertyXLang
-                       , cssDeclPropertyXImg
-                       , cssDeclPropertyXTooltip
-                       , cssDeclProperty_LAST
                        )
   where
 
@@ -213,6 +121,7 @@ import Data.Bits
 import Debug.Trace
 
 import Hello.Utils
+import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
 import Hello.Css.Selector
@@ -279,213 +188,114 @@ data CssValue =
 
 
 
--- CssDeclarationProperty
-cssDeclPropertyBackgroundAttachment = 0
-cssDeclPropertyBackgroundColor = 1
-cssDeclPropertyBackgroundImage = 2
-cssDeclPropertyBackgroundPosition = 3
-cssDeclPropertyBackgroundRepeat = 4
-cssDeclPropertyBorderBottomColor :: Int = 5
-cssDeclPropertyBorderBottomStyle = 6
-cssDeclPropertyBorderBottomWidth = 7
-cssDeclPropertyBorderCollapse :: Int = 8
-cssDeclPropertyBorderLeftColor :: Int = 9
-cssDeclPropertyBorderLeftStyle = 10
-cssDeclPropertyBorderLeftWidth = 11
-cssDeclPropertyBorderRightColor :: Int = 12
-cssDeclPropertyBorderRightStyle = 13
-cssDeclPropertyBorderRightWidth = 14
-cssDeclPropertyBorderSpacing :: Int = 15
-cssDeclPropertyBorderTopColor :: Int = 16
-cssDeclPropertyBorderTopStyle = 17
-cssDeclPropertyBorderTopWidth = 18
-cssDeclPropertyBottom = 19
-cssDeclPropertyCaptionSide = 20
-cssDeclPropertyClear = 21
-cssDeclPropertyClip = 22
-cssDeclPropertyColor :: Int = 23
-cssDeclPropertyContent = 24
-cssDeclPropertyCounterIncrement = 25
-cssDeclPropertyCounterReset = 26
-cssDeclPropertyCursor :: Int = 27
-cssDeclPropertyDirection = 28
-cssDeclPropertyDisplay = 29
-cssDeclPropertyEmptyCells = 30
-cssDeclPropertyFloat = 31
-cssDeclPropertyFontFamily = 32
-cssDeclPropertyFontSize = 33
-cssDeclPropertyFontSizeAdjust = 34
-cssDeclPropertyFontStretch = 35
-cssDeclPropertyFontStyle = 36
-cssDeclPropertyFontVariant = 37
-cssDeclPropertyFontWeight = 38
-cssDeclPropertyHeight :: Int = 39
-cssDeclPropertyLeft = 40
-cssDeclPropertyLetterSpacing :: Int = 41
-cssDeclPropertyLineHeight :: Int = 42
-cssDeclPropertyListStyleImage = 43
-cssDeclPropertyListStylePosition = 44
-cssDeclPropertyListStyleType = 45
-cssDeclPropertyMarginBottom = 46
-cssDeclPropertyMarginLeft = 47
-cssDeclPropertyMarginRight = 48
-cssDeclPropertyMarginTop = 49
-cssDeclPropertyMarkerOffset = 50
-cssDeclPropertyMarks = 51
-cssDeclPropertyMaxHeight = 52
-cssDeclPropertyMaxWidth = 53
-cssDeclPropertyMinHeight = 54
-cssDeclPropertyMinWidth = 55
-cssDeclPropertyOutlineColor = 56
-cssDeclPropertyOutlineStyle = 57
-cssDeclPropertyOutlineWidth = 58
-cssDeclPropertyOverflow = 59
-cssDeclPropertyPaddingBottom = 60
-cssDeclPropertyPaddingLeft = 61
-cssDeclPropertyPaddingRight = 62
-cssDeclPropertyPaddingTop = 63
-cssDeclPropertyPosition = 64
-cssDeclPropertyQuotes = 65
-cssDeclPropertyRight = 66
-cssDeclPropertyTextAlign :: Int = 67
-cssDeclPropertyTextDecoration :: Int = 68
-cssDeclPropertyTextIndent :: Int = 69
-cssDeclPropertyTextShadow = 70
-cssDeclPropertyTextTransform :: Int = 71
-cssDeclPropertyTop = 72
-cssDeclPropertyUnicodeBiDi = 73
-cssDeclPropertyVerticalAlign :: Int = 74
-cssDeclPropertyVisibility = 75
-cssDeclPropertyWhitespace :: Int = 76
-cssDeclPropertyWidth :: Int = 77
-cssDeclPropertyWordSpacing :: Int = 78
-cssDeclPropertyZIndex = 79
-
- -- Pseudo-property used internally by dillo/hello. Without it following
- -- a/href links won't work.
-cssDeclPropertyXLink :: Int = 80
-
-cssDeclPropertyXColSpan = 81
-cssDeclPropertyXRowSpan = 82
-
--- Pseudo-property for "lang" or "xml:lang" attribute of html element.
-cssDeclPropertyXLang :: Int = 83
-
--- Pseudo-property used (probably) to index images in a html document.
-cssDeclPropertyXImg :: Int = 84
-cssDeclPropertyXTooltip :: Int = 85
-
-cssDeclProperty_LAST = 86
-
-
-
-
 -- Items with empty list of functions are not supported by this implementation.
-cssPropertyInfo = V.fromList [
-     ("background-attachment",  [ tokensAsValueEnum ],                                                css_background_attachment_enum_vals)
-   , ("background-color",       [ tokensAsValueColor ],                                               [])
-   , ("background-image",       [ declValueAsURI ],                                                   [])
-   , ("background-position",    [ tokensAsValueBgPosition ],                                          [])
-   , ("background-repeat",      [ tokensAsValueEnum ],                                                css_background_repeat_enum_vals)
-   , ("border-bottom-color",    [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals)
-   , ("border-bottom-style",    [ tokensAsValueEnum ],                                                css_border_style_enum_vals)
-   , ("border-bottom-width",    [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals)
-   , ("border-collapse",        [ tokensAsValueEnum ],                                                css_border_collapse_enum_vals)
-   , ("border-left-color",      [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals)
-   , ("border-left-style",      [ tokensAsValueEnum ],                                                css_border_style_enum_vals)
-   , ("border-left-width",      [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals)
-   , ("border-right-color",     [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals)
-   , ("border-right-style",     [ tokensAsValueEnum ],                                                css_border_style_enum_vals)
-   , ("border-rigth-width",     [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals)
-   , ("border-spacing",         [ declValueAsLength ],                                                [])
-   , ("border-top-color",       [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals)
-   , ("border-top-style",       [ tokensAsValueEnum ],                                                css_border_style_enum_vals)
-   , ("border-top-width",       [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals)
-   , ("bottom",                 [],                                                                   [])
-   , ("caption-side",           [],                                                                   [])
-   , ("clear",                  [],                                                                   [])
-   , ("clip",                   [],                                                                   [])
-   , ("color",                  [ tokensAsValueColor ],                                               [])
-   , ("content",                [ tokensAsValueString ],                                              [])
-   , ("counter-increment",      [],                                                                   [])
-   , ("counter-reset",          [],                                                                   [])
-   , ("cursor",                 [ tokensAsValueEnum ],                                                css_cursor_enum_vals)
-   , ("direction",              [],                                                                   [])
-   , ("display",                [ tokensAsValueEnum ],                                                css_display_enum_vals)
-   , ("empty-cells",            [],                                                                   [])
-   , ("float",                  [],                                                                   [])
-   , ("font-family",            [ tokensAsValueStringList ],                                          [])
-   , ("font-size",              [ tokensAsValueEnum, declValueAsLengthPercent ],                      css_font_size_enum_vals)
-   , ("font-size-adjust",       [],                                                                   [])
-   , ("font-stretch",           [],                                                                   [])
-   , ("font-style",             [ tokensAsValueEnum ],                                                css_font_style_enum_vals)
-   , ("font-variant",           [ tokensAsValueEnum ],                                                css_font_variant_enum_vals)
-   , ("font-weight",            [ tokensAsValueEnum, declValueAsFontWeightInteger ],                  css_font_weight_enum_vals)
-   , ("height",                 [ declValueAsLengthPercent, tokensAsValueAuto ],                      [])
-   , ("left",                   [],                                                                   [])
-   , ("letter-spacing",         [ tokensAsValueEnum, declValueAsSignedLength ],                       css_letter_spacing_enum_vals)
-   , ("line-height",            [ tokensAsValueEnum, declValueAsLengthPercentNumber ],                 css_line_height_enum_vals)
-   , ("list-style-image",       [],                                                                   [])
-   , ("list-style-position",    [ tokensAsValueEnum ],                                                css_list_style_position_enum_vals)
-   , ("list-style-type",        [ tokensAsValueEnum ],                                                css_list_style_type_enum_vals)
-   , ("margin-bottom",          [ declValueAsSignedLength, tokensAsValueAuto ],                       [])
-   , ("margin-left",            [ declValueAsSignedLength, tokensAsValueAuto ],                       [])
-   , ("margin-right",           [ declValueAsSignedLength, tokensAsValueAuto ],                       [])
-   , ("margin-top",             [ declValueAsSignedLength, tokensAsValueAuto ],                       [])
-   , ("marker-offset",          [],                                                                   [])
-   , ("marks",                  [],                                                                   [])
-   , ("max-height",             [],                                                                   [])
-   , ("max-width",              [],                                                                   [])
-   , ("min-height",             [],                                                                   [])
-   , ("min-width",              [],                                                                   [])
-   , ("outline-color",          [],                                                                   [])
-   , ("outline-style",          [],                                                                   [])
-   , ("outline-width",          [],                                                                   [])
-   , ("overflow",               [],                                                                   [])
-   , ("padding-bottom",         [ declValueAsLength ],                                                [])
-   , ("padding-left",           [ declValueAsLength ],                                                [])
-   , ("padding-right",          [ declValueAsLength ],                                                [])
-   , ("padding-top",            [ declValueAsLength ],                                                [])
-   , ("position",               [],                                                                   [])
-   , ("quotes",                 [],                                                                   [])
-   , ("right",                  [],                                                                   [])
-   , ("text-align",             [ tokensAsValueEnum ],                                                css_text_align_enum_vals)
+cssPropertyInfo = M.fromList [
+     ("background-attachment",  (CssDeclarationBackgroundAttachment, [ tokensAsValueEnum ],                                                css_background_attachment_enum_vals))
+   , ("background-color",       (CssDeclarationBackgroundColor,      [ tokensAsValueColor ],                                               []))
+
+   , ("background-image",       (CssDeclarationBackgroundImage,      [ declValueAsURI ],                                                   []))
+   , ("background-position",    (CssDeclarationBackgroundPosition,   [ tokensAsValueBgPosition ],                                          []))
+   , ("background-repeat",      (CssDeclarationBackgroundRepeat,     [ tokensAsValueEnum ],                                                css_background_repeat_enum_vals))
+   , ("border-bottom-color",    (CssDeclarationBorderBottomColor,    [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
+   , ("border-bottom-style",    (CssDeclarationBorderBottomStyle,    [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-bottom-width",    (CssDeclarationBorderBottomWidth,    [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
+   , ("border-collapse",        (CssDeclarationBorderCollapse,       [ tokensAsValueEnum ],                                                css_border_collapse_enum_vals))
+   , ("border-left-color",      (CssDeclarationBorderLeftColor,      [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
+   , ("border-left-style",      (CssDeclarationBorderLeftStyle,      [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-left-width",      (CssDeclarationBorderLeftWidth,      [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
+   , ("border-right-color",     (CssDeclarationBorderRightColor,     [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
+   , ("border-right-style",     (CssDeclarationBorderRightStyle,     [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-rigth-width",     (CssDeclarationBorderRightWidth,     [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
+   , ("border-spacing",         (CssDeclarationBorderSpacing,        [ declValueAsLength ],                                                []))
+   , ("border-top-color",       (CssDeclarationBorderTopColor,       [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
+   , ("border-top-style",       (CssDeclarationBorderTopStyle,       [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-top-width",       (CssDeclarationBorderTopWidth,       [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
+   , ("bottom",                 (CssDeclarationBottom,               [],                                                                   []))
+   , ("caption-side",           (CssDeclarationCaptionSide,          [],                                                                   []))
+   , ("clear",                  (CssDeclarationClear,                [],                                                                   []))
+   , ("clip",                   (CssDeclarationClip,                 [],                                                                   []))
+   , ("color",                  (CssDeclarationColor,                [ tokensAsValueColor ],                                               []))
+   , ("content",                (CssDeclarationContent,              [ tokensAsValueString ],                                              []))
+   , ("counter-increment",      (CssDeclarationCounterIncrement,     [],                                                                   []))
+   , ("counter-reset",          (CssDeclarationCounterReset,         [],                                                                   []))
+   , ("cursor",                 (CssDeclarationCursor,               [ tokensAsValueEnum ],                                                css_cursor_enum_vals))
+   , ("direction",              (CssDeclarationDirection,            [],                                                                   []))
+   , ("display",                (CssDeclarationDisplay,              [ tokensAsValueEnum ],                                                css_display_enum_vals))
+   , ("empty-cells",            (CssDeclarationEmptyCells,           [],                                                                   []))
+   , ("float",                  (CssDeclarationFloat,                [],                                                                   []))
+   , ("font-family",            (CssDeclarationFontFamily,           [ tokensAsValueStringList ],                                          []))
+   , ("font-size",              (CssDeclarationFontSize,             [ tokensAsValueEnum, declValueAsLengthPercent ],                      css_font_size_enum_vals))
+   , ("font-size-adjust",       (CssDeclarationFontSizeAdjust,       [],                                                                   []))
+   , ("font-stretch",           (CssDeclarationFontStretch,          [],                                                                   []))
+   , ("font-style",             (CssDeclarationFontStyle,            [ tokensAsValueEnum ],                                                css_font_style_enum_vals))
+   , ("font-variant",           (CssDeclarationFontVariant,          [ tokensAsValueEnum ],                                                css_font_variant_enum_vals))
+   , ("font-weight",            (CssDeclarationFontWeight,           [ tokensAsValueEnum, declValueAsFontWeightInteger ],                  css_font_weight_enum_vals))
+   , ("height",                 (CssDeclarationHeight,               [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
+   , ("left",                   (CssDeclarationLeft,                 [],                                                                   []))
+   , ("letter-spacing",         (CssDeclarationLetterSpacing,        [ tokensAsValueEnum, declValueAsSignedLength ],                       css_letter_spacing_enum_vals))
+   , ("line-height",            (CssDeclarationLineHeight,           [ tokensAsValueEnum, declValueAsLengthPercentNumber ],                css_line_height_enum_vals))
+   , ("list-style-image",       (CssDeclarationListStyleImage,       [],                                                                   []))
+   , ("list-style-position",    (CssDeclarationListStylePosition,    [ tokensAsValueEnum ],                                                css_list_style_position_enum_vals))
+   , ("list-style-type",        (CssDeclarationListStyleType,        [ tokensAsValueEnum ],                                                css_list_style_type_enum_vals))
+   , ("margin-bottom",          (CssDeclarationMarginBottom,         [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
+   , ("margin-left",            (CssDeclarationMarginLeft,           [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
+   , ("margin-right",           (CssDeclarationMarginRight,          [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
+   , ("margin-top",             (CssDeclarationMarginTop,            [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
+   , ("marker-offset",          (CssDeclarationMarkerOffset,         [],                                                                   []))
+   , ("marks",                  (CssDeclarationMarks,                [],                                                                   []))
+   , ("max-height",             (CssDeclarationMaxHeight,            [],                                                                   []))
+   , ("max-width",              (CssDeclarationMaxWidth,             [],                                                                   []))
+   , ("min-height",             (CssDeclarationMinHeight,            [],                                                                   []))
+   , ("min-width",              (CssDeclarationMinWidth,             [],                                                                   []))
+   , ("outline-color",          (CssDeclarationOutlineColor,         [],                                                                   []))
+   , ("outline-style",          (CssDeclarationOutlineStyle,         [],                                                                   []))
+   , ("outline-width",          (CssDeclarationOutlineWidth,         [],                                                                   []))
+   , ("overflow",               (CssDeclarationOverflow,             [],                                                                   []))
+   , ("padding-bottom",         (CssDeclarationPaddingBottom,        [ declValueAsLength ],                                                []))
+   , ("padding-left",           (CssDeclarationPaddingLeft,          [ declValueAsLength ],                                                []))
+   , ("padding-right",          (CssDeclarationPaddingRight,         [ declValueAsLength ],                                                []))
+   , ("padding-top",            (CssDeclarationPaddingTop,           [ declValueAsLength ],                                                []))
+   , ("position",               (CssDeclarationPosition,             [],                                                                   []))
+   , ("quotes",                 (CssDeclarationQuotes,               [],                                                                   []))
+   , ("right",                  (CssDeclarationRight,                [],                                                                   []))
+   , ("text-align",             (CssDeclarationTextAlign,            [ tokensAsValueEnum ],                                                css_text_align_enum_vals))
 
      -- https://www.w3.org/TR/CSS22/text.html#lining-striking-props
      -- https://www.w3.org/TR/css-text-decor-3/
      -- TODO: add support for "none" value
-   , ("text-decoration",        [ tokensAsValueMultiEnum ],                                           css_text_decoration_enum_vals)
+   , ("text-decoration",        (CssDeclarationTextDecoration,       [ tokensAsValueMultiEnum ],                                           css_text_decoration_enum_vals))
 
-   , ("text-indent",            [ declValueAsLengthPercent ],                                         [])
-   , ("text-shadow",            [],                                                                   [])
-   , ("text-transform",         [ tokensAsValueEnum ],                                                css_text_transform_enum_vals)
-   , ("top",                    [],                                                                   [])
-   , ("unicode-bidi",           [],                                                                   [])
-   , ("vertical-align",         [ tokensAsValueEnum ],                                                css_vertical_align_vals)
-   , ("visibility",             [],                                                                   [])
-   , ("white-space",            [ tokensAsValueEnum ],                                                css_white_space_vals)
-   , ("width",                  [ declValueAsLengthPercent, tokensAsValueAuto ],                      [])
-   , ("word-spacing",           [ tokensAsValueEnum, declValueAsSignedLength ],                       css_word_spacing_enum_vals)
-   , ("z-index",                [],                                                                   [])
+   , ("text-indent",            (CssDeclarationTextIndent,           [ declValueAsLengthPercent ],                                         []))
+   , ("text-shadow",            (CssDeclarationTextShadow,           [],                                                                   []))
+   , ("text-transform",         (CssDeclarationTextTransform,        [ tokensAsValueEnum ],                                                css_text_transform_enum_vals))
+   , ("top",                    (CssDeclarationTop,                  [],                                                                   []))
+   , ("unicode-bidi",           (CssDeclarationUnicodeBiDi,          [],                                                                   []))
+   , ("vertical-align",         (CssDeclarationVerticalAlign,        [ tokensAsValueEnum ],                                                css_vertical_align_vals))
+   , ("visibility",             (CssDeclarationVisibility,           [],                                                                   []))
+   , ("white-space",            (CssDeclarationWhitespace,           [ tokensAsValueEnum ],                                                css_white_space_vals))
+   , ("width",                  (CssDeclarationWidth,                [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
+   , ("word-spacing",           (CssDeclarationWordSpacing,          [ tokensAsValueEnum, declValueAsSignedLength ],                       css_word_spacing_enum_vals))
+   , ("z-index",                (CssDeclarationZIndex,               [],                                                                   []))
 
    -- These are extensions for internal use, and never parsed by CSS parser.
    -- Related CSS "pseudo-properties" are set from HTML parser.
-   , ("x-link",                 [ declValueAsInt ],                                                   [])
+   , ("x-link",                 (CssDeclarationXLink,                [ declValueAsInt ],                                                   []))
    -- TODO: verify whether we need x-colspan and x-rowspan.
-   , ("x-colspan",              [ declValueAsInt ],                                                   [])
-   , ("x-rowspan",              [ declValueAsInt ],                                                   [])
-   , ("x-lang",                 [],                                                                   [])
-   , ("x-img",                  [],                                                                   [])
-   , ("x-tooltip",              [],                                                                   [])
+   , ("x-colspan",              (CssDeclarationXColSpan,             [ declValueAsInt ],                                                   []))
+   , ("x-rowspan",              (CssDeclarationXRowSpan,             [ declValueAsInt ],                                                   []))
+   , ("x-lang",                 (CssDeclarationXLang,                [],                                                                   []))
+   , ("x-img",                  (CssDeclarationXImg,                 [],                                                                   []))
+   , ("x-tooltip",              (CssDeclarationXTooltip,             [],                                                                   []))
    -- TODO: verify if we still need "last" property.
-   , ("last",                   [], [])
-   ] :: V.Vector CssPropertyInfo
+   , ("last",                   (CssDeclaration_LAST,                [],                                                                   []))
+
+   ] :: M.Map T.Text CssPropertyInfo
 
 
 
 
 type CssPropertyValueFun = (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-type CssPropertyInfo = (T.Text, [CssPropertyValueFun], [T.Text])
+type CssPropertyInfo = (CssDeclaration, [CssPropertyValueFun], [T.Text])
 
 
 
@@ -498,41 +308,43 @@ cssShorthandTypeFont       = 3 -- special, used for 'font'
 
 
 
-cssShorthandInfo = V.fromList [
-    ("background",     cssShorthandTypeMultiple,      [ cssDeclPropertyBackgroundColor, cssDeclPropertyBackgroundImage, cssDeclPropertyBackgroundRepeat,
-                                                        cssDeclPropertyBackgroundAttachment, cssDeclPropertyBackgroundPosition ])
+type ShorthandInfo = (Int, [T.Text])
+cssShorthandInfo = M.fromList [
+    ("background",     (cssShorthandTypeMultiple,      [ "background-color", "background-image", "background-repeat", "background-attachment", "background-position" ]))
 
-  , ("border",         cssShorthandTypeBorder,        [ cssDeclPropertyBorderTopWidth, cssDeclPropertyBorderRightWidth, cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderLeftWidth,
-                                                        cssDeclPropertyBorderTopStyle, cssDeclPropertyBorderRightStyle, cssDeclPropertyBorderBottomStyle, cssDeclPropertyBorderLeftStyle,
-                                                        cssDeclPropertyBorderTopColor, cssDeclPropertyBorderRightColor, cssDeclPropertyBorderBottomColor, cssDeclPropertyBorderLeftColor])
+  , ("border",         (cssShorthandTypeBorder,        [ "border-top-width", "border-rigth-width", "border-bottom-width", "border-left-width",
+                                                         "border-top-style", "border-right-style", "border-bottom-style", "border-left-style",
+                                                         "border-top-color", "border-right-color", "border-bottom-color", "border-left-color"]))
 
-  , ("border-bottom",  cssShorthandTypeMultiple,      [ cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderBottomStyle,  cssDeclPropertyBorderBottomColor ])
-  , ("border-color",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopColor,    cssDeclPropertyBorderRightColor,   cssDeclPropertyBorderBottomColor, cssDeclPropertyBorderLeftColor ])
-  , ("border-left",    cssShorthandTypeMultiple,      [ cssDeclPropertyBorderLeftWidth,   cssDeclPropertyBorderLeftStyle,    cssDeclPropertyBorderLeftColor ])
-  , ("border-right",   cssShorthandTypeMultiple,      [ cssDeclPropertyBorderRightWidth,  cssDeclPropertyBorderRightStyle,   cssDeclPropertyBorderRightColor ])
-  , ("border-style",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopStyle,    cssDeclPropertyBorderRightStyle,   cssDeclPropertyBorderBottomStyle, cssDeclPropertyBorderLeftStyle ])
-  , ("border-top",     cssShorthandTypeMultiple,      [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderTopStyle,     cssDeclPropertyBorderTopColor ])
+  , ("border-bottom",  (cssShorthandTypeMultiple,      [ "border-bottom-width", "border-bottom-style",  "border-bottom-color" ]))
+  , ("border-color",   (cssShorthandTypeDirections,    [ "border-top-color",    "border-right-color",   "border-bottom-color", "border-left-color" ]))
+  , ("border-left",    (cssShorthandTypeMultiple,      [ "border-left-width",   "border-left-style",    "border-left-color" ]))
+  , ("border-right",   (cssShorthandTypeMultiple,      [ "border-rigth-width",  "border-right-style",   "border-right-color" ]))
+  , ("border-style",   (cssShorthandTypeDirections,    [ "border-top-style",    "border-right-style",   "border-bottom-style", "border-left-style" ]))
+  , ("border-top",     (cssShorthandTypeMultiple,      [ "border-top-width",    "border-top-style",     "border-top-color" ]))
 
-  , ("border-width",   cssShorthandTypeDirections,    [ cssDeclPropertyBorderTopWidth,    cssDeclPropertyBorderRightWidth,   cssDeclPropertyBorderBottomWidth, cssDeclPropertyBorderLeftWidth ])
+  , ("border-width",   (cssShorthandTypeDirections,    [ "border-top-width",    "border-rigth-width",   "border-bottom-width", "border-left-width" ]))
 
-  , ("font",           cssShorthandTypeFont,          [ cssDeclPropertyFontSize,  cssDeclPropertyFontStyle, cssDeclPropertyFontVariant, cssDeclPropertyFontWeight, cssDeclPropertyFontFamily ])
+  , ("font",           (cssShorthandTypeFont,          [ "font-size",  "font-style", "font-variant", "font-weight", "font-family" ]))
 
-  , ("list-style",     cssShorthandTypeMultiple,      [ cssDeclPropertyListStyleType, cssDeclPropertyListStylePosition, cssDeclPropertyListStyleImage ])
-  , ("margin",         cssShorthandTypeDirections,    [ cssDeclPropertyMarginTop,         cssDeclPropertyMarginRight,        cssDeclPropertyMarginBottom,      cssDeclPropertyMarginLeft ])
-  , ("outline",        cssShorthandTypeMultiple,      [ cssDeclPropertyOutlineColor, cssDeclPropertyOutlineStyle, cssDeclPropertyOutlineWidth])
+  , ("list-style",     (cssShorthandTypeMultiple,      [ "list-style-type", "list-style-position", "list-style-image" ]))
+  , ("margin",         (cssShorthandTypeDirections,    [ "margin-top",      "margin-right",        "margin-bottom",      "margin-left" ]))
+  , ("outline",        (cssShorthandTypeMultiple,      [ "outline-color",   "outline-style",       "outline-width"]))
 
-  , ("padding",        cssShorthandTypeDirections,    [ cssDeclPropertyPaddingTop,        cssDeclPropertyPaddingRight,       cssDeclPropertyPaddingBottom,     cssDeclPropertyPaddingLeft ])
-  ] :: V.Vector (T.Text, Int, [Int])
-
-
+  , ("padding",        (cssShorthandTypeDirections,    [ "padding-top",     "padding-right",       "padding-bottom",     "padding-left" ]))
+  ] :: M.Map T.Text ShorthandInfo
 
 
--- TODO: case-insensitive search
-cssShorthandInfoIdxByName :: T.Text -> Maybe Int
-cssShorthandInfoIdxByName shorthandName = V.findIndex p cssShorthandInfo
+
+
+-- TODO: case-insensitive search?
+cssShorthandInfoByName :: T.Text -> Maybe ShorthandInfo
+cssShorthandInfoByName shorthandName = M.lookup shorthandName cssShorthandInfo
+{-
   where
-    p :: (T.Text, Int, [Int]) -> Bool
+    p :: (T.Text, Int, [CssDeclaration]) -> Bool
     p = (\t -> (tripletFst t) == shorthandName)
+-}
 
 
 
@@ -652,13 +464,13 @@ tokensAsValueColor (p1, t1) _                  = ((p1, t1), Nothing)
 
 
 
-declValueAsString :: Int -> (CssParser, CssToken) -> CssPropertyInfo -> ((CssParser, CssToken), Maybe T.Text)
-declValueAsString id (parser, token) propInfo = case ((retParser, retToken), value) of
-                                                  ((p, t), Just (CssValueTypeString s))  -> ((p, t), Just s)
-                                                  ((p, t), Nothing) -> ((p, t), Nothing)
+declValueAsString :: Int -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
+declValueAsString id (parser, token) = case ((retParser, retToken), value) of
+                                         ((p, t), Just (CssValueTypeString s))  -> ((p, t), Just s)
+                                         ((p, t), Nothing) -> ((p, t), Nothing)
   where
-    ((retParser, retToken), value) | id == 10  = tokensAsValueString (parser, token) []
-                                   | id == 12  = declValueAsURI (parser, token) []
+    ((retParser, retToken), value) | id == 10  = tokensAsValueString (parser, token) [] -- TODO: magic value
+                                   | id == 12  = declValueAsURI (parser, token) []      -- TODO: magic value
                                    | otherwise = ((parser, token), Nothing)
 
 
@@ -1157,26 +969,14 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
 
 
 
--- TODO: case-insensitive search
-cssPropertyInfoIdxByName :: T.Text -> Maybe Int
-cssPropertyInfoIdxByName propertyName = V.findIndex p cssPropertyInfo
+-- TODO: case-insensitive search?
+cssPropertyInfoIdxByName :: T.Text -> Maybe CssPropertyInfo
+cssPropertyInfoIdxByName propertyName = M.lookup propertyName cssPropertyInfo
+{-
   where
     p :: (T.Text, [CssPropertyValueFun], [T.Text]) -> Bool
     p = (\t -> (tripletFst t) == propertyName)
-
-
-
-
--- TODO: add bounds checking. I've encountered situations where vector's
--- index passed to the function was larger than vector size.
---
--- On the other hand how is it possible that the property value is larger
--- than set of known properties?
---
--- The problem occurred with property == 86 and vector length == 84.
-cssPropertyNameString :: Int -> T.Text
-cssPropertyNameString property = tripletFst (cssPropertyInfo V.! property)
-
+-}
 
 
 
@@ -1391,7 +1191,7 @@ removeSpaceTokens [] acc                             = acc
 
 
 data CssDeclWrapper = CssDeclWrapper
-  { property  :: Int
+  { property  :: CssDeclaration
   , declValue :: CssValue
 
   -- https://www.w3.org/TR/css-syntax-3
@@ -1410,7 +1210,7 @@ data CssDeclWrapper = CssDeclWrapper
 
 
 defaultDeclaration = CssDeclWrapper
-  { property  = (-1) -- TODO: somewhere there is a code that does not set property2 field.
+  { property  = CssDeclaration_LAST -- TODO: make it "CssDeclarationInvalid'; TODO: somewhere there is a code that does not set property2 field.
   , declValue = CssValueTypeUnused
   , important = False
   }
@@ -1435,15 +1235,15 @@ defaultCssDeclarationSet = CssDeclarationSet
 
 
 
-parseDeclarationNormal :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationNormal (parser, token) property =
+parseDeclarationNormal :: (CssParser, CssToken) -> CssPropertyInfo -> ((CssParser, CssToken), [CssDeclWrapper])
+parseDeclarationNormal (parser, token) pinfo =
   case parseDeclValue (parser, token) enums functions  of
     ((p, t), Just v)  -> ((p, t), [defaultDeclaration{property = property, declValue = v}])
     ((p, t), Nothing) -> ((p, t), [])
   where
-    propInfo = (cssPropertyInfo V.! property)
-    functions = tripletSnd propInfo
-    enums = tripletThrd propInfo
+    property  = tripletFst pinfo
+    functions = tripletSnd pinfo
+    enums     = tripletThrd pinfo
 
 
 
@@ -1468,41 +1268,41 @@ declValueAsInt (parser, token) enums = ((parser, token), Just (CssValueTypeInt 0
 -- TODO: this implementation can correctly parse all value tokens only when
 -- they appear in the same order as 'property' integers. The function should
 -- be able to handle the tokens in any order.
-parseDeclarationMultiple :: (CssParser, CssToken) -> [Int] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationMultiple (parser, token) (prop:properties) ds =
+parseDeclarationMultiple :: (CssParser, CssToken) -> [CssPropertyInfo] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
+parseDeclarationMultiple (parser, token) (pinfo:pinfos) ds =
   case parseDeclValue (parser, token) enums functions of
-    ((p, t), Just v)  -> parseDeclarationMultiple (p, t) properties (ds ++ [defaultDeclaration{property = prop, declValue = v}])
-    ((p, t), Nothing) -> parseDeclarationMultiple (p, t) properties ds
+    ((p, t), Just v)  -> parseDeclarationMultiple (p, t) pinfos (ds ++ [defaultDeclaration{property = prop, declValue = v}])
+    ((p, t), Nothing) -> parseDeclarationMultiple (p, t) pinfos ds
   where
-    propInfo = (cssPropertyInfo V.! prop)
-    functions = tripletSnd propInfo
-    enums = tripletThrd propInfo
+    prop      = tripletFst pinfo
+    functions = tripletSnd pinfo
+    enums     = tripletThrd pinfo
 parseDeclarationMultiple (parser, token) [] ds                = ((parser, token), ds)
 
 
 
 
-parseDeclarationDirections :: (CssParser, CssToken) -> [Int] -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationDirections (parser, token) properties@(pt:pr:pb:pl:ps) = ((outParser, outToken), ds)
+parseDeclarationDirections :: (CssParser, CssToken) -> [CssPropertyInfo] -> ((CssParser, CssToken), [CssDeclWrapper])
+parseDeclarationDirections (parser, token) pinfos@(pt:pr:pb:pl:ps) = ((outParser, outToken), ds)
   where ds = case vals of
-          (top:right:bottom:left:[]) -> [ defaultDeclaration{property = pt, declValue = top}
-                                        , defaultDeclaration{property = pr, declValue = right}
-                                        , defaultDeclaration{property = pb, declValue = bottom}
-                                        , defaultDeclaration{property = pl, declValue = left}]
-          (top:rl:bottom:[])         -> [ defaultDeclaration{property = pt, declValue = top}
-                                        , defaultDeclaration{property = pr, declValue = rl}
-                                        , defaultDeclaration{property = pb, declValue = bottom}
-                                        , defaultDeclaration{property = pl, declValue = rl}]
-          (tb:rl:[])                 -> [ defaultDeclaration{property = pt, declValue = tb}
-                                        , defaultDeclaration{property = pr, declValue = rl}
-                                        , defaultDeclaration{property = pb, declValue = tb}
-                                        , defaultDeclaration{property = pl, declValue = rl}]
-          (v:[])                     -> [ defaultDeclaration{property = pt, declValue = v}
-                                        , defaultDeclaration{property = pr, declValue = v}
-                                        , defaultDeclaration{property = pb, declValue = v}
-                                        , defaultDeclaration{property = pl, declValue = v}]
+          (top:right:bottom:left:[]) -> [ defaultDeclaration{property = tripletFst pt, declValue = top}
+                                        , defaultDeclaration{property = tripletFst pr, declValue = right}
+                                        , defaultDeclaration{property = tripletFst pb, declValue = bottom}
+                                        , defaultDeclaration{property = tripletFst pl, declValue = left}]
+          (top:rl:bottom:[])         -> [ defaultDeclaration{property = tripletFst pt, declValue = top}
+                                        , defaultDeclaration{property = tripletFst pr, declValue = rl}
+                                        , defaultDeclaration{property = tripletFst pb, declValue = bottom}
+                                        , defaultDeclaration{property = tripletFst pl, declValue = rl}]
+          (tb:rl:[])                 -> [ defaultDeclaration{property = tripletFst pt, declValue = tb}
+                                        , defaultDeclaration{property = tripletFst pr, declValue = rl}
+                                        , defaultDeclaration{property = tripletFst pb, declValue = tb}
+                                        , defaultDeclaration{property = tripletFst pl, declValue = rl}]
+          (v:[])                     -> [ defaultDeclaration{property = tripletFst pt, declValue = v}
+                                        , defaultDeclaration{property = tripletFst pr, declValue = v}
+                                        , defaultDeclaration{property = tripletFst pb, declValue = v}
+                                        , defaultDeclaration{property = tripletFst pl, declValue = v}]
           []                         -> []
-        ((outParser, outToken), vals) = matchOrderedTokens (parser, token) properties []
+        ((outParser, outToken), vals) = matchOrderedTokens (parser, token) pinfos []
 parseDeclarationDirections (parser, token) _ = ((parser, token), [])
 
 
@@ -1511,15 +1311,14 @@ parseDeclarationDirections (parser, token) _ = ((parser, token), [])
 -- Value tokens must be in proper order. Example: if property is
 -- "border-color", and there are four value tokens, then tokens must
 -- represent colors of "top","right","bottom","left" borders.
-matchOrderedTokens :: (CssParser, CssToken) -> [Int] -> [CssValue] -> ((CssParser, CssToken), [CssValue])
-matchOrderedTokens (parser, token) (prop:properties) values =
+matchOrderedTokens :: (CssParser, CssToken) -> [CssPropertyInfo] -> [CssValue] -> ((CssParser, CssToken), [CssValue])
+matchOrderedTokens (parser, token) (pinfo:pinfos) values =
   case parseDeclValue (parser, token) enums functions of
-    ((p, t), Just v)  -> matchOrderedTokens (p, t) properties (values ++ [v])
+    ((p, t), Just v)  -> matchOrderedTokens (p, t) pinfos (values ++ [v])
     ((p, t), Nothing) -> ((p, t), values)
   where
-    propInfo = (cssPropertyInfo V.! prop)
-    functions = tripletSnd propInfo
-    enums = tripletThrd propInfo
+    functions = tripletSnd pinfo
+    enums     = tripletThrd pinfo
 matchOrderedTokens (parser, token) [] values               = ((parser, token), values)
 
 
@@ -1528,30 +1327,29 @@ matchOrderedTokens (parser, token) [] values               = ((parser, token), v
 -- TODO: this implementation can correctly parse all value tokens only when
 -- they appear in the same order as 'property' integers. The function should
 -- be able to handle the tokens in any order.
-parseDeclarationBorder :: (CssParser, CssToken) -> [Int] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationBorder (parser, token) (top:right:bottom:left:properties) ds =
+parseDeclarationBorder :: (CssParser, CssToken) -> [CssPropertyInfo] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
+parseDeclarationBorder (parser, token) (top:right:bottom:left:pinfos) ds =
   case parseDeclValue (parser, token) enums functions  of
-    ((p, t), Just v)  -> parseDeclarationBorder (p, t) properties (ds ++ [ defaultDeclaration{property = top,    declValue = v}
-                                                                         , defaultDeclaration{property = right,  declValue = v}
-                                                                         , defaultDeclaration{property = bottom, declValue = v}
-                                                                         , defaultDeclaration{property = left,   declValue = v}])
+    ((p, t), Just v)  -> parseDeclarationBorder (p, t) pinfos (ds ++ [ defaultDeclaration{property = tripletFst top,    declValue = v}
+                                                                     , defaultDeclaration{property = tripletFst right,  declValue = v}
+                                                                     , defaultDeclaration{property = tripletFst bottom, declValue = v}
+                                                                     , defaultDeclaration{property = tripletFst left,   declValue = v}])
 
-    ((p, t), Nothing) -> parseDeclarationBorder (p, t) properties ds
+    ((p, t), Nothing) -> parseDeclarationBorder (p, t) pinfos ds
   where
-    propInfo = (cssPropertyInfo V.! top)
-    functions = tripletSnd propInfo
-    enums = tripletThrd propInfo
+    functions = tripletSnd top
+    enums     = tripletThrd top
 parseDeclarationBorder (parser, token) [] ds                                 = ((parser, token), ds)
 
 
 
 
-parseDeclarationShorthand :: (CssParser, CssToken) -> [Int] -> Int -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationShorthand (parser, token) properties shorthandType | shorthandType == cssShorthandTypeMultiple   = parseDeclarationMultiple (parser, token) properties []
-                                                                   | shorthandType == cssShorthandTypeDirections = parseDeclarationDirections (parser, token) properties
-                                                                   | shorthandType == cssShorthandTypeBorder     = parseDeclarationBorder (parser, token) properties []
-                                                                   | shorthandType == cssShorthandTypeFont       = parseDeclarationMultiple (parser, token) properties []
-                                                                   | otherwise = ((parser, token), [])
+parseDeclarationShorthand :: (CssParser, CssToken) -> [CssPropertyInfo] -> Int -> ((CssParser, CssToken), [CssDeclWrapper])
+parseDeclarationShorthand (parser, token) pinfos shorthandType | shorthandType == cssShorthandTypeMultiple   = parseDeclarationMultiple (parser, token) pinfos []
+                                                               | shorthandType == cssShorthandTypeDirections = parseDeclarationDirections (parser, token) pinfos
+                                                               | shorthandType == cssShorthandTypeBorder     = parseDeclarationBorder (parser, token) pinfos []
+                                                               | shorthandType == cssShorthandTypeFont       = parseDeclarationMultiple (parser, token) pinfos []
+                                                               | otherwise = ((parser, token), [])
 
 
 
@@ -1577,24 +1375,32 @@ parseDeclarationWrapper :: (CssParser, CssToken) -> ((CssParser, CssToken), [Css
 parseDeclarationWrapper (parser, token) =
   case takePropertyTokens (parser, token) of
     ((p, t), [CssTokIdent sym]) -> case cssPropertyInfoIdxByName sym of
-                                     Just property -> tryNormal (p, t) property
-                                     Nothing -> case cssShorthandInfoIdxByName sym of
-                                                  Just shorthandIdx -> tryShorthand (p, t) shorthandIdx
-                                                  Nothing -> ((p, t), [])
+                                     Just pinfo -> tryNormal (p, t) pinfo
+                                     Nothing -> case cssShorthandInfoByName sym of
+                                                  Just sinfo -> tryShorthand (p, t) sinfo
+                                                  Nothing    -> ((p, t), [])
     ((p, t), _)                 -> ((p, t), [])
 
 
 
 
+tryNormal :: (CssParser, CssToken) -> CssPropertyInfo -> ((CssParser, CssToken), [CssDeclWrapper])
 tryNormal = parseDeclarationNormal
 
 
 
 
-tryShorthand (parser, token) shorthandIdx = parseDeclarationShorthand (parser, token) properties shorthandType
+tryShorthand :: (CssParser, CssToken) -> ShorthandInfo -> ((CssParser, CssToken), [CssDeclWrapper])
+tryShorthand (parser, token) sinfo = parseDeclarationShorthand (parser, token) pinfos shorthandType
   where
-    properties = tripletThrd $ cssShorthandInfo V.! shorthandIdx
-    shorthandType = tripletSnd $ cssShorthandInfo V.! shorthandIdx
+    pinfos        = map fun properties
+    properties    = snd sinfo
+    shorthandType = fst sinfo
+
+    fun :: T.Text -> CssPropertyInfo
+    fun property = case M.lookup property cssPropertyInfo of
+                     Just pinfo -> pinfo
+                     Nothing    -> (CssDeclaration_LAST, [], [])
 
 
 
@@ -1668,7 +1474,7 @@ declarationsSetUpdateOrAdd declSet decl =
 
     newSafe :: CssDeclarationSet -> CssDeclWrapper -> Bool
     newSafe declSet decl = (isSafe declSet)
-                           && (not $ elem (property decl) [cssDeclPropertyDisplay, cssDeclPropertyBackgroundImage])
+                           && (not $ elem (property decl) [CssDeclarationDisplay, CssDeclarationBackgroundImage])
 
 
 

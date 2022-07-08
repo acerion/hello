@@ -424,9 +424,6 @@ char * hll_declarationValueAsString(c_css_parser_t * hll_parser, c_css_token_t *
 int hll_ignoreBlock(c_css_parser_t * hll_parser, c_css_token_t * token);
 int hll_ignoreStatement(c_css_parser_t * hll_parser, c_css_token_t * token);
 
-int hll_cssShorthandInfoIdxByName(const char * shorthandName);
-int hll_cssPropertyInfoIdxByName(const char * propertyName);
-const char * hll_cssPropertyNameString(int property);
 
 
 

@@ -42,6 +42,8 @@ module Hello.Ffi.Css.Parser
 
   , FfiCssValue
   , peekCssValue
+
+  , allCssProperties
   )
 where
 
@@ -52,6 +54,7 @@ import Prelude
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
+import Data.List as L
 import qualified Data.Text as T
 import qualified Data.Text.Read as T.R
 import qualified Data.Text.Encoding as T.E
@@ -66,6 +69,7 @@ import Control.Applicative
 import Control.Monad -- when
 import Debug.Trace
 
+import Hello.Css.Declaration
 import Hello.Css.DeclarationSetsGlobal
 import Hello.Css.Distance
 import Hello.Css.Parser
@@ -86,9 +90,6 @@ foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString
 foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 
-foreign export ccall "hll_cssShorthandInfoIdxByName" hll_cssShorthandInfoIdxByName :: CString -> IO Int
-foreign export ccall "hll_cssPropertyInfoIdxByName" hll_cssPropertyInfoIdxByName :: CString -> IO Int
-foreign export ccall "hll_cssPropertyNameString" hll_cssPropertyNameString :: Int -> IO CString
 
 --foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> CInt -> CInt -> IO ()
@@ -285,7 +286,7 @@ hll_declarationValueAsString ptrStructCssParser ptrStructCssToken valueType prop
   parser <- peekCssParser ptrStructCssParser
   token  <- peekCssToken ptrStructCssToken
 
-  let pair@((newParser, newToken), textVal) = declValueAsString valueType (parser, token) (cssPropertyInfo V.! property)
+  let pair@((newParser, newToken), textVal) = declValueAsString valueType (parser, token)
 
   pokeCssParser ptrStructCssParser newParser
   pokeCssToken ptrStructCssToken newToken
@@ -317,35 +318,6 @@ hll_ignoreStatement ptrStructCssParser ptrStructCssToken = do
   pokeCssParser ptrStructCssParser newParser
   pokeCssToken ptrStructCssToken newToken
   return 0
-
-
-
-
-hll_cssShorthandInfoIdxByName :: CString -> IO Int
-hll_cssShorthandInfoIdxByName cShorthandName = do
-  shorthandName <- BSU.unsafePackCString $ cShorthandName
-  case cssShorthandInfoIdxByName . T.E.decodeLatin1 $ shorthandName of
-    Just idx -> return idx
-    Nothing  -> return (-1)
-
-
-
-
-hll_cssPropertyInfoIdxByName :: CString -> IO Int
-hll_cssPropertyInfoIdxByName cPropertyName = do
-  propertyName <- BSU.unsafePackCString $ cPropertyName
-  case cssPropertyInfoIdxByName . T.E.decodeLatin1 $ propertyName of
-    Just idx -> return idx
-    Nothing  -> return (-1)
-
-
-
-
-hll_cssPropertyNameString :: Int -> IO CString
-hll_cssPropertyNameString property = do
-  let name = cssPropertyNameString property
-  newCString . T.unpack $ name
-
 
 
 
@@ -679,7 +651,7 @@ peekCssDeclWrapper ptr = do
   ffiCssValue :: FfiCssValue <- peek . ptrValueC $ ffiDecl
   cssValue <- peekCssValue ffiCssValue
 
-  return defaultDeclaration{ property = fromIntegral . propertyC $ ffiDecl
+  return defaultDeclaration{ property = fst (allCssProperties !! (fromIntegral . propertyC $ ffiDecl))
                            , declValue = cssValue
                            , important = importantC ffiDecl > 0}
 
@@ -714,7 +686,7 @@ allocAndPokeCssDeclWrapper declaration = do
   poke ptrStructCssValue $ FfiCssValue t i 0 0 ptrString lenVal (fromIntegral lenType)
 
   let imp :: CInt = if important declaration then 1 else 0
-  let prop :: CInt = fromIntegral . property $ declaration
+  let prop :: CInt = fromIntegral . findPropertyIndex . property $ declaration
   ptrStructDeclaration :: Ptr FfiCssDeclWrapper <- callocBytes #{size c_css_declaration_t}
   poke ptrStructDeclaration $ FfiCssDeclWrapper imp prop ptrStructCssValue
 
@@ -1017,4 +989,103 @@ hll_isTokenSemicolon ptrStructCssToken = do
   case token of
     CssTokSemicolon -> return 1
     otherwise    -> return 0
+
+
+
+
+findPropertyIndex :: CssDeclaration -> Int
+findPropertyIndex prop = case L.lookup prop allCssProperties of
+                           Just item -> item
+                           Nothing   -> 0
+
+allCssProperties :: [(CssDeclaration, Int)]
+allCssProperties =
+  [ ( CssDeclarationBackgroundAttachment , 0 )
+  , ( CssDeclarationBackgroundColor , 1 )
+  , ( CssDeclarationBackgroundImage , 2 )
+  , ( CssDeclarationBackgroundPosition , 3 )
+  , ( CssDeclarationBackgroundRepeat , 4 )
+  , ( CssDeclarationBorderBottomColor , 5 )
+  , ( CssDeclarationBorderBottomStyle , 6 )
+  , ( CssDeclarationBorderBottomWidth , 7 )
+  , ( CssDeclarationBorderCollapse , 8 )
+  , ( CssDeclarationBorderLeftColor , 9 )
+  , ( CssDeclarationBorderLeftStyle , 10 )
+  , ( CssDeclarationBorderLeftWidth , 11 )
+  , ( CssDeclarationBorderRightColor , 12 )
+  , ( CssDeclarationBorderRightStyle , 13 )
+  , ( CssDeclarationBorderRightWidth , 14 )
+  , ( CssDeclarationBorderSpacing , 15 )
+  , ( CssDeclarationBorderTopColor , 16 )
+  , ( CssDeclarationBorderTopStyle , 17 )
+  , ( CssDeclarationBorderTopWidth , 18 )
+  , ( CssDeclarationBottom , 19 )
+  , ( CssDeclarationCaptionSide , 20 )
+  , ( CssDeclarationClear , 21 )
+  , ( CssDeclarationClip , 22 )
+  , ( CssDeclarationColor , 23 )
+  , ( CssDeclarationContent , 24 )
+  , ( CssDeclarationCounterIncrement , 25 )
+  , ( CssDeclarationCounterReset , 26 )
+  , ( CssDeclarationCursor , 27 )
+  , ( CssDeclarationDirection , 28 )
+  , ( CssDeclarationDisplay , 29 )
+  , ( CssDeclarationEmptyCells , 30 )
+  , ( CssDeclarationFloat , 31 )
+  , ( CssDeclarationFontFamily , 32 )
+  , ( CssDeclarationFontSize , 33 )
+  , ( CssDeclarationFontSizeAdjust , 34 )
+  , ( CssDeclarationFontStretch , 35 )
+  , ( CssDeclarationFontStyle , 36 )
+  , ( CssDeclarationFontVariant , 37 )
+  , ( CssDeclarationFontWeight , 38 )
+  , ( CssDeclarationHeight , 39 )
+  , ( CssDeclarationLeft , 40 )
+  , ( CssDeclarationLetterSpacing , 41 )
+  , ( CssDeclarationLineHeight , 42 )
+  , ( CssDeclarationListStyleImage , 43 )
+  , ( CssDeclarationListStylePosition , 44 )
+  , ( CssDeclarationListStyleType , 45 )
+  , ( CssDeclarationMarginBottom , 46 )
+  , ( CssDeclarationMarginLeft , 47 )
+  , ( CssDeclarationMarginRight , 48 )
+  , ( CssDeclarationMarginTop , 49 )
+  , ( CssDeclarationMarkerOffset , 50 )
+  , ( CssDeclarationMarks , 51 )
+  , ( CssDeclarationMaxHeight , 52 )
+  , ( CssDeclarationMaxWidth , 53 )
+  , ( CssDeclarationMinHeight , 54 )
+  , ( CssDeclarationMinWidth , 55 )
+  , ( CssDeclarationOutlineColor , 56 )
+  , ( CssDeclarationOutlineStyle , 57 )
+  , ( CssDeclarationOutlineWidth , 58 )
+  , ( CssDeclarationOverflow , 59 )
+  , ( CssDeclarationPaddingBottom , 60 )
+  , ( CssDeclarationPaddingLeft , 61 )
+  , ( CssDeclarationPaddingRight , 62 )
+  , ( CssDeclarationPaddingTop , 63 )
+  , ( CssDeclarationPosition , 64 )
+  , ( CssDeclarationQuotes , 65 )
+  , ( CssDeclarationRight , 66 )
+  , ( CssDeclarationTextAlign , 67 )
+  , ( CssDeclarationTextDecoration , 68 )
+  , ( CssDeclarationTextIndent , 69 )
+  , ( CssDeclarationTextShadow , 70 )
+  , ( CssDeclarationTextTransform , 71 )
+  , ( CssDeclarationTop , 72 )
+  , ( CssDeclarationUnicodeBiDi , 73 )
+  , ( CssDeclarationVerticalAlign , 74 )
+  , ( CssDeclarationVisibility , 75 )
+  , ( CssDeclarationWhitespace , 76 )
+  , ( CssDeclarationWidth , 77 )
+  , ( CssDeclarationWordSpacing , 78 )
+  , ( CssDeclarationZIndex , 79 )
+  , ( CssDeclarationXLink , 80 )
+  , ( CssDeclarationXColSpan , 81 )
+  , ( CssDeclarationXRowSpan , 82 )
+  , ( CssDeclarationXLang , 83 )
+  , ( CssDeclarationXImg , 84 )
+  , ( CssDeclarationXTooltip , 85 )
+  , ( CssDeclaration_LAST , 86 )
+  ]
 

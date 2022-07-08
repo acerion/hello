@@ -24,6 +24,7 @@ import qualified Data.Text as T
 import qualified Data.Sequence as S
 import Test.HUnit
 
+import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Parser
 import Hello.Css.StyleEngine
@@ -222,12 +223,12 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 38, declValue = CssValueTypeEnum 0, important = False}]} -- font weight, 0 == bold
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginRight, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontWeight, declValue = CssValueTypeEnum 0, important = False}]} -- font weight, 0 == bold
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -248,12 +249,12 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 37, declValue = CssValueTypeEnum 1, important = False}]} -- font variant
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginRight, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontVariant, declValue = CssValueTypeEnum 1, important = False}]} -- font variant
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -274,12 +275,12 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 32, declValue = CssValueTypeStringList ["serif"], important = False}]} -- font family
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginRight, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontFamily, declValue = CssValueTypeStringList ["serif"], important = False}]} -- font family
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -300,12 +301,12 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 33, declValue = CssValueTypeEnum 6, important = False}]} -- font size, 6 == xx-small, 8.1 * prefs.prefsFontFactor
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginRight, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontSize, declValue = CssValueTypeEnum 6, important = False}]} -- font size, 6 == xx-small, 8.1 * prefs.prefsFontFactor
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -326,12 +327,12 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 33, declValue = CssValueTypeEnum 6, important = False}]} -- font size, 6 == xx-small, 8.1 * prefs.prefsFontFactor
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginRight, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontSize, declValue = CssValueTypeEnum 6, important = False}]} -- font size, 6 == xx-small, 8.1 * prefs.prefsFontFactor
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -352,12 +353,12 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 33, declValue = CssValueTypeEnum 6, important = False}]} -- font size, 6 == xx-small, 8.1 * prefs.prefsFontFactor
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginRight, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontSize, declValue = CssValueTypeEnum 6, important = False}]} -- font size, 6 == xx-small, 8.1 * prefs.prefsFontFactor
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -378,12 +379,12 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 33, declValue = CssValueTypeEnum 5, important = False}]} -- font size, 5 == xx-large, 24.2 * prefs.prefsFontFactor
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginRight, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontSize, declValue = CssValueTypeEnum 5, important = False}]} -- font size, 5 == xx-large, 24.2 * prefs.prefsFontFactor
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -407,12 +408,12 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 41, declValue = CssValueTypeSignedLength (CssDistanceAbsPx 5.0), important = False}]} -- letter spacing
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginRight, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationLetterSpacing, declValue = CssValueTypeSignedLength (CssDistanceAbsPx 5.0), important = False}]} -- letter spacing
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -432,12 +433,12 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 41, declValue = CssValueTypeSignedLength (CssDistanceAbsPx 2.0), important = False}
-                                                               , CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]} -- letter spacing
+                                                                 CssDeclWrapper {property = CssDeclarationLetterSpacing, declValue = CssValueTypeSignedLength (CssDistanceAbsPx 2.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginRight, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]} -- letter spacing
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -461,12 +462,12 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 48, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
-                                                               , CssDeclWrapper {property = 47, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
-                                                               , CssDeclWrapper {property = 36, declValue = CssValueTypeEnum 2, important = False}]} -- font style
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginRight, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.5), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontStyle, declValue = CssValueTypeEnum 2, important = False}]} -- font style
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -491,7 +492,7 @@ styleEngineApplyStyleToFontTestData =
 
     ApplyToFontTestData
     {
-      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclWrapper {property = 38, declValue = CssValueTypeEnum 1, important = False}]} -- font weight, 1 == bolder
+      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclWrapper {property = CssDeclarationFontWeight, declValue = CssValueTypeEnum 1, important = False}]} -- font weight, 1 == bolder
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -511,11 +512,11 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 38, declValue = CssValueTypeEnum 1, important = False} -- font weight, 1 == bolder
-                                                               , CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 33, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 2.0), important = False} -- font size
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.67), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
+                                                                 CssDeclWrapper {property = CssDeclarationFontWeight, declValue = CssValueTypeEnum 1, important = False} -- font weight, 1 == bolder
+                                                               , CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontSize, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 2.0), important = False} -- font size
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.67), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -535,11 +536,11 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 38, declValue = CssValueTypeEnum 1, important = False} -- font weight, 1 == bolder
-                                                               , CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 33, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.75), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
+                                                                 CssDeclWrapper {property = CssDeclarationFontWeight, declValue = CssValueTypeEnum 1, important = False} -- font weight, 1 == bolder
+                                                               , CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontSize, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.75), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -557,7 +558,7 @@ styleEngineApplyStyleToFontTestData =
   ,
     ApplyToFontTestData
     {
-      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclWrapper {property = 32, declValue = CssValueTypeStringList ["monospace"], important = False}]} -- font family
+      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclWrapper {property = CssDeclarationFontFamily, declValue = CssValueTypeStringList ["monospace"], important = False}]} -- font family
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -577,8 +578,8 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList
                                                               [
-                                                                CssDeclWrapper {property = 32, declValue = CssValueTypeStringList ["monospace"], important = False} -- font family
-                                                              , CssDeclWrapper {property = 33, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
+                                                                CssDeclWrapper {property = CssDeclarationFontFamily, declValue = CssValueTypeStringList ["monospace"], important = False} -- font family
+                                                              , CssDeclWrapper {property = CssDeclarationFontSize, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
                                                               ]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
@@ -599,11 +600,11 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 38, declValue = CssValueTypeEnum 1, important = False} -- font weight, 1 == bolder
-                                                               , CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 33, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.75), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
+                                                                 CssDeclWrapper {property = CssDeclarationFontWeight, declValue = CssValueTypeEnum 1, important = False} -- font weight, 1 == bolder
+                                                               , CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontSize, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.75), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -623,11 +624,11 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = 38, declValue = CssValueTypeFontWeight 600, important = False} -- font weight, specific value
-                                                               , CssDeclWrapper {property = 29, declValue = CssValueTypeEnum 0, important = False}
-                                                               , CssDeclWrapper {property = 33, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
-                                                               , CssDeclWrapper {property = 49, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.75), important = False}
-                                                               , CssDeclWrapper {property = 46, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
+                                                                 CssDeclWrapper {property = CssDeclarationFontWeight, declValue = CssValueTypeFontWeight 600, important = False} -- font weight, specific value
+                                                               , CssDeclWrapper {property = CssDeclarationDisplay, declValue = CssValueTypeEnum 0, important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationFontSize, declValue = CssValueTypeLengthPercent (CssDistanceRelEm 1.5), important = False} -- font size
+                                                               , CssDeclWrapper {property = CssDeclarationMarginTop, declValue = CssValueTypeSignedLength (CssDistanceRelEm 0.75), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationMarginBottom, declValue = CssValueTypeSignedLength (CssNumericNone 0.0), important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"

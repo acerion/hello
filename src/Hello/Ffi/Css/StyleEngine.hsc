@@ -132,7 +132,7 @@ hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIn
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
-  let property = fromIntegral cProperty
+  let property = fst (allCssProperties !! (fromIntegral cProperty))
   let valType  = fromIntegral cValueType
   let intVal   = fromIntegral cIntVal
   let textVal  = ""
@@ -156,7 +156,7 @@ hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cValueType 
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
-  let property = fromIntegral cProperty
+  let property = fst (allCssProperties !! (fromIntegral cProperty))
   let valType  = fromIntegral cValueType
   let intVal   = 0
   stringVal <- BSU.unsafePackCString $ cStringVal

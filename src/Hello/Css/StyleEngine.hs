@@ -65,6 +65,7 @@ import qualified Data.Sequence as S
 import qualified Data.Text as T
 import Debug.Trace
 
+import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Parser
 
@@ -316,12 +317,12 @@ styleEngineApplyStyleToFont declSet prefs dpiX dpiY parentFontAttrs fontAttrs = 
     apply decls prefs dpiX dpiY parentFontAttrs fontAttrs =
       case S.null decls of
         True -> fontAttrs
-        False  | property x == cssDeclPropertyFontFamily    {- 32 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
-               | property x == cssDeclPropertyFontSize      {- 33 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontSize' value prefs dpiX dpiY parentFontAttrs fontAttrs
-               | property x == cssDeclPropertyFontStyle     {- 36 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontStyle value fontAttrs
-               | property x == cssDeclPropertyFontVariant   {- 37 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontVariant value fontAttrs
-               | property x == cssDeclPropertyFontWeight    {- 38 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontWeight value fontAttrs
-               | property x == cssDeclPropertyLetterSpacing {- 41 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs
+        False  | property x == CssDeclarationFontFamily    {- 32 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
+               | property x == CssDeclarationFontSize      {- 33 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontSize' value prefs dpiX dpiY parentFontAttrs fontAttrs
+               | property x == CssDeclarationFontStyle     {- 36 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontStyle value fontAttrs
+               | property x == CssDeclarationFontVariant   {- 37 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontVariant value fontAttrs
+               | property x == CssDeclarationFontWeight    {- 38 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontWeight value fontAttrs
+               | property x == CssDeclarationLetterSpacing {- 41 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs
                | otherwise                                  -> apply xs prefs dpiX dpiY parentFontAttrs $ fontAttrs
           where
             x  :: CssDeclWrapper       = S.index decls 0
@@ -462,8 +463,8 @@ styleEngineApplyStyleToGivenNode declSet prefs dpiX dpiY parentFontAttrs styleAt
 
 
 
-styleEngineSetStyle :: Int -> CssValue -> Float -> Float -> StyleAttrs -> StyleAttrs
-styleEngineSetStyle property value dpiX dpiY styleAttrs
+styleEngineSetStyle :: CssDeclaration -> CssValue -> Float -> Float -> StyleAttrs -> StyleAttrs
+styleEngineSetStyle declaration value dpiX dpiY styleAttrs
 {-
 TODO: re-implement these missing cases from C++. They were not re-implemented
 yet because a full support for them in dillo seems to be missing or broken.
@@ -496,48 +497,48 @@ yet because a full support for them in dillo seems to be missing or broken.
 -}
 
   -- Probably because of code like this someone invented lenses.
-  | property == cssDeclPropertyBackgroundColor   = styleAttrs { styleBackgroundColor = getBackgroundColor value }
-  | property == cssDeclPropertyBorderCollapse    = styleAttrs { styleBorderCollapse  = getBorderCollapse value }
-  | property == cssDeclPropertyBorderTopStyle    = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyle value }}
-  | property == cssDeclPropertyBorderRightStyle  = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyle value }}
-  | property == cssDeclPropertyBorderBottomStyle = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyle value }}
-  | property == cssDeclPropertyBorderLeftStyle   = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleLeft   = getBorderStyle value }}
-  | property == cssDeclPropertyBorderTopWidth    = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthTop    = getBorderWidth value dpiX dpiY fontAttrs }}
-  | property == cssDeclPropertyBorderRightWidth  = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidth value dpiX dpiY fontAttrs }}
-  | property == cssDeclPropertyBorderBottomWidth = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidth value dpiX dpiY fontAttrs }}
-  | property == cssDeclPropertyBorderLeftWidth   = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidth value dpiX dpiY fontAttrs }}
-  | property == cssDeclPropertyBorderTopColor    = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorTop    = getBorderColor value }}
-  | property == cssDeclPropertyBorderRightColor  = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorRight  = getBorderColor value }}
-  | property == cssDeclPropertyBorderBottomColor = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColor value }}
-  | property == cssDeclPropertyBorderLeftColor   = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColor value }}
-  | property == cssDeclPropertyMarginBottom   = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin distance fontAttrs dpiX dpiY }}
-  | property == cssDeclPropertyMarginLeft     = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin distance fontAttrs dpiX dpiY }}
-  | property == cssDeclPropertyMarginRight    = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin distance fontAttrs dpiX dpiY }}
-  | property == cssDeclPropertyMarginTop      = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin distance fontAttrs dpiX dpiY }}
-  | property == cssDeclPropertyPaddingBottom  = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding distance fontAttrs dpiX dpiY }}
-  | property == cssDeclPropertyPaddingLeft    = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding distance fontAttrs dpiX dpiY }}
-  | property == cssDeclPropertyPaddingRight   = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding distance fontAttrs dpiX dpiY }}
-  | property == cssDeclPropertyPaddingTop     = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding distance fontAttrs dpiX dpiY }}
-  | property == cssDeclPropertyTextAlign      = styleAttrs { styleTextAlign      = getTextAlign value }
-  | property == cssDeclPropertyTextDecoration = styleAttrs { styleTextDecoration = getTextDecoration value (styleTextDecoration styleAttrs) }
-  | property == cssDeclPropertyTextIndent     = styleAttrs { styleTextIndent     = getTextIndent distance fontAttrs dpiX dpiY }
-  | property == cssDeclPropertyTextTransform  = styleAttrs { styleTextTransform  = getTextTransform value }
-  | property == cssDeclPropertyVerticalAlign  = styleAttrs { styleVerticalAlign  = getVerticalAlign value }
-  | property == cssDeclPropertyWhitespace     = styleAttrs { styleWhiteSpace     = getWhiteSpace value }
-  | property == cssDeclPropertyWidth          = styleAttrs { styleWidth          = getWidthOrHeight distance fontAttrs dpiX dpiY }
-  | property == cssDeclPropertyHeight         = styleAttrs { styleHeight         = getWidthOrHeight distance fontAttrs dpiX dpiY }
-  | property == cssDeclPropertyListStylePosition = styleAttrs { styleListStylePosition    = getListStylePosition value }
-  | property == cssDeclPropertyListStyleType     = styleAttrs { styleListStyleType        = getListStyleType value }
-  | property == cssDeclPropertyLineHeight        = styleAttrs { styleLineHeight           = getLineHeight value distance fontAttrs dpiX dpiY }
-  | property == cssDeclPropertyDisplay           = styleAttrs { styleDisplay              = getDisplay value }
-  | property == cssDeclPropertyColor             = styleAttrs { styleColor                = getColor value }
-  | property == cssDeclPropertyCursor            = styleAttrs { styleCursor               = getCursor value }
-  | property == cssDeclPropertyBorderSpacing     = styleAttrs { styleHBorderSpacing = getBorderSpacing distance fontAttrs dpiX dpiY, styleVBorderSpacing = getBorderSpacing distance fontAttrs dpiX dpiY }
-  | property == cssDeclPropertyWordSpacing       = styleAttrs { styleWordSpacing    = getWordSpacig value distance fontAttrs dpiX dpiY }
-  | property == cssDeclPropertyXLink             = styleAttrs { styleXLink          = getXLink value }
-  | property == cssDeclPropertyXLang             = styleAttrs { styleXLang          = getXLang value }
-  | property == cssDeclPropertyXImg              = styleAttrs { styleXImg           = getXImg value }
-  | property == cssDeclPropertyXTooltip          = styleAttrs { styleXTooltip       = getXTooltip value }
+  | declaration == CssDeclarationBackgroundColor   = styleAttrs { styleBackgroundColor = getBackgroundColor value }
+  | declaration == CssDeclarationBorderCollapse    = styleAttrs { styleBorderCollapse  = getBorderCollapse value }
+  | declaration == CssDeclarationBorderTopStyle    = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyle value }}
+  | declaration == CssDeclarationBorderRightStyle  = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyle value }}
+  | declaration == CssDeclarationBorderBottomStyle = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyle value }}
+  | declaration == CssDeclarationBorderLeftStyle   = styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleLeft   = getBorderStyle value }}
+  | declaration == CssDeclarationBorderTopWidth    = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthTop    = getBorderWidth value dpiX dpiY fontAttrs }}
+  | declaration == CssDeclarationBorderRightWidth  = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidth value dpiX dpiY fontAttrs }}
+  | declaration == CssDeclarationBorderBottomWidth = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidth value dpiX dpiY fontAttrs }}
+  | declaration == CssDeclarationBorderLeftWidth   = styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidth value dpiX dpiY fontAttrs }}
+  | declaration == CssDeclarationBorderTopColor    = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorTop    = getBorderColor value }}
+  | declaration == CssDeclarationBorderRightColor  = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorRight  = getBorderColor value }}
+  | declaration == CssDeclarationBorderBottomColor = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColor value }}
+  | declaration == CssDeclarationBorderLeftColor   = styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColor value }}
+  | declaration == CssDeclarationMarginBottom   = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin distance fontAttrs dpiX dpiY }}
+  | declaration == CssDeclarationMarginLeft     = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin distance fontAttrs dpiX dpiY }}
+  | declaration == CssDeclarationMarginRight    = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin distance fontAttrs dpiX dpiY }}
+  | declaration == CssDeclarationMarginTop      = styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin distance fontAttrs dpiX dpiY }}
+  | declaration == CssDeclarationPaddingBottom  = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding distance fontAttrs dpiX dpiY }}
+  | declaration == CssDeclarationPaddingLeft    = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding distance fontAttrs dpiX dpiY }}
+  | declaration == CssDeclarationPaddingRight   = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding distance fontAttrs dpiX dpiY }}
+  | declaration == CssDeclarationPaddingTop     = styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding distance fontAttrs dpiX dpiY }}
+  | declaration == CssDeclarationTextAlign      = styleAttrs { styleTextAlign      = getTextAlign value }
+  | declaration == CssDeclarationTextDecoration = styleAttrs { styleTextDecoration = getTextDecoration value (styleTextDecoration styleAttrs) }
+  | declaration == CssDeclarationTextIndent     = styleAttrs { styleTextIndent     = getTextIndent distance fontAttrs dpiX dpiY }
+  | declaration == CssDeclarationTextTransform  = styleAttrs { styleTextTransform  = getTextTransform value }
+  | declaration == CssDeclarationVerticalAlign  = styleAttrs { styleVerticalAlign  = getVerticalAlign value }
+  | declaration == CssDeclarationWhitespace     = styleAttrs { styleWhiteSpace     = getWhiteSpace value }
+  | declaration == CssDeclarationWidth          = styleAttrs { styleWidth          = getWidthOrHeight distance fontAttrs dpiX dpiY }
+  | declaration == CssDeclarationHeight         = styleAttrs { styleHeight         = getWidthOrHeight distance fontAttrs dpiX dpiY }
+  | declaration == CssDeclarationListStylePosition = styleAttrs { styleListStylePosition    = getListStylePosition value }
+  | declaration == CssDeclarationListStyleType     = styleAttrs { styleListStyleType        = getListStyleType value }
+  | declaration == CssDeclarationLineHeight        = styleAttrs { styleLineHeight           = getLineHeight value distance fontAttrs dpiX dpiY }
+  | declaration == CssDeclarationDisplay           = styleAttrs { styleDisplay              = getDisplay value }
+  | declaration == CssDeclarationColor             = styleAttrs { styleColor                = getColor value }
+  | declaration == CssDeclarationCursor            = styleAttrs { styleCursor               = getCursor value }
+  | declaration == CssDeclarationBorderSpacing     = styleAttrs { styleHBorderSpacing = getBorderSpacing distance fontAttrs dpiX dpiY, styleVBorderSpacing = getBorderSpacing distance fontAttrs dpiX dpiY }
+  | declaration == CssDeclarationWordSpacing       = styleAttrs { styleWordSpacing    = getWordSpacig value distance fontAttrs dpiX dpiY }
+  | declaration == CssDeclarationXLink             = styleAttrs { styleXLink          = getXLink value }
+  | declaration == CssDeclarationXLang             = styleAttrs { styleXLang          = getXLang value }
+  | declaration == CssDeclarationXImg              = styleAttrs { styleXImg           = getXImg value }
+  | declaration == CssDeclarationXTooltip          = styleAttrs { styleXTooltip       = getXTooltip value }
   | otherwise                                    = styleAttrs
     -- TODO: add support for missing cases
 
