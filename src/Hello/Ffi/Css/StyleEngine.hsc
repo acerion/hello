@@ -140,7 +140,7 @@ hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIn
   let lengthType  = fromIntegral cLengthType
 
   let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
-  let decl :: CssDeclaration = CssDeclaration property cssValue False
+  let decl :: CssDeclWrapper = CssDeclWrapper property cssValue False
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
 
@@ -165,7 +165,7 @@ hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cValueType 
   let lengthType  = 0 -- fromIntegral cLengthType
 
   let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
-  let decl :: CssDeclaration = CssDeclaration property cssValue False
+  let decl :: CssDeclWrapper = CssDeclWrapper property cssValue False
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
 

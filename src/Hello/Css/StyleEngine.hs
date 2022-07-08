@@ -312,7 +312,7 @@ styleEngineSetFontVariant value fontAttrs = case value of
 styleEngineApplyStyleToFont :: CssDeclarationSet -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
 styleEngineApplyStyleToFont declSet prefs dpiX dpiY parentFontAttrs fontAttrs = apply (items declSet) prefs dpiX dpiY parentFontAttrs fontAttrs
   where
-    apply :: S.Seq CssDeclaration -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
+    apply :: S.Seq CssDeclWrapper -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
     apply decls prefs dpiX dpiY parentFontAttrs fontAttrs =
       case S.null decls of
         True -> fontAttrs
@@ -324,8 +324,8 @@ styleEngineApplyStyleToFont declSet prefs dpiX dpiY parentFontAttrs fontAttrs = 
                | property x == cssDeclPropertyLetterSpacing {- 41 -} -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs
                | otherwise                                  -> apply xs prefs dpiX dpiY parentFontAttrs $ fontAttrs
           where
-            x  :: CssDeclaration       = S.index decls 0
-            xs :: S.Seq CssDeclaration = S.drop 1 decls
+            x  :: CssDeclWrapper       = S.index decls 0
+            xs :: S.Seq CssDeclWrapper = S.drop 1 decls
             value :: CssValue = declValue x
 
 
@@ -449,14 +449,14 @@ styleEngineApplyStyleToGivenNode declSet prefs dpiX dpiY parentFontAttrs styleAt
     fontAttrs'  = styleEngineApplyStyleToFont declSet prefs dpiX dpiY parentFontAttrs (styleFontAttrs styleAttrs)
     styleAttrs' = setRemainingAttrs (items declSet) dpiX dpiY styleAttrs { styleFontAttrs = fontAttrs' }
 
-    setRemainingAttrs :: S.Seq CssDeclaration -> Float -> Float -> StyleAttrs -> StyleAttrs
+    setRemainingAttrs :: S.Seq CssDeclWrapper -> Float -> Float -> StyleAttrs -> StyleAttrs
     setRemainingAttrs decls dpiX dpiY styleAttrs =
       case S.null decls of
         True  -> styleAttrs
         False -> setRemainingAttrs xs dpiX dpiY $ styleEngineSetStyle (property x) value dpiX dpiY styleAttrs
           where
-            x  :: CssDeclaration       = S.index decls 0
-            xs :: S.Seq CssDeclaration = S.drop 1 decls
+            x  :: CssDeclWrapper       = S.index decls 0
+            xs :: S.Seq CssDeclWrapper = S.drop 1 decls
             value :: CssValue = declValue x
 
 

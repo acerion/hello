@@ -91,7 +91,7 @@ module Hello.Css.Parser(
                        , CssCombinator (..)
 
                        , CssValue (..)
-                       , CssDeclaration (..)
+                       , CssDeclWrapper (..)
                        , parseDeclaration
                        , parseDeclarationWrapper2
                        , takePropertyTokens
@@ -1390,7 +1390,7 @@ removeSpaceTokens [] acc                             = acc
 
 
 
-data CssDeclaration = CssDeclaration
+data CssDeclWrapper = CssDeclWrapper
   { property  :: Int
   , declValue :: CssValue
 
@@ -1409,7 +1409,7 @@ data CssDeclaration = CssDeclaration
 
 
 
-defaultDeclaration = CssDeclaration
+defaultDeclaration = CssDeclWrapper
   { property  = (-1) -- TODO: somewhere there is a code that does not set property2 field.
   , declValue = CssValueTypeUnused
   , important = False
@@ -1423,7 +1423,7 @@ defaultDeclaration = CssDeclaration
 -- flag.
 data CssDeclarationSet = CssDeclarationSet
   { isSafe :: Bool
-  , items  :: S.Seq CssDeclaration
+  , items  :: S.Seq CssDeclWrapper
   } deriving (Show, Eq)
 
 
@@ -1435,7 +1435,7 @@ defaultCssDeclarationSet = CssDeclarationSet
 
 
 
-parseDeclarationNormal :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationNormal :: (CssParser, CssToken) -> Int -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationNormal (parser, token) property =
   case parseDeclValue (parser, token) enums functions  of
     ((p, t), Just v)  -> ((p, t), [defaultDeclaration{property = property, declValue = v}])
@@ -1468,7 +1468,7 @@ declValueAsInt (parser, token) enums = ((parser, token), Just (CssValueTypeInt 0
 -- TODO: this implementation can correctly parse all value tokens only when
 -- they appear in the same order as 'property' integers. The function should
 -- be able to handle the tokens in any order.
-parseDeclarationMultiple :: (CssParser, CssToken) -> [Int] -> [CssDeclaration] -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationMultiple :: (CssParser, CssToken) -> [Int] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationMultiple (parser, token) (prop:properties) ds =
   case parseDeclValue (parser, token) enums functions of
     ((p, t), Just v)  -> parseDeclarationMultiple (p, t) properties (ds ++ [defaultDeclaration{property = prop, declValue = v}])
@@ -1482,7 +1482,7 @@ parseDeclarationMultiple (parser, token) [] ds                = ((parser, token)
 
 
 
-parseDeclarationDirections :: (CssParser, CssToken) -> [Int] -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationDirections :: (CssParser, CssToken) -> [Int] -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationDirections (parser, token) properties@(pt:pr:pb:pl:ps) = ((outParser, outToken), ds)
   where ds = case vals of
           (top:right:bottom:left:[]) -> [ defaultDeclaration{property = pt, declValue = top}
@@ -1528,7 +1528,7 @@ matchOrderedTokens (parser, token) [] values               = ((parser, token), v
 -- TODO: this implementation can correctly parse all value tokens only when
 -- they appear in the same order as 'property' integers. The function should
 -- be able to handle the tokens in any order.
-parseDeclarationBorder :: (CssParser, CssToken) -> [Int] -> [CssDeclaration] -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationBorder :: (CssParser, CssToken) -> [Int] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationBorder (parser, token) (top:right:bottom:left:properties) ds =
   case parseDeclValue (parser, token) enums functions  of
     ((p, t), Just v)  -> parseDeclarationBorder (p, t) properties (ds ++ [ defaultDeclaration{property = top,    declValue = v}
@@ -1546,7 +1546,7 @@ parseDeclarationBorder (parser, token) [] ds                                 = (
 
 
 
-parseDeclarationShorthand :: (CssParser, CssToken) -> [Int] -> Int -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationShorthand :: (CssParser, CssToken) -> [Int] -> Int -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationShorthand (parser, token) properties shorthandType | shorthandType == cssShorthandTypeMultiple   = parseDeclarationMultiple (parser, token) properties []
                                                                    | shorthandType == cssShorthandTypeDirections = parseDeclarationDirections (parser, token) properties
                                                                    | shorthandType == cssShorthandTypeBorder     = parseDeclarationBorder (parser, token) properties []
@@ -1573,7 +1573,7 @@ takePropertyTokens (parser, nameToken) =
 -- declarations. E.g. "border-color: red" shorthand will be translated into a
 -- list of "normal" declarations that will look like this:
 -- ["border-top-color: red"; "border-right-color: red"; "border-bottom-color: red"; "border-left-color: red"]
-parseDeclarationWrapper :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationWrapper :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationWrapper (parser, token) =
   case takePropertyTokens (parser, token) of
     ((p, t), [CssTokIdent sym]) -> case cssPropertyInfoIdxByName sym of
@@ -1602,7 +1602,7 @@ tryShorthand (parser, token) shorthandIdx = parseDeclarationShorthand (parser, t
 -- For non-shorthand declaration, this function should produce one-element
 -- list. But a shorthand declaration translates into two or more regular
 -- declarations, hence the return type contains a list of declarations.
-parseDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclaration (p1, t1) = ((outParser, outToken), declarationsWithImportant)
   where
     ((p2, t2), declarations) = parseDeclarationWrapper (p1, t1)
@@ -1623,7 +1623,7 @@ parseDeclarationWrapper2 (p1, t1) (inSet, inSetImp) = ((p2, t2), (outSet, outSet
     ((p2, t2), declarations) = parseDeclaration (p1, t1)
     (outSet, outSetImp) = appendDeclarations declarations inSet inSetImp
 
-    appendDeclarations :: [CssDeclaration] -> CssDeclarationSet -> CssDeclarationSet -> (CssDeclarationSet, CssDeclarationSet)
+    appendDeclarations :: [CssDeclWrapper] -> CssDeclarationSet -> CssDeclarationSet -> (CssDeclarationSet, CssDeclarationSet)
     appendDeclarations [] set setImp     = (set, setImp)
     appendDeclarations (d:ds) set setImp = if important d
                                            then appendDeclarations ds set (declarationsSetUpdateOrAdd setImp d)
@@ -1655,18 +1655,18 @@ takeAllTokens (parser,token) = do
 
 
 
-declarationsSetUpdateOrAdd :: CssDeclarationSet -> CssDeclaration -> CssDeclarationSet
+declarationsSetUpdateOrAdd :: CssDeclarationSet -> CssDeclWrapper -> CssDeclarationSet
 declarationsSetUpdateOrAdd declSet decl =
   case S.findIndexL pred seq of
     Just idx -> CssDeclarationSet {items = S.update idx decl seq, isSafe = newSafe declSet decl}
     Nothing  -> CssDeclarationSet {items = seq S.|> decl,         isSafe = newSafe declSet decl}
   where
-    pred :: CssDeclaration -> Bool
+    pred :: CssDeclWrapper -> Bool
     pred x = property x == property decl
 
     seq = items declSet
 
-    newSafe :: CssDeclarationSet -> CssDeclaration -> Bool
+    newSafe :: CssDeclarationSet -> CssDeclWrapper -> Bool
     newSafe declSet decl = (isSafe declSet)
                            && (not $ elem (property decl) [cssDeclPropertyDisplay, cssDeclPropertyBackgroundImage])
 
