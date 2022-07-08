@@ -29,7 +29,7 @@ module Hello.Ffi.Css.Doctree
   (
     FfiDoctree (..)
   , peekDoctree
-  , getDoctreeFromRef
+  , globalDoctreeGet
   )
 where
 
@@ -50,9 +50,7 @@ import qualified Data.Text.Encoding as T.E
 
 import Debug.Trace
 
-import Data.IORef
-import System.IO.Unsafe
-
+import Hello.Html.DoctreeGlobal
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
 import Hello.Utils
@@ -69,7 +67,6 @@ import Hello.Ffi.Css.DoctreeNode
 
 
 foreign export ccall "hll_doctreePrint" hll_doctreePrint :: Ptr FfiDoctree -> IO ()
-foreign export ccall "hll_doctreeModifyPair" hll_doctreeModifyPair :: CInt -> CInt -> IO ()
 
 
 foreign export ccall "hll_doctreeCtor" hll_doctreeCtor :: IO (CInt)
@@ -81,20 +78,6 @@ foreign export ccall "hll_doctreeGetTopNodeElementSelectorId" hll_doctreeGetTopN
 foreign export ccall "hll_styleEngineSetElementId" hll_styleEngineSetElementId :: CInt -> CString -> IO ()
 foreign export ccall "hll_styleEngineSetElementClass" hll_styleEngineSetElementClass :: CInt -> CString -> IO ()
 foreign export ccall "hll_styleEngineSetElementPseudoClass" hll_styleEngineSetElementPseudoClass :: CInt -> CString -> IO ()
-
-
-
-
-myGlobalPair :: IORef (Bool, Int)
-{-# NOINLINE myGlobalPair #-}
-myGlobalPair = unsafePerformIO (newIORef (True, 2))
-
-
-
-myGlobalDoctrees :: IORef [Doctree]
-{-# NOINLINE myGlobalDoctrees #-}
-myGlobalDoctrees = unsafePerformIO (newIORef [])
-
 
 
 
@@ -167,24 +150,8 @@ hll_doctreePrint ptrStructDoctree = do
 
 
 
-hll_doctreeModifyPair :: CInt -> CInt -> IO ()
-hll_doctreeModifyPair cRef cIncrement = do
-  let increment = fromIntegral cIncrement
-  old <- readIORef myGlobalPair
-  let new = (not . fst $ old, increment + snd old)
-  writeIORef myGlobalPair new
-  putStr ("::::::::::: global pair" ++ (show new) ++ "\n")
-
-
-
-
-hll_doctreeCtor :: IO (CInt)
-hll_doctreeCtor = do
-  old <- readIORef myGlobalDoctrees
-  let new = old ++ [ defaultDoctree ]
-  writeIORef myGlobalDoctrees new
-  --putStr ("::::::::::: ctor of new doctree updated the list to: " ++ (show new) ++ "\n")
-  return $ fromIntegral ((length new) - 1)
+hll_doctreeCtor :: IO CInt
+hll_doctreeCtor = fmap fromIntegral globalDoctreeCtor
 
 
 
@@ -194,14 +161,9 @@ hll_doctreeUpdate cRef cSomeVal = do
   let ref     = fromIntegral cRef
   let someVal = fromIntegral cSomeVal
 
-  old <- readIORef myGlobalDoctrees
-  let single = old !! ref
-  let new = listReplaceElem old single { rootNode = (rootNode single) + someVal } ref
-
-  writeIORef myGlobalDoctrees new
-  putStr ("::::::::::: After update of " ++ (show ref) ++ " with " ++ (show someVal) ++ ": " ++ (show new) ++ "\n")
-
-
+  oldDoctree <- globalDoctreeGet ref
+  let newDoctree = oldDoctree { rootNode = (rootNode oldDoctree) + someVal }
+  globalDoctreeUpdate ref newDoctree
 
 
 
@@ -211,110 +173,63 @@ hll_doctreePushNode cRef cElementIdx = do
   let ref        = fromIntegral cRef
   let elementIdx = fromIntegral cElementIdx
 
-  old <- readIORef myGlobalDoctrees
-  let doctree = old !! ref
-  let doctree2 = doctreePushNode doctree elementIdx
-  let new = listReplaceElem old doctree2 ref
+  doctree <- globalDoctreeGet ref
+  let doctree' = doctreePushNode doctree elementIdx
+  globalDoctreeUpdate ref doctree'
 
-  writeIORef myGlobalDoctrees new
-  --putStr ("::::::::::: After pushing " ++ (show elementIdx) ++ ": " ++ (show doctree2) ++ "\n")
-
-  return $ fromIntegral (topNodeNum doctree2)
+  return $ fromIntegral (topNodeNum doctree')
 
 
 
 
 hll_doctreePopNode :: CInt -> IO ()
 hll_doctreePopNode cRef = do
-  let ref        = fromIntegral cRef
-
-  old <- readIORef myGlobalDoctrees
-  let doctree = old !! ref
-  let doctree2 = doctreePopNode doctree
-  let new = listReplaceElem old doctree2 ref
-
-  writeIORef myGlobalDoctrees new
-  --putStr ("::::::::::: After popping: " ++ (show doctree2) ++ "\n")
-
-
-
-
-hll_doctreeGetTopNode :: CInt -> IO CInt
-hll_doctreeGetTopNode cRef = do
-    let ref        = fromIntegral cRef
-
-    old <- readIORef myGlobalDoctrees
-    let doctree = old !! ref
-    if topNodeNum doctree /= (-1)
-      then return 1
-      else return 0
-      {-
-
-c_doctree_node_t * doctreeGetTopNode(c_doctree_t * doctree)
-{
-   if (doctree->c_top_node_num != ROOT_NODE_NUM)
-      return doctree->c_nodes_array[doctree->c_top_node_num];
-   else
-      return NULL;
-}
-
-
--}
+  let ref = fromIntegral cRef
+  doctree <- globalDoctreeGet ref
+  let doctree' = doctreePopNode doctree
+  globalDoctreeUpdate ref doctree'
 
 
 
 
 hll_doctreeGetTopNodeHtmlElementIdx :: CInt -> IO CInt
 hll_doctreeGetTopNodeHtmlElementIdx cRef = do
-    let ref        = fromIntegral cRef
-
-    old <- readIORef myGlobalDoctrees
-    let doctree = old !! ref
-    if topNodeNum doctree == (-1)
-      then
-      do
-        return 0
-      else
-      do
-        let dtn = (nodes doctree) M.! (topNodeNum doctree)
-        return $ fromIntegral (htmlElementIdx dtn)
+  mDtn <- doctreeGetTopNode . fromIntegral $ cRef
+  case mDtn of
+    Just dtn -> return . fromIntegral . htmlElementIdx $ dtn
+    Nothing  -> return 0
 
 
 
 
 hll_doctreeGetTopNodeElementSelectorId :: CInt -> IO CString
 hll_doctreeGetTopNodeElementSelectorId cRef = do
-    let ref        = fromIntegral cRef
+  mDtn <- doctreeGetTopNode . fromIntegral $ cRef
+  case mDtn of
+    Just dtn -> newCString . T.unpack . selId $ dtn
+    Nothing  -> return nullPtr
 
-    old <- readIORef myGlobalDoctrees
-    let doctree = old !! ref
-    if topNodeNum doctree == (-1)
-      then
-      do
-        return nullPtr
-      else
-      do
-        let dtn = (nodes doctree) M.! (topNodeNum doctree)
-        newCString . T.unpack . selId $ dtn
+
+
+
+doctreeGetTopNode ref = do
+  doctree <- globalDoctreeGet ref
+  if topNodeNum doctree == (-1)
+    then
+    do
+      return Nothing
+    else
+    do
+      return $ Just ((nodes doctree) M.! (topNodeNum doctree))
 
 
 
 
 updateTopNodeInTrees :: Int -> (DoctreeNode -> DoctreeNode) -> IO ()
-updateTopNodeInTrees doctreeRef f = do
-    doctrees <- readIORef myGlobalDoctrees
-    let doctree = doctrees !! doctreeRef
-    let newDoctrees = listReplaceElem doctrees (adjustTopNode doctree f) doctreeRef
-    writeIORef myGlobalDoctrees newDoctrees
-
-
-
-
-getDoctreeFromRef :: Int -> IO Doctree
-getDoctreeFromRef doctreeRef = do
-  doctrees <- readIORef myGlobalDoctrees
-  return $ doctrees !! doctreeRef
-
+updateTopNodeInTrees ref f = do
+    doctree <- globalDoctreeGet ref
+    let doctree' = adjustTopNode doctree f
+    globalDoctreeUpdate ref doctree'
 
 
 
@@ -340,7 +255,6 @@ hll_styleEngineSetElementClass cDoctreeRef cElementClassTokens = do
     let classSelectors = fmap T.pack ws
 
     updateTopNodeInTrees doctreeRef (\x -> x { selClass = classSelectors })
-
 
 
 

@@ -299,7 +299,6 @@ typedef struct c_doctree_t {
 c_doctree_node_t * hll_doctreeNodeNew(void);
 void hll_doctreePrint(c_doctree_t * doctree);
 int hll_doctreeCtor(void);
-void hll_doctreeUpdate(int doctree_ref, int some_value);
 int hll_doctreePushNode(int doctree_ref, int element_idx);
 void hll_doctreePopNode(int doctree_ref);
 const char * hll_doctreeGetTopNodeElementSelectorId(int doctree_ref);

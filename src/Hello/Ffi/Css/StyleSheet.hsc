@@ -175,7 +175,7 @@ hll_cssStyleSheetApplyStyleSheet ptrStructCssStyleSheet ptrStructTarget cDoctree
   dtn           <- peekDoctreeNode ptrStructDtn
   styleSheet    <- peekCssStyleSheet ptrStructCssStyleSheet
   let doctreeRef = fromIntegral cDoctreeRef
-  doctree       <- getDoctreeFromRef doctreeRef
+  doctree       <- globalDoctreeGet doctreeRef
   matchCache    <- peekPtrCssMatchCache ptrStructMatchCache
   targetDeclSet <- peekCssDeclarationSet ptrStructTarget
 

@@ -49,9 +49,6 @@ import System.IO
 
 import Debug.Trace
 
-import Data.IORef
-import System.IO.Unsafe
-
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
 import Hello.Utils
@@ -216,7 +213,7 @@ hll_cssContextApplyCssContext cRef cDoctreeRef cDtnNum cMainDeclSetRef cImportan
   let ref  = fromIntegral cRef
   context <- globalContextGet ref
 
-  doctree <- getDoctreeFromRef . fromIntegral $ cDoctreeRef
+  doctree <- globalDoctreeGet . fromIntegral $ cDoctreeRef
   let dtn  = getDtnUnsafe doctree (fromIntegral cDtnNum)
 
   let mainDeclSetRef = fromIntegral cMainDeclSetRef

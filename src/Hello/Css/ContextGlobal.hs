@@ -56,7 +56,7 @@ import Data.IORef
 import System.IO.Unsafe
 
 import Hello.Css.StyleSheet
-import Hello.Utils
+import Hello.GlobalContainer
 
 
 
@@ -68,43 +68,31 @@ myGlobalContexts = unsafePerformIO (newIORef [])
 
 
 
+-- Add new default element. Return reference to it.
+-- Second argument is a constructor of default element.
 globalContextCtor :: IO Int
-globalContextCtor = do
-  oldList <- readIORef myGlobalContexts
-  let newList = oldList ++ [ defaultCssContext ]
-  writeIORef myGlobalContexts newList
-
-  return ((length newList) - 1)
+globalContextCtor = globalContainerCtor myGlobalContexts defaultCssContext
 
 
 
 
+-- Update existing entry indicated by a reference with given element.
 globalContextUpdate :: Int -> CssContext -> IO ()
-globalContextUpdate ref context = do
-  oldList <- readIORef myGlobalContexts
-  --let item = oldList !! ref
-  let newList = listReplaceElem oldList context ref
-
-  writeIORef myGlobalContexts newList
+globalContextUpdate = globalContainerUpdate myGlobalContexts
 
 
 
 
+-- Add given element. Return reference to it.
 globalContextPut :: CssContext -> IO Int
-globalContextPut context = do
-  oldList <- readIORef myGlobalContexts
-  let newList = oldList ++ [ context ]
-  writeIORef myGlobalContexts newList
-
-  return ((length newList) - 1)
+globalContextPut = globalContainerPut myGlobalContexts
 
 
 
 
+-- Get an element indicated by given reference.
 globalContextGet :: Int -> IO CssContext
-globalContextGet ref = do
-  list <- readIORef myGlobalContexts
-  return (list !! ref)
+globalContextGet = globalContainerGet myGlobalContexts
 
 
 

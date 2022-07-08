@@ -45,7 +45,7 @@ module Hello.Html.Doctree
 
   , adjustTopNode
   )
-  where
+where
 
 
 
@@ -178,6 +178,8 @@ adjustTopNode :: Doctree -> (DoctreeNode -> DoctreeNode) -> Doctree
 adjustTopNode doctree f = doctree { nodes = M.adjust f (uniqueNum dtn) (nodes doctree)}
   where
     dtn = (nodes doctree) M.! (topNodeNum doctree)
+
+
 
 
 
