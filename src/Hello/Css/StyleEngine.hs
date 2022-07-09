@@ -443,11 +443,11 @@ styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
 
 
 
-styleEngineApplyStyleToGivenNode :: CssDeclarationSet -> Preferences -> Float -> Float -> FontAttrs -> StyleAttrs -> StyleAttrs
-styleEngineApplyStyleToGivenNode declSet prefs dpiX dpiY parentFontAttrs styleAttrs = styleAttrs'
+styleEngineApplyStyleToGivenNode :: CssDeclarationSet -> Preferences -> Float -> Float -> StyleAttrs -> StyleAttrs -> StyleAttrs
+styleEngineApplyStyleToGivenNode declSet prefs dpiX dpiY parentStyleAttrs styleAttrs = styleAttrs'
   where
     -- Determine font first so it can be used to resolve relative lengths of other elements.
-    fontAttrs'  = styleEngineApplyStyleToFont declSet prefs dpiX dpiY parentFontAttrs (styleFontAttrs styleAttrs)
+    fontAttrs'  = styleEngineApplyStyleToFont declSet prefs dpiX dpiY (styleFontAttrs parentStyleAttrs) (styleFontAttrs styleAttrs)
     styleAttrs' = setRemainingAttrs (items declSet) dpiX dpiY styleAttrs { styleFontAttrs = fontAttrs' }
 
     setRemainingAttrs :: S.Seq CssDeclWrapper -> Float -> Float -> StyleAttrs -> StyleAttrs

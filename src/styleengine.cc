@@ -524,7 +524,7 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
 /**
  * \brief Make changes to StyleAttrs attrs according to element's declarations set (referenced by merged_decl_set_ref)
  */
-void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs *attrs, int merged_decl_set_ref, BrowserWindow *bw)
+void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentAttrs, StyleAttrs * attrs, int merged_decl_set_ref, BrowserWindow *bw)
 {
    Font * parentFont = styleNodesStack[styleNodeIndex - 1].style->font;
 
@@ -537,10 +537,16 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs *attrs, i
    c_style_attrs_init(style_attrs);
    c_style_attrs_copy_from(style_attrs, attrs);
 
-   hll_styleEngineApplyStyleToGivenNode(merged_decl_set_ref, &prefs.preferences, layout->dpiX(), layout->dpiY(), &parentFont->font_attrs, style_attrs);
+   c_style_attrs_t * parent_style_attrs = c_style_attrs_calloc();
+   c_style_attrs_init(parent_style_attrs);
+   c_style_attrs_copy_from(parent_style_attrs, parentAttrs);
+
+   hll_styleEngineApplyStyleToGivenNode(merged_decl_set_ref, &prefs.preferences, layout->dpiX(), layout->dpiY(), parent_style_attrs, style_attrs);
 
    c_style_attrs_copy_to(attrs, style_attrs, this->layout);
    c_style_attrs_dealloc(&style_attrs);
+
+   c_style_attrs_dealloc(&parent_style_attrs);
 
    /* Handle additional things that were not handled in Haskell. */
    if (style_attrs->c_display == DISPLAY_NONE) {
@@ -600,13 +606,13 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw)
 {
    int styleNodeIndex = some_idx;
 
-   // get previous style from the stack
-   //
+   StyleAttrs parentStyleAttrs = *styleNodesStack[styleNodeIndex - 1].style;
+
    // Here "attrs" are the style attributes of previous/parent node, but
    // after they are passed to applyStyleToGivenNode and processed in the
    // function, they are then used to create new style of current node when
    // the "attrs" are passed to "Style::create(&attrs)".
-   StyleAttrs attrs = * styleNodesStack[styleNodeIndex - 1].style;
+   StyleAttrs styleAttrs = parentStyleAttrs;
 
    // Ensure that StyleEngine::style0() has not been called before for
    // this element.
@@ -617,8 +623,8 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw)
    assert (styleNodesStack[styleNodeIndex].style == NULL);
 
    // reset values that are not inherited according to CSS
-   attrs.resetValues ();
-   preprocessAttrs (&attrs);
+   styleAttrs.resetValues();
+   preprocessAttrs(&styleAttrs);
 
    c_css_declaration_lists_t * declLists = &styleNodesStack[styleNodeIndex].declLists;
 
@@ -631,11 +637,11 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw)
                                                            declLists->non_css_decl_set_ref);
 
    // apply style
-   applyStyleToGivenNode(styleNodeIndex, &attrs, merged_decl_set_ref, bw);
+   applyStyleToGivenNode(styleNodeIndex, &parentStyleAttrs, &styleAttrs, merged_decl_set_ref, bw);
 
-   postprocessAttrs(&attrs);
+   postprocessAttrs(&styleAttrs);
 
-   styleNodesStack[styleNodeIndex].style = Style::create(&attrs);
+   styleNodesStack[styleNodeIndex].style = Style::create(&styleAttrs);
 
    return styleNodesStack[styleNodeIndex].style;
 }

@@ -472,7 +472,7 @@ void hll_styleEngineSetElementPseudoClass(int doc_tree_ref, const char * element
 
 
 
-void hll_styleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * prefs, float dpiX, float dpiY, c_font_attrs_t * parentFontAttrs, c_style_attrs_t * style_attrs);
+void hll_styleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * prefs, float dpiX, float dpiY, c_style_attrs_t * parent_style_attrs, c_style_attrs_t * style_attrs);
 
 
 
