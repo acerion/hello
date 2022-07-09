@@ -75,12 +75,8 @@ import Hello.Ffi.Utils
 
 
 --foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
-
-
-
 --foreign export ccall "hll_printCssDeclarationSet" hll_printCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO ()
 --foreign export ccall "hll_printCssIndex" hll_printCssIndex :: Ptr CInt -> IO ()
-
 
 
 
@@ -103,7 +99,7 @@ analyzeDtn ptrStructDtn tree = do
           tree3 <- analyzeDtn (intPtrToPtr $ (IntPtr $ dtnParent dtn)) tree2
           analyzeDtn (intPtrToPtr $ (IntPtr $ dtnSibling dtn)) tree3
     Nothing  -> return tree
--}
+
 
 
 
@@ -117,7 +113,7 @@ ptrToMdtn ptrStructDtn = do
 
 
 
-{-
+
 data FfiCssRulesList = FfiCssRulesList {
     rulesC     :: Ptr (Ptr FfiCssRule)
   , rulesSizeC :: CInt
@@ -373,7 +369,7 @@ hll_rulesMapGetList ptrStructRulesMap cStringKey = do
     _    -> do
       e <- peekElemOff listsOfRulesArray idx
       return e
--}
+
 
 
 
@@ -387,7 +383,6 @@ findString array size string = do
 
 
 
-{-
 hll_printCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO ()
 hll_printCssDeclarationSet ptrStructCssDeclarationSet = do
   declSet:: CssDeclarationSet <- peekCssDeclarationSet ptrStructCssDeclarationSet

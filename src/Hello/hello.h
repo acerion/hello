@@ -319,26 +319,6 @@ typedef struct c_css_parser_t {
 
 
 
-typedef struct c_css_value_t {
-   int c_type_tag;
-   int c_int_val;
-   int32_t c_bg_pos_x;
-   int32_t c_bg_pos_y;
-   char * c_text_val;
-
-   float c_length_val;
-   int c_length_type;
-} c_css_value_t;
-
-/**
- * \brief This class holds a CSS declaration: a pair of property and value.
- */
-typedef struct c_css_declaration_t {
-   int c_important;
-   int c_property;
-   c_css_value_t * c_value;
-} c_css_declaration_t;
-
 typedef struct c_css_token_t {
    int c_type;
    char * c_value;
@@ -462,7 +442,6 @@ int hll_isTokenSemicolon(c_css_token_t * token);
 
 int hll_styleEngineSetNonCssHintOfNodeInt(int non_css_decl_set_ref, int property, int valueType, int intVal, float lengthValue, int lengthType);
 int hll_styleEngineSetNonCssHintOfNodeString(int non_css_decl_set_ref, int property, int valueType, const char * stringVal);
-int hll_styleEngineComputeAbsoluteLengthValue(float lengthValue, int lengthType, c_font_attrs_t * fontAttrs, int percentageBase, float dpiX, float dpiY, int * ptrOut);
 
 
 void hll_styleEngineSetElementId(int doc_tree_ref, const char * element_id);
@@ -483,7 +462,6 @@ int hll_inheritNonCssHints(int parent_non_css_decl_set_ref, int non_css_decl_set
 void hll_createPercentageDwLength(DwLength * length, double v);
 void hll_createAbsoluteDwLength(DwLength * length, int v);
 
-int hll_computeDwLength(DwLength * length, double val, int type, c_font_attrs_t * fontAttrs, float dpiX, float dpiY);
 
 
 #ifdef __cplusplus

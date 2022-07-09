@@ -37,12 +37,6 @@ module Hello.Ffi.Css.Parser
 
   , getCssOrigin
 
-  , FfiCssDeclWrapper
-  , allocAndPokeCssDeclWrapper
-
-  , FfiCssValue
-  , peekCssValue
-
   , allDeclMakers
   )
 where
@@ -610,7 +604,7 @@ pokeCssComplexSelector ptrStructCssComplexSelector selector = do
   pokeByteOff ptrStructCssComplexSelector (#offset c_css_cached_complex_selector_t, c_links_size) len
 
   pokeByteOff ptrStructCssComplexSelector (#offset c_css_cached_complex_selector_t, c_match_cache_offset) (matchCacheOffset selector)
--}
+
 
 
 
@@ -619,6 +613,18 @@ data FfiCssDeclWrapper = FfiCssDeclWrapper {
   , propertyC  :: CInt
   , ptrValueC  :: Ptr FfiCssValue
   } deriving (Show)
+
+
+
+
+/**
+ * \brief This class holds a CSS declaration: a pair of property and value.
+ */
+typedef struct c_css_declaration_t {
+   int c_important;
+   int c_property;
+   c_css_value_t * c_value;
+} c_css_declaration_t;
 
 
 
@@ -709,6 +715,19 @@ data FfiCssValue = FfiCssValue {
 
 
 
+typedef struct c_css_value_t {
+   int c_type_tag;
+   int c_int_val;
+   int32_t c_bg_pos_x;
+   int32_t c_bg_pos_y;
+   char * c_text_val;
+
+   float c_length_val;
+   int c_length_type;
+} c_css_value_t;
+
+
+
 
 instance Storable FfiCssValue where
   sizeOf    _ = #{size c_css_value_t}
@@ -736,7 +755,7 @@ instance Storable FfiCssValue where
 
 
 
-{-
+
 data FfiCssDeclarationSet = FfiCssDeclarationSet {
     isSafeC           :: CInt
   , ptrDeclarationsC  :: Ptr (Ptr FfiCssDeclWrapper)
@@ -878,7 +897,6 @@ hll_declarationListAppend2 ptrStructTarget source = do
   pokeCssDeclarationSet ptrStructTarget merged
 
   return ()
--}
 
 
 
@@ -900,6 +918,7 @@ peekCssValue ffiCssValue = do
 
   let v = makeValue valType intVal textVal lengthVal lengthType
   return v
+-}
 
 
 
@@ -925,6 +944,7 @@ hll_cssParseElementStyleAttribute ptrBaseUrl ptrStringCssStyleAttribute buflen c
 
 
 
+{-
 cssValueToTypeTag value = case value of
                             CssValueTypeInt _                 ->  0
                             CssValueTypeEnum _                ->  1
@@ -943,19 +963,19 @@ cssValueToTypeTag value = case value of
                             CssValueTypeUnused                -> 14
 
 
-
 cssCombinatorIntToData i = case i of
                              1 -> Just CssCombinatorDescendant
                              2 -> Just CssCombinatorChild
                              3 -> Just CssCombinatorAdjacentSibling
                              _ -> Nothing
 
+
 cssCombinatorDataToInt d = case d of
                              Just CssCombinatorDescendant      -> 1
                              Just CssCombinatorChild           -> 2
                              Just CssCombinatorAdjacentSibling -> 3
                              otherwise                         -> 0
-
+-}
 
 
 
@@ -993,7 +1013,7 @@ hll_isTokenSemicolon ptrStructCssToken = do
 
 
 
-
+{-
 findPropertyIndex :: CssDeclaration -> Int
 findPropertyIndex decl = case decl of
                            CssDeclarationBackgroundAttachment v -> 0
@@ -1083,7 +1103,7 @@ findPropertyIndex decl = case decl of
                            CssDeclarationXImg v -> 84
                            CssDeclarationXTooltip v -> 85
                            CssDeclaration_LAST -> 86
-
+-}
 
 
 
@@ -1183,7 +1203,7 @@ allDeclMakers =
 
 
 
-
+{-
 getDeclValue :: CssDeclaration -> CssValue
 getDeclValue decl = case decl of
                       CssDeclarationBackgroundAttachment v -> v
@@ -1273,5 +1293,5 @@ getDeclValue decl = case decl of
                       CssDeclarationXImg v -> v
                       CssDeclarationXTooltip v -> v
                       CssDeclaration_LAST -> CssValueTypeUnused
-
+-}
 
