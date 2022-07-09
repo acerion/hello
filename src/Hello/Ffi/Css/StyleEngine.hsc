@@ -49,6 +49,7 @@ import Hello.Css.Distance
 import Hello.Css.Parser
 import Hello.Css.StyleEngine
 import Hello.Css.UserAgentStyle
+import Hello.Css.Value
 
 import Hello.Dw.DwLength
 import Hello.Dw.FontAttrs
@@ -132,7 +133,7 @@ hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIn
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
-  let property = fst (allCssProperties !! (fromIntegral cProperty))
+  let propMaker = fst (allDeclMakers !! (fromIntegral cProperty))
   let valType  = fromIntegral cValueType
   let intVal   = fromIntegral cIntVal
   let textVal  = ""
@@ -140,7 +141,7 @@ hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIn
   let lengthType  = fromIntegral cLengthType
 
   let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
-  let decl :: CssDeclWrapper = CssDeclWrapper property cssValue False
+  let decl :: CssDeclWrapper = CssDeclWrapper (propMaker cssValue) False
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
 
@@ -156,7 +157,7 @@ hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cValueType 
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
-  let property = fst (allCssProperties !! (fromIntegral cProperty))
+  let propMaker = fst (allDeclMakers !! (fromIntegral cProperty))
   let valType  = fromIntegral cValueType
   let intVal   = 0
   stringVal <- BSU.unsafePackCString $ cStringVal
@@ -165,7 +166,7 @@ hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cValueType 
   let lengthType  = 0 -- fromIntegral cLengthType
 
   let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
-  let decl :: CssDeclWrapper = CssDeclWrapper property cssValue False
+  let decl :: CssDeclWrapper = CssDeclWrapper (propMaker cssValue) False
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
 

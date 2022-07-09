@@ -33,6 +33,93 @@ Copyright assignment from css.cc:
 module Hello.Css.Declaration
   (
     CssDeclaration (..)
+  , makeCssDeclarationBackgroundAttachment
+  , makeCssDeclarationBackgroundColor
+  , makeCssDeclarationBackgroundImage
+  , makeCssDeclarationBackgroundPosition
+  , makeCssDeclarationBackgroundRepeat
+  , makeCssDeclarationBorderBottomColor
+  , makeCssDeclarationBorderBottomStyle
+  , makeCssDeclarationBorderBottomWidth
+  , makeCssDeclarationBorderCollapse
+  , makeCssDeclarationBorderLeftColor
+  , makeCssDeclarationBorderLeftStyle
+  , makeCssDeclarationBorderLeftWidth
+  , makeCssDeclarationBorderRightColor
+  , makeCssDeclarationBorderRightStyle
+  , makeCssDeclarationBorderRightWidth
+  , makeCssDeclarationBorderSpacing
+  , makeCssDeclarationBorderTopColor
+  , makeCssDeclarationBorderTopStyle
+  , makeCssDeclarationBorderTopWidth
+  , makeCssDeclarationBottom
+  , makeCssDeclarationCaptionSide
+  , makeCssDeclarationClear
+  , makeCssDeclarationClip
+  , makeCssDeclarationColor
+  , makeCssDeclarationContent
+  , makeCssDeclarationCounterIncrement
+  , makeCssDeclarationCounterReset
+  , makeCssDeclarationCursor
+  , makeCssDeclarationDirection
+  , makeCssDeclarationDisplay
+  , makeCssDeclarationEmptyCells
+  , makeCssDeclarationFloat
+  , makeCssDeclarationFontFamily
+  , makeCssDeclarationFontSize
+  , makeCssDeclarationFontSizeAdjust
+  , makeCssDeclarationFontStretch
+  , makeCssDeclarationFontStyle
+  , makeCssDeclarationFontVariant
+  , makeCssDeclarationFontWeight
+  , makeCssDeclarationHeight
+  , makeCssDeclarationLeft
+  , makeCssDeclarationLetterSpacing
+  , makeCssDeclarationLineHeight
+  , makeCssDeclarationListStyleImage
+  , makeCssDeclarationListStylePosition
+  , makeCssDeclarationListStyleType
+  , makeCssDeclarationMarginBottom
+  , makeCssDeclarationMarginLeft
+  , makeCssDeclarationMarginRight
+  , makeCssDeclarationMarginTop
+  , makeCssDeclarationMarkerOffset
+  , makeCssDeclarationMarks
+  , makeCssDeclarationMaxHeight
+  , makeCssDeclarationMaxWidth
+  , makeCssDeclarationMinHeight
+  , makeCssDeclarationMinWidth
+  , makeCssDeclarationOutlineColor
+  , makeCssDeclarationOutlineStyle
+  , makeCssDeclarationOutlineWidth
+  , makeCssDeclarationOverflow
+  , makeCssDeclarationPaddingBottom
+  , makeCssDeclarationPaddingLeft
+  , makeCssDeclarationPaddingRight
+  , makeCssDeclarationPaddingTop
+  , makeCssDeclarationPosition
+  , makeCssDeclarationQuotes
+  , makeCssDeclarationRight
+  , makeCssDeclarationTextAlign
+  , makeCssDeclarationTextDecoration
+  , makeCssDeclarationTextIndent
+  , makeCssDeclarationTextShadow
+  , makeCssDeclarationTextTransform
+  , makeCssDeclarationTop
+  , makeCssDeclarationUnicodeBiDi
+  , makeCssDeclarationVerticalAlign
+  , makeCssDeclarationVisibility
+  , makeCssDeclarationWhitespace
+  , makeCssDeclarationWidth
+  , makeCssDeclarationWordSpacing
+  , makeCssDeclarationZIndex
+  , makeCssDeclarationXLink
+  , makeCssDeclarationXColSpan
+  , makeCssDeclarationXRowSpan
+  , makeCssDeclarationXLang
+  , makeCssDeclarationXImg
+  , makeCssDeclarationXTooltip
+  , makeCssDeclaration_LAST
   )
 where
 
@@ -40,107 +127,202 @@ where
 
 
 import Debug.Trace
+import Data.Text as T
+
+import Hello.Css.Value
 
 
 
 
 -- A property in css declaration, but with a value.
 data CssDeclaration
-  = CssDeclarationBackgroundAttachment         -- 0
-  | CssDeclarationBackgroundColor              -- 1
-  | CssDeclarationBackgroundImage              -- 2
-  | CssDeclarationBackgroundPosition           -- 3
-  | CssDeclarationBackgroundRepeat             -- 4
-  | CssDeclarationBorderBottomColor            -- 5
-  | CssDeclarationBorderBottomStyle            -- 6
-  | CssDeclarationBorderBottomWidth            -- 7
-  | CssDeclarationBorderCollapse               -- 8
-  | CssDeclarationBorderLeftColor              -- 9
-  | CssDeclarationBorderLeftStyle              -- 10
-  | CssDeclarationBorderLeftWidth              -- 11
-  | CssDeclarationBorderRightColor             -- 12
-  | CssDeclarationBorderRightStyle             -- 13
-  | CssDeclarationBorderRightWidth             -- 14
-  | CssDeclarationBorderSpacing                -- 15
-  | CssDeclarationBorderTopColor               -- 16
-  | CssDeclarationBorderTopStyle               -- 17
-  | CssDeclarationBorderTopWidth               -- 18
-  | CssDeclarationBottom                       -- 19
-  | CssDeclarationCaptionSide                  -- 20
-  | CssDeclarationClear                        -- 21
-  | CssDeclarationClip                         -- 22
-  | CssDeclarationColor                        -- 23
-  | CssDeclarationContent                      -- 24
-  | CssDeclarationCounterIncrement             -- 25
-  | CssDeclarationCounterReset                 -- 26
-  | CssDeclarationCursor                       -- 27
-  | CssDeclarationDirection                    -- 28
-  | CssDeclarationDisplay                      -- 29
-  | CssDeclarationEmptyCells                   -- 30
-  | CssDeclarationFloat                        -- 31
-  | CssDeclarationFontFamily                   -- 32
-  | CssDeclarationFontSize                     -- 33
-  | CssDeclarationFontSizeAdjust               -- 34
-  | CssDeclarationFontStretch                  -- 35
-  | CssDeclarationFontStyle                    -- 36
-  | CssDeclarationFontVariant                  -- 37
-  | CssDeclarationFontWeight                   -- 38
-  | CssDeclarationHeight                       -- 39
-  | CssDeclarationLeft                         -- 40
-  | CssDeclarationLetterSpacing                -- 41
-  | CssDeclarationLineHeight                   -- 42
-  | CssDeclarationListStyleImage               -- 43
-  | CssDeclarationListStylePosition            -- 44
-  | CssDeclarationListStyleType                -- 45
-  | CssDeclarationMarginBottom                 -- 46
-  | CssDeclarationMarginLeft                   -- 47
-  | CssDeclarationMarginRight                  -- 48
-  | CssDeclarationMarginTop                    -- 49
-  | CssDeclarationMarkerOffset                 -- 50
-  | CssDeclarationMarks                        -- 51
-  | CssDeclarationMaxHeight                    -- 52
-  | CssDeclarationMaxWidth                     -- 53
-  | CssDeclarationMinHeight                    -- 54
-  | CssDeclarationMinWidth                     -- 55
-  | CssDeclarationOutlineColor                 -- 56
-  | CssDeclarationOutlineStyle                 -- 57
-  | CssDeclarationOutlineWidth                 -- 58
-  | CssDeclarationOverflow                     -- 59
-  | CssDeclarationPaddingBottom                -- 60
-  | CssDeclarationPaddingLeft                  -- 61
-  | CssDeclarationPaddingRight                 -- 62
-  | CssDeclarationPaddingTop                   -- 63
-  | CssDeclarationPosition                     -- 64
-  | CssDeclarationQuotes                       -- 65
-  | CssDeclarationRight                        -- 66
-  | CssDeclarationTextAlign                    -- 67
-  | CssDeclarationTextDecoration               -- 68
-  | CssDeclarationTextIndent                   -- 69
-  | CssDeclarationTextShadow                   -- 70
-  | CssDeclarationTextTransform                -- 71
-  | CssDeclarationTop                          -- 72
-  | CssDeclarationUnicodeBiDi                  -- 73
-  | CssDeclarationVerticalAlign                -- 74
-  | CssDeclarationVisibility                   -- 75
-  | CssDeclarationWhitespace                   -- 76
-  | CssDeclarationWidth                        -- 77
-  | CssDeclarationWordSpacing                  -- 78
-  | CssDeclarationZIndex                       -- 79
+  = CssDeclarationBackgroundAttachment CssValue         -- 0
+  | CssDeclarationBackgroundColor CssValue              -- 1
+  | CssDeclarationBackgroundImage CssValue              -- 2
+  | CssDeclarationBackgroundPosition CssValue           -- 3
+  | CssDeclarationBackgroundRepeat CssValue             -- 4
+  | CssDeclarationBorderBottomColor CssValue            -- 5
+  | CssDeclarationBorderBottomStyle CssValue            -- 6
+  | CssDeclarationBorderBottomWidth CssValue            -- 7
+  | CssDeclarationBorderCollapse CssValue               -- 8
+  | CssDeclarationBorderLeftColor CssValue              -- 9
+  | CssDeclarationBorderLeftStyle CssValue              -- 10
+  | CssDeclarationBorderLeftWidth CssValue              -- 11
+  | CssDeclarationBorderRightColor CssValue             -- 12
+  | CssDeclarationBorderRightStyle CssValue             -- 13
+  | CssDeclarationBorderRightWidth CssValue             -- 14
+  | CssDeclarationBorderSpacing CssValue                -- 15
+  | CssDeclarationBorderTopColor CssValue               -- 16
+  | CssDeclarationBorderTopStyle CssValue               -- 17
+  | CssDeclarationBorderTopWidth CssValue               -- 18
+  | CssDeclarationBottom CssValue                       -- 19
+  | CssDeclarationCaptionSide CssValue                  -- 20
+  | CssDeclarationClear CssValue                        -- 21
+  | CssDeclarationClip CssValue                         -- 22
+  | CssDeclarationColor CssValue                        -- 23
+  | CssDeclarationContent CssValue                      -- 24
+  | CssDeclarationCounterIncrement CssValue             -- 25
+  | CssDeclarationCounterReset CssValue                 -- 26
+  | CssDeclarationCursor CssValue                       -- 27
+  | CssDeclarationDirection CssValue                    -- 28
+  | CssDeclarationDisplay CssValue                      -- 29
+  | CssDeclarationEmptyCells CssValue                   -- 30
+  | CssDeclarationFloat CssValue                        -- 31
+  | CssDeclarationFontFamily CssValue                   -- 32
+  | CssDeclarationFontSize CssValue                     -- 33
+  | CssDeclarationFontSizeAdjust CssValue               -- 34
+  | CssDeclarationFontStretch CssValue                  -- 35
+  | CssDeclarationFontStyle CssValue                    -- 36
+  | CssDeclarationFontVariant CssValue                  -- 37
+  | CssDeclarationFontWeight CssValue                   -- 38
+  | CssDeclarationHeight CssValue                       -- 39
+  | CssDeclarationLeft CssValue                         -- 40
+  | CssDeclarationLetterSpacing CssValue                -- 41
+  | CssDeclarationLineHeight CssValue                   -- 42
+  | CssDeclarationListStyleImage CssValue               -- 43
+  | CssDeclarationListStylePosition CssValue            -- 44
+  | CssDeclarationListStyleType CssValue                -- 45
+  | CssDeclarationMarginBottom CssValue                 -- 46
+  | CssDeclarationMarginLeft CssValue                   -- 47
+  | CssDeclarationMarginRight CssValue                  -- 48
+  | CssDeclarationMarginTop CssValue                    -- 49
+  | CssDeclarationMarkerOffset CssValue                 -- 50
+  | CssDeclarationMarks CssValue                        -- 51
+  | CssDeclarationMaxHeight CssValue                    -- 52
+  | CssDeclarationMaxWidth CssValue                     -- 53
+  | CssDeclarationMinHeight CssValue                    -- 54
+  | CssDeclarationMinWidth CssValue                     -- 55
+  | CssDeclarationOutlineColor CssValue                 -- 56
+  | CssDeclarationOutlineStyle CssValue                 -- 57
+  | CssDeclarationOutlineWidth CssValue                 -- 58
+  | CssDeclarationOverflow CssValue                     -- 59
+  | CssDeclarationPaddingBottom CssValue                -- 60
+  | CssDeclarationPaddingLeft CssValue                  -- 61
+  | CssDeclarationPaddingRight CssValue                 -- 62
+  | CssDeclarationPaddingTop CssValue                   -- 63
+  | CssDeclarationPosition CssValue                     -- 64
+  | CssDeclarationQuotes CssValue                       -- 65
+  | CssDeclarationRight CssValue                        -- 66
+  | CssDeclarationTextAlign CssValue                    -- 67
+  | CssDeclarationTextDecoration CssValue               -- 68
+  | CssDeclarationTextIndent CssValue                   -- 69
+  | CssDeclarationTextShadow CssValue                   -- 70
+  | CssDeclarationTextTransform CssValue                -- 71
+  | CssDeclarationTop CssValue                          -- 72
+  | CssDeclarationUnicodeBiDi CssValue                  -- 73
+  | CssDeclarationVerticalAlign CssValue                -- 74
+  | CssDeclarationVisibility CssValue                   -- 75
+  | CssDeclarationWhitespace CssValue                   -- 76
+  | CssDeclarationWidth CssValue                        -- 77
+  | CssDeclarationWordSpacing CssValue                  -- 78
+  | CssDeclarationZIndex CssValue                       -- 79
 
   -- Pseudo-property used internally by dillo/hello. Without it following
   -- a/href links won't work.
-  | CssDeclarationXLink                        -- 80
+  | CssDeclarationXLink CssValue                        -- 80
 
-  | CssDeclarationXColSpan                     -- 81
-  | CssDeclarationXRowSpan                     -- 82
+  | CssDeclarationXColSpan CssValue                     -- 81
+  | CssDeclarationXRowSpan CssValue                     -- 82
 
   -- Pseudo-property for "lang" or "xml:lang" attribute of html element.
-  | CssDeclarationXLang                        -- 83
+  | CssDeclarationXLang CssValue                        -- 83
 
   -- Pseudo-property used (probably) to index images in a html document.
-  | CssDeclarationXImg                         -- 84
-  | CssDeclarationXTooltip                     -- 85
+  | CssDeclarationXImg CssValue                         -- 84
+  | CssDeclarationXTooltip CssValue                     -- 85
 
-  | CssDeclaration_LAST                        -- 86
+  | CssDeclaration_LAST                                 -- 86
   deriving (Eq, Show)
+
+
+
+
+makeCssDeclarationBackgroundAttachment v = CssDeclarationBackgroundAttachment v
+makeCssDeclarationBackgroundColor v = CssDeclarationBackgroundColor v
+makeCssDeclarationBackgroundImage v = CssDeclarationBackgroundImage v
+makeCssDeclarationBackgroundPosition v = CssDeclarationBackgroundPosition v
+makeCssDeclarationBackgroundRepeat v = CssDeclarationBackgroundRepeat v
+makeCssDeclarationBorderBottomColor v = CssDeclarationBorderBottomColor v
+makeCssDeclarationBorderBottomStyle v = CssDeclarationBorderBottomStyle v
+makeCssDeclarationBorderBottomWidth v = CssDeclarationBorderBottomWidth v
+makeCssDeclarationBorderCollapse v = CssDeclarationBorderCollapse v
+makeCssDeclarationBorderLeftColor v = CssDeclarationBorderLeftColor v
+makeCssDeclarationBorderLeftStyle v = CssDeclarationBorderLeftStyle v
+makeCssDeclarationBorderLeftWidth v = CssDeclarationBorderLeftWidth v
+makeCssDeclarationBorderRightColor v = CssDeclarationBorderRightColor v
+makeCssDeclarationBorderRightStyle v = CssDeclarationBorderRightStyle v
+makeCssDeclarationBorderRightWidth v = CssDeclarationBorderRightWidth v
+makeCssDeclarationBorderSpacing v = CssDeclarationBorderSpacing v
+makeCssDeclarationBorderTopColor v = CssDeclarationBorderTopColor v
+makeCssDeclarationBorderTopStyle v = CssDeclarationBorderTopStyle v
+makeCssDeclarationBorderTopWidth v = CssDeclarationBorderTopWidth v
+makeCssDeclarationBottom v = CssDeclarationBottom v
+makeCssDeclarationCaptionSide v = CssDeclarationCaptionSide v
+makeCssDeclarationClear v = CssDeclarationClear v
+makeCssDeclarationClip v = CssDeclarationClip v
+makeCssDeclarationColor v = CssDeclarationColor v
+makeCssDeclarationContent v = CssDeclarationContent v
+makeCssDeclarationCounterIncrement v = CssDeclarationCounterIncrement v
+makeCssDeclarationCounterReset v = CssDeclarationCounterReset v
+makeCssDeclarationCursor v = CssDeclarationCursor v
+makeCssDeclarationDirection v = CssDeclarationDirection v
+makeCssDeclarationDisplay v = CssDeclarationDisplay v
+makeCssDeclarationEmptyCells v = CssDeclarationEmptyCells v
+makeCssDeclarationFloat v = CssDeclarationFloat v
+makeCssDeclarationFontFamily v = CssDeclarationFontFamily v
+makeCssDeclarationFontSize v = CssDeclarationFontSize v
+makeCssDeclarationFontSizeAdjust v = CssDeclarationFontSizeAdjust v
+makeCssDeclarationFontStretch v = CssDeclarationFontStretch v
+makeCssDeclarationFontStyle v = CssDeclarationFontStyle v
+makeCssDeclarationFontVariant v = CssDeclarationFontVariant v
+makeCssDeclarationFontWeight v = CssDeclarationFontWeight v
+makeCssDeclarationHeight v = CssDeclarationHeight v
+makeCssDeclarationLeft v = CssDeclarationLeft v
+makeCssDeclarationLetterSpacing v = CssDeclarationLetterSpacing v
+makeCssDeclarationLineHeight v = CssDeclarationLineHeight v
+makeCssDeclarationListStyleImage v = CssDeclarationListStyleImage v
+makeCssDeclarationListStylePosition v = CssDeclarationListStylePosition v
+makeCssDeclarationListStyleType v = CssDeclarationListStyleType v
+makeCssDeclarationMarginBottom v = CssDeclarationMarginBottom v
+makeCssDeclarationMarginLeft v = CssDeclarationMarginLeft v
+makeCssDeclarationMarginRight v = CssDeclarationMarginRight v
+makeCssDeclarationMarginTop v = CssDeclarationMarginTop v
+makeCssDeclarationMarkerOffset v = CssDeclarationMarkerOffset v
+makeCssDeclarationMarks v = CssDeclarationMarks v
+makeCssDeclarationMaxHeight v = CssDeclarationMaxHeight v
+makeCssDeclarationMaxWidth v = CssDeclarationMaxWidth v
+makeCssDeclarationMinHeight v = CssDeclarationMinHeight v
+makeCssDeclarationMinWidth v = CssDeclarationMinWidth v
+makeCssDeclarationOutlineColor v = CssDeclarationOutlineColor v
+makeCssDeclarationOutlineStyle v = CssDeclarationOutlineStyle v
+makeCssDeclarationOutlineWidth v = CssDeclarationOutlineWidth v
+makeCssDeclarationOverflow v = CssDeclarationOverflow v
+makeCssDeclarationPaddingBottom v = CssDeclarationPaddingBottom v
+makeCssDeclarationPaddingLeft v = CssDeclarationPaddingLeft v
+makeCssDeclarationPaddingRight v = CssDeclarationPaddingRight v
+makeCssDeclarationPaddingTop v = CssDeclarationPaddingTop v
+makeCssDeclarationPosition v = CssDeclarationPosition v
+makeCssDeclarationQuotes v = CssDeclarationQuotes v
+makeCssDeclarationRight v = CssDeclarationRight v
+makeCssDeclarationTextAlign v = CssDeclarationTextAlign v
+makeCssDeclarationTextDecoration v = CssDeclarationTextDecoration v
+makeCssDeclarationTextIndent v = CssDeclarationTextIndent v
+makeCssDeclarationTextShadow v = CssDeclarationTextShadow v
+makeCssDeclarationTextTransform v = CssDeclarationTextTransform v
+makeCssDeclarationTop v = CssDeclarationTop v
+makeCssDeclarationUnicodeBiDi v = CssDeclarationUnicodeBiDi v
+makeCssDeclarationVerticalAlign v = CssDeclarationVerticalAlign v
+makeCssDeclarationVisibility v = CssDeclarationVisibility v
+makeCssDeclarationWhitespace v = CssDeclarationWhitespace v
+makeCssDeclarationWidth v = CssDeclarationWidth v
+makeCssDeclarationWordSpacing v = CssDeclarationWordSpacing v
+makeCssDeclarationZIndex v = CssDeclarationZIndex v
+makeCssDeclarationXLink v = CssDeclarationXLink v
+makeCssDeclarationXColSpan v = CssDeclarationXColSpan v
+makeCssDeclarationXRowSpan v = CssDeclarationXRowSpan v
+makeCssDeclarationXLang v = CssDeclarationXLang v
+makeCssDeclarationXImg v = CssDeclarationXImg v
+makeCssDeclarationXTooltip v = CssDeclarationXTooltip v
+makeCssDeclaration_LAST _ = CssDeclaration_LAST
+
 

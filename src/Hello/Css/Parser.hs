@@ -86,7 +86,6 @@ module Hello.Css.Parser(
 
                        , CssCombinator (..)
 
-                       , CssValue (..)
                        , CssDeclWrapper (..)
                        , parseDeclaration
                        , parseDeclarationWrapper2
@@ -125,6 +124,7 @@ import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
 import Hello.Css.Selector
+import Hello.Css.Value
 import Colors
 import HtmlTag
 
@@ -157,137 +157,107 @@ css_word_spacing_enum_vals          = ["normal"]
 
 
 
-data CssValue =
-    CssValueTypeInt Int             -- This type is only used internally, for x-* properties.
-  | CssValueTypeEnum Int            -- Value is i, if represented by enum_symbols[i].
-  | CssValueTypeMultiEnum Int       -- For all enum_symbols[i], 1 << i are combined.
-  | CssValueTypeLengthPercent CssDistance   -- <length> or <percentage>. Represented by CssDistance.
-  | CssValueTypeLength CssDistance          -- <length>, represented as CssDistance.
-                                    -- Note: In some cases, CSS_TYPE_LENGTH
-                                    -- is used instead of
-                                    -- CSS_TYPE_LENGTH_PERCENTAGE, only
-                                    -- because Dw cannot handle percentages
-                                    -- in this particular case (e.g.
-                                    -- 'margin-*-width').
-  | CssValueTypeSignedLength CssDistance    -- As CSS_TYPE_LENGTH but may be negative.
-  | CssValueTypeLengthPercentNumber CssDistance -- <length> or <percentage>, or <number>
-  | CssValueTypeAuto CssDistance            -- Represented as CssDistance of type CssNumericAuto
-  | CssValueTypeColor Int           -- Represented as integer.
-  | CssValueTypeFontWeight Int      -- This very special and only used by 'font-weight'
-  | CssValueTypeString T.Text       -- <string>
-  | CssValueTypeStringList [T.Text] -- List of symbols, which are directly
-                                    -- copied (as opposed to
-                                    -- CSS_PROPERTY_DATA_TYPE_ENUM and
-                                    -- CSS_PROPERTY_DATA_TYPE_MULTI_ENUM).
-                                    -- Used for 'font-family'.
-  | CssValueTypeURI T.Text          -- <uri>
-  | CssValueTypeBgPosition          -- TODO: add values to this constructor
-  | CssValueTypeUnused              -- Not yet used. Will itself get unused some day.
-  deriving (Show, Eq)
-
-
-
 
 -- Items with empty list of functions are not supported by this implementation.
 cssPropertyInfo = M.fromList [
-     ("background-attachment",  (CssDeclarationBackgroundAttachment, [ tokensAsValueEnum ],                                                css_background_attachment_enum_vals))
-   , ("background-color",       (CssDeclarationBackgroundColor,      [ tokensAsValueColor ],                                               []))
+     ("background-attachment",  (makeCssDeclarationBackgroundAttachment, [ tokensAsValueEnum ],                                                css_background_attachment_enum_vals))
+   , ("background-color",       (makeCssDeclarationBackgroundColor,      [ tokensAsValueColor ],                                               []))
 
-   , ("background-image",       (CssDeclarationBackgroundImage,      [ declValueAsURI ],                                                   []))
-   , ("background-position",    (CssDeclarationBackgroundPosition,   [ tokensAsValueBgPosition ],                                          []))
-   , ("background-repeat",      (CssDeclarationBackgroundRepeat,     [ tokensAsValueEnum ],                                                css_background_repeat_enum_vals))
-   , ("border-bottom-color",    (CssDeclarationBorderBottomColor,    [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
-   , ("border-bottom-style",    (CssDeclarationBorderBottomStyle,    [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
-   , ("border-bottom-width",    (CssDeclarationBorderBottomWidth,    [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
-   , ("border-collapse",        (CssDeclarationBorderCollapse,       [ tokensAsValueEnum ],                                                css_border_collapse_enum_vals))
-   , ("border-left-color",      (CssDeclarationBorderLeftColor,      [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
-   , ("border-left-style",      (CssDeclarationBorderLeftStyle,      [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
-   , ("border-left-width",      (CssDeclarationBorderLeftWidth,      [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
-   , ("border-right-color",     (CssDeclarationBorderRightColor,     [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
-   , ("border-right-style",     (CssDeclarationBorderRightStyle,     [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
-   , ("border-rigth-width",     (CssDeclarationBorderRightWidth,     [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
-   , ("border-spacing",         (CssDeclarationBorderSpacing,        [ declValueAsLength ],                                                []))
-   , ("border-top-color",       (CssDeclarationBorderTopColor,       [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
-   , ("border-top-style",       (CssDeclarationBorderTopStyle,       [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
-   , ("border-top-width",       (CssDeclarationBorderTopWidth,       [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
-   , ("bottom",                 (CssDeclarationBottom,               [],                                                                   []))
-   , ("caption-side",           (CssDeclarationCaptionSide,          [],                                                                   []))
-   , ("clear",                  (CssDeclarationClear,                [],                                                                   []))
-   , ("clip",                   (CssDeclarationClip,                 [],                                                                   []))
-   , ("color",                  (CssDeclarationColor,                [ tokensAsValueColor ],                                               []))
-   , ("content",                (CssDeclarationContent,              [ tokensAsValueString ],                                              []))
-   , ("counter-increment",      (CssDeclarationCounterIncrement,     [],                                                                   []))
-   , ("counter-reset",          (CssDeclarationCounterReset,         [],                                                                   []))
-   , ("cursor",                 (CssDeclarationCursor,               [ tokensAsValueEnum ],                                                css_cursor_enum_vals))
-   , ("direction",              (CssDeclarationDirection,            [],                                                                   []))
-   , ("display",                (CssDeclarationDisplay,              [ tokensAsValueEnum ],                                                css_display_enum_vals))
-   , ("empty-cells",            (CssDeclarationEmptyCells,           [],                                                                   []))
-   , ("float",                  (CssDeclarationFloat,                [],                                                                   []))
-   , ("font-family",            (CssDeclarationFontFamily,           [ tokensAsValueStringList ],                                          []))
-   , ("font-size",              (CssDeclarationFontSize,             [ tokensAsValueEnum, declValueAsLengthPercent ],                      css_font_size_enum_vals))
-   , ("font-size-adjust",       (CssDeclarationFontSizeAdjust,       [],                                                                   []))
-   , ("font-stretch",           (CssDeclarationFontStretch,          [],                                                                   []))
-   , ("font-style",             (CssDeclarationFontStyle,            [ tokensAsValueEnum ],                                                css_font_style_enum_vals))
-   , ("font-variant",           (CssDeclarationFontVariant,          [ tokensAsValueEnum ],                                                css_font_variant_enum_vals))
-   , ("font-weight",            (CssDeclarationFontWeight,           [ tokensAsValueEnum, declValueAsFontWeightInteger ],                  css_font_weight_enum_vals))
-   , ("height",                 (CssDeclarationHeight,               [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
-   , ("left",                   (CssDeclarationLeft,                 [],                                                                   []))
-   , ("letter-spacing",         (CssDeclarationLetterSpacing,        [ tokensAsValueEnum, declValueAsSignedLength ],                       css_letter_spacing_enum_vals))
-   , ("line-height",            (CssDeclarationLineHeight,           [ tokensAsValueEnum, declValueAsLengthPercentNumber ],                css_line_height_enum_vals))
-   , ("list-style-image",       (CssDeclarationListStyleImage,       [],                                                                   []))
-   , ("list-style-position",    (CssDeclarationListStylePosition,    [ tokensAsValueEnum ],                                                css_list_style_position_enum_vals))
-   , ("list-style-type",        (CssDeclarationListStyleType,        [ tokensAsValueEnum ],                                                css_list_style_type_enum_vals))
-   , ("margin-bottom",          (CssDeclarationMarginBottom,         [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
-   , ("margin-left",            (CssDeclarationMarginLeft,           [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
-   , ("margin-right",           (CssDeclarationMarginRight,          [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
-   , ("margin-top",             (CssDeclarationMarginTop,            [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
-   , ("marker-offset",          (CssDeclarationMarkerOffset,         [],                                                                   []))
-   , ("marks",                  (CssDeclarationMarks,                [],                                                                   []))
-   , ("max-height",             (CssDeclarationMaxHeight,            [],                                                                   []))
-   , ("max-width",              (CssDeclarationMaxWidth,             [],                                                                   []))
-   , ("min-height",             (CssDeclarationMinHeight,            [],                                                                   []))
-   , ("min-width",              (CssDeclarationMinWidth,             [],                                                                   []))
-   , ("outline-color",          (CssDeclarationOutlineColor,         [],                                                                   []))
-   , ("outline-style",          (CssDeclarationOutlineStyle,         [],                                                                   []))
-   , ("outline-width",          (CssDeclarationOutlineWidth,         [],                                                                   []))
-   , ("overflow",               (CssDeclarationOverflow,             [],                                                                   []))
-   , ("padding-bottom",         (CssDeclarationPaddingBottom,        [ declValueAsLength ],                                                []))
-   , ("padding-left",           (CssDeclarationPaddingLeft,          [ declValueAsLength ],                                                []))
-   , ("padding-right",          (CssDeclarationPaddingRight,         [ declValueAsLength ],                                                []))
-   , ("padding-top",            (CssDeclarationPaddingTop,           [ declValueAsLength ],                                                []))
-   , ("position",               (CssDeclarationPosition,             [],                                                                   []))
-   , ("quotes",                 (CssDeclarationQuotes,               [],                                                                   []))
-   , ("right",                  (CssDeclarationRight,                [],                                                                   []))
-   , ("text-align",             (CssDeclarationTextAlign,            [ tokensAsValueEnum ],                                                css_text_align_enum_vals))
+   , ("background-image",       (makeCssDeclarationBackgroundImage,      [ declValueAsURI ],                                                   []))
+   , ("background-position",    (makeCssDeclarationBackgroundPosition,   [ tokensAsValueBgPosition ],                                          []))
+   , ("background-repeat",      (makeCssDeclarationBackgroundRepeat,     [ tokensAsValueEnum ],                                                css_background_repeat_enum_vals))
+   , ("border-bottom-color",    (makeCssDeclarationBorderBottomColor,    [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
+   , ("border-bottom-style",    (makeCssDeclarationBorderBottomStyle,    [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-bottom-width",    (makeCssDeclarationBorderBottomWidth,    [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
+   , ("border-collapse",        (makeCssDeclarationBorderCollapse,       [ tokensAsValueEnum ],                                                css_border_collapse_enum_vals))
+   , ("border-left-color",      (makeCssDeclarationBorderLeftColor,      [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
+   , ("border-left-style",      (makeCssDeclarationBorderLeftStyle,      [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-left-width",      (makeCssDeclarationBorderLeftWidth,      [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
+   , ("border-right-color",     (makeCssDeclarationBorderRightColor,     [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
+   , ("border-right-style",     (makeCssDeclarationBorderRightStyle,     [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-rigth-width",     (makeCssDeclarationBorderRightWidth,     [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
+   , ("border-spacing",         (makeCssDeclarationBorderSpacing,        [ declValueAsLength ],                                                []))
+   , ("border-top-color",       (makeCssDeclarationBorderTopColor,       [ tokensAsValueEnum, tokensAsValueColor ],                            css_border_color_enum_vals))
+   , ("border-top-style",       (makeCssDeclarationBorderTopStyle,       [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-top-width",       (makeCssDeclarationBorderTopWidth,       [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
+   , ("bottom",                 (makeCssDeclarationBottom,               [],                                                                   []))
+   , ("caption-side",           (makeCssDeclarationCaptionSide,          [],                                                                   []))
+   , ("clear",                  (makeCssDeclarationClear,                [],                                                                   []))
+   , ("clip",                   (makeCssDeclarationClip,                 [],                                                                   []))
+   , ("color",                  (makeCssDeclarationColor,                [ tokensAsValueColor ],                                               []))
+   , ("content",                (makeCssDeclarationContent,              [ tokensAsValueString ],                                              []))
+   , ("counter-increment",      (makeCssDeclarationCounterIncrement,     [],                                                                   []))
+   , ("counter-reset",          (makeCssDeclarationCounterReset,         [],                                                                   []))
+   , ("cursor",                 (makeCssDeclarationCursor,               [ tokensAsValueEnum ],                                                css_cursor_enum_vals))
+   , ("direction",              (makeCssDeclarationDirection,            [],                                                                   []))
+   , ("display",                (makeCssDeclarationDisplay,              [ tokensAsValueEnum ],                                                css_display_enum_vals))
+   , ("empty-cells",            (makeCssDeclarationEmptyCells,           [],                                                                   []))
+   , ("float",                  (makeCssDeclarationFloat,                [],                                                                   []))
+   , ("font-family",            (makeCssDeclarationFontFamily,           [ tokensAsValueStringList ],                                          []))
+   , ("font-size",              (makeCssDeclarationFontSize,             [ tokensAsValueEnum, declValueAsLengthPercent ],                      css_font_size_enum_vals))
+   , ("font-size-adjust",       (makeCssDeclarationFontSizeAdjust,       [],                                                                   []))
+   , ("font-stretch",           (makeCssDeclarationFontStretch,          [],                                                                   []))
+   , ("font-style",             (makeCssDeclarationFontStyle,            [ tokensAsValueEnum ],                                                css_font_style_enum_vals))
+   , ("font-variant",           (makeCssDeclarationFontVariant,          [ tokensAsValueEnum ],                                                css_font_variant_enum_vals))
+   , ("font-weight",            (makeCssDeclarationFontWeight,           [ tokensAsValueEnum, declValueAsFontWeightInteger ],                  css_font_weight_enum_vals))
+   , ("height",                 (makeCssDeclarationHeight,               [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
+   , ("left",                   (makeCssDeclarationLeft,                 [],                                                                   []))
+   , ("letter-spacing",         (makeCssDeclarationLetterSpacing,        [ tokensAsValueEnum, declValueAsSignedLength ],                       css_letter_spacing_enum_vals))
+   , ("line-height",            (makeCssDeclarationLineHeight,           [ tokensAsValueEnum, declValueAsLengthPercentNumber ],                css_line_height_enum_vals))
+   , ("list-style-image",       (makeCssDeclarationListStyleImage,       [],                                                                   []))
+   , ("list-style-position",    (makeCssDeclarationListStylePosition,    [ tokensAsValueEnum ],                                                css_list_style_position_enum_vals))
+   , ("list-style-type",        (makeCssDeclarationListStyleType,        [ tokensAsValueEnum ],                                                css_list_style_type_enum_vals))
+   , ("margin-bottom",          (makeCssDeclarationMarginBottom,         [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
+   , ("margin-left",            (makeCssDeclarationMarginLeft,           [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
+   , ("margin-right",           (makeCssDeclarationMarginRight,          [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
+   , ("margin-top",             (makeCssDeclarationMarginTop,            [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
+   , ("marker-offset",          (makeCssDeclarationMarkerOffset,         [],                                                                   []))
+   , ("marks",                  (makeCssDeclarationMarks,                [],                                                                   []))
+   , ("max-height",             (makeCssDeclarationMaxHeight,            [],                                                                   []))
+   , ("max-width",              (makeCssDeclarationMaxWidth,             [],                                                                   []))
+   , ("min-height",             (makeCssDeclarationMinHeight,            [],                                                                   []))
+   , ("min-width",              (makeCssDeclarationMinWidth,             [],                                                                   []))
+   , ("outline-color",          (makeCssDeclarationOutlineColor,         [],                                                                   []))
+   , ("outline-style",          (makeCssDeclarationOutlineStyle,         [],                                                                   []))
+   , ("outline-width",          (makeCssDeclarationOutlineWidth,         [],                                                                   []))
+   , ("overflow",               (makeCssDeclarationOverflow,             [],                                                                   []))
+   , ("padding-bottom",         (makeCssDeclarationPaddingBottom,        [ declValueAsLength ],                                                []))
+   , ("padding-left",           (makeCssDeclarationPaddingLeft,          [ declValueAsLength ],                                                []))
+   , ("padding-right",          (makeCssDeclarationPaddingRight,         [ declValueAsLength ],                                                []))
+   , ("padding-top",            (makeCssDeclarationPaddingTop,           [ declValueAsLength ],                                                []))
+   , ("position",               (makeCssDeclarationPosition,             [],                                                                   []))
+   , ("quotes",                 (makeCssDeclarationQuotes,               [],                                                                   []))
+   , ("right",                  (makeCssDeclarationRight,                [],                                                                   []))
+   , ("text-align",             (makeCssDeclarationTextAlign,            [ tokensAsValueEnum ],                                                css_text_align_enum_vals))
 
      -- https://www.w3.org/TR/CSS22/text.html#lining-striking-props
      -- https://www.w3.org/TR/css-text-decor-3/
      -- TODO: add support for "none" value
-   , ("text-decoration",        (CssDeclarationTextDecoration,       [ tokensAsValueMultiEnum ],                                           css_text_decoration_enum_vals))
+   , ("text-decoration",        (makeCssDeclarationTextDecoration,       [ tokensAsValueMultiEnum ],                                           css_text_decoration_enum_vals))
 
-   , ("text-indent",            (CssDeclarationTextIndent,           [ declValueAsLengthPercent ],                                         []))
-   , ("text-shadow",            (CssDeclarationTextShadow,           [],                                                                   []))
-   , ("text-transform",         (CssDeclarationTextTransform,        [ tokensAsValueEnum ],                                                css_text_transform_enum_vals))
-   , ("top",                    (CssDeclarationTop,                  [],                                                                   []))
-   , ("unicode-bidi",           (CssDeclarationUnicodeBiDi,          [],                                                                   []))
-   , ("vertical-align",         (CssDeclarationVerticalAlign,        [ tokensAsValueEnum ],                                                css_vertical_align_vals))
-   , ("visibility",             (CssDeclarationVisibility,           [],                                                                   []))
-   , ("white-space",            (CssDeclarationWhitespace,           [ tokensAsValueEnum ],                                                css_white_space_vals))
-   , ("width",                  (CssDeclarationWidth,                [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
-   , ("word-spacing",           (CssDeclarationWordSpacing,          [ tokensAsValueEnum, declValueAsSignedLength ],                       css_word_spacing_enum_vals))
-   , ("z-index",                (CssDeclarationZIndex,               [],                                                                   []))
+   , ("text-indent",            (makeCssDeclarationTextIndent,           [ declValueAsLengthPercent ],                                         []))
+   , ("text-shadow",            (makeCssDeclarationTextShadow,           [],                                                                   []))
+   , ("text-transform",         (makeCssDeclarationTextTransform,        [ tokensAsValueEnum ],                                                css_text_transform_enum_vals))
+   , ("top",                    (makeCssDeclarationTop,                  [],                                                                   []))
+   , ("unicode-bidi",           (makeCssDeclarationUnicodeBiDi,          [],                                                                   []))
+   , ("vertical-align",         (makeCssDeclarationVerticalAlign,        [ tokensAsValueEnum ],                                                css_vertical_align_vals))
+   , ("visibility",             (makeCssDeclarationVisibility,           [],                                                                   []))
+   , ("white-space",            (makeCssDeclarationWhitespace,           [ tokensAsValueEnum ],                                                css_white_space_vals))
+   , ("width",                  (makeCssDeclarationWidth,                [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
+   , ("word-spacing",           (makeCssDeclarationWordSpacing,          [ tokensAsValueEnum, declValueAsSignedLength ],                       css_word_spacing_enum_vals))
+   , ("z-index",                (makeCssDeclarationZIndex,               [],                                                                   []))
 
    -- These are extensions for internal use, and never parsed by CSS parser.
    -- Related CSS "pseudo-properties" are set from HTML parser.
-   , ("x-link",                 (CssDeclarationXLink,                [ declValueAsInt ],                                                   []))
+   , ("x-link",                 (makeCssDeclarationXLink,                [ declValueAsInt ],                                                   []))
    -- TODO: verify whether we need x-colspan and x-rowspan.
-   , ("x-colspan",              (CssDeclarationXColSpan,             [ declValueAsInt ],                                                   []))
-   , ("x-rowspan",              (CssDeclarationXRowSpan,             [ declValueAsInt ],                                                   []))
-   , ("x-lang",                 (CssDeclarationXLang,                [],                                                                   []))
-   , ("x-img",                  (CssDeclarationXImg,                 [],                                                                   []))
-   , ("x-tooltip",              (CssDeclarationXTooltip,             [],                                                                   []))
+   , ("x-colspan",              (makeCssDeclarationXColSpan,             [ declValueAsInt ],                                                   []))
+   , ("x-rowspan",              (makeCssDeclarationXRowSpan,             [ declValueAsInt ],                                                   []))
+   , ("x-lang",                 (makeCssDeclarationXLang,                [],                                                                   []))
+   , ("x-img",                  (makeCssDeclarationXImg,                 [],                                                                   []))
+   , ("x-tooltip",              (makeCssDeclarationXTooltip,             [],                                                                   []))
    -- TODO: verify if we still need "last" property.
-   , ("last",                   (CssDeclaration_LAST,                [],                                                                   []))
+   , ("last",                   (makeCssDeclaration_LAST,                [],                                                                   []))
 
    ] :: M.Map T.Text CssPropertyInfo
 
@@ -295,7 +265,7 @@ cssPropertyInfo = M.fromList [
 
 
 type CssPropertyValueFun = (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-type CssPropertyInfo = (CssDeclaration, [CssPropertyValueFun], [T.Text])
+type CssPropertyInfo = (CssValue -> CssDeclaration, [CssPropertyValueFun], [T.Text])
 
 
 
@@ -1192,7 +1162,6 @@ removeSpaceTokens [] acc                             = acc
 
 data CssDeclWrapper = CssDeclWrapper
   { property  :: CssDeclaration
-  , declValue :: CssValue
 
   -- https://www.w3.org/TR/css-syntax-3
   --
@@ -1211,7 +1180,6 @@ data CssDeclWrapper = CssDeclWrapper
 
 defaultDeclaration = CssDeclWrapper
   { property  = CssDeclaration_LAST -- TODO: make it "CssDeclarationInvalid'; TODO: somewhere there is a code that does not set property2 field.
-  , declValue = CssValueTypeUnused
   , important = False
   }
 
@@ -1238,10 +1206,10 @@ defaultCssDeclarationSet = CssDeclarationSet
 parseDeclarationNormal :: (CssParser, CssToken) -> CssPropertyInfo -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationNormal (parser, token) pinfo =
   case parseDeclValue (parser, token) enums functions  of
-    ((p, t), Just v)  -> ((p, t), [defaultDeclaration{property = property, declValue = v}])
+    ((p, t), Just v)  -> ((p, t), [defaultDeclaration{property = propMaker v}])
     ((p, t), Nothing) -> ((p, t), [])
   where
-    property  = tripletFst pinfo
+    propMaker = tripletFst pinfo
     functions = tripletSnd pinfo
     enums     = tripletThrd pinfo
 
@@ -1271,10 +1239,10 @@ declValueAsInt (parser, token) enums = ((parser, token), Just (CssValueTypeInt 0
 parseDeclarationMultiple :: (CssParser, CssToken) -> [CssPropertyInfo] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationMultiple (parser, token) (pinfo:pinfos) ds =
   case parseDeclValue (parser, token) enums functions of
-    ((p, t), Just v)  -> parseDeclarationMultiple (p, t) pinfos (ds ++ [defaultDeclaration{property = prop, declValue = v}])
+    ((p, t), Just v)  -> parseDeclarationMultiple (p, t) pinfos (ds ++ [defaultDeclaration{property = propMaker v}])
     ((p, t), Nothing) -> parseDeclarationMultiple (p, t) pinfos ds
   where
-    prop      = tripletFst pinfo
+    propMaker = tripletFst pinfo
     functions = tripletSnd pinfo
     enums     = tripletThrd pinfo
 parseDeclarationMultiple (parser, token) [] ds                = ((parser, token), ds)
@@ -1285,22 +1253,22 @@ parseDeclarationMultiple (parser, token) [] ds                = ((parser, token)
 parseDeclarationDirections :: (CssParser, CssToken) -> [CssPropertyInfo] -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationDirections (parser, token) pinfos@(pt:pr:pb:pl:ps) = ((outParser, outToken), ds)
   where ds = case vals of
-          (top:right:bottom:left:[]) -> [ defaultDeclaration{property = tripletFst pt, declValue = top}
-                                        , defaultDeclaration{property = tripletFst pr, declValue = right}
-                                        , defaultDeclaration{property = tripletFst pb, declValue = bottom}
-                                        , defaultDeclaration{property = tripletFst pl, declValue = left}]
-          (top:rl:bottom:[])         -> [ defaultDeclaration{property = tripletFst pt, declValue = top}
-                                        , defaultDeclaration{property = tripletFst pr, declValue = rl}
-                                        , defaultDeclaration{property = tripletFst pb, declValue = bottom}
-                                        , defaultDeclaration{property = tripletFst pl, declValue = rl}]
-          (tb:rl:[])                 -> [ defaultDeclaration{property = tripletFst pt, declValue = tb}
-                                        , defaultDeclaration{property = tripletFst pr, declValue = rl}
-                                        , defaultDeclaration{property = tripletFst pb, declValue = tb}
-                                        , defaultDeclaration{property = tripletFst pl, declValue = rl}]
-          (v:[])                     -> [ defaultDeclaration{property = tripletFst pt, declValue = v}
-                                        , defaultDeclaration{property = tripletFst pr, declValue = v}
-                                        , defaultDeclaration{property = tripletFst pb, declValue = v}
-                                        , defaultDeclaration{property = tripletFst pl, declValue = v}]
+          (top:right:bottom:left:[]) -> [ defaultDeclaration{property = tripletFst pt $ top    }
+                                        , defaultDeclaration{property = tripletFst pr $ right  }
+                                        , defaultDeclaration{property = tripletFst pb $ bottom }
+                                        , defaultDeclaration{property = tripletFst pl $ left   }]
+          (top:rl:bottom:[])         -> [ defaultDeclaration{property = tripletFst pt $ top    }
+                                        , defaultDeclaration{property = tripletFst pr $ rl     }
+                                        , defaultDeclaration{property = tripletFst pb $ bottom }
+                                        , defaultDeclaration{property = tripletFst pl $ rl     }]
+          (tb:rl:[])                 -> [ defaultDeclaration{property = tripletFst pt $ tb     }
+                                        , defaultDeclaration{property = tripletFst pr $ rl     }
+                                        , defaultDeclaration{property = tripletFst pb $ tb     }
+                                        , defaultDeclaration{property = tripletFst pl $ rl     }]
+          (v:[])                     -> [ defaultDeclaration{property = tripletFst pt $ v      }
+                                        , defaultDeclaration{property = tripletFst pr $ v      }
+                                        , defaultDeclaration{property = tripletFst pb $ v      }
+                                        , defaultDeclaration{property = tripletFst pl $ v      }]
           []                         -> []
         ((outParser, outToken), vals) = matchOrderedTokens (parser, token) pinfos []
 parseDeclarationDirections (parser, token) _ = ((parser, token), [])
@@ -1330,16 +1298,16 @@ matchOrderedTokens (parser, token) [] values               = ((parser, token), v
 parseDeclarationBorder :: (CssParser, CssToken) -> [CssPropertyInfo] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationBorder (parser, token) (top:right:bottom:left:pinfos) ds =
   case parseDeclValue (parser, token) enums functions  of
-    ((p, t), Just v)  -> parseDeclarationBorder (p, t) pinfos (ds ++ [ defaultDeclaration{property = tripletFst top,    declValue = v}
-                                                                     , defaultDeclaration{property = tripletFst right,  declValue = v}
-                                                                     , defaultDeclaration{property = tripletFst bottom, declValue = v}
-                                                                     , defaultDeclaration{property = tripletFst left,   declValue = v}])
+    ((p, t), Just v)  -> parseDeclarationBorder (p, t) pinfos (ds ++ [ defaultDeclaration{property = tripletFst top $ v    }
+                                                                     , defaultDeclaration{property = tripletFst right $ v  }
+                                                                     , defaultDeclaration{property = tripletFst bottom $ v }
+                                                                     , defaultDeclaration{property = tripletFst left $ v   }])
 
     ((p, t), Nothing) -> parseDeclarationBorder (p, t) pinfos ds
   where
     functions = tripletSnd top
     enums     = tripletThrd top
-parseDeclarationBorder (parser, token) [] ds                                 = ((parser, token), ds)
+parseDeclarationBorder (parser, token) [] ds                             = ((parser, token), ds)
 
 
 
@@ -1400,7 +1368,7 @@ tryShorthand (parser, token) sinfo = parseDeclarationShorthand (parser, token) p
     fun :: T.Text -> CssPropertyInfo
     fun property = case M.lookup property cssPropertyInfo of
                      Just pinfo -> pinfo
-                     Nothing    -> (CssDeclaration_LAST, [], [])
+                     Nothing    -> (makeCssDeclaration_LAST, [], [])
 
 
 
@@ -1473,8 +1441,10 @@ declarationsSetUpdateOrAdd declSet decl =
     seq = items declSet
 
     newSafe :: CssDeclarationSet -> CssDeclWrapper -> Bool
-    newSafe declSet decl = (isSafe declSet)
-                           && (not $ elem (property decl) [CssDeclarationDisplay, CssDeclarationBackgroundImage])
+    newSafe declSet decl = (isSafe declSet) && case property decl of
+                                                 CssDeclarationDisplay _         -> False
+                                                 CssDeclarationBackgroundImage _ -> False
+                                                 otherwise                       -> True
 
 
 

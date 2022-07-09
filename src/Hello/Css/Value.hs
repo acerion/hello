@@ -35,17 +35,50 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 module Hello.Css.Value
   (
-    distanceFromValue
+    CssValue (..)
+  , distanceFromValue
   )
-  where
+where
 
 
 
 
 import Debug.Trace
+import Data.Text as T
 
 import Hello.Css.Distance
-import Hello.Css.Parser
+
+
+
+
+
+data CssValue =
+    CssValueTypeInt Int             -- This type is only used internally, for x-* properties.
+  | CssValueTypeEnum Int            -- Value is i, if represented by enum_symbols[i].
+  | CssValueTypeMultiEnum Int       -- For all enum_symbols[i], 1 << i are combined.
+  | CssValueTypeLengthPercent CssDistance   -- <length> or <percentage>. Represented by CssDistance.
+  | CssValueTypeLength CssDistance          -- <length>, represented as CssDistance.
+                                    -- Note: In some cases, CSS_TYPE_LENGTH
+                                    -- is used instead of
+                                    -- CSS_TYPE_LENGTH_PERCENTAGE, only
+                                    -- because Dw cannot handle percentages
+                                    -- in this particular case (e.g.
+                                    -- 'margin-*-width').
+  | CssValueTypeSignedLength CssDistance    -- As CSS_TYPE_LENGTH but may be negative.
+  | CssValueTypeLengthPercentNumber CssDistance -- <length> or <percentage>, or <number>
+  | CssValueTypeAuto CssDistance            -- Represented as CssDistance of type CssNumericAuto
+  | CssValueTypeColor Int           -- Represented as integer.
+  | CssValueTypeFontWeight Int      -- This very special and only used by 'font-weight'
+  | CssValueTypeString T.Text       -- <string>
+  | CssValueTypeStringList [T.Text] -- List of symbols, which are directly
+                                    -- copied (as opposed to
+                                    -- CSS_PROPERTY_DATA_TYPE_ENUM and
+                                    -- CSS_PROPERTY_DATA_TYPE_MULTI_ENUM).
+                                    -- Used for 'font-family'.
+  | CssValueTypeURI T.Text          -- <uri>
+  | CssValueTypeBgPosition          -- TODO: add values to this constructor
+  | CssValueTypeUnused              -- Not yet used. Will itself get unused some day.
+  deriving (Show, Eq)
 
 
 
