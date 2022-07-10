@@ -1111,7 +1111,7 @@ findPropertyIndex decl = case decl of
 allDeclMakers :: [(CssValue -> CssDeclaration, Int)]
 allDeclMakers =
   [ ( (\v -> CssDeclarationBackgroundAttachment v), 0 )
-  , ( (\v -> CssDeclarationBackgroundColor v), 1 )
+  , ( (\v -> CssDeclarationBackgroundImage v), 1 ) -- TODO: CssDeclarationBackgroundColor
   , ( (\v -> CssDeclarationBackgroundImage v), 2 )
   , ( (\v -> CssDeclarationBackgroundPosition v), 3 )
   , ( (\v -> CssDeclarationBackgroundRepeat v), 4 )

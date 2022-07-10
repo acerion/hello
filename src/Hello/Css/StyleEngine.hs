@@ -457,7 +457,7 @@ styleEngineApplyStyleToGivenNode declSet prefs display parentStyleAttrs styleAtt
     setRemainingAttrs decls display styleAttrs =
       case S.null decls of
         True  -> styleAttrs
-        False -> setRemainingAttrs xs display $ styleEngineSetStyle (property x) display styleAttrs
+        False -> setRemainingAttrs xs display $ styleEngineSetStyle (property x) display parentStyleAttrs styleAttrs
           where
             x  :: CssDeclWrapper       = S.index decls 0
             xs :: S.Seq CssDeclWrapper = S.drop 1 decls
@@ -465,8 +465,8 @@ styleEngineApplyStyleToGivenNode declSet prefs display parentStyleAttrs styleAtt
 
 
 
-styleEngineSetStyle :: CssDeclaration -> Display -> StyleAttrs -> StyleAttrs
-styleEngineSetStyle declaration display styleAttrs =
+styleEngineSetStyle :: CssDeclaration -> Display -> StyleAttrs -> StyleAttrs -> StyleAttrs
+styleEngineSetStyle declaration display parentStyleAttrs styleAttrs =
 {-
 TODO: re-implement these missing cases from C++. They were not re-implemented
 yet because a full support for them in dillo seems to be missing or broken.
@@ -500,7 +500,7 @@ yet because a full support for them in dillo seems to be missing or broken.
 
   -- Probably because of code like this someone invented lenses.
   case declaration of
-    CssDeclarationBackgroundColor value   -> styleAttrs { styleBackgroundColor = getBackgroundColor value }
+    CssDeclarationBackgroundColor value   -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs value }
     CssDeclarationBorderCollapse value    -> styleAttrs { styleBorderCollapse  = getBorderCollapse value }
     CssDeclarationBorderTopStyle value    -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyle value }}
     CssDeclarationBorderRightStyle value  -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyle value }}
@@ -724,9 +724,9 @@ getColor value = case value of
 
 
 
-getBackgroundColor value = case value of
-                             CssValueTypeColor c -> c
-                             otherwise           -> 0xffffff -- White
+getBackgroundColor parentStyleAttrs value = case value of
+                                              CssBackgroundColorInherit -> styleBackgroundColor parentStyleAttrs
+                                              CssBackgroundColor c      -> c
 
 
 

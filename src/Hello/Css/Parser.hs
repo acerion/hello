@@ -133,6 +133,7 @@ import HtmlTag
 
 
 css_background_attachment_enum_vals = ["scroll", "fixed"]
+css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
 css_border_collapse_enum_vals       = ["separate", "collapse"]
 css_border_color_enum_vals          = ["transparent"]
@@ -162,7 +163,7 @@ css_word_spacing_enum_vals          = ["normal"]
 -- Items with empty list of functions are not supported by this implementation.
 cssPropertyInfo = M.fromList [
      ("background-attachment",  (makeCssDeclarationBackgroundAttachment, [ tokensAsValueEnum ],                                                css_background_attachment_enum_vals))
-   , ("background-color",       (makeCssDeclarationBackgroundColor,      [ tokensAsValueColor ],                                               []))
+   , ("background-color",       (makeCssDeclarationBackgroundColor,      [ tokensAsValueEnumString, tokensAsValueColor ],                      css_background_color_enum_vals))
 
    , ("background-image",       (makeCssDeclarationBackgroundImage,      [ declValueAsURI ],                                                   []))
    , ("background-position",    (makeCssDeclarationBackgroundPosition,   [ tokensAsValueBgPosition ],                                          []))
@@ -461,6 +462,26 @@ tokensAsValueEnum (parser, token@(CssTokIdent sym)) enums =
 tokensAsValueEnum (parser, token) _                     = ((parser, token), Nothing)
                                                           -- TODO: is this the right place to reject everything else other than symbol?
                                                           -- Shouldn't we do it somewhere else?
+
+
+
+
+-- Interpret current token as one of allowed values and save it as value of
+-- type CssValueTypeString
+--
+-- In case of enum value there is no need to consume more than current token
+-- to build the Enum, but for consistency with other similar functions the
+-- function is still called "tokensAs...".
+tokensAsValueEnumString :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+tokensAsValueEnumString (parser, token@(CssTokIdent sym)) enums =
+  case L.elemIndex sym' enums of -- TODO: perhaps 'elem' would be faster?
+    Just idx -> (nextToken1 parser, Just (CssValueTypeString sym'))
+    Nothing  -> ((parser, token), Nothing)
+  where
+    sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
+tokensAsValueEnumString (parser, token) _                       = ((parser, token), Nothing)
+                                                                  -- TODO: is this the right place to reject everything else other than symbol?
+                                                                  -- Shouldn't we do it somewhere else?
 
 
 

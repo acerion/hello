@@ -34,6 +34,9 @@ Copyright assignment from css.cc:
 module Hello.Css.Declaration
   (
     CssDeclaration (..)
+
+  , CssBackgroundColor (..)
+
   , makeCssDeclarationBackgroundAttachment
   , makeCssDeclarationBackgroundColor
   , makeCssDeclarationBackgroundImage
@@ -140,7 +143,7 @@ import Hello.Css.Value
 -- A property in css declaration, but with a value.
 data CssDeclaration
   = CssDeclarationBackgroundAttachment CssValue         -- 0
-  | CssDeclarationBackgroundColor CssValue              -- 1
+  | CssDeclarationBackgroundColor CssBackgroundColor    -- 1
   | CssDeclarationBackgroundImage CssValue              -- 2
   | CssDeclarationBackgroundPosition CssValue           -- 3
   | CssDeclarationBackgroundRepeat CssValue             -- 4
@@ -240,9 +243,24 @@ data CssDeclaration
 
 
 
-
 makeCssDeclarationBackgroundAttachment v = CssDeclarationBackgroundAttachment v
-makeCssDeclarationBackgroundColor v = CssDeclarationBackgroundColor v
+
+
+
+
+data CssBackgroundColor
+  = CssBackgroundColorInherit
+  | CssBackgroundColor Int
+  deriving (Eq, Show, Data)
+
+makeCssDeclarationBackgroundColor v = case v of
+                                        CssValueTypeString "inherit" -> CssDeclarationBackgroundColor CssBackgroundColorInherit
+                                        CssValueTypeColor c          -> CssDeclarationBackgroundColor $ CssBackgroundColor c
+                                        otherwise                    -> CssDeclaration_LAST
+
+
+
+
 makeCssDeclarationBackgroundImage v = CssDeclarationBackgroundImage v
 makeCssDeclarationBackgroundPosition v = CssDeclarationBackgroundPosition v
 makeCssDeclarationBackgroundRepeat v = CssDeclarationBackgroundRepeat v
