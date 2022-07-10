@@ -27,6 +27,8 @@ import Test.HUnit
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
 import Hello.Css.Parser
+import Hello.Css.Value
+
 import Hello.Utils
 
 
