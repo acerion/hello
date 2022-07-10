@@ -70,6 +70,8 @@ import Hello.Css.Distance
 import Hello.Css.Parser
 import Hello.Css.Value
 
+import Hello.Display
+
 import Hello.Dw.DwLength
 import Hello.Dw.FontAttrs
 import Hello.Dw.Style
@@ -92,8 +94,8 @@ import Hello.Utils
 -- theory for any html element) is accepting arguments specific to font (font
 -- size and font X heigth arguments). is it because of EM and EX distance
 -- types?
-styleEngineComputeAbsoluteLengthValue :: CssDistance -> FontAttrs -> Int -> Float -> Float -> Maybe Float
-styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue dpiX dpiY =
+styleEngineComputeAbsoluteLengthValue :: CssDistance -> FontAttrs -> Int -> Display -> Maybe Float
+styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display =
   case distance of
     CssDistanceAbsPx d     -> Just d
     CssDistanceAbsMm d     -> Just (fromIntegral (roundInt (d * dpmm)))
@@ -115,7 +117,7 @@ styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue dpiX dpi
     --
     -- TODO: is this assumption always correct? Data in
     -- src/Hello/Tests/Css/StyleEngine.hs shows that it's not correct.
-    dpmm = dpiX / 25.4
+    dpmm = (dpiX display) / 25.4
 
 
 
@@ -196,8 +198,8 @@ css_FONT_SIZE_X_SMALL  = 8
 
 
 
-styleEngineSetFontSize' :: CssValue -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
-styleEngineSetFontSize' value prefs dpiX dpiY parentFontAttrs fontAttrs = styleEngineSetFontSize input prefs dpiX dpiY parentFontAttrs fontAttrs
+styleEngineSetFontSize' :: CssValue -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
+styleEngineSetFontSize' value prefs display parentFontAttrs fontAttrs = styleEngineSetFontSize input prefs display parentFontAttrs fontAttrs
   where
     input = case value of
               CssValueTypeEnum enum              -> integerToFontSize enum
@@ -219,11 +221,11 @@ styleEngineSetFontSize' value prefs dpiX dpiY parentFontAttrs fontAttrs = styleE
 
 -- https://developer.mozilla.org/pl/docs/Web/CSS/font-size
 -- https://www.w3schools.com/cssref/pr_font_font-size.asp
-styleEngineSetFontSize :: Maybe FontSize -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
-styleEngineSetFontSize input prefs dpiX dpiY parentFontAttrs fontAttrs = clipSize (setAbsSize input fontAttrs)
+styleEngineSetFontSize :: Maybe FontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
+styleEngineSetFontSize input prefs display parentFontAttrs fontAttrs = clipSize (setAbsSize input fontAttrs)
   where
     setAbsSize :: Maybe FontSize -> FontAttrs -> FontAttrs
-    setAbsSize input fontAttrs = case fontSizeToAbs' input prefs dpiX dpiY fontAttrs parentFontAttrs of
+    setAbsSize input fontAttrs = case fontSizeToAbs' input prefs display fontAttrs parentFontAttrs of
                                    Just size -> fontAttrs { fontSize = size }
                                    otherwise -> fontAttrs
 
@@ -235,31 +237,31 @@ styleEngineSetFontSize input prefs dpiX dpiY parentFontAttrs fontAttrs = clipSiz
 
 
 
-fontSizeToAbs :: FontSize -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> Maybe Int
-fontSizeToAbs input prefs dpiX dpiY fontAttrs parentFontAttrs = case input of
-                                                                  FontSizeXXSmall   -> Just $ roundInt ( 8.1  * (prefsFontFactor prefs))
-                                                                  FontSizeXSmall    -> Just $ roundInt ( 9.7  * (prefsFontFactor prefs))
-                                                                  FontSizeSmall     -> Just $ roundInt (11.7  * (prefsFontFactor prefs))
-                                                                  FontSizeMedium    -> Just $ roundInt (14.0  * (prefsFontFactor prefs))
-                                                                  FontSizeLarge     -> Just $ roundInt (16.8  * (prefsFontFactor prefs))
-                                                                  FontSizeXLarge    -> Just $ roundInt (20.2  * (prefsFontFactor prefs))
-                                                                  FontSizeXXLarge   -> Just $ roundInt (24.2  * (prefsFontFactor prefs))
-                                                                  FontSizeSmaller   -> Just $ roundInt ( 0.83 * (fromIntegral . fontSize $ fontAttrs))
-                                                                  FontSizeLarger    -> Just $ roundInt ( 1.2  * (fromIntegral . fontSize $ fontAttrs))
-                                                                  FontSize distance -> case size of
-                                                                                         Just s  -> Just $ roundInt s
-                                                                                         Nothing -> Nothing
-                                                                    where
-                                                                      size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue dpiX dpiY
-                                                                      referenceValue = fontSize parentFontAttrs
+fontSizeToAbs :: FontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> Maybe Int
+fontSizeToAbs input prefs display fontAttrs parentFontAttrs = case input of
+                                                                FontSizeXXSmall   -> Just $ roundInt ( 8.1  * (prefsFontFactor prefs))
+                                                                FontSizeXSmall    -> Just $ roundInt ( 9.7  * (prefsFontFactor prefs))
+                                                                FontSizeSmall     -> Just $ roundInt (11.7  * (prefsFontFactor prefs))
+                                                                FontSizeMedium    -> Just $ roundInt (14.0  * (prefsFontFactor prefs))
+                                                                FontSizeLarge     -> Just $ roundInt (16.8  * (prefsFontFactor prefs))
+                                                                FontSizeXLarge    -> Just $ roundInt (20.2  * (prefsFontFactor prefs))
+                                                                FontSizeXXLarge   -> Just $ roundInt (24.2  * (prefsFontFactor prefs))
+                                                                FontSizeSmaller   -> Just $ roundInt ( 0.83 * (fromIntegral . fontSize $ fontAttrs))
+                                                                FontSizeLarger    -> Just $ roundInt ( 1.2  * (fromIntegral . fontSize $ fontAttrs))
+                                                                FontSize distance -> case size of
+                                                                                       Just s  -> Just $ roundInt s
+                                                                                       Nothing -> Nothing
+                                                                  where
+                                                                    size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue display
+                                                                    referenceValue = fontSize parentFontAttrs
 
 
 
 
-fontSizeToAbs' :: Maybe FontSize -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> Maybe Int
-fontSizeToAbs' input prefs dpiX dpiY fontAttrs parentFontAttrs = case input of
-                                                                   Just s -> fontSizeToAbs s prefs dpiX dpiY fontAttrs parentFontAttrs
-                                                                   otherwise -> Nothing
+fontSizeToAbs' :: Maybe FontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> Maybe Int
+fontSizeToAbs' input prefs display fontAttrs parentFontAttrs = case input of
+                                                                 Just s -> fontSizeToAbs s prefs display fontAttrs parentFontAttrs
+                                                                 otherwise -> Nothing
 
 
 
@@ -276,8 +278,8 @@ styleEngineSetFontStyle value fontAttrs = case value of
 
 css_LETTER_SPACING_NORMAL = 0
 
-styleEngineSetLetterSpacing :: CssValue -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
-styleEngineSetLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs = clipSpacing . setSpacing $ fontAttrs
+styleEngineSetLetterSpacing :: CssValue -> Display -> FontAttrs -> FontAttrs -> FontAttrs
+styleEngineSetLetterSpacing value display parentFontAttrs fontAttrs = clipSpacing . setSpacing $ fontAttrs
   where
     setSpacing :: FontAttrs -> FontAttrs
     setSpacing fontAttrs = case value of
@@ -287,7 +289,7 @@ styleEngineSetLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs = clipSpac
                                                                     Just s  -> fontAttrs { fontLetterSpacing = roundInt s }
                                                                     Nothing -> fontAttrs
                                where
-                                 size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue dpiX dpiY
+                                 size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue display
                                  referenceValue = fontSize parentFontAttrs
                              otherwise                         -> fontAttrs
 
@@ -311,21 +313,21 @@ styleEngineSetFontVariant value fontAttrs = case value of
 
 
 
-styleEngineApplyStyleToFont :: CssDeclarationSet -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
-styleEngineApplyStyleToFont declSet prefs dpiX dpiY parentFontAttrs fontAttrs = apply (items declSet) prefs dpiX dpiY parentFontAttrs fontAttrs
+styleEngineApplyStyleToFont :: CssDeclarationSet -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
+styleEngineApplyStyleToFont declSet prefs display parentFontAttrs fontAttrs = apply (items declSet) prefs display parentFontAttrs fontAttrs
   where
-    apply :: S.Seq CssDeclWrapper -> Preferences -> Float -> Float -> FontAttrs -> FontAttrs -> FontAttrs
-    apply decls prefs dpiX dpiY parentFontAttrs fontAttrs =
+    apply :: S.Seq CssDeclWrapper -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
+    apply decls prefs display parentFontAttrs fontAttrs =
       case S.null decls of
         True -> fontAttrs
         False -> case property x of
-                   CssDeclarationFontFamily value    -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
-                   CssDeclarationFontSize value      -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontSize' value prefs dpiX dpiY parentFontAttrs fontAttrs
-                   CssDeclarationFontStyle value     -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontStyle value fontAttrs
-                   CssDeclarationFontVariant value   -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontVariant value fontAttrs
-                   CssDeclarationFontWeight value    -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetFontWeight value fontAttrs
-                   CssDeclarationLetterSpacing value -> apply xs prefs dpiX dpiY parentFontAttrs $ styleEngineSetLetterSpacing value dpiX dpiY parentFontAttrs fontAttrs
-                   otherwise                         -> apply xs prefs dpiX dpiY parentFontAttrs $ fontAttrs
+                   CssDeclarationFontFamily value    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
+                   CssDeclarationFontSize value      -> apply xs prefs display parentFontAttrs $ styleEngineSetFontSize' value prefs display parentFontAttrs fontAttrs
+                   CssDeclarationFontStyle value     -> apply xs prefs display parentFontAttrs $ styleEngineSetFontStyle value fontAttrs
+                   CssDeclarationFontVariant value   -> apply xs prefs display parentFontAttrs $ styleEngineSetFontVariant value fontAttrs
+                   CssDeclarationFontWeight value    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight value fontAttrs
+                   CssDeclarationLetterSpacing value -> apply xs prefs display parentFontAttrs $ styleEngineSetLetterSpacing value display parentFontAttrs fontAttrs
+                   otherwise                         -> apply xs prefs display parentFontAttrs $ fontAttrs
           where
             x  :: CssDeclWrapper       = S.index decls 0
             xs :: S.Seq CssDeclWrapper = S.drop 1 decls
@@ -337,20 +339,20 @@ css_BORDER_WIDTH_THIN   = 0
 css_BORDER_WIDTH_MEDIUM = 1
 css_BORDER_WIDTH_THICK  = 2
 
-styleEngineComputeBorderWidth :: CssValue -> Float -> Float -> FontAttrs -> Maybe Int
-styleEngineComputeBorderWidth value dpiX dpiY fontAttrs =
+styleEngineComputeBorderWidth :: CssValue -> Display -> FontAttrs -> Maybe Int
+styleEngineComputeBorderWidth value display fontAttrs =
   case value of
     CssValueTypeEnum i | i == css_BORDER_WIDTH_THIN   -> Just 1
                        | i == css_BORDER_WIDTH_MEDIUM -> Just 2
                        | i == css_BORDER_WIDTH_THICK  -> Just 3
                        | otherwise                    -> Nothing
-    CssValueTypeLength distance         -> fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY
+    CssValueTypeLength distance         -> fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display
                                            -- TODO: re-think value returned by
                                            -- styleEngineComputeAbsoluteLengthValue:
                                            -- it most probably should be Int, not
                                            -- Float. Then the Float->int conversion
                                            -- won't be necessary.
-    CssValueTypeLengthPercent distance -> fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY
+    CssValueTypeLengthPercent distance -> fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display
     otherwise                          -> trace ("[EE] unhandled css value type " ++ (show value)) Nothing -- TODO: handle all value types
 
 
@@ -372,15 +374,15 @@ styleEngineSetBorderStyle property value borderStyle
 
 
 
-styleEngineSetBorderWidth :: Int -> CssValue -> Float -> Float -> FontAttrs -> StyleBorderWidth -> StyleBorderWidth
-styleEngineSetBorderWidth property value dpiX dpiY fontAttrs borderWidth
+styleEngineSetBorderWidth :: Int -> CssValue -> Display -> FontAttrs -> StyleBorderWidth -> StyleBorderWidth
+styleEngineSetBorderWidth property value display fontAttrs borderWidth
   | property == cssDeclPropertyBorderTopWidth    = borderWidth { styleBorderWidthTop    = width }
   | property == cssDeclPropertyBorderRightWidth  = borderWidth { styleBorderWidthRight  = width }
   | property == cssDeclPropertyBorderBottomWidth = borderWidth { styleBorderWidthBottom = width }
   | property == cssDeclPropertyBorderLeftWidth   = borderWidth { styleBorderWidthLeft   = width }
   | otherwise                                    = borderWidth
   where
-    width = case styleEngineComputeBorderWidth value dpiX dpiY fontAttrs of
+    width = case styleEngineComputeBorderWidth value display fontAttrs of
               -- TODO: another place where Maybe returned by Compute function
               -- causes unnecessary trouble.
               Just x  -> x
@@ -389,8 +391,8 @@ styleEngineSetBorderWidth property value dpiX dpiY fontAttrs borderWidth
 
 
 
-styleEngineSetMargin :: Int -> CssValue -> Float -> Float -> FontAttrs -> StyleMargin -> StyleMargin
-styleEngineSetMargin property value dpiX dpiY fontAttrs margin
+styleEngineSetMargin :: Int -> CssValue -> Display -> FontAttrs -> StyleMargin -> StyleMargin
+styleEngineSetMargin property value display fontAttrs margin
   | property == cssDeclPropertyMarginBottom = margin { styleMarginBottom = clip m }
   | property == cssDeclPropertyMarginLeft   = margin { styleMarginLeft   = clip m }
   | property == cssDeclPropertyMarginRight  = margin { styleMarginRight  = clip m }
@@ -398,7 +400,7 @@ styleEngineSetMargin property value dpiX dpiY fontAttrs margin
   | otherwise                               = margin
   where
     clip x = if x > 0 then x else 0   -- TODO: fix negative margins in dw/*
-    m = case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+    m = case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
           -- TODO: another place where Maybe returned by Compute function
           -- causes unnecessary trouble.
           Just x  -> roundInt x
@@ -411,15 +413,15 @@ styleEngineSetMargin property value dpiX dpiY fontAttrs margin
 
 
 
-styleEngineSetPadding :: Int -> CssValue -> Float -> Float -> FontAttrs -> StylePadding -> StylePadding
-styleEngineSetPadding property value dpiX dpiY fontAttrs padding
+styleEngineSetPadding :: Int -> CssValue -> Display -> FontAttrs -> StylePadding -> StylePadding
+styleEngineSetPadding property value display fontAttrs padding
   | property == cssDeclPropertyPaddingBottom = padding { stylePaddingBottom = p }
   | property == cssDeclPropertyPaddingLeft   = padding { stylePaddingLeft   = p }
   | property == cssDeclPropertyPaddingRight  = padding { stylePaddingRight  = p }
   | property == cssDeclPropertyPaddingTop    = padding { stylePaddingTop    = p }
   | otherwise                                = padding
   where
-    p = case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+    p = case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
           -- TODO: another place where Maybe returned by Compute function
           -- causes unnecessary trouble.
           Just x  -> roundInt x
@@ -432,30 +434,30 @@ styleEngineSetPadding property value dpiX dpiY fontAttrs padding
 
 
 
-styleEngineCalculateDwLength :: CssDistance -> FontAttrs -> Float -> Float -> Maybe DwLength
-styleEngineCalculateDwLength distance fontAttrs dpiX dpiY =
+styleEngineCalculateDwLength :: CssDistance -> FontAttrs -> Display -> Maybe DwLength
+styleEngineCalculateDwLength distance fontAttrs display =
   case distance of
     CssNumericPercentage v -> Just $ createPercentageDwLength (realToFrac v)
     CssNumericAuto _       -> Just createAutoDwLength -- TODO: why the value of Auto is ignored?
-    otherwise              -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+    otherwise              -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
                                 Just val -> Just $ createAbsoluteDwLength (round val) -- TODO: a type of Float -> Int function to be verified here
                                 Nothing  -> Nothing
 
 
 
 
-styleEngineApplyStyleToGivenNode :: CssDeclarationSet -> Preferences -> Float -> Float -> StyleAttrs -> StyleAttrs -> StyleAttrs
-styleEngineApplyStyleToGivenNode declSet prefs dpiX dpiY parentStyleAttrs styleAttrs = styleAttrs'
+styleEngineApplyStyleToGivenNode :: CssDeclarationSet -> Preferences -> Display -> StyleAttrs -> StyleAttrs -> StyleAttrs
+styleEngineApplyStyleToGivenNode declSet prefs display parentStyleAttrs styleAttrs = styleAttrs'
   where
     -- Determine font first so it can be used to resolve relative lengths of other elements.
-    fontAttrs'  = styleEngineApplyStyleToFont declSet prefs dpiX dpiY (styleFontAttrs parentStyleAttrs) (styleFontAttrs styleAttrs)
-    styleAttrs' = setRemainingAttrs (items declSet) dpiX dpiY styleAttrs { styleFontAttrs = fontAttrs' }
+    fontAttrs'  = styleEngineApplyStyleToFont declSet prefs display (styleFontAttrs parentStyleAttrs) (styleFontAttrs styleAttrs)
+    styleAttrs' = setRemainingAttrs (items declSet) display styleAttrs { styleFontAttrs = fontAttrs' }
 
-    setRemainingAttrs :: S.Seq CssDeclWrapper -> Float -> Float -> StyleAttrs -> StyleAttrs
-    setRemainingAttrs decls dpiX dpiY styleAttrs =
+    setRemainingAttrs :: S.Seq CssDeclWrapper -> Display -> StyleAttrs -> StyleAttrs
+    setRemainingAttrs decls display styleAttrs =
       case S.null decls of
         True  -> styleAttrs
-        False -> setRemainingAttrs xs dpiX dpiY $ styleEngineSetStyle (property x) dpiX dpiY styleAttrs
+        False -> setRemainingAttrs xs display $ styleEngineSetStyle (property x) display styleAttrs
           where
             x  :: CssDeclWrapper       = S.index decls 0
             xs :: S.Seq CssDeclWrapper = S.drop 1 decls
@@ -463,8 +465,8 @@ styleEngineApplyStyleToGivenNode declSet prefs dpiX dpiY parentStyleAttrs styleA
 
 
 
-styleEngineSetStyle :: CssDeclaration -> Float -> Float -> StyleAttrs -> StyleAttrs
-styleEngineSetStyle declaration dpiX dpiY styleAttrs =
+styleEngineSetStyle :: CssDeclaration -> Display -> StyleAttrs -> StyleAttrs
+styleEngineSetStyle declaration display styleAttrs =
 {-
 TODO: re-implement these missing cases from C++. They were not re-implemented
 yet because a full support for them in dillo seems to be missing or broken.
@@ -504,39 +506,39 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationBorderRightStyle value  -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyle value }}
     CssDeclarationBorderBottomStyle value -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyle value }}
     CssDeclarationBorderLeftStyle value   -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleLeft   = getBorderStyle value }}
-    CssDeclarationBorderTopWidth value    -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthTop    = getBorderWidth value dpiX dpiY fontAttrs }}
-    CssDeclarationBorderRightWidth value  -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidth value dpiX dpiY fontAttrs }}
-    CssDeclarationBorderBottomWidth value -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidth value dpiX dpiY fontAttrs }}
-    CssDeclarationBorderLeftWidth value   -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidth value dpiX dpiY fontAttrs }}
+    CssDeclarationBorderTopWidth value    -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthTop    = getBorderWidth value display fontAttrs }}
+    CssDeclarationBorderRightWidth value  -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidth value display fontAttrs }}
+    CssDeclarationBorderBottomWidth value -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidth value display fontAttrs }}
+    CssDeclarationBorderLeftWidth value   -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidth value display fontAttrs }}
     CssDeclarationBorderTopColor value    -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorTop    = getBorderColor value }}
     CssDeclarationBorderRightColor value  -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorRight  = getBorderColor value }}
     CssDeclarationBorderBottomColor value -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColor value }}
     CssDeclarationBorderLeftColor value   -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColor value }}
-    CssDeclarationMarginBottom value      -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin (distance value) fontAttrs dpiX dpiY }}
-    CssDeclarationMarginLeft value        -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin (distance value) fontAttrs dpiX dpiY }}
-    CssDeclarationMarginRight value       -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin (distance value) fontAttrs dpiX dpiY }}
-    CssDeclarationMarginTop value         -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin (distance value) fontAttrs dpiX dpiY }}
-    CssDeclarationPaddingBottom value     -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding (distance value) fontAttrs dpiX dpiY }}
-    CssDeclarationPaddingLeft value       -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding (distance value) fontAttrs dpiX dpiY }}
-    CssDeclarationPaddingRight value      -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding (distance value) fontAttrs dpiX dpiY }}
-    CssDeclarationPaddingTop value        -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding (distance value) fontAttrs dpiX dpiY }}
+    CssDeclarationMarginBottom value      -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin (distance value) fontAttrs display }}
+    CssDeclarationMarginLeft value        -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin (distance value) fontAttrs display }}
+    CssDeclarationMarginRight value       -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin (distance value) fontAttrs display }}
+    CssDeclarationMarginTop value         -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin (distance value) fontAttrs display }}
+    CssDeclarationPaddingBottom value     -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding (distance value) fontAttrs display }}
+    CssDeclarationPaddingLeft value       -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding (distance value) fontAttrs display }}
+    CssDeclarationPaddingRight value      -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding (distance value) fontAttrs display }}
+    CssDeclarationPaddingTop value        -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding (distance value) fontAttrs display }}
     CssDeclarationTextAlign value         -> styleAttrs { styleTextAlign      = getTextAlign value }
     CssDeclarationTextDecoration value    -> styleAttrs { styleTextDecoration = getTextDecoration value (styleTextDecoration styleAttrs) }
-    CssDeclarationTextIndent value        -> styleAttrs { styleTextIndent     = getTextIndent (distance value) fontAttrs dpiX dpiY }
+    CssDeclarationTextIndent value        -> styleAttrs { styleTextIndent     = getTextIndent (distance value) fontAttrs display }
     CssDeclarationTextTransform value     -> styleAttrs { styleTextTransform  = getTextTransform value }
     CssDeclarationVerticalAlign value     -> styleAttrs { styleVerticalAlign  = getVerticalAlign value }
     CssDeclarationWhitespace value        -> styleAttrs { styleWhiteSpace     = getWhiteSpace value }
-    CssDeclarationWidth value             -> styleAttrs { styleWidth          = getWidthOrHeight (distance value) fontAttrs dpiX dpiY }
-    CssDeclarationHeight value            -> styleAttrs { styleHeight         = getWidthOrHeight (distance value) fontAttrs dpiX dpiY }
+    CssDeclarationWidth value             -> styleAttrs { styleWidth          = getWidthOrHeight (distance value) fontAttrs display }
+    CssDeclarationHeight value            -> styleAttrs { styleHeight         = getWidthOrHeight (distance value) fontAttrs display }
     CssDeclarationListStylePosition value -> styleAttrs { styleListStylePosition    = getListStylePosition value }
     CssDeclarationListStyleType value     -> styleAttrs { styleListStyleType        = getListStyleType value }
-    CssDeclarationLineHeight value        -> styleAttrs { styleLineHeight           = getLineHeight value (distance value) fontAttrs dpiX dpiY }
+    CssDeclarationLineHeight value        -> styleAttrs { styleLineHeight           = getLineHeight value (distance value) fontAttrs display }
     CssDeclarationDisplay value           -> styleAttrs { styleDisplay              = getDisplay value }
     CssDeclarationColor value             -> styleAttrs { styleColor                = getColor value }
     CssDeclarationCursor value            -> styleAttrs { styleCursor               = getCursor value }
-    CssDeclarationBorderSpacing value     -> styleAttrs { styleHBorderSpacing = getBorderSpacing (distance value) fontAttrs dpiX dpiY,
-                                                          styleVBorderSpacing = getBorderSpacing (distance value) fontAttrs dpiX dpiY }
-    CssDeclarationWordSpacing value       -> styleAttrs { styleWordSpacing    = getWordSpacig value (distance value) fontAttrs dpiX dpiY }
+    CssDeclarationBorderSpacing value     -> styleAttrs { styleHBorderSpacing = getBorderSpacing (distance value) fontAttrs display,
+                                                          styleVBorderSpacing = getBorderSpacing (distance value) fontAttrs display }
+    CssDeclarationWordSpacing value       -> styleAttrs { styleWordSpacing    = getWordSpacig value (distance value) fontAttrs display }
     CssDeclarationXLink value             -> styleAttrs { styleXLink          = getXLink value }
     CssDeclarationXLang value             -> styleAttrs { styleXLang          = getXLang value }
     CssDeclarationXImg value              -> styleAttrs { styleXImg           = getXImg value }
@@ -571,11 +573,11 @@ getBorderStyle value = case value of
 
 
 
-getBorderWidth value dpiX dpiY fontAttrs = case styleEngineComputeBorderWidth value dpiX dpiY fontAttrs of
-                                             -- TODO: another place where Maybe returned by Compute function
-                                             -- causes unnecessary trouble.
-                                             Just x  -> x
-                                             Nothing -> 0
+getBorderWidth value display fontAttrs = case styleEngineComputeBorderWidth value display fontAttrs of
+                                           -- TODO: another place where Maybe returned by Compute function
+                                           -- causes unnecessary trouble.
+                                           Just x  -> x
+                                           Nothing -> 0
 
 
 
@@ -602,8 +604,8 @@ getTextDecoration value decoration = decoration .|. case value of
 
 
 
-getTextIndent distance fontAttrs dpiX dpiY =
-  case styleEngineCalculateDwLength distance fontAttrs dpiX dpiY of
+getTextIndent distance fontAttrs display =
+  case styleEngineCalculateDwLength distance fontAttrs display of
     Just length -> length
     Nothing     -> createAbsoluteDwLength 0 -- "0" seems to be a sane default
 
@@ -617,9 +619,9 @@ getTextTransform value = case value of
 
 
 
-getMargin distance fontAttrs dpiX dpiY = clip . calculate $ distance
+getMargin distance fontAttrs display = clip . calculate $ distance
   where
-    calculate dist = case styleEngineComputeAbsoluteLengthValue dist fontAttrs 0 dpiX dpiY of
+    calculate dist = case styleEngineComputeAbsoluteLengthValue dist fontAttrs 0 display of
                        -- TODO: another place where Maybe returned by Compute function
                        -- causes unnecessary trouble.
                        Just x  -> roundInt x
@@ -629,8 +631,8 @@ getMargin distance fontAttrs dpiX dpiY = clip . calculate $ distance
 
 
 
-getPadding distance fontAttrs dpiX dpiY =
-  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+getPadding distance fontAttrs display =
+  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
     -- TODO: another place where Maybe returned by Compute function
     -- causes unnecessary trouble.
     Just x  -> roundInt x
@@ -652,8 +654,8 @@ getWhiteSpace value = case value of
 
 
 
-getWidthOrHeight distance fontAttrs dpiX dpiY =
-  case styleEngineCalculateDwLength distance fontAttrs dpiX dpiY of
+getWidthOrHeight distance fontAttrs display =
+  case styleEngineCalculateDwLength distance fontAttrs display of
     Just length -> length
     Nothing     -> createPercentageDwLength 100 -- "100%" seems to be a sane default; TODO: is it really
 
@@ -675,12 +677,12 @@ getListStyleType value = case value of
 
 
 
-getLineHeight value distance fontAttrs dpiX dpiY =
+getLineHeight value distance fontAttrs display =
   case value of
     CssValueTypeEnum _                -> createAutoDwLength -- only valid enum value is "normal"
     CssValueTypeLengthPercentNumber d -> case d of -- TODO: 'd' duplicates 'distance' function arg
                                            CssNumericNone f -> createPercentageDwLength . realToFrac $ f
-                                           otherwise        -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue dpiX dpiY of
+                                           otherwise        -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display of
                                                                  Just len -> createAbsoluteDwLength . roundInt $ len
                                                                  Nothing  -> createAutoDwLength -- TODO: is it the best choice?
     otherwise                         -> createAutoDwLength -- TODO: is it safe default?
@@ -738,8 +740,8 @@ getCursor value = case value of
 -- TODO: border spacing uses the same value for H and V border spacing. If
 -- CSS file specifies two separate values for H and V, the second one is
 -- ignored.
-getBorderSpacing distance fontAttrs dpiX dpiY =
-  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+getBorderSpacing distance fontAttrs display =
+  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
     Just val -> round val -- TODO: a type of Float -> Int function to be verified here
     Nothing  -> 0         -- TODO: is it a good default?
 
@@ -749,16 +751,16 @@ getBorderSpacing distance fontAttrs dpiX dpiY =
 
 css_WORD_SPACING_NORMAL = 0
 
-getWordSpacig :: CssValue -> CssDistance -> FontAttrs -> Float -> Float -> Int
-getWordSpacig value distance fontAttrs dpiX dpiY = clipSpacing (getSpacing value distance fontAttrs dpiX dpiY)
+getWordSpacig :: CssValue -> CssDistance -> FontAttrs -> Display -> Int
+getWordSpacig value distance fontAttrs display = clipSpacing (getSpacing value distance fontAttrs display)
 
   where
-    getSpacing :: CssValue -> CssDistance -> FontAttrs -> Float -> Float -> Int
-    getSpacing value distance fontAttrs dpiX dpiY =
+    getSpacing :: CssValue -> CssDistance -> FontAttrs -> Display -> Int
+    getSpacing value distance fontAttrs display =
       case value of
         CssValueTypeEnum css_WORD_SPACING_NORMAL -> 0
         CssValueTypeEnum _                       -> 0 -- TODO: implement remaining enum values
-        otherwise                                ->  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 dpiX dpiY of
+        otherwise                                ->  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
                                                        Just val -> round val -- TODO: a type of Float -> Int function to be verified here
                                                        Nothing  -> 0         -- TODO: is it a good default?
 

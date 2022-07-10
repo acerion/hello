@@ -31,6 +31,8 @@ import Hello.Css.StyleEngine
 import Hello.Css.Tokenizer
 import Hello.Css.Value
 
+import Hello.Display
+
 import Hello.Dw.FontAttrs
 
 import Hello.Preferences
@@ -44,10 +46,14 @@ data ValueTestType = ValueTestType
     dist           :: CssDistance
   , fontAttrs      :: FontAttrs
   , referenceValue :: Int
-  , dpiX           :: Float
-  , dpiY           :: Float
+  , display        :: Display
   , ret            :: Maybe Float
   } deriving (Show)
+
+
+
+
+display1 = defaultDisplay { dpiX = 141.767441, dpiY = 141.402069 }
 
 
 
@@ -58,123 +64,123 @@ data ValueTestType = ValueTestType
 -- refactored) dillo code.
 computeAbsoluteLengthValueTestData =
   [
-    ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 7.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.099854,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 1.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.099854,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 1.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.099854,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 1.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.199951,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 3.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.199951,     fontAttrs = makeFontAttrs 28 15, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 6.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.299805,     fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 3.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.299805,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 3.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.299805,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 4.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.299805,     fontAttrs = makeFontAttrs 25 14, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 7.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.399902,     fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 4.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.399902,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 4.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.399902,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 5.0    }
-  , ValueTestType { dist = CssDistanceRelEm (-0.400146),  fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just (-6.0) }
-  , ValueTestType { dist = CssDistanceRelEm (-0.430176),  fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just (-6.0) }
-  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 5.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 6.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 6.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 13 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 7.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 7.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 17 10, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 9.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.599854,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 7.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.599854,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 7.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.599854,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 8.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.669922,     fontAttrs = makeFontAttrs 28 15, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 19.0   }
-  , ValueTestType { dist = CssDistanceRelEm 0.669922,     fontAttrs = makeFontAttrs 28 16, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 19.0   }
-  , ValueTestType { dist = CssDistanceRelEm 0.750000,     fontAttrs = makeFontAttrs 21 12, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 16.0   }
-  , ValueTestType { dist = CssDistanceRelEm 0.799805,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 9.0    }
-  , ValueTestType { dist = CssDistanceRelEm 0.799805,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 11.0   }
-  , ValueTestType { dist = CssDistanceRelEm 0.829834,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 10.0   }
-  , ValueTestType { dist = CssDistanceRelEm 0.829834,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 12.0   }
-  , ValueTestType { dist = CssDistanceRelEm 0.829834,     fontAttrs = makeFontAttrs 16 9,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 13.0   }
-  , ValueTestType { dist = CssDistanceRelEm 0.875000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 10.0   }
-  , ValueTestType { dist = CssDistanceRelEm 1.000000,     fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 10.0   }
-  , ValueTestType { dist = CssDistanceRelEm 1.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 11.0   }
-  , ValueTestType { dist = CssDistanceRelEm 1.000000,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 12.0   }
-  , ValueTestType { dist = CssDistanceRelEm 1.000000,     fontAttrs = makeFontAttrs 13 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 13.0   }
-  , ValueTestType { dist = CssDistanceRelEm 1.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 14.0   }
-  , ValueTestType { dist = CssDistanceRelEm 10.500000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 147.0  }
-  , ValueTestType { dist = CssDistanceRelEm 1.119873,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 16.0   }
-  , ValueTestType { dist = CssDistanceRelEm 1.299805,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 14.0   }
-  , ValueTestType { dist = CssDistanceRelEm 1.399902,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 15.0   }
-  , ValueTestType { dist = CssDistanceRelEm 15.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 210.0  }
-  , ValueTestType { dist = CssDistanceRelEm 1.500000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 21.0   }
-  , ValueTestType { dist = CssDistanceRelEm 15.599854,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 218.0  }
-  , ValueTestType { dist = CssDistanceRelEm 2.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 28.0   }
-  , ValueTestType { dist = CssDistanceRelEm 5.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 70.0   }
-  , ValueTestType { dist = CssDistanceRelEm 7.199951,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 101.0  }
-  , ValueTestType { dist = CssDistanceRelEm 7.799805,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 109.0  }
-  , ValueTestType { dist = CssDistanceRelEm 9.599854,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 134.0  }
+    ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 7.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.099854,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 1.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.099854,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  display = display1, ret = Just 1.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.099854,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 1.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.199951,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 3.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.199951,     fontAttrs = makeFontAttrs 28 15, referenceValue = 0,  display = display1, ret = Just 6.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.299805,     fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  display = display1, ret = Just 3.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.299805,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 3.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.299805,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 4.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.299805,     fontAttrs = makeFontAttrs 25 14, referenceValue = 0,  display = display1, ret = Just 7.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.399902,     fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  display = display1, ret = Just 4.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.399902,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 4.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.399902,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  display = display1, ret = Just 5.0    }
+  , ValueTestType { dist = CssDistanceRelEm (-0.400146),  fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just (-6.0) }
+  , ValueTestType { dist = CssDistanceRelEm (-0.430176),  fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just (-6.0) }
+  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  display = display1, ret = Just 5.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 6.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  display = display1, ret = Just 6.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 13 7,  referenceValue = 0,  display = display1, ret = Just 7.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 7.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 17 10, referenceValue = 0,  display = display1, ret = Just 9.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.599854,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 7.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.599854,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  display = display1, ret = Just 7.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.599854,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 8.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.669922,     fontAttrs = makeFontAttrs 28 15, referenceValue = 0,  display = display1, ret = Just 19.0   }
+  , ValueTestType { dist = CssDistanceRelEm 0.669922,     fontAttrs = makeFontAttrs 28 16, referenceValue = 0,  display = display1, ret = Just 19.0   }
+  , ValueTestType { dist = CssDistanceRelEm 0.750000,     fontAttrs = makeFontAttrs 21 12, referenceValue = 0,  display = display1, ret = Just 16.0   }
+  , ValueTestType { dist = CssDistanceRelEm 0.799805,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 9.0    }
+  , ValueTestType { dist = CssDistanceRelEm 0.799805,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 11.0   }
+  , ValueTestType { dist = CssDistanceRelEm 0.829834,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  display = display1, ret = Just 10.0   }
+  , ValueTestType { dist = CssDistanceRelEm 0.829834,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 12.0   }
+  , ValueTestType { dist = CssDistanceRelEm 0.829834,     fontAttrs = makeFontAttrs 16 9,  referenceValue = 0,  display = display1, ret = Just 13.0   }
+  , ValueTestType { dist = CssDistanceRelEm 0.875000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 10.0   }
+  , ValueTestType { dist = CssDistanceRelEm 1.000000,     fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  display = display1, ret = Just 10.0   }
+  , ValueTestType { dist = CssDistanceRelEm 1.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 11.0   }
+  , ValueTestType { dist = CssDistanceRelEm 1.000000,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  display = display1, ret = Just 12.0   }
+  , ValueTestType { dist = CssDistanceRelEm 1.000000,     fontAttrs = makeFontAttrs 13 7,  referenceValue = 0,  display = display1, ret = Just 13.0   }
+  , ValueTestType { dist = CssDistanceRelEm 1.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 14.0   }
+  , ValueTestType { dist = CssDistanceRelEm 10.500000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 147.0  }
+  , ValueTestType { dist = CssDistanceRelEm 1.119873,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 16.0   }
+  , ValueTestType { dist = CssDistanceRelEm 1.299805,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 14.0   }
+  , ValueTestType { dist = CssDistanceRelEm 1.399902,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 15.0   }
+  , ValueTestType { dist = CssDistanceRelEm 15.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 210.0  }
+  , ValueTestType { dist = CssDistanceRelEm 1.500000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 21.0   }
+  , ValueTestType { dist = CssDistanceRelEm 15.599854,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 218.0  }
+  , ValueTestType { dist = CssDistanceRelEm 2.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 28.0   }
+  , ValueTestType { dist = CssDistanceRelEm 5.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 70.0   }
+  , ValueTestType { dist = CssDistanceRelEm 7.199951,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 101.0  }
+  , ValueTestType { dist = CssDistanceRelEm 7.799805,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 109.0  }
+  , ValueTestType { dist = CssDistanceRelEm 9.599854,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 134.0  }
 
-  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 13 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 16 9,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 17 10, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 21 12, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 28 15, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 28 16, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
+  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 13 7,  referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 16 9,  referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 17 10, referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 21 12, referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 28 15, referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssNumericNone 0.000000,       fontAttrs = makeFontAttrs 28 16, referenceValue = 0,  display = display1, ret = Just 0.0    }
 
-  , ValueTestType { dist = CssDistanceAbsPx 0.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 0.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 0.000000,     fontAttrs = makeFontAttrs 17 9,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 0.000000,     fontAttrs = makeFontAttrs 28 15, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 0.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 1.000000,     fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 1.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 1.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 1.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 1.000000,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 1.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 1.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 1.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 11.000000,    fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 11.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 11.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 11.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 115.000000,   fontAttrs = makeFontAttrs 28 16, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 115.0  }
-  , ValueTestType { dist = CssDistanceAbsPx 120.000000,   fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 120.0  }
-  , ValueTestType { dist = CssDistanceAbsPx 14.000000,    fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 14.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 14.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 14.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 15.000000,    fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 15.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 15.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 15.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 18.000000,    fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 18.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 18.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 18.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 2.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 2.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 2.000000,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 2.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 2.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 2.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 23.000000,    fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 23.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 23.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 23.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 3.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 3.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 36.000000,    fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 36.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 36.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 36.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 40.000000,    fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 40.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 40.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 40.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 4.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 4.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 4.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 4.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 5.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 5.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 5.000000,     fontAttrs = makeFontAttrs 17 9,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 5.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 60.000000,    fontAttrs = makeFontAttrs 25 14, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 60.0   }
-  , ValueTestType { dist = CssDistanceAbsPx 6.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 6.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 6.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 6.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 6.000000,     fontAttrs = makeFontAttrs 17 9,  referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 6.0    }
-  , ValueTestType { dist = CssDistanceAbsPx 80.000000,    fontAttrs = makeFontAttrs 28 16, referenceValue = 0,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 80.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 0.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 0.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 0.000000,     fontAttrs = makeFontAttrs 17 9,  referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 0.000000,     fontAttrs = makeFontAttrs 28 15, referenceValue = 0,  display = display1, ret = Just 0.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 1.000000,     fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  display = display1, ret = Just 1.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 1.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 1.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 1.000000,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  display = display1, ret = Just 1.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 1.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 1.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 11.000000,    fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  display = display1, ret = Just 11.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 11.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 11.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 115.000000,   fontAttrs = makeFontAttrs 28 16, referenceValue = 0,  display = display1, ret = Just 115.0  }
+  , ValueTestType { dist = CssDistanceAbsPx 120.000000,   fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 120.0  }
+  , ValueTestType { dist = CssDistanceAbsPx 14.000000,    fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  display = display1, ret = Just 14.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 14.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 14.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 15.000000,    fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  display = display1, ret = Just 15.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 15.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 15.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 18.000000,    fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 18.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 18.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 18.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 2.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 2.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 2.000000,     fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  display = display1, ret = Just 2.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 2.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 2.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 23.000000,    fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 23.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 23.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 23.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 3.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 3.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 36.000000,    fontAttrs = makeFontAttrs 10 6,  referenceValue = 0,  display = display1, ret = Just 36.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 36.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 36.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 40.000000,    fontAttrs = makeFontAttrs 12 7,  referenceValue = 0,  display = display1, ret = Just 40.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 40.000000,    fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 40.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 4.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 4.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 4.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 4.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 5.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 5.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 5.000000,     fontAttrs = makeFontAttrs 17 9,  referenceValue = 0,  display = display1, ret = Just 5.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 60.000000,    fontAttrs = makeFontAttrs 25 14, referenceValue = 0,  display = display1, ret = Just 60.0   }
+  , ValueTestType { dist = CssDistanceAbsPx 6.000000,     fontAttrs = makeFontAttrs 11 6,  referenceValue = 0,  display = display1, ret = Just 6.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 6.000000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 6.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 6.000000,     fontAttrs = makeFontAttrs 17 9,  referenceValue = 0,  display = display1, ret = Just 6.0    }
+  , ValueTestType { dist = CssDistanceAbsPx 80.000000,    fontAttrs = makeFontAttrs 28 16, referenceValue = 0,  display = display1, ret = Just 80.0   }
 
-  , ValueTestType { dist = CssNumericPercentage 0.799805, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, dpiX = 141.767441, dpiY = 141.402069, ret = Just 11.0   }
-  , ValueTestType { dist = CssNumericPercentage 0.849854, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, dpiX = 141.767441, dpiY = 141.402069, ret = Just 12.0   }
-  , ValueTestType { dist = CssNumericPercentage 0.899902, fontAttrs = makeFontAttrs 11 6,  referenceValue = 11, dpiX = 141.767441, dpiY = 141.402069, ret = Just 10.0   }
-  , ValueTestType { dist = CssNumericPercentage 0.899902, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, dpiX = 141.767441, dpiY = 141.402069, ret = Just 13.0   }
-  , ValueTestType { dist = CssNumericPercentage 0.949951, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, dpiX = 141.767441, dpiY = 141.402069, ret = Just 13.0   }
-  , ValueTestType { dist = CssNumericPercentage 1.000000, fontAttrs = makeFontAttrs 10 6,  referenceValue = 10, dpiX = 141.767441, dpiY = 141.402069, ret = Just 10.0   }
-  , ValueTestType { dist = CssNumericPercentage 1.000000, fontAttrs = makeFontAttrs 11 6,  referenceValue = 11, dpiX = 141.767441, dpiY = 141.402069, ret = Just 11.0   }
-  , ValueTestType { dist = CssNumericPercentage 1.000000, fontAttrs = makeFontAttrs 12 7,  referenceValue = 12, dpiX = 141.767441, dpiY = 141.402069, ret = Just 12.0   }
-  , ValueTestType { dist = CssNumericPercentage 1.000000, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, dpiX = 141.767441, dpiY = 141.402069, ret = Just 14.0   }
-  , ValueTestType { dist = CssNumericPercentage 1.000000, fontAttrs = makeFontAttrs 6  4,  referenceValue = 6,  dpiX = 141.767441, dpiY = 141.402069, ret = Just 6.00   }
-  , ValueTestType { dist = CssNumericPercentage 1.099854, fontAttrs = makeFontAttrs 11 6,  referenceValue = 11, dpiX = 141.767441, dpiY = 141.402069, ret = Just 12.0   }
-  , ValueTestType { dist = CssNumericPercentage 1.099854, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, dpiX = 141.767441, dpiY = 141.402069, ret = Just 15.0   }
-  , ValueTestType { dist = CssNumericPercentage 1.199951, fontAttrs = makeFontAttrs 11 6,  referenceValue = 11, dpiX = 141.767441, dpiY = 141.402069, ret = Just 13.0   }
-  , ValueTestType { dist = CssNumericPercentage 1.199951, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, dpiX = 141.767441, dpiY = 141.402069, ret = Just 17.0   }
-  , ValueTestType { dist = CssNumericPercentage 1.619873, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, dpiX = 141.767441, dpiY = 141.402069, ret = Just 23.0   }
-  , ValueTestType { dist = CssNumericPercentage 1.799805, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, dpiX = 141.767441, dpiY = 141.402069, ret = Just 25.0   }
+  , ValueTestType { dist = CssNumericPercentage 0.799805, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, display = display1, ret = Just 11.0   }
+  , ValueTestType { dist = CssNumericPercentage 0.849854, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, display = display1, ret = Just 12.0   }
+  , ValueTestType { dist = CssNumericPercentage 0.899902, fontAttrs = makeFontAttrs 11 6,  referenceValue = 11, display = display1, ret = Just 10.0   }
+  , ValueTestType { dist = CssNumericPercentage 0.899902, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, display = display1, ret = Just 13.0   }
+  , ValueTestType { dist = CssNumericPercentage 0.949951, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, display = display1, ret = Just 13.0   }
+  , ValueTestType { dist = CssNumericPercentage 1.000000, fontAttrs = makeFontAttrs 10 6,  referenceValue = 10, display = display1, ret = Just 10.0   }
+  , ValueTestType { dist = CssNumericPercentage 1.000000, fontAttrs = makeFontAttrs 11 6,  referenceValue = 11, display = display1, ret = Just 11.0   }
+  , ValueTestType { dist = CssNumericPercentage 1.000000, fontAttrs = makeFontAttrs 12 7,  referenceValue = 12, display = display1, ret = Just 12.0   }
+  , ValueTestType { dist = CssNumericPercentage 1.000000, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, display = display1, ret = Just 14.0   }
+  , ValueTestType { dist = CssNumericPercentage 1.000000, fontAttrs = makeFontAttrs 6  4,  referenceValue = 6,  display = display1, ret = Just 6.00   }
+  , ValueTestType { dist = CssNumericPercentage 1.099854, fontAttrs = makeFontAttrs 11 6,  referenceValue = 11, display = display1, ret = Just 12.0   }
+  , ValueTestType { dist = CssNumericPercentage 1.099854, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, display = display1, ret = Just 15.0   }
+  , ValueTestType { dist = CssNumericPercentage 1.199951, fontAttrs = makeFontAttrs 11 6,  referenceValue = 11, display = display1, ret = Just 13.0   }
+  , ValueTestType { dist = CssNumericPercentage 1.199951, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, display = display1, ret = Just 17.0   }
+  , ValueTestType { dist = CssNumericPercentage 1.619873, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, display = display1, ret = Just 23.0   }
+  , ValueTestType { dist = CssNumericPercentage 1.799805, fontAttrs = makeFontAttrs 14 8,  referenceValue = 14, display = display1, ret = Just 25.0   }
   ]
 
 
@@ -189,7 +195,7 @@ makeFontAttrs size xHeight = defaultFontAttrs { fontSize = size, fontXHeight = x
 -- remainder string in a row, for which test failed.
 computeAbsoluteLengthValueTest :: [ValueTestType] -> Maybe T.Text
 computeAbsoluteLengthValueTest []     = Nothing
-computeAbsoluteLengthValueTest (x:xs) = if expected /= styleEngineComputeAbsoluteLengthValue (dist x) (fontAttrs x) (referenceValue x) (dpiX x) (dpiY x)
+computeAbsoluteLengthValueTest (x:xs) = if expected /= styleEngineComputeAbsoluteLengthValue (dist x) (fontAttrs x) (referenceValue x) (display x)
                                         then Just . T.pack . show $ x
                                         else computeAbsoluteLengthValueTest xs
   where
@@ -207,12 +213,16 @@ data ApplyToFontTestData = ApplyToFontTestData
   {
     testDeclSet :: CssDeclarationSet
   , testPrefs   :: Preferences
-  , testDpiX    :: Float
-  , testDpiY    :: Float
+  , testDisplay :: Display
   , testParentFontAttrs :: FontAttrs
   , testFontAttrs       :: FontAttrs
   , testOutFontAttrs    :: FontAttrs
   } deriving (Show)
+
+
+
+
+display2 = defaultDisplay { dpiX = 141.76744, dpiY = 141.40207 }
 
 
 
@@ -238,8 +248,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 700, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -264,8 +273,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 1, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -290,8 +298,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Serif", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -316,8 +323,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 8, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -342,8 +348,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 2.0 -- increased from 2.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 16, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -368,8 +373,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 12  -- this will clip value from 8 to 12
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 12, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -394,8 +398,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 17} -- this will clip value from 24 to 17
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 17, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -423,8 +426,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 5}
@@ -448,8 +450,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 2}
@@ -477,8 +478,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 2, fontXHeight = 8, fontLetterSpacing = 0}
@@ -502,8 +502,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 700, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -526,8 +525,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 28, fontWeight = 700, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -550,8 +548,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 21, fontWeight = 700, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -568,8 +565,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans Mono", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -590,8 +586,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 21, fontWeight = 400, fontName = "DejaVu Sans Mono", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -614,8 +609,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 21, fontWeight = 700, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -638,8 +632,7 @@ styleEngineApplyStyleToFontTestData =
                               , prefsFontFactor = 1.0
                               , prefsFontMinSize = 6
                               , prefsFontMaxSize = 100}
-    , testDpiX = 141.76744
-    , testDpiY = 141.40207
+    , testDisplay         = display2
     , testParentFontAttrs = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testFontAttrs       = FontAttrs {fontSize = 14, fontWeight = 400, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
     , testOutFontAttrs    = FontAttrs {fontSize = 21, fontWeight = 600, fontName = "DejaVu Sans", fontVariant = 0, fontStyle = 0, fontXHeight = 8, fontLetterSpacing = 0}
@@ -653,7 +646,7 @@ styleEngineApplyStyleToFontTestData =
 -- remainder string in a row, for which test failed.
 styleEngineApplyStyleToFontTest :: [ApplyToFontTestData] -> Maybe T.Text
 styleEngineApplyStyleToFontTest []     = Nothing
-styleEngineApplyStyleToFontTest (x:xs) = if expected /= styleEngineApplyStyleToFont (testDeclSet x) (testPrefs x) (testDpiX x) (testDpiY x) (testParentFontAttrs x) (testFontAttrs x)
+styleEngineApplyStyleToFontTest (x:xs) = if expected /= styleEngineApplyStyleToFont (testDeclSet x) (testPrefs x) (testDisplay x) (testParentFontAttrs x) (testFontAttrs x)
                                          then Just . T.pack . show $ x
                                          else styleEngineApplyStyleToFontTest xs
   where

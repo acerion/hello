@@ -51,6 +51,8 @@ import Hello.Css.StyleEngine
 import Hello.Css.UserAgentStyle
 import Hello.Css.Value
 
+import Hello.Display
+
 import Hello.Dw.DwLength
 import Hello.Dw.FontAttrs
 import Hello.Dw.Style
@@ -421,12 +423,13 @@ hll_styleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiX dpiY 
   prefs                        <- peekPreferences ptrStructPrefs
   styleAttrs :: StyleAttrs     <- peekStyleAttrs ptrStructStyleAttrs
   parentStyleAttrs :: StyleAttrs  <- peekStyleAttrs ptrStructParentStyleAttrs
+  let display :: Display = defaultDisplay { dpiX = dpiX, dpiY = dpiY }
 
   let mergedDeclSetRef = fromIntegral cMergedDeclSetRef
 
   declSet :: CssDeclarationSet <- globalDeclarationSetGet mergedDeclSetRef
 
-  let styleAttrs' = styleEngineApplyStyleToGivenNode declSet prefs dpiX dpiY parentStyleAttrs styleAttrs
+  let styleAttrs' = styleEngineApplyStyleToGivenNode declSet prefs display parentStyleAttrs styleAttrs
 
   pokeStyleAttrs styleAttrs' ptrStructStyleAttrs
 
