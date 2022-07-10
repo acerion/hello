@@ -43,8 +43,9 @@ import Debug.Trace
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 
-import Hello.Css.DeclarationSetsGlobal
 import Hello.Css.ContextGlobal
+import Hello.Css.Declaration
+import Hello.Css.DeclarationSetsGlobal
 import Hello.Css.Distance
 import Hello.Css.Parser
 import Hello.Css.StyleEngine
@@ -79,6 +80,7 @@ import Hello.Ffi.Utils
 --foreign export ccall "hll_makeCssDeclaration" hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeInt" hll_styleEngineSetNonCssHintOfNodeInt :: CInt -> CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CInt -> CString -> IO CInt
+foreign export ccall "hll_styleEngineSetNonCssHintOfNodeColor" hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
 
 --foreign export ccall "hll_styleEngineComputeAbsoluteLengthValue" hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> Ptr FfiFontAttrs -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
 --foreign export ccall "hll_setFontFamily" hll_setFontFamily :: Ptr FfiCssValue -> Ptr FfiPreferences -> Ptr FfiFontAttrs -> IO ()
@@ -146,6 +148,26 @@ hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIn
   let decl :: CssDeclWrapper = CssDeclWrapper (propMaker cssValue) False
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
+
+  globalDeclarationSetUpdate ref newDeclSet
+
+  return . fromIntegral $ ref
+
+
+
+
+hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
+hll_styleEngineSetNonCssHintOfNodeColor cNonCssDeclSetRef cProperty cColor  = do
+
+  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
+
+  let property = fromIntegral cProperty
+  let color    = fromIntegral cColor
+  let decl | property ==  1 = CssDeclarationBackgroundColor $ CssValueBackgroundColor color
+           | property == 23 = CssDeclarationColor $ CssValueColor color
+           | otherwise      = trace ("Unhandled color property " ++ (show property)) (undefined)
+
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
 
   globalDeclarationSetUpdate ref newDeclSet
 

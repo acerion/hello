@@ -1111,7 +1111,7 @@ findPropertyIndex decl = case decl of
 allDeclMakers :: [(CssValue -> CssDeclaration, Int)]
 allDeclMakers =
   [ ( (\v -> CssDeclarationBackgroundAttachment v), 0 )
-  , ( (\v -> CssDeclarationBackgroundImage v), 1 ) -- TODO: CssDeclarationBackgroundColor
+  , ( (\v -> CssDeclaration_LAST), 1 )                   -- Handling of a request from C++ to add CssDeclarationBackgroundColor declaration is done in hll_styleEngineSetNonCssHintOfNodeColor
   , ( (\v -> CssDeclarationBackgroundImage v), 2 )
   , ( (\v -> CssDeclarationBackgroundPosition v), 3 )
   , ( (\v -> CssDeclarationBackgroundRepeat v), 4 )
@@ -1133,7 +1133,7 @@ allDeclMakers =
   , ( (\v -> CssDeclarationCaptionSide v), 20 )
   , ( (\v -> CssDeclarationClear v), 21 )
   , ( (\v -> CssDeclarationClip v), 22 )
-  , ( (\v -> CssDeclarationColor v), 23 )
+  , ( (\v -> CssDeclaration_LAST), 23 )                  -- Handling of a request from C++ to add CssDeclarationColor declaration is done in hll_styleEngineSetNonCssHintOfNodeColor
   , ( (\v -> CssDeclarationContent v), 24 )
   , ( (\v -> CssDeclarationCounterIncrement v), 25 )
   , ( (\v -> CssDeclarationCounterReset v), 26 )

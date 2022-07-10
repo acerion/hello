@@ -1496,7 +1496,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 
       if (color != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, color, 0.0, 0);
+         cpp_styleEngineSetNonCssHintOfNodeColor(currentNode, CSS_PROPERTY_BACKGROUND_COLOR, color);
       }
    }
 
@@ -1508,7 +1508,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 
       if (color != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color, 0.0, 0);
+         cpp_styleEngineSetNonCssHintOfNodeColor(currentNode, CSS_PROPERTY_COLOR, color);
       }
    }
 
@@ -1548,7 +1548,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    html->styleEngine->setPseudoVisited ();
    if (html->non_css_visited_color != -1) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color, 0.0, 0);
+      cpp_styleEngineSetNonCssHintOfNodeColor(currentNode, CSS_PROPERTY_COLOR, html->non_css_visited_color);
    }
    html->visited_color = html->styleEngine->getStyle (html->bw)->color->getColor ();
    html->styleEngine->endElement (tag_index_a);
@@ -1706,7 +1706,7 @@ static void Html_tag_open_font(DilloHtml *html, const char *tag, int tagsize)
       }
       if (color != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, color, 0.0, 0);
+         cpp_styleEngineSetNonCssHintOfNodeColor(currentNode, CSS_PROPERTY_COLOR, color);
       }
    }
 
@@ -2376,11 +2376,11 @@ static void Html_tag_open_a(DilloHtml *html, const char *tag, int tagsize)
          html->InVisitedLink = true;
          html->styleEngine->setPseudoVisited ();
          if (html->non_css_visited_color != -1)
-            cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_visited_color, 0.0, 0);
+            cpp_styleEngineSetNonCssHintOfNodeColor(currentNode, CSS_PROPERTY_COLOR, html->non_css_visited_color);
       } else {
          html->styleEngine->setPseudoLink ();
          if (html->non_css_link_color != -1)
-            cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_COLOR, CssDeclarationValueTypeCOLOR, html->non_css_link_color, 0.0, 0);
+            cpp_styleEngineSetNonCssHintOfNodeColor(currentNode, CSS_PROPERTY_COLOR, html->non_css_link_color);
       }
 
       cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);

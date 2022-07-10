@@ -534,7 +534,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationListStyleType value     -> styleAttrs { styleListStyleType        = getListStyleType value }
     CssDeclarationLineHeight value        -> styleAttrs { styleLineHeight           = getLineHeight value (distance value) fontAttrs display }
     CssDeclarationDisplay value           -> styleAttrs { styleDisplay              = getDisplay value }
-    CssDeclarationColor value             -> styleAttrs { styleColor                = getColor value }
+    CssDeclarationColor value             -> styleAttrs { styleColor                = getColor parentStyleAttrs value }
     CssDeclarationCursor value            -> styleAttrs { styleCursor               = getCursor value }
     CssDeclarationBorderSpacing value     -> styleAttrs { styleHBorderSpacing = getBorderSpacing (distance value) fontAttrs display,
                                                           styleVBorderSpacing = getBorderSpacing (distance value) fontAttrs display }
@@ -717,16 +717,18 @@ getDisplay value = case value of
 
 
 
-getColor value = case value of
-                   CssValueTypeColor c -> c
-                   otherwise           -> 0x000000 -- Black
+getColor :: StyleAttrs -> CssValueColor -> Int
+getColor parentStyleAttrs value = case value of
+                                    CssValueColorInherit -> styleColor parentStyleAttrs
+                                    CssValueColor c      -> c
 
 
 
 
+getBackgroundColor :: StyleAttrs -> CssValueBackgroundColor -> Int
 getBackgroundColor parentStyleAttrs value = case value of
-                                              CssBackgroundColorInherit -> styleBackgroundColor parentStyleAttrs
-                                              CssBackgroundColor c      -> c
+                                              CssValueBackgroundColorInherit -> styleBackgroundColor parentStyleAttrs
+                                              CssValueBackgroundColor c      -> c
 
 
 

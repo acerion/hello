@@ -102,7 +102,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
       bgcolor = a_Html_color_parse(html, attr_value, -1);
       if (bgcolor != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor, 0.0, 0);
+         cpp_styleEngineSetNonCssHintOfNodeColor(currentNode, CSS_PROPERTY_BACKGROUND_COLOR, bgcolor);
       }
       if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<table> bgcolor attribute is obsolete.");
@@ -174,7 +174,7 @@ void Html_tag_open_tr(DilloHtml *html, const char *tag, int tagsize)
          bgcolor = a_Html_color_parse(html, attr_value, -1);
          if (bgcolor != -1) {
             StyleNode * currentNode = getCurrentNode(html->styleEngine);
-            cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor, 0.0, 0);
+            cpp_styleEngineSetNonCssHintOfNodeColor(currentNode, CSS_PROPERTY_BACKGROUND_COLOR, bgcolor);
          }
          if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f) {
             BUG_MSG("<tr> bgcolor attribute is obsolete.");
@@ -191,7 +191,7 @@ void Html_tag_open_tr(DilloHtml *html, const char *tag, int tagsize)
 
       if (bgcolor != -1) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor, 0.0, 0);
+         cpp_styleEngineSetNonCssHintOfNodeColor(currentNode, CSS_PROPERTY_BACKGROUND_COLOR, bgcolor);
       }
       a_Html_tag_set_valign_attr (html, tag, tagsize);
       break;
@@ -393,7 +393,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
          bgcolor = a_Html_color_parse(html, attr_value, -1);
          if (bgcolor != -1) {
             StyleNode * currentNode = getCurrentNode(html->styleEngine);
-            cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BACKGROUND_COLOR, CssDeclarationValueTypeCOLOR, bgcolor, 0.0, 0);
+            cpp_styleEngineSetNonCssHintOfNodeColor(currentNode, CSS_PROPERTY_BACKGROUND_COLOR, bgcolor);
          }
          if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f) {
             BUG_MSG("<t%c> bgcolor attribute is obsolete.", (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');

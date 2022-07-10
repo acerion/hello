@@ -112,7 +112,7 @@ colorsTable = V.fromList [
   , ( "gold",                 0xffd700 )
   , ( "goldenrod",            0xdaa520 )
   , ( "gray",                 0x808080 )
-  , ( "green",                0x008000 )
+  , ( "green",                0x008000 ) -- Notice that this is NOT 0x00ff00
   , ( "greenyellow",          0xadff2f )
   , ( "grey",                 0x808080 )
   , ( "honeydew",             0xf0fff0 )

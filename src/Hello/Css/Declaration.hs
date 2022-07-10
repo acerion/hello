@@ -35,7 +35,8 @@ module Hello.Css.Declaration
   (
     CssDeclaration (..)
 
-  , CssBackgroundColor (..)
+  , CssValueBackgroundColor (..)
+  , CssValueColor (..)
 
   , makeCssDeclarationBackgroundAttachment
   , makeCssDeclarationBackgroundColor
@@ -143,7 +144,7 @@ import Hello.Css.Value
 -- A property in css declaration, but with a value.
 data CssDeclaration
   = CssDeclarationBackgroundAttachment CssValue         -- 0
-  | CssDeclarationBackgroundColor CssBackgroundColor    -- 1
+  | CssDeclarationBackgroundColor CssValueBackgroundColor    -- 1
   | CssDeclarationBackgroundImage CssValue              -- 2
   | CssDeclarationBackgroundPosition CssValue           -- 3
   | CssDeclarationBackgroundRepeat CssValue             -- 4
@@ -165,7 +166,7 @@ data CssDeclaration
   | CssDeclarationCaptionSide CssValue                  -- 20
   | CssDeclarationClear CssValue                        -- 21
   | CssDeclarationClip CssValue                         -- 22
-  | CssDeclarationColor CssValue                        -- 23
+  | CssDeclarationColor CssValueColor                   -- 23
   | CssDeclarationContent CssValue                      -- 24
   | CssDeclarationCounterIncrement CssValue             -- 25
   | CssDeclarationCounterReset CssValue                 -- 26
@@ -248,14 +249,15 @@ makeCssDeclarationBackgroundAttachment v = CssDeclarationBackgroundAttachment v
 
 
 
-data CssBackgroundColor
-  = CssBackgroundColorInherit
-  | CssBackgroundColor Int
+data CssValueBackgroundColor
+  = CssValueBackgroundColorInherit
+  | CssValueBackgroundColor Int
   deriving (Eq, Show, Data)
 
+makeCssDeclarationBackgroundColor :: CssValue -> CssDeclaration
 makeCssDeclarationBackgroundColor v = case v of
-                                        CssValueTypeString "inherit" -> CssDeclarationBackgroundColor CssBackgroundColorInherit
-                                        CssValueTypeColor c          -> CssDeclarationBackgroundColor $ CssBackgroundColor c
+                                        CssValueTypeString "inherit" -> CssDeclarationBackgroundColor CssValueBackgroundColorInherit
+                                        CssValueTypeColor c          -> CssDeclarationBackgroundColor $ CssValueBackgroundColor c
                                         otherwise                    -> CssDeclaration_LAST
 
 
@@ -282,7 +284,23 @@ makeCssDeclarationBottom v = CssDeclarationBottom v
 makeCssDeclarationCaptionSide v = CssDeclarationCaptionSide v
 makeCssDeclarationClear v = CssDeclarationClear v
 makeCssDeclarationClip v = CssDeclarationClip v
-makeCssDeclarationColor v = CssDeclarationColor v
+
+
+
+
+data CssValueColor
+  = CssValueColorInherit
+  | CssValueColor Int
+  deriving (Eq, Show, Data)
+
+makeCssDeclarationColor :: CssValue -> CssDeclaration
+makeCssDeclarationColor v = case v of
+                              CssValueTypeString "inherit" -> CssDeclarationColor CssValueColorInherit
+                              CssValueTypeColor c          -> CssDeclarationColor $ CssValueColor c
+                              otherwise                    -> CssDeclaration_LAST
+
+
+
 makeCssDeclarationContent v = CssDeclarationContent v
 makeCssDeclarationCounterIncrement v = CssDeclarationCounterIncrement v
 makeCssDeclarationCounterReset v = CssDeclarationCounterReset v

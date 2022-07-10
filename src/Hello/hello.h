@@ -441,6 +441,7 @@ int hll_isTokenSemicolon(c_css_token_t * token);
 
 
 int hll_styleEngineSetNonCssHintOfNodeInt(int non_css_decl_set_ref, int property, int valueType, int intVal, float lengthValue, int lengthType);
+int hll_styleEngineSetNonCssHintOfNodeColor(int non_css_decl_set_ref, int property, int color);
 int hll_styleEngineSetNonCssHintOfNodeString(int non_css_decl_set_ref, int property, int valueType, const char * stringVal);
 
 

@@ -52,12 +52,19 @@ names such as "background" or "border".
 
 parseDeclarationTestData =
   [
-    ( "background-color: inherit",               [CssDeclWrapper { property = CssDeclarationBackgroundColor CssBackgroundColorInherit,        important = False } ])
-  , ( "background-color: inherit !important",    [CssDeclWrapper { property = CssDeclarationBackgroundColor CssBackgroundColorInherit,        important = True  } ])
-  , ( "background-color: blue",                  [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssBackgroundColor 0x0000ff),    important = False } ])
-  , ( "background-color: blue !important",       [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssBackgroundColor 0x0000ff),    important = True  } ])
-  , ( "background-color: blue !important;",      [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssBackgroundColor 0x0000ff),    important = True  } ])
-  , ( "background-color: #00ff00;",              [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssBackgroundColor 0x00ff00),    important = False } ])
+    ( "background-color: inherit",               [CssDeclWrapper { property = CssDeclarationBackgroundColor CssValueBackgroundColorInherit,        important = False } ])
+  , ( "background-color: inherit !important",    [CssDeclWrapper { property = CssDeclarationBackgroundColor CssValueBackgroundColorInherit,        important = True  } ])
+  , ( "background-color: blue",                  [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 0x0000ff),    important = False } ])
+  , ( "background-color: blue !important",       [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 0x0000ff),    important = True  } ])
+  , ( "background-color: blue !important;",      [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 0x0000ff),    important = True  } ])
+  , ( "background-color: #00ff00;",              [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 0x00ff00),    important = False } ])
+
+  , ( "color: inherit",                          [CssDeclWrapper { property = CssDeclarationColor CssValueColorInherit,        important = False } ])
+  , ( "color: inherit !important",               [CssDeclWrapper { property = CssDeclarationColor CssValueColorInherit,        important = True  } ])
+  , ( "color: red",                              [CssDeclWrapper { property = CssDeclarationColor (CssValueColor 0xff0000),    important = False } ])
+  , ( "color: lime !important",                  [CssDeclWrapper { property = CssDeclarationColor (CssValueColor 0x00ff00),    important = True  } ]) -- Yes, "lime" not "green".
+  , ( "color: blue !important;",                 [CssDeclWrapper { property = CssDeclarationColor (CssValueColor 0x0000ff),    important = True  } ])
+  , ( "color: #abcdef;",                         [CssDeclWrapper { property = CssDeclarationColor (CssValueColor 0xabcdef),    important = False } ])
   ]
 
 
@@ -68,7 +75,7 @@ parseDeclarationTestData =
 parseDeclarationTest :: [(T.Text, [CssDeclWrapper])] -> T.Text
 parseDeclarationTest []     = ""
 parseDeclarationTest (x:xs) = if expectedDeclarations /= declarations
-                              then T.pack (show declarations ++ " != " ++ show expectedDeclarations)
+                              then T.pack ("Got: " ++ show declarations ++ ", Expected: " ++ show expectedDeclarations)
                               else parseDeclarationTest xs
   where
     rem                  = fst x

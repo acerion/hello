@@ -746,6 +746,13 @@ void cpp_styleEngineSetNonCssHintOfNodeInt(StyleNode * styleNode, int property, 
    return;
 }
 
+// cpp_styleEngineSetNonCssHintOfNodeInt, but specialized for color.
+void cpp_styleEngineSetNonCssHintOfNodeColor(StyleNode * styleNode, int property, int color)
+{
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeColor(styleNode->declLists.non_css_decl_set_ref, property, color);
+   return;
+}
+
 void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, int valueType, const char * stringVal)
 {
    styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeString(styleNode->declLists.non_css_decl_set_ref, property, valueType, stringVal);

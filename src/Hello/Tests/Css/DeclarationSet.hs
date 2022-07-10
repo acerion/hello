@@ -53,7 +53,7 @@ declarationsSetAppendData = [
   ( CssDeclarationSet { isSafe = True
                       , items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssBackgroundColor 11), important = True  }
+                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 11), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 33), important = False }
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 44), important = True  }
                         ]
@@ -72,7 +72,7 @@ declarationsSetAppendData = [
   , CssDeclarationSet { isSafe = True
                       , items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssBackgroundColor 11), important = True  }
+                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 11), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 33), important = False }
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 44), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueTypeColor 77), important = False }
@@ -88,7 +88,7 @@ declarationsSetAppendData = [
   ( CssDeclarationSet { isSafe = True
                       , items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssBackgroundColor 12), important = True  }
+                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 12), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 23), important = False }   -- <---- this entry will be replaced/updated...
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 34), important = True  }
                         ]
@@ -106,7 +106,7 @@ declarationsSetAppendData = [
   , CssDeclarationSet { isSafe = True,
                         items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssBackgroundColor 12), important = True  }
+                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 12), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 56), important = True  }   -- <---- And here is the result of updating.
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 34), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueTypeColor 45), important = False }
