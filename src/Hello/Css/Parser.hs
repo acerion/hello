@@ -110,6 +110,7 @@ module Hello.Css.Parser(
 
 
 
+import Data.Data (toConstr)
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Vector as V
@@ -1435,8 +1436,10 @@ declarationsSetUpdateOrAdd declSet decl =
     Just idx -> CssDeclarationSet {items = S.update idx decl seq, isSafe = newSafe declSet decl}
     Nothing  -> CssDeclarationSet {items = seq S.|> decl,         isSafe = newSafe declSet decl}
   where
+    -- Use 'toConstr' to compare constructors, but values without passed to constructors.
+    -- https://stackoverflow.com/questions/47861648/a-general-way-of-comparing-constructors-of-two-terms-in-haskell
     pred :: CssDeclWrapper -> Bool
-    pred x = property x == property decl
+    pred x = (toConstr . property $ x) == (toConstr . property $ decl)
 
     seq = items declSet
 

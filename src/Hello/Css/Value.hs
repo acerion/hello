@@ -30,6 +30,8 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveDataTypeable #-} -- For 'Data'.
+
 
 
 
@@ -44,6 +46,8 @@ where
 
 
 import Debug.Trace
+
+import Data.Data
 import Data.Text as T
 
 import Hello.Css.Distance
@@ -78,7 +82,7 @@ data CssValue =
   | CssValueTypeURI T.Text          -- <uri>
   | CssValueTypeBgPosition          -- TODO: add values to this constructor
   | CssValueTypeUnused              -- Not yet used. Will itself get unused some day.
-  deriving (Show, Eq)
+  deriving (Show, Eq, Data)
 
 
 

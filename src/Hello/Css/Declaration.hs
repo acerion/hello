@@ -26,6 +26,7 @@ Copyright assignment from css.cc:
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveDataTypeable #-} -- For 'Data'. https://stackoverflow.com/questions/47861648/a-general-way-of-comparing-constructors-of-two-terms-in-haskell
 
 
 
@@ -127,6 +128,8 @@ where
 
 
 import Debug.Trace
+
+import Data.Data
 import Data.Text as T
 
 import Hello.Css.Value
@@ -232,7 +235,8 @@ data CssDeclaration
   | CssDeclarationXTooltip CssValue                     -- 85
 
   | CssDeclaration_LAST                                 -- 86
-  deriving (Eq, Show)
+  deriving (Eq, Show, Data)
+
 
 
 

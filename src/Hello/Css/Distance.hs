@@ -30,6 +30,8 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveDataTypeable #-} -- For 'Data'.
+
 
 
 
@@ -56,7 +58,10 @@ module Hello.Css.Distance
 
 
 import qualified Data.Text as T
+
 import Data.Bits
+import Data.Data
+
 import Debug.Trace
 
 import Hello.Utils
@@ -82,7 +87,7 @@ data CssDistance =
   | CssNumericNone     Float     -- CSS_LENGTH_TYPE_NONE
   | CssNumericRelative Float     -- CSS_LENGTH_TYPE_RELATIVE; This does not exist in CSS but is used in HTML
   | CssNumericAuto     Int       -- CSS_LENGTH_TYPE_AUTO; This can be used as a simple value
-  deriving (Show, Eq)
+  deriving (Show, Eq, Data)
 
 
 
