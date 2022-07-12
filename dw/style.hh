@@ -499,7 +499,7 @@ public:
    int borderCollapse; // TODO: use BorderCollapse type
    c_border_width_t borderWidth;
    c_border_style_t borderStyle;
-   struct { Color *top, *right, *bottom, *left; } borderColor;
+   struct { Color *top = nullptr, *right = nullptr, *bottom = nullptr, *left = nullptr; } borderColor;
    c_style_margin_t margin;
    c_style_padding_t padding;
    int textAlign; // TODO: use TextAlignType type
@@ -684,10 +684,10 @@ public:
  */
 class ColorAttrs: public lout::object::Object
 {
-protected:
+public:
    int color;
 
-public:
+
    inline ColorAttrs(int color)
    {
       this->color = color;

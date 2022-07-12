@@ -510,10 +510,12 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationBorderRightWidth value  -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidth value display fontAttrs }}
     CssDeclarationBorderBottomWidth value -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidth value display fontAttrs }}
     CssDeclarationBorderLeftWidth value   -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidth value display fontAttrs }}
-    CssDeclarationBorderTopColor value    -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorTop    = getBorderColor value }}
-    CssDeclarationBorderRightColor value  -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorRight  = getBorderColor value }}
-    CssDeclarationBorderBottomColor value -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColor value }}
-    CssDeclarationBorderLeftColor value   -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColor value }}
+
+    CssDeclarationBorderTopColor value    -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorTop    = getBorderColorTop parentStyleAttrs value }}
+    CssDeclarationBorderRightColor value  -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorRight  = getBorderColorRight parentStyleAttrs value }}
+    CssDeclarationBorderBottomColor value -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColorBottom parentStyleAttrs value }}
+    CssDeclarationBorderLeftColor value   -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColorLeft parentStyleAttrs value }}
+
     CssDeclarationMarginBottom value      -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin (distance value) fontAttrs display }}
     CssDeclarationMarginLeft value        -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin (distance value) fontAttrs display }}
     CssDeclarationMarginRight value       -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin (distance value) fontAttrs display }}
@@ -582,10 +584,16 @@ getBorderWidth value display fontAttrs = case styleEngineComputeBorderWidth valu
 
 
 
-getBorderColor value = case value of
-                         CssValueTypeEnum e  -> 0x000000 -- Handling of enum keywords for border color is not implemented yet. Fall back to black. TODO: implement the enum.
-                         CssValueTypeColor c -> c
-                         otherwise           -> (-1) -- '-1' will be caught in temporary workaround in C++ code.
+getBorderColorTop    = getBorderColor styleBorderColorTop
+getBorderColorRight  = getBorderColor styleBorderColorRight
+getBorderColorBottom = getBorderColor styleBorderColorBottom
+getBorderColorLeft   = getBorderColor styleBorderColorLeft
+
+getBorderColor :: (StyleBorderColor -> Int) -> StyleAttrs -> CssValueBorderColor -> Int
+getBorderColor field parentStyleAttrs value = case value of
+                                                CssValueBorderColorInherit     -> field . styleBorderColor $ parentStyleAttrs
+                                                CssValueBorderColorTransparent -> (-1) -- TODO: implement support for transparency; (-1) is a special value handled in C++ code for invalid colors.
+                                                CssValueBorderColor i          -> i
 
 
 
@@ -720,7 +728,7 @@ getDisplay value = case value of
 getColor :: StyleAttrs -> CssValueColor -> Int
 getColor parentStyleAttrs value = case value of
                                     CssValueColorInherit -> styleColor parentStyleAttrs
-                                    CssValueColor c      -> c
+                                    CssValueColor i      -> i
 
 
 
@@ -728,7 +736,7 @@ getColor parentStyleAttrs value = case value of
 getBackgroundColor :: StyleAttrs -> CssValueBackgroundColor -> Int
 getBackgroundColor parentStyleAttrs value = case value of
                                               CssValueBackgroundColorInherit -> styleBackgroundColor parentStyleAttrs
-                                              CssValueBackgroundColor c      -> c
+                                              CssValueBackgroundColor i      -> i
 
 
 

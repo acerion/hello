@@ -37,24 +37,27 @@ module Hello.Css.Declaration
 
   , CssValueBackgroundColor (..)
   , CssValueColor (..)
+  , CssValueBorderColor (..)
 
   , makeCssDeclarationBackgroundAttachment
   , makeCssDeclarationBackgroundColor
   , makeCssDeclarationBackgroundImage
   , makeCssDeclarationBackgroundPosition
   , makeCssDeclarationBackgroundRepeat
-  , makeCssDeclarationBorderBottomColor
   , makeCssDeclarationBorderBottomStyle
   , makeCssDeclarationBorderBottomWidth
   , makeCssDeclarationBorderCollapse
-  , makeCssDeclarationBorderLeftColor
   , makeCssDeclarationBorderLeftStyle
   , makeCssDeclarationBorderLeftWidth
-  , makeCssDeclarationBorderRightColor
   , makeCssDeclarationBorderRightStyle
   , makeCssDeclarationBorderRightWidth
   , makeCssDeclarationBorderSpacing
+
   , makeCssDeclarationBorderTopColor
+  , makeCssDeclarationBorderRightColor
+  , makeCssDeclarationBorderBottomColor
+  , makeCssDeclarationBorderLeftColor
+
   , makeCssDeclarationBorderTopStyle
   , makeCssDeclarationBorderTopWidth
   , makeCssDeclarationBottom
@@ -144,29 +147,29 @@ import Hello.Css.Value
 -- A property in css declaration, but with a value.
 data CssDeclaration
   = CssDeclarationBackgroundAttachment CssValue         -- 0
-  | CssDeclarationBackgroundColor CssValueBackgroundColor    -- 1
+  | CssDeclarationBackgroundColor CssValueBackgroundColor    -- 1           parsing is tested
   | CssDeclarationBackgroundImage CssValue              -- 2
   | CssDeclarationBackgroundPosition CssValue           -- 3
   | CssDeclarationBackgroundRepeat CssValue             -- 4
-  | CssDeclarationBorderBottomColor CssValue            -- 5
+  | CssDeclarationBorderBottomColor CssValueBorderColor -- 5                parsing is tested
   | CssDeclarationBorderBottomStyle CssValue            -- 6
   | CssDeclarationBorderBottomWidth CssValue            -- 7
   | CssDeclarationBorderCollapse CssValue               -- 8
-  | CssDeclarationBorderLeftColor CssValue              -- 9
+  | CssDeclarationBorderLeftColor CssValueBorderColor   -- 9                parsing is tested
   | CssDeclarationBorderLeftStyle CssValue              -- 10
   | CssDeclarationBorderLeftWidth CssValue              -- 11
-  | CssDeclarationBorderRightColor CssValue             -- 12
+  | CssDeclarationBorderRightColor CssValueBorderColor  -- 12               parsing is tested
   | CssDeclarationBorderRightStyle CssValue             -- 13
   | CssDeclarationBorderRightWidth CssValue             -- 14
   | CssDeclarationBorderSpacing CssValue                -- 15
-  | CssDeclarationBorderTopColor CssValue               -- 16
+  | CssDeclarationBorderTopColor CssValueBorderColor    -- 16               parsing is tested
   | CssDeclarationBorderTopStyle CssValue               -- 17
   | CssDeclarationBorderTopWidth CssValue               -- 18
   | CssDeclarationBottom CssValue                       -- 19
   | CssDeclarationCaptionSide CssValue                  -- 20
   | CssDeclarationClear CssValue                        -- 21
   | CssDeclarationClip CssValue                         -- 22
-  | CssDeclarationColor CssValueColor                   -- 23
+  | CssDeclarationColor CssValueColor                   -- 23               parsing is tested
   | CssDeclarationContent CssValue                      -- 24
   | CssDeclarationCounterIncrement CssValue             -- 25
   | CssDeclarationCounterReset CssValue                 -- 26
@@ -251,7 +254,7 @@ makeCssDeclarationBackgroundAttachment v = CssDeclarationBackgroundAttachment v
 
 data CssValueBackgroundColor
   = CssValueBackgroundColorInherit
-  | CssValueBackgroundColor Int
+  | CssValueBackgroundColor Int -- TODO: Int or Color?
   deriving (Eq, Show, Data)
 
 makeCssDeclarationBackgroundColor :: CssValue -> CssDeclaration
@@ -266,18 +269,41 @@ makeCssDeclarationBackgroundColor v = case v of
 makeCssDeclarationBackgroundImage v = CssDeclarationBackgroundImage v
 makeCssDeclarationBackgroundPosition v = CssDeclarationBackgroundPosition v
 makeCssDeclarationBackgroundRepeat v = CssDeclarationBackgroundRepeat v
-makeCssDeclarationBorderBottomColor v = CssDeclarationBorderBottomColor v
 makeCssDeclarationBorderBottomStyle v = CssDeclarationBorderBottomStyle v
 makeCssDeclarationBorderBottomWidth v = CssDeclarationBorderBottomWidth v
 makeCssDeclarationBorderCollapse v = CssDeclarationBorderCollapse v
-makeCssDeclarationBorderLeftColor v = CssDeclarationBorderLeftColor v
 makeCssDeclarationBorderLeftStyle v = CssDeclarationBorderLeftStyle v
 makeCssDeclarationBorderLeftWidth v = CssDeclarationBorderLeftWidth v
-makeCssDeclarationBorderRightColor v = CssDeclarationBorderRightColor v
 makeCssDeclarationBorderRightStyle v = CssDeclarationBorderRightStyle v
 makeCssDeclarationBorderRightWidth v = CssDeclarationBorderRightWidth v
 makeCssDeclarationBorderSpacing v = CssDeclarationBorderSpacing v
-makeCssDeclarationBorderTopColor v = CssDeclarationBorderTopColor v
+
+
+
+
+-- Here is a tricky question: should I make separate types for colors of
+-- Bottom/Top/Left/Right, or can I get away with common type for all four
+-- properties?
+data CssValueBorderColor
+  = CssValueBorderColorInherit
+  | CssValueBorderColorTransparent
+  | CssValueBorderColor Int -- TODO: Int or Color?
+  deriving (Eq, Show, Data)
+
+makeCssDeclarationBorderXColor :: (CssValueBorderColor -> CssDeclaration) -> CssValue -> CssDeclaration
+makeCssDeclarationBorderXColor ctor (CssValueTypeString "inherit")     = ctor CssValueBorderColorInherit
+makeCssDeclarationBorderXColor ctor (CssValueTypeString "transparent") = ctor CssValueBorderColorTransparent
+makeCssDeclarationBorderXColor ctor (CssValueTypeColor i)              = ctor $ CssValueBorderColor i
+makeCssDeclarationBorderXColor _    _                                  = CssDeclaration_LAST
+
+makeCssDeclarationBorderTopColor    = makeCssDeclarationBorderXColor CssDeclarationBorderTopColor
+makeCssDeclarationBorderRightColor  = makeCssDeclarationBorderXColor CssDeclarationBorderRightColor
+makeCssDeclarationBorderBottomColor = makeCssDeclarationBorderXColor CssDeclarationBorderBottomColor
+makeCssDeclarationBorderLeftColor   = makeCssDeclarationBorderXColor CssDeclarationBorderLeftColor
+
+
+
+
 makeCssDeclarationBorderTopStyle v = CssDeclarationBorderTopStyle v
 makeCssDeclarationBorderTopWidth v = CssDeclarationBorderTopWidth v
 makeCssDeclarationBottom v = CssDeclarationBottom v
@@ -290,7 +316,7 @@ makeCssDeclarationClip v = CssDeclarationClip v
 
 data CssValueColor
   = CssValueColorInherit
-  | CssValueColor Int
+  | CssValueColor Int -- TODO: Int or Color?
   deriving (Eq, Show, Data)
 
 makeCssDeclarationColor :: CssValue -> CssDeclaration

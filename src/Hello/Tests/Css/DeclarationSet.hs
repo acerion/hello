@@ -64,7 +64,7 @@ declarationsSetAppendData = [
                         [
                           CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueTypeColor 77), important = False }
                         , CssDeclWrapper { property = CssDeclarationBorderCollapse (CssValueTypeColor 88), important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueTypeColor 99), important = False }
+                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 99), important = False }
                         ]
                       }
 
@@ -77,7 +77,7 @@ declarationsSetAppendData = [
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 44), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueTypeColor 77), important = False }
                         , CssDeclWrapper { property = CssDeclarationBorderCollapse (CssValueTypeColor 88), important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueTypeColor 99), important = False }
+                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 99), important = False }
                         ]
                       }
   )
@@ -99,7 +99,7 @@ declarationsSetAppendData = [
                         [
                           CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueTypeColor 45), important = False }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 56), important = True  }   -- <---- ... with this one.
-                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueTypeColor 67), important = False }
+                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 67), important = False }
                         ]
                       }
   -- merged:
@@ -111,7 +111,7 @@ declarationsSetAppendData = [
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 34), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueTypeColor 45), important = False }
                         -- , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 56), important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueTypeColor 67), important = False }
+                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 67), important = False }
                         ]
                       }
   )

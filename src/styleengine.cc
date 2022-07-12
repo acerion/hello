@@ -413,6 +413,20 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
    style_attrs->c_border_collapse = attrs->borderCollapse;
    *(style_attrs->c_border_width) = attrs->borderWidth;
    *(style_attrs->c_border_style) = attrs->borderStyle;
+
+   if (attrs->borderColor.top != nullptr && attrs->borderColor.top != (Color *) -1) {
+      style_attrs->c_border_color->top    = attrs->borderColor.top->color;
+   }
+   if (attrs->borderColor.right != nullptr && attrs->borderColor.right != (Color *) -1) {
+      style_attrs->c_border_color->right  = attrs->borderColor.right->color;
+   }
+   if (attrs->borderColor.left != nullptr && attrs->borderColor.left != (Color *) -1) {
+      style_attrs->c_border_color->left   = attrs->borderColor.left->color;
+   }
+   if (attrs->borderColor.bottom != nullptr && attrs->borderColor.bottom != (Color *) -1) {
+      style_attrs->c_border_color->bottom = attrs->borderColor.bottom->color;
+   }
+
    *(style_attrs->c_margin) = attrs->margin;
    *(style_attrs->c_padding) = attrs->padding;
 

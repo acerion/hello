@@ -1115,18 +1115,18 @@ allDeclMakers =
   , ( (\v -> CssDeclarationBackgroundImage v), 2 )
   , ( (\v -> CssDeclarationBackgroundPosition v), 3 )
   , ( (\v -> CssDeclarationBackgroundRepeat v), 4 )
-  , ( (\v -> CssDeclarationBorderBottomColor v), 5 )
+  , ( (\v -> CssDeclaration_LAST), 5 )                   -- CssDeclarationBorderBottomColor; C++ code will never ask for this property
   , ( (\v -> CssDeclarationBorderBottomStyle v), 6 )
   , ( (\v -> CssDeclarationBorderBottomWidth v), 7 )
   , ( (\v -> CssDeclarationBorderCollapse v), 8 )
-  , ( (\v -> CssDeclarationBorderLeftColor v), 9 )
+  , ( (\v -> CssDeclaration_LAST), 9 )                   -- CssDeclarationBorderLeftColor; C++ code will never ask for this property
   , ( (\v -> CssDeclarationBorderLeftStyle v), 10 )
   , ( (\v -> CssDeclarationBorderLeftWidth v), 11 )
-  , ( (\v -> CssDeclarationBorderRightColor v), 12 )
+  , ( (\v -> CssDeclaration_LAST), 12 )                  -- CssDeclarationBorderRightColor; C++ code will never ask for this property
   , ( (\v -> CssDeclarationBorderRightStyle v), 13 )
   , ( (\v -> CssDeclarationBorderRightWidth v), 14 )
   , ( (\v -> CssDeclarationBorderSpacing v), 15 )
-  , ( (\v -> CssDeclarationBorderTopColor v), 16 )
+  , ( (\v -> CssDeclaration_LAST), 16 )                  -- CssDeclarationBorderTopColor; C++ code will never ask for this property
   , ( (\v -> CssDeclarationBorderTopStyle v), 17 )
   , ( (\v -> CssDeclarationBorderTopWidth v), 18 )
   , ( (\v -> CssDeclarationBottom v), 19 )
