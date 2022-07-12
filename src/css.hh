@@ -12,25 +12,6 @@ typedef struct c_css_declaration_lists_t {
    int non_css_decl_set_ref;
 } c_css_declaration_lists_t;
 
-/* This is needed only for debug prints. */
-typedef enum {
-   CSS_TYPE_INTEGER,
-   CSS_TYPE_ENUM,
-   CSS_TYPE_MULTI_ENUM,
-   CSS_TYPE_LENGTH_PERCENTAGE,
-   CSS_TYPE_LENGTH,
-   CSS_TYPE_SIGNED_LENGTH,
-   CSS_TYPE_LENGTH_PERCENTAGE_NUMBER,
-   CSS_TYPE_AUTO,
-   CSS_TYPE_COLOR,
-   CSS_TYPE_FONT_WEIGHT,
-   CSS_TYPE_STRING,
-   CSS_TYPE_SYMBOL,
-   CSS_TYPE_URI,
-   CSS_TYPE_BACKGROUND_POSITION,
-   CSS_TYPE_UNUSED
-} CssValueType;
-
 enum CssDeclarationValueType {
    CssDeclarationValueTypeINTEGER,            /* This type is only used internally, for x-* properties. */
    CssDeclarationValueTypeENUM,               /* Value is i, if represented by enum_symbols[i]. */
