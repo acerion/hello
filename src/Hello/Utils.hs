@@ -40,6 +40,9 @@ module Hello.Utils (
   , listReplaceElem
 
   , roundInt
+
+  , (>>?)
+  , (>>!)
   ) where
 
 
@@ -99,5 +102,26 @@ roundInt :: Float -> Int
 roundInt f = if f > 0
              then floor (f + 0.5)
              else ceiling (f - 0.5)
+
+
+
+
+-- This function is based on function with the same name from Real World
+-- Haskell, chapter 10.
+--
+-- These lines are most awesome piece of code that I've written so far, in
+-- any project.
+(>>?) :: (a, Maybe b) -> (a -> (a, Maybe b)) -> (a, Maybe b)
+(state, Nothing) >>? f = f state
+(state, result)  >>? _ = (state, result)
+
+
+
+
+(>>!) :: (Maybe a) -> (a -> Maybe b) -> (Maybe b)
+(Nothing) >>! _ = Nothing
+(Just b)  >>! f  = f b
+
+
 
 

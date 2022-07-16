@@ -216,24 +216,6 @@ nextToken2 parser = (updatedParser{bufOffset = increasedBufOffset parser}, token
 
 
 
--- This function is based on function with the same name from Real World
--- Haskell, chapter 10.
---
--- These lines are most awesome piece of code that I've written so far, in
--- any project.
-(>>?) :: (a, Maybe b) -> (a -> (a, Maybe b)) -> (a, Maybe b)
-(parser, Nothing) >>? f = f parser
-pair@(parser, _)  >>? _ = pair
-
-
-
-(>>!) :: (Maybe a) -> (a -> Maybe b) -> (Maybe b)
-(Nothing) >>! _ = Nothing
-(Just b)  >>! f  = f b
-
-
-
-
 nextToken1' :: CssParser -> (CssParser, Maybe CssToken)
 nextToken1' parser = takeLeadingWhite parser >>?
                      takeNumericToken        >>?
