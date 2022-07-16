@@ -79,6 +79,7 @@ import Hello.Ffi.Utils
 
 --foreign export ccall "hll_makeCssDeclaration" hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeInt" hll_styleEngineSetNonCssHintOfNodeInt :: CInt -> CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
+foreign export ccall "hll_styleEngineSetNonCssHintOfNodeEnum" hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CInt -> CString -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeColor" hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
 
@@ -148,6 +149,41 @@ hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIn
   let decl :: CssDeclWrapper = CssDeclWrapper (propMaker cssValue) False
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
+
+  globalDeclarationSetUpdate ref newDeclSet
+
+  return . fromIntegral $ ref
+
+
+
+
+getBorderStyle :: Int -> CssValueBorderStyle
+getBorderStyle i | i ==  0 = CssValueBorderStyleNone
+                 | i ==  1 = CssValueBorderStyleHidden
+                 | i ==  2 = CssValueBorderStyleDotted
+                 | i ==  3 = CssValueBorderStyleDashed
+                 | i ==  4 = CssValueBorderStyleSolid
+                 | i ==  5 = CssValueBorderStyleDouble
+                 | i ==  6 = CssValueBorderStyleGroove
+                 | i ==  7 = CssValueBorderStyleRidge
+                 | i ==  8 = CssValueBorderStyleInset
+                 | i ==  9 = CssValueBorderStyleOutset
+                 | i == 10 = CssValueBorderStyleInherit
+                 | otherwise = CssValueBorderStyleNone -- Not going to happen
+
+hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
+hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
+  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
+
+  let property = fromIntegral cProperty
+  let enumVal   = fromIntegral cEnumVal
+  let decl | property ==  6 = CssDeclarationBorderBottomStyle $ getBorderStyle enumVal
+           | property == 10 = CssDeclarationBorderLeftStyle   $ getBorderStyle enumVal
+           | property == 13 = CssDeclarationBorderRightStyle  $ getBorderStyle enumVal
+           | property == 17 = CssDeclarationBorderTopStyle    $ getBorderStyle enumVal
+           | otherwise      = trace ("[EE] Unhandled enum property " ++ (show property)) (undefined)
+
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
 
   globalDeclarationSetUpdate ref newDeclSet
 

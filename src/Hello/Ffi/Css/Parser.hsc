@@ -1116,18 +1116,18 @@ allDeclMakers =
   , ( (\v -> CssDeclarationBackgroundPosition v), 3 )
   , ( (\v -> CssDeclarationBackgroundRepeat v), 4 )
   , ( (\v -> CssDeclaration_LAST), 5 )                   -- CssDeclarationBorderBottomColor; C++ code will never ask for this property
-  , ( (\v -> CssDeclarationBorderBottomStyle v), 6 )
+  , ( (\v -> CssDeclaration_LAST), 6 )                   -- Handling of a request from C++ to add CssDeclarationBorderBottomStyle declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclarationBorderBottomWidth v), 7 )
   , ( (\v -> CssDeclarationBorderCollapse v), 8 )
   , ( (\v -> CssDeclaration_LAST), 9 )                   -- CssDeclarationBorderLeftColor; C++ code will never ask for this property
-  , ( (\v -> CssDeclarationBorderLeftStyle v), 10 )
+  , ( (\v -> CssDeclaration_LAST), 10 )                  -- Handling of a request from C++ to add CssDeclarationBorderLeftStyle declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclarationBorderLeftWidth v), 11 )
   , ( (\v -> CssDeclaration_LAST), 12 )                  -- CssDeclarationBorderRightColor; C++ code will never ask for this property
-  , ( (\v -> CssDeclarationBorderRightStyle v), 13 )
+  , ( (\v -> CssDeclaration_LAST), 13 )                  -- Handling of a request from C++ to add CssDeclarationBorderRightStyle declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclarationBorderRightWidth v), 14 )
   , ( (\v -> CssDeclarationBorderSpacing v), 15 )
   , ( (\v -> CssDeclaration_LAST), 16 )                  -- CssDeclarationBorderTopColor; C++ code will never ask for this property
-  , ( (\v -> CssDeclarationBorderTopStyle v), 17 )
+  , ( (\v -> CssDeclaration_LAST), 17 )                  -- Handling of a request from C++ to add CssDeclarationBorderTopStyle declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclarationBorderTopWidth v), 18 )
   , ( (\v -> CssDeclarationBottom v), 19 )
   , ( (\v -> CssDeclarationCaptionSide v), 20 )

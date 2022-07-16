@@ -773,4 +773,10 @@ void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int propert
    return;
 }
 
+void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property, int enumVal)
+{
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeEnum(styleNode->declLists.non_css_decl_set_ref, property, enumVal);
+   return;
+}
+
 

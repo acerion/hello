@@ -1912,10 +1912,10 @@ static void Html_tag_open_img(DilloHtml *html, const char *tag, int tagsize)
          cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
          cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, border);
 
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
+         cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_TOP_STYLE,    BORDER_SOLID);
+         cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_BOTTOM_STYLE, BORDER_SOLID);
+         cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_LEFT_STYLE,   BORDER_SOLID);
+         cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_RIGHT_STYLE,  BORDER_SOLID);
       }
    }
 
@@ -2631,10 +2631,10 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
       if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<hr> noshade attribute is obsolete.");
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BORDER_TOP_STYLE,    CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BORDER_BOTTOM_STYLE, CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BORDER_LEFT_STYLE,   CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_BORDER_RIGHT_STYLE,  CssDeclarationValueTypeENUM, BORDER_SOLID, 0.0, 0);
+      cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_TOP_STYLE,    BORDER_SOLID);
+      cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_BOTTOM_STYLE, BORDER_SOLID);
+      cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_LEFT_STYLE,   BORDER_SOLID);
+      cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_RIGHT_STYLE,  BORDER_SOLID);
 
       if (size <= 0)
          size = 1;

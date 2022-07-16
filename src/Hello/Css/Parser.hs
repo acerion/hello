@@ -137,7 +137,7 @@ css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
 css_border_collapse_enum_vals       = ["separate", "collapse"]
 css_border_color_enum_vals          = ["transparent", "inherit"]
-css_border_style_enum_vals          = ["none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset"]
+css_border_style_enum_vals          = ["none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit"]
 css_border_width_enum_vals          = ["thin", "medium", "thick"]
 css_color_enum_vals                 = ["inherit"]
 css_cursor_enum_vals                = ["crosshair", "default", "pointer", "move", "e-resize", "ne-resize", "nw-resize", "n-resize", "se-resize", "sw-resize", "s-resize", "w-resize", "text", "wait", "help"]
@@ -168,10 +168,10 @@ cssPropertyInfo = M.fromList [
    , ("background-image",       (makeCssDeclarationBackgroundImage,      [ declValueAsURI ],                                                   []))
    , ("background-position",    (makeCssDeclarationBackgroundPosition,   [ tokensAsValueBgPosition ],                                          []))
    , ("background-repeat",      (makeCssDeclarationBackgroundRepeat,     [ tokensAsValueEnum ],                                                css_background_repeat_enum_vals))
-   , ("border-bottom-style",    (makeCssDeclarationBorderBottomStyle,    [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-bottom-style",    (makeCssDeclarationBorderBottomStyle,    [ tokensAsValueEnumString ],                                          css_border_style_enum_vals))
    , ("border-bottom-width",    (makeCssDeclarationBorderBottomWidth,    [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
    , ("border-collapse",        (makeCssDeclarationBorderCollapse,       [ tokensAsValueEnum ],                                                css_border_collapse_enum_vals))
-   , ("border-left-style",      (makeCssDeclarationBorderLeftStyle,      [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-left-style",      (makeCssDeclarationBorderLeftStyle,      [ tokensAsValueEnumString ],                                          css_border_style_enum_vals))
    , ("border-left-width",      (makeCssDeclarationBorderLeftWidth,      [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
 
    , ("border-top-color",       (makeCssDeclarationBorderTopColor,       [ tokensAsValueEnumString, tokensAsValueColor ],                      css_border_color_enum_vals))
@@ -179,10 +179,10 @@ cssPropertyInfo = M.fromList [
    , ("border-bottom-color",    (makeCssDeclarationBorderBottomColor,    [ tokensAsValueEnumString, tokensAsValueColor ],                      css_border_color_enum_vals))
    , ("border-left-color",      (makeCssDeclarationBorderLeftColor,      [ tokensAsValueEnumString, tokensAsValueColor ],                      css_border_color_enum_vals))
 
-   , ("border-right-style",     (makeCssDeclarationBorderRightStyle,     [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-right-style",     (makeCssDeclarationBorderRightStyle,     [ tokensAsValueEnumString ],                                          css_border_style_enum_vals))
    , ("border-rigth-width",     (makeCssDeclarationBorderRightWidth,     [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
    , ("border-spacing",         (makeCssDeclarationBorderSpacing,        [ declValueAsLength ],                                                []))
-   , ("border-top-style",       (makeCssDeclarationBorderTopStyle,       [ tokensAsValueEnum ],                                                css_border_style_enum_vals))
+   , ("border-top-style",       (makeCssDeclarationBorderTopStyle,       [ tokensAsValueEnumString ],                                          css_border_style_enum_vals))
    , ("border-top-width",       (makeCssDeclarationBorderTopWidth,       [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
    , ("bottom",                 (makeCssDeclarationBottom,               [],                                                                   []))
    , ("caption-side",           (makeCssDeclarationCaptionSide,          [],                                                                   []))

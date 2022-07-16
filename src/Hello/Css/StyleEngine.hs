@@ -502,19 +502,21 @@ yet because a full support for them in dillo seems to be missing or broken.
   case declaration of
     CssDeclarationBackgroundColor value   -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs value }
     CssDeclarationBorderCollapse value    -> styleAttrs { styleBorderCollapse  = getBorderCollapse value }
-    CssDeclarationBorderTopStyle value    -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyle value }}
-    CssDeclarationBorderRightStyle value  -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyle value }}
-    CssDeclarationBorderBottomStyle value -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyle value }}
-    CssDeclarationBorderLeftStyle value   -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleLeft   = getBorderStyle value }}
+
+    CssDeclarationBorderTopStyle value    -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyleTop    parentStyleAttrs value }}
+    CssDeclarationBorderRightStyle value  -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyleRight  parentStyleAttrs value }}
+    CssDeclarationBorderBottomStyle value -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyleBottom parentStyleAttrs value }}
+    CssDeclarationBorderLeftStyle value   -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleLeft   = getBorderStyleLeft   parentStyleAttrs value }}
+
     CssDeclarationBorderTopWidth value    -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthTop    = getBorderWidth value display fontAttrs }}
     CssDeclarationBorderRightWidth value  -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidth value display fontAttrs }}
     CssDeclarationBorderBottomWidth value -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidth value display fontAttrs }}
     CssDeclarationBorderLeftWidth value   -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidth value display fontAttrs }}
 
-    CssDeclarationBorderTopColor value    -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorTop    = getBorderColorTop parentStyleAttrs value }}
-    CssDeclarationBorderRightColor value  -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorRight  = getBorderColorRight parentStyleAttrs value }}
+    CssDeclarationBorderTopColor value    -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorTop    = getBorderColorTop    parentStyleAttrs value }}
+    CssDeclarationBorderRightColor value  -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorRight  = getBorderColorRight  parentStyleAttrs value }}
     CssDeclarationBorderBottomColor value -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColorBottom parentStyleAttrs value }}
-    CssDeclarationBorderLeftColor value   -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColorLeft parentStyleAttrs value }}
+    CssDeclarationBorderLeftColor value   -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColorLeft   parentStyleAttrs value }}
 
     CssDeclarationMarginBottom value      -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin (distance value) fontAttrs display }}
     CssDeclarationMarginLeft value        -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin (distance value) fontAttrs display }}
@@ -567,10 +569,25 @@ getBorderCollapse value = case value of
 
 
 
+getBorderStyleTop    = getBorderStyle styleBorderStyleTop
+getBorderStyleRight  = getBorderStyle styleBorderStyleRight
+getBorderStyleBottom = getBorderStyle styleBorderStyleBottom
+getBorderStyleLeft   = getBorderStyle styleBorderStyleLeft
 
-getBorderStyle value = case value of
-                         CssValueTypeEnum i -> i
-                         otherwise          -> 0
+getBorderStyle :: (StyleBorderStyle -> Int) -> StyleAttrs -> CssValueBorderStyle -> Int
+getBorderStyle field parentStyleAttrs value = case value of
+                                                -- These integer values are understood by C++ code.
+                                                CssValueBorderStyleNone    -> 0
+                                                CssValueBorderStyleHidden  -> 1
+                                                CssValueBorderStyleDotted  -> 2
+                                                CssValueBorderStyleDashed  -> 3
+                                                CssValueBorderStyleSolid   -> 4
+                                                CssValueBorderStyleDouble  -> 5
+                                                CssValueBorderStyleGroove  -> 6
+                                                CssValueBorderStyleRidge   -> 7
+                                                CssValueBorderStyleInset   -> 8
+                                                CssValueBorderStyleOutset  -> 9
+                                                CssValueBorderStyleInherit -> field . styleBorderStyle $ parentStyleAttrs
 
 
 

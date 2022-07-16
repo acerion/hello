@@ -38,18 +38,17 @@ module Hello.Css.Declaration
   , CssValueBackgroundColor (..)
   , CssValueColor (..)
   , CssValueBorderColor (..)
+  , CssValueBorderStyle (..)
 
   , makeCssDeclarationBackgroundAttachment
   , makeCssDeclarationBackgroundColor
   , makeCssDeclarationBackgroundImage
   , makeCssDeclarationBackgroundPosition
   , makeCssDeclarationBackgroundRepeat
-  , makeCssDeclarationBorderBottomStyle
+
   , makeCssDeclarationBorderBottomWidth
   , makeCssDeclarationBorderCollapse
-  , makeCssDeclarationBorderLeftStyle
   , makeCssDeclarationBorderLeftWidth
-  , makeCssDeclarationBorderRightStyle
   , makeCssDeclarationBorderRightWidth
   , makeCssDeclarationBorderSpacing
 
@@ -59,6 +58,10 @@ module Hello.Css.Declaration
   , makeCssDeclarationBorderLeftColor
 
   , makeCssDeclarationBorderTopStyle
+  , makeCssDeclarationBorderRightStyle
+  , makeCssDeclarationBorderBottomStyle
+  , makeCssDeclarationBorderLeftStyle
+
   , makeCssDeclarationBorderTopWidth
   , makeCssDeclarationBottom
   , makeCssDeclarationCaptionSide
@@ -152,18 +155,18 @@ data CssDeclaration
   | CssDeclarationBackgroundPosition CssValue           -- 3
   | CssDeclarationBackgroundRepeat CssValue             -- 4
   | CssDeclarationBorderBottomColor CssValueBorderColor -- 5                parsing is tested
-  | CssDeclarationBorderBottomStyle CssValue            -- 6
+  | CssDeclarationBorderBottomStyle CssValueBorderStyle -- 6                parsing is tested
   | CssDeclarationBorderBottomWidth CssValue            -- 7
   | CssDeclarationBorderCollapse CssValue               -- 8
   | CssDeclarationBorderLeftColor CssValueBorderColor   -- 9                parsing is tested
-  | CssDeclarationBorderLeftStyle CssValue              -- 10
+  | CssDeclarationBorderLeftStyle CssValueBorderStyle   -- 10               parsing is tested
   | CssDeclarationBorderLeftWidth CssValue              -- 11
   | CssDeclarationBorderRightColor CssValueBorderColor  -- 12               parsing is tested
-  | CssDeclarationBorderRightStyle CssValue             -- 13
+  | CssDeclarationBorderRightStyle CssValueBorderStyle  -- 13               parsing is tested
   | CssDeclarationBorderRightWidth CssValue             -- 14
   | CssDeclarationBorderSpacing CssValue                -- 15
   | CssDeclarationBorderTopColor CssValueBorderColor    -- 16               parsing is tested
-  | CssDeclarationBorderTopStyle CssValue               -- 17
+  | CssDeclarationBorderTopStyle CssValueBorderStyle    -- 17               parsing is tested
   | CssDeclarationBorderTopWidth CssValue               -- 18
   | CssDeclarationBottom CssValue                       -- 19
   | CssDeclarationCaptionSide CssValue                  -- 20
@@ -269,12 +272,9 @@ makeCssDeclarationBackgroundColor v = case v of
 makeCssDeclarationBackgroundImage v = CssDeclarationBackgroundImage v
 makeCssDeclarationBackgroundPosition v = CssDeclarationBackgroundPosition v
 makeCssDeclarationBackgroundRepeat v = CssDeclarationBackgroundRepeat v
-makeCssDeclarationBorderBottomStyle v = CssDeclarationBorderBottomStyle v
 makeCssDeclarationBorderBottomWidth v = CssDeclarationBorderBottomWidth v
 makeCssDeclarationBorderCollapse v = CssDeclarationBorderCollapse v
-makeCssDeclarationBorderLeftStyle v = CssDeclarationBorderLeftStyle v
 makeCssDeclarationBorderLeftWidth v = CssDeclarationBorderLeftWidth v
-makeCssDeclarationBorderRightStyle v = CssDeclarationBorderRightStyle v
 makeCssDeclarationBorderRightWidth v = CssDeclarationBorderRightWidth v
 makeCssDeclarationBorderSpacing v = CssDeclarationBorderSpacing v
 
@@ -304,7 +304,43 @@ makeCssDeclarationBorderLeftColor   = makeCssDeclarationBorderXColor CssDeclarat
 
 
 
-makeCssDeclarationBorderTopStyle v = CssDeclarationBorderTopStyle v
+-- https://www.w3.org/TR/CSS22/box.html#border-style-properties
+data CssValueBorderStyle
+  = CssValueBorderStyleNone
+  | CssValueBorderStyleHidden
+  | CssValueBorderStyleDotted
+  | CssValueBorderStyleDashed
+  | CssValueBorderStyleSolid
+  | CssValueBorderStyleDouble
+  | CssValueBorderStyleGroove
+  | CssValueBorderStyleRidge
+  | CssValueBorderStyleInset
+  | CssValueBorderStyleOutset
+  | CssValueBorderStyleInherit
+  deriving (Eq, Show, Data)
+
+makeCssDeclarationBorderXStyle :: (CssValueBorderStyle -> CssDeclaration) -> CssValue -> CssDeclaration
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString "none")    = ctor CssValueBorderStyleNone
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString "hidden")  = ctor CssValueBorderStyleHidden
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString "dotted")  = ctor CssValueBorderStyleDotted
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString "dashed")  = ctor CssValueBorderStyleDashed
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString "solid")   = ctor CssValueBorderStyleSolid
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString "double")  = ctor CssValueBorderStyleDouble
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString "groove")  = ctor CssValueBorderStyleGroove
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString "ridge")   = ctor CssValueBorderStyleRidge
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString "inset")   = ctor CssValueBorderStyleInset
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString "outset")  = ctor CssValueBorderStyleOutset
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString "inherit") = ctor CssValueBorderStyleInherit
+makeCssDeclarationBorderXStyle ctor (CssValueTypeString s)         = trace ("[EE] Unhandled border style " ++ (show s)) (ctor CssValueBorderStyleNone)
+
+makeCssDeclarationBorderTopStyle    = makeCssDeclarationBorderXStyle CssDeclarationBorderTopStyle
+makeCssDeclarationBorderRightStyle  = makeCssDeclarationBorderXStyle CssDeclarationBorderRightStyle
+makeCssDeclarationBorderBottomStyle = makeCssDeclarationBorderXStyle CssDeclarationBorderBottomStyle
+makeCssDeclarationBorderLeftStyle   = makeCssDeclarationBorderXStyle CssDeclarationBorderLeftStyle
+
+
+
+
 makeCssDeclarationBorderTopWidth v = CssDeclarationBorderTopWidth v
 makeCssDeclarationBottom v = CssDeclarationBottom v
 makeCssDeclarationCaptionSide v = CssDeclarationCaptionSide v
