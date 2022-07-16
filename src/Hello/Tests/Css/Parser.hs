@@ -191,6 +191,76 @@ parseDeclarationTestData =
 
 
 
+-- Shorthands. For now it's just most basic set of tests.
+--
+-- I'm putting them in separate list just because the set will become larger,
+-- and I don't want the main list to become veeeery long.
+--
+-- TODO: none of the test inputs is using "important" keywords. Check if the
+-- keyword is allowed in such declarations, and implement if necessary.
+--
+-- TODO: it looks like CSS standard allows omitting selected values, but our
+-- parser doesn't support that.
+parseDeclarationShorthandTestData =
+  [
+    ( "border: 10px inset #00fff1",           [ CssDeclWrapper { property = CssDeclarationBorderTopWidth    (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 10.0))), important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderRightWidth  (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 10.0))), important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 10.0))), important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderLeftWidth   (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 10.0))), important = False }
+
+                                              , CssDeclWrapper { property = CssDeclarationBorderTopStyle    CssValueBorderStyleInset, important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderRightStyle  CssValueBorderStyleInset, important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderBottomStyle CssValueBorderStyleInset, important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderLeftStyle   CssValueBorderStyleInset, important = False }
+
+                                              , CssDeclWrapper { property = CssDeclarationBorderTopColor    $ CssValueBorderColor 0x00fff1 , important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderRightColor  $ CssValueBorderColor 0x00fff1 , important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderBottomColor $ CssValueBorderColor 0x00fff1 , important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderLeftColor   $ CssValueBorderColor 0x00fff1 , important = False }
+                                              ])
+
+  , ( "border-top: 5mm solid red",            [ CssDeclWrapper { property = CssDeclarationBorderTopWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsMm 5))), important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderTopStyle CssValueBorderStyleSolid,                                        important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderTopColor $ CssValueBorderColor 0xff0000,                                  important = False }
+                                              ])
+
+  , ( "border-right: 2mm dotted orange",      [ CssDeclWrapper { property = CssDeclarationBorderRightWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsMm 2))), important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderRightStyle CssValueBorderStyleDotted,                                       important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderRightColor $ CssValueBorderColor 0xffa500,                                  important = False }
+                                              ])
+
+  , ( "border-bottom: 17px inherit rgb(255, 0, 255)",    [ CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 17))), important = False }
+                                                         , CssDeclWrapper { property = CssDeclarationBorderBottomStyle CssValueBorderStyleInherit,                                       important = False }
+                                                         , CssDeclWrapper { property = CssDeclarationBorderBottomColor $ CssValueBorderColor 0xff00ff,                                   important = False }
+                                                         ])
+
+  , ( "border-left: 20em none inherit",      [ CssDeclWrapper { property = CssDeclarationBorderLeftWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEm 20))), important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderLeftStyle CssValueBorderStyleNone,                                          important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderLeftColor $ CssValueBorderColorInherit,                                     important = False }
+                                             ])
+
+  , ( "border-width: 99px",                  [ CssDeclWrapper { property = CssDeclarationBorderTopWidth    (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 99))), important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderRightWidth  (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 99))), important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 99))), important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderLeftWidth   (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 99))), important = False }
+                                             ])
+
+  , ( "border-style: double",               [ CssDeclWrapper { property = CssDeclarationBorderTopStyle    CssValueBorderStyleDouble,                                       important = False }
+                                            , CssDeclWrapper { property = CssDeclarationBorderRightStyle  CssValueBorderStyleDouble,                                       important = False }
+                                            , CssDeclWrapper { property = CssDeclarationBorderBottomStyle CssValueBorderStyleDouble,                                       important = False }
+                                            , CssDeclWrapper { property = CssDeclarationBorderLeftStyle   CssValueBorderStyleDouble,                                       important = False }
+                                            ])
+
+  , ( "border-color: rgb(0, 0, 255)",        [ CssDeclWrapper { property = CssDeclarationBorderTopColor    $ CssValueBorderColor 0x0000ff,                                   important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderRightColor  $ CssValueBorderColor 0x0000ff,                                   important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderBottomColor $ CssValueBorderColor 0x0000ff,                                   important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderLeftColor   $ CssValueBorderColor 0x0000ff,                                   important = False }
+                                             ])
+  ]
+
+
+
+
 -- On success return empty string. On failure return string showing
 -- approximately where the problem is.
 parseDeclarationTest :: [(T.Text, [CssDeclWrapper])] -> T.Text
@@ -211,11 +281,14 @@ parseDeclarationTest (x:xs) = if expectedDeclarations /= declarations
 
 
 
-testCases = [
+testCases =
+  [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.
-     TestCase (do
-                 assertEqual "manual tests of parseDeclaration" "" (parseDeclarationTest parseDeclarationTestData))
+    TestCase (do
+                 assertEqual "manual tests of standard  declarations with parseDeclaration" "" (parseDeclarationTest parseDeclarationTestData))
+  , TestCase (do
+                 assertEqual "manual tests of shorthand declarations with parseDeclaration" "" (parseDeclarationTest parseDeclarationShorthandTestData))
   ]
 
 
