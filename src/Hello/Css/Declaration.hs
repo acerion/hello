@@ -134,6 +134,14 @@ module Hello.Css.Declaration
   , makeCssDeclarationXImg
   , makeCssDeclarationXTooltip
   , makeCssDeclaration_LAST
+
+  , defaultDeclaration
+  , CssDeclWrapper (..)
+
+  , makeCssDeclarationBorder
+  , parseTokensAsBorderWidthValue
+  , parseTokensAsBorderStyleValue
+  , parseTokensAsBorderColorValue
   )
 where
 
@@ -143,9 +151,41 @@ where
 import Debug.Trace
 
 import Data.Data
+import Data.Maybe
+import Data.List as L
 import Data.Text as T
 
+import Hello.Css.ParserHelpers
+import Hello.Css.Tokenizer
 import Hello.Css.Value
+
+import Hello.Utils
+
+
+
+
+data CssDeclWrapper = CssDeclWrapper
+  { property  :: CssDeclaration
+
+  -- https://www.w3.org/TR/css-syntax-3
+  --
+  -- "If the last two non-<whitespace-token>s in the declaration’s value are
+  -- a <delim-token> with the value "!" followed by an <ident-token> with a
+  -- value that is an ASCII case-insensitive match for "important", remove
+  -- them from the declaration’s value and set the declaration’s important
+  -- flag to true."
+  --
+  -- So "important" is per-declaration flag.
+  , important :: Bool
+  } deriving (Show, Eq)
+
+
+
+
+defaultDeclaration = CssDeclWrapper
+  { property  = CssDeclaration_LAST -- TODO: make it "CssDeclarationInvalid'; TODO: somewhere there is a code that does not set property2 field.
+  , important = False
+  }
 
 
 
@@ -263,6 +303,9 @@ data CssValueBackgroundColor
   | CssValueBackgroundColor Int -- TODO: Int or Color?
   deriving (Eq, Show, Data)
 
+
+
+
 makeCssDeclarationBackgroundColor :: CssValue -> CssDeclaration
 makeCssDeclarationBackgroundColor v = case v of
                                         CssValueTypeString "inherit" -> CssDeclarationBackgroundColor CssValueBackgroundColorInherit
@@ -281,6 +324,13 @@ makeCssDeclarationBorderSpacing v = CssDeclarationBorderSpacing v
 
 
 
+-- ----------------
+-- Border Color
+-- ----------------
+
+
+
+
 -- Here is a tricky question: should I make separate types for colors of
 -- Bottom/Top/Left/Right, or can I get away with common type for all four
 -- properties?
@@ -290,16 +340,44 @@ data CssValueBorderColor
   | CssValueBorderColor Int -- TODO: Int or Color?
   deriving (Eq, Show, Data)
 
-makeCssDeclarationBorderXColor :: (CssValueBorderColor -> CssDeclaration) -> CssValue -> CssDeclaration
-makeCssDeclarationBorderXColor ctor (CssValueTypeString "inherit")     = ctor CssValueBorderColorInherit
-makeCssDeclarationBorderXColor ctor (CssValueTypeString "transparent") = ctor CssValueBorderColorTransparent
-makeCssDeclarationBorderXColor ctor (CssValueTypeColor i)              = ctor $ CssValueBorderColor i
-makeCssDeclarationBorderXColor _    _                                  = CssDeclaration_LAST
+
+
+
+parseTokensAsBorderColorValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderColor)
+parseTokensAsBorderColorValue (parser, token) = ((parser', token'), declarationValue)
+  where
+    (vs', declarationValue) = tokensAsValueEnumString2 vs >>? tokensAsValueColor2
+    (parser', token') = pt vs'
+    vs = ValueState { pt = (parser, token)
+                    , colorValueCtor = Just CssValueBorderColor
+                    , lengthValueCtor = Nothing
+                    , enums = [ ("transparent", CssValueBorderColorTransparent)
+                              , ("inherit",     CssValueBorderColorInherit)
+                              ]
+                    }
+
+
+
+
+makeCssDeclarationBorderXColor :: (CssValueBorderColor -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationBorderXColor declCtor (parser, token) = ((parser', token'), fmap declCtor declarationValue)
+  where
+    ((parser', token'), declarationValue) = parseTokensAsBorderColorValue (parser, token)
+
+
+
 
 makeCssDeclarationBorderTopColor    = makeCssDeclarationBorderXColor CssDeclarationBorderTopColor
 makeCssDeclarationBorderRightColor  = makeCssDeclarationBorderXColor CssDeclarationBorderRightColor
 makeCssDeclarationBorderBottomColor = makeCssDeclarationBorderXColor CssDeclarationBorderBottomColor
 makeCssDeclarationBorderLeftColor   = makeCssDeclarationBorderXColor CssDeclarationBorderLeftColor
+
+
+
+
+-- ----------------
+-- Border Style
+-- ----------------
 
 
 
@@ -319,25 +397,53 @@ data CssValueBorderStyle
   | CssValueBorderStyleInherit
   deriving (Eq, Show, Data)
 
-makeCssDeclarationBorderXStyle :: (CssValueBorderStyle -> CssDeclaration) -> CssValue -> CssDeclaration
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString "none")    = ctor CssValueBorderStyleNone
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString "hidden")  = ctor CssValueBorderStyleHidden
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString "dotted")  = ctor CssValueBorderStyleDotted
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString "dashed")  = ctor CssValueBorderStyleDashed
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString "solid")   = ctor CssValueBorderStyleSolid
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString "double")  = ctor CssValueBorderStyleDouble
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString "groove")  = ctor CssValueBorderStyleGroove
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString "ridge")   = ctor CssValueBorderStyleRidge
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString "inset")   = ctor CssValueBorderStyleInset
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString "outset")  = ctor CssValueBorderStyleOutset
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString "inherit") = ctor CssValueBorderStyleInherit
-makeCssDeclarationBorderXStyle ctor (CssValueTypeString s)         = trace ("[EE] Unhandled border style " ++ (show s)) (ctor CssValueBorderStyleNone)
+
+
+
+parseTokensAsBorderStyleValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderStyle)
+parseTokensAsBorderStyleValue (parser, token) = ((parser', token'), declarationValue)
+  where
+    (vs', declarationValue) = tokensAsValueEnumString2 vs
+    (parser', token') = pt vs'
+    vs = ValueState { pt = (parser, token)
+                    , colorValueCtor  = Nothing
+                    , lengthValueCtor = Nothing
+                    , enums = [ ("none",     CssValueBorderStyleNone)
+                              , ("hidden",   CssValueBorderStyleHidden)
+                              , ("dotted",   CssValueBorderStyleDotted)
+                              , ("dashed",   CssValueBorderStyleDashed)
+                              , ("solid",    CssValueBorderStyleSolid)
+                              , ("double",   CssValueBorderStyleDouble)
+                              , ("groove",   CssValueBorderStyleGroove)
+                              , ("ridge",    CssValueBorderStyleRidge)
+                              , ("inset",    CssValueBorderStyleInset)
+                              , ("outset",   CssValueBorderStyleOutset)
+                              , ("inherit",  CssValueBorderStyleInherit)
+                              ]
+                    }
+
+
+
+
+makeCssDeclarationBorderXStyle :: (CssValueBorderStyle -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationBorderXStyle declCtor (parser, token) = ((parser', token'), fmap declCtor value)
+  where
+    ((parser', token'), value) = parseTokensAsBorderStyleValue (parser, token)
+
+
+
 
 makeCssDeclarationBorderTopStyle    = makeCssDeclarationBorderXStyle CssDeclarationBorderTopStyle
 makeCssDeclarationBorderRightStyle  = makeCssDeclarationBorderXStyle CssDeclarationBorderRightStyle
 makeCssDeclarationBorderBottomStyle = makeCssDeclarationBorderXStyle CssDeclarationBorderBottomStyle
 makeCssDeclarationBorderLeftStyle   = makeCssDeclarationBorderXStyle CssDeclarationBorderLeftStyle
 
+
+
+
+-- ----------------
+-- Border Width
+-- ----------------
 
 
 
@@ -351,18 +457,46 @@ data CssValueBorderWidth
   | CssValueBorderWidth CssValue
   deriving (Eq, Show, Data)
 
-makeCssDeclarationBorderXWidth :: (CssValueBorderWidth -> CssDeclaration) -> CssValue -> CssDeclaration
-makeCssDeclarationBorderXWidth ctor (CssValueTypeString "thin")    = ctor CssValueBorderWidthThin
-makeCssDeclarationBorderXWidth ctor (CssValueTypeString "medium")  = ctor CssValueBorderWidthMedium
-makeCssDeclarationBorderXWidth ctor (CssValueTypeString "thick")   = ctor CssValueBorderWidthThick
-makeCssDeclarationBorderXWidth ctor (CssValueTypeString "inherit") = ctor CssValueBorderWidthInherit
-makeCssDeclarationBorderXWidth ctor (CssValueTypeString s)         = trace ("[EE] Unhandled border width string " ++ (show s)) (ctor CssValueBorderWidthMedium)
-makeCssDeclarationBorderXWidth ctor x                              = ctor $ CssValueBorderWidth x
+
+
+
+parseTokensAsBorderWidthValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderWidth)
+parseTokensAsBorderWidthValue (parser, token) = ((parser', token'), value)
+  where
+    (vs', value)      = tokensAsValueEnumString2 vs >>? declValueAsLength2
+    (parser', token') = pt vs'
+    vs = ValueState { pt = (parser, token)
+                    , colorValueCtor = Nothing
+                    , lengthValueCtor = Just CssValueBorderWidth
+                    , enums = [ ("thin",    CssValueBorderWidthThin)
+                              , ("medium",  CssValueBorderWidthMedium)
+                              , ("thick",   CssValueBorderWidthThick)
+                              , ("inherit", CssValueBorderWidthInherit)
+                              ]
+                    }
+
+
+
+
+makeCssDeclarationBorderXWidth :: (CssValueBorderWidth -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationBorderXWidth declCtor (parser, token) = ((parser', token'), fmap declCtor value)
+  where
+    ((parser', token'), value) = parseTokensAsBorderWidthValue (parser, token)
+
+
+
 
 makeCssDeclarationBorderTopWidth    = makeCssDeclarationBorderXWidth CssDeclarationBorderTopWidth
 makeCssDeclarationBorderRightWidth  = makeCssDeclarationBorderXWidth CssDeclarationBorderRightWidth
 makeCssDeclarationBorderBottomWidth = makeCssDeclarationBorderXWidth CssDeclarationBorderBottomWidth
 makeCssDeclarationBorderLeftWidth   = makeCssDeclarationBorderXWidth CssDeclarationBorderLeftWidth
+
+
+
+
+-- ----------------
+--
+-- ----------------
 
 
 
@@ -451,5 +585,42 @@ makeCssDeclarationXLang v = CssDeclarationXLang v
 makeCssDeclarationXImg v = CssDeclarationXImg v
 makeCssDeclarationXTooltip v = CssDeclarationXTooltip v
 makeCssDeclaration_LAST _ = CssDeclaration_LAST
+
+
+
+
+-- Parse "{ border = X Y Z }" CSS declaration. Expand the single "border"
+-- declaration into a series of "border-top-width", "border-left-color" etc.
+-- properties with their values. Return the list of the expanded
+-- declarations.
+--
+-- TODO: this implementation can correctly parse all value tokens only when
+-- they appear in the same order as 'property' integers. The function should
+-- be able to handle the tokens in any order.
+makeCssDeclarationBorder :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
+makeCssDeclarationBorder pt0 = (pt3, declarations)
+  where
+    declarations = catMaybes [ fmap CssDeclarationBorderTopWidth    declValueWidth,
+                               fmap CssDeclarationBorderRightWidth  declValueWidth,
+                               fmap CssDeclarationBorderBottomWidth declValueWidth,
+                               fmap CssDeclarationBorderLeftWidth   declValueWidth
+
+                             , fmap CssDeclarationBorderTopStyle    declValueStyle,
+                               fmap CssDeclarationBorderRightStyle  declValueStyle,
+                               fmap CssDeclarationBorderBottomStyle declValueStyle,
+                               fmap CssDeclarationBorderLeftStyle   declValueStyle
+
+                             , fmap CssDeclarationBorderTopColor    declValueColor,
+                               fmap CssDeclarationBorderRightColor  declValueColor,
+                               fmap CssDeclarationBorderBottomColor declValueColor,
+                               fmap CssDeclarationBorderLeftColor   declValueColor
+                             ]
+
+    -- TODO: this piece of code has zero error checking.
+    (pt1, declValueWidth) :: ((CssParser, CssToken), Maybe CssValueBorderWidth) = parseTokensAsBorderWidthValue pt0
+    (pt2, declValueStyle) :: ((CssParser, CssToken), Maybe CssValueBorderStyle) = parseTokensAsBorderStyleValue pt1
+    (pt3, declValueColor) :: ((CssParser, CssToken), Maybe CssValueBorderColor) = parseTokensAsBorderColorValue pt2
+
+
 
 
