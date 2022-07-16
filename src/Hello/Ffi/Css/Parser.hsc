@@ -1117,18 +1117,18 @@ allDeclMakers =
   , ( (\v -> CssDeclarationBackgroundRepeat v), 4 )
   , ( (\v -> CssDeclaration_LAST), 5 )                   -- CssDeclarationBorderBottomColor; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 6 )                   -- Handling of a request from C++ to add CssDeclarationBorderBottomStyle declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclarationBorderBottomWidth v), 7 )
+  , ( (\v -> CssDeclaration_LAST), 7 )                   -- Handing of a request from C++ to add CssDeclarationBorderBottomWidth declaration is done in hll_styleEngineSetNonCssHintOfNodeInt2
   , ( (\v -> CssDeclarationBorderCollapse v), 8 )
   , ( (\v -> CssDeclaration_LAST), 9 )                   -- CssDeclarationBorderLeftColor; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 10 )                  -- Handling of a request from C++ to add CssDeclarationBorderLeftStyle declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclarationBorderLeftWidth v), 11 )
+  , ( (\v -> CssDeclaration_LAST), 11 )                  -- Handing of a request from C++ to add CssDeclarationBorderLeftWidth declaration is done in hll_styleEngineSetNonCssHintOfNodeInt2
   , ( (\v -> CssDeclaration_LAST), 12 )                  -- CssDeclarationBorderRightColor; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 13 )                  -- Handling of a request from C++ to add CssDeclarationBorderRightStyle declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclarationBorderRightWidth v), 14 )
+  , ( (\v -> CssDeclaration_LAST), 14 )                  -- Handing of a request from C++ to add CssDeclarationBorderRightWidth declaration is done in hll_styleEngineSetNonCssHintOfNodeInt2
   , ( (\v -> CssDeclarationBorderSpacing v), 15 )
   , ( (\v -> CssDeclaration_LAST), 16 )                  -- CssDeclarationBorderTopColor; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 17 )                  -- Handling of a request from C++ to add CssDeclarationBorderTopStyle declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclarationBorderTopWidth v), 18 )
+  , ( (\v -> CssDeclaration_LAST), 18 )                  -- Handing of a request from C++ to add CssDeclarationBorderTopWidth declaration is done in hll_styleEngineSetNonCssHintOfNodeInt2
   , ( (\v -> CssDeclarationBottom v), 19 )
   , ( (\v -> CssDeclarationCaptionSide v), 20 )
   , ( (\v -> CssDeclarationClear v), 21 )

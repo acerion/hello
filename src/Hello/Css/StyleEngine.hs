@@ -508,10 +508,10 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationBorderBottomStyle value -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyleBottom parentStyleAttrs value }}
     CssDeclarationBorderLeftStyle value   -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleLeft   = getBorderStyleLeft   parentStyleAttrs value }}
 
-    CssDeclarationBorderTopWidth value    -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthTop    = getBorderWidth value display fontAttrs }}
-    CssDeclarationBorderRightWidth value  -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidth value display fontAttrs }}
-    CssDeclarationBorderBottomWidth value -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidth value display fontAttrs }}
-    CssDeclarationBorderLeftWidth value   -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidth value display fontAttrs }}
+    CssDeclarationBorderTopWidth value    -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthTop    = getBorderWidthTop    parentStyleAttrs value display fontAttrs }}
+    CssDeclarationBorderRightWidth value  -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidthRight  parentStyleAttrs value display fontAttrs }}
+    CssDeclarationBorderBottomWidth value -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidthBottom parentStyleAttrs value display fontAttrs }}
+    CssDeclarationBorderLeftWidth value   -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidthLeft   parentStyleAttrs value display fontAttrs }}
 
     CssDeclarationBorderTopColor value    -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorTop    = getBorderColorTop    parentStyleAttrs value }}
     CssDeclarationBorderRightColor value  -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorRight  = getBorderColorRight  parentStyleAttrs value }}
@@ -592,11 +592,22 @@ getBorderStyle field parentStyleAttrs value = case value of
 
 
 
-getBorderWidth value display fontAttrs = case styleEngineComputeBorderWidth value display fontAttrs of
-                                           -- TODO: another place where Maybe returned by Compute function
-                                           -- causes unnecessary trouble.
-                                           Just x  -> x
-                                           Nothing -> 0
+getBorderWidthTop    = getBorderWidth styleBorderWidthTop
+getBorderWidthRight  = getBorderWidth styleBorderWidthRight
+getBorderWidthBottom = getBorderWidth styleBorderWidthBottom
+getBorderWidthLeft   = getBorderWidth styleBorderWidthLeft
+
+getBorderWidth field parentStyleAttrs value display fontAttrs = case value of
+                                                                  CssValueBorderWidthInherit -> field . styleBorderWidth $ parentStyleAttrs
+                                                                  CssValueBorderWidthThin    -> 1
+                                                                  CssValueBorderWidthMedium  -> 2
+                                                                  CssValueBorderWidthThick   -> 3
+                                                                  CssValueBorderWidth x      -> case styleEngineComputeBorderWidth x display fontAttrs of
+                                                                                                  -- TODO: another place where Maybe returned by Compute function
+                                                                                                  -- causes unnecessary trouble.
+                                                                                                  Just x  -> x
+                                                                                                  Nothing -> 0
+                                                                  otherwise -> trace ("unknown value " ++ (show value)) (undefined)
 
 
 

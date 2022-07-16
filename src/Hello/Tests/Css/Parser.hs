@@ -27,6 +27,7 @@ import Test.HUnit
 import Debug.Trace
 
 import Hello.Css.Declaration
+import Hello.Css.Distance
 import Hello.Css.Parser
 import Hello.Css.Tokenizer
 import Hello.Css.Value
@@ -148,6 +149,33 @@ parseDeclarationTestData =
   , ( "border-left-style: inherit",              [CssDeclWrapper { property = CssDeclarationBorderLeftStyle CssValueBorderStyleInherit,      important = False } ])
   -- Testing for parsing of bad css: invalid value name.
   , ( "border-left-style: inheri !important",     [])
+
+
+
+
+  , ( "border-top-width: inherit",                        [CssDeclWrapper { property = CssDeclarationBorderTopWidth CssValueBorderWidthInherit,                                            important = False } ])
+  , ( "border-top-width: 1.0px",                          [CssDeclWrapper { property = CssDeclarationBorderTopWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))),     important = False } ])
+  , ( "border-top-width: 2.0mm !important",               [CssDeclWrapper { property = CssDeclarationBorderTopWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsMm 2.0))),     important = True  } ])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "border-top-width: I.0px",                          [])
+
+  , ( "border-right-width: inherit",                      [CssDeclWrapper { property = CssDeclarationBorderRightWidth CssValueBorderWidthInherit,                                          important = False } ])
+  , ( "border-right-width: 1.5px !important",             [CssDeclWrapper { property = CssDeclarationBorderRightWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.5))),   important = True  } ])
+  , ( "border-right-width: 2.0mm",                        [CssDeclWrapper { property = CssDeclarationBorderRightWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsMm 2.0))),   important = False } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "border-rigth-width: 2.0mm",                        [])
+
+  , ( "border-bottom-width: inherit !important",          [CssDeclWrapper { property = CssDeclarationBorderBottomWidth CssValueBorderWidthInherit,                                         important = True  } ])
+  , ( "border-bottom-width: 1.0em",                       [CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEm 1.0))),  important = False } ])
+  , ( "border-bottom-width: 2.0ex !important",            [CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEx 2.0))),  important = True  } ])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "border-bottom-width: 2.0ex !importan",             [CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEx 2.0))),  important = False  } ])
+
+  , ( "border-left-width: inherit",                       [CssDeclWrapper { property = CssDeclarationBorderLeftWidth CssValueBorderWidthInherit,                                           important = False } ])
+  , ( "border-left-width: 1.0em",                         [CssDeclWrapper { property = CssDeclarationBorderLeftWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEm 1.0))),    important = False } ])
+  , ( "border-left-width: 2.0ex !important",              [CssDeclWrapper { property = CssDeclarationBorderLeftWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEx 2.0))),    important = True  } ])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "border-left-width: anherit",                       [])
 
 
 

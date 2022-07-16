@@ -39,6 +39,7 @@ module Hello.Css.Declaration
   , CssValueColor (..)
   , CssValueBorderColor (..)
   , CssValueBorderStyle (..)
+  , CssValueBorderWidth (..)
 
   , makeCssDeclarationBackgroundAttachment
   , makeCssDeclarationBackgroundColor
@@ -46,10 +47,8 @@ module Hello.Css.Declaration
   , makeCssDeclarationBackgroundPosition
   , makeCssDeclarationBackgroundRepeat
 
-  , makeCssDeclarationBorderBottomWidth
+
   , makeCssDeclarationBorderCollapse
-  , makeCssDeclarationBorderLeftWidth
-  , makeCssDeclarationBorderRightWidth
   , makeCssDeclarationBorderSpacing
 
   , makeCssDeclarationBorderTopColor
@@ -63,6 +62,10 @@ module Hello.Css.Declaration
   , makeCssDeclarationBorderLeftStyle
 
   , makeCssDeclarationBorderTopWidth
+  , makeCssDeclarationBorderRightWidth
+  , makeCssDeclarationBorderBottomWidth
+  , makeCssDeclarationBorderLeftWidth
+
   , makeCssDeclarationBottom
   , makeCssDeclarationCaptionSide
   , makeCssDeclarationClear
@@ -156,18 +159,18 @@ data CssDeclaration
   | CssDeclarationBackgroundRepeat CssValue             -- 4
   | CssDeclarationBorderBottomColor CssValueBorderColor -- 5                parsing is tested
   | CssDeclarationBorderBottomStyle CssValueBorderStyle -- 6                parsing is tested
-  | CssDeclarationBorderBottomWidth CssValue            -- 7
+  | CssDeclarationBorderBottomWidth CssValueBorderWidth -- 7                parsing is tested
   | CssDeclarationBorderCollapse CssValue               -- 8
   | CssDeclarationBorderLeftColor CssValueBorderColor   -- 9                parsing is tested
   | CssDeclarationBorderLeftStyle CssValueBorderStyle   -- 10               parsing is tested
-  | CssDeclarationBorderLeftWidth CssValue              -- 11
+  | CssDeclarationBorderLeftWidth CssValueBorderWidth   -- 11               parsing is tested
   | CssDeclarationBorderRightColor CssValueBorderColor  -- 12               parsing is tested
   | CssDeclarationBorderRightStyle CssValueBorderStyle  -- 13               parsing is tested
-  | CssDeclarationBorderRightWidth CssValue             -- 14
+  | CssDeclarationBorderRightWidth CssValueBorderWidth  -- 14               parsing is tested
   | CssDeclarationBorderSpacing CssValue                -- 15
   | CssDeclarationBorderTopColor CssValueBorderColor    -- 16               parsing is tested
   | CssDeclarationBorderTopStyle CssValueBorderStyle    -- 17               parsing is tested
-  | CssDeclarationBorderTopWidth CssValue               -- 18
+  | CssDeclarationBorderTopWidth CssValueBorderWidth    -- 18               parsing is tested
   | CssDeclarationBottom CssValue                       -- 19
   | CssDeclarationCaptionSide CssValue                  -- 20
   | CssDeclarationClear CssValue                        -- 21
@@ -272,10 +275,7 @@ makeCssDeclarationBackgroundColor v = case v of
 makeCssDeclarationBackgroundImage v = CssDeclarationBackgroundImage v
 makeCssDeclarationBackgroundPosition v = CssDeclarationBackgroundPosition v
 makeCssDeclarationBackgroundRepeat v = CssDeclarationBackgroundRepeat v
-makeCssDeclarationBorderBottomWidth v = CssDeclarationBorderBottomWidth v
 makeCssDeclarationBorderCollapse v = CssDeclarationBorderCollapse v
-makeCssDeclarationBorderLeftWidth v = CssDeclarationBorderLeftWidth v
-makeCssDeclarationBorderRightWidth v = CssDeclarationBorderRightWidth v
 makeCssDeclarationBorderSpacing v = CssDeclarationBorderSpacing v
 
 
@@ -341,7 +341,32 @@ makeCssDeclarationBorderLeftStyle   = makeCssDeclarationBorderXStyle CssDeclarat
 
 
 
-makeCssDeclarationBorderTopWidth v = CssDeclarationBorderTopWidth v
+
+-- https://www.w3.org/TR/CSS22/box.html#border-width-properties
+data CssValueBorderWidth
+  = CssValueBorderWidthThin
+  | CssValueBorderWidthMedium
+  | CssValueBorderWidthThick
+  | CssValueBorderWidthInherit
+  | CssValueBorderWidth CssValue
+  deriving (Eq, Show, Data)
+
+makeCssDeclarationBorderXWidth :: (CssValueBorderWidth -> CssDeclaration) -> CssValue -> CssDeclaration
+makeCssDeclarationBorderXWidth ctor (CssValueTypeString "thin")    = ctor CssValueBorderWidthThin
+makeCssDeclarationBorderXWidth ctor (CssValueTypeString "medium")  = ctor CssValueBorderWidthMedium
+makeCssDeclarationBorderXWidth ctor (CssValueTypeString "thick")   = ctor CssValueBorderWidthThick
+makeCssDeclarationBorderXWidth ctor (CssValueTypeString "inherit") = ctor CssValueBorderWidthInherit
+makeCssDeclarationBorderXWidth ctor (CssValueTypeString s)         = trace ("[EE] Unhandled border width string " ++ (show s)) (ctor CssValueBorderWidthMedium)
+makeCssDeclarationBorderXWidth ctor x                              = ctor $ CssValueBorderWidth x
+
+makeCssDeclarationBorderTopWidth    = makeCssDeclarationBorderXWidth CssDeclarationBorderTopWidth
+makeCssDeclarationBorderRightWidth  = makeCssDeclarationBorderXWidth CssDeclarationBorderRightWidth
+makeCssDeclarationBorderBottomWidth = makeCssDeclarationBorderXWidth CssDeclarationBorderBottomWidth
+makeCssDeclarationBorderLeftWidth   = makeCssDeclarationBorderXWidth CssDeclarationBorderLeftWidth
+
+
+
+
 makeCssDeclarationBottom v = CssDeclarationBottom v
 makeCssDeclarationCaptionSide v = CssDeclarationCaptionSide v
 makeCssDeclarationClear v = CssDeclarationClear v

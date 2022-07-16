@@ -79,6 +79,7 @@ import Hello.Ffi.Utils
 
 --foreign export ccall "hll_makeCssDeclaration" hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeInt" hll_styleEngineSetNonCssHintOfNodeInt :: CInt -> CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
+foreign export ccall "hll_styleEngineSetNonCssHintOfNodeLength2" hll_styleEngineSetNonCssHintOfNodeLength2 :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeEnum" hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CInt -> CString -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeColor" hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
@@ -149,6 +150,34 @@ hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIn
   let decl :: CssDeclWrapper = CssDeclWrapper (propMaker cssValue) False
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
+
+  globalDeclarationSetUpdate ref newDeclSet
+
+  return . fromIntegral $ ref
+
+
+
+
+hll_styleEngineSetNonCssHintOfNodeLength2 :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
+hll_styleEngineSetNonCssHintOfNodeLength2 cNonCssDeclSetRef cProperty cValueType cLengthValue cLengthType  = do
+
+  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
+
+  let propMaker = fst (allDeclMakers !! (fromIntegral cProperty))
+  let valType  = fromIntegral cValueType
+  let intVal   = 0
+  let textVal  = ""
+  let lengthValue = cLengthValue
+  let lengthType  = fromIntegral cLengthType
+
+  let property = fromIntegral cProperty
+  let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
+  let decl | property ==  7 = CssDeclarationBorderBottomWidth $ CssValueBorderWidth cssValue
+           | property == 11 = CssDeclarationBorderLeftWidth   $ CssValueBorderWidth cssValue
+           | property == 14 = CssDeclarationBorderRightWidth  $ CssValueBorderWidth cssValue
+           | property == 18 = CssDeclarationBorderTopWidth    $ CssValueBorderWidth cssValue
+
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
 
   globalDeclarationSetUpdate ref newDeclSet
 

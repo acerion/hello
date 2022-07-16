@@ -138,7 +138,7 @@ css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-rep
 css_border_collapse_enum_vals       = ["separate", "collapse"]
 css_border_color_enum_vals          = ["transparent", "inherit"]
 css_border_style_enum_vals          = ["none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit"]
-css_border_width_enum_vals          = ["thin", "medium", "thick"]
+css_border_width_enum_vals          = ["thin", "medium", "thick", "inherit"]
 css_color_enum_vals                 = ["inherit"]
 css_cursor_enum_vals                = ["crosshair", "default", "pointer", "move", "e-resize", "ne-resize", "nw-resize", "n-resize", "se-resize", "sw-resize", "s-resize", "w-resize", "text", "wait", "help"]
 css_display_enum_vals               = ["block", "inline", "inline-block", "list-item", "none", "table", "table-row-group", "table-header-group", "table-footer-group", "table-row", "table-cell"]
@@ -168,22 +168,26 @@ cssPropertyInfo = M.fromList [
    , ("background-image",       (makeCssDeclarationBackgroundImage,      [ declValueAsURI ],                                                   []))
    , ("background-position",    (makeCssDeclarationBackgroundPosition,   [ tokensAsValueBgPosition ],                                          []))
    , ("background-repeat",      (makeCssDeclarationBackgroundRepeat,     [ tokensAsValueEnum ],                                                css_background_repeat_enum_vals))
-   , ("border-bottom-style",    (makeCssDeclarationBorderBottomStyle,    [ tokensAsValueEnumString ],                                          css_border_style_enum_vals))
-   , ("border-bottom-width",    (makeCssDeclarationBorderBottomWidth,    [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
+
+
    , ("border-collapse",        (makeCssDeclarationBorderCollapse,       [ tokensAsValueEnum ],                                                css_border_collapse_enum_vals))
-   , ("border-left-style",      (makeCssDeclarationBorderLeftStyle,      [ tokensAsValueEnumString ],                                          css_border_style_enum_vals))
-   , ("border-left-width",      (makeCssDeclarationBorderLeftWidth,      [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
+   , ("border-spacing",         (makeCssDeclarationBorderSpacing,        [ declValueAsLength ],                                                []))
 
    , ("border-top-color",       (makeCssDeclarationBorderTopColor,       [ tokensAsValueEnumString, tokensAsValueColor ],                      css_border_color_enum_vals))
    , ("border-right-color",     (makeCssDeclarationBorderRightColor,     [ tokensAsValueEnumString, tokensAsValueColor ],                      css_border_color_enum_vals))
    , ("border-bottom-color",    (makeCssDeclarationBorderBottomColor,    [ tokensAsValueEnumString, tokensAsValueColor ],                      css_border_color_enum_vals))
    , ("border-left-color",      (makeCssDeclarationBorderLeftColor,      [ tokensAsValueEnumString, tokensAsValueColor ],                      css_border_color_enum_vals))
 
-   , ("border-right-style",     (makeCssDeclarationBorderRightStyle,     [ tokensAsValueEnumString ],                                          css_border_style_enum_vals))
-   , ("border-rigth-width",     (makeCssDeclarationBorderRightWidth,     [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
-   , ("border-spacing",         (makeCssDeclarationBorderSpacing,        [ declValueAsLength ],                                                []))
    , ("border-top-style",       (makeCssDeclarationBorderTopStyle,       [ tokensAsValueEnumString ],                                          css_border_style_enum_vals))
-   , ("border-top-width",       (makeCssDeclarationBorderTopWidth,       [ tokensAsValueEnum, declValueAsLength ],                             css_border_width_enum_vals))
+   , ("border-right-style",     (makeCssDeclarationBorderRightStyle,     [ tokensAsValueEnumString ],                                          css_border_style_enum_vals))
+   , ("border-bottom-style",    (makeCssDeclarationBorderBottomStyle,    [ tokensAsValueEnumString ],                                          css_border_style_enum_vals))
+   , ("border-left-style",      (makeCssDeclarationBorderLeftStyle,      [ tokensAsValueEnumString ],                                          css_border_style_enum_vals))
+
+   , ("border-top-width",       (makeCssDeclarationBorderTopWidth,       [ tokensAsValueEnumString, declValueAsLength ],                       css_border_width_enum_vals))
+   , ("border-right-width",     (makeCssDeclarationBorderRightWidth,     [ tokensAsValueEnumString, declValueAsLength ],                       css_border_width_enum_vals))
+   , ("border-bottom-width",    (makeCssDeclarationBorderBottomWidth,    [ tokensAsValueEnumString, declValueAsLength ],                       css_border_width_enum_vals))
+   , ("border-left-width",      (makeCssDeclarationBorderLeftWidth,      [ tokensAsValueEnumString, declValueAsLength ],                       css_border_width_enum_vals))
+
    , ("bottom",                 (makeCssDeclarationBottom,               [],                                                                   []))
    , ("caption-side",           (makeCssDeclarationCaptionSide,          [],                                                                   []))
    , ("clear",                  (makeCssDeclarationClear,                [],                                                                   []))
@@ -286,18 +290,18 @@ type ShorthandInfo = (Int, [T.Text])
 cssShorthandInfo = M.fromList [
     ("background",     (cssShorthandTypeMultiple,      [ "background-color", "background-image", "background-repeat", "background-attachment", "background-position" ]))
 
-  , ("border",         (cssShorthandTypeBorder,        [ "border-top-width", "border-rigth-width", "border-bottom-width", "border-left-width",
+  , ("border",         (cssShorthandTypeBorder,        [ "border-top-width", "border-right-width", "border-bottom-width", "border-left-width",
                                                          "border-top-style", "border-right-style", "border-bottom-style", "border-left-style",
                                                          "border-top-color", "border-right-color", "border-bottom-color", "border-left-color"]))
 
   , ("border-bottom",  (cssShorthandTypeMultiple,      [ "border-bottom-width", "border-bottom-style",  "border-bottom-color" ]))
   , ("border-color",   (cssShorthandTypeDirections,    [ "border-top-color",    "border-right-color",   "border-bottom-color", "border-left-color" ]))
   , ("border-left",    (cssShorthandTypeMultiple,      [ "border-left-width",   "border-left-style",    "border-left-color" ]))
-  , ("border-right",   (cssShorthandTypeMultiple,      [ "border-rigth-width",  "border-right-style",   "border-right-color" ]))
+  , ("border-right",   (cssShorthandTypeMultiple,      [ "border-right-width",  "border-right-style",   "border-right-color" ]))
   , ("border-style",   (cssShorthandTypeDirections,    [ "border-top-style",    "border-right-style",   "border-bottom-style", "border-left-style" ]))
   , ("border-top",     (cssShorthandTypeMultiple,      [ "border-top-width",    "border-top-style",     "border-top-color" ]))
 
-  , ("border-width",   (cssShorthandTypeDirections,    [ "border-top-width",    "border-rigth-width",   "border-bottom-width", "border-left-width" ]))
+  , ("border-width",   (cssShorthandTypeDirections,    [ "border-top-width",    "border-right-width",   "border-bottom-width", "border-left-width" ]))
 
   , ("font",           (cssShorthandTypeFont,          [ "font-size",  "font-style", "font-variant", "font-weight", "font-family" ]))
 

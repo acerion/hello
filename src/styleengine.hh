@@ -36,6 +36,7 @@ StyleNode * getCurrentNode(StyleEngine * styleEngine);
 
 
 void cpp_styleEngineSetNonCssHintOfNodeLength(StyleNode * styleNode, CssDeclarationProperty property, CssDeclarationValueType type, CssLength length);
+void cpp_styleEngineSetNonCssHintOfNodeLength2(StyleNode * styleNode, CssDeclarationProperty property, CssDeclarationValueType type, CssLength length);
 void cpp_styleEngineSetNonCssHintOfNodeInt(StyleNode * styleNode, int property, int valueType, int intVal, float lengthValue, int lengthType);
 void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property, int enumVal);
 void cpp_styleEngineSetNonCssHintOfNodeColor(StyleNode * styleNode, int property, int color);
