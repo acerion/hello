@@ -186,6 +186,47 @@ parseDeclarationTestData =
   , ( "color: lime !important",                  [CssDeclWrapper { property = CssDeclarationColor (CssValueColor 0x00ff00),    important = True  } ]) -- Yes, "lime" not "green".
   , ( "color: blue !important;",                 [CssDeclWrapper { property = CssDeclarationColor (CssValueColor 0x0000ff),    important = True  } ])
   , ( "color: #abcdef;",                         [CssDeclWrapper { property = CssDeclarationColor (CssValueColor 0xabcdef),    important = False } ])
+
+
+
+
+  , ( "list-style-position: inside",                    [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = False } ])
+  , ( "list-style-position: inside !important",         [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = True } ])
+  , ( "list-style-position: outside",                   [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = False } ])
+  , ( "list-style-position: outside !important",        [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = True } ])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "list-style-position: outide !important",         [])
+
+
+
+
+  , ( "list-style-type: disc !important",                 [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeDisc,                important = True  } ])
+  , ( "list-style-type: circle",                          [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeCircle,              important = False } ])
+  , ( "list-style-type: square !important",               [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeSquare,              important = True  } ])
+  , ( "list-style-type: decimal",                         [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeDecimal,             important = False } ])
+  , ( "list-style-type: decimal-leading-zero !important", [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeDecimalLeadingZero,  important = True  } ])
+  , ( "list-style-type: lower-roman",                     [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeLowerRoman,          important = False } ])
+  , ( "list-style-type: upper-roman !important",          [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeUpperRoman,          important = True  } ])
+  , ( "list-style-type: lower-greek",                     [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeLowerGreek,          important = False } ])
+  , ( "list-style-type: lower-alpha !important",          [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeLowerAlpha,          important = True  } ])
+  , ( "list-style-type: lower-latin",                     [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeLowerLatin,          important = False } ])
+  , ( "list-style-type: upper-alpha !important",          [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeUpperAlpha,          important = True  } ])
+  , ( "list-style-type: upper-latin",                     [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeUpperLatin,          important = False } ])
+  , ( "list-style-type: hebrew !important",               [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeHebrew,              important = True  } ])
+  , ( "list-style-type: armenian",                        [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeArmenian,            important = False } ])
+  , ( "list-style-type: georgian !important",             [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeGeorgian,            important = True  } ])
+  , ( "list-style-type: cjk-ideographic",                 [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeCjkIdeographic,      important = False } ])
+  , ( "list-style-type: hiragana !important",             [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeHiragana,            important = True  } ])
+  , ( "list-style-type: katakana",                        [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeKatakana,            important = False } ])
+  , ( "list-style-type: hiragana-iroha !important",       [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeHiraganaIroha,       important = True  } ])
+  , ( "list-style-type: katakana-iroha",                  [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeKatakanaIroha,       important = False } ])
+  , ( "list-style-type: none !important",                 [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeNone,                important = True  } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "list-styletype: upper-latin",                      [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "list-style-type: lower-ronan",                     [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "list-style-type: none !improtant",                 [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeNone,                important = False  } ])
   ]
 
 
@@ -255,6 +296,21 @@ parseDeclarationShorthandTestData =
                                              , CssDeclWrapper { property = CssDeclarationBorderRightColor  $ CssValueBorderColor 0x0000ff,                                   important = False }
                                              , CssDeclWrapper { property = CssDeclarationBorderBottomColor $ CssValueBorderColor 0x0000ff,                                   important = False }
                                              , CssDeclWrapper { property = CssDeclarationBorderLeftColor   $ CssValueBorderColor 0x0000ff,                                   important = False }
+                                             ])
+
+
+
+
+  -- Notice that list-style-image is not supported by the parser and is not tested here.
+  , ( "list-style: none",                    [ CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeNone,             important = False }
+                                             ])
+  , ( "list-style: disc inside",             [ CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeDisc,             important = False }
+                                             , CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = False }
+                                             ])
+  , ( "list-style: outside",                 [ CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = False }
+                                             ])
+  , ( "list-style: upper-roman outside",     [ CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeUpperRoman,       important = False }
+                                             , CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = False }
                                              ])
   ]
 
