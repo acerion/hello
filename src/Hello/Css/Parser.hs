@@ -139,9 +139,7 @@ css_font_style_enum_vals            = ["normal", "italic", "oblique"]
 css_font_variant_enum_vals          = ["normal", "small-caps"]
 css_font_weight_enum_vals           = ["bold", "bolder", "light", "lighter", "normal"]
 css_letter_spacing_enum_vals        = ["normal"]
-css_list_style_position_enum_vals   = ["inside", "outside"]
 css_line_height_enum_vals           = ["normal"]
-css_list_style_type_enum_vals       = ["disc", "circle", "square", "decimal", "decimal-leading-zero", "lower-roman", "upper-roman", "lower-greek", "lower-alpha", "lower-latin", "upper-alpha", "upper-latin", "hebrew", "armenian", "georgian", "cjk-ideographic", "hiragana", "katakana", "hiragana-iroha", "katakana-iroha", "none"]
 css_text_align_enum_vals            = ["left", "right", "center", "justify", "string"]
 css_text_decoration_enum_vals       = ["underline", "overline", "line-through", "blink"]
 css_text_transform_enum_vals        = ["none", "capitalize", "uppercase", "lowercase"]
@@ -204,9 +202,9 @@ cssPropertyInfo = M.fromList [
    , ("left",                   ((Just makeCssDeclarationLeft, Nothing),                 [],                                                                   []))
    , ("letter-spacing",         ((Just makeCssDeclarationLetterSpacing, Nothing),        [ tokensAsValueEnum, declValueAsSignedLength ],                       css_letter_spacing_enum_vals))
    , ("line-height",            ((Just makeCssDeclarationLineHeight, Nothing),           [ tokensAsValueEnum, declValueAsLengthPercentNumber ],                css_line_height_enum_vals))
-   , ("list-style-image",       ((Just makeCssDeclarationListStyleImage, Nothing),       [],                                                                   []))
-   , ("list-style-position",    ((Just makeCssDeclarationListStylePosition, Nothing),    [ tokensAsValueEnum ],                                                css_list_style_position_enum_vals))
-   , ("list-style-type",        ((Just makeCssDeclarationListStyleType, Nothing),        [ tokensAsValueEnum ],                                                css_list_style_type_enum_vals))
+   , ("list-style-image",       ((Nothing, Just makeCssDeclarationListStyleImage),       [],                                                                   []))
+   , ("list-style-position",    ((Nothing, Just makeCssDeclarationListStylePosition),    [],                                                                   []))
+   , ("list-style-type",        ((Nothing, Just makeCssDeclarationListStyleType),        [],                                                                   []))
    , ("margin-bottom",          ((Just makeCssDeclarationMarginBottom, Nothing),         [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
    , ("margin-left",            ((Just makeCssDeclarationMarginLeft, Nothing),           [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
    , ("margin-right",           ((Just makeCssDeclarationMarginRight, Nothing),          [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
@@ -283,6 +281,8 @@ cssShorthandTypeBorderTop     =  7
 cssShorthandTypeBorderRight   =  8
 cssShorthandTypeBorderBottom  =  9
 cssShorthandTypeBorderLeft    = 10
+cssShorthandTypeListStyle     = 11
+
 
 
 
@@ -313,7 +313,9 @@ cssShorthandInfo = M.fromList [
 
   , ("font",           (cssShorthandTypeFont,          [ "font-size",  "font-style", "font-variant", "font-weight", "font-family" ]))
 
-  , ("list-style",     (cssShorthandTypeMultiple,      [ "list-style-type", "list-style-position", "list-style-image" ]))
+  -- Parsing of this property is unit-tested (poorly).
+  , ("list-style",     (cssShorthandTypeListStyle,     [ "list-style-type", "list-style-position", "list-style-image" ]))
+
   , ("margin",         (cssShorthandTypeDirections,    [ "margin-top",      "margin-right",        "margin-bottom",      "margin-left" ]))
   , ("outline",        (cssShorthandTypeMultiple,      [ "outline-color",   "outline-style",       "outline-width"]))
 
@@ -1338,6 +1340,11 @@ parseDeclarationShorthand (parser, token) pinfos shorthandType | shorthandType =
                                                                                                                   [ makeCssDeclarationBorderLeftWidth
                                                                                                                   , makeCssDeclarationBorderLeftStyle
                                                                                                                   , makeCssDeclarationBorderLeftColor ]
+                                                                                                                  []
+                                                               | shorthandType == cssShorthandTypeListStyle     = parseDeclarationMultiple2 (parser, token)
+                                                                                                                  [ makeCssDeclarationListStyleType
+                                                                                                                  , makeCssDeclarationListStylePosition
+                                                                                                                  , makeCssDeclarationListStyleImage ]
                                                                                                                   []
                                                                | otherwise = ((parser, token), [])
 

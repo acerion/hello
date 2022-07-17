@@ -2481,7 +2481,7 @@ static void Html_tag_open_ul(DilloHtml *html, const char *tag, int tagsize)
          list_style_type = LIST_STYLE_TYPE_DISC;
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, list_style_type, 0.0, 0);
+      cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_LIST_STYLE_TYPE, list_style_type);
       if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<ul> type attribute is obsolete.");
    }
@@ -2548,7 +2548,7 @@ static void Html_tag_open_ol(DilloHtml *html, const char *tag, int tagsize)
          listStyleType = LIST_STYLE_TYPE_UPPER_ROMAN;
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_LIST_STYLE_TYPE, CssDeclarationValueTypeENUM, listStyleType, 0.0, 0);
+      cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_LIST_STYLE_TYPE, listStyleType);
    }
 
    TopOfParsingStack(html)->list_type = HTML_LIST_ORDERED;

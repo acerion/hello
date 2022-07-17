@@ -1153,9 +1153,9 @@ allDeclMakers =
   , ( (\v -> CssDeclarationLeft v), 40 )
   , ( (\v -> CssDeclarationLetterSpacing v), 41 )
   , ( (\v -> CssDeclarationLineHeight v), 42 )
-  , ( (\v -> CssDeclarationListStyleImage v), 43 )
-  , ( (\v -> CssDeclarationListStylePosition v), 44 )
-  , ( (\v -> CssDeclarationListStyleType v), 45 )
+  , ( (\v -> CssDeclaration_LAST), 43 )                  -- CssDeclarationListStyleImage; C++ code will never ask for this property
+  , ( (\v -> CssDeclaration_LAST), 44 )                  -- CssDeclarationListStylePosition; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
+  , ( (\v -> CssDeclaration_LAST), 45 )                  -- CssDeclarationListStyleType; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclarationMarginBottom v), 46 )
   , ( (\v -> CssDeclarationMarginLeft v), 47 )
   , ( (\v -> CssDeclarationMarginRight v), 48 )

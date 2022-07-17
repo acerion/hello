@@ -698,17 +698,26 @@ getWidthOrHeight distance fontAttrs display =
 
 
 
-getListStylePosition value = case value of
-                               CssValueTypeEnum e -> e
-                               otherwise          -> 0 -- 'o' corresponds to "list-style-position: inside"
+-- Translate value of "list-style-position" from Haskell data into value
+-- understood by C++ code.
+--
+-- TODO: notice that when adding support for "inherit" and "initial", you
+-- won't be able to use fromEnum anymore. The two new values will complicate
+-- the function.
+getListStylePosition :: CssValueListStylePosition -> Int
+getListStylePosition declValue = fromEnum declValue
 
 
 
 
-getListStyleType value = case value of
-                           CssValueTypeEnum e -> e
-                           otherwise          -> 0 -- '0' corresponds to "list-style-type: disc"
-
+-- Translate value of "list-style-type" from Haskell data into value
+-- understood by C++ code.
+--
+-- TODO: notice that when adding support for "inherit" and "initial", you
+-- won't be able to use fromEnum anymore. The two new values will complicate
+-- the function.
+getListStyleType :: CssValueListStyleType -> Int
+getListStyleType declValue = fromEnum declValue
 
 
 

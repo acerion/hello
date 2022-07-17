@@ -22,6 +22,9 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
+-- Needed to "maxBound @Type" to work. See https://typeclasses.com/phrasebook/enum-ranges
+{-# LANGUAGE TypeApplications #-}
+
 
 
 
@@ -186,6 +189,8 @@ hll_styleEngineSetNonCssHintOfNodeLength2 cNonCssDeclSetRef cProperty cValueType
 
 
 
+-- TODO: Add Enum class to CssValueBorderStyle, rewrite this function using
+-- toEnum (see implementation of getListStyleType below).
 getBorderStyle :: Int -> CssValueBorderStyle
 getBorderStyle i | i ==  0 = CssValueBorderStyleNone
                  | i ==  1 = CssValueBorderStyleHidden
@@ -200,6 +205,27 @@ getBorderStyle i | i ==  0 = CssValueBorderStyleNone
                  | i == 10 = CssValueBorderStyleInherit
                  | otherwise = CssValueBorderStyleNone -- Not going to happen
 
+
+
+
+-- '@': see https://typeclasses.com/phrasebook/enum-ranges
+getListStylePosition :: Int -> CssValueListStylePosition
+getListStylePosition i | i > (fromEnum (maxBound @CssValueListStylePosition)) = CssValueListStylePositionOutside
+                       | i < (fromEnum (minBound @CssValueListStylePosition)) = CssValueListStylePositionOutside
+                       | otherwise    = toEnum i
+
+
+
+
+-- '@': see https://typeclasses.com/phrasebook/enum-ranges
+getListStyleType :: Int -> CssValueListStyleType
+getListStyleType i | i > (fromEnum (maxBound @CssValueListStyleType)) = CssValueListStyleTypeCircle
+                   | i < (fromEnum (minBound @CssValueListStyleType)) = CssValueListStyleTypeCircle
+                   | otherwise    = toEnum i
+
+
+
+
 hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
@@ -210,6 +236,8 @@ hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
            | property == 10 = CssDeclarationBorderLeftStyle   $ getBorderStyle enumVal
            | property == 13 = CssDeclarationBorderRightStyle  $ getBorderStyle enumVal
            | property == 17 = CssDeclarationBorderTopStyle    $ getBorderStyle enumVal
+           | property == 44 = CssDeclarationListStylePosition $ getListStylePosition enumVal
+           | property == 45 = CssDeclarationListStyleType     $ getListStyleType enumVal
            | otherwise      = trace ("[EE] Unhandled enum property " ++ (show property)) (undefined)
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)

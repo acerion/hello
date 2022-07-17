@@ -40,6 +40,8 @@ module Hello.Css.Declaration
   , CssValueBorderColor (..)
   , CssValueBorderStyle (..)
   , CssValueBorderWidth (..)
+  , CssValueListStylePosition (..)
+  , CssValueListStyleType (..)
 
   , makeCssDeclarationBackgroundAttachment
   , makeCssDeclarationBackgroundColor
@@ -235,9 +237,9 @@ data CssDeclaration
   | CssDeclarationLeft CssValue                         -- 40
   | CssDeclarationLetterSpacing CssValue                -- 41
   | CssDeclarationLineHeight CssValue                   -- 42
-  | CssDeclarationListStyleImage CssValue               -- 43
-  | CssDeclarationListStylePosition CssValue            -- 44
-  | CssDeclarationListStyleType CssValue                -- 45
+  | CssDeclarationListStyleImage CssValue               -- 43               not supported by hello
+  | CssDeclarationListStylePosition CssValueListStylePosition  -- 44        parsing is unit-tested
+  | CssDeclarationListStyleType CssValueListStyleType   -- 45               parsing is unit-tested
   | CssDeclarationMarginBottom CssValue                 -- 46
   | CssDeclarationMarginLeft CssValue                   -- 47
   | CssDeclarationMarginRight CssValue                  -- 48
@@ -509,6 +511,13 @@ makeCssDeclarationClip v = CssDeclarationClip v
 
 
 
+-- --------------------------------
+-- Color
+-- --------------------------------
+
+
+
+
 data CssValueColor
   = CssValueColorInherit
   | CssValueColor Int -- TODO: Int or Color?
@@ -519,6 +528,14 @@ makeCssDeclarationColor v = case v of
                               CssValueTypeString "inherit" -> CssDeclarationColor CssValueColorInherit
                               CssValueTypeColor c          -> CssDeclarationColor $ CssValueColor c
                               otherwise                    -> CssDeclaration_LAST
+
+
+
+
+-- --------------------------------
+--
+-- --------------------------------
+
 
 
 
@@ -541,9 +558,151 @@ makeCssDeclarationHeight v = CssDeclarationHeight v
 makeCssDeclarationLeft v = CssDeclarationLeft v
 makeCssDeclarationLetterSpacing v = CssDeclarationLetterSpacing v
 makeCssDeclarationLineHeight v = CssDeclarationLineHeight v
-makeCssDeclarationListStyleImage v = CssDeclarationListStyleImage v
-makeCssDeclarationListStylePosition v = CssDeclarationListStylePosition v
-makeCssDeclarationListStyleType v = CssDeclarationListStyleType v
+
+
+
+
+-- --------------------------------
+-- List Style Image
+-- --------------------------------
+
+
+
+
+-- This property is not supported.
+makeCssDeclarationListStyleImage :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationListStyleImage pat = (pat, Nothing) -- CssDeclarationListStyleImage
+
+
+
+
+-- --------------------------------
+-- List Style Position
+-- --------------------------------
+
+
+
+
+-- TODO: add support for "inherit"
+-- TODO: add support for "initial"
+data CssValueListStylePosition
+ = CssValueListStylePositionInside
+ | CssValueListStylePositionOutside
+  deriving (Eq, Show, Data, Enum, Bounded)
+
+
+
+
+makeCssDeclarationListStylePosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationListStylePosition (parser, token) = ((parser', token'), fmap CssDeclarationListStylePosition value)
+  where
+    ((parser', token'), value) = parseTokensAsListStylePositionValue (parser, token)
+
+
+
+
+parseTokensAsListStylePositionValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueListStylePosition)
+parseTokensAsListStylePositionValue pat = (pat', value)
+  where
+    (vs', value) = tokensAsValueEnumString2 vs
+    pat'         = pt vs'
+    vs = ValueState { pt = pat
+                    , colorValueCtor  = Nothing
+                    , lengthValueCtor = Nothing
+                    , enums = [ ("inside",               CssValueListStylePositionInside)
+                              , ("outside",              CssValueListStylePositionOutside)
+                              ]
+                    }
+
+
+
+
+-- --------------------------------
+-- List Style Type
+-- --------------------------------
+
+
+
+
+-- TODO: add support for "inherit"
+-- TODO: add support for "initial"
+data CssValueListStyleType
+  = CssValueListStyleTypeDisc
+  | CssValueListStyleTypeCircle
+  | CssValueListStyleTypeSquare
+  | CssValueListStyleTypeDecimal
+  | CssValueListStyleTypeDecimalLeadingZero
+  | CssValueListStyleTypeLowerRoman
+  | CssValueListStyleTypeUpperRoman
+  | CssValueListStyleTypeLowerGreek
+  | CssValueListStyleTypeLowerAlpha
+  | CssValueListStyleTypeLowerLatin
+  | CssValueListStyleTypeUpperAlpha
+  | CssValueListStyleTypeUpperLatin
+  | CssValueListStyleTypeHebrew
+  | CssValueListStyleTypeArmenian
+  | CssValueListStyleTypeGeorgian
+  | CssValueListStyleTypeCjkIdeographic
+  | CssValueListStyleTypeHiragana
+  | CssValueListStyleTypeKatakana
+  | CssValueListStyleTypeHiraganaIroha
+  | CssValueListStyleTypeKatakanaIroha
+  | CssValueListStyleTypeNone
+  deriving (Eq, Show, Data, Enum, Bounded)
+
+
+
+
+makeCssDeclarationListStyleType :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationListStyleType (parser, token) = ((parser', token'), fmap CssDeclarationListStyleType value)
+  where
+    ((parser', token'), value) = parseTokensAsListStyleTypeValue (parser, token)
+
+
+
+
+parseTokensAsListStyleTypeValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueListStyleType)
+parseTokensAsListStyleTypeValue pat = (pat', value)
+  where
+    (vs', value) = tokensAsValueEnumString2 vs
+    pat'         = pt vs'
+    vs = ValueState { pt = pat
+                    , colorValueCtor  = Nothing
+                    , lengthValueCtor = Nothing
+                    , enums = [ ("disc",                 CssValueListStyleTypeDisc)
+                              , ("circle",               CssValueListStyleTypeCircle)
+                              , ("square",               CssValueListStyleTypeSquare)
+                              , ("decimal",              CssValueListStyleTypeDecimal)
+                              , ("decimal-leading-zero", CssValueListStyleTypeDecimalLeadingZero)
+                              , ("lower-roman",          CssValueListStyleTypeLowerRoman)
+                              , ("upper-roman",          CssValueListStyleTypeUpperRoman)
+                              , ("lower-greek",          CssValueListStyleTypeLowerGreek)
+                              , ("lower-alpha",          CssValueListStyleTypeLowerAlpha)
+                              , ("lower-latin",          CssValueListStyleTypeLowerLatin)
+                              , ("upper-alpha",          CssValueListStyleTypeUpperAlpha)
+                              , ("upper-latin",          CssValueListStyleTypeUpperLatin)
+                              , ("hebrew",               CssValueListStyleTypeHebrew)
+                              , ("armenian",             CssValueListStyleTypeArmenian)
+                              , ("georgian",             CssValueListStyleTypeGeorgian)
+                              , ("cjk-ideographic",      CssValueListStyleTypeCjkIdeographic)
+                              , ("hiragana",             CssValueListStyleTypeHiragana)
+                              , ("katakana",             CssValueListStyleTypeKatakana)
+                              , ("hiragana-iroha",       CssValueListStyleTypeHiraganaIroha)
+                              , ("katakana-iroha",       CssValueListStyleTypeKatakanaIroha)
+                              , ("none",                 CssValueListStyleTypeNone)
+                              ]
+                    }
+
+
+
+
+-- --------------------------------
+--
+-- --------------------------------
+
+
+
+
 makeCssDeclarationMarginBottom v = CssDeclarationMarginBottom v
 makeCssDeclarationMarginLeft v = CssDeclarationMarginLeft v
 makeCssDeclarationMarginRight v = CssDeclarationMarginRight v
