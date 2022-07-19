@@ -49,6 +49,7 @@ import Data.Char
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.Vector as V
+import Debug.Trace
 
 
 
@@ -254,13 +255,16 @@ takeTagName parser text =
 
 
 
+-- TODO: this function and the handling of attr name/value needs to be
+-- re-written from scratch taking into account the possibility that an
+-- attribute with empty value and without '=' is valid (see "<td nowrap>"
+-- case).
 takeAttrNameAndValue :: TagParser -> Maybe TagParser
-takeAttrNameAndValue parser =
-  if currentAttrName parserWithName == "" || htmlRemainder parserWithName == "" -- Empty attribute name indicates end of parsing of tag. No more names (and their values) are available.
-  then Nothing
-  else Just parserWithValue { attributes = M.insert (currentAttrName parserWithValue) (currentAttrValue parserWithValue) (attributes parser) }
+takeAttrNameAndValue parser | currentAttrName parserWithName == "" = Nothing  -- Empty attribute name indicates end of parsing of tag. No more names (and their values) are available.
+                            | htmlRemainder parserWithName   == "" = Just parserWithName  { attributes = M.insert (currentAttrName parserWithValue) "" (attributes parser) }
+                            | otherwise                            = Just parserWithValue { attributes = M.insert (currentAttrName parserWithValue) (currentAttrValue parserWithValue) (attributes parser) }
   where
-    parserWithName = takeAttrName parser
+    parserWithName  = takeAttrName parser
     parserWithValue = takeAttrValue parserWithName
 
 
@@ -289,9 +293,9 @@ takeAttrValue parser = parser { currentAttrValue = T.strip . fixWhiteSpaces $ va
   where
     valueBegin = T.stripStart . htmlRemainder $ parser
     delimiter = case T.head valueBegin of
-      '\'' -> '\''
-      '"'  -> '"'
-      otherwise -> ' '
+                  '\''      -> '\''
+                  '"'       -> '"'
+                  otherwise -> ' '
 
     value = if delimiter == ' '
             then T.takeWhile pred valueBegin -- valueBegin is already stripped at the front, so we will drop until ending space is found

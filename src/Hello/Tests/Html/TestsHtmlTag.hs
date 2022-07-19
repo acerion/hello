@@ -120,6 +120,17 @@ testAttributeValueData =
   , ( "550", "<a src=\"./path/to/some_img.png\" />",     "src", Just "./path/to/some_img.png" )
   , ( "560", "<a src=\"./path/to/some_img.png\" / >",    "src", Just "./path/to/some_img.png" )
 
+
+  -- This attribute has no value, but our code must report that an attribute
+  -- is found and a value exists, but is empty.
+  --
+  -- Per comment in C++ code for Html_get_attr2():
+  -- "Returns one of the following:
+  --     * The value of the attribute.
+  --     * An empty string if the attribute exists but has no value.
+  --     * NULL if the attribute doesn't exist.
+  , ( "600", "<td nowrap>",    "nowrap", Just "" )
+
   ]
 
 
