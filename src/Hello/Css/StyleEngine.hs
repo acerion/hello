@@ -684,9 +684,14 @@ getVerticalAlign value = case value of
 
 
 
-getWhiteSpace value = case value of
-                           CssValueTypeEnum e -> e
-                           otherwise          -> 0 -- '0' corresponds to "white-space: normal"
+-- Translate value of "white-space" property from Haskell data into value
+-- understood by C++ code.
+--
+-- TODO: notice that when adding support for "inherit" and "initial", you
+-- won't be able to use fromEnum anymore. The two new values will complicate
+-- the function.
+getWhiteSpace declValue = fromEnum declValue
+
 
 
 

@@ -42,6 +42,7 @@ module Hello.Css.Declaration
   , CssValueBorderWidth (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
+  , CssValueWhitespace (..)
 
   , makeCssDeclarationBackgroundAttachment
   , makeCssDeclarationBackgroundColor
@@ -270,7 +271,7 @@ data CssDeclaration
   | CssDeclarationUnicodeBiDi CssValue                  -- 73
   | CssDeclarationVerticalAlign CssValue                -- 74
   | CssDeclarationVisibility CssValue                   -- 75
-  | CssDeclarationWhitespace CssValue                   -- 76
+  | CssDeclarationWhitespace CssValueWhitespace         -- 76               parsing is unit-tested
   | CssDeclarationWidth CssValue                        -- 77
   | CssDeclarationWordSpacing CssValue                  -- 78
   | CssDeclarationZIndex CssValue                       -- 79
@@ -733,7 +734,49 @@ makeCssDeclarationTop v = CssDeclarationTop v
 makeCssDeclarationUnicodeBiDi v = CssDeclarationUnicodeBiDi v
 makeCssDeclarationVerticalAlign v = CssDeclarationVerticalAlign v
 makeCssDeclarationVisibility v = CssDeclarationVisibility v
-makeCssDeclarationWhitespace v = CssDeclarationWhitespace v
+
+
+
+
+-- ------------------------------------------------
+-- White space (white-space)
+-- ------------------------------------------------
+
+
+
+
+data CssValueWhitespace
+  = CssValueWhitespaceNormal
+  | CssValueWhitespacePre
+  | CssValueWhitespaceNoWrap
+  | CssValueWhitespacePreWrap
+  | CssValueWhitespacePreLine
+  deriving (Bounded, Data, Enum, Eq, Show)
+
+
+
+
+makeCssDeclarationWhitespace :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationWhitespace pat = (pat', fmap CssDeclarationWhitespace value)
+  where
+    (pat', value) = tokensAsValueEnumString1 pat enums
+    enums         = [ ("normal",   CssValueWhitespaceNormal)
+                    , ("pre",      CssValueWhitespacePre)
+                    , ("nowrap",   CssValueWhitespaceNoWrap)
+                    , ("pre-wrap", CssValueWhitespacePreWrap)
+                    , ("pre-line", CssValueWhitespacePreLine)
+                    ]
+
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclarationWidth v = CssDeclarationWidth v
 makeCssDeclarationWordSpacing v = CssDeclarationWordSpacing v
 makeCssDeclarationZIndex v = CssDeclarationZIndex v

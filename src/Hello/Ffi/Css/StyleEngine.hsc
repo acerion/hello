@@ -226,6 +226,15 @@ getListStyleType i | i > (fromEnum (maxBound @CssValueListStyleType)) = CssValue
 
 
 
+-- '@': see https://typeclasses.com/phrasebook/enum-ranges
+getWhitespace :: Int -> CssValueWhitespace
+getWhitespace i | i > (fromEnum (maxBound @CssValueWhitespace)) = CssValueWhitespaceNormal
+                | i < (fromEnum (minBound @CssValueWhitespace)) = CssValueWhitespaceNormal
+                | otherwise    = toEnum i
+
+
+
+
 hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
@@ -238,6 +247,7 @@ hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
            | property == 17 = CssDeclarationBorderTopStyle    $ getBorderStyle enumVal
            | property == 44 = CssDeclarationListStylePosition $ getListStylePosition enumVal
            | property == 45 = CssDeclarationListStyleType     $ getListStyleType enumVal
+           | property == 76 = CssDeclarationWhitespace        $ getWhitespace enumVal
            | otherwise      = trace ("[EE] Unhandled enum property " ++ (show property)) (undefined)
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)

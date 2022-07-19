@@ -370,7 +370,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
             BUG_MSG("<t%c> nowrap attribute is obsolete.", (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');
          }
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_WHITE_SPACE, CssDeclarationValueTypeENUM, WHITE_SPACE_NOWRAP, 0.0, 0);
+         cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_WHITE_SPACE, WHITE_SPACE_NOWRAP);
       }
 
       {

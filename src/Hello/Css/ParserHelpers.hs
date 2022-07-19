@@ -39,6 +39,7 @@ module Hello.Css.ParserHelpers
   , interpretRgbFunctionTokens
   , rgbFunctionToColor
 
+  , tokensAsValueEnumString1
   , tokensAsValueEnumString2
   , tokensAsValueColor2
 
@@ -173,6 +174,28 @@ tokensAsValueEnumString2 vs@ValueState{ pt = (parser, token@(CssTokIdent sym)) }
 tokensAsValueEnumString2 vs                        = (vs, Nothing)
                                                                   -- TODO: is this the right place to reject everything else other than symbol?
                                                                   -- Shouldn't we do it somewhere else?
+
+
+
+
+-- Interpret current token as one of allowed values and save it as value of
+-- type CssValueTypeString
+--
+-- Simple version of tokensAsValueEnumString for parsing a declaration that
+-- has an enum-only value (e.g. "white-space" or "list-style-position").
+--
+-- In case of enum value there is no need to consume more than current token
+-- to build the Enum, but for consistency with other similar functions the
+-- function is still called "tokensAs...".
+tokensAsValueEnumString1 :: (CssParser, CssToken) -> [(T.Text, a)] -> ((CssParser, CssToken), Maybe a)
+tokensAsValueEnumString1 (parser, token@(CssTokIdent sym)) enums = case L.lookup sym' enums of
+                                                                     Just val -> (nextToken1 parser, Just val)
+                                                                     Nothing  -> ((parser, token), Nothing)
+  where
+    sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
+tokensAsValueEnumString1 pat _                                   = (pat, Nothing)
+                                                                   -- TODO: is this the right place to reject everything else other than symbol?
+                                                                   -- Shouldn't we do it somewhere else?
 
 
 

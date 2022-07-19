@@ -144,9 +144,7 @@ css_text_align_enum_vals            = ["left", "right", "center", "justify", "st
 css_text_decoration_enum_vals       = ["underline", "overline", "line-through", "blink"]
 css_text_transform_enum_vals        = ["none", "capitalize", "uppercase", "lowercase"]
 css_vertical_align_vals             = ["top", "bottom", "middle", "baseline", "sub", "super", "text-top", "text-bottom"]
-css_white_space_vals                = ["normal", "pre", "nowrap", "pre-wrap", "pre-line"]
 css_word_spacing_enum_vals          = ["normal"]
-
 
 
 
@@ -240,7 +238,7 @@ cssPropertyInfo = M.fromList [
    , ("unicode-bidi",           ((Just makeCssDeclarationUnicodeBiDi, Nothing),          [],                                                                   []))
    , ("vertical-align",         ((Just makeCssDeclarationVerticalAlign, Nothing),        [ tokensAsValueEnum ],                                                css_vertical_align_vals))
    , ("visibility",             ((Just makeCssDeclarationVisibility, Nothing),           [],                                                                   []))
-   , ("white-space",            ((Just makeCssDeclarationWhitespace, Nothing),           [ tokensAsValueEnum ],                                                css_white_space_vals))
+   , ("white-space",            ((Nothing, Just makeCssDeclarationWhitespace),           [],                                                                   []))
    , ("width",                  ((Just makeCssDeclarationWidth, Nothing),                [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
    , ("word-spacing",           ((Just makeCssDeclarationWordSpacing, Nothing),          [ tokensAsValueEnum, declValueAsSignedLength ],                       css_word_spacing_enum_vals))
    , ("z-index",                ((Just makeCssDeclarationZIndex, Nothing),               [],                                                                   []))
