@@ -227,6 +227,22 @@ parseDeclarationTestData =
   , ( "list-style-type: lower-ronan",                     [])
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
   , ( "list-style-type: none !improtant",                 [CssDeclWrapper { property = CssDeclarationListStyleType CssValueListStyleTypeNone,                important = False  } ])
+
+
+
+
+  , ( "white-space: normal !important",     [CssDeclWrapper { property = CssDeclarationWhitespace CssValueWhitespaceNormal,   important = True  } ])
+  , ( "white-space: pre",                   [CssDeclWrapper { property = CssDeclarationWhitespace CssValueWhitespacePre,      important = False } ])
+  , ( "white-space: nowrap !important",     [CssDeclWrapper { property = CssDeclarationWhitespace CssValueWhitespaceNoWrap,   important = True  } ])
+  , ( "white-space: pre-wrap",              [CssDeclWrapper { property = CssDeclarationWhitespace CssValueWhitespacePreWrap,  important = False } ])
+  , ( "white-space: pre-line  !important",  [CssDeclWrapper { property = CssDeclarationWhitespace CssValueWhitespacePreLine,  important = True  } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "white-spac: pre",                    [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "white-space: prewrap",               [])
+  -- Testing for parsing of bad css: incorrect value of "important" keyword. TODO: check how parser should behave here according to spec.
+  , ( "white-space: pre important",         [CssDeclWrapper { property = CssDeclarationWhitespace CssValueWhitespacePre,      important = False } ])
+
   ]
 
 
