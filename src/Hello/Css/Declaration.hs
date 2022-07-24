@@ -43,6 +43,7 @@ module Hello.Css.Declaration
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
   , CssValueWhitespace (..)
+  , CssValueWordSpacing (..)
 
   , makeCssDeclarationBackgroundAttachment
   , makeCssDeclarationBackgroundColor
@@ -273,7 +274,7 @@ data CssDeclaration
   | CssDeclarationVisibility CssValue                   -- 75
   | CssDeclarationWhitespace CssValueWhitespace         -- 76               parsing is unit-tested
   | CssDeclarationWidth CssValue                        -- 77
-  | CssDeclarationWordSpacing CssValue                  -- 78
+  | CssDeclarationWordSpacing CssValueWordSpacing       -- 78
   | CssDeclarationZIndex CssValue                       -- 79
 
   -- Pseudo-property used internally by dillo/hello. Without it following
@@ -378,14 +379,15 @@ makeCssDeclarationBorderLeftColor   = makeCssDeclarationBorderXColor CssDeclarat
 
 
 
--- ----------------
+-- ------------------------------------------------
 -- Border Style
--- ----------------
-
-
-
-
 -- https://www.w3.org/TR/CSS22/box.html#border-style-properties
+-- ------------------------------------------------
+
+
+
+
+
 data CssValueBorderStyle
   = CssValueBorderStyleNone
   | CssValueBorderStyleHidden
@@ -771,14 +773,55 @@ makeCssDeclarationWhitespace pat = (pat', fmap CssDeclarationWhitespace value)
 
 
 -- ------------------------------------------------
---
+-- Width (width)
 -- ------------------------------------------------
 
 
 
 
 makeCssDeclarationWidth v = CssDeclarationWidth v
-makeCssDeclarationWordSpacing v = CssDeclarationWordSpacing v
+
+
+
+
+-- ------------------------------------------------
+-- Word spacing (word-spacing)
+-- https://www.w3.org/TR/CSS22/text.html#propdef-word-spacing
+-- ------------------------------------------------
+
+
+
+
+data CssValueWordSpacing
+  = CssValueWordSpacingNormal
+  | CssValueWordSpacing CssValue
+  deriving (Data, Eq, Show)
+
+
+
+
+makeCssDeclarationWordSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationWordSpacing pat = (pat', fmap CssDeclarationWordSpacing value)
+  where
+    (vs', value) = tokensAsValueEnumString2 vs >>? declValueAsSignedLength2
+    pat'         = pt vs'
+    vs = ValueState { pt              = pat
+                    , colorValueCtor  = Nothing
+                    , lengthValueCtor = Just CssValueWordSpacing
+                    , enums = [ ("normal",    CssValueWordSpacingNormal)
+                              ]
+                    }
+
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclarationZIndex v = CssDeclarationZIndex v
 makeCssDeclarationXLink v = CssDeclarationXLink v
 makeCssDeclarationXColSpan v = CssDeclarationXColSpan v

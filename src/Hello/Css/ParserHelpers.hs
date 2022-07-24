@@ -43,6 +43,7 @@ module Hello.Css.ParserHelpers
   , tokensAsValueEnumString2
   , tokensAsValueColor2
 
+  , declValueAsSignedLength2
   , declValueAsLength2
   , declValueAsLength2'
 
@@ -222,7 +223,14 @@ tokensAsValueColor2 vs                                              = (vs, Nothi
 
 
 
+declValueAsSignedLength2 :: ValueState a b -> (ValueState a b, Maybe b)
+declValueAsSignedLength2 vs = declValueAsLength2' CssValueTypeSignedLength vs
 
+declValueAsLengthPercent2 :: ValueState a b -> (ValueState a b, Maybe b)
+declValueAsLengthPercent2 vs = declValueAsLength2' CssValueTypeLengthPercent vs
+
+declValueAsLengthPercentNumber2 :: ValueState a b -> (ValueState a b, Maybe b)
+declValueAsLengthPercentNumber2 vs = declValueAsLength2' CssValueTypeLengthPercentNumber vs
 
 declValueAsLength2 :: ValueState a b -> (ValueState a b, Maybe b)
 declValueAsLength2 vs = declValueAsLength2' CssValueTypeLength vs

@@ -1188,7 +1188,7 @@ allDeclMakers =
   , ( (\v -> CssDeclarationVisibility v), 75 )
   , ( (\v -> CssDeclaration_LAST), 76 )                  -- CssDeclarationWhitespace; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclarationWidth v), 77 )
-  , ( (\v -> CssDeclarationWordSpacing v), 78 )
+  , ( (\v -> CssDeclaration_LAST), 78 )                  -- CssDeclarationWordSpacing; C++ code will never ask for this property
   , ( (\v -> CssDeclarationZIndex v), 79 )
   , ( (\v -> CssDeclarationXLink v), 80 )
   , ( (\v -> CssDeclarationXColSpan v), 81 )

@@ -243,6 +243,20 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: incorrect value of "important" keyword. TODO: check how parser should behave here according to spec.
   , ( "white-space: pre important",         [CssDeclWrapper { property = CssDeclarationWhitespace CssValueWhitespacePre,      important = False } ])
 
+
+
+
+  , ( "word-spacing: normal !important",    [CssDeclWrapper { property = CssDeclarationWordSpacing CssValueWordSpacingNormal,                                                 important = True  } ])
+  , ( "word-spacing: 1.0px",                [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacing (CssValueTypeSignedLength (CssDistanceAbsPx 1.0))),   important = False  } ])
+  , ( "word-spacing: 2.5mm !important",     [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacing (CssValueTypeSignedLength (CssDistanceAbsMm 2.5))),   important = True  } ])
+  , ( "word-spacing: 3.6em",                [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacing (CssValueTypeSignedLength (CssDistanceRelEm 3.6))),   important = False  } ])
+  , ( "word-spacing: 4.7ex !important",     [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacing (CssValueTypeSignedLength (CssDistanceRelEx 4.7))),   important = True  } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "words-pacing: normal !important",    [])
+  -- Testing for parsing of bad css: invalid value. TODO: shouldn't "1" be considered a valid value?
+  , ( "word-spacing: 1;0xz",                [])
+  -- Testing for parsing of bad css: incorrect value of "important" keyword. TODO: check how parser should behave here according to spec.
+  , ( "word-spacing: normal !importan",     [CssDeclWrapper { property = CssDeclarationWordSpacing CssValueWordSpacingNormal,   important = False  } ])
   ]
 
 

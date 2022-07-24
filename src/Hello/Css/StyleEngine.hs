@@ -518,31 +518,31 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationBorderBottomColor value -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColorBottom parentStyleAttrs value }}
     CssDeclarationBorderLeftColor value   -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColorLeft   parentStyleAttrs value }}
 
-    CssDeclarationMarginBottom value      -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin (distance value) fontAttrs display }}
-    CssDeclarationMarginLeft value        -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin (distance value) fontAttrs display }}
-    CssDeclarationMarginRight value       -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin (distance value) fontAttrs display }}
-    CssDeclarationMarginTop value         -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin (distance value) fontAttrs display }}
-    CssDeclarationPaddingBottom value     -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding (distance value) fontAttrs display }}
-    CssDeclarationPaddingLeft value       -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding (distance value) fontAttrs display }}
-    CssDeclarationPaddingRight value      -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding (distance value) fontAttrs display }}
-    CssDeclarationPaddingTop value        -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding (distance value) fontAttrs display }}
+    CssDeclarationMarginBottom value      -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin (cssValueToDistance value) fontAttrs display }}
+    CssDeclarationMarginLeft value        -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin (cssValueToDistance value) fontAttrs display }}
+    CssDeclarationMarginRight value       -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin (cssValueToDistance value) fontAttrs display }}
+    CssDeclarationMarginTop value         -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin (cssValueToDistance value) fontAttrs display }}
+    CssDeclarationPaddingBottom value     -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding (cssValueToDistance value) fontAttrs display }}
+    CssDeclarationPaddingLeft value       -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding (cssValueToDistance value) fontAttrs display }}
+    CssDeclarationPaddingRight value      -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding (cssValueToDistance value) fontAttrs display }}
+    CssDeclarationPaddingTop value        -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding (cssValueToDistance value) fontAttrs display }}
     CssDeclarationTextAlign value         -> styleAttrs { styleTextAlign      = getTextAlign value }
     CssDeclarationTextDecoration value    -> styleAttrs { styleTextDecoration = getTextDecoration value (styleTextDecoration styleAttrs) }
-    CssDeclarationTextIndent value        -> styleAttrs { styleTextIndent     = getTextIndent (distance value) fontAttrs display }
+    CssDeclarationTextIndent value        -> styleAttrs { styleTextIndent     = getTextIndent (cssValueToDistance value) fontAttrs display }
     CssDeclarationTextTransform value     -> styleAttrs { styleTextTransform  = getTextTransform value }
     CssDeclarationVerticalAlign value     -> styleAttrs { styleVerticalAlign  = getVerticalAlign value }
     CssDeclarationWhitespace value        -> styleAttrs { styleWhiteSpace     = getWhiteSpace value }
-    CssDeclarationWidth value             -> styleAttrs { styleWidth          = getWidthOrHeight (distance value) fontAttrs display }
-    CssDeclarationHeight value            -> styleAttrs { styleHeight         = getWidthOrHeight (distance value) fontAttrs display }
+    CssDeclarationWidth value             -> styleAttrs { styleWidth          = getWidthOrHeight (cssValueToDistance value) fontAttrs display }
+    CssDeclarationHeight value            -> styleAttrs { styleHeight         = getWidthOrHeight (cssValueToDistance value) fontAttrs display }
     CssDeclarationListStylePosition value -> styleAttrs { styleListStylePosition    = getListStylePosition value }
     CssDeclarationListStyleType value     -> styleAttrs { styleListStyleType        = getListStyleType value }
-    CssDeclarationLineHeight value        -> styleAttrs { styleLineHeight           = getLineHeight value (distance value) fontAttrs display }
+    CssDeclarationLineHeight value        -> styleAttrs { styleLineHeight           = getLineHeight value (cssValueToDistance value) fontAttrs display }
     CssDeclarationDisplay value           -> styleAttrs { styleDisplay              = getDisplay value }
     CssDeclarationColor value             -> styleAttrs { styleColor                = getColor parentStyleAttrs value }
     CssDeclarationCursor value            -> styleAttrs { styleCursor               = getCursor value }
-    CssDeclarationBorderSpacing value     -> styleAttrs { styleHBorderSpacing = getBorderSpacing (distance value) fontAttrs display,
-                                                          styleVBorderSpacing = getBorderSpacing (distance value) fontAttrs display }
-    CssDeclarationWordSpacing value       -> styleAttrs { styleWordSpacing    = getWordSpacig value (distance value) fontAttrs display }
+    CssDeclarationBorderSpacing value     -> styleAttrs { styleHBorderSpacing = getBorderSpacing (cssValueToDistance value) fontAttrs display,
+                                                          styleVBorderSpacing = getBorderSpacing (cssValueToDistance value) fontAttrs display }
+    CssDeclarationWordSpacing declValue   -> styleAttrs { styleWordSpacing    = getWordSpacig declValue fontAttrs display }
     CssDeclarationXLink value             -> styleAttrs { styleXLink          = getXLink value }
     CssDeclarationXLang value             -> styleAttrs { styleXLang          = getXLang value }
     CssDeclarationXImg value              -> styleAttrs { styleXImg           = getXImg value }
@@ -552,13 +552,18 @@ yet because a full support for them in dillo seems to be missing or broken.
 
   where
     fontAttrs = styleFontAttrs styleAttrs
-    distance v = case v of
-                   CssValueTypeLengthPercent d       -> d
-                   CssValueTypeLength d              -> d
-                   CssValueTypeSignedLength d        -> d
-                   CssValueTypeLengthPercentNumber d -> d
-                   CssValueTypeAuto d                -> d  -- TODO: 'auto' appears to be handled incorrectly this function
-                   otherwise                         -> CssNumericAuto 0 -- TODO: I'm not sure if this is the best 'otherwise' value
+
+
+
+
+cssValueToDistance :: CssValue -> CssDistance
+cssValueToDistance value = case value of
+                             CssValueTypeLengthPercent d       -> d
+                             CssValueTypeLength d              -> d
+                             CssValueTypeSignedLength d        -> d
+                             CssValueTypeLengthPercentNumber d -> d
+                             CssValueTypeAuto d                -> d  -- TODO: 'auto' appears to be handled incorrectly this function
+                             otherwise                         -> CssNumericAuto 0 -- TODO: I'm not sure if this is the best 'otherwise' value
 
 
 
@@ -607,6 +612,8 @@ getBorderWidth field parentStyleAttrs value display fontAttrs = case value of
                                                                                                   -- causes unnecessary trouble.
                                                                                                   Just x  -> x
                                                                                                   Nothing -> 0
+                                                                  -- TODO: otherwise is most probably unnecesary because
+                                                                  -- the compiler will warn us about unhandled patterns.
                                                                   otherwise -> trace ("unknown value " ++ (show value)) (undefined)
 
 
@@ -800,21 +807,21 @@ getBorderSpacing distance fontAttrs display =
 
 
 
-
-css_WORD_SPACING_NORMAL = 0
-
-getWordSpacig :: CssValue -> CssDistance -> FontAttrs -> Display -> Int
-getWordSpacig value distance fontAttrs display = clipSpacing (getSpacing value distance fontAttrs display)
-
+-- TODO: The spec
+-- (https://www.w3.org/TR/CSS22/text.html#propdef-word-spacing) says that
+-- specified word spacing value is "in addition to" default spacing. Make
+-- sure that the implementation follows the spec. Does the "normal==0"
+-- indicate that zero is default spacing, and a value specified in
+-- declaration is added to the zero?
+getWordSpacig :: CssValueWordSpacing -> FontAttrs -> Display -> Int
+getWordSpacig declValue fontAttrs display = clipSpacing (getSpacing declValue fontAttrs display)
   where
-    getSpacing :: CssValue -> CssDistance -> FontAttrs -> Display -> Int
-    getSpacing value distance fontAttrs display =
-      case value of
-        CssValueTypeEnum css_WORD_SPACING_NORMAL -> 0
-        CssValueTypeEnum _                       -> 0 -- TODO: implement remaining enum values
-        otherwise                                ->  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
-                                                       Just val -> round val -- TODO: a type of Float -> Int function to be verified here
-                                                       Nothing  -> 0         -- TODO: is it a good default?
+    getSpacing declValue fontAttrs display =
+      case declValue of
+        CssValueWordSpacingNormal -> 0
+        CssValueWordSpacing value -> case styleEngineComputeAbsoluteLengthValue (cssValueToDistance value) fontAttrs 0 display of
+                                       Just val -> round val -- TODO: a type of Float -> Int function to be verified here
+                                       Nothing  -> 0         -- TODO: is it a good default?
 
     -- Limit to reasonable values to avoid overflows
     clipSpacing :: Int -> Int
