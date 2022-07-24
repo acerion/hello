@@ -143,7 +143,6 @@ css_line_height_enum_vals           = ["normal"]
 css_text_align_enum_vals            = ["left", "right", "center", "justify", "string"]
 css_text_decoration_enum_vals       = ["underline", "overline", "line-through", "blink"]
 css_text_transform_enum_vals        = ["none", "capitalize", "uppercase", "lowercase"]
-css_vertical_align_vals             = ["top", "bottom", "middle", "baseline", "sub", "super", "text-top", "text-bottom"]
 
 
 
@@ -235,7 +234,7 @@ cssPropertyInfo = M.fromList [
    , ("text-transform",         ((Just makeCssDeclarationTextTransform, Nothing),        [ tokensAsValueEnum ],                                                css_text_transform_enum_vals))
    , ("top",                    ((Just makeCssDeclarationTop, Nothing),                  [],                                                                   []))
    , ("unicode-bidi",           ((Just makeCssDeclarationUnicodeBiDi, Nothing),          [],                                                                   []))
-   , ("vertical-align",         ((Just makeCssDeclarationVerticalAlign, Nothing),        [ tokensAsValueEnum ],                                                css_vertical_align_vals))
+   , ("vertical-align",         ((Nothing, Just makeCssDeclarationVerticalAlign),        [],                                                                   []))
    , ("visibility",             ((Just makeCssDeclarationVisibility, Nothing),           [],                                                                   []))
    , ("white-space",            ((Nothing, Just makeCssDeclarationWhitespace),           [],                                                                   []))
    , ("width",                  ((Just makeCssDeclarationWidth, Nothing),                [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))

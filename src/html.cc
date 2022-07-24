@@ -343,7 +343,7 @@ bool a_Html_tag_set_valign_attr(DilloHtml *html, const char *tag, int tagsize) /
          valign = VALIGN_MIDDLE;
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_VERTICAL_ALIGN, CssDeclarationValueTypeENUM, valign, 0.0, 0);
+      cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_VERTICAL_ALIGN, valign);
       return true;
    } else
       return false;

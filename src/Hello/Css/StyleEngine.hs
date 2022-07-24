@@ -684,9 +684,13 @@ getPadding distance fontAttrs display =
 
 
 
-getVerticalAlign value = case value of
-                           CssValueTypeEnum e -> e
-                           otherwise          -> 3 -- '3' corresponds to "vertical-align: baseline"
+-- Translate value of "vertical-align" property from Haskell data into value
+-- understood by C++ code.
+--
+-- TODO: notice that when you finall yadd support for other (non-enum) values
+-- of the property, you won't be able to use fromEnum anymore. The new values
+-- will complicate the function.
+getVerticalAlign declValue = fromEnum declValue
 
 
 

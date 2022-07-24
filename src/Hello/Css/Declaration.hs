@@ -42,6 +42,7 @@ module Hello.Css.Declaration
   , CssValueBorderWidth (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
+  , CssValueVerticalAlign (..)
   , CssValueWhitespace (..)
   , CssValueWordSpacing (..)
 
@@ -270,11 +271,11 @@ data CssDeclaration
   | CssDeclarationTextTransform CssValue                -- 71
   | CssDeclarationTop CssValue                          -- 72
   | CssDeclarationUnicodeBiDi CssValue                  -- 73
-  | CssDeclarationVerticalAlign CssValue                -- 74
+  | CssDeclarationVerticalAlign CssValueVerticalAlign   -- 74               parsing is unit-tested
   | CssDeclarationVisibility CssValue                   -- 75
   | CssDeclarationWhitespace CssValueWhitespace         -- 76               parsing is unit-tested
   | CssDeclarationWidth CssValue                        -- 77
-  | CssDeclarationWordSpacing CssValueWordSpacing       -- 78
+  | CssDeclarationWordSpacing CssValueWordSpacing       -- 78               parsing is unit-tested
   | CssDeclarationZIndex CssValue                       -- 79
 
   -- Pseudo-property used internally by dillo/hello. Without it following
@@ -734,7 +735,55 @@ makeCssDeclarationTextShadow v = CssDeclarationTextShadow v
 makeCssDeclarationTextTransform v = CssDeclarationTextTransform v
 makeCssDeclarationTop v = CssDeclarationTop v
 makeCssDeclarationUnicodeBiDi v = CssDeclarationUnicodeBiDi v
-makeCssDeclarationVerticalAlign v = CssDeclarationVerticalAlign v
+
+
+
+
+-- ------------------------------------------------
+-- Vertical align (vertical-align)
+-- https://www.w3.org/TR/CSS22/visudet.html#propdef-vertical-align
+-- ------------------------------------------------
+
+
+
+
+data CssValueVerticalAlign
+  = CssValueVerticalAlignTop
+  | CssValueVerticalAlignBottom
+  | CssValueVerticalAlignMiddle
+  | CssValueVerticalAlignBaseline
+  | CssValueVerticalAlignSub
+  | CssValueVerticalAlignSuper
+  | CssValueVerticalAlignTextTop
+  | CssValueVerticalAlignTextBottom
+  deriving (Bounded, Data, Enum, Eq, Show)
+
+
+
+
+makeCssDeclarationVerticalAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationVerticalAlign pat = (pat', fmap CssDeclarationVerticalAlign value)
+  where
+    (pat', value) = tokensAsValueEnumString1 pat enums
+    enums         = [ ("top",         CssValueVerticalAlignTop)
+                    , ("bottom",      CssValueVerticalAlignBottom)
+                    , ("middle",      CssValueVerticalAlignMiddle)
+                    , ("baseline",    CssValueVerticalAlignBaseline)
+                    , ("sub",         CssValueVerticalAlignSub)
+                    , ("super",       CssValueVerticalAlignSuper)
+                    , ("text-top",    CssValueVerticalAlignTextTop)
+                    , ("text-bottom", CssValueVerticalAlignTextBottom)
+                    ]
+
+
+
+
+-- ------------------------------------------------
+-- Visibility (visibility)
+-- ------------------------------------------------
+
+
+
 makeCssDeclarationVisibility v = CssDeclarationVisibility v
 
 

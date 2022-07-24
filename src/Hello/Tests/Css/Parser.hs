@@ -231,6 +231,24 @@ parseDeclarationTestData =
 
 
 
+  , ( "vertical-align: top !important",       [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignTop,        important = True  } ])
+  , ( "vertical-align: bottom",               [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignBottom,     important = False } ])
+  , ( "vertical-align: middle !important",    [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignMiddle,     important = True  } ])
+  , ( "vertical-align: baseline",             [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignBaseline,   important = False } ])
+  , ( "vertical-align: sub !important",       [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignSub,        important = True  } ])
+  , ( "vertical-align: super",                [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignSuper,      important = False } ])
+  , ( "vertical-align: text-top !important",  [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignTextTop,    important = True  } ])
+  , ( "vertical-align: text-bottom",          [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignTextBottom, important = False } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "ertical-align: pre",                   [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "vertical-align: suber",                [])
+  -- Testing for parsing of bad css: incorrect value of "important" keyword. TODO: check how parser should behave here according to spec.
+  , ( "vertical-align: top !!important",      [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignTop,        important = False } ])
+
+
+
+
   , ( "white-space: normal !important",     [CssDeclWrapper { property = CssDeclarationWhitespace CssValueWhitespaceNormal,   important = True  } ])
   , ( "white-space: pre",                   [CssDeclWrapper { property = CssDeclarationWhitespace CssValueWhitespacePre,      important = False } ])
   , ( "white-space: nowrap !important",     [CssDeclWrapper { property = CssDeclarationWhitespace CssValueWhitespaceNoWrap,   important = True  } ])
