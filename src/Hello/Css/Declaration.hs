@@ -530,11 +530,20 @@ data CssValueColor
   | CssValueColor Int -- TODO: Int or Color?
   deriving (Eq, Show, Data)
 
-makeCssDeclarationColor :: CssValue -> CssDeclaration
-makeCssDeclarationColor v = case v of
-                              CssValueTypeString "inherit" -> CssDeclarationColor CssValueColorInherit
-                              CssValueTypeColor c          -> CssDeclarationColor $ CssValueColor c
-                              otherwise                    -> CssDeclaration_LAST
+
+
+
+makeCssDeclarationColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationColor pat = (pat', fmap CssDeclarationColor declValue)
+  where
+    (vs', declValue) = tokensAsValueEnumString2 vs >>? tokensAsValueColor2
+    pat' = pt vs'
+    vs = ValueState { pt              = pat
+                    , colorValueCtor  = Just CssValueColor
+                    , lengthValueCtor = Nothing
+                    , enums = [ ("inherit", CssValueColorInherit)
+                              ]
+                    }
 
 
 

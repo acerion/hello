@@ -131,7 +131,6 @@ css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
 css_border_collapse_enum_vals       = ["separate", "collapse"]
 css_border_style_enum_vals          = ["none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit"]
-css_color_enum_vals                 = ["inherit"]
 css_cursor_enum_vals                = ["crosshair", "default", "pointer", "move", "e-resize", "ne-resize", "nw-resize", "n-resize", "se-resize", "sw-resize", "s-resize", "w-resize", "text", "wait", "help"]
 css_display_enum_vals               = ["block", "inline", "inline-block", "list-item", "none", "table", "table-row-group", "table-header-group", "table-footer-group", "table-row", "table-cell"]
 css_font_size_enum_vals             = ["large", "larger", "medium", "small", "smaller", "xx-large", "xx-small", "x-large", "x-small"]
@@ -178,7 +177,7 @@ cssPropertyInfo = M.fromList [
    , ("caption-side",           ((Just makeCssDeclarationCaptionSide, Nothing),          [],                                                                   []))
    , ("clear",                  ((Just makeCssDeclarationClear, Nothing),                [],                                                                   []))
    , ("clip",                   ((Just makeCssDeclarationClip, Nothing),                 [],                                                                   []))
-   , ("color",                  ((Just makeCssDeclarationColor, Nothing),                [ tokensAsValueEnumString, tokensAsValueColor ],                      css_color_enum_vals))
+   , ("color",                  ((Nothing, Just makeCssDeclarationColor),                [],                                                                   []))
    , ("content",                ((Just makeCssDeclarationContent, Nothing),              [ tokensAsValueString ],                                              []))
    , ("counter-increment",      ((Just makeCssDeclarationCounterIncrement, Nothing),     [],                                                                   []))
    , ("counter-reset",          ((Just makeCssDeclarationCounterReset, Nothing),         [],                                                                   []))
