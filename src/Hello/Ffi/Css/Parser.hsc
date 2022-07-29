@@ -1139,7 +1139,7 @@ allDeclMakers =
   , ( (\v -> CssDeclarationCounterReset v), 26 )
   , ( (\v -> CssDeclaration_LAST), 27 )                  -- CssDeclarationCursor; C++ code will never ask for this property
   , ( (\v -> CssDeclarationDirection v), 28 )
-  , ( (\v -> CssDeclarationDisplay v), 29 )
+  , ( (\v -> CssDeclaration_LAST), 29 )                  -- CssDeclarationDisplay; C++ code will never ask for this property
   , ( (\v -> CssDeclarationEmptyCells v), 30 )
   , ( (\v -> CssDeclarationFloat v), 31 )
   , ( (\v -> CssDeclarationFontFamily v), 32 )

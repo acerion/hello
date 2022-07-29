@@ -40,6 +40,7 @@ module Hello.Css.Declaration
   , CssValueBorderStyle (..)
   , CssValueBorderWidth (..)
   , CssValueColor (..)
+  , CssValueDisplay (..)
   , CssValueCursor (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
@@ -230,7 +231,7 @@ data CssDeclaration
   | CssDeclarationCounterReset CssValue                 -- 26
   | CssDeclarationCursor CssValueCursor                 -- 27               parsing is unit-tested
   | CssDeclarationDirection CssValue                    -- 28
-  | CssDeclarationDisplay CssValue                      -- 29
+  | CssDeclarationDisplay CssValueDisplay               -- 29               parsing is unit-tested
   | CssDeclarationEmptyCells CssValue                   -- 30
   | CssDeclarationFloat CssValue                        -- 31
   | CssDeclarationFontFamily CssValue                   -- 32
@@ -629,7 +630,66 @@ makeCssDeclarationCursor pat = (pat', fmap CssDeclarationCursor declValue)
 
 
 makeCssDeclarationDirection v = CssDeclarationDirection v
-makeCssDeclarationDisplay v = CssDeclarationDisplay v
+
+
+
+
+-- --------------------------------
+-- Display
+-- --------------------------------
+
+
+
+
+data CssValueDisplay
+ = CssValueDisplayBlock
+ | CssValueDisplayInline
+ | CssValueDisplayInlineBlock
+ | CssValueDisplayListItem
+ | CssValueDisplayNone
+ | CssValueDisplayTable
+ | CssValueDisplayTableRowGroup
+ | CssValueDisplayTableHeaderGroup
+ | CssValueDisplayTableFooterGroup
+ | CssValueDisplayTableRow
+ | CssValueDisplayTableCell
+ deriving (Eq, Show, Data, Enum)
+
+
+
+
+makeCssDeclarationDisplay :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationDisplay pat = (pat', fmap CssDeclarationDisplay declValue)
+  where
+    (vs', declValue) = tokensAsValueEnumString2 vs
+    pat'             = pt vs'
+    vs = ValueState { pt = pat
+                    , colorValueCtor  = Nothing
+                    , lengthValueCtor = Nothing
+                    , enums = [ ("block",              CssValueDisplayBlock)
+                              , ("inline",             CssValueDisplayInline)
+                              , ("inline-block",       CssValueDisplayInlineBlock)
+                              , ("list-item",          CssValueDisplayListItem)
+                              , ("none",               CssValueDisplayNone)
+                              , ("table",              CssValueDisplayTable)
+                              , ("table-row-group",    CssValueDisplayTableRowGroup)
+                              , ("table-header-group", CssValueDisplayTableHeaderGroup)
+                              , ("table-footer-group", CssValueDisplayTableFooterGroup)
+                              , ("table-row",          CssValueDisplayTableRow)
+                              , ("table-cell",         CssValueDisplayTableCell)
+                              ]
+                    }
+
+
+
+
+-- --------------------------------
+--
+-- --------------------------------
+
+
+
+
 makeCssDeclarationEmptyCells v = CssDeclarationEmptyCells v
 makeCssDeclarationFloat v = CssDeclarationFloat v
 makeCssDeclarationFontFamily v = CssDeclarationFontFamily v

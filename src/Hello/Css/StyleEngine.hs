@@ -774,9 +774,13 @@ getLineHeight value distance fontAttrs display =
 
 
 
-getDisplay value = case value of
-                     CssValueTypeEnum e -> e
-                     otherwise          -> 1 -- '1' corresponds to "display: inline"; TODO: is it the best fallback value?
+-- Translate value of "display" declaration from Haskell data into value
+-- understood by C++ code.
+--
+-- TODO: notice that when adding support for "inherit" and "initial", you
+-- won't be able to use fromEnum anymore. The two new values will complicate
+-- the function.
+getDisplay declValue = fromEnum declValue
 
 
 

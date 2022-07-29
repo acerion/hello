@@ -130,7 +130,6 @@ css_background_attachment_enum_vals = ["scroll", "fixed"]
 css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
 css_border_collapse_enum_vals       = ["separate", "collapse"]
-css_display_enum_vals               = ["block", "inline", "inline-block", "list-item", "none", "table", "table-row-group", "table-header-group", "table-footer-group", "table-row", "table-cell"]
 css_font_size_enum_vals             = ["large", "larger", "medium", "small", "smaller", "xx-large", "xx-small", "x-large", "x-small"]
 css_font_style_enum_vals            = ["normal", "italic", "oblique"]
 css_font_variant_enum_vals          = ["normal", "small-caps"]
@@ -181,7 +180,7 @@ cssPropertyInfo = M.fromList [
    , ("counter-reset",          ((Just makeCssDeclarationCounterReset, Nothing),         [],                                                                   []))
    , ("cursor",                 ((Nothing, Just makeCssDeclarationCursor),               [],                                                                   []))
    , ("direction",              ((Just makeCssDeclarationDirection, Nothing),            [],                                                                   []))
-   , ("display",                ((Just makeCssDeclarationDisplay, Nothing),              [ tokensAsValueEnum ],                                                css_display_enum_vals))
+   , ("display",                ((Nothing, Just makeCssDeclarationDisplay),              [],                                                                   []))
    , ("empty-cells",            ((Just makeCssDeclarationEmptyCells, Nothing),           [],                                                                   []))
    , ("float",                  ((Just makeCssDeclarationFloat, Nothing),                [],                                                                   []))
    , ("font-family",            ((Just makeCssDeclarationFontFamily, Nothing),           [ tokensAsValueStringList ],                                          []))

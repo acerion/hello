@@ -234,7 +234,7 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
@@ -259,7 +259,7 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
@@ -284,7 +284,7 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
@@ -309,7 +309,7 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
@@ -334,7 +334,7 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
@@ -359,7 +359,7 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
@@ -384,7 +384,7 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
@@ -412,7 +412,7 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
@@ -437,7 +437,7 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclWrapper {property = CssDeclarationLetterSpacing (CssValueTypeSignedLength (CssDistanceAbsPx 2.0)), important = False}
-                                                               , CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
@@ -464,7 +464,7 @@ styleEngineApplyStyleToFontTestData =
     {
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                                 CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
@@ -513,7 +513,7 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclWrapper {property = CssDeclarationFontWeight (CssValueTypeEnum 1), important = False} -- font weight, 1 == bolder
-                                                               , CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationFontSize (CssValueTypeLengthPercent (CssDistanceRelEm 2.0)), important = False} -- font size
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.67)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}]}
@@ -536,7 +536,7 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclWrapper {property = CssDeclarationFontWeight (CssValueTypeEnum 1), important = False} -- font weight, 1 == bolder
-                                                               , CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationFontSize (CssValueTypeLengthPercent (CssDistanceRelEm 1.5)), important = False} -- font size
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.75)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}]}
@@ -597,7 +597,7 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclWrapper {property = CssDeclarationFontWeight (CssValueTypeEnum 1), important = False} -- font weight, 1 == bolder
-                                                               , CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationFontSize (CssValueTypeLengthPercent (CssDistanceRelEm 1.5)), important = False} -- font size
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.75)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}]}
@@ -620,7 +620,7 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclWrapper {property = CssDeclarationFontWeight (CssValueTypeFontWeight 600), important = False} -- font weight, specific value
-                                                               , CssDeclWrapper {property = CssDeclarationDisplay (CssValueTypeEnum 0), important = False}
+                                                               , CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationFontSize (CssValueTypeLengthPercent (CssDistanceRelEm 1.5)), important = False} -- font size
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.75)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}]}

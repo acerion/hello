@@ -216,6 +216,27 @@ parseDeclarationTestData =
 
 
 
+  , ( "display: block",                         [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayBlock,              important = False } ])
+  , ( "display: inline !important",             [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayInline,             important = True  } ])
+  , ( "display: inline-block",                  [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayInlineBlock,        important = False } ])
+  , ( "display: list-item !important",          [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayListItem,           important = True  } ])
+  , ( "display: none",                          [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayNone,               important = False } ])
+  , ( "display: table !important",              [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayTable,              important = True  } ])
+  , ( "display: table-row-group",               [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayTableRowGroup,      important = False } ])
+  , ( "display: table-header-group !important", [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayTableHeaderGroup,   important = True  } ])
+  , ( "display: table-footer-group",            [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayTableFooterGroup,   important = False } ])
+  , ( "display: table-row !important",          [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayTableRow,           important = True  } ])
+  , ( "display: table-cell",                    [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayTableCell,          important = False } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "dsiplay: block",                         [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "display: rgb(0, 100, 200)",              [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "display: table !improtant",              [CssDeclWrapper { property = CssDeclarationDisplay CssValueDisplayTable,              important = False  } ])
+
+
+
+
   , ( "list-style-position: inside",                    [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = False } ])
   , ( "list-style-position: inside !important",         [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = True } ])
   , ( "list-style-position: outside",                   [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = False } ])
