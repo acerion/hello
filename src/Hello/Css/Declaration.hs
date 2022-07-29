@@ -43,6 +43,7 @@ module Hello.Css.Declaration
   , CssValueDisplay (..)
   , CssValueCursor (..)
   , CssValueFontSize (..)
+  , CssValueFontStyle (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
   , CssValuePadding (..)
@@ -239,7 +240,7 @@ data CssDeclaration
   | CssDeclarationFontSize CssValueFontSize             -- 33               parsing is unit-tested
   | CssDeclarationFontSizeAdjust CssValue               -- 34
   | CssDeclarationFontStretch CssValue                  -- 35
-  | CssDeclarationFontStyle CssValue                    -- 36
+  | CssDeclarationFontStyle CssValueFontStyle           -- 36               parsing is unit-tested
   | CssDeclarationFontVariant CssValue                  -- 37
   | CssDeclarationFontWeight CssValue                   -- 38
   | CssDeclarationHeight CssValue                       -- 39
@@ -760,7 +761,52 @@ makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize value)
 
 makeCssDeclarationFontSizeAdjust v = CssDeclarationFontSizeAdjust v
 makeCssDeclarationFontStretch v = CssDeclarationFontStretch v
-makeCssDeclarationFontStyle v = CssDeclarationFontStyle v
+
+
+
+
+-- --------------------------------
+-- Font style (font-style)
+-- --------------------------------
+
+
+
+
+data CssValueFontStyle
+  = CssValueFontStyleNormal
+  | CssValueFontStyleItalic
+  | CssValueFontStyleOblique
+ deriving (Eq, Show, Data, Enum)
+
+
+
+
+makeCssDeclarationFontStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationFontStyle pat = (pat', fmap CssDeclarationFontStyle declValue)
+  where
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+    vs :: ValueState3 CssValueFontStyle =
+      ValueState3 { pt3               = pat
+                  , colorValueCtor3   = Nothing
+                  , distanceValueCtor = Nothing
+                  , enums3 = [ ("normal",  CssValueFontStyleNormal)
+                             , ("italic",  CssValueFontStyleItalic)
+                             , ("oblique", CssValueFontStyleOblique)
+                             ]
+                  , allowUnitlessDistance = False
+                  }
+
+
+
+
+-- --------------------------------
+--
+-- --------------------------------
+
+
+
+
 makeCssDeclarationFontVariant v = CssDeclarationFontVariant v
 makeCssDeclarationFontWeight v = CssDeclarationFontWeight v
 makeCssDeclarationHeight v = CssDeclarationHeight v

@@ -251,10 +251,15 @@ fontSizeToAbs declValue prefs display fontAttrs parentFontAttrs = case declValue
 
 -- https://developer.mozilla.org/pl/docs/Web/CSS/font-style
 -- https://www.w3schools.com/cssref/pr_font_font-style.asp
-styleEngineSetFontStyle :: CssValue -> FontAttrs -> FontAttrs
-styleEngineSetFontStyle value fontAttrs = case value of
-                                            CssValueTypeEnum idx -> fontAttrs { fontStyle = idx }
-                                            otherwise            -> fontAttrs
+--
+-- Translate value of "font-style" property from Haskell data into value
+-- understood by C++ code.
+--
+-- TODO: notice that when you finally add support for other (non-enum) values
+-- of the property, you won't be able to use fromEnum anymore. The new values
+-- will complicate the function.
+styleEngineSetFontStyle :: CssValueFontStyle -> FontAttrs -> FontAttrs
+styleEngineSetFontStyle declValue fontAttrs = fontAttrs { fontStyle = fromEnum declValue }
 
 
 
@@ -306,7 +311,7 @@ styleEngineApplyStyleToFont declSet prefs display parentFontAttrs fontAttrs = ap
         False -> case property x of
                    CssDeclarationFontFamily value    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
                    CssDeclarationFontSize declValue  -> apply xs prefs display parentFontAttrs $ styleEngineSetFontSize declValue prefs display parentFontAttrs fontAttrs
-                   CssDeclarationFontStyle value     -> apply xs prefs display parentFontAttrs $ styleEngineSetFontStyle value fontAttrs
+                   CssDeclarationFontStyle declValue -> apply xs prefs display parentFontAttrs $ styleEngineSetFontStyle declValue fontAttrs
                    CssDeclarationFontVariant value   -> apply xs prefs display parentFontAttrs $ styleEngineSetFontVariant value fontAttrs
                    CssDeclarationFontWeight value    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight value fontAttrs
                    CssDeclarationLetterSpacing value -> apply xs prefs display parentFontAttrs $ styleEngineSetLetterSpacing value display parentFontAttrs fontAttrs
@@ -673,7 +678,7 @@ getPadding (CssValuePadding distance) fontAttrs display =
 -- Translate value of "vertical-align" property from Haskell data into value
 -- understood by C++ code.
 --
--- TODO: notice that when you finall yadd support for other (non-enum) values
+-- TODO: notice that when you finally add support for other (non-enum) values
 -- of the property, you won't be able to use fromEnum anymore. The new values
 -- will complicate the function.
 getVerticalAlign declValue = fromEnum declValue

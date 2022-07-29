@@ -469,7 +469,7 @@ styleEngineApplyStyleToFontTestData =
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginLeft (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
-                                                               , CssDeclWrapper {property = CssDeclarationFontStyle (CssValueTypeEnum 2), important = False}]} -- font style
+                                                               , CssDeclWrapper {property = CssDeclarationFontStyle CssValueFontStyleOblique, important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"

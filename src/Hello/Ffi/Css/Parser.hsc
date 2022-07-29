@@ -1146,7 +1146,7 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 33 )                  -- CssDeclarationFontSize; C++ code will never ask for this property
   , ( (\v -> CssDeclarationFontSizeAdjust v), 34 )
   , ( (\v -> CssDeclarationFontStretch v), 35 )
-  , ( (\v -> CssDeclarationFontStyle v), 36 )
+  , ( (\v -> CssDeclaration_LAST), 36 )                  -- CssDeclarationFontStyle; C++ code will never ask for this property
   , ( (\v -> CssDeclarationFontVariant v), 37 )
   , ( (\v -> CssDeclarationFontWeight v), 38 )
   , ( (\v -> CssDeclarationHeight v), 39 )

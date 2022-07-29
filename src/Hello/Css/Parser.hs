@@ -130,7 +130,6 @@ css_background_attachment_enum_vals = ["scroll", "fixed"]
 css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
 css_border_collapse_enum_vals       = ["separate", "collapse"]
-css_font_style_enum_vals            = ["normal", "italic", "oblique"]
 css_font_variant_enum_vals          = ["normal", "small-caps"]
 css_font_weight_enum_vals           = ["bold", "bolder", "light", "lighter", "normal"]
 css_letter_spacing_enum_vals        = ["normal"]
@@ -186,7 +185,7 @@ cssPropertyInfo = M.fromList [
    , ("font-size",              ((Nothing, Just makeCssDeclarationFontSize),             [],                                                                   []))
    , ("font-size-adjust",       ((Just makeCssDeclarationFontSizeAdjust, Nothing),       [],                                                                   []))
    , ("font-stretch",           ((Just makeCssDeclarationFontStretch, Nothing),          [],                                                                   []))
-   , ("font-style",             ((Just makeCssDeclarationFontStyle, Nothing),            [ tokensAsValueEnum ],                                                css_font_style_enum_vals))
+   , ("font-style",             ((Nothing, Just makeCssDeclarationFontStyle),            [],                                                                   []))
    , ("font-variant",           ((Just makeCssDeclarationFontVariant, Nothing),          [ tokensAsValueEnum ],                                                css_font_variant_enum_vals))
    , ("font-weight",            ((Just makeCssDeclarationFontWeight, Nothing),           [ tokensAsValueEnum, declValueAsFontWeightInteger ],                  css_font_weight_enum_vals))
    , ("height",                 ((Just makeCssDeclarationHeight, Nothing),               [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))

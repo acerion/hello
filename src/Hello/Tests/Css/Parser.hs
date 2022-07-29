@@ -256,6 +256,19 @@ parseDeclarationTestData =
 
 
 
+  , ("font-style: normal !important",    [CssDeclWrapper { property = CssDeclarationFontStyle CssValueFontStyleNormal,   important = True  } ])
+  , ("font-style: italic",               [CssDeclWrapper { property = CssDeclarationFontStyle CssValueFontStyleItalic,   important = False } ])
+  , ("font-style: oblique !important",   [CssDeclWrapper { property = CssDeclarationFontStyle CssValueFontStyleOblique,  important = True  } ])
+    -- Testing for parsing of bad css: invalid property name.
+  , ( "font-syle: normal",               [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "font-style: obligue",             [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "font-style: normal !!important",  [CssDeclWrapper { property = CssDeclarationFontStyle CssValueFontStyleNormal,   important = False  } ])
+
+
+
+
   , ( "list-style-position: inside",                    [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = False } ])
   , ( "list-style-position: inside !important",         [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = True } ])
   , ( "list-style-position: outside",                   [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = False } ])
