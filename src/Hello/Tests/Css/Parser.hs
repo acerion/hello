@@ -231,6 +231,58 @@ parseDeclarationTestData =
 
 
 
+  , ( "padding-top: 1.0px",                   [CssDeclWrapper { property = CssDeclarationPaddingTop (CssValuePadding (CssDistanceAbsPx 1.0)),       important = False } ])
+  , ( "padding-top: 2.3mm !important",        [CssDeclWrapper { property = CssDeclarationPaddingTop (CssValuePadding (CssDistanceAbsMm 2.3)),       important = True  } ])
+  , ( "padding-top: 4.5em",                   [CssDeclWrapper { property = CssDeclarationPaddingTop (CssValuePadding (CssDistanceRelEm 4.5)),       important = False } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "padding-to: 1.0px",                    [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "padding-top: red",                     [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "padding-top: 6.6px !inportant",        [CssDeclWrapper { property = CssDeclarationPaddingTop (CssValuePadding (CssDistanceAbsPx 6.6)),       important = False  } ])
+
+
+
+
+  , ( "padding-right: 1.0px",                 [CssDeclWrapper { property = CssDeclarationPaddingRight (CssValuePadding (CssDistanceAbsPx 1.0)),     important = False } ])
+  , ( "padding-right: 2.3mm !important",      [CssDeclWrapper { property = CssDeclarationPaddingRight (CssValuePadding (CssDistanceAbsMm 2.3)),     important = True  } ])
+  , ( "padding-right: 4.5em",                 [CssDeclWrapper { property = CssDeclarationPaddingRight (CssValuePadding (CssDistanceRelEm 4.5)),     important = False } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "padding-rig: 1.0px",                   [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "padding-right: red",                   [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "padding-right: 6.6px !inportant",      [CssDeclWrapper { property = CssDeclarationPaddingRight (CssValuePadding (CssDistanceAbsPx 6.6)),     important = False  } ])
+
+
+
+
+  , ( "padding-bottom: 1.0px",                [CssDeclWrapper { property = CssDeclarationPaddingBottom (CssValuePadding (CssDistanceAbsPx 1.0)),    important = False } ])
+  , ( "padding-bottom: 2.3mm !important",     [CssDeclWrapper { property = CssDeclarationPaddingBottom (CssValuePadding (CssDistanceAbsMm 2.3)),    important = True  } ])
+  , ( "padding-bottom: 4.5em",                [CssDeclWrapper { property = CssDeclarationPaddingBottom (CssValuePadding (CssDistanceRelEm 4.5)),    important = False } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "padding-rig: 1.0px",                   [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "padding-bottom: red",                  [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "padding-bottom: 6.6px !inportant",     [CssDeclWrapper { property = CssDeclarationPaddingBottom (CssValuePadding (CssDistanceAbsPx 6.6)),    important = False  } ])
+
+
+
+
+  , ( "padding-left: 1.0px",                  [CssDeclWrapper { property = CssDeclarationPaddingLeft (CssValuePadding (CssDistanceAbsPx 1.0)),      important = False } ])
+  , ( "padding-left: 2.3mm !important",       [CssDeclWrapper { property = CssDeclarationPaddingLeft (CssValuePadding (CssDistanceAbsMm 2.3)),      important = True  } ])
+  , ( "padding-left: 4.5em",                  [CssDeclWrapper { property = CssDeclarationPaddingLeft (CssValuePadding (CssDistanceRelEm 4.5)),      important = False } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "padding-rig: 1.0px",                   [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "padding-left: red",                    [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "padding-left: 6.6px !inportant",       [CssDeclWrapper { property = CssDeclarationPaddingLeft (CssValuePadding (CssDistanceAbsPx 6.6)),      important = False  } ])
+
+
+
+
   , ( "vertical-align: top !important",       [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignTop,        important = True  } ])
   , ( "vertical-align: bottom",               [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignBottom,     important = False } ])
   , ( "vertical-align: middle !important",    [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignMiddle,     important = True  } ])
@@ -344,6 +396,12 @@ parseDeclarationShorthandTestData =
                                              , CssDeclWrapper { property = CssDeclarationBorderRightColor  $ CssValueBorderColor 0x0000ff,                                   important = False }
                                              , CssDeclWrapper { property = CssDeclarationBorderBottomColor $ CssValueBorderColor 0x0000ff,                                   important = False }
                                              , CssDeclWrapper { property = CssDeclarationBorderLeftColor   $ CssValueBorderColor 0x0000ff,                                   important = False }
+                                             ])
+
+  , ( "padding: 1.0px 2.5mm 33.1em 21.9ex",  [ CssDeclWrapper { property = CssDeclarationPaddingTop    (CssValuePadding (CssDistanceAbsPx  1.0)),       important = False }
+                                             , CssDeclWrapper { property = CssDeclarationPaddingRight  (CssValuePadding (CssDistanceAbsMm  2.5)),       important = False }
+                                             , CssDeclWrapper { property = CssDeclarationPaddingBottom (CssValuePadding (CssDistanceRelEm 33.1)),       important = False }
+                                             , CssDeclWrapper { property = CssDeclarationPaddingLeft   (CssValuePadding (CssDistanceRelEx 21.9)),       important = False }
                                              ])
 
 

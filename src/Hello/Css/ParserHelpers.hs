@@ -30,6 +30,7 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveDataTypeable #-} -- For 'Data'. https://stackoverflow.com/questions/47861648/a-general-way-of-comparing-constructors-of-two-terms-in-haskell
 
 
 
@@ -45,12 +46,14 @@ module Hello.Css.ParserHelpers
 
   , declValueAsSignedLength2
   , declValueAsLength2
+  , declValueAsLength3
   , declValueAsLength2'
 
   , takeLengthTokens
   , lengthValueToDistance
 
   , ValueState (..)
+  , ValueState3 (..)
   )
 where
 
@@ -58,6 +61,7 @@ where
 
 
 import Data.Bits
+import Data.Data
 import Data.List as L
 import Data.Maybe
 import Data.Text as T
@@ -71,12 +75,23 @@ import Hello.Css.Value
 
 
 
-data ValueState a b = ValueState
+data ValueState declValue declValue2 = ValueState
   {
     pt             :: (CssParser, CssToken)
-  , colorValueCtor :: Maybe (Int -> a)
-  , lengthValueCtor :: Maybe (CssValue -> b)
-  , enums          :: [(T.Text, a)]
+  , colorValueCtor :: Maybe (Int -> declValue)
+  , lengthValueCtor :: Maybe (CssValue -> declValue2)
+  , enums          :: [(T.Text, declValue)]
+  }
+
+
+
+data ValueState3 declValueT = ValueState3
+  {
+    pt3                   :: (CssParser, CssToken)
+  , colorValueCtor3       :: Maybe (Int -> declValueT)
+  , distanceValueCtor     :: Maybe (CssDistance -> declValueT) -- For creating css values that are distances, e.g. "CssValuePadding CssDistance".
+  , enums3                :: [(T.Text, declValueT)]
+  , allowUnitlessDistance :: Bool -- Are values without unit (e.g. "1.0", as opposed to "1.0px" allowed/accepted for this css value?
   }
 
 
@@ -263,6 +278,49 @@ declValueAsLength2' valueCtor vs@ValueState {pt = (parser, token) } = ((vs { pt 
     unitlessValue :: CssNum -> Maybe CssDistance
     -- Allow numbers without unit only for 0 or LengthPercentNumber. TODO: why?
     unitlessValue cssNum = if (valueCtor (CssNumericNone 1) == CssValueTypeLengthPercentNumber (CssNumericNone 1) || fval == 0.0) -- TODO: is this the best way to compare data ctors?
+                           then Just distance
+                           else Nothing
+      where
+        fval = cssNumToFloat cssNum
+        distance = CssNumericNone fval
+
+
+
+
+declValueAsLength3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+declValueAsLength3 vs@ValueState3 {pt3 = (parser, token) } = ((vs { pt3 = (p', t') }), value)
+  where
+    ((p', t'), value) = case tokens of
+                          [CssTokDim cssNum ident] -> ((newParser, newToken), Just $ (fromJust . distanceValueCtor $ vs) (unitValue cssNum ident))
+                          [CssTokPerc cssNum]      -> ((newParser, newToken), Just $ (fromJust . distanceValueCtor $ vs) (percentValue cssNum))
+                          [CssTokNum cssNum]       -> case ((newParser, newToken), unitlessValue cssNum) of
+                                                        ((p2, t2), Just i)  -> ((p2, t2), Just $ (fromJust . distanceValueCtor $ vs) i)
+                                                        ((p2, t2), Nothing) -> ((p2, t2), Nothing)
+                          _                        -> ((parser, token), Nothing)
+
+
+    ((newParser, newToken), tokens) = takeLengthTokens (parser, token)
+
+    percentValue :: CssNum -> CssDistance
+    percentValue cssNum = distance
+      where
+        fval = cssNumToFloat cssNum
+        distance = CssNumericPercentage (fval / 100.0)
+
+    unitValue :: CssNum -> T.Text -> CssDistance
+    unitValue cssNum unitString = distance
+      where
+        fval = cssNumToFloat cssNum
+        distance = lengthValueToDistance fval (T.toLower unitString)
+
+    unitlessValue :: CssNum -> Maybe CssDistance
+    -- Allow numbers without unit only for 0 or LengthPercentNumber.
+    -- TODO: why?
+    --
+    -- TODO: original code allowed a value to be unitless if value type was
+    -- CssValueTypeLengthPercentNumber or value was 0.0. Do we need to
+    -- restore the condition on value type, or can we use the boolean flag?
+    unitlessValue cssNum = if allowUnitlessDistance vs || fval == 0.0
                            then Just distance
                            else Nothing
       where

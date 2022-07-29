@@ -128,10 +128,10 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    if (cellpadding != -1) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       cssLength = cpp_cssCreateLength(cellpadding, CSS_LENGTH_TYPE_PX);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_LEFT,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_RIGHT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength2(currentNode, CSS_PROPERTY_PADDING_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength2(currentNode, CSS_PROPERTY_PADDING_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength2(currentNode, CSS_PROPERTY_PADDING_LEFT,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength2(currentNode, CSS_PROPERTY_PADDING_RIGHT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
    }
 
 }

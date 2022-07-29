@@ -522,10 +522,12 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationMarginLeft value        -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin (cssValueToDistance value) fontAttrs display }}
     CssDeclarationMarginRight value       -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin (cssValueToDistance value) fontAttrs display }}
     CssDeclarationMarginTop value         -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin (cssValueToDistance value) fontAttrs display }}
-    CssDeclarationPaddingBottom value     -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding (cssValueToDistance value) fontAttrs display }}
-    CssDeclarationPaddingLeft value       -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding (cssValueToDistance value) fontAttrs display }}
-    CssDeclarationPaddingRight value      -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding (cssValueToDistance value) fontAttrs display }}
-    CssDeclarationPaddingTop value        -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding (cssValueToDistance value) fontAttrs display }}
+
+    CssDeclarationPaddingTop declValue    -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding declValue fontAttrs display }}
+    CssDeclarationPaddingRight declValue  -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding declValue fontAttrs display }}
+    CssDeclarationPaddingBottom declValue -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding declValue fontAttrs display }}
+    CssDeclarationPaddingLeft declValue   -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding declValue fontAttrs display }}
+
     CssDeclarationTextAlign value         -> styleAttrs { styleTextAlign      = getTextAlign value }
     CssDeclarationTextDecoration value    -> styleAttrs { styleTextDecoration = getTextDecoration value (styleTextDecoration styleAttrs) }
     CssDeclarationTextIndent value        -> styleAttrs { styleTextIndent     = getTextIndent (cssValueToDistance value) fontAttrs display }
@@ -674,7 +676,8 @@ getMargin distance fontAttrs display = clip . calculate $ distance
 
 
 
-getPadding distance fontAttrs display =
+getPadding :: CssValuePadding -> FontAttrs -> Display -> Int
+getPadding (CssValuePadding distance) fontAttrs display =
   case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
     -- TODO: another place where Maybe returned by Compute function
     -- causes unnecessary trouble.

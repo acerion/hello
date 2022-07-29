@@ -42,6 +42,7 @@ module Hello.Css.Declaration
   , CssValueBorderWidth (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
+  , CssValuePadding (..)
   , CssValueVerticalAlign (..)
   , CssValueWhitespace (..)
   , CssValueWordSpacing (..)
@@ -147,6 +148,7 @@ module Hello.Css.Declaration
   , parseTokensAsBorderWidthValue
   , parseTokensAsBorderStyleValue
   , parseTokensAsBorderColorValue
+  , parseTokensAsPaddingValue
   )
 where
 
@@ -160,6 +162,7 @@ import Data.Maybe
 import Data.List as L
 import Data.Text as T
 
+import Hello.Css.Distance
 import Hello.Css.ParserHelpers
 import Hello.Css.Tokenizer
 import Hello.Css.Value
@@ -257,10 +260,10 @@ data CssDeclaration
   | CssDeclarationOutlineStyle CssValue                 -- 57
   | CssDeclarationOutlineWidth CssValue                 -- 58
   | CssDeclarationOverflow CssValue                     -- 59
-  | CssDeclarationPaddingBottom CssValue                -- 60
-  | CssDeclarationPaddingLeft CssValue                  -- 61
-  | CssDeclarationPaddingRight CssValue                 -- 62
-  | CssDeclarationPaddingTop CssValue                   -- 63
+  | CssDeclarationPaddingTop CssValuePadding            -- 63               parsing is unit-tested
+  | CssDeclarationPaddingRight CssValuePadding          -- 62               parsing is unit-tested
+  | CssDeclarationPaddingBottom CssValuePadding         -- 60               parsing is unit-tested
+  | CssDeclarationPaddingLeft CssValuePadding           -- 61               parsing is unit-tested
   | CssDeclarationPosition CssValue                     -- 64
   | CssDeclarationQuotes CssValue                       -- 65
   | CssDeclarationRight CssValue                        -- 66
@@ -721,10 +724,66 @@ makeCssDeclarationOutlineColor v = CssDeclarationOutlineColor v
 makeCssDeclarationOutlineStyle v = CssDeclarationOutlineStyle v
 makeCssDeclarationOutlineWidth v = CssDeclarationOutlineWidth v
 makeCssDeclarationOverflow v = CssDeclarationOverflow v
-makeCssDeclarationPaddingBottom v = CssDeclarationPaddingBottom v
-makeCssDeclarationPaddingLeft v = CssDeclarationPaddingLeft v
-makeCssDeclarationPaddingRight v = CssDeclarationPaddingRight v
-makeCssDeclarationPaddingTop v = CssDeclarationPaddingTop v
+
+
+
+
+-- ------------------------------------------------
+-- Padding
+-- ------------------------------------------------
+
+
+
+-- Here is a tricky question: should I make separate types for padding of
+-- Bottom/Top/Left/Right, or can I get away with common type for all four
+-- properties?
+data CssValuePadding
+  = CssValuePadding CssDistance
+  deriving (Eq, Show, Data)
+
+
+
+
+makeCssDeclarationPaddingX :: (CssValuePadding -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationPaddingX declCtor (parser, token) = ((parser', token'), fmap declCtor value)
+  where
+    ((parser', token'), value) = parseTokensAsPaddingValue (parser, token)
+
+
+
+
+parseTokensAsPaddingValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValuePadding)
+parseTokensAsPaddingValue (parser, token) = ((parser', token'), value)
+  where
+    (vs', value)      = declValueAsLength3 vs
+    (parser', token') = pt3 vs'
+    vs :: ValueState3 CssValuePadding
+      = ValueState3 { pt3                   = (parser, token)
+                    , colorValueCtor3       = Nothing
+                    , distanceValueCtor     = Just CssValuePadding
+                    , enums3                = []
+                    , allowUnitlessDistance = False -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
+                    }
+
+
+
+
+makeCssDeclarationPaddingTop    = makeCssDeclarationPaddingX CssDeclarationPaddingTop
+makeCssDeclarationPaddingRight  = makeCssDeclarationPaddingX CssDeclarationPaddingRight
+makeCssDeclarationPaddingBottom = makeCssDeclarationPaddingX CssDeclarationPaddingBottom
+makeCssDeclarationPaddingLeft   = makeCssDeclarationPaddingX CssDeclarationPaddingLeft
+
+
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclarationPosition v = CssDeclarationPosition v
 makeCssDeclarationQuotes v = CssDeclarationQuotes v
 makeCssDeclarationRight v = CssDeclarationRight v

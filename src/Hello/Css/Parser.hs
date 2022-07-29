@@ -215,10 +215,10 @@ cssPropertyInfo = M.fromList [
    , ("outline-style",          ((Just makeCssDeclarationOutlineStyle, Nothing),         [],                                                                   []))
    , ("outline-width",          ((Just makeCssDeclarationOutlineWidth, Nothing),         [],                                                                   []))
    , ("overflow",               ((Just makeCssDeclarationOverflow, Nothing),             [],                                                                   []))
-   , ("padding-bottom",         ((Just makeCssDeclarationPaddingBottom, Nothing),        [ declValueAsLength ],                                                []))
-   , ("padding-left",           ((Just makeCssDeclarationPaddingLeft, Nothing),          [ declValueAsLength ],                                                []))
-   , ("padding-right",          ((Just makeCssDeclarationPaddingRight, Nothing),         [ declValueAsLength ],                                                []))
-   , ("padding-top",            ((Just makeCssDeclarationPaddingTop, Nothing),           [ declValueAsLength ],                                                []))
+   , ("padding-bottom",         ((Nothing, Just makeCssDeclarationPaddingBottom),        [],                                                                   []))
+   , ("padding-left",           ((Nothing, Just makeCssDeclarationPaddingLeft),          [],                                                                   []))
+   , ("padding-right",          ((Nothing, Just makeCssDeclarationPaddingRight),         [],                                                                   []))
+   , ("padding-top",            ((Nothing, Just makeCssDeclarationPaddingTop),           [],                                                                   []))
    , ("position",               ((Just makeCssDeclarationPosition, Nothing),             [],                                                                   []))
    , ("quotes",                 ((Just makeCssDeclarationQuotes, Nothing),               [],                                                                   []))
    , ("right",                  ((Just makeCssDeclarationRight, Nothing),                [],                                                                   []))
@@ -278,6 +278,7 @@ cssShorthandTypeBorderRight   =  8
 cssShorthandTypeBorderBottom  =  9
 cssShorthandTypeBorderLeft    = 10
 cssShorthandTypeListStyle     = 11
+cssShorthandTypePadding       = 12
 
 
 
@@ -315,7 +316,8 @@ cssShorthandInfo = M.fromList [
   , ("margin",         (cssShorthandTypeDirections,    [ "margin-top",      "margin-right",        "margin-bottom",      "margin-left" ]))
   , ("outline",        (cssShorthandTypeMultiple,      [ "outline-color",   "outline-style",       "outline-width"]))
 
-  , ("padding",        (cssShorthandTypeDirections,    [ "padding-top",     "padding-right",       "padding-bottom",     "padding-left" ]))
+  -- Parsing of this property is unit-tested (poorly).
+  , ("padding",        (cssShorthandTypePadding,       [ "padding-top",     "padding-right",       "padding-bottom",     "padding-left" ]))
   ] :: M.Map T.Text ShorthandInfo
 
 
@@ -1342,6 +1344,12 @@ parseDeclarationShorthand (parser, token) pinfos shorthandType | shorthandType =
                                                                                                                   , makeCssDeclarationListStylePosition
                                                                                                                   , makeCssDeclarationListStyleImage ]
                                                                                                                   []
+                                                               | shorthandType == cssShorthandTypePadding       = parseDeclarationDirections2 (parser, token)
+                                                                                                                  [ CssDeclarationPaddingTop
+                                                                                                                  , CssDeclarationPaddingRight
+                                                                                                                  , CssDeclarationPaddingBottom
+                                                                                                                  , CssDeclarationPaddingLeft ]
+                                                                                                                  parseTokensAsPaddingValue
                                                                | otherwise = ((parser, token), [])
 
 

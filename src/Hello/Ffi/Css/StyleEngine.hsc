@@ -179,6 +179,10 @@ hll_styleEngineSetNonCssHintOfNodeLength2 cNonCssDeclSetRef cProperty cValueType
            | property == 11 = CssDeclarationBorderLeftWidth   $ CssValueBorderWidth cssValue
            | property == 14 = CssDeclarationBorderRightWidth  $ CssValueBorderWidth cssValue
            | property == 18 = CssDeclarationBorderTopWidth    $ CssValueBorderWidth cssValue
+           | property == 60 = CssDeclarationPaddingBottom     $ CssValuePadding $ cssValueToDistance cssValue
+           | property == 61 = CssDeclarationPaddingLeft       $ CssValuePadding $ cssValueToDistance cssValue
+           | property == 62 = CssDeclarationPaddingRight      $ CssValuePadding $ cssValueToDistance cssValue
+           | property == 63 = CssDeclarationPaddingTop        $ CssValuePadding $ cssValueToDistance cssValue
            | otherwise      = trace ("[EE] Unhandled length property " ++ (show property)) (undefined)
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
@@ -187,6 +191,17 @@ hll_styleEngineSetNonCssHintOfNodeLength2 cNonCssDeclSetRef cProperty cValueType
 
   return . fromIntegral $ ref
 
+
+
+
+cssValueToDistance :: CssValue -> CssDistance
+cssValueToDistance value = case value of
+                             CssValueTypeLengthPercent d       -> d
+                             CssValueTypeLength d              -> d
+                             CssValueTypeSignedLength d        -> d
+                             CssValueTypeLengthPercentNumber d -> d
+                             CssValueTypeAuto d                -> d  -- TODO: 'auto' appears to be handled incorrectly this function
+                             otherwise                         -> CssNumericAuto 0 -- TODO: I'm not sure if this is the best 'otherwise' value
 
 
 
