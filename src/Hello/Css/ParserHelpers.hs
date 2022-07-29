@@ -42,9 +42,11 @@ module Hello.Css.ParserHelpers
 
   , tokensAsValueEnumString1
   , tokensAsValueEnumString2
+  , tokensAsValueEnumString3
   , tokensAsValueColor2
 
   , declValueAsSignedLength2
+  , declValueAsLengthPercent2
   , declValueAsLength2
   , declValueAsLength3
   , declValueAsLength2'
@@ -188,6 +190,26 @@ tokensAsValueEnumString2 vs@ValueState{ pt = (parser, token@(CssTokIdent sym)) }
   where
     sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
 tokensAsValueEnumString2 vs                        = (vs, Nothing)
+                                                                  -- TODO: is this the right place to reject everything else other than symbol?
+                                                                  -- Shouldn't we do it somewhere else?
+
+
+
+
+-- Interpret current token as one of allowed values and save it as value of
+-- type CssValueTypeString
+--
+-- In case of enum value there is no need to consume more than current token
+-- to build the Enum, but for consistency with other similar functions the
+-- function is still called "tokensAs...".
+tokensAsValueEnumString3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+tokensAsValueEnumString3 vs@ValueState3{ pt3 = (parser, token@(CssTokIdent sym)) } =
+  case L.lookup sym' (enums3 vs) of
+    Just declValue -> (vs { pt3 = nextToken1 . fst . pt3 $ vs}, Just declValue)
+    Nothing        -> (vs, Nothing)
+  where
+    sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
+tokensAsValueEnumString3 vs                        = (vs, Nothing)
                                                                   -- TODO: is this the right place to reject everything else other than symbol?
                                                                   -- Shouldn't we do it somewhere else?
 

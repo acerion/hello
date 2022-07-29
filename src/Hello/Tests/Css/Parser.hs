@@ -237,6 +237,25 @@ parseDeclarationTestData =
 
 
 
+  , ("font-size: xx-small",            [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeXXSmall,   important = False } ])
+  , ("font-size: x-small !important",  [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeXSmall,    important = True  } ])
+  , ("font-size: small",               [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeSmall,     important = False } ])
+  , ("font-size: medium !important",   [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeMedium,    important = True  } ])
+  , ("font-size: large",               [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeLarge,     important = False } ])
+  , ("font-size: x-large !important",  [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeXLarge,    important = True  } ])
+  , ("font-size: xx-large",            [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeXXLarge,   important = False } ])
+  , ("font-size: larger !important",   [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeLarger,    important = True  } ])
+  , ("font-size: smaller",             [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeSmaller,   important = False } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "font-site: small",              [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "font-size: square",             [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "font-size: large important",    [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeLarge,     important = False  } ])
+
+
+
+
   , ( "list-style-position: inside",                    [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = False } ])
   , ( "list-style-position: inside !important",         [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = True } ])
   , ( "list-style-position: outside",                   [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = False } ])

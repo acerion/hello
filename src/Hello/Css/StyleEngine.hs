@@ -38,7 +38,7 @@ module Hello.Css.StyleEngine
   , styleEngineSetFontFamily
   , styleEngineSetFontWeight
   , styleEngineSetFontSize
-  , styleEngineSetFontSize'
+  -- , styleEngineSetFontSize'
   , styleEngineSetFontStyle
   , styleEngineSetLetterSpacing
   , styleEngineSetFontVariant
@@ -174,17 +174,7 @@ styleEngineSetFontWeight value attrs = clipWeight . setWeight $ attrs
 
 
 
-data FontSize = FontSizeXXSmall
-              | FontSizeXSmall
-              | FontSizeSmall
-              | FontSizeMedium
-              | FontSizeLarge
-              | FontSizeXLarge
-              | FontSizeXXLarge
-              | FontSizeSmaller
-              | FontSizeLarger
-              | FontSize CssDistance
-
+{-
 css_FONT_SIZE_LARGE    = 0
 css_FONT_SIZE_LARGER   = 1
 css_FONT_SIZE_MEDIUM   = 2
@@ -198,36 +188,37 @@ css_FONT_SIZE_X_SMALL  = 8
 
 
 
-styleEngineSetFontSize' :: CssValue -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
-styleEngineSetFontSize' value prefs display parentFontAttrs fontAttrs = styleEngineSetFontSize input prefs display parentFontAttrs fontAttrs
+styleEngineSetFontSize' :: CssValueFontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
+styleEngineSetFontSize' declValue prefs display parentFontAttrs fontAttrs = styleEngineSetFontSize input prefs display parentFontAttrs fontAttrs
   where
     input = case value of
               CssValueTypeEnum enum              -> integerToFontSize enum
-              CssValueTypeLengthPercent distance -> Just $ FontSize distance
+              CssValueTypeLengthPercent distance -> Just $ CssValueFontSize distance
 
-    integerToFontSize e | e == css_FONT_SIZE_XX_SMALL = Just FontSizeXXSmall
-                        | e == css_FONT_SIZE_X_SMALL  = Just FontSizeXSmall
-                        | e == css_FONT_SIZE_SMALL    = Just FontSizeSmall
-                        | e == css_FONT_SIZE_MEDIUM   = Just FontSizeMedium
-                        | e == css_FONT_SIZE_LARGE    = Just FontSizeLarge
-                        | e == css_FONT_SIZE_X_LARGE  = Just FontSizeXLarge
-                        | e == css_FONT_SIZE_XX_LARGE = Just FontSizeXXLarge
-                        | e == css_FONT_SIZE_SMALLER  = Just FontSizeSmaller
-                        | e == css_FONT_SIZE_LARGER   = Just FontSizeLarger
+    integerToFontSize e | e == css_FONT_SIZE_XX_SMALL = Just CssValueFontSizeXXSmall
+                        | e == css_FONT_SIZE_X_SMALL  = Just CssValueFontSizeXSmall
+                        | e == css_FONT_SIZE_SMALL    = Just CssValueFontSizeSmall
+                        | e == css_FONT_SIZE_MEDIUM   = Just CssValueFontSizeMedium
+                        | e == css_FONT_SIZE_LARGE    = Just CssValueFontSizeLarge
+                        | e == css_FONT_SIZE_X_LARGE  = Just CssValueFontSizeXLarge
+                        | e == css_FONT_SIZE_XX_LARGE = Just CssValueFontSizeXXLarge
+                        | e == css_FONT_SIZE_SMALLER  = Just CssValueFontSizeSmaller
+                        | e == css_FONT_SIZE_LARGER   = Just CssValueFontSizeLarger
                         | otherwise                   = Nothing
+-}
 
 
 
 
 -- https://developer.mozilla.org/pl/docs/Web/CSS/font-size
 -- https://www.w3schools.com/cssref/pr_font_font-size.asp
-styleEngineSetFontSize :: Maybe FontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
-styleEngineSetFontSize input prefs display parentFontAttrs fontAttrs = clipSize (setAbsSize input fontAttrs)
+styleEngineSetFontSize :: CssValueFontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
+styleEngineSetFontSize declValue prefs display parentFontAttrs fontAttrs = clipSize (setAbsSize declValue fontAttrs)
   where
-    setAbsSize :: Maybe FontSize -> FontAttrs -> FontAttrs
-    setAbsSize input fontAttrs = case fontSizeToAbs' input prefs display fontAttrs parentFontAttrs of
-                                   Just size -> fontAttrs { fontSize = size }
-                                   otherwise -> fontAttrs
+    setAbsSize :: CssValueFontSize -> FontAttrs -> FontAttrs
+    setAbsSize declValue fontAttrs = case fontSizeToAbs declValue prefs display fontAttrs parentFontAttrs of
+                                       Just size -> fontAttrs { fontSize = size }
+                                       otherwise -> fontAttrs
 
     clipSize :: FontAttrs -> FontAttrs
     clipSize a | fontSize a < prefsFontMinSize prefs = a { fontSize = prefsFontMinSize prefs }
@@ -237,31 +228,23 @@ styleEngineSetFontSize input prefs display parentFontAttrs fontAttrs = clipSize 
 
 
 
-fontSizeToAbs :: FontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> Maybe Int
-fontSizeToAbs input prefs display fontAttrs parentFontAttrs = case input of
-                                                                FontSizeXXSmall   -> Just $ roundInt ( 8.1  * (prefsFontFactor prefs))
-                                                                FontSizeXSmall    -> Just $ roundInt ( 9.7  * (prefsFontFactor prefs))
-                                                                FontSizeSmall     -> Just $ roundInt (11.7  * (prefsFontFactor prefs))
-                                                                FontSizeMedium    -> Just $ roundInt (14.0  * (prefsFontFactor prefs))
-                                                                FontSizeLarge     -> Just $ roundInt (16.8  * (prefsFontFactor prefs))
-                                                                FontSizeXLarge    -> Just $ roundInt (20.2  * (prefsFontFactor prefs))
-                                                                FontSizeXXLarge   -> Just $ roundInt (24.2  * (prefsFontFactor prefs))
-                                                                FontSizeSmaller   -> Just $ roundInt ( 0.83 * (fromIntegral . fontSize $ fontAttrs))
-                                                                FontSizeLarger    -> Just $ roundInt ( 1.2  * (fromIntegral . fontSize $ fontAttrs))
-                                                                FontSize distance -> case size of
-                                                                                       Just s  -> Just $ roundInt s
-                                                                                       Nothing -> Nothing
-                                                                  where
-                                                                    size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue display
-                                                                    referenceValue = fontSize parentFontAttrs
-
-
-
-
-fontSizeToAbs' :: Maybe FontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> Maybe Int
-fontSizeToAbs' input prefs display fontAttrs parentFontAttrs = case input of
-                                                                 Just s -> fontSizeToAbs s prefs display fontAttrs parentFontAttrs
-                                                                 otherwise -> Nothing
+fontSizeToAbs :: CssValueFontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> Maybe Int
+fontSizeToAbs declValue prefs display fontAttrs parentFontAttrs = case declValue of
+                                                                    CssValueFontSizeXXSmall   -> Just $ roundInt ( 8.1  * (prefsFontFactor prefs))
+                                                                    CssValueFontSizeXSmall    -> Just $ roundInt ( 9.7  * (prefsFontFactor prefs))
+                                                                    CssValueFontSizeSmall     -> Just $ roundInt (11.7  * (prefsFontFactor prefs))
+                                                                    CssValueFontSizeMedium    -> Just $ roundInt (14.0  * (prefsFontFactor prefs))
+                                                                    CssValueFontSizeLarge     -> Just $ roundInt (16.8  * (prefsFontFactor prefs))
+                                                                    CssValueFontSizeXLarge    -> Just $ roundInt (20.2  * (prefsFontFactor prefs))
+                                                                    CssValueFontSizeXXLarge   -> Just $ roundInt (24.2  * (prefsFontFactor prefs))
+                                                                    CssValueFontSizeLarger    -> Just $ roundInt ( 1.2  * (fromIntegral . fontSize $ fontAttrs))
+                                                                    CssValueFontSizeSmaller   -> Just $ roundInt ( 0.83 * (fromIntegral . fontSize $ fontAttrs))
+                                                                    CssValueFontSizeDistance distance -> case size of
+                                                                                                           Just s  -> Just $ roundInt s
+                                                                                                           Nothing -> Nothing
+                                                                      where
+                                                                        size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue display
+                                                                        referenceValue = fontSize parentFontAttrs
 
 
 
@@ -322,7 +305,7 @@ styleEngineApplyStyleToFont declSet prefs display parentFontAttrs fontAttrs = ap
         True -> fontAttrs
         False -> case property x of
                    CssDeclarationFontFamily value    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
-                   CssDeclarationFontSize value      -> apply xs prefs display parentFontAttrs $ styleEngineSetFontSize' value prefs display parentFontAttrs fontAttrs
+                   CssDeclarationFontSize declValue  -> apply xs prefs display parentFontAttrs $ styleEngineSetFontSize declValue prefs display parentFontAttrs fontAttrs
                    CssDeclarationFontStyle value     -> apply xs prefs display parentFontAttrs $ styleEngineSetFontStyle value fontAttrs
                    CssDeclarationFontVariant value   -> apply xs prefs display parentFontAttrs $ styleEngineSetFontVariant value fontAttrs
                    CssDeclarationFontWeight value    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight value fontAttrs

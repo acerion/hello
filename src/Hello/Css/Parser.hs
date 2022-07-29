@@ -130,7 +130,6 @@ css_background_attachment_enum_vals = ["scroll", "fixed"]
 css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
 css_border_collapse_enum_vals       = ["separate", "collapse"]
-css_font_size_enum_vals             = ["large", "larger", "medium", "small", "smaller", "xx-large", "xx-small", "x-large", "x-small"]
 css_font_style_enum_vals            = ["normal", "italic", "oblique"]
 css_font_variant_enum_vals          = ["normal", "small-caps"]
 css_font_weight_enum_vals           = ["bold", "bolder", "light", "lighter", "normal"]
@@ -184,7 +183,7 @@ cssPropertyInfo = M.fromList [
    , ("empty-cells",            ((Just makeCssDeclarationEmptyCells, Nothing),           [],                                                                   []))
    , ("float",                  ((Just makeCssDeclarationFloat, Nothing),                [],                                                                   []))
    , ("font-family",            ((Just makeCssDeclarationFontFamily, Nothing),           [ tokensAsValueStringList ],                                          []))
-   , ("font-size",              ((Just makeCssDeclarationFontSize, Nothing),             [ tokensAsValueEnum, declValueAsLengthPercent ],                      css_font_size_enum_vals))
+   , ("font-size",              ((Nothing, Just makeCssDeclarationFontSize),             [],                                                                   []))
    , ("font-size-adjust",       ((Just makeCssDeclarationFontSizeAdjust, Nothing),       [],                                                                   []))
    , ("font-stretch",           ((Just makeCssDeclarationFontStretch, Nothing),          [],                                                                   []))
    , ("font-style",             ((Just makeCssDeclarationFontStyle, Nothing),            [ tokensAsValueEnum ],                                                css_font_style_enum_vals))

@@ -42,6 +42,7 @@ module Hello.Css.Declaration
   , CssValueColor (..)
   , CssValueDisplay (..)
   , CssValueCursor (..)
+  , CssValueFontSize (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
   , CssValuePadding (..)
@@ -235,7 +236,7 @@ data CssDeclaration
   | CssDeclarationEmptyCells CssValue                   -- 30
   | CssDeclarationFloat CssValue                        -- 31
   | CssDeclarationFontFamily CssValue                   -- 32
-  | CssDeclarationFontSize CssValue                     -- 33
+  | CssDeclarationFontSize CssValueFontSize             -- 33               parsing is unit-tested
   | CssDeclarationFontSizeAdjust CssValue               -- 34
   | CssDeclarationFontStretch CssValue                  -- 35
   | CssDeclarationFontStyle CssValue                    -- 36
@@ -693,7 +694,70 @@ makeCssDeclarationDisplay pat = (pat', fmap CssDeclarationDisplay declValue)
 makeCssDeclarationEmptyCells v = CssDeclarationEmptyCells v
 makeCssDeclarationFloat v = CssDeclarationFloat v
 makeCssDeclarationFontFamily v = CssDeclarationFontFamily v
-makeCssDeclarationFontSize v = CssDeclarationFontSize v
+
+
+
+
+-- --------------------------------
+-- Font size (font-size)
+-- https://www.w3.org/TR/CSS22/fonts.html#propdef-font-size
+-- --------------------------------
+
+
+
+
+data CssValueFontSize
+     -- CSS2.2: <absolute-size>
+  = CssValueFontSizeXXSmall
+  | CssValueFontSizeXSmall
+  | CssValueFontSizeSmall
+  | CssValueFontSizeMedium
+  | CssValueFontSizeLarge
+  | CssValueFontSizeXLarge
+  | CssValueFontSizeXXLarge
+
+    -- CSS2.2: <relative-size>
+  | CssValueFontSizeLarger
+  | CssValueFontSizeSmaller
+
+  | CssValueFontSizeDistance CssDistance
+ deriving (Eq, Show, Data)
+
+
+
+
+makeCssDeclarationFontSize :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize value)
+  where
+    (vs', value) = tokensAsValueEnumString3 vs >>? declValueAsLength3
+    pat'         = pt3 vs'
+    vs :: ValueState3 CssValueFontSize =
+      ValueState3 { pt3               = pat
+                  , colorValueCtor3   = Nothing
+                  , distanceValueCtor = Just CssValueFontSizeDistance
+                  , enums3 = [ ("xx-small", CssValueFontSizeXXSmall)
+                             , ("x-small",  CssValueFontSizeXSmall)
+                             , ("small",    CssValueFontSizeSmall)
+                             , ("medium",   CssValueFontSizeMedium)
+                             , ("large",    CssValueFontSizeLarge)
+                             , ("x-large",  CssValueFontSizeXLarge)
+                             , ("xx-large", CssValueFontSizeXXLarge)
+                             , ("larger",   CssValueFontSizeLarger)
+                             , ("smaller",  CssValueFontSizeSmaller)
+                             ]
+                  , allowUnitlessDistance = False -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of font size?
+                  }
+
+
+
+
+-- --------------------------------
+--
+-- --------------------------------
+
+
+
+
 makeCssDeclarationFontSizeAdjust v = CssDeclarationFontSizeAdjust v
 makeCssDeclarationFontStretch v = CssDeclarationFontStretch v
 makeCssDeclarationFontStyle v = CssDeclarationFontStyle v
