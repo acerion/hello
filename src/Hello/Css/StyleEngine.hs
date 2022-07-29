@@ -797,9 +797,15 @@ getBackgroundColor parentStyleAttrs value = case value of
 
 
 
-getCursor value = case value of
-                    CssValueTypeEnum e -> e
-                    otherwise          -> 1 -- '1' corresponds to "cursor: default"
+-- Translate value of "cursor" declaration from Haskell data into value
+-- understood by C++ code.
+--
+-- TODO: notice that when adding support for "inherit" and "initial", you
+-- won't be able to use fromEnum anymore. The two new values will complicate
+-- the function.
+getCursor :: CssValueCursor -> Int
+getCursor declValue = fromEnum declValue
+
 
 
 

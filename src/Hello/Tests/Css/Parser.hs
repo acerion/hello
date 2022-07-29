@@ -190,6 +190,32 @@ parseDeclarationTestData =
 
 
 
+  , ( "cursor: crosshair",            [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorCrosshair,   important = False } ])
+  , ( "cursor: default !important",   [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorDefault,     important = True  } ])
+  , ( "cursor: pointer",              [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorPointer,     important = False } ])
+  , ( "cursor: move !important",      [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorMove,        important = True  } ])
+  , ( "cursor: e-resize",             [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorEResize,     important = False } ])
+  , ( "cursor: ne-resize !important", [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorNeResize,    important = True  } ])
+  , ( "cursor: nw-resize",            [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorNwResize,    important = False } ])
+  , ( "cursor: n-resize !important",  [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorNResize,     important = True  } ])
+  , ( "cursor: se-resize",            [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorSeResize,    important = False } ])
+  , ( "cursor: sw-resize !important", [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorSwResize,    important = True  } ])
+  , ( "cursor: s-resize",             [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorSResize,     important = False } ])
+  , ( "cursor: w-resize !important",  [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorWResize,     important = True  } ])
+  , ( "cursor: text",                 [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorText,        important = False } ])
+  , ( "cursor: wait !important",      [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorWait,        important = True  } ])
+  , ( "cursor: help",                 [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorHelp,        important = False } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "cursr: crosshair",             [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "cursor: ponter",               [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "cursor: help !improtant",      [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorHelp,        important = False  } ])
+
+
+
+
+
   , ( "list-style-position: inside",                    [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = False } ])
   , ( "list-style-position: inside !important",         [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = True } ])
   , ( "list-style-position: outside",                   [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = False } ])

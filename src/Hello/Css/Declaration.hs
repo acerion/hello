@@ -36,10 +36,11 @@ module Hello.Css.Declaration
     CssDeclaration (..)
 
   , CssValueBackgroundColor (..)
-  , CssValueColor (..)
   , CssValueBorderColor (..)
   , CssValueBorderStyle (..)
   , CssValueBorderWidth (..)
+  , CssValueColor (..)
+  , CssValueCursor (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
   , CssValuePadding (..)
@@ -227,7 +228,7 @@ data CssDeclaration
   | CssDeclarationContent CssValue                      -- 24
   | CssDeclarationCounterIncrement CssValue             -- 25
   | CssDeclarationCounterReset CssValue                 -- 26
-  | CssDeclarationCursor CssValue                       -- 27
+  | CssDeclarationCursor CssValueCursor                 -- 27               parsing is unit-tested
   | CssDeclarationDirection CssValue                    -- 28
   | CssDeclarationDisplay CssValue                      -- 29
   | CssDeclarationEmptyCells CssValue                   -- 30
@@ -558,7 +559,75 @@ makeCssDeclarationColor pat = (pat', fmap CssDeclarationColor declValue)
 makeCssDeclarationContent v = CssDeclarationContent v
 makeCssDeclarationCounterIncrement v = CssDeclarationCounterIncrement v
 makeCssDeclarationCounterReset v = CssDeclarationCounterReset v
-makeCssDeclarationCursor v = CssDeclarationCursor v
+
+
+
+
+-- --------------------------------
+--
+-- --------------------------------
+
+
+
+
+data CssValueCursor
+  = CssValueCursorCrosshair
+  | CssValueCursorDefault
+  | CssValueCursorPointer
+  | CssValueCursorMove
+  | CssValueCursorEResize
+  | CssValueCursorNeResize
+  | CssValueCursorNwResize
+  | CssValueCursorNResize
+  | CssValueCursorSeResize
+  | CssValueCursorSwResize
+  | CssValueCursorSResize
+  | CssValueCursorWResize
+  | CssValueCursorText
+  | CssValueCursorWait
+  | CssValueCursorHelp
+  deriving (Eq, Show, Data, Enum)
+
+
+
+
+
+makeCssDeclarationCursor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationCursor pat = (pat', fmap CssDeclarationCursor declValue)
+  where
+    (vs', declValue) = tokensAsValueEnumString2 vs
+    pat'             = pt vs'
+    vs = ValueState { pt = pat
+                    , colorValueCtor  = Nothing
+                    , lengthValueCtor = Nothing
+                    , enums = [ ("crosshair", CssValueCursorCrosshair)
+                              , ("default",   CssValueCursorDefault)
+                              , ("pointer",   CssValueCursorPointer)
+                              , ("move",      CssValueCursorMove)
+                              , ("e-resize",  CssValueCursorEResize)
+                              , ("ne-resize", CssValueCursorNeResize)
+                              , ("nw-resize", CssValueCursorNwResize)
+                              , ("n-resize",  CssValueCursorNResize)
+                              , ("se-resize", CssValueCursorSeResize)
+                              , ("sw-resize", CssValueCursorSwResize)
+                              , ("s-resize",  CssValueCursorSResize)
+                              , ("w-resize",  CssValueCursorWResize)
+                              , ("text",      CssValueCursorText)
+                              , ("wait",      CssValueCursorWait)
+                              , ("help",      CssValueCursorHelp)
+                              ]
+                    }
+
+
+
+
+-- --------------------------------
+--
+-- --------------------------------
+
+
+
+
 makeCssDeclarationDirection v = CssDeclarationDirection v
 makeCssDeclarationDisplay v = CssDeclarationDisplay v
 makeCssDeclarationEmptyCells v = CssDeclarationEmptyCells v
