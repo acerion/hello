@@ -52,6 +52,7 @@ module Hello.Css.Declaration
   , CssValueListStyleType (..)
   , CssValuePadding (..)
   , CssValueTextAlign (..)
+  , CssValueTextDecoration (..)
   , CssValueTextTransform (..)
   , CssValueVerticalAlign (..)
   , CssValueWhitespace (..)
@@ -278,7 +279,7 @@ data CssDeclaration
   | CssDeclarationQuotes CssValue                       -- 65
   | CssDeclarationRight CssValue                        -- 66
   | CssDeclarationTextAlign CssValueTextAlign           -- 67
-  | CssDeclarationTextDecoration CssValue               -- 68
+  | CssDeclarationTextDecoration [CssValueTextDecoration] -- 68             Parsing is unit-tested. Using a list type because a set of values is allowed for this property.
   | CssDeclarationTextIndent CssValue                   -- 69
   | CssDeclarationTextShadow CssValue                   -- 70
   | CssDeclarationTextTransform CssValueTextTransform   -- 71               parsing is unit-tested
@@ -1217,13 +1218,46 @@ makeCssDeclarationTextAlign pat = (pat', fmap CssDeclarationTextAlign declValue)
 
 
 -- ------------------------------------------------
+-- Text decoration (text-decoration)
+-- https://www.w3.org/TR/CSS22/text.html#lining-striking-props
+-- https://www.w3.org/TR/css-text-decor-3/
+-- ------------------------------------------------
+
+
+
+
+-- TODO: add support for "none" value
+data CssValueTextDecoration
+  = CssValueTextDecorationUnderline
+  | CssValueTextDecorationOverline
+  | CssValueTextDecorationLineThrough
+  | CssValueTextDecorationBlink
+ deriving (Data, Enum, Eq, Show)
+
+
+
+makeCssDeclarationTextDecoration :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationTextDecoration pat = (pat', fmap CssDeclarationTextDecoration declValue)
+  where
+    pat'             = pt3 vs'
+    (vs', declValue) = tokensAsValueMultiEnum3 vs
+    vs = (defaultValueState3 pat) { enums3 = [ ("underline",     CssValueTextDecorationUnderline)
+                                             , ("overline",      CssValueTextDecorationOverline)
+                                             , ("line-through",  CssValueTextDecorationLineThrough)
+                                             , ("blink",         CssValueTextDecorationBlink)
+                                             ]
+                                  }
+
+
+
+
+-- ------------------------------------------------
 --
 -- ------------------------------------------------
 
 
 
 
-makeCssDeclarationTextDecoration v = CssDeclarationTextDecoration v
 makeCssDeclarationTextIndent v = CssDeclarationTextIndent v
 makeCssDeclarationTextShadow v = CssDeclarationTextShadow v
 

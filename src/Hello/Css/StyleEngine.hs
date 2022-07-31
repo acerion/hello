@@ -516,7 +516,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationPaddingLeft declValue   -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding declValue fontAttrs display }}
 
     CssDeclarationTextAlign declValue     -> styleAttrs { styleTextAlign      = getTextAlign declValue }
-    CssDeclarationTextDecoration value    -> styleAttrs { styleTextDecoration = getTextDecoration value (styleTextDecoration styleAttrs) }
+    CssDeclarationTextDecoration declValue -> styleAttrs { styleTextDecoration = getTextDecoration declValue (styleTextDecoration styleAttrs) }
     CssDeclarationTextIndent value        -> styleAttrs { styleTextIndent     = getTextIndent (cssValueToDistance value) fontAttrs display }
     CssDeclarationTextTransform declValue -> styleAttrs { styleTextTransform  = getTextTransform declValue }
     CssDeclarationVerticalAlign value     -> styleAttrs { styleVerticalAlign  = getVerticalAlign value }
@@ -633,9 +633,16 @@ getTextAlign declValue = fromEnum declValue
 
 
 
-getTextDecoration value decoration = decoration .|. case value of
-                                                      CssValueTypeMultiEnum e -> e
-                                                      otherwise               -> 0
+-- TODO: this function could probably be rewritten as a fold.
+getTextDecoration :: [CssValueTextDecoration] -> Int -> Int
+getTextDecoration []     decoration = decoration
+getTextDecoration (x:xs) decoration = decoration .|. (getBit x) .|. (getTextDecoration xs decoration)
+  where
+    getBit declValue = case declValue of
+                         CssValueTextDecorationUnderline   -> 0x01
+                         CssValueTextDecorationOverline    -> 0x02
+                         CssValueTextDecorationLineThrough -> 0x04
+                         CssValueTextDecorationBlink       -> 0x08
 
 
 

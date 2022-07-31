@@ -57,7 +57,6 @@ module Hello.Css.Parser(
                        , tokensAsValueColor
                        , declValueAsString
                        , tokensAsValueEnum
-                       , tokensAsValueMultiEnum
                        , tokensAsValueAuto
                        , tokensAsValueStringList
                        , tokensAsValueBgPosition
@@ -129,7 +128,6 @@ css_background_attachment_enum_vals = ["scroll", "fixed"]
 css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
 css_border_collapse_enum_vals       = ["separate", "collapse"]
-css_text_decoration_enum_vals       = ["underline", "overline", "line-through", "blink"]
 
 
 
@@ -210,12 +208,7 @@ cssPropertyInfo = M.fromList [
    , ("quotes",                 ((Just makeCssDeclarationQuotes, Nothing),               [],                                                                   []))
    , ("right",                  ((Just makeCssDeclarationRight, Nothing),                [],                                                                   []))
    , ("text-align",             ((Nothing, Just makeCssDeclarationTextAlign),            [],                                                                   []))
-
-     -- https://www.w3.org/TR/CSS22/text.html#lining-striking-props
-     -- https://www.w3.org/TR/css-text-decor-3/
-     -- TODO: add support for "none" value
-   , ("text-decoration",        ((Just makeCssDeclarationTextDecoration, Nothing),       [ tokensAsValueMultiEnum ],                                           css_text_decoration_enum_vals))
-
+   , ("text-decoration",        ((Nothing, Just makeCssDeclarationTextDecoration),       [],                                                                   []))
    , ("text-indent",            ((Just makeCssDeclarationTextIndent, Nothing),           [ declValueAsLengthPercent ],                                         []))
    , ("text-shadow",            ((Just makeCssDeclarationTextShadow, Nothing),           [],                                                                   []))
    , ("text-transform",         ((Nothing, Just makeCssDeclarationTextTransform),        [],                                                                   []))
@@ -407,71 +400,6 @@ tokensAsValueEnumString (parser, token@(CssTokIdent sym)) enums =
 tokensAsValueEnumString (parser, token) _                       = ((parser, token), Nothing)
                                                                   -- TODO: is this the right place to reject everything else other than symbol?
                                                                   -- Shouldn't we do it somewhere else?
-
-
-
-
--- Interpret current CssTokIdent token (and possibly more following CssTokIdent
--- tokens) as multi-enum value (value of type CssValueTypeEnum). Returned
--- integer is a bit vector with bits set for enums which were matched with
--- tokens.
---
--- In case of multi-enum value it's possible that consecutive CssTokIdent
--- tokens after current CssTokIdent token will be taken and perhaps matched
--- agains given enumeration of recognized values.
---
--- If input stream contains CssTokIdent tokens with values not present in the
--- enumeration (perhaps they come from newer version of standard or perhaps
--- contain typos), then the function returns Nothing. Rationale: Firefox 78
--- and Chromium 90 don't apply this style:
--- "text-decoration: overline underline frog line-through;"
---
--- TODO: the function should be even stricter: the function should return
--- Nothing if any token in 'value' part of declaration *is not a CssTokIdent
--- token*. In such case entired declaration should be rejected. This is
--- suggested by behaviour of FF and Chromium. Perhaps we should take a list
--- of tokens until end of value (until '}', ';' or EOF) and parse it as a
--- whole, to see if all value tokens are symbols/strings/identifiers.
---
--- TODO: if none of tokens match given list of enums then the function
--- doesn't consume any tokens and returns Nothing. I'm not entirely sure that
--- this is a good approach. Perhaps the function should return zero and
--- consume the tokens? But for consistency with other 'tokensAsValue*'
--- functions this function should return Nothing and don't consume any
--- tokens.
---
--- TODO: check in spec if the list of enums should always include an implicit
--- "none" value. Original C++ code indicates that "none" was treated in
--- special way.
-tokensAsValueMultiEnum :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueMultiEnum pair@(_, CssTokIdent sym) enums = case matchSymbolTokensWithListRigid pair enums 0x00 of
-                                                           ((_, _), 0x00)  -> (pair, Nothing) -- None of input tokens were matched agains list of enums.
-                                                           ((p2, t2), val) -> ((p2, t2), Just (CssValueTypeMultiEnum val))
-tokensAsValueMultiEnum (p, t) _                        = ((p, t), Nothing)
-
-
-
-
--- Match current CssTokIdent token and any following CssTokIdent tokens against
--- list of strings (enums). Each enum that had matching token is marked with
--- a bit set to '1' in bit vector.
---
--- 'Rigid' means that all values of tokens must be present in enumeration.
--- Any token not matching list of allowed values will result in returning
--- zero.
---
--- Return the bit vector.
---
--- TODO: write unit tests for this function if it ever gets used outside of
--- tokensAsValueMultiEnum. For now tests of tokensAsValueMultiEnum should be
--- enough, but if this function becomes more widely used, then it will
--- deserve its own tests set.
-matchSymbolTokensWithListRigid :: (CssParser, CssToken) -> [T.Text] -> Int -> ((CssParser, CssToken), Int)
-matchSymbolTokensWithListRigid (p, t@(CssTokIdent sym)) enums bits =
-  case L.elemIndex sym enums of -- TODO: should we use toLower when putting string in token or can we use it here?
-    Just idx -> matchSymbolTokensWithListRigid (nextToken1 p) enums (bits .|. (1  `shiftL` idx))
-    Nothing  -> ((p, t), 0x0) -- Given token does not match enumeration of allowed strings.
-matchSymbolTokensWithListRigid (p, t) _ bits                   = ((p, t), bits)
 
 
 

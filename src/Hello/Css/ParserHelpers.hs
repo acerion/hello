@@ -59,6 +59,7 @@ module Hello.Css.ParserHelpers
   , tokensAsValueEnumString3
   , declValueAsLength3
   , declValueAsFontWeightInteger3
+  , tokensAsValueMultiEnum3
   )
 where
 
@@ -423,6 +424,71 @@ lengthValueToDistance fval unitStr | unitStr == "px" = CssDistanceAbsPx fval
                                    | unitStr == "em" = CssDistanceRelEm fval
                                    | unitStr == "ex" = CssDistanceRelEx fval
                                    | otherwise       = CssNumericNone   fval
+
+
+
+
+-- Match current CssTokIdent token (and possibly more following CssTokIdent
+-- tokens) agains a dictonary of (ident, declValue) items. Return list of
+-- declValue items for which a match was successful.
+--
+-- If input stream contains CssTokIdent tokens with values not present in the
+-- dictionary (perhaps they come from newer version of standard or perhaps
+-- contain typos), then the function returns Nothing. Rationale: Firefox 78
+-- and Chromium 90 don't apply this style:
+-- "text-decoration: overline underline frog line-through;"
+--
+-- TODO: the function should be even stricter: the function should return
+-- Nothing if any token in 'value' part of declaration *is not a CssTokIdent
+-- token*. In such case entire declaration should be rejected. This is
+-- suggested by behaviour of FF and Chromium. Perhaps we should take a list
+-- of tokens until end of value (until '}', ';' or EOF) and parse it as a
+-- whole, to see if all value tokens are symbols/strings/identifiers.
+--
+-- TODO: if none of tokens match given dictionary then the function doesn't
+-- consume any tokens and returns Nothing. I'm not entirely sure that this is
+-- a good approach. Perhaps the function should return empty list and consume
+-- the tokens? But for consistency with other 'tokensAsValue*' functions this
+-- function should return Nothing and don't consume any tokens.
+--
+-- TODO: check in spec if the dictionary should always include an implicit
+-- "none" value. Original C++ code indicates that "none" was treated in
+-- special way.
+tokensAsValueMultiEnum3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe [declValueT])
+tokensAsValueMultiEnum3 vs@ValueState3 { pt3 = (parser, token@(CssTokIdent sym)) } =
+  case matchSymbolTokensWithListRigid (parser, token) (enums3 vs) [] of
+    ((_, _), [])    -> (vs, Nothing) -- None of input tokens were matched agains list of enums.
+    ((p2, t2), val) -> (vs { pt3 = (p2, t2) }, Just val)
+tokensAsValueMultiEnum3 vs                                                         = (vs, Nothing)
+
+
+
+
+-- Match current CssTokIdent token and any following CssTokIdent tokens
+-- against list of (key, value) items. Each item that had matching token is
+-- added to accumulator.
+--
+-- 'Rigid' means that all keys must be present in dictionary. Trying to match
+-- a key not found in the dictionary will result in returning empty value.
+--
+-- Return the accumulator.
+--
+-- TODO: write unit tests for this function if it ever gets used outside of
+-- tokensAsValueMultiEnum. For now tests of tokensAsValueMultiEnum should be
+-- enough, but if this function becomes more widely used, then it will
+-- deserve its own tests set.
+--
+-- A non-rigid version of the function could perhaps be reimplemented with
+-- "fmap snd (L.filter (\x -> L.elem (fst x)) dict))". But that
+-- implementation would not catch keys from outside of allowed set of keys.
+matchSymbolTokensWithListRigid :: (CssParser, CssToken) -> [(T.Text, b)] -> [b] -> ((CssParser, CssToken), [b])
+matchSymbolTokensWithListRigid (p, t@(CssTokIdent key)) dict acc =
+  case L.lookup key dict of -- TODO: should we use toLower when putting string in token or can we use it here?
+    Just value -> matchSymbolTokensWithListRigid (nextToken1 p) dict (acc ++ [value])
+    Nothing    -> ((p, t), []) -- Given token does not match a set of allowed
+                               -- strings. Since this function is "rigid", we
+                               -- must return empty result.
+matchSymbolTokensWithListRigid (p, t) _ acc                      = ((p, t), acc)
 
 
 

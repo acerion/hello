@@ -1178,7 +1178,7 @@ allDeclMakers =
   , ( (\v -> CssDeclarationQuotes v), 65 )
   , ( (\v -> CssDeclarationRight v), 66 )
   , ( (\v -> CssDeclaration_LAST), 67 )                  -- CssDeclarationTextAlign; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclarationTextDecoration v), 68 )
+  , ( (\v -> CssDeclaration_LAST), 68 )                  -- CssDeclarationTextDecoration; C++ code will never ask for this property
   , ( (\v -> CssDeclarationTextIndent v), 69 )
   , ( (\v -> CssDeclarationTextShadow v), 70 )
   , ( (\v -> CssDeclaration_LAST), 71 )                  -- CssDeclarationTextTransform; C++ code will never ask for this property

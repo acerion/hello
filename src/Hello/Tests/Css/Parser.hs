@@ -458,6 +458,56 @@ parseDeclarationTestData =
 
 
 
+  -- First some simple cases, where only one value appears in input.
+  , ("text-decoration: underline !important",     [CssDeclWrapper { property = CssDeclarationTextDecoration [CssValueTextDecorationUnderline],    important = True  } ])
+  , ("text-decoration: overline",                 [CssDeclWrapper { property = CssDeclarationTextDecoration [CssValueTextDecorationOverline],     important = False } ])
+  , ("text-decoration: line-through !important",  [CssDeclWrapper { property = CssDeclarationTextDecoration [CssValueTextDecorationLineThrough],  important = True  } ])
+  , ("text-decoration: blink",                    [CssDeclWrapper { property = CssDeclarationTextDecoration [CssValueTextDecorationBlink],        important = False } ])
+
+  -- Now few valid values. Notice that in different test cases the values appear in in different order.
+  , ("text-decoration: underline overline line-through blink", [CssDeclWrapper { property = CssDeclarationTextDecoration
+                                                                                            [ CssValueTextDecorationUnderline
+                                                                                            , CssValueTextDecorationOverline
+                                                                                            , CssValueTextDecorationLineThrough
+                                                                                            , CssValueTextDecorationBlink
+                                                                                            ],
+                                                                                 important = False } ])
+  , ("text-decoration: blink overline underline line-through", [CssDeclWrapper { property = CssDeclarationTextDecoration
+                                                                                            [ CssValueTextDecorationBlink
+                                                                                            , CssValueTextDecorationOverline
+                                                                                            , CssValueTextDecorationUnderline
+                                                                                            , CssValueTextDecorationLineThrough
+                                                                                            ],
+                                                                                 important = False } ])
+  , ("text-decoration: overline line-through",                 [CssDeclWrapper { property = CssDeclarationTextDecoration
+                                                                                            [ CssValueTextDecorationOverline
+                                                                                            , CssValueTextDecorationLineThrough
+                                                                                            ],
+                                                                                 important = False } ])
+  , ("text-decoration: blink line-through !important",         [CssDeclWrapper { property = CssDeclarationTextDecoration
+                                                                                            [ CssValueTextDecorationBlink
+                                                                                            , CssValueTextDecorationLineThrough
+                                                                                            ],
+                                                                                 important = True } ])
+
+  -- Testing for parsing of bad css: invalid property name.
+  , ("test-decoration: overline",                     [])
+  -- Testing for parsing of bad css: invalid value. Notice that a single invalid value token invalidates entire property.
+  , ("text-decoration: blue",                         [])
+  , ("text-decoration: underline blue",               [])
+  , ("text-decoration: 1.0px overline",               [])
+  , ("text-decoration: underline italic blink",       [])
+  , ("text-decoration: underline overline brink",     [])
+  -- Testing for parsing of bad css: misspelled "important" word.
+  --
+  -- Notice that in this case the "_important" word is treated as one of
+  -- possible decorations. The word is not a valid decoration, so entrie
+  -- declaration is rejected.
+  , ("text-decoration: underline _important",         [])
+
+
+
+
   , ( "vertical-align: top !important",       [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignTop,        important = True  } ])
   , ( "vertical-align: bottom",               [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignBottom,     important = False } ])
   , ( "vertical-align: middle !important",    [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignMiddle,     important = True  } ])
