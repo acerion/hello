@@ -53,7 +53,22 @@ names such as "background" or "border".
 
 parseDeclarationTestData =
   [
-    ( "background-color: inherit",               [CssDeclWrapper { property = CssDeclarationBackgroundColor CssValueBackgroundColorInherit,        important = False } ])
+    ( "background-attachment: scroll",              [CssDeclWrapper { property = CssDeclarationBackgroundAttachment CssValueBackgroundAttachmentScroll,       important = False } ])
+  , ( "background-attachment: scroll !important",   [CssDeclWrapper { property = CssDeclarationBackgroundAttachment CssValueBackgroundAttachmentScroll,       important = True  } ])
+  , ( "background-attachment: fixed",               [CssDeclWrapper { property = CssDeclarationBackgroundAttachment CssValueBackgroundAttachmentFixed,        important = False } ])
+  , ( "background-attachment: fixed !important",    [CssDeclWrapper { property = CssDeclarationBackgroundAttachment CssValueBackgroundAttachmentFixed,        important = True  } ])
+
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "background-atachment: scroll",               [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "background-attachment: italic",              [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "background-attachment: fixed important",     [CssDeclWrapper { property = CssDeclarationBackgroundAttachment CssValueBackgroundAttachmentFixed,        important = False  } ])
+
+
+
+
+  , ( "background-color: inherit",               [CssDeclWrapper { property = CssDeclarationBackgroundColor CssValueBackgroundColorInherit,        important = False } ])
   , ( "background-color: inherit !important",    [CssDeclWrapper { property = CssDeclarationBackgroundColor CssValueBackgroundColorInherit,        important = True  } ])
   , ( "background-color: blue",                  [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 0x0000ff),    important = False } ])
   , ( "background-color: blue !important",       [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 0x0000ff),    important = True  } ])
@@ -65,9 +80,9 @@ parseDeclarationTestData =
 
 
   , ( "border-collapse: separate",               [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate,        important = False } ])
-  , ( "border-collapse: separate !important",    [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate,        important = True } ])
+  , ( "border-collapse: separate !important",    [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate,        important = True  } ])
   , ( "border-collapse: collapse",               [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseCollapse,        important = False } ])
-  , ( "border-collapse: collapse !important",    [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseCollapse,        important = True } ])
+  , ( "border-collapse: collapse !important",    [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseCollapse,        important = True  } ])
 
   -- Testing for parsing of bad css: invalid property name.
   , ( "border-colapse: block",                   [])

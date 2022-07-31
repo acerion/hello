@@ -35,6 +35,7 @@ module Hello.Css.Declaration
   (
     CssDeclaration (..)
 
+  , CssValueBackgroundAttachment (..)
   , CssValueBackgroundColor (..)
   , CssValueBorderCollapse (..)
   , CssValueBorderColor (..)
@@ -212,7 +213,7 @@ defaultDeclaration = CssDeclWrapper
 
 -- A property in css declaration, but with a value.
 data CssDeclaration
-  = CssDeclarationBackgroundAttachment CssValue         -- 0
+  = CssDeclarationBackgroundAttachment CssValueBackgroundAttachment -- 0
   | CssDeclarationBackgroundColor CssValueBackgroundColor    -- 1           parsing is tested
   | CssDeclarationBackgroundImage CssValue              -- 2
   | CssDeclarationBackgroundPosition CssValue           -- 3
@@ -313,7 +314,39 @@ data CssDeclaration
 
 
 
-makeCssDeclarationBackgroundAttachment v = CssDeclarationBackgroundAttachment v
+-- ------------------------------------------------
+-- Background attachment (background-attachment)
+-- ------------------------------------------------
+
+
+
+
+data CssValueBackgroundAttachment
+  = CssValueBackgroundAttachmentScroll
+  | CssValueBackgroundAttachmentFixed
+  deriving (Enum, Eq, Show, Data)
+
+
+
+
+makeCssDeclarationBackgroundAttachment :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationBackgroundAttachment pat = (pat', fmap CssDeclarationBackgroundAttachment declValue)
+  where
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueBackgroundAttachment
+    vs = (defaultValueState3 pat) { enums3 = [ ("scroll",  CssValueBackgroundAttachmentScroll)
+                                             , ("fixed",   CssValueBackgroundAttachmentFixed)
+                                             ]
+                                  }
+
+
+
+
+-- ------------------------------------------------
+-- Background color (background-color)
+-- ------------------------------------------------
 
 
 

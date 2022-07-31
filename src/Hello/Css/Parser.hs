@@ -124,7 +124,6 @@ import HtmlTag
 
 
 
-css_background_attachment_enum_vals = ["scroll", "fixed"]
 css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
 
@@ -133,7 +132,7 @@ css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-rep
 
 -- Items with empty list of functions are not supported by this implementation.
 cssPropertyInfo = M.fromList [
-     ("background-attachment",  ((Just makeCssDeclarationBackgroundAttachment, Nothing), [ tokensAsValueEnum ],                                                css_background_attachment_enum_vals))
+     ("background-attachment",  ((Nothing, Just makeCssDeclarationBackgroundAttachment), [],                                                                   []))
    , ("background-color",       ((Just makeCssDeclarationBackgroundColor, Nothing),      [ tokensAsValueEnumString, tokensAsValueColor ],                      css_background_color_enum_vals))
    , ("background-image",       ((Just makeCssDeclarationBackgroundImage, Nothing),      [ declValueAsURI ],                                                   []))
    , ("background-position",    ((Just makeCssDeclarationBackgroundPosition, Nothing),   [ tokensAsValueBgPosition ],                                          []))
