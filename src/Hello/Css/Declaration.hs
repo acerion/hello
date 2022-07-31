@@ -38,6 +38,7 @@ module Hello.Css.Declaration
   , CssValueBackgroundAttachment (..)
   , CssValueBackgroundColor (..)
   , CssValueBackgroundPosition (..)
+  , CssValueBackgroundRepeat (..)
   , CssValueBorderCollapse (..)
   , CssValueBorderColor (..)
   , CssValueBorderStyle (..)
@@ -218,7 +219,7 @@ data CssDeclaration
   | CssDeclarationBackgroundColor CssValueBackgroundColor                -- 1    parsing is unit-tested
   | CssDeclarationBackgroundImage CssValue                               -- 2
   | CssDeclarationBackgroundPosition CssValueBackgroundPosition          -- 3    There are some unit tests, but they don't really test much.
-  | CssDeclarationBackgroundRepeat CssValue             -- 4
+  | CssDeclarationBackgroundRepeat CssValueBackgroundRepeat              -- 4
   | CssDeclarationBorderBottomColor CssValueBorderColor -- 5                parsing is tested
   | CssDeclarationBorderBottomStyle CssValueBorderStyle -- 6                parsing is tested
   | CssDeclarationBorderBottomWidth CssValueBorderWidth -- 7                parsing is tested
@@ -415,13 +416,35 @@ makeCssDeclarationBackgroundPosition pat = (pat', fmap CssDeclarationBackgroundP
 
 
 -- ------------------------------------------------
---
+-- Background repeat (background-repeat)
 -- ------------------------------------------------
 
 
 
 
-makeCssDeclarationBackgroundRepeat v = CssDeclarationBackgroundRepeat v
+data CssValueBackgroundRepeat
+  = CssValueBackgroundRepeatRepeat
+  | CssValueBackgroundRepeatRepeatX
+  | CssValueBackgroundRepeatRepeatY
+  | CssValueBackgroundRepeatNoRepeat
+  deriving (Data, Enum, Eq, Show)
+
+
+
+
+makeCssDeclarationBackgroundRepeat :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationBackgroundRepeat pat = (pat', fmap CssDeclarationBackgroundRepeat declValue)
+  where
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueBackgroundRepeat
+    vs = (defaultValueState3 pat) { enums3 = [ ("repeat",     CssValueBackgroundRepeatRepeat)
+                                             , ("repeat-x",   CssValueBackgroundRepeatRepeatX)
+                                             , ("repeat-y",   CssValueBackgroundRepeatRepeatY)
+                                             , ("no-repeat",  CssValueBackgroundRepeatNoRepeat)
+                                             ]
+                                  }
 
 
 

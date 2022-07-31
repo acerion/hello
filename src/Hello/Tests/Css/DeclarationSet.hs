@@ -56,7 +56,7 @@ declarationsSetAppendData = [
                         [
                           CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 11), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 44), important = True  }
+                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatNoRepeat, important = True  }
                         ]
                       }
   -- incoming:
@@ -75,7 +75,7 @@ declarationsSetAppendData = [
                         [
                           CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 11), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 44), important = True  }
+                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatNoRepeat, important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))), important = False }
                         , CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate, important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 99), important = False }
@@ -91,7 +91,7 @@ declarationsSetAppendData = [
                         [
                           CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 12), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }   -- <---- this entry will be replaced/updated...
-                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 34), important = True  }
+                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatRepeatX, important = True  }
                         ]
                       }
   -- incoming:
@@ -109,7 +109,7 @@ declarationsSetAppendData = [
                         [
                           CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 12), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 11 12), important = True  }   -- <---- And here is the result of updating.
-                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 34), important = True  }
+                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatRepeatX, important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))), important = False }
                         , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 67), important = False }
                         ]

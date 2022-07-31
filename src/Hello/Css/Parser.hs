@@ -121,18 +121,13 @@ import HtmlTag
 
 
 
-css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
-
-
-
-
 -- Items with empty list of functions are not supported by this implementation.
 cssPropertyInfo = M.fromList [
      ("background-attachment",  ((Nothing, Just makeCssDeclarationBackgroundAttachment), [],                                                                   []))
    , ("background-color",       ((Nothing, Just makeCssDeclarationBackgroundColor),      [],                                                                   []))
    , ("background-image",       ((Just makeCssDeclarationBackgroundImage, Nothing),      [ declValueAsURI ],                                                   []))
    , ("background-position",    ((Nothing, Just makeCssDeclarationBackgroundPosition),   [],                                                                   []))
-   , ("background-repeat",      ((Just makeCssDeclarationBackgroundRepeat, Nothing),     [ tokensAsValueEnum ],                                                css_background_repeat_enum_vals))
+   , ("background-repeat",      ((Nothing, Just makeCssDeclarationBackgroundRepeat),     [],                                                                   []))
 
 
    , ("border-collapse",        ((Nothing, Just makeCssDeclarationBorderCollapse),       [],                                                                   []))
@@ -1155,10 +1150,9 @@ parseDeclarationShorthand (parser, token) pinfos shorthandType | shorthandType =
                                                                                                                   parseTokensAsPaddingValue
                                                                | shorthandType == cssShorthandTypeBackground    = parseDeclarationMultiple2 (parser, token)
                                                                                                                   [ makeCssDeclarationBackgroundColor
-                                                                                                                    -- TODO: add here remaining background properties:
-                                                                                                                    -- "background-image"
-                                                                                                                    -- "background-repeat"
-                                                                                                                    -- "background-attachment"
+                                                                                                                    -- TODO: add here parser for "background-image"
+                                                                                                                  , makeCssDeclarationBackgroundRepeat
+                                                                                                                  , makeCssDeclarationBackgroundAttachment
                                                                                                                   , makeCssDeclarationBackgroundPosition
                                                                                                                   ]
                                                                                                                   []

@@ -106,6 +106,21 @@ parseDeclarationTestData =
 
 
 
+  , ( "background-repeat: repeat",                  [CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatRepeat,         important = False } ])
+  , ( "background-repeat: repeat-x !important",     [CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatRepeatX,        important = True  } ])
+  , ( "background-repeat: repeat-y",                [CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatRepeatY,        important = False } ])
+  , ( "background-repeat: no-repeat !important",    [CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatNoRepeat,       important = True  } ])
+
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "background_repeat: repeat",                  [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "background-repeat: #00ff00",                 [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "background-repeat: no-repeat !importan",     [CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatNoRepeat,       important = False  } ])
+
+
+
+
   , ( "border-collapse: separate",               [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate,        important = False } ])
   , ( "border-collapse: separate !important",    [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate,        important = True  } ])
   , ( "border-collapse: collapse",               [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseCollapse,        important = False } ])
