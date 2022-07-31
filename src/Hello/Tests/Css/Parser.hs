@@ -90,6 +90,15 @@ parseDeclarationTestData =
 
 
 
+  -- TODO: decide what should be the value of CssValueBackgroundImageUri.
+  -- Should it be just a verbatim stream, or some information about tokens that build the URI.
+  -- TODO: write more tests
+  , ( "background-image: url(\"background.png\")",     [CssDeclWrapper { property = CssDeclarationBackgroundImage (
+                                                                           CssValueBackgroundImageUri "[CssTokStr \"background.png\",CssTokParenClose]"),         important = False } ])
+
+
+
+
   -- Support for background position in hello is almost non-existent, so this
   -- test set is very, very, very basic.
   , ( "background-position: left top",              [CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0),    important = False } ])

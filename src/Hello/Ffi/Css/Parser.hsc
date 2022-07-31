@@ -1112,7 +1112,7 @@ allDeclMakers :: [(CssValue -> CssDeclaration, Int)]
 allDeclMakers =
   [ ( (\v -> CssDeclaration_LAST), 0 )                   -- CssDeclarationBackgroundAttachment; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 1 )                   -- CssDeclarationBackgroundColor; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeColor
-  , ( (\v -> CssDeclarationBackgroundImage v), 2 )
+  , ( (\v -> CssDeclaration_LAST), 2 )                   -- CssDeclarationBackgroundImage; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 3 )                   -- CssDeclarationBackgroundPosition; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 4 )                   -- CssDeclarationBackgroundRepeat; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 5 )                   -- CssDeclarationBorderBottomColor; C++ code will never ask for this property

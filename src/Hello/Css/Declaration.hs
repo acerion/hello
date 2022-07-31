@@ -37,6 +37,7 @@ module Hello.Css.Declaration
 
   , CssValueBackgroundAttachment (..)
   , CssValueBackgroundColor (..)
+  , CssValueBackgroundImage (..)
   , CssValueBackgroundPosition (..)
   , CssValueBackgroundRepeat (..)
   , CssValueBorderCollapse (..)
@@ -217,7 +218,7 @@ defaultDeclaration = CssDeclWrapper
 data CssDeclaration
   = CssDeclarationBackgroundAttachment CssValueBackgroundAttachment      -- 0    parsing is unit-tested
   | CssDeclarationBackgroundColor CssValueBackgroundColor                -- 1    parsing is unit-tested
-  | CssDeclarationBackgroundImage CssValue                               -- 2
+  | CssDeclarationBackgroundImage CssValueBackgroundImage                -- 2    This property is barely unit-tested because some decisions need to be made first.
   | CssDeclarationBackgroundPosition CssValueBackgroundPosition          -- 3    There are some unit tests, but they don't really test much.
   | CssDeclarationBackgroundRepeat CssValueBackgroundRepeat              -- 4
   | CssDeclarationBorderBottomColor CssValueBorderColor -- 5                parsing is tested
@@ -377,13 +378,28 @@ makeCssDeclarationBackgroundColor pat = (pat', fmap CssDeclarationBackgroundColo
 
 
 -- ------------------------------------------------
---
+-- Background image (background-image)
 -- ------------------------------------------------
 
 
 
 
-makeCssDeclarationBackgroundImage v = CssDeclarationBackgroundImage v
+data CssValueBackgroundImage
+ = CssValueBackgroundImageUri T.Text -- TODO: change from T.Text to URI abstract type
+ deriving (Data, Eq, Show)
+
+
+
+
+makeCssDeclarationBackgroundImage :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationBackgroundImage pat = (pat', fmap CssDeclarationBackgroundImage declValue)
+  where
+    (vs', declValue) = declValueAsURI3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueBackgroundImage
+    vs = (defaultValueState3 pat) { uriValueCtor = Just CssValueBackgroundImageUri
+                                  }
 
 
 
@@ -906,6 +922,7 @@ makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize value)
                   , distanceValueCtor = Just CssValueFontSizeDistance
                   , fontWeightValueCtor = Nothing
                   , bgPositionValueCtor = Nothing
+                  , uriValueCtor        = Nothing
                   , enums3 = [ ("xx-small", CssValueFontSizeXXSmall)
                              , ("x-small",  CssValueFontSizeXSmall)
                              , ("small",    CssValueFontSizeSmall)
@@ -962,6 +979,7 @@ makeCssDeclarationFontStyle pat = (pat', fmap CssDeclarationFontStyle declValue)
                   , distanceValueCtor = Nothing
                   , fontWeightValueCtor = Nothing
                   , bgPositionValueCtor = Nothing
+                  , uriValueCtor        = Nothing
                   , enums3 = [ ("normal",  CssValueFontStyleNormal)
                              , ("italic",  CssValueFontStyleItalic)
                              , ("oblique", CssValueFontStyleOblique)
@@ -998,6 +1016,7 @@ makeCssDeclarationFontVariant pat = (pat', fmap CssDeclarationFontVariant declVa
                   , distanceValueCtor = Nothing
                   , fontWeightValueCtor = Nothing
                   , bgPositionValueCtor = Nothing
+                  , uriValueCtor        = Nothing
                   , enums3 = [ ("normal",  CssValueFontVariantNormal)
                              , ("small-caps",  CssValueFontVariantSmallCaps)
                              ]
@@ -1323,6 +1342,7 @@ parseTokensAsPaddingValue (parser, token) = ((parser', token'), value)
                     , distanceValueCtor     = Just CssValuePadding
                     , fontWeightValueCtor   = Nothing
                     , bgPositionValueCtor = Nothing
+                    , uriValueCtor        = Nothing
                     , enums3                = []
                     , allowUnitlessDistance = False -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
                     }

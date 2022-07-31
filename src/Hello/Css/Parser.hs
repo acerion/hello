@@ -52,8 +52,6 @@ module Hello.Css.Parser(
                        , readSelectorList
                        , removeSpaceTokens
 
-                       , parseUrl
-
                        , tokensAsValueColor
                        , declValueAsString
                        , tokensAsValueAuto
@@ -87,8 +85,6 @@ module Hello.Css.Parser(
                        , defaultCssDeclarationSet
 
                        , CssRule (..)
-
-                       , consumeFunctionBody
 
                        , getTopCompound
                        )
@@ -124,7 +120,7 @@ import HtmlTag
 cssPropertyInfo = M.fromList [
      ("background-attachment",  ((Nothing, Just makeCssDeclarationBackgroundAttachment), [],                                                                   []))
    , ("background-color",       ((Nothing, Just makeCssDeclarationBackgroundColor),      [],                                                                   []))
-   , ("background-image",       ((Just makeCssDeclarationBackgroundImage, Nothing),      [ declValueAsURI ],                                                   []))
+   , ("background-image",       ((Nothing, Just makeCssDeclarationBackgroundImage),      [],                                                                   []))
    , ("background-position",    ((Nothing, Just makeCssDeclarationBackgroundPosition),   [],                                                                   []))
    , ("background-repeat",      ((Nothing, Just makeCssDeclarationBackgroundRepeat),     [],                                                                   []))
 
@@ -432,24 +428,6 @@ declValueAsURI :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), M
 declValueAsURI (parser, token) enums = case parseUrl (parser, token) of
                                          ((newParser, newToken), Just url) -> ((newParser, newToken), Just (CssValueTypeURI url))
                                          ((newParser, newToken), Nothing)  -> ((newParser, newToken), Nothing)
-
-
-
-
-parseUrl :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
-parseUrl (p1, CssTokUrl url)    = (nextToken1 p1, Just url)
-parseUrl (p1, CssTokFunc "url") = ((p2, t2), Just $ T.pack (show body))
-  where
-    ((p2, t2), body) = consumeFunctionBody p1 []
-parseUrl (p1, token)            = ((p1, token), Nothing)
-
-
-
-
-consumeFunctionBody p1 acc = case nextToken1 p1 of
-                               (p2, t2@CssTokParenClose) -> (nextToken1 p2, reverse (t2:acc))
-                               (p2, t2@CssTokEnd)        -> (nextToken1 p2, reverse acc) -- TODO: this is a parse error, handle the error
-                               (p2, t2)                  -> consumeFunctionBody p2 (t2:acc)
 
 
 
@@ -1111,7 +1089,7 @@ parseDeclarationShorthand (parser, token) pinfos shorthandType | shorthandType =
                                                                                                                   parseTokensAsPaddingValue
                                                                | shorthandType == cssShorthandTypeBackground    = parseDeclarationMultiple2 (parser, token)
                                                                                                                   [ makeCssDeclarationBackgroundColor
-                                                                                                                    -- TODO: add here parser for "background-image"
+                                                                                                                  , makeCssDeclarationBackgroundImage
                                                                                                                   , makeCssDeclarationBackgroundRepeat
                                                                                                                   , makeCssDeclarationBackgroundAttachment
                                                                                                                   , makeCssDeclarationBackgroundPosition

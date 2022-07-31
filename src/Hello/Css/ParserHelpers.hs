@@ -39,6 +39,8 @@ module Hello.Css.ParserHelpers
     consumeFunctionTokens
   , interpretRgbFunctionTokens
   , rgbFunctionToColor
+  , parseUrl
+  , consumeFunctionBody
 
   , tokensAsValueEnumString2
   , tokensAsValueColor2
@@ -61,6 +63,7 @@ module Hello.Css.ParserHelpers
   , tokensAsValueMultiEnum3
   , tokensAsValueColor3
   , tokensAsValueBgPosition3
+  , declValueAsURI3
   )
 where
 
@@ -100,6 +103,7 @@ data ValueState3 declValueT = ValueState3
   , distanceValueCtor     :: Maybe (CssDistance -> declValueT) -- For creating css values that are distances, e.g. "CssValuePadding CssDistance".
   , fontWeightValueCtor   :: Maybe (Int -> declValueT)
   , bgPositionValueCtor   :: Maybe (Int -> Int -> declValueT)
+  , uriValueCtor          :: Maybe (T.Text -> declValueT)
   , enums3                :: [(T.Text, declValueT)]
   , allowUnitlessDistance :: Bool -- Are values without unit (e.g. "1.0", as opposed to "1.0px" allowed/accepted for this css value?
   }
@@ -113,6 +117,7 @@ defaultValueState3 pat = ValueState3 { pt3                   = pat
                                      , distanceValueCtor     = Nothing
                                      , fontWeightValueCtor   = Nothing
                                      , bgPositionValueCtor   = Nothing
+                                     , uriValueCtor          = Nothing
                                      , enums3                = []
                                      , allowUnitlessDistance = False
                                      }
@@ -592,6 +597,35 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
     tokensValid [tok1, tok2] = True
     tokensValid [tok1]       = True -- Single-token list is valid: token's value will be used as X, and Y will be set to 50%.
     tokensValid _            = False
+
+
+
+
+declValueAsURI3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+declValueAsURI3 vs@ValueState3 { pt3 = pat } = case parseUrl pat of
+                                                 (pat', Just url) -> (vs { pt3 = pat' }, Just $ (fromJust . uriValueCtor $ vs) url)
+                                                 -- TODO: should we assign here pat' or pat?
+                                                 -- A token that is not an URI should be
+                                                 -- re-parsed by another function, not skipped.
+                                                 (pat', Nothing)  -> (vs { pt3 = pat' }, Nothing)
+
+
+
+
+parseUrl :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
+parseUrl (p1, CssTokUrl url)    = (nextToken1 p1, Just url)
+parseUrl (p1, CssTokFunc "url") = ((p2, t2), Just $ T.pack (show body))
+  where
+    ((p2, t2), body) = consumeFunctionBody p1 []
+parseUrl (p1, token)            = ((p1, token), Nothing)
+
+
+
+
+consumeFunctionBody p1 acc = case nextToken1 p1 of
+                               (p2, t2@CssTokParenClose) -> (nextToken1 p2, L.reverse (t2:acc))
+                               (p2, t2@CssTokEnd)        -> (nextToken1 p2, L.reverse acc) -- TODO: this is a parse error, handle the error
+                               (p2, t2)                  -> consumeFunctionBody p2 (t2:acc)
 
 
 
