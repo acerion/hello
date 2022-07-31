@@ -262,22 +262,19 @@ styleEngineSetFontStyle declValue fontAttrs = fontAttrs { fontStyle = fromEnum d
 
 
 
-css_LETTER_SPACING_NORMAL = 0
-
-styleEngineSetLetterSpacing :: CssValue -> Display -> FontAttrs -> FontAttrs -> FontAttrs
-styleEngineSetLetterSpacing value display parentFontAttrs fontAttrs = clipSpacing . setSpacing $ fontAttrs
+styleEngineSetLetterSpacing :: CssValueLetterSpacing -> Display -> FontAttrs -> FontAttrs -> FontAttrs
+styleEngineSetLetterSpacing declValue display parentFontAttrs fontAttrs = clipSpacing $ setSpacing declValue fontAttrs
   where
-    setSpacing :: FontAttrs -> FontAttrs
-    setSpacing fontAttrs = case value of
-                             CssValueTypeEnum idx | idx == css_LETTER_SPACING_NORMAL -> fontAttrs { fontLetterSpacing = 0 }
-                                                  | otherwise                        -> fontAttrs
-                             CssValueTypeSignedLength distance -> case size of
-                                                                    Just s  -> fontAttrs { fontLetterSpacing = roundInt s }
-                                                                    Nothing -> fontAttrs
-                               where
-                                 size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue display
-                                 referenceValue = fontSize parentFontAttrs
-                             otherwise                         -> fontAttrs
+    setSpacing :: CssValueLetterSpacing -> FontAttrs -> FontAttrs
+    setSpacing CssValueLetterSpacingNormal              fontAttrs = fontAttrs { fontLetterSpacing = 0 }
+    setSpacing (CssValueLetterSpacingDistance distance) fontAttrs =
+      case size of
+        Just s  -> fontAttrs { fontLetterSpacing = roundInt s }
+        Nothing -> fontAttrs
+      where
+        size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue display
+        referenceValue = fontSize parentFontAttrs
+
 
     --Limit letterSpacing to reasonable values to avoid overflows e.g, when
     --measuring word width.
@@ -316,7 +313,7 @@ styleEngineApplyStyleToFont declSet prefs display parentFontAttrs fontAttrs = ap
                    CssDeclarationFontStyle declValue     -> apply xs prefs display parentFontAttrs $ styleEngineSetFontStyle declValue fontAttrs
                    CssDeclarationFontVariant declValue   -> apply xs prefs display parentFontAttrs $ styleEngineSetFontVariant declValue fontAttrs
                    CssDeclarationFontWeight declValue    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight declValue fontAttrs
-                   CssDeclarationLetterSpacing value     -> apply xs prefs display parentFontAttrs $ styleEngineSetLetterSpacing value display parentFontAttrs fontAttrs
+                   CssDeclarationLetterSpacing declValue -> apply xs prefs display parentFontAttrs $ styleEngineSetLetterSpacing declValue display parentFontAttrs fontAttrs
                    otherwise                             -> apply xs prefs display parentFontAttrs $ fontAttrs
           where
             x  :: CssDeclWrapper       = S.index decls 0

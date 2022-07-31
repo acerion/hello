@@ -299,6 +299,25 @@ parseDeclarationTestData =
 
 
 
+  , ("letter-spacing: normal",             [CssDeclWrapper { property = CssDeclarationLetterSpacing CssValueLetterSpacingNormal,                                 important = False } ])
+  , ("letter-spacing: normal !important",  [CssDeclWrapper { property = CssDeclarationLetterSpacing CssValueLetterSpacingNormal,                                 important = True  } ])
+  , ("letter-spacing: 10px",               [CssDeclWrapper { property = CssDeclarationLetterSpacing (CssValueLetterSpacingDistance (CssDistanceAbsPx 10.0)),     important = False } ])
+  , ("letter-spacing: 10px !important",    [CssDeclWrapper { property = CssDeclarationLetterSpacing (CssValueLetterSpacingDistance (CssDistanceAbsPx 10.0)),     important = True  } ])
+  , ("letter-spacing: -10px",              [CssDeclWrapper { property = CssDeclarationLetterSpacing (CssValueLetterSpacingDistance (CssDistanceAbsPx (-10.0))),  important = False } ])
+  , ("letter-spacing: -10px !important",   [CssDeclWrapper { property = CssDeclarationLetterSpacing (CssValueLetterSpacingDistance (CssDistanceAbsPx (-10.0))),  important = True  } ])
+  , ("letter-spacing: 5em",                [CssDeclWrapper { property = CssDeclarationLetterSpacing (CssValueLetterSpacingDistance (CssDistanceRelEm 5.0)),      important = False } ])
+  , ("letter-spacing: 5em !important",     [CssDeclWrapper { property = CssDeclarationLetterSpacing (CssValueLetterSpacingDistance (CssDistanceRelEm 5.0)),      important = True  } ])
+
+  -- Testing for parsing of bad css: invalid property name.
+  , ("leter-spacing: normal",              [])
+  -- Testing for parsing of bad css: invalid value.
+  , ("letter-spacing: bold",               [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ("letter-spacing: normal !_omportant",  [CssDeclWrapper { property = CssDeclarationLetterSpacing CssValueLetterSpacingNormal,                              important = False  } ])
+
+
+
+
   , ( "list-style-position: inside",                    [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = False } ])
   , ( "list-style-position: inside !important",         [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = True } ])
   , ( "list-style-position: outside",                   [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = False } ])

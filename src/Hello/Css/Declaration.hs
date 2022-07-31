@@ -46,6 +46,7 @@ module Hello.Css.Declaration
   , CssValueFontStyle (..)
   , CssValueFontVariant (..)
   , CssValueFontWeight (..)
+  , CssValueLetterSpacing (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
   , CssValuePadding (..)
@@ -249,7 +250,7 @@ data CssDeclaration
   | CssDeclarationFontWeight CssValueFontWeight         -- 38               parsing is unit-tested
   | CssDeclarationHeight CssValue                       -- 39
   | CssDeclarationLeft CssValue                         -- 40
-  | CssDeclarationLetterSpacing CssValue                -- 41
+  | CssDeclarationLetterSpacing CssValueLetterSpacing   -- 41               parsing is unit-tested
   | CssDeclarationLineHeight CssValue                   -- 42
   | CssDeclarationListStyleImage CssValue               -- 43               not supported by hello
   | CssDeclarationListStylePosition CssValueListStylePosition  -- 44        parsing is unit-tested
@@ -886,7 +887,47 @@ makeCssDeclarationFontWeight pat = (pat', fmap CssDeclarationFontWeight declValu
 
 makeCssDeclarationHeight v = CssDeclarationHeight v
 makeCssDeclarationLeft v = CssDeclarationLeft v
-makeCssDeclarationLetterSpacing v = CssDeclarationLetterSpacing v
+
+
+
+
+-- ------------------------------------------------
+-- Letter spacing (letter-spacing)
+-- ------------------------------------------------
+
+
+
+
+data CssValueLetterSpacing
+  = CssValueLetterSpacingNormal
+  | CssValueLetterSpacingDistance CssDistance
+  deriving (Data, Eq, Show)
+
+
+
+
+makeCssDeclarationLetterSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationLetterSpacing pat = (pat', fmap CssDeclarationLetterSpacing value)
+  where
+    (vs', value) = tokensAsValueEnumString3 vs >>? declValueAsLength3
+    pat'         = pt3 vs'
+
+    vs :: ValueState3 CssValueLetterSpacing
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueLetterSpacingDistance
+                                  , enums3 = [ ("normal",    CssValueLetterSpacingNormal)
+                                             ]
+                                  }
+
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclarationLineHeight v = CssDeclarationLineHeight v
 
 

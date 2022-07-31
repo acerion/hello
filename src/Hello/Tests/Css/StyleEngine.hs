@@ -412,6 +412,8 @@ styleEngineApplyStyleToFontTestData =
     -- letter spacing
     ApplyToFontTestData
     {
+      -- This declaration set will modify these font attributes:
+      -- - letter spacing = 5.0px
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
@@ -419,7 +421,7 @@ styleEngineApplyStyleToFontTestData =
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginLeft (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
-                                                               , CssDeclWrapper {property = CssDeclarationLetterSpacing (CssValueTypeSignedLength (CssDistanceAbsPx 5.0)), important = False}]} -- letter spacing
+                                                               , CssDeclWrapper {property = CssDeclarationLetterSpacing (CssValueLetterSpacingDistance (CssDistanceAbsPx 5.0)), important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -436,14 +438,16 @@ styleEngineApplyStyleToFontTestData =
     ,
     ApplyToFontTestData
     {
+      -- This declaration set will modify these font attributes:
+      -- - letter spacing = 2.0px
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationLetterSpacing (CssValueTypeSignedLength (CssDistanceAbsPx 2.0)), important = False}
+                                                                 CssDeclWrapper {property = CssDeclarationLetterSpacing (CssValueLetterSpacingDistance (CssDistanceAbsPx 2.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}]} -- letter spacing
+                                                               , CssDeclWrapper {property = CssDeclarationMarginLeft (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
