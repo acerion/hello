@@ -568,27 +568,32 @@ data CssValueBorderStyle
 
 
 
+cssValueBorderStyleDict :: [(T.Text, CssValueBorderStyle)]
+cssValueBorderStyleDict = [ ("none",     CssValueBorderStyleNone)
+                          , ("hidden",   CssValueBorderStyleHidden)
+                          , ("dotted",   CssValueBorderStyleDotted)
+                          , ("dashed",   CssValueBorderStyleDashed)
+                          , ("solid",    CssValueBorderStyleSolid)
+                          , ("double",   CssValueBorderStyleDouble)
+                          , ("groove",   CssValueBorderStyleGroove)
+                          , ("ridge",    CssValueBorderStyleRidge)
+                          , ("inset",    CssValueBorderStyleInset)
+                          , ("outset",   CssValueBorderStyleOutset)
+                          , ("inherit",  CssValueBorderStyleInherit)
+                          ]
+
+
+
+
 parseTokensAsBorderStyleValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderStyle)
-parseTokensAsBorderStyleValue (parser, token) = ((parser', token'), declarationValue)
+parseTokensAsBorderStyleValue (pat) = ((pat'), declValue)
   where
-    (vs', declarationValue) = tokensAsValueEnumString2 vs
-    (parser', token') = pt vs'
-    vs = ValueState { pt = (parser, token)
-                    , colorValueCtor  = Nothing
-                    , lengthValueCtor = Nothing
-                    , enums = [ ("none",     CssValueBorderStyleNone)
-                              , ("hidden",   CssValueBorderStyleHidden)
-                              , ("dotted",   CssValueBorderStyleDotted)
-                              , ("dashed",   CssValueBorderStyleDashed)
-                              , ("solid",    CssValueBorderStyleSolid)
-                              , ("double",   CssValueBorderStyleDouble)
-                              , ("groove",   CssValueBorderStyleGroove)
-                              , ("ridge",    CssValueBorderStyleRidge)
-                              , ("inset",    CssValueBorderStyleInset)
-                              , ("outset",   CssValueBorderStyleOutset)
-                              , ("inherit",  CssValueBorderStyleInherit)
-                              ]
-                    }
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueBorderStyle
+    vs = (defaultValueState3 pat) { enums3 = cssValueBorderStyleDict
+                                  }
 
 
 
@@ -748,33 +753,36 @@ data CssValueCursor
 
 
 
+cssValueCursorDict :: [(T.Text, CssValueCursor)]
+cssValueCursorDict = [ ("crosshair", CssValueCursorCrosshair)
+                     , ("default",   CssValueCursorDefault)
+                     , ("pointer",   CssValueCursorPointer)
+                     , ("move",      CssValueCursorMove)
+                     , ("e-resize",  CssValueCursorEResize)
+                     , ("ne-resize", CssValueCursorNeResize)
+                     , ("nw-resize", CssValueCursorNwResize)
+                     , ("n-resize",  CssValueCursorNResize)
+                     , ("se-resize", CssValueCursorSeResize)
+                     , ("sw-resize", CssValueCursorSwResize)
+                     , ("s-resize",  CssValueCursorSResize)
+                     , ("w-resize",  CssValueCursorWResize)
+                     , ("text",      CssValueCursorText)
+                     , ("wait",      CssValueCursorWait)
+                     , ("help",      CssValueCursorHelp)
+                     ]
+
+
 
 
 makeCssDeclarationCursor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationCursor pat = (pat', fmap CssDeclarationCursor declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString2 vs
-    pat'             = pt vs'
-    vs = ValueState { pt = pat
-                    , colorValueCtor  = Nothing
-                    , lengthValueCtor = Nothing
-                    , enums = [ ("crosshair", CssValueCursorCrosshair)
-                              , ("default",   CssValueCursorDefault)
-                              , ("pointer",   CssValueCursorPointer)
-                              , ("move",      CssValueCursorMove)
-                              , ("e-resize",  CssValueCursorEResize)
-                              , ("ne-resize", CssValueCursorNeResize)
-                              , ("nw-resize", CssValueCursorNwResize)
-                              , ("n-resize",  CssValueCursorNResize)
-                              , ("se-resize", CssValueCursorSeResize)
-                              , ("sw-resize", CssValueCursorSwResize)
-                              , ("s-resize",  CssValueCursorSResize)
-                              , ("w-resize",  CssValueCursorWResize)
-                              , ("text",      CssValueCursorText)
-                              , ("wait",      CssValueCursorWait)
-                              , ("help",      CssValueCursorHelp)
-                              ]
-                    }
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueCursor
+    vs = (defaultValueState3 pat) { enums3 = cssValueCursorDict
+                                  }
 
 
 
@@ -815,27 +823,32 @@ data CssValueDisplay
 
 
 
+cssValueDisplayDict :: [(T.Text, CssValueDisplay)]
+cssValueDisplayDict = [ ("block",              CssValueDisplayBlock)
+                      , ("inline",             CssValueDisplayInline)
+                      , ("inline-block",       CssValueDisplayInlineBlock)
+                      , ("list-item",          CssValueDisplayListItem)
+                      , ("none",               CssValueDisplayNone)
+                      , ("table",              CssValueDisplayTable)
+                      , ("table-row-group",    CssValueDisplayTableRowGroup)
+                      , ("table-header-group", CssValueDisplayTableHeaderGroup)
+                      , ("table-footer-group", CssValueDisplayTableFooterGroup)
+                      , ("table-row",          CssValueDisplayTableRow)
+                      , ("table-cell",         CssValueDisplayTableCell)
+                      ]
+
+
+
+
 makeCssDeclarationDisplay :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationDisplay pat = (pat', fmap CssDeclarationDisplay declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString2 vs
-    pat'             = pt vs'
-    vs = ValueState { pt = pat
-                    , colorValueCtor  = Nothing
-                    , lengthValueCtor = Nothing
-                    , enums = [ ("block",              CssValueDisplayBlock)
-                              , ("inline",             CssValueDisplayInline)
-                              , ("inline-block",       CssValueDisplayInlineBlock)
-                              , ("list-item",          CssValueDisplayListItem)
-                              , ("none",               CssValueDisplayNone)
-                              , ("table",              CssValueDisplayTable)
-                              , ("table-row-group",    CssValueDisplayTableRowGroup)
-                              , ("table-header-group", CssValueDisplayTableHeaderGroup)
-                              , ("table-footer-group", CssValueDisplayTableFooterGroup)
-                              , ("table-row",          CssValueDisplayTableRow)
-                              , ("table-cell",         CssValueDisplayTableCell)
-                              ]
-                    }
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueDisplay
+    vs = (defaultValueState3 pat) { enums3 = cssValueDisplayDict
+                                  }
 
 
 
@@ -1139,6 +1152,10 @@ data CssValueListStylePosition
   deriving (Eq, Show, Data, Enum, Bounded)
 
 
+cssValueListStylePositionDict :: [(T.Text, CssValueListStylePosition)]
+cssValueListStylePositionDict = [ ("inside",               CssValueListStylePositionInside)
+                                , ("outside",              CssValueListStylePositionOutside)
+                                ]
 
 
 makeCssDeclarationListStylePosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
@@ -1150,17 +1167,14 @@ makeCssDeclarationListStylePosition (parser, token) = ((parser', token'), fmap C
 
 
 parseTokensAsListStylePositionValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueListStylePosition)
-parseTokensAsListStylePositionValue pat = (pat', value)
+parseTokensAsListStylePositionValue pat = (pat', declValue)
   where
-    (vs', value) = tokensAsValueEnumString2 vs
-    pat'         = pt vs'
-    vs = ValueState { pt = pat
-                    , colorValueCtor  = Nothing
-                    , lengthValueCtor = Nothing
-                    , enums = [ ("inside",               CssValueListStylePositionInside)
-                              , ("outside",              CssValueListStylePositionOutside)
-                              ]
-                    }
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueListStylePosition
+    vs = (defaultValueState3 pat) { enums3 = cssValueListStylePositionDict
+                                  }
 
 
 
@@ -1201,6 +1215,33 @@ data CssValueListStyleType
 
 
 
+cssValueListStyleTypeDict :: [(T.Text, CssValueListStyleType)]
+cssValueListStyleTypeDict = [ ("disc",                 CssValueListStyleTypeDisc)
+                            , ("circle",               CssValueListStyleTypeCircle)
+                            , ("square",               CssValueListStyleTypeSquare)
+                            , ("decimal",              CssValueListStyleTypeDecimal)
+                            , ("decimal-leading-zero", CssValueListStyleTypeDecimalLeadingZero)
+                            , ("lower-roman",          CssValueListStyleTypeLowerRoman)
+                            , ("upper-roman",          CssValueListStyleTypeUpperRoman)
+                            , ("lower-greek",          CssValueListStyleTypeLowerGreek)
+                            , ("lower-alpha",          CssValueListStyleTypeLowerAlpha)
+                            , ("lower-latin",          CssValueListStyleTypeLowerLatin)
+                            , ("upper-alpha",          CssValueListStyleTypeUpperAlpha)
+                            , ("upper-latin",          CssValueListStyleTypeUpperLatin)
+                            , ("hebrew",               CssValueListStyleTypeHebrew)
+                            , ("armenian",             CssValueListStyleTypeArmenian)
+                            , ("georgian",             CssValueListStyleTypeGeorgian)
+                            , ("cjk-ideographic",      CssValueListStyleTypeCjkIdeographic)
+                            , ("hiragana",             CssValueListStyleTypeHiragana)
+                            , ("katakana",             CssValueListStyleTypeKatakana)
+                            , ("hiragana-iroha",       CssValueListStyleTypeHiraganaIroha)
+                            , ("katakana-iroha",       CssValueListStyleTypeKatakanaIroha)
+                            , ("none",                 CssValueListStyleTypeNone)
+                            ]
+
+
+
+
 makeCssDeclarationListStyleType :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationListStyleType (parser, token) = ((parser', token'), fmap CssDeclarationListStyleType value)
   where
@@ -1210,36 +1251,14 @@ makeCssDeclarationListStyleType (parser, token) = ((parser', token'), fmap CssDe
 
 
 parseTokensAsListStyleTypeValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueListStyleType)
-parseTokensAsListStyleTypeValue pat = (pat', value)
+parseTokensAsListStyleTypeValue pat = (pat', declValue)
   where
-    (vs', value) = tokensAsValueEnumString2 vs
-    pat'         = pt vs'
-    vs = ValueState { pt = pat
-                    , colorValueCtor  = Nothing
-                    , lengthValueCtor = Nothing
-                    , enums = [ ("disc",                 CssValueListStyleTypeDisc)
-                              , ("circle",               CssValueListStyleTypeCircle)
-                              , ("square",               CssValueListStyleTypeSquare)
-                              , ("decimal",              CssValueListStyleTypeDecimal)
-                              , ("decimal-leading-zero", CssValueListStyleTypeDecimalLeadingZero)
-                              , ("lower-roman",          CssValueListStyleTypeLowerRoman)
-                              , ("upper-roman",          CssValueListStyleTypeUpperRoman)
-                              , ("lower-greek",          CssValueListStyleTypeLowerGreek)
-                              , ("lower-alpha",          CssValueListStyleTypeLowerAlpha)
-                              , ("lower-latin",          CssValueListStyleTypeLowerLatin)
-                              , ("upper-alpha",          CssValueListStyleTypeUpperAlpha)
-                              , ("upper-latin",          CssValueListStyleTypeUpperLatin)
-                              , ("hebrew",               CssValueListStyleTypeHebrew)
-                              , ("armenian",             CssValueListStyleTypeArmenian)
-                              , ("georgian",             CssValueListStyleTypeGeorgian)
-                              , ("cjk-ideographic",      CssValueListStyleTypeCjkIdeographic)
-                              , ("hiragana",             CssValueListStyleTypeHiragana)
-                              , ("katakana",             CssValueListStyleTypeKatakana)
-                              , ("hiragana-iroha",       CssValueListStyleTypeHiraganaIroha)
-                              , ("katakana-iroha",       CssValueListStyleTypeKatakanaIroha)
-                              , ("none",                 CssValueListStyleTypeNone)
-                              ]
-                    }
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueListStyleType
+    vs = (defaultValueState3 pat) { enums3 = cssValueListStyleTypeDict
+                                  }
 
 
 
@@ -1483,19 +1502,29 @@ data CssValueVerticalAlign
 
 
 
+cssValueVerticalAlignDict :: [(T.Text, CssValueVerticalAlign)]
+cssValueVerticalAlignDict = [ ("top",         CssValueVerticalAlignTop)
+                            , ("bottom",      CssValueVerticalAlignBottom)
+                            , ("middle",      CssValueVerticalAlignMiddle)
+                            , ("baseline",    CssValueVerticalAlignBaseline)
+                            , ("sub",         CssValueVerticalAlignSub)
+                            , ("super",       CssValueVerticalAlignSuper)
+                            , ("text-top",    CssValueVerticalAlignTextTop)
+                            , ("text-bottom", CssValueVerticalAlignTextBottom)
+                            ]
+
+
+
+
 makeCssDeclarationVerticalAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationVerticalAlign pat = (pat', fmap CssDeclarationVerticalAlign value)
+makeCssDeclarationVerticalAlign pat = (pat', fmap CssDeclarationVerticalAlign declValue)
   where
-    (pat', value) = tokensAsValueEnumString1 pat enums
-    enums         = [ ("top",         CssValueVerticalAlignTop)
-                    , ("bottom",      CssValueVerticalAlignBottom)
-                    , ("middle",      CssValueVerticalAlignMiddle)
-                    , ("baseline",    CssValueVerticalAlignBaseline)
-                    , ("sub",         CssValueVerticalAlignSub)
-                    , ("super",       CssValueVerticalAlignSuper)
-                    , ("text-top",    CssValueVerticalAlignTextTop)
-                    , ("text-bottom", CssValueVerticalAlignTextBottom)
-                    ]
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueVerticalAlign
+    vs = (defaultValueState3 pat) { enums3 = cssValueVerticalAlignDict
+                                  }
 
 
 
@@ -1529,16 +1558,26 @@ data CssValueWhitespace
 
 
 
+cssValueWhitespaceDict :: [(T.Text, CssValueWhitespace)]
+cssValueWhitespaceDict = [ ("normal",   CssValueWhitespaceNormal)
+                         , ("pre",      CssValueWhitespacePre)
+                         , ("nowrap",   CssValueWhitespaceNoWrap)
+                         , ("pre-wrap", CssValueWhitespacePreWrap)
+                         , ("pre-line", CssValueWhitespacePreLine)
+                         ]
+
+
+
+
 makeCssDeclarationWhitespace :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationWhitespace pat = (pat', fmap CssDeclarationWhitespace value)
+makeCssDeclarationWhitespace pat = (pat', fmap CssDeclarationWhitespace declValue)
   where
-    (pat', value) = tokensAsValueEnumString1 pat enums
-    enums         = [ ("normal",   CssValueWhitespaceNormal)
-                    , ("pre",      CssValueWhitespacePre)
-                    , ("nowrap",   CssValueWhitespaceNoWrap)
-                    , ("pre-wrap", CssValueWhitespacePreWrap)
-                    , ("pre-line", CssValueWhitespacePreLine)
-                    ]
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueWhitespace
+    vs = (defaultValueState3 pat) { enums3 = cssValueWhitespaceDict
+                                  }
 
 
 

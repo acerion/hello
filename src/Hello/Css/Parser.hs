@@ -56,7 +56,6 @@ module Hello.Css.Parser(
 
                        , tokensAsValueColor
                        , declValueAsString
-                       , tokensAsValueEnum
                        , tokensAsValueAuto
                        , tokensAsValueStringList
                        , tokensAsValueString
@@ -352,44 +351,6 @@ declValueAsString id (parser, token) = case ((retParser, retToken), value) of
     ((retParser, retToken), value) | id == 10  = tokensAsValueString (parser, token) [] -- TODO: magic value
                                    | id == 12  = declValueAsURI (parser, token) []      -- TODO: magic value
                                    | otherwise = ((parser, token), Nothing)
-
-
-
-
--- Interpret current token as enum value (value of type CssValueTypeEnum).
---
--- In case of enum value there is no need to consume more than current token
--- to build the Enum, but for consistency with other similar functions the
--- function is still called "tokensAs...".
-tokensAsValueEnum :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueEnum (parser, token@(CssTokIdent sym)) enums =
-  case L.elemIndex (T.toLower sym) enums of -- TODO: should we use toLower when putting string in token or can we use it here?
-    Just idx -> (nextToken1 parser, Just (CssValueTypeEnum idx))
-    Nothing  -> ((parser, token), Nothing)
-  where
-tokensAsValueEnum (parser, token) _                     = ((parser, token), Nothing)
-                                                          -- TODO: is this the right place to reject everything else other than symbol?
-                                                          -- Shouldn't we do it somewhere else?
-
-
-
-
--- Interpret current token as one of allowed values and save it as value of
--- type CssValueTypeString
---
--- In case of enum value there is no need to consume more than current token
--- to build the Enum, but for consistency with other similar functions the
--- function is still called "tokensAs...".
-tokensAsValueEnumString :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueEnumString (parser, token@(CssTokIdent sym)) enums =
-  case L.elemIndex sym' enums of -- TODO: perhaps 'elem' would be faster?
-    Just idx -> (nextToken1 parser, Just (CssValueTypeString sym'))
-    Nothing  -> ((parser, token), Nothing)
-  where
-    sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
-tokensAsValueEnumString (parser, token) _                       = ((parser, token), Nothing)
-                                                                  -- TODO: is this the right place to reject everything else other than symbol?
-                                                                  -- Shouldn't we do it somewhere else?
 
 
 

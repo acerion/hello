@@ -59,7 +59,8 @@ data AsTestData2 = AsTestData2 {
 
 
 
-
+-- TODO: restore the test. Or not. The function parsed here is being replaced by a bit different function.
+{-
 -- Tests for tokenAsValue* functions
 --
 -- These test cases don't specify parser's remainder before and after parsing.
@@ -99,6 +100,7 @@ tokenAsValueTestManualData1 = [
                 , expectedCssValue1 = Nothing
                 }
   ]
+-}
 
 
 
@@ -394,9 +396,9 @@ tokenAsValueTest2 idx (x:xs) = if (expectedCssValue2 x) /= value || (remainderAf
 valueTestCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.
-     TestCase (do assertEqual "manual tests of tokenAsValue 1"            Nothing (tokenAsValueTest1 0 tokenAsValueTestManualData1))
+      -- TestCase (do assertEqual "manual tests of tokenAsValue 1"            Nothing (tokenAsValueTest1 0 tokenAsValueTestManualData1))
      -- , TestCase (do assertEqual "manual tests of tokenAsValueMultiEnum"     Nothing (tokenAsValueTest2 0 tokenAsValueMultiEnumTestManualData))
-   , TestCase (do assertEqual "manual tests of tokenAsValueAuto"          Nothing (tokenAsValueTest2 0 tokenAsValueAutoTestManualData))
+     TestCase (do assertEqual "manual tests of tokenAsValueAuto"          Nothing (tokenAsValueTest2 0 tokenAsValueAutoTestManualData))
    , TestCase (do assertEqual "manual tests of tokenAsValueStringList"    Nothing (tokenAsValueTest2 0 tokenAsValueStringListTestManualData))
    , TestCase (do assertEqual "manual tests of tokenAsValueColor - hash"  Nothing (tokenAsValueTest1 0 tokenAsValueColorHashTestManualData))
    , TestCase (do assertEqual "manual tests of tokenAsValueColor - rgb"   Nothing (tokenAsValueTest2 0 tokenAsValueColorRgbTestManualData))
