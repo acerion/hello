@@ -55,7 +55,7 @@ declarationsSetAppendData = [
                       , items  = myFromList
                         [
                           CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 11), important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 33), important = False }
+                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 44), important = True  }
                         ]
                       }
@@ -74,7 +74,7 @@ declarationsSetAppendData = [
                       , items  = myFromList
                         [
                           CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 11), important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 33), important = False }
+                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 44), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))), important = False }
                         , CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate, important = True  }
@@ -84,13 +84,13 @@ declarationsSetAppendData = [
   )
   ,
 
-  -- Two sequences where the second one contains a property existing in first one (with the same value of 'property' field).
+  -- Two sequences where the second one contains a property existing in first one (with the same type of 'property' field).
   -- target:
   ( CssDeclarationSet { isSafe = True
                       , items  = myFromList
                         [
                           CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 12), important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 23), important = False }   -- <---- this entry will be replaced/updated...
+                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }   -- <---- this entry will be replaced/updated...
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 34), important = True  }
                         ]
                       }
@@ -99,7 +99,7 @@ declarationsSetAppendData = [
                       , items  = myFromList
                         [
                           CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))), important = False }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 56), important = True  }   -- <---- ... with this one.
+                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 11 12), important = True  }   -- <---- ... with this one.
                         , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 67), important = False }
                         ]
                       }
@@ -108,10 +108,9 @@ declarationsSetAppendData = [
                         items  = myFromList
                         [
                           CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 12), important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 56), important = True  }   -- <---- And here is the result of updating.
+                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 11 12), important = True  }   -- <---- And here is the result of updating.
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 34), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))), important = False }
-                        -- , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 56), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 67), important = False }
                         ]
                       }

@@ -61,6 +61,7 @@ module Hello.Css.ParserHelpers
   , declValueAsFontWeightInteger3
   , tokensAsValueMultiEnum3
   , tokensAsValueColor3
+  , tokensAsValueBgPosition3
   )
 where
 
@@ -70,6 +71,7 @@ where
 import Data.Bits
 import Data.Data
 import Data.List as L
+import Data.Map as M
 import Data.Maybe
 import Data.Text as T
 
@@ -98,6 +100,7 @@ data ValueState3 declValueT = ValueState3
   , colorValueCtor3       :: Maybe (Int -> declValueT)
   , distanceValueCtor     :: Maybe (CssDistance -> declValueT) -- For creating css values that are distances, e.g. "CssValuePadding CssDistance".
   , fontWeightValueCtor   :: Maybe (Int -> declValueT)
+  , bgPositionValueCtor   :: Maybe (Int -> Int -> declValueT)
   , enums3                :: [(T.Text, declValueT)]
   , allowUnitlessDistance :: Bool -- Are values without unit (e.g. "1.0", as opposed to "1.0px" allowed/accepted for this css value?
   }
@@ -110,6 +113,7 @@ defaultValueState3 pat = ValueState3 { pt3                   = pat
                                      , colorValueCtor3       = Nothing
                                      , distanceValueCtor     = Nothing
                                      , fontWeightValueCtor   = Nothing
+                                     , bgPositionValueCtor   = Nothing
                                      , enums3                = []
                                      , allowUnitlessDistance = False
                                      }
@@ -512,6 +516,105 @@ matchSymbolTokensWithListRigid (p, t@(CssTokIdent key)) dict acc =
                                -- strings. Since this function is "rigid", we
                                -- must return empty result.
 matchSymbolTokensWithListRigid (p, t) _ acc                      = ((p, t), acc)
+
+
+
+
+tokensAsValueBgPosition3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+tokensAsValueBgPosition3 vs@ValueState3 { pt3 = pat } = (vs { pt3 = pat' }, declValue)
+  where
+    (pat', tokens) = takeBgTokens pat
+    declValue      = Just $ (fromJust . bgPositionValueCtor $ vs) 0 0
+    -- TODO: right now the original dillo doesn't seem to display background
+    -- images at all, so I will stop the work on this function for now.
+    -- Later, as I get to know dillo better, I will resume work on this
+    -- functionality. Look at "case CSS_TYPE_BACKGROUND_POSITION" in
+    -- src/cssparser.cc in original dillo code.
+    --
+    -- This functionality will require adding posX/posY fields to CssValue.
+
+
+
+
+takeBgTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
+takeBgTokens (parser, token) = ((outParser, outToken), outTokens)
+
+  where
+    ((outParser, outToken), tokens) = takeBgTokens' (parser, token) []
+    outTokens = remapToken <$> (reorderTokens tokens)
+
+    -- Make sure that list of tokens always contains two tokens that are
+    -- properly ordered: [horiz, vert].
+    reorderTokens :: [CssToken] -> [CssToken]
+    reorderTokens tokens@[CssTokIdent "top", _]    = L.reverse tokens -- First token should be horiz, second should be vert.
+    reorderTokens tokens@[CssTokIdent "bottom", _] = L.reverse tokens -- First token should be horiz, second should be vert.
+    reorderTokens tokens@[CssTokIdent "initial"]   = tokens -- Handle single-element "initial" first, before other single-element lists.
+    reorderTokens tokens@[CssTokIdent "inherit"]   = tokens -- Handle single-element "inherit" first, before other single-element lists.
+    -- After "initial" and "inherit" are handled, you can now add 50% as
+    -- missing second element. Also call reorderTokens recursively to handle
+    -- this input string correctly: "top;".
+    -- You have to ensure two things for this case:
+    -- 1. output list has two members: one of them is the "top" and the other
+    --    is default "50%"), therefore we add "50%" token
+    -- 2. horiz/vert tokens are in proper order (horiz first, vert second),
+    --    therefore we do recursive call to reorderTokens.
+    reorderTokens [tok1]                            = reorderTokens [tok1, CssTokPerc $ CssNumI 50]
+    reorderTokens tokens@[tok1, tok2]               = tokens
+    reorderTokens _                                 = [] -- TODO: Perhas this is not needed and we should trust that caller will pass non-empty list?
+
+
+    -- Change CssTokIdent tokens for top/left/center etc. into <percentage-token>s.
+    -- TODO: this function doesn't handle "initial" and "inherit" - what do we do with them?
+    remapToken :: CssToken -> CssToken
+    remapToken tok@(CssTokIdent sym) = case M.lookup sym posMap of
+                                         Just percToken -> percToken
+                                         Nothing        -> tok -- TODO: this will happen for "initial" and "inherit" tokens, which aren't really handled here.
+      where posMap = M.fromList [ ("left",   CssTokPerc $ CssNumI 0)
+                                , ("right",  CssTokPerc $ CssNumI 100)
+                                , ("top",    CssTokPerc $ CssNumI 0)
+                                , ("bottom", CssTokPerc $ CssNumI 100)
+                                , ("center", CssTokPerc $ CssNumI 50) ]
+    remapToken tok@(CssTokPerc cssNum)      = tok
+    remapToken tok@(CssTokDim cssNum ident) = tok
+
+
+
+
+takeBgTokens' :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
+takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
+
+  where
+    ((outParser, outToken), outTokens) = if doContinue tokens token
+                                         then case token of
+                                                CssTokNone -> takeBgTokens' (nextToken1 parser) tokens -- Take the token, but don't append it to result
+                                                _          -> takeBgTokens' (nextToken1 parser) (tokens ++ [token])
+                                         else if tokensValid tokens
+                                              then ((parser, token), tokens)
+                                              else ((parser, token), [])
+
+
+
+    doContinue tokens token = L.length tokens < 2 && tokValid token
+
+    tokValid (CssTokNone)             = True -- used to kick-start parsing of stream
+    tokValid (CssTokIdent ident)      = elem ident horizVals || elem ident vertVals || elem ident otherVals || ident == "center" -- TODO: or $ map (elem ident) [horizVals, vertVals, otherVals, ["center"]]
+    tokValid (CssTokNum cssNum)       = True
+    tokValid (CssTokDim cssNum ident) = True
+    tokValid (CssTokPerc cssNum)      = True
+    tokValid _                        = False
+
+    horizVals = ["left", "right"]
+    vertVals  = ["top", "bottom"]
+    otherVals = ["initial", "inherit"]
+
+    tokensValid [CssTokIdent sym1, CssTokIdent sym2] = cond1 && cond2 && cond3
+      where
+        cond1 = not (elem sym1 otherVals && elem sym2 otherVals) -- "initial" or "inherit" isn't used twice.
+        cond2 = not (elem sym1 horizVals && elem sym2 horizVals) -- Both symbols aren't from the same list of horizontal tokens.
+        cond3 = not (elem sym1 vertVals  && elem sym2 vertVals)  -- Both symbols aren't from the same list of vertical tokens.
+    tokensValid [tok1, tok2] = True
+    tokensValid [tok1]       = True -- Single-token list is valid: token's value will be used as X, and Y will be set to 50%.
+    tokensValid _            = False
 
 
 

@@ -79,13 +79,29 @@ parseDeclarationTestData =
   , ( "background-color: rgb(0, 0, 255)",            [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0x0000ff),    important = False } ])
   , ( "background-color: rgb(0, 0, 255) !important", [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0x0000ff),    important = True  } ])
 
-    -- Testing for parsing of bad css: invalid property name.
+  -- Testing for parsing of bad css: invalid property name.
   , ( "background-colo: blue",                       [])
   -- Testing for parsing of bad css: invalid value.
   , ( "background-color: square",                    [])
   , ( "background-color: 0x00ff00",                  []) -- Invalid format of HEX value
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
   , ( "background-color: rgb(255, 0, 0) important",  [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0xff0000),        important = False  } ])
+
+
+
+
+  -- Support for background position in hello is almost non-existent, so this
+  -- test set is very, very, very basic.
+  , ( "background-position: left top",              [CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0),    important = False } ])
+  , ( "background-position: left top !important",   [CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0),    important = True  } ])
+
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "backgroundposition: left top",               [])
+  -- Testing for parsing of bad css: invalid value.
+  --, ( "background-position: italic",                [])
+  --, ( "background-position: left-top",              [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "background-position: left top important",    [CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0),    important = False  } ])
 
 
 

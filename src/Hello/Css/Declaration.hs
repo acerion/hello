@@ -37,6 +37,7 @@ module Hello.Css.Declaration
 
   , CssValueBackgroundAttachment (..)
   , CssValueBackgroundColor (..)
+  , CssValueBackgroundPosition (..)
   , CssValueBorderCollapse (..)
   , CssValueBorderColor (..)
   , CssValueBorderStyle (..)
@@ -213,10 +214,10 @@ defaultDeclaration = CssDeclWrapper
 
 -- A property in css declaration, but with a value.
 data CssDeclaration
-  = CssDeclarationBackgroundAttachment CssValueBackgroundAttachment -- 0    parsing is unit-tested
-  | CssDeclarationBackgroundColor CssValueBackgroundColor    -- 1           parsing is tested
-  | CssDeclarationBackgroundImage CssValue              -- 2
-  | CssDeclarationBackgroundPosition CssValue           -- 3
+  = CssDeclarationBackgroundAttachment CssValueBackgroundAttachment      -- 0    parsing is unit-tested
+  | CssDeclarationBackgroundColor CssValueBackgroundColor                -- 1    parsing is unit-tested
+  | CssDeclarationBackgroundImage CssValue                               -- 2
+  | CssDeclarationBackgroundPosition CssValueBackgroundPosition          -- 3    There are some unit tests, but they don't really test much.
   | CssDeclarationBackgroundRepeat CssValue             -- 4
   | CssDeclarationBorderBottomColor CssValueBorderColor -- 5                parsing is tested
   | CssDeclarationBorderBottomStyle CssValueBorderStyle -- 6                parsing is tested
@@ -382,7 +383,44 @@ makeCssDeclarationBackgroundColor pat = (pat', fmap CssDeclarationBackgroundColo
 
 
 makeCssDeclarationBackgroundImage v = CssDeclarationBackgroundImage v
-makeCssDeclarationBackgroundPosition v = CssDeclarationBackgroundPosition v
+
+
+
+
+-- ------------------------------------------------
+-- Background position (background-position)
+-- ------------------------------------------------
+
+
+
+
+data CssValueBackgroundPosition
+ = CssValueBackgroundPositionXY Int Int
+ deriving (Data, Eq, Show)
+
+
+
+
+makeCssDeclarationBackgroundPosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationBackgroundPosition pat = (pat', fmap CssDeclarationBackgroundPosition declValue)
+  where
+    (vs', declValue) = tokensAsValueBgPosition3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueBackgroundPosition
+    vs = (defaultValueState3 pat) { bgPositionValueCtor = Just CssValueBackgroundPositionXY
+                                  }
+
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclarationBackgroundRepeat v = CssDeclarationBackgroundRepeat v
 
 
@@ -831,6 +869,7 @@ makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize value)
                   , colorValueCtor3   = Nothing
                   , distanceValueCtor = Just CssValueFontSizeDistance
                   , fontWeightValueCtor = Nothing
+                  , bgPositionValueCtor = Nothing
                   , enums3 = [ ("xx-small", CssValueFontSizeXXSmall)
                              , ("x-small",  CssValueFontSizeXSmall)
                              , ("small",    CssValueFontSizeSmall)
@@ -886,6 +925,7 @@ makeCssDeclarationFontStyle pat = (pat', fmap CssDeclarationFontStyle declValue)
                   , colorValueCtor3   = Nothing
                   , distanceValueCtor = Nothing
                   , fontWeightValueCtor = Nothing
+                  , bgPositionValueCtor = Nothing
                   , enums3 = [ ("normal",  CssValueFontStyleNormal)
                              , ("italic",  CssValueFontStyleItalic)
                              , ("oblique", CssValueFontStyleOblique)
@@ -921,6 +961,7 @@ makeCssDeclarationFontVariant pat = (pat', fmap CssDeclarationFontVariant declVa
                   , colorValueCtor3   = Nothing
                   , distanceValueCtor = Nothing
                   , fontWeightValueCtor = Nothing
+                  , bgPositionValueCtor = Nothing
                   , enums3 = [ ("normal",  CssValueFontVariantNormal)
                              , ("small-caps",  CssValueFontVariantSmallCaps)
                              ]
@@ -1239,6 +1280,7 @@ parseTokensAsPaddingValue (parser, token) = ((parser', token'), value)
                     , colorValueCtor3       = Nothing
                     , distanceValueCtor     = Just CssValuePadding
                     , fontWeightValueCtor   = Nothing
+                    , bgPositionValueCtor = Nothing
                     , enums3                = []
                     , allowUnitlessDistance = False -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
                     }
