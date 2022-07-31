@@ -302,7 +302,7 @@ hll_styleEngineSetNonCssHintOfNodeColor cNonCssDeclSetRef cProperty cColor  = do
 
   let property = fromIntegral cProperty
   let color    = fromIntegral cColor
-  let decl | property ==  1 = CssDeclarationBackgroundColor $ CssValueBackgroundColor color
+  let decl | property ==  1 = CssDeclarationBackgroundColor $ CssValueBackgroundColorColor color
            | property == 23 = CssDeclarationColor $ CssValueColor color
            | otherwise      = trace ("Unhandled color property " ++ (show property)) (undefined)
 

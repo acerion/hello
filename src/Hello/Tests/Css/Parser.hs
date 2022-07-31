@@ -68,13 +68,24 @@ parseDeclarationTestData =
 
 
 
-  , ( "background-color: inherit",               [CssDeclWrapper { property = CssDeclarationBackgroundColor CssValueBackgroundColorInherit,        important = False } ])
-  , ( "background-color: inherit !important",    [CssDeclWrapper { property = CssDeclarationBackgroundColor CssValueBackgroundColorInherit,        important = True  } ])
-  , ( "background-color: blue",                  [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 0x0000ff),    important = False } ])
-  , ( "background-color: blue !important",       [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 0x0000ff),    important = True  } ])
-  , ( "background-color: blue !important;",      [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 0x0000ff),    important = True  } ])
-  , ( "background-color: #00ff00;",              [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColor 0x00ff00),    important = False } ])
-  , ( "background-color: 0x00ff00;",             []) -- Invalid format of HEX value
+  , ( "background-color: inherit",                   [CssDeclWrapper { property = CssDeclarationBackgroundColor CssValueBackgroundColorInherit,             important = False } ])
+  , ( "background-color: inherit !important",        [CssDeclWrapper { property = CssDeclarationBackgroundColor CssValueBackgroundColorInherit,             important = True  } ])
+  , ( "background-color: blue",                      [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0x0000ff),    important = False } ])
+  , ( "background-color: blue !important",           [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0x0000ff),    important = True  } ])
+  , ( "background-color: blue !important;",          [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0x0000ff),    important = True  } ])
+  , ( "background-color: #00ff00;",                  [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0x00ff00),    important = False } ])
+  , ( "background-color: #00ff00 !important",        [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0x00ff00),    important = True  } ])
+  , ( "background-color: #00ff00 !important;",       [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0x00ff00),    important = True  } ])
+  , ( "background-color: rgb(0, 0, 255)",            [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0x0000ff),    important = False } ])
+  , ( "background-color: rgb(0, 0, 255) !important", [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0x0000ff),    important = True  } ])
+
+    -- Testing for parsing of bad css: invalid property name.
+  , ( "background-colo: blue",                       [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "background-color: square",                    [])
+  , ( "background-color: 0x00ff00",                  []) -- Invalid format of HEX value
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "background-color: rgb(255, 0, 0) important",  [CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 0xff0000),        important = False  } ])
 
 
 

@@ -213,7 +213,7 @@ defaultDeclaration = CssDeclWrapper
 
 -- A property in css declaration, but with a value.
 data CssDeclaration
-  = CssDeclarationBackgroundAttachment CssValueBackgroundAttachment -- 0
+  = CssDeclarationBackgroundAttachment CssValueBackgroundAttachment -- 0    parsing is unit-tested
   | CssDeclarationBackgroundColor CssValueBackgroundColor    -- 1           parsing is tested
   | CssDeclarationBackgroundImage CssValue              -- 2
   | CssDeclarationBackgroundPosition CssValue           -- 3
@@ -221,7 +221,7 @@ data CssDeclaration
   | CssDeclarationBorderBottomColor CssValueBorderColor -- 5                parsing is tested
   | CssDeclarationBorderBottomStyle CssValueBorderStyle -- 6                parsing is tested
   | CssDeclarationBorderBottomWidth CssValueBorderWidth -- 7                parsing is tested
-  | CssDeclarationBorderCollapse CssValueBorderCollapse -- 8
+  | CssDeclarationBorderCollapse CssValueBorderCollapse -- 8                parsing is unit-tested
   | CssDeclarationBorderLeftColor CssValueBorderColor   -- 9                parsing is tested
   | CssDeclarationBorderLeftStyle CssValueBorderStyle   -- 10               parsing is tested
   | CssDeclarationBorderLeftWidth CssValueBorderWidth   -- 11               parsing is tested
@@ -353,17 +353,30 @@ makeCssDeclarationBackgroundAttachment pat = (pat', fmap CssDeclarationBackgroun
 
 data CssValueBackgroundColor
   = CssValueBackgroundColorInherit
-  | CssValueBackgroundColor Int -- TODO: Int or Color?
+  | CssValueBackgroundColorColor Int -- TODO: Int or Color?
   deriving (Eq, Show, Data)
 
 
 
 
-makeCssDeclarationBackgroundColor :: CssValue -> CssDeclaration
-makeCssDeclarationBackgroundColor v = case v of
-                                        CssValueTypeString "inherit" -> CssDeclarationBackgroundColor CssValueBackgroundColorInherit
-                                        CssValueTypeColor c          -> CssDeclarationBackgroundColor $ CssValueBackgroundColor c
-                                        otherwise                    -> CssDeclaration_LAST
+makeCssDeclarationBackgroundColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationBackgroundColor pat = (pat', fmap CssDeclarationBackgroundColor value)
+  where
+    (vs', value) = tokensAsValueEnumString3 vs >>? tokensAsValueColor3
+    pat'         = pt3 vs'
+
+    vs :: ValueState3 CssValueBackgroundColor
+    vs = (defaultValueState3 pat) { colorValueCtor3 = Just CssValueBackgroundColorColor
+                                  , enums3 = [ ("inherit",    CssValueBackgroundColorInherit)
+                                             ]
+                                  }
+
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
 
 
 

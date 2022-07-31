@@ -124,7 +124,6 @@ import HtmlTag
 
 
 
-css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
 
 
@@ -133,7 +132,7 @@ css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-rep
 -- Items with empty list of functions are not supported by this implementation.
 cssPropertyInfo = M.fromList [
      ("background-attachment",  ((Nothing, Just makeCssDeclarationBackgroundAttachment), [],                                                                   []))
-   , ("background-color",       ((Just makeCssDeclarationBackgroundColor, Nothing),      [ tokensAsValueEnumString, tokensAsValueColor ],                      css_background_color_enum_vals))
+   , ("background-color",       ((Nothing, Just makeCssDeclarationBackgroundColor),      [],                                                                   []))
    , ("background-image",       ((Just makeCssDeclarationBackgroundImage, Nothing),      [ declValueAsURI ],                                                   []))
    , ("background-position",    ((Just makeCssDeclarationBackgroundPosition, Nothing),   [ tokensAsValueBgPosition ],                                          []))
    , ("background-repeat",      ((Just makeCssDeclarationBackgroundRepeat, Nothing),     [ tokensAsValueEnum ],                                                css_background_repeat_enum_vals))
@@ -257,13 +256,14 @@ cssShorthandTypeBorderBottom  =  9
 cssShorthandTypeBorderLeft    = 10
 cssShorthandTypeListStyle     = 11
 cssShorthandTypePadding       = 12
+cssShorthandTypeBackground    = 13
 
 
 
 
 type ShorthandInfo = (Int, [T.Text])
 cssShorthandInfo = M.fromList [
-    ("background",     (cssShorthandTypeMultiple,      [ "background-color", "background-image", "background-repeat", "background-attachment", "background-position" ]))
+    ("background",     (cssShorthandTypeBackground,    [ "background-color", "background-image", "background-repeat", "background-attachment", "background-position" ]))
 
     -- Parsing of this property is unit-tested.
   , ("border",         (cssShorthandTypeBorder,        [ "border-top-width", "border-right-width", "border-bottom-width", "border-left-width",
@@ -1255,6 +1255,15 @@ parseDeclarationShorthand (parser, token) pinfos shorthandType | shorthandType =
                                                                                                                   , CssDeclarationPaddingBottom
                                                                                                                   , CssDeclarationPaddingLeft ]
                                                                                                                   parseTokensAsPaddingValue
+                                                               | shorthandType == cssShorthandTypeBackground    = parseDeclarationMultiple2 (parser, token)
+                                                                                                                  [ makeCssDeclarationBackgroundColor
+                                                                                                                    -- TODO: add here remaining background properties:
+                                                                                                                    -- "background-image"
+                                                                                                                    -- "background-repeat"
+                                                                                                                    -- "background-attachment"
+                                                                                                                    -- "background-position"
+                                                                                                                  ]
+                                                                                                                  []
                                                                | otherwise = ((parser, token), [])
 
 

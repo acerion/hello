@@ -487,8 +487,8 @@ yet because a full support for them in dillo seems to be missing or broken.
 
   -- Probably because of code like this someone invented lenses.
   case declaration of
-    CssDeclarationBackgroundColor value   -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs value }
-    CssDeclarationBorderCollapse declValue -> styleAttrs { styleBorderCollapse  = getBorderCollapse declValue }
+    CssDeclarationBackgroundColor declValue     -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs declValue }
+    CssDeclarationBorderCollapse declValue      -> styleAttrs { styleBorderCollapse  = getBorderCollapse declValue }
 
     CssDeclarationBorderTopStyle value    -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyleTop    parentStyleAttrs value }}
     CssDeclarationBorderRightStyle value  -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyleRight  parentStyleAttrs value }}
@@ -798,9 +798,9 @@ getColor parentStyleAttrs value = case value of
 
 
 getBackgroundColor :: StyleAttrs -> CssValueBackgroundColor -> Int
-getBackgroundColor parentStyleAttrs value = case value of
-                                              CssValueBackgroundColorInherit -> styleBackgroundColor parentStyleAttrs
-                                              CssValueBackgroundColor i      -> i
+getBackgroundColor parentStyleAttrs declValue = case declValue of
+                                                  CssValueBackgroundColorInherit -> styleBackgroundColor parentStyleAttrs
+                                                  CssValueBackgroundColorColor i -> i
 
 
 

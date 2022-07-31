@@ -60,6 +60,7 @@ module Hello.Css.ParserHelpers
   , declValueAsLength3
   , declValueAsFontWeightInteger3
   , tokensAsValueMultiEnum3
+  , tokensAsValueColor3
   )
 where
 
@@ -273,6 +274,28 @@ tokensAsValueColor2 vs@ValueState{ pt = (p1, (CssTokIdent ident)) } = case color
                                                                         Just c  -> (vs {pt = nextToken1 p1}, Just $ (fromJust . colorValueCtor $ vs) c)
                                                                         Nothing -> (vs {pt = nextToken1 p1}, Nothing)
 tokensAsValueColor2 vs                                              = (vs, Nothing)
+
+
+
+
+-- Interpret current token (and possibly more following tokens) as color
+-- value.
+--
+-- If current token is a Hash token, then there will be no need to take more
+-- tokens. If current token is e.g. "rgb(" function, then the function should
+-- (TODO) take as many tokens as necessary to build, parse and convert the
+-- function into color value.
+tokensAsValueColor3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+tokensAsValueColor3 vs@ValueState3{ pt3 = (p1, (CssTokHash _ str)) }  = case colorsHexStringToColor str of
+                                                                          Just c  -> (vs {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vs) c)
+                                                                          Nothing -> (vs {pt3 = nextToken1 p1}, Nothing)
+tokensAsValueColor3 vs@ValueState3{ pt3 = (p1, (CssTokFunc "rgb")) }  = case rgbFunctionToColor p1 of
+                                                                          ((p2, t2), Just c)  -> (vs {pt3 = (p2, t2)}, Just $ (fromJust . colorValueCtor3 $ vs) c)
+                                                                          ((p2, t2), Nothing) -> (vs {pt3 = (p2, t2)}, Nothing)
+tokensAsValueColor3 vs@ValueState3{ pt3 = (p1, (CssTokIdent ident)) } = case colorsStringToColor ident of
+                                                                          Just c  -> (vs {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vs) c)
+                                                                          Nothing -> (vs {pt3 = nextToken1 p1}, Nothing)
+tokensAsValueColor3 vs                                              = (vs, Nothing)
 
 
 
