@@ -149,27 +149,25 @@ styleEngineSetFontFamily value prefs fontAttrs = case value of
 
 
 
-styleEngineSetFontWeight :: CssValue -> FontAttrs -> FontAttrs
-styleEngineSetFontWeight value attrs = clipWeight . setWeight $ attrs
+styleEngineSetFontWeight :: CssValueFontWeight -> FontAttrs -> FontAttrs
+styleEngineSetFontWeight declValue attrs = clipWeight $ setWeight declValue attrs
   where
-    setWeight attrs = case value of
-                        CssValueTypeEnum       i -> byEnum attrs i
-                        -- Per Parser.hs, a special type for weight. TODO: do we need this type?
-                        CssValueTypeFontWeight i -> attrs { fontWeight = i }
-                        otherwise                -> attrs
+    setWeight CssValueFontWeightNormal  attrs = attrs { fontWeight = 400 }
+    setWeight CssValueFontWeightBold    attrs = attrs { fontWeight = 700 }
+    setWeight CssValueFontWeightBolder  attrs = attrs { fontWeight = (fontWeight attrs) + 300 }
+    setWeight CssValueFontWeightLighter attrs = attrs { fontWeight = (fontWeight attrs) - 300 }
+    setWeight (CssValueFontWeightInt i) attrs = attrs { fontWeight = i }
 
     -- TODO: the limit may be 1000, not 900.
+    --
+    -- Even though declValueAsFontWeightInteger ensures that only values in
+    -- range 100-900 are accepted, a clipping is still necessary: if
+    -- calculations done for 'bolder' or 'lighter' result in values out of
+    -- the range, the calculated values must be clipped.
     clipWeight a | fontWeight a < 100 = a { fontWeight = 100 }
                  | fontWeight a > 900 = a { fontWeight = 900 }
                  | otherwise          = a
 
-    byEnum :: FontAttrs -> Int -> FontAttrs
-    byEnum attrs i | i == css_FONT_WEIGHT_BOLD    = attrs { fontWeight = 700 }
-                   | i == css_FONT_WEIGHT_BOLDER  = attrs { fontWeight = (fontWeight attrs) + 300 }
-                   | i == css_FONT_WEIGHT_LIGHT   = attrs { fontWeight = 100 }
-                   | i == css_FONT_WEIGHT_LIGHTER = attrs { fontWeight = (fontWeight attrs) - 300 }
-                   | i == css_FONT_WEIGHT_NORMAL  = attrs { fontWeight = 400 }
-                   | otherwise                    = attrs
 
 
 
@@ -317,7 +315,7 @@ styleEngineApplyStyleToFont declSet prefs display parentFontAttrs fontAttrs = ap
                    CssDeclarationFontSize declValue      -> apply xs prefs display parentFontAttrs $ styleEngineSetFontSize declValue prefs display parentFontAttrs fontAttrs
                    CssDeclarationFontStyle declValue     -> apply xs prefs display parentFontAttrs $ styleEngineSetFontStyle declValue fontAttrs
                    CssDeclarationFontVariant declValue   -> apply xs prefs display parentFontAttrs $ styleEngineSetFontVariant declValue fontAttrs
-                   CssDeclarationFontWeight value        -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight value fontAttrs
+                   CssDeclarationFontWeight declValue    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight declValue fontAttrs
                    CssDeclarationLetterSpacing value     -> apply xs prefs display parentFontAttrs $ styleEngineSetLetterSpacing value display parentFontAttrs fontAttrs
                    otherwise                             -> apply xs prefs display parentFontAttrs $ fontAttrs
           where

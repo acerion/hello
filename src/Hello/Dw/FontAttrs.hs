@@ -33,12 +33,6 @@ module Hello.Dw.FontAttrs
   (
     FontAttrs (..)
   , defaultFontAttrs
-
-  , css_FONT_WEIGHT_BOLD
-  , css_FONT_WEIGHT_BOLDER
-  , css_FONT_WEIGHT_LIGHT
-  , css_FONT_WEIGHT_LIGHTER
-  , css_FONT_WEIGHT_NORMAL
   )
 where
 
@@ -48,15 +42,6 @@ where
 import Prelude
 import qualified Data.Text as T
 import Debug.Trace
-
-
-
-
-css_FONT_WEIGHT_BOLD    :: Int = 0
-css_FONT_WEIGHT_BOLDER  :: Int = 1
-css_FONT_WEIGHT_LIGHT   :: Int = 2
-css_FONT_WEIGHT_LIGHTER :: Int = 3
-css_FONT_WEIGHT_NORMAL  :: Int = 4
 
 
 

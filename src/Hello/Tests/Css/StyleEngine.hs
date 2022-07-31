@@ -232,6 +232,8 @@ styleEngineApplyStyleToFontTestData =
     -- weight
     ApplyToFontTestData
     {
+      -- This declaration set will modify these font attributes:
+      -- - font weight = bold
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
@@ -239,7 +241,7 @@ styleEngineApplyStyleToFontTestData =
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginLeft (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
-                                                               , CssDeclWrapper {property = CssDeclarationFontWeight (CssValueTypeEnum 0), important = False}]} -- font weight, 0 == bold
+                                                               , CssDeclWrapper {property = CssDeclarationFontWeight CssValueFontWeightBold, important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -493,7 +495,9 @@ styleEngineApplyStyleToFontTestData =
 
     ApplyToFontTestData
     {
-      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclWrapper {property = CssDeclarationFontWeight (CssValueTypeEnum 1), important = False}]} -- font weight, 1 == bolder
+      -- This declaration set will modify these font attributes:
+      -- - font weight = bolder
+      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclWrapper {property = CssDeclarationFontWeight CssValueFontWeightBolder, important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -510,9 +514,12 @@ styleEngineApplyStyleToFontTestData =
   ,
     ApplyToFontTestData
     {
+      -- This declaration set will modify these font attributes:
+      -- - font weight = bolder
+      -- - font size = 2.0em
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationFontWeight (CssValueTypeEnum 1), important = False} -- font weight, 1 == bolder
+                                                                 CssDeclWrapper {property = CssDeclarationFontWeight CssValueFontWeightBolder, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationFontSize (CssValueFontSizeDistance (CssDistanceRelEm 2.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.67)), important = False}
@@ -533,9 +540,12 @@ styleEngineApplyStyleToFontTestData =
   ,
     ApplyToFontTestData
     {
+      -- This declaration set will modify these font attributes:
+      -- - font weight = bolder
+      -- - font size = 1.5em
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationFontWeight (CssValueTypeEnum 1), important = False} -- font weight, 1 == bolder
+                                                                 CssDeclWrapper {property = CssDeclarationFontWeight CssValueFontWeightBolder, important = False} -- font weight, bolder
                                                                , CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationFontSize (CssValueFontSizeDistance (CssDistanceRelEm 1.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.75)), important = False}
@@ -556,7 +566,9 @@ styleEngineApplyStyleToFontTestData =
   ,
     ApplyToFontTestData
     {
-      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclWrapper {property = CssDeclarationFontFamily (CssValueTypeStringList ["monospace"]), important = False}]} -- font family
+      -- This declaration set will modify these font attributes:
+      -- - font family = monospace
+      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclWrapper {property = CssDeclarationFontFamily (CssValueTypeStringList ["monospace"]), important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -573,9 +585,11 @@ styleEngineApplyStyleToFontTestData =
   ,
     ApplyToFontTestData
     {
+      -- This declaration set will modify these font attributes:
+      -- - font familty = monospace
       testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList
                                                               [
-                                                                CssDeclWrapper {property = CssDeclarationFontFamily (CssValueTypeStringList ["monospace"]), important = False} -- font family
+                                                                CssDeclWrapper {property = CssDeclarationFontFamily (CssValueTypeStringList ["monospace"]), important = False}
                                                               , CssDeclWrapper {property = CssDeclarationFontSize (CssValueFontSizeDistance (CssDistanceRelEm 1.5)), important = False}
                                                               ]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
@@ -594,9 +608,12 @@ styleEngineApplyStyleToFontTestData =
   ,
     ApplyToFontTestData
     {
+      -- This declaration set will modify these font attributes:
+      -- - font weight = bolder
+      -- - font size = 1.5em
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationFontWeight (CssValueTypeEnum 1), important = False} -- font weight, 1 == bolder
+                                                                 CssDeclWrapper {property = CssDeclarationFontWeight CssValueFontWeightBolder, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationFontSize (CssValueFontSizeDistance (CssDistanceRelEm 1.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.75)), important = False}
@@ -617,9 +634,12 @@ styleEngineApplyStyleToFontTestData =
   ,
     ApplyToFontTestData
     {
+      -- This declaration set will modify these font attributes:
+      -- - font weight = 600
+      -- - font size = 0.75em
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
-                                                                 CssDeclWrapper {property = CssDeclarationFontWeight (CssValueTypeFontWeight 600), important = False} -- font weight, specific value
+                                                                 CssDeclWrapper {property = CssDeclarationFontWeight (CssValueFontWeightInt 600), important = False} -- font weight, specific value
                                                                , CssDeclWrapper {property = CssDeclarationDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclWrapper {property = CssDeclarationFontSize (CssValueFontSizeDistance (CssDistanceRelEm 1.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginTop (CssValueTypeSignedLength (CssDistanceRelEm 0.75)), important = False}

@@ -62,7 +62,6 @@ module Hello.Css.Parser(
                        , tokensAsValueStringList
                        , tokensAsValueBgPosition
                        , tokensAsValueString
-                       , declValueAsFontWeightInteger
                        , declValueAsLength
                        , declValueAsURI
 
@@ -130,7 +129,6 @@ css_background_attachment_enum_vals = ["scroll", "fixed"]
 css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
 css_border_collapse_enum_vals       = ["separate", "collapse"]
-css_font_weight_enum_vals           = ["bold", "bolder", "light", "lighter", "normal"]
 css_letter_spacing_enum_vals        = ["normal"]
 css_line_height_enum_vals           = ["normal"]
 css_text_decoration_enum_vals       = ["underline", "overline", "line-through", "blink"]
@@ -184,7 +182,7 @@ cssPropertyInfo = M.fromList [
    , ("font-stretch",           ((Just makeCssDeclarationFontStretch, Nothing),          [],                                                                   []))
    , ("font-style",             ((Nothing, Just makeCssDeclarationFontStyle),            [],                                                                   []))
    , ("font-variant",           ((Nothing, Just makeCssDeclarationFontVariant),          [],                                                                   []))
-   , ("font-weight",            ((Just makeCssDeclarationFontWeight, Nothing),           [ tokensAsValueEnum, declValueAsFontWeightInteger ],                  css_font_weight_enum_vals))
+   , ("font-weight",            ((Nothing, Just makeCssDeclarationFontWeight),           [],                                                                   []))
    , ("height",                 ((Just makeCssDeclarationHeight, Nothing),               [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
    , ("left",                   ((Just makeCssDeclarationLeft, Nothing),                 [],                                                                   []))
    , ("letter-spacing",         ((Just makeCssDeclarationLetterSpacing, Nothing),        [ tokensAsValueEnum, declValueAsSignedLength ],                       css_letter_spacing_enum_vals))
@@ -712,14 +710,6 @@ tokensAsValueStringList (parser, token) enums = asList (parser, token) []
                        then ((p, t), Nothing)
                        else ((p, t), Just (CssValueTypeStringList . reverse $ acc))
 
-
-
-
-declValueAsFontWeightInteger :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-declValueAsFontWeightInteger (parser, token@(CssTokNum (CssNumI i))) _ = if i >= 100 && i <= 900
-                                                                         then ((parser, token), Just (CssValueTypeFontWeight i))
-                                                                         else ((parser, token), Nothing)
-declValueAsFontWeightInteger (parser, token) _                         = ((parser, token), Nothing)
 
 
 

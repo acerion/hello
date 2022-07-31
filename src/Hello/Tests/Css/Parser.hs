@@ -281,6 +281,24 @@ parseDeclarationTestData =
 
 
 
+  , ("font-weight: normal",             [CssDeclWrapper { property = CssDeclarationFontWeight CssValueFontWeightNormal,     important = False } ])
+  , ("font-weight: bold !important",    [CssDeclWrapper { property = CssDeclarationFontWeight CssValueFontWeightBold,       important = True  } ])
+  , ("font-weight: bolder",             [CssDeclWrapper { property = CssDeclarationFontWeight CssValueFontWeightBolder,     important = False } ])
+  , ("font-weight: lighter !important", [CssDeclWrapper { property = CssDeclarationFontWeight CssValueFontWeightLighter,    important = True  } ])
+  , ("font-weight: 100 !important",     [CssDeclWrapper { property = CssDeclarationFontWeight $ CssValueFontWeightInt 100,  important = True  } ])
+  , ("font-weight: 900",                [CssDeclWrapper { property = CssDeclarationFontWeight $ CssValueFontWeightInt 900,  important = False } ])
+
+    -- Testing for parsing of bad css: invalid property name.
+  , ("font-weigth: bold",               [])
+  -- Testing for parsing of bad css: invalid value.
+  , ("font-weight: light",              [])
+  , ("font-weight: 1200",               [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "font-weight: normal !_mportant", [CssDeclWrapper { property = CssDeclarationFontWeight CssValueFontWeightNormal,   important = False  } ])
+
+
+
+
   , ( "list-style-position: inside",                    [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = False } ])
   , ( "list-style-position: inside !important",         [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = True } ])
   , ( "list-style-position: outside",                   [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = False } ])

@@ -58,6 +58,7 @@ module Hello.Css.ParserHelpers
   , defaultValueState3
   , tokensAsValueEnumString3
   , declValueAsLength3
+  , declValueAsFontWeightInteger3
   )
 where
 
@@ -81,10 +82,10 @@ import Hello.Css.Value
 
 data ValueState declValue declValue2 = ValueState
   {
-    pt             :: (CssParser, CssToken)
-  , colorValueCtor :: Maybe (Int -> declValue)
+    pt              :: (CssParser, CssToken)
+  , colorValueCtor  :: Maybe (Int -> declValue)
   , lengthValueCtor :: Maybe (CssValue -> declValue2)
-  , enums          :: [(T.Text, declValue)]
+  , enums           :: [(T.Text, declValue)]
   }
 
 
@@ -94,6 +95,7 @@ data ValueState3 declValueT = ValueState3
     pt3                   :: (CssParser, CssToken)
   , colorValueCtor3       :: Maybe (Int -> declValueT)
   , distanceValueCtor     :: Maybe (CssDistance -> declValueT) -- For creating css values that are distances, e.g. "CssValuePadding CssDistance".
+  , fontWeightValueCtor   :: Maybe (Int -> declValueT)
   , enums3                :: [(T.Text, declValueT)]
   , allowUnitlessDistance :: Bool -- Are values without unit (e.g. "1.0", as opposed to "1.0px" allowed/accepted for this css value?
   }
@@ -105,6 +107,7 @@ defaultValueState3 :: (CssParser, CssToken) -> ValueState3 a
 defaultValueState3 pat = ValueState3 { pt3                   = pat
                                      , colorValueCtor3       = Nothing
                                      , distanceValueCtor     = Nothing
+                                     , fontWeightValueCtor   = Nothing
                                      , enums3                = []
                                      , allowUnitlessDistance = False
                                      }
@@ -361,6 +364,20 @@ declValueAsLength3 vs@ValueState3 {pt3 = (parser, token) } = ((vs { pt3 = (p', t
       where
         fval = cssNumToFloat cssNum
         distance = CssNumericNone fval
+
+
+
+
+-- TODO: what to do with integer values out of range: reject them or clip
+-- them?
+--
+-- TODO: restrict the integer values only to multiples of hundreds.
+declValueAsFontWeightInteger3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+declValueAsFontWeightInteger3 vs@ValueState3 {pt3 = (parser, token@(CssTokNum (CssNumI i))) } = if i >= 100 && i <= 900
+                                                                                                then (vs {pt3 = nextToken1 . fst . pt3 $ vs}, Just $ (fromJust . fontWeightValueCtor $ vs) i)
+                                                                                                else (vs, Nothing)
+declValueAsFontWeightInteger3 vs                                                              = (vs, Nothing)
+
 
 
 

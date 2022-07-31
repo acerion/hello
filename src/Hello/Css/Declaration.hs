@@ -45,6 +45,7 @@ module Hello.Css.Declaration
   , CssValueFontSize (..)
   , CssValueFontStyle (..)
   , CssValueFontVariant (..)
+  , CssValueFontWeight (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
   , CssValuePadding (..)
@@ -245,7 +246,7 @@ data CssDeclaration
   | CssDeclarationFontStretch CssValue                  -- 35
   | CssDeclarationFontStyle CssValueFontStyle           -- 36               parsing is unit-tested
   | CssDeclarationFontVariant CssValueFontVariant       -- 37               parsing is unit-tested
-  | CssDeclarationFontWeight CssValue                   -- 38
+  | CssDeclarationFontWeight CssValueFontWeight         -- 38               parsing is unit-tested
   | CssDeclarationHeight CssValue                       -- 39
   | CssDeclarationLeft CssValue                         -- 40
   | CssDeclarationLetterSpacing CssValue                -- 41
@@ -739,6 +740,7 @@ makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize value)
       ValueState3 { pt3               = pat
                   , colorValueCtor3   = Nothing
                   , distanceValueCtor = Just CssValueFontSizeDistance
+                  , fontWeightValueCtor = Nothing
                   , enums3 = [ ("xx-small", CssValueFontSizeXXSmall)
                              , ("x-small",  CssValueFontSizeXSmall)
                              , ("small",    CssValueFontSizeSmall)
@@ -793,6 +795,7 @@ makeCssDeclarationFontStyle pat = (pat', fmap CssDeclarationFontStyle declValue)
       ValueState3 { pt3               = pat
                   , colorValueCtor3   = Nothing
                   , distanceValueCtor = Nothing
+                  , fontWeightValueCtor = Nothing
                   , enums3 = [ ("normal",  CssValueFontStyleNormal)
                              , ("italic",  CssValueFontStyleItalic)
                              , ("oblique", CssValueFontStyleOblique)
@@ -827,6 +830,7 @@ makeCssDeclarationFontVariant pat = (pat', fmap CssDeclarationFontVariant declVa
       ValueState3 { pt3               = pat
                   , colorValueCtor3   = Nothing
                   , distanceValueCtor = Nothing
+                  , fontWeightValueCtor = Nothing
                   , enums3 = [ ("normal",  CssValueFontVariantNormal)
                              , ("small-caps",  CssValueFontVariantSmallCaps)
                              ]
@@ -836,14 +840,50 @@ makeCssDeclarationFontVariant pat = (pat', fmap CssDeclarationFontVariant declVa
 
 
 
--- --------------------------------
+-- ------------------------------------------------
+-- Font weight (font-weight)
+-- https://www.w3.org/TR/CSS22/fonts.html#font-boldness
+-- ------------------------------------------------
+
+
+
+
+data CssValueFontWeight
+ = CssValueFontWeightNormal
+ | CssValueFontWeightBold
+ | CssValueFontWeightBolder
+ | CssValueFontWeightLighter
+ | CssValueFontWeightInt Int
+ deriving (Eq, Show, Data)
+
+
+
+
+makeCssDeclarationFontWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationFontWeight pat = (pat', fmap CssDeclarationFontWeight declValue)
+  where
+    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsFontWeightInteger3
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueFontWeight
+    vs = (defaultValueState3 pat) { fontWeightValueCtor = Just CssValueFontWeightInt
+                                  , enums3 = [ ("normal",  CssValueFontWeightNormal)
+                                             , ("bold",    CssValueFontWeightBold)
+                                             , ("bolder",  CssValueFontWeightBolder)
+                                             , ("lighter", CssValueFontWeightLighter)
+                                             ] -- dillo also included "light" value in this list.
+                                  }
+
+
+
+
+-- ------------------------------------------------
 --
--- --------------------------------
+-- ------------------------------------------------
 
 
 
 
-makeCssDeclarationFontWeight v = CssDeclarationFontWeight v
 makeCssDeclarationHeight v = CssDeclarationHeight v
 makeCssDeclarationLeft v = CssDeclarationLeft v
 makeCssDeclarationLetterSpacing v = CssDeclarationLetterSpacing v
@@ -1044,6 +1084,7 @@ parseTokensAsPaddingValue (parser, token) = ((parser', token'), value)
       = ValueState3 { pt3                   = (parser, token)
                     , colorValueCtor3       = Nothing
                     , distanceValueCtor     = Just CssValuePadding
+                    , fontWeightValueCtor   = Nothing
                     , enums3                = []
                     , allowUnitlessDistance = False -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
                     }
