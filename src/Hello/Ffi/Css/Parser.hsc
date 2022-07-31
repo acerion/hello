@@ -1181,7 +1181,7 @@ allDeclMakers =
   , ( (\v -> CssDeclarationTextDecoration v), 68 )
   , ( (\v -> CssDeclarationTextIndent v), 69 )
   , ( (\v -> CssDeclarationTextShadow v), 70 )
-  , ( (\v -> CssDeclarationTextTransform v), 71 )
+  , ( (\v -> CssDeclaration_LAST), 71 )                  -- CssDeclarationTextTransform; C++ code will never ask for this property
   , ( (\v -> CssDeclarationTop v), 72 )
   , ( (\v -> CssDeclarationUnicodeBiDi v), 73 )
   , ( (\v -> CssDeclaration_LAST), 74 )                  -- CssDeclarationVerticalAlign; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum

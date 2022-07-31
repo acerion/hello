@@ -49,6 +49,7 @@ module Hello.Css.Declaration
   , CssValueListStyleType (..)
   , CssValuePadding (..)
   , CssValueTextAlign (..)
+  , CssValueTextTransform (..)
   , CssValueVerticalAlign (..)
   , CssValueWhitespace (..)
   , CssValueWordSpacing (..)
@@ -277,7 +278,7 @@ data CssDeclaration
   | CssDeclarationTextDecoration CssValue               -- 68
   | CssDeclarationTextIndent CssValue                   -- 69
   | CssDeclarationTextShadow CssValue                   -- 70
-  | CssDeclarationTextTransform CssValue                -- 71
+  | CssDeclarationTextTransform CssValueTextTransform   -- 71               parsing is unit-tested
   | CssDeclarationTop CssValue                          -- 72
   | CssDeclarationUnicodeBiDi CssValue                  -- 73
   | CssDeclarationVerticalAlign CssValueVerticalAlign   -- 74               parsing is unit-tested
@@ -1118,7 +1119,49 @@ makeCssDeclarationTextAlign pat = (pat', fmap CssDeclarationTextAlign declValue)
 makeCssDeclarationTextDecoration v = CssDeclarationTextDecoration v
 makeCssDeclarationTextIndent v = CssDeclarationTextIndent v
 makeCssDeclarationTextShadow v = CssDeclarationTextShadow v
-makeCssDeclarationTextTransform v = CssDeclarationTextTransform v
+
+
+
+
+-- ------------------------------------------------
+-- Text transform (text-transform)
+-- ------------------------------------------------
+
+
+
+
+data CssValueTextTransform
+ = CssValueTextTransformNone
+ | CssValueTextTransformCapitalize
+ | CssValueTextTransformUppercase
+ | CssValueTextTransformLowercase
+ deriving (Bounded, Data, Enum, Eq, Show)
+
+
+
+
+makeCssDeclarationTextTransform :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationTextTransform pat = (pat', fmap CssDeclarationTextTransform declValue)
+  where
+    pat'             = pt3 vs'
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    vs = (defaultValueState3 pat) { enums3 = [ ("none",       CssValueTextTransformNone)
+                                             , ("capitalize", CssValueTextTransformCapitalize)
+                                             , ("uppercase",  CssValueTextTransformUppercase)
+                                             , ("lowercase",  CssValueTextTransformLowercase)
+                                             ]
+                                  }
+
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclarationTop v = CssDeclarationTop v
 makeCssDeclarationUnicodeBiDi v = CssDeclarationUnicodeBiDi v
 

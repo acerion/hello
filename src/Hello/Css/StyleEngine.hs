@@ -523,7 +523,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationTextAlign declValue     -> styleAttrs { styleTextAlign      = getTextAlign declValue }
     CssDeclarationTextDecoration value    -> styleAttrs { styleTextDecoration = getTextDecoration value (styleTextDecoration styleAttrs) }
     CssDeclarationTextIndent value        -> styleAttrs { styleTextIndent     = getTextIndent (cssValueToDistance value) fontAttrs display }
-    CssDeclarationTextTransform value     -> styleAttrs { styleTextTransform  = getTextTransform value }
+    CssDeclarationTextTransform declValue -> styleAttrs { styleTextTransform  = getTextTransform declValue }
     CssDeclarationVerticalAlign value     -> styleAttrs { styleVerticalAlign  = getVerticalAlign value }
     CssDeclarationWhitespace value        -> styleAttrs { styleWhiteSpace     = getWhiteSpace value }
     CssDeclarationWidth value             -> styleAttrs { styleWidth          = getWidthOrHeight (cssValueToDistance value) fontAttrs display }
@@ -653,9 +653,13 @@ getTextIndent distance fontAttrs display =
 
 
 
-getTextTransform value = case value of
-                           CssValueTypeEnum e -> e
-                           otherwise          -> 0
+-- Translate value of "text-transform" property from Haskell data into value
+-- understood by C++ code.
+--
+-- TODO: notice that when you finally add support for other (non-enum) values
+-- of the property, you won't be able to use fromEnum anymore. The new values
+-- will complicate the function.
+getTextTransform declValue = fromEnum declValue
 
 
 

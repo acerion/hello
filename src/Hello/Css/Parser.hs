@@ -134,7 +134,6 @@ css_font_weight_enum_vals           = ["bold", "bolder", "light", "lighter", "no
 css_letter_spacing_enum_vals        = ["normal"]
 css_line_height_enum_vals           = ["normal"]
 css_text_decoration_enum_vals       = ["underline", "overline", "line-through", "blink"]
-css_text_transform_enum_vals        = ["none", "capitalize", "uppercase", "lowercase"]
 
 
 
@@ -223,7 +222,7 @@ cssPropertyInfo = M.fromList [
 
    , ("text-indent",            ((Just makeCssDeclarationTextIndent, Nothing),           [ declValueAsLengthPercent ],                                         []))
    , ("text-shadow",            ((Just makeCssDeclarationTextShadow, Nothing),           [],                                                                   []))
-   , ("text-transform",         ((Just makeCssDeclarationTextTransform, Nothing),        [ tokensAsValueEnum ],                                                css_text_transform_enum_vals))
+   , ("text-transform",         ((Nothing, Just makeCssDeclarationTextTransform),        [],                                                                   []))
    , ("top",                    ((Just makeCssDeclarationTop, Nothing),                  [],                                                                   []))
    , ("unicode-bidi",           ((Just makeCssDeclarationUnicodeBiDi, Nothing),          [],                                                                   []))
    , ("vertical-align",         ((Nothing, Just makeCssDeclarationVerticalAlign),        [],                                                                   []))

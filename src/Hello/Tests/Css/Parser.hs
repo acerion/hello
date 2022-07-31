@@ -378,12 +378,26 @@ parseDeclarationTestData =
   , ("text-align: right",                 [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignRight,    important = False } ])
   , ("text-align: center !important",     [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignCenter,   important = True  } ])
   , ("text-align: justify",               [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignJustify,  important = False } ])
-    -- Testing for parsing of bad css: invalid property name.
+  -- Testing for parsing of bad css: invalid property name.
   , ("test-align: left",                  [])
   -- Testing for parsing of bad css: invalid value.
   , ("text-align: italic",                [])
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
   , ("text-align: left !!important",      [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignLeft,     important = False  } ])
+
+
+
+
+  , ("text-transform: none",                  [CssDeclWrapper { property = CssDeclarationTextTransform CssValueTextTransformNone,        important = False } ])
+  , ("text-transform: capitalize !important", [CssDeclWrapper { property = CssDeclarationTextTransform CssValueTextTransformCapitalize,  important = True  } ])
+  , ("text-transform: uppercase",             [CssDeclWrapper { property = CssDeclarationTextTransform CssValueTextTransformUppercase,   important = False } ])
+  , ("text-transform: lowercase !important",  [CssDeclWrapper { property = CssDeclarationTextTransform CssValueTextTransformLowercase,   important = True  } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ("test-transform: none",                  [])
+  -- Testing for parsing of bad css: invalid value.
+  , ("text-transform: 1.0px",                 [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ("text-transform: uppercase _important",  [CssDeclWrapper { property = CssDeclarationTextTransform CssValueTextTransformUppercase,   important = False  } ])
 
 
 
