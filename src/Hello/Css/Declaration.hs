@@ -44,6 +44,7 @@ module Hello.Css.Declaration
   , CssValueCursor (..)
   , CssValueFontSize (..)
   , CssValueFontStyle (..)
+  , CssValueFontVariant (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
   , CssValuePadding (..)
@@ -241,7 +242,7 @@ data CssDeclaration
   | CssDeclarationFontSizeAdjust CssValue               -- 34
   | CssDeclarationFontStretch CssValue                  -- 35
   | CssDeclarationFontStyle CssValueFontStyle           -- 36               parsing is unit-tested
-  | CssDeclarationFontVariant CssValue                  -- 37
+  | CssDeclarationFontVariant CssValueFontVariant       -- 37               parsing is unit-tested
   | CssDeclarationFontWeight CssValue                   -- 38
   | CssDeclarationHeight CssValue                       -- 39
   | CssDeclarationLeft CssValue                         -- 40
@@ -801,13 +802,45 @@ makeCssDeclarationFontStyle pat = (pat', fmap CssDeclarationFontStyle declValue)
 
 
 -- --------------------------------
+-- Font variant (font-variant)
+-- --------------------------------
+
+
+
+
+data CssValueFontVariant
+  = CssValueFontVariantNormal
+  | CssValueFontVariantSmallCaps
+ deriving (Eq, Show, Data, Enum)
+
+
+
+
+makeCssDeclarationFontVariant :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationFontVariant pat = (pat', fmap CssDeclarationFontVariant declValue)
+  where
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+    vs :: ValueState3 CssValueFontVariant =
+      ValueState3 { pt3               = pat
+                  , colorValueCtor3   = Nothing
+                  , distanceValueCtor = Nothing
+                  , enums3 = [ ("normal",  CssValueFontVariantNormal)
+                             , ("small-caps",  CssValueFontVariantSmallCaps)
+                             ]
+                  , allowUnitlessDistance = False
+                  }
+
+
+
+
+-- --------------------------------
 --
 -- --------------------------------
 
 
 
 
-makeCssDeclarationFontVariant v = CssDeclarationFontVariant v
 makeCssDeclarationFontWeight v = CssDeclarationFontWeight v
 makeCssDeclarationHeight v = CssDeclarationHeight v
 makeCssDeclarationLeft v = CssDeclarationLeft v

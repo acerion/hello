@@ -269,6 +269,18 @@ parseDeclarationTestData =
 
 
 
+  , ("font-variant: normal !important",    [CssDeclWrapper { property = CssDeclarationFontVariant CssValueFontVariantNormal,      important = True  } ])
+  , ("font-variant: small-caps",           [CssDeclWrapper { property = CssDeclarationFontVariant CssValueFontVariantSmallCaps,   important = False } ])
+    -- Testing for parsing of bad css: invalid property name.
+  , ( "font-wariant: normal",              [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "font-variant: xx-large",            [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "font-variant: normal !_mportant",   [CssDeclWrapper { property = CssDeclarationFontVariant CssValueFontVariantNormal,      important = False  } ])
+
+
+
+
   , ( "list-style-position: inside",                    [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = False } ])
   , ( "list-style-position: inside !important",         [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = True } ])
   , ( "list-style-position: outside",                   [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = False } ])

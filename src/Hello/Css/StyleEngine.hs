@@ -292,11 +292,15 @@ styleEngineSetLetterSpacing value display parentFontAttrs fontAttrs = clipSpacin
 
 
 -- https://www.w3schools.com/cssref/pr_font_font-variant.asp
-styleEngineSetFontVariant :: CssValue -> FontAttrs -> FontAttrs
-styleEngineSetFontVariant value fontAttrs = case value of
-                                              CssValueTypeEnum idx -> fontAttrs { fontVariant = idx }
-                                              otherwise            -> fontAttrs
-
+--
+-- Translate value of "list-style-position" from Haskell data into value
+-- understood by C++ code.
+--
+-- TODO: notice that when adding support for "inherit" and "initial", you
+-- won't be able to use fromEnum anymore. The two new values will complicate
+-- the function.
+styleEngineSetFontVariant :: CssValueFontVariant -> FontAttrs -> FontAttrs
+styleEngineSetFontVariant declValue fontAttrs = fontAttrs { fontVariant = fromEnum declValue }
 
 
 
@@ -309,13 +313,13 @@ styleEngineApplyStyleToFont declSet prefs display parentFontAttrs fontAttrs = ap
       case S.null decls of
         True -> fontAttrs
         False -> case property x of
-                   CssDeclarationFontFamily value    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
-                   CssDeclarationFontSize declValue  -> apply xs prefs display parentFontAttrs $ styleEngineSetFontSize declValue prefs display parentFontAttrs fontAttrs
-                   CssDeclarationFontStyle declValue -> apply xs prefs display parentFontAttrs $ styleEngineSetFontStyle declValue fontAttrs
-                   CssDeclarationFontVariant value   -> apply xs prefs display parentFontAttrs $ styleEngineSetFontVariant value fontAttrs
-                   CssDeclarationFontWeight value    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight value fontAttrs
-                   CssDeclarationLetterSpacing value -> apply xs prefs display parentFontAttrs $ styleEngineSetLetterSpacing value display parentFontAttrs fontAttrs
-                   otherwise                         -> apply xs prefs display parentFontAttrs $ fontAttrs
+                   CssDeclarationFontFamily value        -> apply xs prefs display parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
+                   CssDeclarationFontSize declValue      -> apply xs prefs display parentFontAttrs $ styleEngineSetFontSize declValue prefs display parentFontAttrs fontAttrs
+                   CssDeclarationFontStyle declValue     -> apply xs prefs display parentFontAttrs $ styleEngineSetFontStyle declValue fontAttrs
+                   CssDeclarationFontVariant declValue   -> apply xs prefs display parentFontAttrs $ styleEngineSetFontVariant declValue fontAttrs
+                   CssDeclarationFontWeight value        -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight value fontAttrs
+                   CssDeclarationLetterSpacing value     -> apply xs prefs display parentFontAttrs $ styleEngineSetLetterSpacing value display parentFontAttrs fontAttrs
+                   otherwise                             -> apply xs prefs display parentFontAttrs $ fontAttrs
           where
             x  :: CssDeclWrapper       = S.index decls 0
             xs :: S.Seq CssDeclWrapper = S.drop 1 decls
