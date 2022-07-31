@@ -318,6 +318,25 @@ parseDeclarationTestData =
 
 
 
+  , ("line-height: normal",             [CssDeclWrapper { property = CssDeclarationLineHeight CssValueLineHeightNormal,                                 important = False } ])
+  , ("line-height: normal !important",  [CssDeclWrapper { property = CssDeclarationLineHeight CssValueLineHeightNormal,                                 important = True  } ])
+  , ("line-height: 10px",               [CssDeclWrapper { property = CssDeclarationLineHeight (CssValueLineHeightDistance (CssDistanceAbsPx 10.0)),     important = False } ])
+  , ("line-height: 10px !important",    [CssDeclWrapper { property = CssDeclarationLineHeight (CssValueLineHeightDistance (CssDistanceAbsPx 10.0)),     important = True  } ])
+  , ("line-height: -10px",              [CssDeclWrapper { property = CssDeclarationLineHeight (CssValueLineHeightDistance (CssDistanceAbsPx (-10.0))),  important = False } ])
+  , ("line-height: -10px !important",   [CssDeclWrapper { property = CssDeclarationLineHeight (CssValueLineHeightDistance (CssDistanceAbsPx (-10.0))),  important = True  } ])
+  , ("line-height: 5em",                [CssDeclWrapper { property = CssDeclarationLineHeight (CssValueLineHeightDistance (CssDistanceRelEm 5.0)),      important = False } ])
+  , ("line-height: 5em !important",     [CssDeclWrapper { property = CssDeclarationLineHeight (CssValueLineHeightDistance (CssDistanceRelEm 5.0)),      important = True  } ])
+
+  -- Testing for parsing of bad css: invalid property name.
+  , ("line-heigth: normal",             [])
+  -- Testing for parsing of bad css: invalid value.
+  , ("line-height: bold",               [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ("line-height: normal important",  [CssDeclWrapper { property = CssDeclarationLineHeight CssValueLineHeightNormal,                                important = False  } ])
+
+
+
+
   , ( "list-style-position: inside",                    [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = False } ])
   , ( "list-style-position: inside !important",         [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionInside,   important = True } ])
   , ( "list-style-position: outside",                   [CssDeclWrapper { property = CssDeclarationListStylePosition CssValueListStylePositionOutside,  important = False } ])

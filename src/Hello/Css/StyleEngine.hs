@@ -525,7 +525,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationHeight value            -> styleAttrs { styleHeight         = getWidthOrHeight (cssValueToDistance value) fontAttrs display }
     CssDeclarationListStylePosition value -> styleAttrs { styleListStylePosition    = getListStylePosition value }
     CssDeclarationListStyleType value     -> styleAttrs { styleListStyleType        = getListStyleType value }
-    CssDeclarationLineHeight value        -> styleAttrs { styleLineHeight           = getLineHeight value (cssValueToDistance value) fontAttrs display }
+    CssDeclarationLineHeight declValue    -> styleAttrs { styleLineHeight           = getLineHeight declValue fontAttrs display }
     CssDeclarationDisplay value           -> styleAttrs { styleDisplay              = getDisplay value }
     CssDeclarationColor value             -> styleAttrs { styleColor                = getColor parentStyleAttrs value }
     CssDeclarationCursor value            -> styleAttrs { styleCursor               = getCursor value }
@@ -736,18 +736,14 @@ getListStyleType declValue = fromEnum declValue
 
 
 
-getLineHeight value distance fontAttrs display =
-  case value of
-    CssValueTypeEnum _                -> createAutoDwLength -- only valid enum value is "normal"
-    CssValueTypeLengthPercentNumber d -> case d of -- TODO: 'd' duplicates 'distance' function arg
-                                           CssNumericNone f -> createPercentageDwLength . realToFrac $ f
-                                           otherwise        -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display of
-                                                                 Just len -> createAbsoluteDwLength . roundInt $ len
-                                                                 Nothing  -> createAutoDwLength -- TODO: is it the best choice?
-    otherwise                         -> createAutoDwLength -- TODO: is it safe default?
-
-    where
-      referenceValue = fontSize fontAttrs
+getLineHeight CssValueLineHeightNormal                        fontAttrs display = createAutoDwLength
+getLineHeight (CssValueLineHeightDistance (CssNumericNone f)) fontAttrs display = createPercentageDwLength . realToFrac $ f
+getLineHeight (CssValueLineHeightDistance distance)           fontAttrs display =
+  case styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display of
+    Just len -> createAbsoluteDwLength . roundInt $ len
+    Nothing  -> createAutoDwLength -- TODO: is it the best choice?
+  where
+    referenceValue = fontSize fontAttrs
 
 {-
          case CSS_PROPERTY_LINE_HEIGHT:

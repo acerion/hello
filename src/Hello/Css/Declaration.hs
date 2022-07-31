@@ -47,6 +47,7 @@ module Hello.Css.Declaration
   , CssValueFontVariant (..)
   , CssValueFontWeight (..)
   , CssValueLetterSpacing (..)
+  , CssValueLineHeight (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
   , CssValuePadding (..)
@@ -251,7 +252,7 @@ data CssDeclaration
   | CssDeclarationHeight CssValue                       -- 39
   | CssDeclarationLeft CssValue                         -- 40
   | CssDeclarationLetterSpacing CssValueLetterSpacing   -- 41               parsing is unit-tested
-  | CssDeclarationLineHeight CssValue                   -- 42
+  | CssDeclarationLineHeight CssValueLineHeight         -- 42               parsing is unit-tested
   | CssDeclarationListStyleImage CssValue               -- 43               not supported by hello
   | CssDeclarationListStylePosition CssValueListStylePosition  -- 44        parsing is unit-tested
   | CssDeclarationListStyleType CssValueListStyleType   -- 45               parsing is unit-tested
@@ -922,13 +923,37 @@ makeCssDeclarationLetterSpacing pat = (pat', fmap CssDeclarationLetterSpacing va
 
 
 -- ------------------------------------------------
---
+-- Line height (line-height)
 -- ------------------------------------------------
 
 
 
 
-makeCssDeclarationLineHeight v = CssDeclarationLineHeight v
+data CssValueLineHeight
+  = CssValueLineHeightNormal
+  | CssValueLineHeightDistance CssDistance
+  deriving (Data, Eq, Show)
+
+
+
+
+makeCssDeclarationLineHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationLineHeight pat = (pat', fmap CssDeclarationLineHeight value)
+  where
+    (vs', value) = tokensAsValueEnumString3 vs >>? declValueAsLength3 -- declValueAsLengthPercentNumber
+    pat'         = pt3 vs'
+
+    vs :: ValueState3 CssValueLineHeight
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueLineHeightDistance
+                                  , enums3 = [ ("normal",    CssValueLineHeightNormal)
+                                             ]
+                                  -- Original dillo code allowed unitless
+                                  -- numeric values for zero and for values
+                                  -- of type "length/percent/number". Line
+                                  -- height was one of the properties that
+                                  -- had this type.
+                                  , allowUnitlessDistance = True
+                                  }
 
 
 

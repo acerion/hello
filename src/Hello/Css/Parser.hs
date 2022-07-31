@@ -129,7 +129,6 @@ css_background_attachment_enum_vals = ["scroll", "fixed"]
 css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
 css_border_collapse_enum_vals       = ["separate", "collapse"]
-css_line_height_enum_vals           = ["normal"]
 css_text_decoration_enum_vals       = ["underline", "overline", "line-through", "blink"]
 
 
@@ -185,7 +184,7 @@ cssPropertyInfo = M.fromList [
    , ("height",                 ((Just makeCssDeclarationHeight, Nothing),               [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
    , ("left",                   ((Just makeCssDeclarationLeft, Nothing),                 [],                                                                   []))
    , ("letter-spacing",         ((Nothing, Just makeCssDeclarationLetterSpacing),        [],                                                                   []))
-   , ("line-height",            ((Just makeCssDeclarationLineHeight, Nothing),           [ tokensAsValueEnum, declValueAsLengthPercentNumber ],                css_line_height_enum_vals))
+   , ("line-height",            ((Nothing, Just makeCssDeclarationLineHeight),           [],                                                                   []))
    , ("list-style-image",       ((Nothing, Just makeCssDeclarationListStyleImage),       [],                                                                   []))
    , ("list-style-position",    ((Nothing, Just makeCssDeclarationListStylePosition),    [],                                                                   []))
    , ("list-style-type",        ((Nothing, Just makeCssDeclarationListStyleType),        [],                                                                   []))
