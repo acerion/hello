@@ -488,7 +488,7 @@ yet because a full support for them in dillo seems to be missing or broken.
   -- Probably because of code like this someone invented lenses.
   case declaration of
     CssDeclarationBackgroundColor value   -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs value }
-    CssDeclarationBorderCollapse value    -> styleAttrs { styleBorderCollapse  = getBorderCollapse value }
+    CssDeclarationBorderCollapse declValue -> styleAttrs { styleBorderCollapse  = getBorderCollapse declValue }
 
     CssDeclarationBorderTopStyle value    -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyleTop    parentStyleAttrs value }}
     CssDeclarationBorderRightStyle value  -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyleRight  parentStyleAttrs value }}
@@ -557,9 +557,15 @@ cssValueToDistance value = case value of
 
 
 
-getBorderCollapse value = case value of
-                         CssValueTypeEnum i -> i
-                         otherwise          -> 0
+-- Translate value of "border-collapse" declaration from Haskell data into value
+-- understood by C++ code.
+--
+-- TODO: notice that when adding support for "inherit" and "initial", you
+-- won't be able to use fromEnum anymore. The two new values will complicate
+-- the function.
+getBorderCollapse :: CssValueBorderCollapse -> Int
+getBorderCollapse declValue = fromEnum declValue
+
 
 
 

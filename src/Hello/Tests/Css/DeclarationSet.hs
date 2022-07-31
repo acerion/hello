@@ -64,7 +64,7 @@ declarationsSetAppendData = [
                       , items  = myFromList
                         [
                           CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))), important = False }
-                        , CssDeclWrapper { property = CssDeclarationBorderCollapse (CssValueTypeColor 88), important = True  }
+                        , CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate, important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 99), important = False }
                         ]
                       }
@@ -77,7 +77,7 @@ declarationsSetAppendData = [
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueTypeColor 33), important = False }
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat (CssValueTypeColor 44), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))), important = False }
-                        , CssDeclWrapper { property = CssDeclarationBorderCollapse (CssValueTypeColor 88), important = True  }
+                        , CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate, important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 99), important = False }
                         ]
                       }

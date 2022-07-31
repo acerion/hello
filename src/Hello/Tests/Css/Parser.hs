@@ -63,6 +63,22 @@ parseDeclarationTestData =
 
 
 
+
+  , ( "border-collapse: separate",               [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate,        important = False } ])
+  , ( "border-collapse: separate !important",    [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate,        important = True } ])
+  , ( "border-collapse: collapse",               [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseCollapse,        important = False } ])
+  , ( "border-collapse: collapse !important",    [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseCollapse,        important = True } ])
+
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "border-colapse: block",                   [])
+  -- Testing for parsing of bad css: invalid value.
+  , ( "border-collapse: #00ff00",                [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "border-collapse: separate !importan",     [CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate,        important = False  } ])
+
+
+
+
   , ( "border-top-color: inherit",                        [CssDeclWrapper { property = CssDeclarationBorderTopColor   CssValueBorderColorInherit,       important = False } ])
   , ( "border-top-color: transparent",                    [CssDeclWrapper { property = CssDeclarationBorderTopColor   CssValueBorderColorTransparent,   important = False } ])
   , ( "border-top-color: red",                            [CssDeclWrapper { property = CssDeclarationBorderTopColor   $ CssValueBorderColor 0xff0000,   important = False } ])

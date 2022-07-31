@@ -127,7 +127,6 @@ import HtmlTag
 css_background_attachment_enum_vals = ["scroll", "fixed"]
 css_background_color_enum_vals      = ["inherit"]
 css_background_repeat_enum_vals     = ["repeat", "repeat-x", "repeat-y", "no-repeat"]
-css_border_collapse_enum_vals       = ["separate", "collapse"]
 
 
 
@@ -141,7 +140,7 @@ cssPropertyInfo = M.fromList [
    , ("background-repeat",      ((Just makeCssDeclarationBackgroundRepeat, Nothing),     [ tokensAsValueEnum ],                                                css_background_repeat_enum_vals))
 
 
-   , ("border-collapse",        ((Just makeCssDeclarationBorderCollapse, Nothing),       [ tokensAsValueEnum ],                                                css_border_collapse_enum_vals))
+   , ("border-collapse",        ((Nothing, Just makeCssDeclarationBorderCollapse),       [],                                                                   []))
    , ("border-spacing",         ((Just makeCssDeclarationBorderSpacing, Nothing),        [ declValueAsLength ],                                                []))
 
    , ("border-top-color",       ((Nothing, Just makeCssDeclarationBorderTopColor),       [],                                                                   []))

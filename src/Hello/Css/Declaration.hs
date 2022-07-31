@@ -36,6 +36,7 @@ module Hello.Css.Declaration
     CssDeclaration (..)
 
   , CssValueBackgroundColor (..)
+  , CssValueBorderCollapse (..)
   , CssValueBorderColor (..)
   , CssValueBorderStyle (..)
   , CssValueBorderWidth (..)
@@ -219,7 +220,7 @@ data CssDeclaration
   | CssDeclarationBorderBottomColor CssValueBorderColor -- 5                parsing is tested
   | CssDeclarationBorderBottomStyle CssValueBorderStyle -- 6                parsing is tested
   | CssDeclarationBorderBottomWidth CssValueBorderWidth -- 7                parsing is tested
-  | CssDeclarationBorderCollapse CssValue               -- 8
+  | CssDeclarationBorderCollapse CssValueBorderCollapse -- 8
   | CssDeclarationBorderLeftColor CssValueBorderColor   -- 9                parsing is tested
   | CssDeclarationBorderLeftStyle CssValueBorderStyle   -- 10               parsing is tested
   | CssDeclarationBorderLeftWidth CssValueBorderWidth   -- 11               parsing is tested
@@ -337,7 +338,47 @@ makeCssDeclarationBackgroundColor v = case v of
 makeCssDeclarationBackgroundImage v = CssDeclarationBackgroundImage v
 makeCssDeclarationBackgroundPosition v = CssDeclarationBackgroundPosition v
 makeCssDeclarationBackgroundRepeat v = CssDeclarationBackgroundRepeat v
-makeCssDeclarationBorderCollapse v = CssDeclarationBorderCollapse v
+
+
+
+
+-- ------------------------------------------------
+-- Border collapse (border-collapse)
+-- ------------------------------------------------
+
+
+
+
+data CssValueBorderCollapse
+  = CssValueBorderCollapseSeparate
+  | CssValueBorderCollapseCollapse
+  deriving (Bounded, Data, Enum, Eq, Show)
+
+
+
+
+makeCssDeclarationBorderCollapse :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationBorderCollapse pat = (pat', fmap CssDeclarationBorderCollapse declValue)
+  where
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueBorderCollapse
+    vs = (defaultValueState3 pat) { enums3 = [ ("separate",   CssValueBorderCollapseSeparate)
+                                             , ("collapse",   CssValueBorderCollapseCollapse)
+                                             ]
+                                  }
+
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclarationBorderSpacing v = CssDeclarationBorderSpacing v
 
 
