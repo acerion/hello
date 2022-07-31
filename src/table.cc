@@ -87,11 +87,11 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
    if ((attr_value = html_attribute_get_value(tag, tagsize, "align"))) {
       if (dStrAsciiCasecmp (attr_value, "left") == 0) {
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_TEXT_ALIGN,  CssDeclarationValueTypeENUM, TEXT_ALIGN_LEFT, 0.0, 0);
+         cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_TEXT_ALIGN, TEXT_ALIGN_LEFT);
       } else if (dStrAsciiCasecmp (attr_value, "right") == 0) {
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, TEXT_ALIGN_RIGHT, 0.0, 0);
+         cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_TEXT_ALIGN, TEXT_ALIGN_RIGHT);
       } else if (dStrAsciiCasecmp (attr_value, "center") == 0) {
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, TEXT_ALIGN_CENTER, 0.0, 0);
+         cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_TEXT_ALIGN, TEXT_ALIGN_CENTER);
       }
       if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f) {
          BUG_MSG("<table> align attribute is obsolete.");
@@ -363,7 +363,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
       /* text style */
       if (!TopOfParsingStack(html)->cell_text_align_set) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, text_align, 0.0, 0);
+         cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_TEXT_ALIGN, text_align);
       }
       if (html_attribute_get_value(tag, tagsize, "nowrap")) {
          if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f) {

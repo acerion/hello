@@ -260,6 +260,15 @@ getVerticalAlign i | i > (fromEnum (maxBound @CssValueVerticalAlign)) = CssValue
 
 
 
+-- '@': see https://typeclasses.com/phrasebook/enum-ranges
+getTextAlign :: Int -> CssValueTextAlign
+getTextAlign i | i > (fromEnum (maxBound @CssValueTextAlign)) = CssValueTextAlignLeft
+               | i < (fromEnum (minBound @CssValueTextAlign)) = CssValueTextAlignLeft
+               | otherwise                                    = toEnum i
+
+
+
+
 hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
@@ -272,6 +281,7 @@ hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
            | property == 17 = CssDeclarationBorderTopStyle    $ getBorderStyle enumVal
            | property == 44 = CssDeclarationListStylePosition $ getListStylePosition enumVal
            | property == 45 = CssDeclarationListStyleType     $ getListStyleType enumVal
+           | property == 67 = CssDeclarationTextAlign         $ getTextAlign enumVal
            | property == 74 = CssDeclarationVerticalAlign     $ getVerticalAlign enumVal
            | property == 76 = CssDeclarationWhitespace        $ getWhitespace enumVal
            | otherwise      = trace ("[EE] Unhandled enum property " ++ (show property)) (undefined)

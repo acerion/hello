@@ -42,20 +42,22 @@ module Hello.Css.ParserHelpers
 
   , tokensAsValueEnumString1
   , tokensAsValueEnumString2
-  , tokensAsValueEnumString3
   , tokensAsValueColor2
 
   , declValueAsSignedLength2
   , declValueAsLengthPercent2
   , declValueAsLength2
-  , declValueAsLength3
   , declValueAsLength2'
 
   , takeLengthTokens
   , lengthValueToDistance
 
   , ValueState (..)
+
   , ValueState3 (..)
+  , defaultValueState3
+  , tokensAsValueEnumString3
+  , declValueAsLength3
   )
 where
 
@@ -95,6 +97,17 @@ data ValueState3 declValueT = ValueState3
   , enums3                :: [(T.Text, declValueT)]
   , allowUnitlessDistance :: Bool -- Are values without unit (e.g. "1.0", as opposed to "1.0px" allowed/accepted for this css value?
   }
+
+
+
+
+defaultValueState3 :: (CssParser, CssToken) -> ValueState3 a
+defaultValueState3 pat = ValueState3 { pt3                   = pat
+                                     , colorValueCtor3       = Nothing
+                                     , distanceValueCtor     = Nothing
+                                     , enums3                = []
+                                     , allowUnitlessDistance = False
+                                     }
 
 
 

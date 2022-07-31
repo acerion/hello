@@ -317,7 +317,7 @@ void a_Html_tag_set_align_attr(c_html_doctype_t * doctype, StyleNode * currentNo
    }
 #endif
 
-   cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_TEXT_ALIGN, CssDeclarationValueTypeENUM, alignType, 0.0, 0);
+   cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_TEXT_ALIGN, alignType);
 }
 
 /*

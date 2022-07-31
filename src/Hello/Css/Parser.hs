@@ -133,7 +133,6 @@ css_border_collapse_enum_vals       = ["separate", "collapse"]
 css_font_weight_enum_vals           = ["bold", "bolder", "light", "lighter", "normal"]
 css_letter_spacing_enum_vals        = ["normal"]
 css_line_height_enum_vals           = ["normal"]
-css_text_align_enum_vals            = ["left", "right", "center", "justify", "string"]
 css_text_decoration_enum_vals       = ["underline", "overline", "line-through", "blink"]
 css_text_transform_enum_vals        = ["none", "capitalize", "uppercase", "lowercase"]
 
@@ -215,7 +214,7 @@ cssPropertyInfo = M.fromList [
    , ("position",               ((Just makeCssDeclarationPosition, Nothing),             [],                                                                   []))
    , ("quotes",                 ((Just makeCssDeclarationQuotes, Nothing),               [],                                                                   []))
    , ("right",                  ((Just makeCssDeclarationRight, Nothing),                [],                                                                   []))
-   , ("text-align",             ((Just makeCssDeclarationTextAlign, Nothing),            [ tokensAsValueEnum ],                                                css_text_align_enum_vals))
+   , ("text-align",             ((Nothing, Just makeCssDeclarationTextAlign),            [],                                                                   []))
 
      -- https://www.w3.org/TR/CSS22/text.html#lining-striking-props
      -- https://www.w3.org/TR/css-text-decor-3/

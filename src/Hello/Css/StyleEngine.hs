@@ -520,7 +520,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationPaddingBottom declValue -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding declValue fontAttrs display }}
     CssDeclarationPaddingLeft declValue   -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding declValue fontAttrs display }}
 
-    CssDeclarationTextAlign value         -> styleAttrs { styleTextAlign      = getTextAlign value }
+    CssDeclarationTextAlign declValue     -> styleAttrs { styleTextAlign      = getTextAlign declValue }
     CssDeclarationTextDecoration value    -> styleAttrs { styleTextDecoration = getTextDecoration value (styleTextDecoration styleAttrs) }
     CssDeclarationTextIndent value        -> styleAttrs { styleTextIndent     = getTextIndent (cssValueToDistance value) fontAttrs display }
     CssDeclarationTextTransform value     -> styleAttrs { styleTextTransform  = getTextTransform value }
@@ -627,9 +627,13 @@ getBorderColor field parentStyleAttrs value = case value of
 
 
 
-getTextAlign value = case value of
-                       CssValueTypeEnum e -> e
-                       otherwise          -> 0
+-- Translate value of "text-align" property from Haskell data into value
+-- understood by C++ code.
+--
+-- TODO: notice that when you finally add support for other (non-enum) values
+-- of the property, you won't be able to use fromEnum anymore. The new values
+-- will complicate the function.
+getTextAlign declValue = fromEnum declValue
 
 
 

@@ -374,6 +374,20 @@ parseDeclarationTestData =
 
 
 
+  , ("text-align: left !important",       [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignLeft,     important = True  } ])
+  , ("text-align: right",                 [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignRight,    important = False } ])
+  , ("text-align: center !important",     [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignCenter,   important = True  } ])
+  , ("text-align: justify",               [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignJustify,  important = False } ])
+    -- Testing for parsing of bad css: invalid property name.
+  , ("test-align: left",                  [])
+  -- Testing for parsing of bad css: invalid value.
+  , ("text-align: italic",                [])
+  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ("text-align: left !!important",      [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignLeft,     important = False  } ])
+
+
+
+
   , ( "vertical-align: top !important",       [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignTop,        important = True  } ])
   , ( "vertical-align: bottom",               [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignBottom,     important = False } ])
   , ( "vertical-align: middle !important",    [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignMiddle,     important = True  } ])

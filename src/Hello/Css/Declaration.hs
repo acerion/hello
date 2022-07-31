@@ -48,6 +48,7 @@ module Hello.Css.Declaration
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
   , CssValuePadding (..)
+  , CssValueTextAlign (..)
   , CssValueVerticalAlign (..)
   , CssValueWhitespace (..)
   , CssValueWordSpacing (..)
@@ -272,7 +273,7 @@ data CssDeclaration
   | CssDeclarationPosition CssValue                     -- 64
   | CssDeclarationQuotes CssValue                       -- 65
   | CssDeclarationRight CssValue                        -- 66
-  | CssDeclarationTextAlign CssValue                    -- 67
+  | CssDeclarationTextAlign CssValueTextAlign           -- 67
   | CssDeclarationTextDecoration CssValue               -- 68
   | CssDeclarationTextIndent CssValue                   -- 69
   | CssDeclarationTextShadow CssValue                   -- 70
@@ -1068,7 +1069,52 @@ makeCssDeclarationPaddingLeft   = makeCssDeclarationPaddingX CssDeclarationPaddi
 makeCssDeclarationPosition v = CssDeclarationPosition v
 makeCssDeclarationQuotes v = CssDeclarationQuotes v
 makeCssDeclarationRight v = CssDeclarationRight v
-makeCssDeclarationTextAlign v = CssDeclarationTextAlign v
+
+
+
+
+-- ------------------------------------------------
+-- Text align (text-align)
+-- https://www.w3.org/TR/CSS22/text.html#propdef-text-align
+-- ------------------------------------------------
+
+
+
+
+-- dillo also specified a "string" value as one of accepted values of the
+-- property, but CSS2.2 doesn't mention this value.
+data CssValueTextAlign
+ = CssValueTextAlignLeft
+ | CssValueTextAlignRight
+ | CssValueTextAlignCenter
+ | CssValueTextAlignJustify
+ deriving (Bounded, Data, Enum, Eq, Show)
+
+
+
+
+makeCssDeclarationTextAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationTextAlign pat = (pat', fmap CssDeclarationTextAlign declValue)
+  where
+    pat'             = pt3 vs'
+    (vs', declValue) = tokensAsValueEnumString3 vs
+    vs = (defaultValueState3 pat) { enums3 = [ ("left",    CssValueTextAlignLeft)
+                                             , ("right",   CssValueTextAlignRight)
+                                             , ("center",  CssValueTextAlignCenter)
+                                             , ("justify", CssValueTextAlignJustify)
+                                             ]
+                                  }
+
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclarationTextDecoration v = CssDeclarationTextDecoration v
 makeCssDeclarationTextIndent v = CssDeclarationTextIndent v
 makeCssDeclarationTextShadow v = CssDeclarationTextShadow v
