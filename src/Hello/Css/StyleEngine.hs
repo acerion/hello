@@ -494,7 +494,7 @@ yet because a full support for them in dillo seems to be missing or broken.
 
     CssDeclarationTextAlign declValue     -> styleAttrs { styleTextAlign      = getTextAlign declValue }
     CssDeclarationTextDecoration declValue -> styleAttrs { styleTextDecoration = getTextDecoration declValue (styleTextDecoration styleAttrs) }
-    CssDeclarationTextIndent value        -> styleAttrs { styleTextIndent     = getTextIndent (cssValueToDistance value) fontAttrs display }
+    CssDeclarationTextIndent declValue    -> styleAttrs { styleTextIndent     = getTextIndent declValue fontAttrs display }
     CssDeclarationTextTransform declValue -> styleAttrs { styleTextTransform  = getTextTransform declValue }
     CssDeclarationVerticalAlign value     -> styleAttrs { styleVerticalAlign  = getVerticalAlign value }
     CssDeclarationWhitespace value        -> styleAttrs { styleWhiteSpace     = getWhiteSpace value }
@@ -643,7 +643,8 @@ getTextDecoration (x:xs) decoration = decoration .|. (getBit x) .|. (getTextDeco
 
 
 
-getTextIndent distance fontAttrs display =
+getTextIndent :: CssValueTextIndent -> FontAttrs -> Display -> DwLength
+getTextIndent (CssValueTextIndentDistance distance) fontAttrs display =
   case styleEngineCalculateDwLength distance fontAttrs display of
     Just length -> length
     Nothing     -> createAbsoluteDwLength 0 -- "0" seems to be a sane default

@@ -193,7 +193,7 @@ cssPropertyInfo = M.fromList [
    , ("right",                  ((Just makeCssDeclarationRight, Nothing),                [],                                                                   []))
    , ("text-align",             ((Nothing, Just makeCssDeclarationTextAlign),            [],                                                                   []))
    , ("text-decoration",        ((Nothing, Just makeCssDeclarationTextDecoration),       [],                                                                   []))
-   , ("text-indent",            ((Just makeCssDeclarationTextIndent, Nothing),           [ declValueAsLengthPercent ],                                         []))
+   , ("text-indent",            ((Nothing, Just makeCssDeclarationTextIndent),           [],                                                                   []))
    , ("text-shadow",            ((Just makeCssDeclarationTextShadow, Nothing),           [],                                                                   []))
    , ("text-transform",         ((Nothing, Just makeCssDeclarationTextTransform),        [],                                                                   []))
    , ("top",                    ((Just makeCssDeclarationTop, Nothing),                  [],                                                                   []))

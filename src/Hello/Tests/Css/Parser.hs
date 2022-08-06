@@ -527,6 +527,23 @@ parseDeclarationTestData =
 
 
 
+  , ( "text-indent:  1.1px !important",            [CssDeclWrapper { property = CssDeclarationTextIndent (CssValueTextIndentDistance (CssDistanceAbsPx     1.1)),   important = True  } ])
+  , ( "text-indent:  2.2mm",                       [CssDeclWrapper { property = CssDeclarationTextIndent (CssValueTextIndentDistance (CssDistanceAbsMm     2.2)),   important = False } ])
+  , ( "text-indent: 13.3em",                       [CssDeclWrapper { property = CssDeclarationTextIndent (CssValueTextIndentDistance (CssDistanceRelEm    13.3)),   important = False } ])
+  , ( "text-indent: 44.4ex !important",            [CssDeclWrapper { property = CssDeclarationTextIndent (CssValueTextIndentDistance (CssDistanceRelEx    44.4)),   important = True  } ])
+  -- From a real web page :)
+  , ( "text-indent: -700em",                       [CssDeclWrapper { property = CssDeclarationTextIndent (CssValueTextIndentDistance (CssDistanceRelEm (-700.0))),  important = False } ])
+
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "test-indent: 55.5mm",                       [])
+  -- Testing for parsing of bad css: invalid property value.
+  , ( "text-indent: justify",                      [])
+    -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "text-indent: 77.7ex !importan",             [CssDeclWrapper { property = CssDeclarationTextIndent (CssValueTextIndentDistance (CssDistanceRelEx 77.7)),  important = False  } ])
+
+
+
+
   , ("text-align: left !important",       [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignLeft,     important = True  } ])
   , ("text-align: right",                 [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignRight,    important = False } ])
   , ("text-align: center !important",     [CssDeclWrapper { property = CssDeclarationTextAlign CssValueTextAlignCenter,   important = True  } ])

@@ -59,6 +59,7 @@ module Hello.Css.Declaration
   , CssValuePadding (..)
   , CssValueTextAlign (..)
   , CssValueTextDecoration (..)
+  , CssValueTextIndent (..)
   , CssValueTextTransform (..)
   , CssValueVerticalAlign (..)
   , CssValueWhitespace (..)
@@ -286,7 +287,7 @@ data CssDeclaration
   | CssDeclarationRight CssValue                        -- 66
   | CssDeclarationTextAlign CssValueTextAlign           -- 67
   | CssDeclarationTextDecoration [CssValueTextDecoration] -- 68             Parsing is unit-tested. Using a list type because a set of values is allowed for this property.
-  | CssDeclarationTextIndent CssValue                   -- 69
+  | CssDeclarationTextIndent CssValueTextIndent         -- 69               Parsing is unit-tested.
   | CssDeclarationTextShadow CssValue                   -- 70
   | CssDeclarationTextTransform CssValueTextTransform   -- 71               parsing is unit-tested
   | CssDeclarationTop CssValue                          -- 72
@@ -1475,15 +1476,40 @@ makeCssDeclarationTextDecoration pat = (pat', fmap CssDeclarationTextDecoration 
 
 
 
+-- ------------------------------------------------
+-- Text indent (text-indent)
+-- ------------------------------------------------
+
+
+
+
+data CssValueTextIndent
+ = CssValueTextIndentDistance CssDistance
+ deriving (Data, Eq, Show)
+
+
+
+
+makeCssDeclarationTextIndent :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationTextIndent pat =  (pat', fmap CssDeclarationTextIndent declValue)
+  where
+    (vs', declValue) = declValueAsLength3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueTextIndent
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueTextIndentDistance
+                                  }
+
+
+
 
 -- ------------------------------------------------
---
+-- Text shadow (text-shadow)
 -- ------------------------------------------------
 
 
 
 
-makeCssDeclarationTextIndent v = CssDeclarationTextIndent v
 makeCssDeclarationTextShadow v = CssDeclarationTextShadow v
 
 
