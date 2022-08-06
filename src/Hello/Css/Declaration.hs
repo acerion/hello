@@ -42,6 +42,7 @@ module Hello.Css.Declaration
   , CssValueBackgroundRepeat (..)
   , CssValueBorderCollapse (..)
   , CssValueBorderColor (..)
+  , CssValueBorderSpacing (..)
   , CssValueBorderStyle (..)
   , CssValueBorderWidth (..)
   , CssValueColor (..)
@@ -231,7 +232,7 @@ data CssDeclaration
   | CssDeclarationBorderRightColor CssValueBorderColor  -- 12               parsing is tested
   | CssDeclarationBorderRightStyle CssValueBorderStyle  -- 13               parsing is tested
   | CssDeclarationBorderRightWidth CssValueBorderWidth  -- 14               parsing is tested
-  | CssDeclarationBorderSpacing CssValue                -- 15
+  | CssDeclarationBorderSpacing CssValueBorderSpacing   -- 15               parsing is unit-tested
   | CssDeclarationBorderTopColor CssValueBorderColor    -- 16               parsing is tested
   | CssDeclarationBorderTopStyle CssValueBorderStyle    -- 17               parsing is tested
   | CssDeclarationBorderTopWidth CssValueBorderWidth    -- 18               parsing is tested
@@ -502,7 +503,22 @@ makeCssDeclarationBorderCollapse pat = (pat', fmap CssDeclarationBorderCollapse 
 
 
 
-makeCssDeclarationBorderSpacing v = CssDeclarationBorderSpacing v
+data CssValueBorderSpacing
+ = CssValueBorderSpacingDistance CssDistance
+ deriving (Eq, Show, Data)
+
+
+
+
+makeCssDeclarationBorderSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationBorderSpacing pat =  (pat', fmap CssDeclarationBorderSpacing declValue)
+  where
+    (vs', declValue) = declValueAsLength3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueBorderSpacing
+    vs = (defaultValueState3 pat) {  distanceValueCtor = Just CssValueBorderSpacingDistance
+                                  }
 
 
 

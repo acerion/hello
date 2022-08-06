@@ -1125,7 +1125,7 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 12 )                  -- CssDeclarationBorderRightColor; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 13 )                  -- CssDeclarationBorderRightStyle; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclaration_LAST), 14 )                  -- CssDeclarationBorderRightWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2
-  , ( (\v -> CssDeclarationBorderSpacing v), 15 )
+  , ( (\v -> CssDeclaration_LAST), 15 )                  -- CssDeclarationBorderSpacing; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2
   , ( (\v -> CssDeclaration_LAST), 16 )                  -- CssDeclarationBorderTopColor; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 17 )                  -- CssDeclarationBorderTopStyle; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclaration_LAST), 18 )                  -- CssDeclarationBorderTopWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2

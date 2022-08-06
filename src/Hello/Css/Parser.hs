@@ -126,7 +126,7 @@ cssPropertyInfo = M.fromList [
 
 
    , ("border-collapse",        ((Nothing, Just makeCssDeclarationBorderCollapse),       [],                                                                   []))
-   , ("border-spacing",         ((Just makeCssDeclarationBorderSpacing, Nothing),        [ declValueAsLength ],                                                []))
+   , ("border-spacing",         ((Nothing, Just makeCssDeclarationBorderSpacing),        [],                                                                   []))
 
    , ("border-top-color",       ((Nothing, Just makeCssDeclarationBorderTopColor),       [],                                                                   []))
    , ("border-right-color",     ((Nothing, Just makeCssDeclarationBorderRightColor),     [],                                                                   []))

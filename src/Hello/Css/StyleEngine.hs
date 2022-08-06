@@ -506,8 +506,8 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationDisplay value           -> styleAttrs { styleDisplay              = getDisplay value }
     CssDeclarationColor value             -> styleAttrs { styleColor                = getColor parentStyleAttrs value }
     CssDeclarationCursor value            -> styleAttrs { styleCursor               = getCursor value }
-    CssDeclarationBorderSpacing value     -> styleAttrs { styleHBorderSpacing = getBorderSpacing (cssValueToDistance value) fontAttrs display,
-                                                          styleVBorderSpacing = getBorderSpacing (cssValueToDistance value) fontAttrs display }
+    CssDeclarationBorderSpacing declValue -> styleAttrs { styleHBorderSpacing = getBorderSpacing declValue fontAttrs display,
+                                                          styleVBorderSpacing = getBorderSpacing declValue fontAttrs display }
     CssDeclarationWordSpacing declValue   -> styleAttrs { styleWordSpacing    = getWordSpacig declValue fontAttrs display }
     CssDeclarationXLink value             -> styleAttrs { styleXLink          = getXLink value }
     CssDeclarationXLang value             -> styleAttrs { styleXLang          = getXLang value }
@@ -810,7 +810,8 @@ getCursor declValue = fromEnum declValue
 -- TODO: border spacing uses the same value for H and V border spacing. If
 -- CSS file specifies two separate values for H and V, the second one is
 -- ignored.
-getBorderSpacing distance fontAttrs display =
+getBorderSpacing :: CssValueBorderSpacing -> FontAttrs -> Display -> Int
+getBorderSpacing (CssValueBorderSpacingDistance distance) fontAttrs display =
   case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
     Just val -> round val -- TODO: a type of Float -> Int function to be verified here
     Nothing  -> 0         -- TODO: is it a good default?

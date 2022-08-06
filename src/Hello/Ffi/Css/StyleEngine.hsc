@@ -179,6 +179,7 @@ hll_styleEngineSetNonCssHintOfNodeLength2 cNonCssDeclSetRef cProperty cValueType
   let decl | property ==  7 = CssDeclarationBorderBottomWidth $ CssValueBorderWidthDistance distance
            | property == 11 = CssDeclarationBorderLeftWidth   $ CssValueBorderWidthDistance distance
            | property == 14 = CssDeclarationBorderRightWidth  $ CssValueBorderWidthDistance distance
+           | property == 15 = CssDeclarationBorderSpacing     $ CssValueBorderSpacingDistance distance
            | property == 18 = CssDeclarationBorderTopWidth    $ CssValueBorderWidthDistance distance
            | property == 60 = CssDeclarationPaddingBottom     $ CssValuePadding distance
            | property == 61 = CssDeclarationPaddingLeft       $ CssValuePadding distance

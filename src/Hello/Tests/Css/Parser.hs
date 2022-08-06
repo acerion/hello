@@ -145,6 +145,21 @@ parseDeclarationTestData =
 
 
 
+  , ( "border-spacing:  1.5px !important",            [CssDeclWrapper { property = CssDeclarationBorderSpacing (CssValueBorderSpacingDistance (CssDistanceAbsPx  1.5)),  important = True  } ])
+  , ( "border-spacing:  2.0mm",                       [CssDeclWrapper { property = CssDeclarationBorderSpacing (CssValueBorderSpacingDistance (CssDistanceAbsMm  2.0)),  important = False } ])
+  , ( "border-spacing: 13.5em",                       [CssDeclWrapper { property = CssDeclarationBorderSpacing (CssValueBorderSpacingDistance (CssDistanceRelEm 13.5)),  important = False } ])
+  , ( "border-spacing: 44.0ex !important",            [CssDeclWrapper { property = CssDeclarationBorderSpacing (CssValueBorderSpacingDistance (CssDistanceRelEx 44.0)),  important = True  } ])
+
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "border_spacing: 52.0mm",                       [])
+  -- Testing for parsing of bad css: invalid property value.
+  , ( "border-spacing: latin",                        [])
+    -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "border-spacing: 74.0ex !importan",             [CssDeclWrapper { property = CssDeclarationBorderSpacing (CssValueBorderSpacingDistance (CssDistanceRelEx 74.0)),  important = False  } ])
+
+
+
+
   , ( "border-top-color: inherit",                        [CssDeclWrapper { property = CssDeclarationBorderTopColor   CssValueBorderColorInherit,       important = False } ])
   , ( "border-top-color: transparent",                    [CssDeclWrapper { property = CssDeclarationBorderTopColor   CssValueBorderColorTransparent,   important = False } ])
   , ( "border-top-color: red",                            [CssDeclWrapper { property = CssDeclarationBorderTopColor   $ CssValueBorderColor 0xff0000,   important = False } ])

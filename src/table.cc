@@ -73,7 +73,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    if (cellspacing != -1) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       cssLength = cpp_cssCreateLength(cellspacing, CSS_LENGTH_TYPE_PX);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_SPACING, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength2(currentNode, CSS_PROPERTY_BORDER_SPACING, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "width"))) {
