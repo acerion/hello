@@ -322,29 +322,6 @@ styleEngineApplyStyleToFont declSet prefs display parentFontAttrs fontAttrs = ap
 
 
 
-css_BORDER_WIDTH_THIN   = 0
-css_BORDER_WIDTH_MEDIUM = 1
-css_BORDER_WIDTH_THICK  = 2
-
-styleEngineComputeBorderWidth :: CssValue -> Display -> FontAttrs -> Maybe Int
-styleEngineComputeBorderWidth value display fontAttrs =
-  case value of
-    CssValueTypeEnum i | i == css_BORDER_WIDTH_THIN   -> Just 1
-                       | i == css_BORDER_WIDTH_MEDIUM -> Just 2
-                       | i == css_BORDER_WIDTH_THICK  -> Just 3
-                       | otherwise                    -> Nothing
-    CssValueTypeLength distance         -> fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display
-                                           -- TODO: re-think value returned by
-                                           -- styleEngineComputeAbsoluteLengthValue:
-                                           -- it most probably should be Int, not
-                                           -- Float. Then the Float->int conversion
-                                           -- won't be necessary.
-    CssValueTypeLengthPercent distance -> fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display
-    otherwise                          -> trace ("[EE] unhandled css value type " ++ (show value)) Nothing -- TODO: handle all value types
-
-
-
-
 {-
 styleEngineSetBorderStyle :: Int -> CssValue -> StyleBorderStyle -> StyleBorderStyle
 styleEngineSetBorderStyle property value borderStyle
@@ -597,19 +574,32 @@ getBorderWidthRight  = getBorderWidth styleBorderWidthRight
 getBorderWidthBottom = getBorderWidth styleBorderWidthBottom
 getBorderWidthLeft   = getBorderWidth styleBorderWidthLeft
 
-getBorderWidth field parentStyleAttrs value display fontAttrs = case value of
-                                                                  CssValueBorderWidthInherit -> field . styleBorderWidth $ parentStyleAttrs
-                                                                  CssValueBorderWidthThin    -> 1
-                                                                  CssValueBorderWidthMedium  -> 2
-                                                                  CssValueBorderWidthThick   -> 3
-                                                                  CssValueBorderWidth x      -> case styleEngineComputeBorderWidth x display fontAttrs of
-                                                                                                  -- TODO: another place where Maybe returned by Compute function
-                                                                                                  -- causes unnecessary trouble.
-                                                                                                  Just x  -> x
-                                                                                                  Nothing -> 0
-                                                                  -- TODO: otherwise is most probably unnecesary because
-                                                                  -- the compiler will warn us about unhandled patterns.
-                                                                  otherwise -> trace ("unknown value " ++ (show value)) (undefined)
+getBorderWidth field parentStyleAttrs declValue display fontAttrs = case declValue of
+                                                                      CssValueBorderWidthInherit -> field . styleBorderWidth $ parentStyleAttrs
+                                                                      CssValueBorderWidthThin       -> 1
+                                                                      CssValueBorderWidthMedium     -> 2
+                                                                      CssValueBorderWidthThick      -> 3
+                                                                      CssValueBorderWidthDistance d -> case styleEngineComputeBorderWidth d display fontAttrs of
+                                                                                                         -- TODO: another place where Maybe returned by Compute function
+                                                                                                         -- causes unnecessary trouble.
+                                                                                                         Just x  -> x
+                                                                                                         Nothing -> 0
+                                                                      -- TODO: otherwise is most probably unnecesary because
+                                                                      -- the compiler will warn us about unhandled patterns.
+                                                                      -- otherwise -> trace ("unknown value " ++ (show declValue)) (undefined)
+
+
+
+
+-- TODO: re-think value returned by styleEngineComputeAbsoluteLengthValue: it
+-- most probably should be Int, not Float. Then the Float->int conversion
+-- won't be necessary.
+styleEngineComputeBorderWidth :: CssDistance -> Display -> FontAttrs -> Maybe Int
+styleEngineComputeBorderWidth distance display fontAttrs = fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display
+
+
+
+
 
 
 
@@ -837,12 +827,12 @@ getBorderSpacing distance fontAttrs display =
 getWordSpacig :: CssValueWordSpacing -> FontAttrs -> Display -> Int
 getWordSpacig declValue fontAttrs display = clipSpacing (getSpacing declValue fontAttrs display)
   where
-    getSpacing declValue fontAttrs display =
-      case declValue of
-        CssValueWordSpacingNormal -> 0
-        CssValueWordSpacing value -> case styleEngineComputeAbsoluteLengthValue (cssValueToDistance value) fontAttrs 0 display of
-                                       Just val -> round val -- TODO: a type of Float -> Int function to be verified here
-                                       Nothing  -> 0         -- TODO: is it a good default?
+    getSpacing :: CssValueWordSpacing -> FontAttrs -> Display -> Int
+    getSpacing CssValueWordSpacingNormal              fontAttrs display = 0
+    getSpacing (CssValueWordSpacingDistance distance) fontAttrs display =
+      case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
+        Just val -> round val -- TODO: a type of Float -> Int function to be verified here
+        Nothing  -> 0         -- TODO: is it a good default?
 
     -- Limit to reasonable values to avoid overflows
     clipSpacing :: Int -> Int

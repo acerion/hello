@@ -526,18 +526,24 @@ data CssValueBorderColor
 
 
 
+cssValueBorderColorDict :: [(T.Text, CssValueBorderColor)]
+cssValueBorderColorDict = [ ("transparent", CssValueBorderColorTransparent)
+                          , ("inherit",     CssValueBorderColorInherit)
+                          ]
+
+
+
+
 parseTokensAsBorderColorValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderColor)
-parseTokensAsBorderColorValue (parser, token) = ((parser', token'), declarationValue)
+parseTokensAsBorderColorValue pat = (pat', declarationValue)
   where
-    (vs', declarationValue) = tokensAsValueEnumString2 vs >>? tokensAsValueColor2
-    (parser', token') = pt vs'
-    vs = ValueState { pt = (parser, token)
-                    , colorValueCtor = Just CssValueBorderColor
-                    , lengthValueCtor = Nothing
-                    , enums = [ ("transparent", CssValueBorderColorTransparent)
-                              , ("inherit",     CssValueBorderColorInherit)
-                              ]
-                    }
+    (vs', declarationValue) = tokensAsValueEnumString3 vs >>? tokensAsValueColor3
+    pat' = pt3 vs'
+
+    vs :: ValueState3 CssValueBorderColor
+    vs = (defaultValueState3 pat) { colorValueCtor3 = Just CssValueBorderColor
+                                  , enums3          = cssValueBorderColorDict
+                                  }
 
 
 
@@ -643,26 +649,32 @@ data CssValueBorderWidth
   | CssValueBorderWidthMedium
   | CssValueBorderWidthThick
   | CssValueBorderWidthInherit
-  | CssValueBorderWidth CssValue
+  | CssValueBorderWidthDistance CssDistance
   deriving (Eq, Show, Data)
 
 
 
 
+cssValueBorderWidthDict :: [(T.Text, CssValueBorderWidth)]
+cssValueBorderWidthDict = [ ("thin",    CssValueBorderWidthThin)
+                          , ("medium",  CssValueBorderWidthMedium)
+                          , ("thick",   CssValueBorderWidthThick)
+                          , ("inherit", CssValueBorderWidthInherit)
+                          ]
+
+
+
+
 parseTokensAsBorderWidthValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderWidth)
-parseTokensAsBorderWidthValue (parser, token) = ((parser', token'), value)
+parseTokensAsBorderWidthValue pat = (pat', declValue)
   where
-    (vs', value)      = tokensAsValueEnumString2 vs >>? declValueAsLength2
-    (parser', token') = pt vs'
-    vs = ValueState { pt = (parser, token)
-                    , colorValueCtor = Nothing
-                    , lengthValueCtor = Just CssValueBorderWidth
-                    , enums = [ ("thin",    CssValueBorderWidthThin)
-                              , ("medium",  CssValueBorderWidthMedium)
-                              , ("thick",   CssValueBorderWidthThick)
-                              , ("inherit", CssValueBorderWidthInherit)
-                              ]
-                    }
+    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsLength3
+    pat' = pt3 vs'
+
+    vs :: ValueState3 CssValueBorderWidth
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueBorderWidthDistance
+                                  , enums3 = cssValueBorderWidthDict
+                                  }
 
 
 
@@ -713,17 +725,23 @@ data CssValueColor
 
 
 
+cssValueColorDict :: [(T.Text, CssValueColor)]
+cssValueColorDict = [ ("inherit", CssValueColorInherit)
+                    ]
+
+
+
+
 makeCssDeclarationColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationColor pat = (pat', fmap CssDeclarationColor declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString2 vs >>? tokensAsValueColor2
-    pat' = pt vs'
-    vs = ValueState { pt              = pat
-                    , colorValueCtor  = Just CssValueColor
-                    , lengthValueCtor = Nothing
-                    , enums = [ ("inherit", CssValueColorInherit)
-                              ]
-                    }
+    (vs', declValue) = tokensAsValueEnumString3 vs >>? tokensAsValueColor3
+    pat' = pt3 vs'
+
+    vs :: ValueState3 CssValueColor
+    vs = (defaultValueState3 pat) { colorValueCtor3 = Just CssValueColor
+                                  , enums3          = cssValueColorDict
+                                  }
 
 
 
@@ -916,8 +934,8 @@ makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize value)
   where
     (vs', value) = tokensAsValueEnumString3 vs >>? declValueAsLength3
     pat'         = pt3 vs'
-    vs :: ValueState3 CssValueFontSize =
-      ValueState3 { pt3               = pat
+    vs :: ValueState3 CssValueFontSize
+    vs = ValueState3 { pt3               = pat
                   , colorValueCtor3   = Nothing
                   , distanceValueCtor = Just CssValueFontSizeDistance
                   , fontWeightValueCtor = Nothing
@@ -1624,23 +1642,28 @@ makeCssDeclarationWidth v = CssDeclarationWidth v
 
 data CssValueWordSpacing
   = CssValueWordSpacingNormal
-  | CssValueWordSpacing CssValue
+  | CssValueWordSpacingDistance CssDistance
   deriving (Data, Eq, Show)
 
 
 
 
+cssValueWordSpacingDict = [ ("normal",    CssValueWordSpacingNormal)
+                          ]
+
+
+
+
 makeCssDeclarationWordSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationWordSpacing pat = (pat', fmap CssDeclarationWordSpacing value)
+makeCssDeclarationWordSpacing pat = (pat', fmap CssDeclarationWordSpacing declValue)
   where
-    (vs', value) = tokensAsValueEnumString2 vs >>? declValueAsSignedLength2
-    pat'         = pt vs'
-    vs = ValueState { pt              = pat
-                    , colorValueCtor  = Nothing
-                    , lengthValueCtor = Just CssValueWordSpacing
-                    , enums = [ ("normal",    CssValueWordSpacingNormal)
-                              ]
-                    }
+    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsLength3
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueWordSpacing
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueWordSpacingDistance
+                                  , enums3 = cssValueWordSpacingDict
+                                  }
 
 
 

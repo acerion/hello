@@ -63,7 +63,7 @@ declarationsSetAppendData = [
   , CssDeclarationSet { isSafe = True
                       , items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))), important = False }
+                          CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
                         , CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate, important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 99), important = False }
                         ]
@@ -76,7 +76,7 @@ declarationsSetAppendData = [
                           CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 11), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatNoRepeat, important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))), important = False }
+                        , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
                         , CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate, important = True  }
                         , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 99), important = False }
                         ]
@@ -98,7 +98,7 @@ declarationsSetAppendData = [
   , CssDeclarationSet { isSafe = True
                       , items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))), important = False }
+                          CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 11 12), important = True  }   -- <---- ... with this one.
                         , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 67), important = False }
                         ]
@@ -110,7 +110,7 @@ declarationsSetAppendData = [
                           CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 12), important = True  }
                         , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 11 12), important = True  }   -- <---- And here is the result of updating.
                         , CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatRepeatX, important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))), important = False }
+                        , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
                         , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 67), important = False }
                         ]
                       }

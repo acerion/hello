@@ -235,27 +235,27 @@ parseDeclarationTestData =
 
 
 
-  , ( "border-top-width: inherit",                        [CssDeclWrapper { property = CssDeclarationBorderTopWidth CssValueBorderWidthInherit,                                            important = False } ])
-  , ( "border-top-width: 1.0px",                          [CssDeclWrapper { property = CssDeclarationBorderTopWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.0))),     important = False } ])
-  , ( "border-top-width: 2.0mm !important",               [CssDeclWrapper { property = CssDeclarationBorderTopWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsMm 2.0))),     important = True  } ])
+  , ( "border-top-width: inherit",                        [CssDeclWrapper { property = CssDeclarationBorderTopWidth CssValueBorderWidthInherit,                               important = False } ])
+  , ( "border-top-width: 1.0px",                          [CssDeclWrapper { property = CssDeclarationBorderTopWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)),     important = False } ])
+  , ( "border-top-width: 2.0mm !important",               [CssDeclWrapper { property = CssDeclarationBorderTopWidth (CssValueBorderWidthDistance (CssDistanceAbsMm 2.0)),     important = True  } ])
   -- Testing for parsing of bad css: invalid value.
   , ( "border-top-width: I.0px",                          [])
 
-  , ( "border-right-width: inherit",                      [CssDeclWrapper { property = CssDeclarationBorderRightWidth CssValueBorderWidthInherit,                                          important = False } ])
-  , ( "border-right-width: 1.5px !important",             [CssDeclWrapper { property = CssDeclarationBorderRightWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 1.5))),   important = True  } ])
-  , ( "border-right-width: 2.0mm",                        [CssDeclWrapper { property = CssDeclarationBorderRightWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsMm 2.0))),   important = False } ])
+  , ( "border-right-width: inherit",                      [CssDeclWrapper { property = CssDeclarationBorderRightWidth CssValueBorderWidthInherit,                             important = False } ])
+  , ( "border-right-width: 1.5px !important",             [CssDeclWrapper { property = CssDeclarationBorderRightWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.5)),   important = True  } ])
+  , ( "border-right-width: 2.0mm",                        [CssDeclWrapper { property = CssDeclarationBorderRightWidth (CssValueBorderWidthDistance (CssDistanceAbsMm 2.0)),   important = False } ])
   -- Testing for parsing of bad css: invalid property name.
   , ( "border-rigth-width: 2.0mm",                        [])
 
-  , ( "border-bottom-width: inherit !important",          [CssDeclWrapper { property = CssDeclarationBorderBottomWidth CssValueBorderWidthInherit,                                         important = True  } ])
-  , ( "border-bottom-width: 1.0em",                       [CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEm 1.0))),  important = False } ])
-  , ( "border-bottom-width: 2.0ex !important",            [CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEx 2.0))),  important = True  } ])
+  , ( "border-bottom-width: inherit !important",          [CssDeclWrapper { property = CssDeclarationBorderBottomWidth CssValueBorderWidthInherit,                            important = True  } ])
+  , ( "border-bottom-width: 1.0em",                       [CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceRelEm 1.0)),  important = False } ])
+  , ( "border-bottom-width: 2.0ex !important",            [CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceRelEx 2.0)),  important = True  } ])
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "border-bottom-width: 2.0ex !importan",             [CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEx 2.0))),  important = False  } ])
+  , ( "border-bottom-width: 2.0ex !importan",             [CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceRelEx 2.0)),  important = False  } ])
 
-  , ( "border-left-width: inherit",                       [CssDeclWrapper { property = CssDeclarationBorderLeftWidth CssValueBorderWidthInherit,                                           important = False } ])
-  , ( "border-left-width: 1.0em",                         [CssDeclWrapper { property = CssDeclarationBorderLeftWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEm 1.0))),    important = False } ])
-  , ( "border-left-width: 2.0ex !important",              [CssDeclWrapper { property = CssDeclarationBorderLeftWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEx 2.0))),    important = True  } ])
+  , ( "border-left-width: inherit",                       [CssDeclWrapper { property = CssDeclarationBorderLeftWidth CssValueBorderWidthInherit,                              important = False } ])
+  , ( "border-left-width: 1.0em",                         [CssDeclWrapper { property = CssDeclarationBorderLeftWidth (CssValueBorderWidthDistance (CssDistanceRelEm 1.0)),    important = False } ])
+  , ( "border-left-width: 2.0ex !important",              [CssDeclWrapper { property = CssDeclarationBorderLeftWidth (CssValueBorderWidthDistance (CssDistanceRelEx 2.0)),    important = True  } ])
   -- Testing for parsing of bad css: invalid value.
   , ( "border-left-width: anherit",                       [])
 
@@ -623,11 +623,11 @@ parseDeclarationTestData =
 
 
 
-  , ( "word-spacing: normal !important",    [CssDeclWrapper { property = CssDeclarationWordSpacing CssValueWordSpacingNormal,                                                 important = True  } ])
-  , ( "word-spacing: 1.0px",                [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacing (CssValueTypeSignedLength (CssDistanceAbsPx 1.0))),   important = False  } ])
-  , ( "word-spacing: 2.5mm !important",     [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacing (CssValueTypeSignedLength (CssDistanceAbsMm 2.5))),   important = True  } ])
-  , ( "word-spacing: 3.6em",                [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacing (CssValueTypeSignedLength (CssDistanceRelEm 3.6))),   important = False  } ])
-  , ( "word-spacing: 4.7ex !important",     [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacing (CssValueTypeSignedLength (CssDistanceRelEx 4.7))),   important = True  } ])
+  , ( "word-spacing: normal !important",    [CssDeclWrapper { property = CssDeclarationWordSpacing CssValueWordSpacingNormal,                              important = True  } ])
+  , ( "word-spacing: 1.0px",                [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacingDistance (CssDistanceAbsPx 1.0)),   important = False } ])
+  , ( "word-spacing: 2.5mm !important",     [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacingDistance (CssDistanceAbsMm 2.5)),   important = True  } ])
+  , ( "word-spacing: 3.6em",                [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacingDistance (CssDistanceRelEm 3.6)),   important = False } ])
+  , ( "word-spacing: 4.7ex !important",     [CssDeclWrapper { property = CssDeclarationWordSpacing (CssValueWordSpacingDistance (CssDistanceRelEx 4.7)),   important = True  } ])
   -- Testing for parsing of bad css: invalid property name.
   , ( "words-pacing: normal !important",    [])
   -- Testing for parsing of bad css: invalid value. TODO: shouldn't "1" be considered a valid value?
@@ -651,10 +651,10 @@ parseDeclarationTestData =
 -- parser doesn't support that.
 parseDeclarationShorthandTestData =
   [
-    ( "border: 10px inset #00fff1",           [ CssDeclWrapper { property = CssDeclarationBorderTopWidth    (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 10.0))), important = False }
-                                              , CssDeclWrapper { property = CssDeclarationBorderRightWidth  (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 10.0))), important = False }
-                                              , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 10.0))), important = False }
-                                              , CssDeclWrapper { property = CssDeclarationBorderLeftWidth   (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 10.0))), important = False }
+    ( "border: 10px inset #00fff1",           [ CssDeclWrapper { property = CssDeclarationBorderTopWidth    (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderRightWidth  (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderLeftWidth   (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
 
                                               , CssDeclWrapper { property = CssDeclarationBorderTopStyle    CssValueBorderStyleInset, important = False }
                                               , CssDeclWrapper { property = CssDeclarationBorderRightStyle  CssValueBorderStyleInset, important = False }
@@ -667,42 +667,42 @@ parseDeclarationShorthandTestData =
                                               , CssDeclWrapper { property = CssDeclarationBorderLeftColor   $ CssValueBorderColor 0x00fff1 , important = False }
                                               ])
 
-  , ( "border-top: 5mm solid red",            [ CssDeclWrapper { property = CssDeclarationBorderTopWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsMm 5))), important = False }
-                                              , CssDeclWrapper { property = CssDeclarationBorderTopStyle CssValueBorderStyleSolid,                                        important = False }
-                                              , CssDeclWrapper { property = CssDeclarationBorderTopColor $ CssValueBorderColor 0xff0000,                                  important = False }
+  , ( "border-top: 5mm solid red",            [ CssDeclWrapper { property = CssDeclarationBorderTopWidth (CssValueBorderWidthDistance (CssDistanceAbsMm 5)), important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderTopStyle CssValueBorderStyleSolid,                           important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderTopColor $ CssValueBorderColor 0xff0000,                     important = False }
                                               ])
 
-  , ( "border-right: 2mm dotted orange",      [ CssDeclWrapper { property = CssDeclarationBorderRightWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsMm 2))), important = False }
-                                              , CssDeclWrapper { property = CssDeclarationBorderRightStyle CssValueBorderStyleDotted,                                       important = False }
-                                              , CssDeclWrapper { property = CssDeclarationBorderRightColor $ CssValueBorderColor 0xffa500,                                  important = False }
+  , ( "border-right: 2mm dotted orange",      [ CssDeclWrapper { property = CssDeclarationBorderRightWidth (CssValueBorderWidthDistance (CssDistanceAbsMm 2)), important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderRightStyle CssValueBorderStyleDotted,                          important = False }
+                                              , CssDeclWrapper { property = CssDeclarationBorderRightColor $ CssValueBorderColor 0xffa500,                     important = False }
                                               ])
 
-  , ( "border-bottom: 17px inherit rgb(255, 0, 255)",    [ CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 17))), important = False }
-                                                         , CssDeclWrapper { property = CssDeclarationBorderBottomStyle CssValueBorderStyleInherit,                                       important = False }
-                                                         , CssDeclWrapper { property = CssDeclarationBorderBottomColor $ CssValueBorderColor 0xff00ff,                                   important = False }
+  , ( "border-bottom: 17px inherit rgb(255, 0, 255)",    [ CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 17)), important = False }
+                                                         , CssDeclWrapper { property = CssDeclarationBorderBottomStyle CssValueBorderStyleInherit,                          important = False }
+                                                         , CssDeclWrapper { property = CssDeclarationBorderBottomColor $ CssValueBorderColor 0xff00ff,                      important = False }
                                                          ])
 
-  , ( "border-left: 20em none inherit",      [ CssDeclWrapper { property = CssDeclarationBorderLeftWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceRelEm 20))), important = False }
-                                             , CssDeclWrapper { property = CssDeclarationBorderLeftStyle CssValueBorderStyleNone,                                          important = False }
-                                             , CssDeclWrapper { property = CssDeclarationBorderLeftColor $ CssValueBorderColorInherit,                                     important = False }
+  , ( "border-left: 20em none inherit",      [ CssDeclWrapper { property = CssDeclarationBorderLeftWidth (CssValueBorderWidthDistance (CssDistanceRelEm 20)), important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderLeftStyle CssValueBorderStyleNone,                             important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderLeftColor $ CssValueBorderColorInherit,                        important = False }
                                              ])
 
-  , ( "border-width: 99px",                  [ CssDeclWrapper { property = CssDeclarationBorderTopWidth    (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 99))), important = False }
-                                             , CssDeclWrapper { property = CssDeclarationBorderRightWidth  (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 99))), important = False }
-                                             , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 99))), important = False }
-                                             , CssDeclWrapper { property = CssDeclarationBorderLeftWidth   (CssValueBorderWidth (CssValueTypeLength (CssDistanceAbsPx 99))), important = False }
+  , ( "border-width: 99px",                  [ CssDeclWrapper { property = CssDeclarationBorderTopWidth    (CssValueBorderWidthDistance (CssDistanceAbsPx 99)), important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderRightWidth  (CssValueBorderWidthDistance (CssDistanceAbsPx 99)), important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 99)), important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderLeftWidth   (CssValueBorderWidthDistance (CssDistanceAbsPx 99)), important = False }
                                              ])
 
-  , ( "border-style: double",               [ CssDeclWrapper { property = CssDeclarationBorderTopStyle    CssValueBorderStyleDouble,                                       important = False }
-                                            , CssDeclWrapper { property = CssDeclarationBorderRightStyle  CssValueBorderStyleDouble,                                       important = False }
-                                            , CssDeclWrapper { property = CssDeclarationBorderBottomStyle CssValueBorderStyleDouble,                                       important = False }
-                                            , CssDeclWrapper { property = CssDeclarationBorderLeftStyle   CssValueBorderStyleDouble,                                       important = False }
+  , ( "border-style: double",               [ CssDeclWrapper { property = CssDeclarationBorderTopStyle    CssValueBorderStyleDouble,  important = False }
+                                            , CssDeclWrapper { property = CssDeclarationBorderRightStyle  CssValueBorderStyleDouble,  important = False }
+                                            , CssDeclWrapper { property = CssDeclarationBorderBottomStyle CssValueBorderStyleDouble,  important = False }
+                                            , CssDeclWrapper { property = CssDeclarationBorderLeftStyle   CssValueBorderStyleDouble,  important = False }
                                             ])
 
-  , ( "border-color: rgb(0, 0, 255)",        [ CssDeclWrapper { property = CssDeclarationBorderTopColor    $ CssValueBorderColor 0x0000ff,                                   important = False }
-                                             , CssDeclWrapper { property = CssDeclarationBorderRightColor  $ CssValueBorderColor 0x0000ff,                                   important = False }
-                                             , CssDeclWrapper { property = CssDeclarationBorderBottomColor $ CssValueBorderColor 0x0000ff,                                   important = False }
-                                             , CssDeclWrapper { property = CssDeclarationBorderLeftColor   $ CssValueBorderColor 0x0000ff,                                   important = False }
+  , ( "border-color: rgb(0, 0, 255)",        [ CssDeclWrapper { property = CssDeclarationBorderTopColor    $ CssValueBorderColor 0x0000ff,  important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderRightColor  $ CssValueBorderColor 0x0000ff,  important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderBottomColor $ CssValueBorderColor 0x0000ff,  important = False }
+                                             , CssDeclWrapper { property = CssDeclarationBorderLeftColor   $ CssValueBorderColor 0x0000ff,  important = False }
                                              ])
 
   , ( "padding: 1.0px 2.5mm 33.1em 21.9ex",  [ CssDeclWrapper { property = CssDeclarationPaddingTop    (CssValuePadding (CssDistanceAbsPx  1.0)),       important = False }

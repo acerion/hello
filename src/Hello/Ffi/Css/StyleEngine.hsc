@@ -175,14 +175,15 @@ hll_styleEngineSetNonCssHintOfNodeLength2 cNonCssDeclSetRef cProperty cValueType
 
   let property = fromIntegral cProperty
   let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
-  let decl | property ==  7 = CssDeclarationBorderBottomWidth $ CssValueBorderWidth cssValue
-           | property == 11 = CssDeclarationBorderLeftWidth   $ CssValueBorderWidth cssValue
-           | property == 14 = CssDeclarationBorderRightWidth  $ CssValueBorderWidth cssValue
-           | property == 18 = CssDeclarationBorderTopWidth    $ CssValueBorderWidth cssValue
-           | property == 60 = CssDeclarationPaddingBottom     $ CssValuePadding $ cssValueToDistance cssValue
-           | property == 61 = CssDeclarationPaddingLeft       $ CssValuePadding $ cssValueToDistance cssValue
-           | property == 62 = CssDeclarationPaddingRight      $ CssValuePadding $ cssValueToDistance cssValue
-           | property == 63 = CssDeclarationPaddingTop        $ CssValuePadding $ cssValueToDistance cssValue
+  let distance = cssValueToDistance cssValue
+  let decl | property ==  7 = CssDeclarationBorderBottomWidth $ CssValueBorderWidthDistance distance
+           | property == 11 = CssDeclarationBorderLeftWidth   $ CssValueBorderWidthDistance distance
+           | property == 14 = CssDeclarationBorderRightWidth  $ CssValueBorderWidthDistance distance
+           | property == 18 = CssDeclarationBorderTopWidth    $ CssValueBorderWidthDistance distance
+           | property == 60 = CssDeclarationPaddingBottom     $ CssValuePadding distance
+           | property == 61 = CssDeclarationPaddingLeft       $ CssValuePadding distance
+           | property == 62 = CssDeclarationPaddingRight      $ CssValuePadding distance
+           | property == 63 = CssDeclarationPaddingTop        $ CssValuePadding distance
            | otherwise      = trace ("[EE] Unhandled length property " ++ (show property)) (undefined)
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)

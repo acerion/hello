@@ -34,6 +34,7 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 
 
+
 module Hello.Css.ParserHelpers
   (
     consumeFunctionTokens
@@ -42,18 +43,8 @@ module Hello.Css.ParserHelpers
   , parseUrl
   , consumeFunctionBody
 
-  , tokensAsValueEnumString2
-  , tokensAsValueColor2
-
-  , declValueAsSignedLength2
-  , declValueAsLengthPercent2
-  , declValueAsLength2
-  , declValueAsLength2'
-
   , takeLengthTokens
   , lengthValueToDistance
-
-  , ValueState (..)
 
   , ValueState3 (..)
   , defaultValueState3
@@ -81,31 +72,42 @@ import Colors
 
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
-import Hello.Css.Value
 
-
-
-
-data ValueState declValue declValue2 = ValueState
-  {
-    pt              :: (CssParser, CssToken)
-  , colorValueCtor  :: Maybe (Int -> declValue)
-  , lengthValueCtor :: Maybe (CssValue -> declValue2)
-  , enums           :: [(T.Text, declValue)]
-  }
 
 
 
 data ValueState3 declValueT = ValueState3
   {
     pt3                   :: (CssParser, CssToken)
+
+    -- Constructor for creating declaration values that are colors, e.g.
+    -- "CssValueBackgroundColorColor Int".
   , colorValueCtor3       :: Maybe (Int -> declValueT)
-  , distanceValueCtor     :: Maybe (CssDistance -> declValueT) -- For creating css values that are distances, e.g. "CssValuePadding CssDistance".
+
+    -- Constructor for creating declaration values that are distances, e.g.
+    -- "CssValuePadding CssDistance".
+  , distanceValueCtor     :: Maybe (CssDistance -> declValueT)
+
+    -- Constructor for creating declaration values that are font weights,
+    -- e.g. "CssValueFontWeightInt Int".
   , fontWeightValueCtor   :: Maybe (Int -> declValueT)
+
+    -- Constructor for creating declaration values that are background
+    -- position, e.g. "CssValueBackgroundPositionXY CssDistance".
   , bgPositionValueCtor   :: Maybe (Int -> Int -> declValueT)
+
+    -- Constructor for creating declaration values that are distances, e.g.
+    -- "CssValueBackgroundImageUri T.Text".
   , uriValueCtor          :: Maybe (T.Text -> declValueT)
+
+    -- A dictionary for mapping from a text token/value in CSS declaration to
+    -- Haskell value, e.g. "italic" to CssValueFontStyleItalic or "thin" to
+    -- CssValueBorderWidthThin.
   , enums3                :: [(T.Text, declValueT)]
-  , allowUnitlessDistance :: Bool -- Are values without unit (e.g. "1.0", as opposed to "1.0px" allowed/accepted for this css value?
+
+    -- Are distance values without unit (e.g. "1.0", as opposed to "1.0px"
+    -- allowed/accepted for this declaration value?
+  , allowUnitlessDistance :: Bool
   }
 
 
@@ -201,27 +203,6 @@ rgbFunctionToColor p1 = let
 
 
 
-
--- Interpret current token as one of allowed values and save it as value of
--- type CssValueTypeString
---
--- In case of enum value there is no need to consume more than current token
--- to build the Enum, but for consistency with other similar functions the
--- function is still called "tokensAs...".
-tokensAsValueEnumString2 :: ValueState a b -> (ValueState a b, Maybe a)
-tokensAsValueEnumString2 vs@ValueState{ pt = (parser, token@(CssTokIdent sym)) } =
-  case L.lookup sym' (enums vs) of
-    Just val -> (vs { pt = nextToken1 . fst . pt $ vs}, Just val)
-    Nothing  -> (vs, Nothing)
-  where
-    sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
-tokensAsValueEnumString2 vs                        = (vs, Nothing)
-                                                                  -- TODO: is this the right place to reject everything else other than symbol?
-                                                                  -- Shouldn't we do it somewhere else?
-
-
-
-
 -- Interpret current token as one of allowed values and save it as value of
 -- type CssValueTypeString
 --
@@ -238,28 +219,6 @@ tokensAsValueEnumString3 vs@ValueState3{ pt3 = (parser, token@(CssTokIdent sym))
 tokensAsValueEnumString3 vs                        = (vs, Nothing)
                                                                   -- TODO: is this the right place to reject everything else other than symbol?
                                                                   -- Shouldn't we do it somewhere else?
-
-
-
-
--- Interpret current token (and possibly more following tokens) as color
--- value (value of type CssValueTypeColor).
---
--- If current token is a Hash token, then there will be no need to take more
--- tokens. If current token is e.g. "rgb(" function, then the function should
--- (TODO) take as many tokens as necessary to build, parse and convert the
--- function into color value.
-tokensAsValueColor2 :: ValueState a b -> (ValueState a b, Maybe a)
-tokensAsValueColor2 vs@ValueState{ pt = (p1, (CssTokHash _ str)) }  = case colorsHexStringToColor str of
-                                                                        Just c  -> (vs {pt = nextToken1 p1}, Just $ (fromJust . colorValueCtor $ vs) c)
-                                                                        Nothing -> (vs {pt = nextToken1 p1}, Nothing)
-tokensAsValueColor2 vs@ValueState{ pt = (p1, (CssTokFunc "rgb")) }  = case rgbFunctionToColor p1 of
-                                                                        ((p2, t2), Just c)  -> (vs {pt = (p2, t2)}, Just $ (fromJust . colorValueCtor $ vs) c)
-                                                                        ((p2, t2), Nothing) -> (vs {pt = (p2, t2)}, Nothing)
-tokensAsValueColor2 vs@ValueState{ pt = (p1, (CssTokIdent ident)) } = case colorsStringToColor ident of
-                                                                        Just c  -> (vs {pt = nextToken1 p1}, Just $ (fromJust . colorValueCtor $ vs) c)
-                                                                        Nothing -> (vs {pt = nextToken1 p1}, Nothing)
-tokensAsValueColor2 vs                                              = (vs, Nothing)
 
 
 
@@ -282,55 +241,6 @@ tokensAsValueColor3 vs@ValueState3{ pt3 = (p1, (CssTokIdent ident)) } = case col
                                                                           Just c  -> (vs {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vs) c)
                                                                           Nothing -> (vs {pt3 = nextToken1 p1}, Nothing)
 tokensAsValueColor3 vs                                              = (vs, Nothing)
-
-
-
-
-declValueAsSignedLength2 :: ValueState a b -> (ValueState a b, Maybe b)
-declValueAsSignedLength2 vs = declValueAsLength2' CssValueTypeSignedLength vs
-
-declValueAsLengthPercent2 :: ValueState a b -> (ValueState a b, Maybe b)
-declValueAsLengthPercent2 vs = declValueAsLength2' CssValueTypeLengthPercent vs
-
-declValueAsLengthPercentNumber2 :: ValueState a b -> (ValueState a b, Maybe b)
-declValueAsLengthPercentNumber2 vs = declValueAsLength2' CssValueTypeLengthPercentNumber vs
-
-declValueAsLength2 :: ValueState a b -> (ValueState a b, Maybe b)
-declValueAsLength2 vs = declValueAsLength2' CssValueTypeLength vs
-
-declValueAsLength2' :: (CssDistance -> CssValue) -> ValueState a b -> (ValueState a b, Maybe b)
-declValueAsLength2' valueCtor vs@ValueState {pt = (parser, token) } = ((vs { pt = (p', t') }), value)
-  where
-    ((p', t'), value) = case tokens of
-                          [CssTokDim cssNum ident] -> ((newParser, newToken), Just $ (fromJust . lengthValueCtor $ vs) (valueCtor (unitValue cssNum ident)))
-                          [CssTokPerc cssNum]      -> ((newParser, newToken), Just $ (fromJust . lengthValueCtor $ vs) (valueCtor . percentValue $ cssNum))
-                          [CssTokNum cssNum]       -> case ((newParser, newToken), unitlessValue cssNum) of
-                                                        ((p2, t2), Just i)  -> ((p2, t2), Just $ (fromJust . lengthValueCtor $ vs) (valueCtor i))
-                                                        ((p2, t2), Nothing) -> ((p2, t2), Nothing)
-                          _                        -> ((parser, token), Nothing)
-
-    ((newParser, newToken), tokens) = takeLengthTokens (parser, token)
-
-    percentValue :: CssNum -> CssDistance
-    percentValue cssNum = distance
-      where
-        fval = cssNumToFloat cssNum
-        distance = CssNumericPercentage (fval / 100.0)
-
-    unitValue :: CssNum -> T.Text -> CssDistance
-    unitValue cssNum unitString = distance
-      where
-        fval = cssNumToFloat cssNum
-        distance = lengthValueToDistance fval (T.toLower unitString)
-
-    unitlessValue :: CssNum -> Maybe CssDistance
-    -- Allow numbers without unit only for 0 or LengthPercentNumber. TODO: why?
-    unitlessValue cssNum = if (valueCtor (CssNumericNone 1) == CssValueTypeLengthPercentNumber (CssNumericNone 1) || fval == 0.0) -- TODO: is this the best way to compare data ctors?
-                           then Just distance
-                           else Nothing
-      where
-        fval = cssNumToFloat cssNum
-        distance = CssNumericNone fval
 
 
 
