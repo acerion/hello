@@ -80,10 +80,8 @@ import Hello.Ffi.Utils
 
 
 
---foreign export ccall "hll_makeCssDeclaration" hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeInt" hll_styleEngineSetNonCssHintOfNodeInt :: CInt -> CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
-foreign export ccall "hll_styleEngineSetNonCssHintOfNodeInt2" hll_styleEngineSetNonCssHintOfNodeInt2 :: CInt -> CInt -> CInt -> IO CInt
-foreign export ccall "hll_styleEngineSetNonCssHintOfNodeLength2" hll_styleEngineSetNonCssHintOfNodeLength2 :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
+foreign export ccall "hll_styleEngineSetNonCssHintOfNodeLength" hll_styleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeEnum" hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeColor" hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
@@ -93,38 +91,8 @@ foreign export ccall "hll_styleEngineSetXLangOfNode" hll_styleEngineSetXLangOfNo
 foreign export ccall "hll_styleEngineSetXLinkOfNode" hll_styleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetXTooltipOfNode" hll_styleEngineSetXTooltipOfNode :: CInt -> CString -> IO CInt
 
---foreign export ccall "hll_styleEngineComputeAbsoluteLengthValue" hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> Ptr FfiFontAttrs -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
---foreign export ccall "hll_setFontFamily" hll_setFontFamily :: Ptr FfiCssValue -> Ptr FfiPreferences -> Ptr FfiFontAttrs -> IO ()
---foreign export ccall "hll_setFontWeight" hll_setFontWeight :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
---foreign export ccall "hll_setFontSize" hll_setFontSize :: Ptr FfiCssValue -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
---foreign export ccall "hll_setFontStyle" hll_setFontStyle :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
---foreign export ccall "hll_setFontLetterSpacing" hll_setFontLetterSpacing :: Ptr FfiCssValue -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
---foreign export ccall "hll_setFontVariant" hll_setFontVariant :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
---foreign export ccall "hll_styleEngineApplyStyleToFont" hll_styleEngineApplyStyleToFont :: Ptr FfiCssDeclarationSet -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
-
---foreign export ccall "hll_styleEngineComputeBorderWidth" hll_styleEngineComputeBorderWidth :: Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
---foreign export ccall "hll_styleEngineSetStyle" hll_styleEngineSetStyle :: CInt -> Ptr FfiCssValue -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
 foreign export ccall "hll_styleEngineApplyStyleToGivenNode" hll_styleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiStyleAttrs -> Ptr FfiStyleAttrs -> IO ()
-
---foreign export ccall "hll_computeDwLength" hll_computeDwLength :: Ptr FfiDwLength -> CDouble -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
-
 foreign export ccall "hll_inheritNonCssHints" hll_inheritNonCssHints :: CInt -> CInt -> IO CInt
-
-
-
-
-{-
-hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
-hll_makeCssDeclaration cProperty ptrFfiCssValue = do
-  let property = fromIntegral cProperty
-
-  ffiCssValue :: FfiCssValue <- peek ptrFfiCssValue
-  cssValue <- peekCssValue ffiCssValue
-
-  let declaration = CssDeclaration property cssValue False
-
-  allocAndPokeCssDeclaration declaration
--}
 
 
 
@@ -167,27 +135,6 @@ hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIn
 
 
 
-hll_styleEngineSetNonCssHintOfNodeInt2 :: CInt -> CInt -> CInt -> IO CInt
-hll_styleEngineSetNonCssHintOfNodeInt2 cNonCssDeclSetRef cProperty cIntVal = do
-
-  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
-
-  let propMaker = fst (allDeclMakers !! (fromIntegral cProperty))
-  let intVal   = fromIntegral cIntVal
-
-  let property = fromIntegral cProperty
-  let decl | property == 80 = CssDeclarationXLink $ CssValueXLink intVal
-           | otherwise      = trace ("[EE] Unhandled int property " ++ (show property)) (undefined)
-
-  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
-
-  globalDeclarationSetUpdate ref newDeclSet
-
-  return . fromIntegral $ ref
-
-
-
-
 hll_styleEngineSetXImgOfNode :: CInt -> CInt -> IO CInt
 hll_styleEngineSetXImgOfNode cNonCssDeclSetRef cIntVal = do
 
@@ -218,14 +165,11 @@ hll_styleEngineSetXLinkOfNode cNonCssDeclSetRef cIntVal = do
 
 
 
--- TODO: clean up unused function args (e.g. length args). Clean up
--- implementation: remove unused variables.
-hll_styleEngineSetNonCssHintOfNodeLength2 :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
-hll_styleEngineSetNonCssHintOfNodeLength2 cNonCssDeclSetRef cProperty cValueType cLengthValue cLengthType  = do
+hll_styleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
+hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cValueType cLengthValue cLengthType  = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
-  let propMaker = fst (allDeclMakers !! (fromIntegral cProperty))
   let valType  = fromIntegral cValueType
   let intVal   = 0
   let textVal  = ""
@@ -263,6 +207,7 @@ cssValueToDistance value = case value of
                              CssValueTypeLengthPercentNumber d -> d
                              CssValueTypeAuto d                -> d  -- TODO: 'auto' appears to be handled incorrectly this function
                              otherwise                         -> CssNumericAuto 0 -- TODO: I'm not sure if this is the best 'otherwise' value
+
 
 
 
@@ -424,6 +369,70 @@ hll_styleEngineSetXTooltipOfNode cNonCssDeclSetRef cStringVal = do
   globalDeclarationSetUpdate ref newDeclSet
 
   return . fromIntegral $ ref
+
+
+
+
+hll_styleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiStyleAttrs -> Ptr FfiStyleAttrs -> IO ()
+hll_styleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiX dpiY ptrStructParentStyleAttrs ptrStructStyleAttrs = do
+  prefs                        <- peekPreferences ptrStructPrefs
+  styleAttrs :: StyleAttrs     <- peekStyleAttrs ptrStructStyleAttrs
+  parentStyleAttrs :: StyleAttrs  <- peekStyleAttrs ptrStructParentStyleAttrs
+  let display :: Display = defaultDisplay { dpiX = dpiX, dpiY = dpiY }
+
+  let mergedDeclSetRef = fromIntegral cMergedDeclSetRef
+
+  declSet :: CssDeclarationSet <- globalDeclarationSetGet mergedDeclSetRef
+
+  let styleAttrs' = styleEngineApplyStyleToGivenNode declSet prefs display parentStyleAttrs styleAttrs
+
+  pokeStyleAttrs styleAttrs' ptrStructStyleAttrs
+
+  return ()
+
+
+
+
+hll_inheritNonCssHints :: CInt -> CInt -> IO CInt
+hll_inheritNonCssHints cParentNonCssDeclSetRef cNonCssDeclSetRef = do
+  let parentNonCssDeclSetRef = fromIntegral cParentNonCssDeclSetRef
+  let nonCssDeclSetRef       = fromIntegral cNonCssDeclSetRef
+  parent  <- globalDeclarationSetGet parentNonCssDeclSetRef
+  current <- globalDeclarationSetGet nonCssDeclSetRef
+
+  if parentNonCssDeclSetRef /= -1
+    then
+    -- Parent has some non-CSS hints. Either use parent's hints entirely or
+    -- (if current node has some hints) merge current's and parent's hints.
+    do
+      let mCurrent = if nonCssDeclSetRef /= -1
+                     then Just current
+                     else Nothing
+      let inheritedAndCurrent = styleEngineInheritNonCssHints parent mCurrent
+      fmap fromIntegral $ globalDeclarationSetPut inheritedAndCurrent
+    else
+    -- There are no hints that can be inherited from parent. Return unchanged
+    -- current (possibly empty/NULL).
+    do
+      return . fromIntegral $ nonCssDeclSetRef
+
+{-
+
+   if (parentNode->declLists.non_css_decl_set_ref != -1) {
+
+      int orig_non_css_decl_set_ref = currentNode->declLists.non_css_decl_set_ref;
+
+      currentNode->declLists.non_css_decl_set_ref = declarationListNew(parentNode->declLists.non_css_decl_set_ref); // NOTICE: copy constructo
+
+      if (orig_non_css_decl_set_ref != -1) {// original declListNonCss have precedence
+         hll_declarationListAppend(currentNode->declLists.non_css_decl_set_ref, orig_non_css_decl_set_ref);
+      }
+
+      //delete origDeclListNonCss;
+   }
+
+
+-}
 
 
 
@@ -667,65 +676,17 @@ hll_styleEngineSetStyle cProperty ptrStructCssValue dpiX dpiY ptrStructStyleAttr
 
 
 
-hll_styleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiStyleAttrs -> Ptr FfiStyleAttrs -> IO ()
-hll_styleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiX dpiY ptrStructParentStyleAttrs ptrStructStyleAttrs = do
-  prefs                        <- peekPreferences ptrStructPrefs
-  styleAttrs :: StyleAttrs     <- peekStyleAttrs ptrStructStyleAttrs
-  parentStyleAttrs :: StyleAttrs  <- peekStyleAttrs ptrStructParentStyleAttrs
-  let display :: Display = defaultDisplay { dpiX = dpiX, dpiY = dpiY }
-
-  let mergedDeclSetRef = fromIntegral cMergedDeclSetRef
-
-  declSet :: CssDeclarationSet <- globalDeclarationSetGet mergedDeclSetRef
-
-  let styleAttrs' = styleEngineApplyStyleToGivenNode declSet prefs display parentStyleAttrs styleAttrs
-
-  pokeStyleAttrs styleAttrs' ptrStructStyleAttrs
-
-  return ()
-
-
-
-
-
-
-hll_inheritNonCssHints :: CInt -> CInt -> IO CInt
-hll_inheritNonCssHints cParentNonCssDeclSetRef cNonCssDeclSetRef = do
-  let parentNonCssDeclSetRef = fromIntegral cParentNonCssDeclSetRef
-  let nonCssDeclSetRef       = fromIntegral cNonCssDeclSetRef
-  parent  <- globalDeclarationSetGet parentNonCssDeclSetRef
-  current <- globalDeclarationSetGet nonCssDeclSetRef
-
-  if parentNonCssDeclSetRef /= -1
-    then
-    -- Parent has some non-CSS hints. Either use parent's hints entirely or
-    -- (if current node has some hints) merge current's and parent's hints.
-    do
-      let mCurrent = if nonCssDeclSetRef /= -1
-                     then Just current
-                     else Nothing
-      let inheritedAndCurrent = styleEngineInheritNonCssHints parent mCurrent
-      fmap fromIntegral $ globalDeclarationSetPut inheritedAndCurrent
-    else
-    -- There are no hints that can be inherited from parent. Return unchanged
-    -- current (possibly empty/NULL).
-    do
-      return . fromIntegral $ nonCssDeclSetRef
-
 {-
+hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
+hll_makeCssDeclaration cProperty ptrFfiCssValue = do
+  let property = fromIntegral cProperty
 
-   if (parentNode->declLists.non_css_decl_set_ref != -1) {
+  ffiCssValue :: FfiCssValue <- peek ptrFfiCssValue
+  cssValue <- peekCssValue ffiCssValue
 
-      int orig_non_css_decl_set_ref = currentNode->declLists.non_css_decl_set_ref;
+  let declaration = CssDeclaration property cssValue False
 
-      currentNode->declLists.non_css_decl_set_ref = declarationListNew(parentNode->declLists.non_css_decl_set_ref); // NOTICE: copy constructo
-
-      if (orig_non_css_decl_set_ref != -1) {// original declListNonCss have precedence
-         hll_declarationListAppend(currentNode->declLists.non_css_decl_set_ref, orig_non_css_decl_set_ref);
-      }
-
-      //delete origDeclListNonCss;
-   }
-
-
+  allocAndPokeCssDeclaration declaration
 -}
+
+

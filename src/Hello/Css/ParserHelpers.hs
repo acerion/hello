@@ -110,7 +110,7 @@ data ValueState3 declValueT = ValueState3
     -- A dictionary for mapping from a text token/value in CSS declaration to
     -- Haskell value, e.g. "italic" to CssValueFontStyleItalic or "thin" to
     -- CssValueBorderWidthThin.
-  , enums3                :: [(T.Text, declValueT)]
+  , dict                  :: [(T.Text, declValueT)]
 
     -- Are distance values without unit (e.g. "1.0", as opposed to "1.0px"
     -- allowed/accepted for this declaration value?
@@ -128,7 +128,7 @@ defaultValueState3 pat = ValueState3 { pt3                   = pat
                                      , bgPositionValueCtor   = Nothing
                                      , uriValueCtor          = Nothing
                                      , stringListCtor        = Nothing
-                                     , enums3                = []
+                                     , dict                  = []
                                      , allowUnitlessDistance = False
                                      }
 
@@ -219,7 +219,7 @@ rgbFunctionToColor p1 = let
 -- function is still called "tokensAs...".
 tokensAsValueEnumString3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
 tokensAsValueEnumString3 vs@ValueState3{ pt3 = (parser, token@(CssTokIdent sym)) } =
-  case L.lookup sym' (enums3 vs) of
+  case L.lookup sym' (dict vs) of
     Just declValue -> (vs { pt3 = nextToken1 . fst . pt3 $ vs}, Just declValue)
     Nothing        -> (vs, Nothing)
   where
@@ -383,7 +383,7 @@ lengthValueToDistance fval unitStr | unitStr == "px" = CssDistanceAbsPx fval
 -- special way.
 tokensAsValueMultiEnum3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe [declValueT])
 tokensAsValueMultiEnum3 vs@ValueState3 { pt3 = (parser, token@(CssTokIdent sym)) } =
-  case matchSymbolTokensWithListRigid (parser, token) (enums3 vs) [] of
+  case matchSymbolTokensWithListRigid (parser, token) (dict vs) [] of
     ((_, _), [])    -> (vs, Nothing) -- None of input tokens were matched agains list of enums.
     ((p2, t2), val) -> (vs { pt3 = (p2, t2) }, Just val)
 tokensAsValueMultiEnum3 vs                                                         = (vs, Nothing)

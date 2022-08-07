@@ -76,7 +76,6 @@ module Hello.Css.Declaration
   , makeCssDeclarationBackgroundPosition
   , makeCssDeclarationBackgroundRepeat
 
-
   , makeCssDeclarationBorderCollapse
   , makeCssDeclarationBorderSpacing
 
@@ -298,16 +297,10 @@ data CssDeclaration
   | CssDeclarationWordSpacing CssValueWordSpacing       -- 78               parsing is unit-tested
   | CssDeclarationZIndex CssValue                       -- 79
 
-  -- Pseudo-property used internally by dillo/hello. Without it following
-  -- a/href links won't work.
   | CssDeclarationXLink CssValueXLink                   -- 80               parsing is NOT unit-tested because there is no CSS parsing of this property
-
   | CssDeclarationXColSpan CssValue                     -- 81               parsing is NOT unit-tested because there is no CSS parsing of this property
   | CssDeclarationXRowSpan CssValue                     -- 82               parsing is NOT unit-tested because there is no CSS parsing of this property
-
-  -- Pseudo-property for "lang" or "xml:lang" attribute of html element.
   | CssDeclarationXLang CssValueXLang                   -- 83               parsing is NOT unit-tested because there is no CSS parsing of this property
-
   | CssDeclarationXImg CssValueXImg                     -- 84               parsing is NOT unit-tested because there is no CSS parsing of this property
   | CssDeclarationXTooltip CssValueXTooltip             -- 85               parsing is NOT unit-tested because there is no CSS parsing of this property
 
@@ -332,6 +325,13 @@ data CssValueBackgroundAttachment
 
 
 
+cssValueBackgroundAttachmentDict = [ ("scroll",  CssValueBackgroundAttachmentScroll)
+                                   , ("fixed",   CssValueBackgroundAttachmentFixed)
+                                   ]
+
+
+
+
 makeCssDeclarationBackgroundAttachment :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationBackgroundAttachment pat = (pat', fmap CssDeclarationBackgroundAttachment declValue)
   where
@@ -339,9 +339,7 @@ makeCssDeclarationBackgroundAttachment pat = (pat', fmap CssDeclarationBackgroun
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBackgroundAttachment
-    vs = (defaultValueState3 pat) { enums3 = [ ("scroll",  CssValueBackgroundAttachmentScroll)
-                                             , ("fixed",   CssValueBackgroundAttachmentFixed)
-                                             ]
+    vs = (defaultValueState3 pat) { dict = cssValueBackgroundAttachmentDict
                                   }
 
 
@@ -362,16 +360,21 @@ data CssValueBackgroundColor
 
 
 
+cssValueBackgroundColorDict = [ ("inherit",    CssValueBackgroundColorInherit)
+                              ]
+
+
+
+
 makeCssDeclarationBackgroundColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBackgroundColor pat = (pat', fmap CssDeclarationBackgroundColor value)
+makeCssDeclarationBackgroundColor pat = (pat', fmap CssDeclarationBackgroundColor declValue)
   where
-    (vs', value) = tokensAsValueEnumString3 vs >>? tokensAsValueColor3
-    pat'         = pt3 vs'
+    (vs', declValue) = tokensAsValueEnumString3 vs >>? tokensAsValueColor3
+    pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBackgroundColor
     vs = (defaultValueState3 pat) { colorValueCtor3 = Just CssValueBackgroundColorColor
-                                  , enums3 = [ ("inherit",    CssValueBackgroundColorInherit)
-                                             ]
+                                  , dict            = cssValueBackgroundColorDict
                                   }
 
 
@@ -448,6 +451,15 @@ data CssValueBackgroundRepeat
 
 
 
+cssValueBackgroundRepeatDict = [ ("repeat",     CssValueBackgroundRepeatRepeat)
+                               , ("repeat-x",   CssValueBackgroundRepeatRepeatX)
+                               , ("repeat-y",   CssValueBackgroundRepeatRepeatY)
+                               , ("no-repeat",  CssValueBackgroundRepeatNoRepeat)
+                               ]
+
+
+
+
 makeCssDeclarationBackgroundRepeat :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationBackgroundRepeat pat = (pat', fmap CssDeclarationBackgroundRepeat declValue)
   where
@@ -455,11 +467,7 @@ makeCssDeclarationBackgroundRepeat pat = (pat', fmap CssDeclarationBackgroundRep
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBackgroundRepeat
-    vs = (defaultValueState3 pat) { enums3 = [ ("repeat",     CssValueBackgroundRepeatRepeat)
-                                             , ("repeat-x",   CssValueBackgroundRepeatRepeatX)
-                                             , ("repeat-y",   CssValueBackgroundRepeatRepeatY)
-                                             , ("no-repeat",  CssValueBackgroundRepeatNoRepeat)
-                                             ]
+    vs = (defaultValueState3 pat) { dict = cssValueBackgroundRepeatDict
                                   }
 
 
@@ -480,6 +488,13 @@ data CssValueBorderCollapse
 
 
 
+cssValueBorderCollapseDict = [ ("separate",   CssValueBorderCollapseSeparate)
+                             , ("collapse",   CssValueBorderCollapseCollapse)
+                             ]
+
+
+
+
 makeCssDeclarationBorderCollapse :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationBorderCollapse pat = (pat', fmap CssDeclarationBorderCollapse declValue)
   where
@@ -487,9 +502,7 @@ makeCssDeclarationBorderCollapse pat = (pat', fmap CssDeclarationBorderCollapse 
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBorderCollapse
-    vs = (defaultValueState3 pat) { enums3 = [ ("separate",   CssValueBorderCollapseSeparate)
-                                             , ("collapse",   CssValueBorderCollapseCollapse)
-                                             ]
+    vs = (defaultValueState3 pat) { dict = cssValueBorderCollapseDict
                                   }
 
 
@@ -516,15 +529,15 @@ makeCssDeclarationBorderSpacing pat =  (pat', fmap CssDeclarationBorderSpacing d
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBorderSpacing
-    vs = (defaultValueState3 pat) {  distanceValueCtor = Just CssValueBorderSpacingDistance
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueBorderSpacingDistance
                                   }
 
 
 
 
--- ----------------
+-- ------------------------------------------------
 -- Border Color
--- ----------------
+-- ------------------------------------------------
 
 
 
@@ -550,23 +563,23 @@ cssValueBorderColorDict = [ ("transparent", CssValueBorderColorTransparent)
 
 
 parseTokensAsBorderColorValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderColor)
-parseTokensAsBorderColorValue pat = (pat', declarationValue)
+parseTokensAsBorderColorValue pat = (pat', declValue)
   where
-    (vs', declarationValue) = tokensAsValueEnumString3 vs >>? tokensAsValueColor3
-    pat' = pt3 vs'
+    (vs', declValue) = tokensAsValueEnumString3 vs >>? tokensAsValueColor3
+    pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBorderColor
     vs = (defaultValueState3 pat) { colorValueCtor3 = Just CssValueBorderColor
-                                  , enums3          = cssValueBorderColorDict
+                                  , dict            = cssValueBorderColorDict
                                   }
 
 
 
 
 makeCssDeclarationBorderXColor :: (CssValueBorderColor -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBorderXColor declCtor (parser, token) = ((parser', token'), fmap declCtor declarationValue)
+makeCssDeclarationBorderXColor declCtor pat = (pat', fmap declCtor declValue)
   where
-    ((parser', token'), declarationValue) = parseTokensAsBorderColorValue (parser, token)
+    (pat', declValue) = parseTokensAsBorderColorValue pat
 
 
 
@@ -623,22 +636,22 @@ cssValueBorderStyleDict = [ ("none",     CssValueBorderStyleNone)
 
 
 parseTokensAsBorderStyleValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderStyle)
-parseTokensAsBorderStyleValue (pat) = ((pat'), declValue)
+parseTokensAsBorderStyleValue pat = ((pat'), declValue)
   where
     (vs', declValue) = tokensAsValueEnumString3 vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBorderStyle
-    vs = (defaultValueState3 pat) { enums3 = cssValueBorderStyleDict
+    vs = (defaultValueState3 pat) { dict = cssValueBorderStyleDict
                                   }
 
 
 
 
 makeCssDeclarationBorderXStyle :: (CssValueBorderStyle -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBorderXStyle declCtor (parser, token) = ((parser', token'), fmap declCtor value)
+makeCssDeclarationBorderXStyle declCtor pat = (pat', fmap declCtor declValue)
   where
-    ((parser', token'), value) = parseTokensAsBorderStyleValue (parser, token)
+    (pat', declValue) = parseTokensAsBorderStyleValue pat
 
 
 
@@ -651,9 +664,9 @@ makeCssDeclarationBorderLeftStyle   = makeCssDeclarationBorderXStyle CssDeclarat
 
 
 
--- ----------------
+-- ------------------------------------------------
 -- Border Width
--- ----------------
+-- ------------------------------------------------
 
 
 
@@ -684,20 +697,20 @@ parseTokensAsBorderWidthValue :: (CssParser, CssToken) -> ((CssParser, CssToken)
 parseTokensAsBorderWidthValue pat = (pat', declValue)
   where
     (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsLength3
-    pat' = pt3 vs'
+    pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBorderWidth
     vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueBorderWidthDistance
-                                  , enums3 = cssValueBorderWidthDict
+                                  , dict              = cssValueBorderWidthDict
                                   }
 
 
 
 
 makeCssDeclarationBorderXWidth :: (CssValueBorderWidth -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBorderXWidth declCtor (parser, token) = ((parser', token'), fmap declCtor value)
+makeCssDeclarationBorderXWidth declCtor pat = (pat', fmap declCtor declValue)
   where
-    ((parser', token'), value) = parseTokensAsBorderWidthValue (parser, token)
+    (pat', declValue) = parseTokensAsBorderWidthValue pat
 
 
 
@@ -710,9 +723,9 @@ makeCssDeclarationBorderLeftWidth   = makeCssDeclarationBorderXWidth CssDeclarat
 
 
 
--- ----------------
+-- ------------------------------------------------
 --
--- ----------------
+-- ------------------------------------------------
 
 
 
@@ -725,9 +738,9 @@ makeCssDeclarationClip v = CssDeclarationClip v
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 -- Color
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -751,19 +764,19 @@ makeCssDeclarationColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Mayb
 makeCssDeclarationColor pat = (pat', fmap CssDeclarationColor declValue)
   where
     (vs', declValue) = tokensAsValueEnumString3 vs >>? tokensAsValueColor3
-    pat' = pt3 vs'
+    pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueColor
     vs = (defaultValueState3 pat) { colorValueCtor3 = Just CssValueColor
-                                  , enums3          = cssValueColorDict
+                                  , dict            = cssValueColorDict
                                   }
 
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 --
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -775,9 +788,9 @@ makeCssDeclarationCounterReset v = CssDeclarationCounterReset v
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 --
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -830,15 +843,15 @@ makeCssDeclarationCursor pat = (pat', fmap CssDeclarationCursor declValue)
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueCursor
-    vs = (defaultValueState3 pat) { enums3 = cssValueCursorDict
+    vs = (defaultValueState3 pat) { dict = cssValueCursorDict
                                   }
 
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 --
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -848,9 +861,9 @@ makeCssDeclarationDirection v = CssDeclarationDirection v
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 -- Display
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -896,15 +909,15 @@ makeCssDeclarationDisplay pat = (pat', fmap CssDeclarationDisplay declValue)
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueDisplay
-    vs = (defaultValueState3 pat) { enums3 = cssValueDisplayDict
+    vs = (defaultValueState3 pat) { dict = cssValueDisplayDict
                                   }
 
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 --
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -915,9 +928,9 @@ makeCssDeclarationFloat v = CssDeclarationFloat v
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 -- Font family (font-family)
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -942,10 +955,10 @@ makeCssDeclarationFontFamily pat = (pat', fmap CssDeclarationFontFamily declValu
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 -- Font size (font-size)
 -- https://www.w3.org/TR/CSS22/fonts.html#propdef-font-size
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -970,38 +983,37 @@ data CssValueFontSize
 
 
 
+cssValueFontSizeDict = [ ("xx-small", CssValueFontSizeXXSmall)
+                       , ("x-small",  CssValueFontSizeXSmall)
+                       , ("small",    CssValueFontSizeSmall)
+                       , ("medium",   CssValueFontSizeMedium)
+                       , ("large",    CssValueFontSizeLarge)
+                       , ("x-large",  CssValueFontSizeXLarge)
+                       , ("xx-large", CssValueFontSizeXXLarge)
+                       , ("larger",   CssValueFontSizeLarger)
+                       , ("smaller",  CssValueFontSizeSmaller)
+                       ]
+
+
+
+
 makeCssDeclarationFontSize :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize value)
+makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize declValue)
   where
-    (vs', value) = tokensAsValueEnumString3 vs >>? declValueAsLength3
-    pat'         = pt3 vs'
+    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsLength3
+    pat'             = pt3 vs'
+
     vs :: ValueState3 CssValueFontSize
-    vs = ValueState3 { pt3               = pat
-                  , colorValueCtor3   = Nothing
-                  , distanceValueCtor = Just CssValueFontSizeDistance
-                  , fontWeightValueCtor = Nothing
-                  , bgPositionValueCtor = Nothing
-                  , uriValueCtor        = Nothing
-                  , stringListCtor      = Nothing
-                  , enums3 = [ ("xx-small", CssValueFontSizeXXSmall)
-                             , ("x-small",  CssValueFontSizeXSmall)
-                             , ("small",    CssValueFontSizeSmall)
-                             , ("medium",   CssValueFontSizeMedium)
-                             , ("large",    CssValueFontSizeLarge)
-                             , ("x-large",  CssValueFontSizeXLarge)
-                             , ("xx-large", CssValueFontSizeXXLarge)
-                             , ("larger",   CssValueFontSizeLarger)
-                             , ("smaller",  CssValueFontSizeSmaller)
-                             ]
-                  , allowUnitlessDistance = False -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of font size?
-                  }
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueFontSizeDistance
+                                  , dict              = cssValueFontSizeDict
+                                  } -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of font size?
 
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 --
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -1012,9 +1024,9 @@ makeCssDeclarationFontStretch v = CssDeclarationFontStretch v
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 -- Font style (font-style)
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -1028,32 +1040,30 @@ data CssValueFontStyle
 
 
 
+cssValueFontStyleDict = [ ("normal",  CssValueFontStyleNormal)
+                        , ("italic",  CssValueFontStyleItalic)
+                        , ("oblique", CssValueFontStyleOblique)
+                        ]
+
+
+
+
 makeCssDeclarationFontStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationFontStyle pat = (pat', fmap CssDeclarationFontStyle declValue)
   where
     (vs', declValue) = tokensAsValueEnumString3 vs
     pat'             = pt3 vs'
-    vs :: ValueState3 CssValueFontStyle =
-      ValueState3 { pt3               = pat
-                  , colorValueCtor3   = Nothing
-                  , distanceValueCtor = Nothing
-                  , fontWeightValueCtor = Nothing
-                  , bgPositionValueCtor = Nothing
-                  , uriValueCtor        = Nothing
-                  , stringListCtor      = Nothing
-                  , enums3 = [ ("normal",  CssValueFontStyleNormal)
-                             , ("italic",  CssValueFontStyleItalic)
-                             , ("oblique", CssValueFontStyleOblique)
-                             ]
-                  , allowUnitlessDistance = False
-                  }
+
+    vs :: ValueState3 CssValueFontStyle
+    vs = (defaultValueState3 pat) { dict = cssValueFontStyleDict
+                                  }
 
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 -- Font variant (font-variant)
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -1066,24 +1076,22 @@ data CssValueFontVariant
 
 
 
+cssValueFontVariantDict = [ ("normal",  CssValueFontVariantNormal)
+                          , ("small-caps",  CssValueFontVariantSmallCaps)
+                          ]
+
+
+
+
 makeCssDeclarationFontVariant :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationFontVariant pat = (pat', fmap CssDeclarationFontVariant declValue)
   where
     (vs', declValue) = tokensAsValueEnumString3 vs
     pat'             = pt3 vs'
-    vs :: ValueState3 CssValueFontVariant =
-      ValueState3 { pt3               = pat
-                  , colorValueCtor3   = Nothing
-                  , distanceValueCtor = Nothing
-                  , fontWeightValueCtor = Nothing
-                  , bgPositionValueCtor = Nothing
-                  , uriValueCtor        = Nothing
-                  , stringListCtor      = Nothing
-                  , enums3 = [ ("normal",  CssValueFontVariantNormal)
-                             , ("small-caps",  CssValueFontVariantSmallCaps)
-                             ]
-                  , allowUnitlessDistance = False
-                  }
+
+    vs :: ValueState3 CssValueFontVariant
+    vs = (defaultValueState3 pat) { dict = cssValueFontVariantDict
+                                  }
 
 
 
@@ -1107,6 +1115,15 @@ data CssValueFontWeight
 
 
 
+cssValueFontWeightDict = [ ("normal",  CssValueFontWeightNormal)
+                         , ("bold",    CssValueFontWeightBold)
+                         , ("bolder",  CssValueFontWeightBolder)
+                         , ("lighter", CssValueFontWeightLighter)
+                         ] -- dillo also included "light" value in this list.
+
+
+
+
 makeCssDeclarationFontWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationFontWeight pat = (pat', fmap CssDeclarationFontWeight declValue)
   where
@@ -1115,11 +1132,7 @@ makeCssDeclarationFontWeight pat = (pat', fmap CssDeclarationFontWeight declValu
 
     vs :: ValueState3 CssValueFontWeight
     vs = (defaultValueState3 pat) { fontWeightValueCtor = Just CssValueFontWeightInt
-                                  , enums3 = [ ("normal",  CssValueFontWeightNormal)
-                                             , ("bold",    CssValueFontWeightBold)
-                                             , ("bolder",  CssValueFontWeightBolder)
-                                             , ("lighter", CssValueFontWeightLighter)
-                                             ] -- dillo also included "light" value in this list.
+                                  , dict                = cssValueFontWeightDict
                                   }
 
 
@@ -1153,16 +1166,21 @@ data CssValueLetterSpacing
 
 
 
+cssValueLetterSpacingDict = [ ("normal",    CssValueLetterSpacingNormal)
+                            ]
+
+
+
+
 makeCssDeclarationLetterSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationLetterSpacing pat = (pat', fmap CssDeclarationLetterSpacing value)
+makeCssDeclarationLetterSpacing pat = (pat', fmap CssDeclarationLetterSpacing declValue)
   where
-    (vs', value) = tokensAsValueEnumString3 vs >>? declValueAsLength3
-    pat'         = pt3 vs'
+    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsLength3
+    pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueLetterSpacing
     vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueLetterSpacingDistance
-                                  , enums3 = [ ("normal",    CssValueLetterSpacingNormal)
-                                             ]
+                                  , dict              = cssValueLetterSpacingDict
                                   }
 
 
@@ -1183,16 +1201,21 @@ data CssValueLineHeight
 
 
 
+cssValueLineHeightDict = [ ("normal",    CssValueLineHeightNormal)
+                         ]
+
+
+
+
 makeCssDeclarationLineHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationLineHeight pat = (pat', fmap CssDeclarationLineHeight value)
+makeCssDeclarationLineHeight pat = (pat', fmap CssDeclarationLineHeight declValue)
   where
-    (vs', value) = tokensAsValueEnumString3 vs >>? declValueAsLength3 -- declValueAsLengthPercentNumber
-    pat'         = pt3 vs'
+    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsLength3 -- declValueAsLengthPercentNumber
+    pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueLineHeight
     vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueLineHeightDistance
-                                  , enums3 = [ ("normal",    CssValueLineHeightNormal)
-                                             ]
+                                  , dict              = cssValueLineHeightDict
                                   -- Original dillo code allowed unitless
                                   -- numeric values for zero and for values
                                   -- of type "length/percent/number". Line
@@ -1204,23 +1227,24 @@ makeCssDeclarationLineHeight pat = (pat', fmap CssDeclarationLineHeight value)
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 -- List Style Image
--- --------------------------------
-
-
-
-
+--
 -- This property is not supported.
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclarationListStyleImage :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationListStyleImage pat = (pat, Nothing) -- CssDeclarationListStyleImage
 
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 -- List Style Position
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -1233,36 +1257,32 @@ data CssValueListStylePosition
   deriving (Eq, Show, Data, Enum, Bounded)
 
 
+
+
 cssValueListStylePositionDict :: [(T.Text, CssValueListStylePosition)]
 cssValueListStylePositionDict = [ ("inside",               CssValueListStylePositionInside)
                                 , ("outside",              CssValueListStylePositionOutside)
                                 ]
 
 
+
+
 makeCssDeclarationListStylePosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationListStylePosition (parser, token) = ((parser', token'), fmap CssDeclarationListStylePosition value)
-  where
-    ((parser', token'), value) = parseTokensAsListStylePositionValue (parser, token)
-
-
-
-
-parseTokensAsListStylePositionValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueListStylePosition)
-parseTokensAsListStylePositionValue pat = (pat', declValue)
+makeCssDeclarationListStylePosition pat = (pat', fmap CssDeclarationListStylePosition declValue)
   where
     (vs', declValue) = tokensAsValueEnumString3 vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueListStylePosition
-    vs = (defaultValueState3 pat) { enums3 = cssValueListStylePositionDict
+    vs = (defaultValueState3 pat) { dict = cssValueListStylePositionDict
                                   }
 
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 -- List Style Type
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -1324,29 +1344,21 @@ cssValueListStyleTypeDict = [ ("disc",                 CssValueListStyleTypeDisc
 
 
 makeCssDeclarationListStyleType :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationListStyleType (parser, token) = ((parser', token'), fmap CssDeclarationListStyleType value)
-  where
-    ((parser', token'), value) = parseTokensAsListStyleTypeValue (parser, token)
-
-
-
-
-parseTokensAsListStyleTypeValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueListStyleType)
-parseTokensAsListStyleTypeValue pat = (pat', declValue)
+makeCssDeclarationListStyleType pat = (pat', fmap CssDeclarationListStyleType declValue)
   where
     (vs', declValue) = tokensAsValueEnumString3 vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueListStyleType
-    vs = (defaultValueState3 pat) { enums3 = cssValueListStyleTypeDict
+    vs = (defaultValueState3 pat) { dict = cssValueListStyleTypeDict
                                   }
 
 
 
 
--- --------------------------------
+-- ------------------------------------------------
 --
--- --------------------------------
+-- ------------------------------------------------
 
 
 
@@ -1386,29 +1398,22 @@ data CssValuePadding
 
 
 makeCssDeclarationPaddingX :: (CssValuePadding -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationPaddingX declCtor (parser, token) = ((parser', token'), fmap declCtor value)
+makeCssDeclarationPaddingX declCtor pat = (pat', fmap declCtor value)
   where
-    ((parser', token'), value) = parseTokensAsPaddingValue (parser, token)
+    (pat', value) = parseTokensAsPaddingValue pat
 
 
 
 
 parseTokensAsPaddingValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValuePadding)
-parseTokensAsPaddingValue (parser, token) = ((parser', token'), value)
+parseTokensAsPaddingValue pat = (pat', declValue)
   where
-    (vs', value)      = declValueAsLength3 vs
-    (parser', token') = pt3 vs'
+    (vs', declValue) = declValueAsLength3 vs
+    pat'             = pt3 vs'
+
     vs :: ValueState3 CssValuePadding
-      = ValueState3 { pt3                   = (parser, token)
-                    , colorValueCtor3       = Nothing
-                    , distanceValueCtor     = Just CssValuePadding
-                    , fontWeightValueCtor   = Nothing
-                    , bgPositionValueCtor = Nothing
-                    , uriValueCtor        = Nothing
-                    , stringListCtor      = Nothing
-                    , enums3                = []
-                    , allowUnitlessDistance = False -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
-                    }
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValuePadding
+                                  } -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
 
 
 
@@ -1456,16 +1461,23 @@ data CssValueTextAlign
 
 
 
+cssValueTextAlignDict = [ ("left",    CssValueTextAlignLeft)
+                        , ("right",   CssValueTextAlignRight)
+                        , ("center",  CssValueTextAlignCenter)
+                        , ("justify", CssValueTextAlignJustify)
+                        ]
+
+
+
+
 makeCssDeclarationTextAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationTextAlign pat = (pat', fmap CssDeclarationTextAlign declValue)
   where
-    pat'             = pt3 vs'
     (vs', declValue) = tokensAsValueEnumString3 vs
-    vs = (defaultValueState3 pat) { enums3 = [ ("left",    CssValueTextAlignLeft)
-                                             , ("right",   CssValueTextAlignRight)
-                                             , ("center",  CssValueTextAlignCenter)
-                                             , ("justify", CssValueTextAlignJustify)
-                                             ]
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueTextAlign
+    vs = (defaultValueState3 pat) { dict = cssValueTextAlignDict
                                   }
 
 
@@ -1490,16 +1502,24 @@ data CssValueTextDecoration
 
 
 
+
+cssValueTextDecorationDict = [ ("underline",     CssValueTextDecorationUnderline)
+                             , ("overline",      CssValueTextDecorationOverline)
+                             , ("line-through",  CssValueTextDecorationLineThrough)
+                             , ("blink",         CssValueTextDecorationBlink)
+                             ]
+
+
+
+
 makeCssDeclarationTextDecoration :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationTextDecoration pat = (pat', fmap CssDeclarationTextDecoration declValue)
   where
-    pat'             = pt3 vs'
     (vs', declValue) = tokensAsValueMultiEnum3 vs
-    vs = (defaultValueState3 pat) { enums3 = [ ("underline",     CssValueTextDecorationUnderline)
-                                             , ("overline",      CssValueTextDecorationOverline)
-                                             , ("line-through",  CssValueTextDecorationLineThrough)
-                                             , ("blink",         CssValueTextDecorationBlink)
-                                             ]
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueTextDecoration
+    vs = (defaultValueState3 pat) { dict = cssValueTextDecorationDict
                                   }
 
 
@@ -1560,16 +1580,23 @@ data CssValueTextTransform
 
 
 
+cssValueTextTransformDict = [ ("none",       CssValueTextTransformNone)
+                            , ("capitalize", CssValueTextTransformCapitalize)
+                            , ("uppercase",  CssValueTextTransformUppercase)
+                            , ("lowercase",  CssValueTextTransformLowercase)
+                            ]
+
+
+
+
 makeCssDeclarationTextTransform :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationTextTransform pat = (pat', fmap CssDeclarationTextTransform declValue)
   where
-    pat'             = pt3 vs'
     (vs', declValue) = tokensAsValueEnumString3 vs
-    vs = (defaultValueState3 pat) { enums3 = [ ("none",       CssValueTextTransformNone)
-                                             , ("capitalize", CssValueTextTransformCapitalize)
-                                             , ("uppercase",  CssValueTextTransformUppercase)
-                                             , ("lowercase",  CssValueTextTransformLowercase)
-                                             ]
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueTextTransform
+    vs = (defaultValueState3 pat) { dict = cssValueTextTransformDict
                                   }
 
 
@@ -1631,7 +1658,7 @@ makeCssDeclarationVerticalAlign pat = (pat', fmap CssDeclarationVerticalAlign de
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueVerticalAlign
-    vs = (defaultValueState3 pat) { enums3 = cssValueVerticalAlignDict
+    vs = (defaultValueState3 pat) { dict = cssValueVerticalAlignDict
                                   }
 
 
@@ -1684,7 +1711,7 @@ makeCssDeclarationWhitespace pat = (pat', fmap CssDeclarationWhitespace declValu
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueWhitespace
-    vs = (defaultValueState3 pat) { enums3 = cssValueWhitespaceDict
+    vs = (defaultValueState3 pat) { dict = cssValueWhitespaceDict
                                   }
 
 
@@ -1732,7 +1759,7 @@ makeCssDeclarationWordSpacing pat = (pat', fmap CssDeclarationWordSpacing declVa
 
     vs :: ValueState3 CssValueWordSpacing
     vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueWordSpacingDistance
-                                  , enums3 = cssValueWordSpacingDict
+                                  , dict              = cssValueWordSpacingDict
                                   }
 
 
@@ -1752,6 +1779,16 @@ makeCssDeclarationZIndex v = CssDeclarationZIndex v
 
 -- ------------------------------------------------
 -- x-link pseudo-property
+--
+-- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- parser, but set from HTML parser.
+
+-- Without this property following a/href links won't work.
+--
+-- There is no parser/constructor function because the value is set not
+-- during parsing of CSS, but during parsing of HTML. The HTML parser has a
+-- dedicated method of passsing the value of x-link pseudo-property that
+-- doesn't require us to pretend that we parse x-link property.
 -- ------------------------------------------------
 
 
@@ -1764,24 +1801,17 @@ data CssValueXLink
 
 
 
--- There is no parser/constructor function because the value is set not
--- during parsing of CSS, but during parsing of HTML. The HTML parser has a
--- dedicated method of passsing the value of x-link pseudo-property that
--- doesn't require us to pretend that we parse x-link property.
-
-
-
-
 -- ------------------------------------------------
 -- x-colspan pseudo-property
 -- Currently unused.
--- ------------------------------------------------
-
-
-
+--
+-- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- parser, but set from HTML parser.
+--
 -- There is no parser/constructor function because the value never appears in
 -- CSS input.
 -- TODO: check why/if we need this pseudo-property.
+-- ------------------------------------------------
 
 
 
@@ -1789,26 +1819,29 @@ data CssValueXLink
 -- ------------------------------------------------
 -- x-rowspan pseudo-property
 -- Currently unused.
--- ------------------------------------------------
-
-
-
+--
+-- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- parser, but set from HTML parser.
+--
 -- There is no parser/constructor function because the value never appears in
 -- CSS input.
 -- TODO: check why/if we need this pseudo-property.
+-- ------------------------------------------------
 
 
 
 
 -- ------------------------------------------------
 -- x-lang pseudo-property
--- ------------------------------------------------
-
-
-
-
+--
+-- Pseudo-property for "lang" or "xml:lang" attribute of html element.
+--
+-- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- parser, but set from HTML parser.
+--
 -- There is no parser/constructor function because the value never appears in
 -- CSS input.
+-- ------------------------------------------------
 
 
 
@@ -1824,6 +1857,9 @@ data CssValueXLang
 -- x-img pseudo-property
 --
 -- Pseudo-property used (probably) to index images in a html document.
+--
+-- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- parser, but set from HTML parser.
 --
 -- There is no parser/constructor function because the value never appears in
 -- CSS input.
@@ -1841,6 +1877,12 @@ data CssValueXImg
 
 -- ------------------------------------------------
 -- x-tooltip pseudo-property
+--
+-- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- parser, but set from HTML parser.
+--
+-- There is no parser/constructor function because the value never appears in
+-- CSS input.
 -- ------------------------------------------------
 
 
@@ -1853,12 +1895,6 @@ data CssValueXTooltip
 
 
 
--- There is no parser/constructor function because the value never appears in
--- CSS input.
-
-
-
-
 -- ------------------------------------------------
 --
 -- ------------------------------------------------
@@ -1867,6 +1903,17 @@ data CssValueXTooltip
 
 
 makeCssDeclaration_LAST _ = CssDeclaration_LAST
+
+
+
+
+-- ------------------------------------------------
+-- End of properties
+-- ------------------------------------------------
+
+
+
+
 
 
 

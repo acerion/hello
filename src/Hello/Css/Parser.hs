@@ -115,14 +115,13 @@ import HtmlTag
 
 
 
--- Items with empty list of functions are not supported by this implementation.
+-- Only some of these properties are supported by this implementation.
 cssPropertyInfo = M.fromList [
      ("background-attachment",  ((Nothing, Just makeCssDeclarationBackgroundAttachment), [],                                                                   []))
    , ("background-color",       ((Nothing, Just makeCssDeclarationBackgroundColor),      [],                                                                   []))
    , ("background-image",       ((Nothing, Just makeCssDeclarationBackgroundImage),      [],                                                                   []))
    , ("background-position",    ((Nothing, Just makeCssDeclarationBackgroundPosition),   [],                                                                   []))
    , ("background-repeat",      ((Nothing, Just makeCssDeclarationBackgroundRepeat),     [],                                                                   []))
-
 
    , ("border-collapse",        ((Nothing, Just makeCssDeclarationBorderCollapse),       [],                                                                   []))
    , ("border-spacing",         ((Nothing, Just makeCssDeclarationBorderSpacing),        [],                                                                   []))
@@ -203,18 +202,6 @@ cssPropertyInfo = M.fromList [
    , ("width",                  ((Just makeCssDeclarationWidth, Nothing),                [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
    , ("word-spacing",           ((Nothing, Just makeCssDeclarationWordSpacing),          [],                                                                   []))
    , ("z-index",                ((Just makeCssDeclarationZIndex, Nothing),               [],                                                                   []))
-
-   -- These are extensions for internal use, and never parsed by CSS parser.
-   -- Related CSS "pseudo-properties" are set from HTML parser.
-   , ("x-link",                 ((Nothing, Nothing),                                     [],                                                                   []))
-   , ("x-colspan",              ((Nothing, Nothing),                                     [],                                                                   []))
-   , ("x-rowspan",              ((Nothing, Nothing),                                     [],                                                                   []))
-   , ("x-lang",                 ((Nothing, Nothing),                                     [],                                                                   []))
-   , ("x-img",                  ((Nothing, Nothing),                                     [],                                                                   []))
-   , ("x-tooltip",              ((Nothing, Nothing),                                     [],                                                                   []))
-   -- TODO: verify if we still need "last" property.
-   , ("last",                   ((Just makeCssDeclaration_LAST, Nothing),                [],                                                                   []))
-
    ] :: M.Map T.Text CssPropertyInfo
 
 
@@ -228,10 +215,10 @@ type CssPropertyInfo = ((Maybe Ctor1, Maybe Ctor2), [CssPropertyValueFun], [T.Te
 
 
 
-cssShorthandTypeMultiple   = 0 -- [ p1 || p2 || ...], the property pi is determined  by the type; array of properties must be terminated by CSS_PROPERTY_End.
-cssShorthandTypeDirections = 1 --  <t>{1,4}; array of properties must have length 4.
-cssShorthandTypeBorder     = 2 -- special, used for 'border'; array of properties must have length 12.
-cssShorthandTypeFont       = 3 -- special, used for 'font'
+cssShorthandTypeMultiple      =  0 -- [ p1 || p2 || ...], the property pi is determined  by the type; array of properties must be terminated by CSS_PROPERTY_End.
+cssShorthandTypeDirections    =  1 --  <t>{1,4}; array of properties must have length 4.
+cssShorthandTypeBorder        =  2 -- special, used for 'border'; array of properties must have length 12.
+cssShorthandTypeFont          =  3 -- special, used for 'font'
 cssShorthandTypeBorderWidth   =  4
 cssShorthandTypeBorderStyle   =  5
 cssShorthandTypeBorderColor   =  6

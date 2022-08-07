@@ -1013,100 +1013,6 @@ hll_isTokenSemicolon ptrStructCssToken = do
 
 
 
-{-
-findPropertyIndex :: CssDeclaration -> Int
-findPropertyIndex decl = case decl of
-                           CssDeclarationBackgroundAttachment v -> 0
-                           CssDeclarationBackgroundColor v -> 1
-                           CssDeclarationBackgroundImage v -> 2
-                           CssDeclarationBackgroundPosition v -> 3
-                           CssDeclarationBackgroundRepeat v -> 4
-                           CssDeclarationBorderBottomColor v -> 5
-                           CssDeclarationBorderBottomStyle v -> 6
-                           CssDeclarationBorderBottomWidth v -> 7
-                           CssDeclarationBorderCollapse v -> 8
-                           CssDeclarationBorderLeftColor v -> 9
-                           CssDeclarationBorderLeftStyle v -> 10
-                           CssDeclarationBorderLeftWidth v -> 11
-                           CssDeclarationBorderRightColor v -> 12
-                           CssDeclarationBorderRightStyle v -> 13
-                           CssDeclarationBorderRightWidth v -> 14
-                           CssDeclarationBorderSpacing v -> 15
-                           CssDeclarationBorderTopColor v -> 16
-                           CssDeclarationBorderTopStyle v -> 17
-                           CssDeclarationBorderTopWidth v -> 18
-                           CssDeclarationBottom v -> 19
-                           CssDeclarationCaptionSide v -> 20
-                           CssDeclarationClear v -> 21
-                           CssDeclarationClip v -> 22
-                           CssDeclarationColor v -> 23
-                           CssDeclarationContent v -> 24
-                           CssDeclarationCounterIncrement v -> 25
-                           CssDeclarationCounterReset v -> 26
-                           CssDeclarationCursor v -> 27
-                           CssDeclarationDirection v -> 28
-                           CssDeclarationDisplay v -> 29
-                           CssDeclarationEmptyCells v -> 30
-                           CssDeclarationFloat v -> 31
-                           CssDeclarationFontFamily v -> 32
-                           CssDeclarationFontSize v -> 33
-                           CssDeclarationFontSizeAdjust v -> 34
-                           CssDeclarationFontStretch v -> 35
-                           CssDeclarationFontStyle v -> 36
-                           CssDeclarationFontVariant v -> 37
-                           CssDeclarationFontWeight v -> 38
-                           CssDeclarationHeight v -> 39
-                           CssDeclarationLeft v -> 40
-                           CssDeclarationLetterSpacing v -> 41
-                           CssDeclarationLineHeight v -> 42
-                           CssDeclarationListStyleImage v -> 43
-                           CssDeclarationListStylePosition v -> 44
-                           CssDeclarationListStyleType v -> 45
-                           CssDeclarationMarginBottom v -> 46
-                           CssDeclarationMarginLeft v -> 47
-                           CssDeclarationMarginRight v -> 48
-                           CssDeclarationMarginTop v -> 49
-                           CssDeclarationMarkerOffset v -> 50
-                           CssDeclarationMarks v -> 51
-                           CssDeclarationMaxHeight v -> 52
-                           CssDeclarationMaxWidth v -> 53
-                           CssDeclarationMinHeight v -> 54
-                           CssDeclarationMinWidth v -> 55
-                           CssDeclarationOutlineColor v -> 56
-                           CssDeclarationOutlineStyle v -> 57
-                           CssDeclarationOutlineWidth v ->  58
-                           CssDeclarationOverflow v -> 59
-                           CssDeclarationPaddingBottom v -> 60
-                           CssDeclarationPaddingLeft v -> 61
-                           CssDeclarationPaddingRight v -> 62
-                           CssDeclarationPaddingTop v -> 63
-                           CssDeclarationPosition v -> 64
-                           CssDeclarationQuotes v -> 65
-                           CssDeclarationRight v -> 66
-                           CssDeclarationTextAlign v -> 67
-                           CssDeclarationTextDecoration v -> 68
-                           CssDeclarationTextIndent v -> 69
-                           CssDeclarationTextShadow v -> 70
-                           CssDeclarationTextTransform v -> 71
-                           CssDeclarationTop v -> 72
-                           CssDeclarationUnicodeBiDi v -> 73
-                           CssDeclarationVerticalAlign v -> 74
-                           CssDeclarationVisibility v -> 75
-                           CssDeclarationWhitespace v -> 76
-                           CssDeclarationWidth v -> 77
-                           CssDeclarationWordSpacing v -> 78
-                           CssDeclarationZIndex v -> 79
-                           CssDeclarationXLink v -> 80
-                           CssDeclarationXColSpan v -> 81
-                           CssDeclarationXRowSpan v -> 82
-                           CssDeclarationXLang v -> 83
-                           CssDeclarationXImg v -> 84
-                           CssDeclarationXTooltip v -> 85
-                           CssDeclaration_LAST -> 86
--}
-
-
-
 
 allDeclMakers :: [(CssValue -> CssDeclaration, Int)]
 allDeclMakers =
@@ -1117,18 +1023,18 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 4 )                   -- CssDeclarationBackgroundRepeat; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 5 )                   -- CssDeclarationBorderBottomColor; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 6 )                   -- CssDeclarationBorderBottomStyle; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclaration_LAST), 7 )                   -- CssDeclarationBorderBottomWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2
+  , ( (\v -> CssDeclaration_LAST), 7 )                   -- CssDeclarationBorderBottomWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclaration_LAST), 8 )                   -- CssDeclarationBorderCollapse; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 9 )                   -- CssDeclarationBorderLeftColor; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 10 )                  -- CssDeclarationBorderLeftStyle; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclaration_LAST), 11 )                  -- CssDeclarationBorderLeftWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2
+  , ( (\v -> CssDeclaration_LAST), 11 )                  -- CssDeclarationBorderLeftWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclaration_LAST), 12 )                  -- CssDeclarationBorderRightColor; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 13 )                  -- CssDeclarationBorderRightStyle; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclaration_LAST), 14 )                  -- CssDeclarationBorderRightWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2
-  , ( (\v -> CssDeclaration_LAST), 15 )                  -- CssDeclarationBorderSpacing; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2
+  , ( (\v -> CssDeclaration_LAST), 14 )                  -- CssDeclarationBorderRightWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 15 )                  -- CssDeclarationBorderSpacing; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclaration_LAST), 16 )                  -- CssDeclarationBorderTopColor; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 17 )                  -- CssDeclarationBorderTopStyle; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclaration_LAST), 18 )                  -- CssDeclarationBorderTopWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2
+  , ( (\v -> CssDeclaration_LAST), 18 )                  -- CssDeclarationBorderTopWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclarationBottom v), 19 )
   , ( (\v -> CssDeclarationCaptionSide v), 20 )
   , ( (\v -> CssDeclarationClear v), 21 )
@@ -1170,10 +1076,10 @@ allDeclMakers =
   , ( (\v -> CssDeclarationOutlineStyle v), 57 )
   , ( (\v -> CssDeclarationOutlineWidth v), 58 )
   , ( (\v -> CssDeclarationOverflow v), 59 )
-  , ( (\v -> CssDeclaration_LAST), 60 )                  -- CssDeclarationPaddingBottom; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2
-  , ( (\v -> CssDeclaration_LAST), 61 )                  -- CssDeclarationPaddingLeft; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2
-  , ( (\v -> CssDeclaration_LAST), 62 )                  -- CssDeclarationPaddingRight; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2
-  , ( (\v -> CssDeclaration_LAST), 63 )                  -- CssDeclarationPaddingTop; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength2
+  , ( (\v -> CssDeclaration_LAST), 60 )                  -- CssDeclarationPaddingBottom; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 61 )                  -- CssDeclarationPaddingLeft; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 62 )                  -- CssDeclarationPaddingRight; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 63 )                  -- CssDeclarationPaddingTop; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclarationPosition v), 64 )
   , ( (\v -> CssDeclarationQuotes v), 65 )
   , ( (\v -> CssDeclarationRight v), 66 )
@@ -1198,100 +1104,4 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 85 )                  -- CssDeclarationXTooltip; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXTooltipOfNode
   , ( (\v -> CssDeclaration_LAST), 86 )                  -- "last" item
   ]
-
-
-
-
-
-{-
-getDeclValue :: CssDeclaration -> CssValue
-getDeclValue decl = case decl of
-                      CssDeclarationBackgroundAttachment v -> v
-                      CssDeclarationBackgroundColor v -> v
-                      CssDeclarationBackgroundImage v -> v
-                      CssDeclarationBackgroundPosition v -> v
-                      CssDeclarationBackgroundRepeat v -> v
-                      CssDeclarationBorderBottomColor v -> v
-                      CssDeclarationBorderBottomStyle v -> v
-                      CssDeclarationBorderBottomWidth v -> v
-                      CssDeclarationBorderCollapse v -> v
-                      CssDeclarationBorderLeftColor v -> v
-                      CssDeclarationBorderLeftStyle v -> v
-                      CssDeclarationBorderLeftWidth v -> v
-                      CssDeclarationBorderRightColor v -> v
-                      CssDeclarationBorderRightStyle v -> v
-                      CssDeclarationBorderRightWidth v -> v
-                      CssDeclarationBorderSpacing v -> v
-                      CssDeclarationBorderTopColor v -> v
-                      CssDeclarationBorderTopStyle v -> v
-                      CssDeclarationBorderTopWidth v -> v
-                      CssDeclarationBottom v -> v
-                      CssDeclarationCaptionSide v -> v
-                      CssDeclarationClear v -> v
-                      CssDeclarationClip v -> v
-                      CssDeclarationColor v -> v
-                      CssDeclarationContent v -> v
-                      CssDeclarationCounterIncrement v -> v
-                      CssDeclarationCounterReset v -> v
-                      CssDeclarationCursor v -> v
-                      CssDeclarationDirection v -> v
-                      CssDeclarationDisplay v -> v
-                      CssDeclarationEmptyCells v -> v
-                      CssDeclarationFloat v -> v
-                      CssDeclarationFontFamily v -> v
-                      CssDeclarationFontSize v -> v
-                      CssDeclarationFontSizeAdjust v -> v
-                      CssDeclarationFontStretch v -> v
-                      CssDeclarationFontStyle v -> v
-                      CssDeclarationFontVariant v -> v
-                      CssDeclarationFontWeight v -> v
-                      CssDeclarationHeight v -> v
-                      CssDeclarationLeft v -> v
-                      CssDeclarationLetterSpacing v -> v
-                      CssDeclarationLineHeight v -> v
-                      CssDeclarationListStyleImage v -> v
-                      CssDeclarationListStylePosition v -> v
-                      CssDeclarationListStyleType v -> v
-                      CssDeclarationMarginBottom v -> v
-                      CssDeclarationMarginLeft v -> v
-                      CssDeclarationMarginRight v -> v
-                      CssDeclarationMarginTop v -> v
-                      CssDeclarationMarkerOffset v -> v
-                      CssDeclarationMarks v -> v
-                      CssDeclarationMaxHeight v -> v
-                      CssDeclarationMaxWidth v -> v
-                      CssDeclarationMinHeight v -> v
-                      CssDeclarationMinWidth v -> v
-                      CssDeclarationOutlineColor v -> v
-                      CssDeclarationOutlineStyle v -> v
-                      CssDeclarationOutlineWidth v -> v
-                      CssDeclarationOverflow v -> v
-                      CssDeclarationPaddingBottom v -> v
-                      CssDeclarationPaddingLeft v -> v
-                      CssDeclarationPaddingRight v -> v
-                      CssDeclarationPaddingTop v -> v
-                      CssDeclarationPosition v -> v
-                      CssDeclarationQuotes v -> v
-                      CssDeclarationRight v -> v
-                      CssDeclarationTextAlign v -> v
-                      CssDeclarationTextDecoration v -> v
-                      CssDeclarationTextIndent v -> v
-                      CssDeclarationTextShadow v -> v
-                      CssDeclarationTextTransform v -> v
-                      CssDeclarationTop v -> v
-                      CssDeclarationUnicodeBiDi v -> v
-                      CssDeclarationVerticalAlign v -> v
-                      CssDeclarationVisibility v -> v
-                      CssDeclarationWhitespace v -> v
-                      CssDeclarationWidth v -> v
-                      CssDeclarationWordSpacing v -> v
-                      CssDeclarationZIndex v -> v
-                      CssDeclarationXLink v -> v
-                      CssDeclarationXColSpan v -> v
-                      CssDeclarationXRowSpan v -> v
-                      CssDeclarationXLang v -> v
-                      CssDeclarationXImg v -> v
-                      CssDeclarationXTooltip v -> v
-                      CssDeclaration_LAST -> CssValueTypeUnused
--}
 

@@ -758,7 +758,7 @@ void cpp_styleEngineSetNonCssHintOfNodeLength2(StyleNode * styleNode, CssDeclara
 {
    float lengthValue = cpp_cssLengthValue(cssLength);
    int lengthType  = (int) cpp_cssLengthType(cssLength);
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeLength2(styleNode->declLists.non_css_decl_set_ref, property, valueType, lengthValue, lengthType);
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeLength(styleNode->declLists.non_css_decl_set_ref, property, valueType, lengthValue, lengthType);
    return;
 }
 
