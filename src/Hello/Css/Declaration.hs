@@ -153,8 +153,6 @@ module Hello.Css.Declaration
   , makeCssDeclarationWidth
   , makeCssDeclarationWordSpacing
   , makeCssDeclarationZIndex
-  , makeCssDeclarationXColSpan
-  , makeCssDeclarationXRowSpan
   , makeCssDeclarationXLang
   , makeCssDeclarationXImg
   , makeCssDeclarationXTooltip
@@ -302,7 +300,7 @@ data CssDeclaration
 
   -- Pseudo-property used internally by dillo/hello. Without it following
   -- a/href links won't work.
-  | CssDeclarationXLink CssValueXLink                   -- 80
+  | CssDeclarationXLink CssValueXLink                   -- 80               parsing is NOT unit-tested because there is no parsing of this property
 
   | CssDeclarationXColSpan CssValue                     -- 81
   | CssDeclarationXRowSpan CssValue                     -- 82
@@ -1754,7 +1752,7 @@ makeCssDeclarationZIndex v = CssDeclarationZIndex v
 
 
 -- ------------------------------------------------
--- x-link pseudoproperty
+-- x-link pseudo-property
 -- ------------------------------------------------
 
 
@@ -1774,6 +1772,35 @@ data CssValueXLink
 
 
 
+
+-- ------------------------------------------------
+-- x-colspan pseudo-property
+-- Currently unused.
+-- ------------------------------------------------
+
+
+
+-- There is no parser/constructor function because the value never appears in
+-- CSS input.
+-- TODO: check why/if we need this pseudo-property.
+
+
+
+
+-- ------------------------------------------------
+-- x-rowspan pseudo-property
+-- Currently unused.
+-- ------------------------------------------------
+
+
+
+-- There is no parser/constructor function because the value never appears in
+-- CSS input.
+-- TODO: check why/if we need this pseudo-property.
+
+
+
+
 -- ------------------------------------------------
 --
 -- ------------------------------------------------
@@ -1781,8 +1808,6 @@ data CssValueXLink
 
 
 
-makeCssDeclarationXColSpan v = CssDeclarationXColSpan v
-makeCssDeclarationXRowSpan v = CssDeclarationXRowSpan v
 makeCssDeclarationXLang v = CssDeclarationXLang v
 makeCssDeclarationXImg v = CssDeclarationXImg v
 makeCssDeclarationXTooltip v = CssDeclarationXTooltip v

@@ -207,9 +207,8 @@ cssPropertyInfo = M.fromList [
    -- These are extensions for internal use, and never parsed by CSS parser.
    -- Related CSS "pseudo-properties" are set from HTML parser.
    , ("x-link",                 ((Nothing, Nothing),                                     [],                                                                   []))
-   -- TODO: verify whether we need x-colspan and x-rowspan.
-   , ("x-colspan",              ((Just makeCssDeclarationXColSpan, Nothing),             [ declValueAsInt ],                                                   []))
-   , ("x-rowspan",              ((Just makeCssDeclarationXRowSpan, Nothing),             [ declValueAsInt ],                                                   []))
+   , ("x-colspan",              ((Nothing, Nothing),                                     [],                                                                   []))
+   , ("x-rowspan",              ((Nothing, Nothing),                                     [],                                                                   []))
    , ("x-lang",                 ((Just makeCssDeclarationXLang, Nothing),                [],                                                                   []))
    , ("x-img",                  ((Just makeCssDeclarationXImg, Nothing),                 [],                                                                   []))
    , ("x-tooltip",              ((Just makeCssDeclarationXTooltip, Nothing),             [],                                                                   []))
@@ -830,14 +829,6 @@ parseDeclValue (parser, token) enums []     = ((parser, token), Nothing)
 parseDeclValue (parser, token) enums (f:fs) = case f (parser, token) enums of
                                                 all@((parser, token), Just value) -> all
                                                 otherwise                         -> parseDeclValue (parser, token) enums fs
-
-
-
-
--- C++ code in dillo commented "Int" with "Not used for parser values."
--- CssValueTypeInt is used internally only.
--- TODO: clarify why we need this at all.
-declValueAsInt (parser, token) enums = ((parser, token), Just (CssValueTypeInt 0))
 
 
 
