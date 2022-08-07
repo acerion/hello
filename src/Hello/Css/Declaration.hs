@@ -53,6 +53,7 @@ module Hello.Css.Declaration
   , CssValueFontStyle (..)
   , CssValueFontVariant (..)
   , CssValueFontWeight (..)
+  , CssValueHeight (..)
   , CssValueLetterSpacing (..)
   , CssValueLineHeight (..)
   , CssValueListStylePosition (..)
@@ -255,7 +256,7 @@ data CssDeclaration
   | CssDeclarationFontStyle CssValueFontStyle           -- 36               parsing is unit-tested
   | CssDeclarationFontVariant CssValueFontVariant       -- 37               parsing is unit-tested
   | CssDeclarationFontWeight CssValueFontWeight         -- 38               parsing is unit-tested
-  | CssDeclarationHeight CssValue                       -- 39
+  | CssDeclarationHeight CssValueHeight                 -- 39               parsing is unit-tested
   | CssDeclarationLeft CssValue                         -- 40
   | CssDeclarationLetterSpacing CssValueLetterSpacing   -- 41               parsing is unit-tested
   | CssDeclarationLineHeight CssValueLineHeight         -- 42               parsing is unit-tested
@@ -1139,13 +1140,40 @@ makeCssDeclarationFontWeight pat = (pat', fmap CssDeclarationFontWeight declValu
 
 
 -- ------------------------------------------------
+-- Height (height)
 --
 -- ------------------------------------------------
 
 
 
 
-makeCssDeclarationHeight v = CssDeclarationHeight v
+data CssValueHeight
+  = CssValueHeightDistance CssDistance
+  deriving (Data, Eq, Show)
+
+
+
+
+makeCssDeclarationHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationHeight pat = (pat', fmap CssDeclarationHeight declValue)
+  where
+    (vs', declValue) = declValueAsLength3 vs >>? tokensAsValueAuto3
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueHeight
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueHeightDistance
+                                  }
+
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclarationLeft v = CssDeclarationLeft v
 
 

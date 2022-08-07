@@ -86,7 +86,8 @@ data CssDistance =
 
   | CssNumericNone     Float     -- CSS_LENGTH_TYPE_NONE
   | CssNumericRelative Float     -- CSS_LENGTH_TYPE_RELATIVE; This does not exist in CSS but is used in HTML
-  | CssNumericAuto     Int       -- CSS_LENGTH_TYPE_AUTO; This can be used as a simple value
+    -- Value corresponding to "auto" value of "height" property.
+  | CssNumericAuto     Int       -- CSS_LENGTH_TYPE_AUTO; This can be used as a simple value; TODO: we most probably don't need to provide Int value to this constructor.
   deriving (Show, Eq, Data)
 
 

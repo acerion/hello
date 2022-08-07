@@ -1780,7 +1780,7 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
          cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_w);
       }
       if (cpp_cssLengthType(l_h) != CSS_LENGTH_TYPE_AUTO) {
-         cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_HEIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_h);
+         cpp_styleEngineSetNonCssHintOfNodeLength2(currentNode, CSS_PROPERTY_HEIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_h);
       }
    }
 

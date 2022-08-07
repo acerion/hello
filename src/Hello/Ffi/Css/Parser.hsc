@@ -1055,7 +1055,7 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 36 )                  -- CssDeclarationFontStyle; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 37 )                  -- CssDeclarationFontVariant; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 38 )                  -- CssDeclarationFontWeight; C++ code will never ask for this property
-  , ( (\v -> CssDeclarationHeight v), 39 )
+  , ( (\v -> CssDeclaration_LAST), 39 )                  -- CssDeclarationHeight; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclarationLeft v), 40 )
   , ( (\v -> CssDeclaration_LAST), 41 )                  -- CssDeclarationLetterSpacing; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 42 )                  -- CssDeclarationLineHeight; C++ code will never ask for this property

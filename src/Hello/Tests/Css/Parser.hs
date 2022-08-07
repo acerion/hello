@@ -398,11 +398,32 @@ parseDeclarationTestData =
 
     -- Testing for parsing of bad css: invalid property name.
   , ("font-weigth: bold",               [])
-  -- Testing for parsing of bad css: invalid value.
+    -- Testing for parsing of bad css: invalid value.
   , ("font-weight: light",              [])
   , ("font-weight: 1200",               [])
-  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+    -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
   , ( "font-weight: normal !_mportant", [CssDeclWrapper { property = CssDeclarationFontWeight CssValueFontWeightNormal,   important = False  } ])
+
+
+
+
+  , ("height: auto",                     [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssNumericAuto cssLengthTypeAuto)),   important = False } ])
+  , ("height: auto !important",          [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssNumericAuto cssLengthTypeAuto)),   important = True  } ])
+  , ("height:   1px",                    [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceAbsPx   1.0)),             important = False } ])
+  , ("height:   1px !important",         [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceAbsPx   1.0)),             important = True  } ])
+  , ("height:  22.22mm",                 [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceAbsMm  22.22)),            important = False } ])
+  , ("height:  22.22mm !important",      [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceAbsMm  22.22)),            important = True  } ])
+  , ("height:  33.3em",                  [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceRelEm  33.3)),             important = False } ])
+  , ("height:  33.3em !important",       [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceRelEm  33.3)),             important = True  } ])
+  , ("height: 444.44ex",                 [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceRelEx 444.44)),            important = False } ])
+  , ("height: 444.44ex !important",      [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceRelEx 444.44)),            important = True  } ])
+
+    -- Testing for parsing of bad css: invalid property name.
+  , ("heigth:  77.7em",                  [])
+    -- Testing for parsing of bad css: invalid value.
+  , ("height:  left",                    [])
+    -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ("height:  22.22mm !importat",       [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceAbsMm  22.22)),            important = False } ])
 
 
 

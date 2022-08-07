@@ -497,7 +497,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationVerticalAlign value     -> styleAttrs { styleVerticalAlign  = getVerticalAlign value }
     CssDeclarationWhitespace value        -> styleAttrs { styleWhiteSpace     = getWhiteSpace value }
     CssDeclarationWidth value             -> styleAttrs { styleWidth          = getWidthOrHeight (cssValueToDistance value) fontAttrs display }
-    CssDeclarationHeight value            -> styleAttrs { styleHeight         = getWidthOrHeight (cssValueToDistance value) fontAttrs display }
+    CssDeclarationHeight declValue        -> styleAttrs { styleHeight         = getHeight declValue fontAttrs display }
     CssDeclarationListStylePosition value -> styleAttrs { styleListStylePosition    = getListStylePosition value }
     CssDeclarationListStyleType value     -> styleAttrs { styleListStyleType        = getListStyleType value }
     CssDeclarationLineHeight declValue    -> styleAttrs { styleLineHeight           = getLineHeight declValue fontAttrs display }
@@ -709,7 +709,16 @@ getWhiteSpace declValue = fromEnum declValue
 getWidthOrHeight distance fontAttrs display =
   case styleEngineCalculateDwLength distance fontAttrs display of
     Just length -> length
-    Nothing     -> createPercentageDwLength 100 -- "100%" seems to be a sane default; TODO: is it really
+    Nothing     -> createPercentageDwLength 100 -- "100%" seems to be a sane default; TODO: is it really?
+
+
+
+
+getHeight :: CssValueHeight -> FontAttrs -> Display -> DwLength
+getHeight (CssValueHeightDistance distance) fontAttrs display =
+  case styleEngineCalculateDwLength distance fontAttrs display of
+    Just length -> length
+    Nothing     -> createPercentageDwLength 100 -- "100%" seems to be a sane default; TODO: is it really?
 
 
 

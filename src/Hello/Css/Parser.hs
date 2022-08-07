@@ -161,7 +161,7 @@ cssPropertyInfo = M.fromList [
    , ("font-style",             ((Nothing, Just makeCssDeclarationFontStyle),            [],                                                                   []))
    , ("font-variant",           ((Nothing, Just makeCssDeclarationFontVariant),          [],                                                                   []))
    , ("font-weight",            ((Nothing, Just makeCssDeclarationFontWeight),           [],                                                                   []))
-   , ("height",                 ((Just makeCssDeclarationHeight, Nothing),               [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
+   , ("height",                 ((Nothing, Just makeCssDeclarationHeight),               [],                                                                   []))
    , ("left",                   ((Just makeCssDeclarationLeft, Nothing),                 [],                                                                   []))
    , ("letter-spacing",         ((Nothing, Just makeCssDeclarationLetterSpacing),        [],                                                                   []))
    , ("line-height",            ((Nothing, Just makeCssDeclarationLineHeight),           [],                                                                   []))
