@@ -1794,7 +1794,7 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
    /* x_img is an index to a list of {url,image} pairs.
     * We know a_Html_image_new() will use size() as its next index */
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
-   cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_X_IMG, CssDeclarationValueTypeINTEGER, html->images->size(), 0.0, 0);
+   cpp_styleEngineSetXImgOfNode(currentNode, html->images->size());
 
 
    dFree(width_ptr);

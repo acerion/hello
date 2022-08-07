@@ -787,6 +787,15 @@ void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property,
    return;
 }
 
+
+
+
+void cpp_styleEngineSetXImgOfNode(StyleNode * styleNode, int intVal)
+{
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetXImgOfNode(styleNode->declLists.non_css_decl_set_ref, intVal);
+   return;
+}
+
 void cpp_styleEngineSetXLangOfNode(StyleNode * styleNode, const char * stringVal)
 {
    styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetXLangOfNode(styleNode->declLists.non_css_decl_set_ref, stringVal);

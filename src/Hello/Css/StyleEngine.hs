@@ -509,7 +509,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationWordSpacing declValue   -> styleAttrs { styleWordSpacing    = getWordSpacig declValue fontAttrs display }
     CssDeclarationXLink declValue         -> styleAttrs { styleXLink          = getXLink declValue }
     CssDeclarationXLang declValue         -> styleAttrs { styleXLang          = getXLang declValue }
-    CssDeclarationXImg value              -> styleAttrs { styleXImg           = getXImg value }
+    CssDeclarationXImg declValue          -> styleAttrs { styleXImg           = getXImg declValue }
     CssDeclarationXTooltip declValue      -> styleAttrs { styleXTooltip       = getXTooltip declValue }
     otherwise                             -> styleAttrs
     -- TODO: add support for missing cases
@@ -860,9 +860,10 @@ getXLang (CssValueXLang l) | T.length l == 2 = T.toLower l
 
 
 
-getXImg value = case value of
-                  CssValueTypeInt i -> i
-                  otherwise         -> 0
+-- Translate value of "x-img" pseudo-property from Haskell data into value
+-- understood by C++ code.
+getXImg :: CssValueXImg -> Int
+getXImg (CssValueXImg i) = i
 
 
 

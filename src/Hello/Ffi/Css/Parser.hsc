@@ -1193,10 +1193,10 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 80 )                  -- CssDeclarationXLink; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXLinkOfNode
   , ( (\v -> CssDeclaration_LAST), 81 )                  -- CssDeclarationXColSpan; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 82 )                  -- CssDeclarationXRowSpan; C++ code will never ask for this property
-  , ( (\v -> CssDeclaration_LAST), 83 )                  -- CssDeclarationXLang; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXTooltipOfNode
-  , ( (\v -> CssDeclarationXImg v), 84 )
+  , ( (\v -> CssDeclaration_LAST), 83 )                  -- CssDeclarationXLang; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXLangOfNode
+  , ( (\v -> CssDeclaration_LAST), 84 )                  -- CssDeclarationXImg; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXImgOfNode
   , ( (\v -> CssDeclaration_LAST), 85 )                  -- CssDeclarationXTooltip; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXTooltipOfNode
-  , ( (\v -> CssDeclaration_LAST), 86 )
+  , ( (\v -> CssDeclaration_LAST), 86 )                  -- "last" item
   ]
 
 

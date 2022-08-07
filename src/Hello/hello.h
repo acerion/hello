@@ -447,6 +447,7 @@ int hll_styleEngineSetNonCssHintOfNodeColor(int non_css_decl_set_ref, int proper
 int hll_styleEngineSetNonCssHintOfNodeString(int non_css_decl_set_ref, int property, const char * stringVal);
 
 /* For setting pseudo-css-properties. */
+int hll_styleEngineSetXImgOfNode(int non_css_decl_set_ref, int intVal);
 int hll_styleEngineSetXLangOfNode(int non_css_decl_set_ref, const char * stringVal);
 int hll_styleEngineSetXLinkOfNode(int non_css_decl_set_ref, int intVal);
 int hll_styleEngineSetXTooltipOfNode(int non_css_decl_set_ref, const char * stringVal);

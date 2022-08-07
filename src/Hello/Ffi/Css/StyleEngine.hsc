@@ -88,6 +88,7 @@ foreign export ccall "hll_styleEngineSetNonCssHintOfNodeEnum" hll_styleEngineSet
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeColor" hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
 
+foreign export ccall "hll_styleEngineSetXImgOfNode" hll_styleEngineSetXImgOfNode :: CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetXLangOfNode" hll_styleEngineSetXLangOfNode :: CInt -> CString -> IO CInt
 foreign export ccall "hll_styleEngineSetXLinkOfNode" hll_styleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetXTooltipOfNode" hll_styleEngineSetXTooltipOfNode :: CInt -> CString -> IO CInt
@@ -179,6 +180,21 @@ hll_styleEngineSetNonCssHintOfNodeInt2 cNonCssDeclSetRef cProperty cIntVal = do
            | otherwise      = trace ("[EE] Unhandled int property " ++ (show property)) (undefined)
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
+
+  globalDeclarationSetUpdate ref newDeclSet
+
+  return . fromIntegral $ ref
+
+
+
+
+hll_styleEngineSetXImgOfNode :: CInt -> CInt -> IO CInt
+hll_styleEngineSetXImgOfNode cNonCssDeclSetRef cIntVal = do
+
+  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
+
+  let intVal     = fromIntegral cIntVal
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper (CssDeclarationXImg $ CssValueXImg intVal) False)
 
   globalDeclarationSetUpdate ref newDeclSet
 

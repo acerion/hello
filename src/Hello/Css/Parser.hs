@@ -210,7 +210,7 @@ cssPropertyInfo = M.fromList [
    , ("x-colspan",              ((Nothing, Nothing),                                     [],                                                                   []))
    , ("x-rowspan",              ((Nothing, Nothing),                                     [],                                                                   []))
    , ("x-lang",                 ((Nothing, Nothing),                                     [],                                                                   []))
-   , ("x-img",                  ((Just makeCssDeclarationXImg, Nothing),                 [],                                                                   []))
+   , ("x-img",                  ((Nothing, Nothing),                                     [],                                                                   []))
    , ("x-tooltip",              ((Nothing, Nothing),                                     [],                                                                   []))
    -- TODO: verify if we still need "last" property.
    , ("last",                   ((Just makeCssDeclaration_LAST, Nothing),                [],                                                                   []))
