@@ -65,6 +65,7 @@ module Hello.Css.Declaration
   , CssValueVerticalAlign (..)
   , CssValueWhitespace (..)
   , CssValueWordSpacing (..)
+  , CssValueXLang (..)
   , CssValueXLink (..)
   , CssValueXTooltip (..)
 
@@ -154,7 +155,6 @@ module Hello.Css.Declaration
   , makeCssDeclarationWidth
   , makeCssDeclarationWordSpacing
   , makeCssDeclarationZIndex
-  , makeCssDeclarationXLang
   , makeCssDeclarationXImg
   , makeCssDeclaration_LAST
 
@@ -306,7 +306,7 @@ data CssDeclaration
   | CssDeclarationXRowSpan CssValue                     -- 82               parsing is NOT unit-tested because there is no CSS parsing of this property
 
   -- Pseudo-property for "lang" or "xml:lang" attribute of html element.
-  | CssDeclarationXLang CssValue                        -- 83
+  | CssDeclarationXLang CssValueXLang                   -- 83               parsing is NOT unit-tested because there is no CSS parsing of this property
 
   -- Pseudo-property used (probably) to index images in a html document.
   | CssDeclarationXImg CssValue                         -- 84
@@ -1802,13 +1802,32 @@ data CssValueXLink
 
 
 -- ------------------------------------------------
+-- x-lang pseudo-property
+-- ------------------------------------------------
+
+
+
+
+-- There is no parser/constructor function because the value never appears in
+-- CSS input.
+
+
+
+
+data CssValueXLang
+  = CssValueXLang T.Text
+  deriving (Data, Eq, Show)
+
+
+
+
+-- ------------------------------------------------
 --
 -- ------------------------------------------------
 
 
 
 
-makeCssDeclarationXLang v = CssDeclarationXLang v
 makeCssDeclarationXImg v = CssDeclarationXImg v
 
 

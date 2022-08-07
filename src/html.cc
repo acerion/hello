@@ -1711,7 +1711,7 @@ static void Html_tag_open_font(DilloHtml *html, const char *tag, int tagsize)
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "face"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeString2(currentNode, CSS_PROPERTY_FONT_FAMILY, attr_value);
+      cpp_styleEngineSetNonCssHintOfNodeString(currentNode, CSS_PROPERTY_FONT_FAMILY, attr_value);
    }
 }
 
@@ -3425,7 +3425,7 @@ static void Html_parse_common_attrs(DilloHtml *html, char *tag, int tagsize)
       // TODO: make sure that Haskell code knows that only two-char string is
       // a valid lang string.
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeString(currentNode, CSS_PROPERTY_X_LANG, CssDeclarationValueTypeSTRING, lang);
+      cpp_styleEngineSetXLangOfNode(currentNode, strdup(lang)); // FIXME: memory leak. Because after passing 'lang' directly, the Haskell code sees some garbage value.
    }
 }
 

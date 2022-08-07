@@ -775,21 +775,21 @@ void cpp_styleEngineSetNonCssHintOfNodeColor(StyleNode * styleNode, int property
    return;
 }
 
-void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, int valueType, const char * stringVal)
+void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, const char * stringVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeString(styleNode->declLists.non_css_decl_set_ref, property, valueType, stringVal);
-   return;
-}
-
-void cpp_styleEngineSetNonCssHintOfNodeString2(StyleNode * styleNode, int property, const char * stringVal)
-{
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeString2(styleNode->declLists.non_css_decl_set_ref, property, stringVal);
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeString(styleNode->declLists.non_css_decl_set_ref, property, stringVal);
    return;
 }
 
 void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property, int enumVal)
 {
    styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeEnum(styleNode->declLists.non_css_decl_set_ref, property, enumVal);
+   return;
+}
+
+void cpp_styleEngineSetXLangOfNode(StyleNode * styleNode, const char * stringVal)
+{
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetXLangOfNode(styleNode->declLists.non_css_decl_set_ref, stringVal);
    return;
 }
 

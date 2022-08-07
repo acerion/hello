@@ -1142,7 +1142,7 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 29 )                  -- CssDeclarationDisplay; C++ code will never ask for this property
   , ( (\v -> CssDeclarationEmptyCells v), 30 )
   , ( (\v -> CssDeclarationFloat v), 31 )
-  , ( (\v -> CssDeclaration_LAST), 32 )                  -- CssDeclarationFontFamily; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeString2
+  , ( (\v -> CssDeclaration_LAST), 32 )                  -- CssDeclarationFontFamily; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeString
   , ( (\v -> CssDeclaration_LAST), 33 )                  -- CssDeclarationFontSize; C++ code will never ask for this property
   , ( (\v -> CssDeclarationFontSizeAdjust v), 34 )
   , ( (\v -> CssDeclarationFontStretch v), 35 )
@@ -1191,9 +1191,9 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 78 )                  -- CssDeclarationWordSpacing; C++ code will never ask for this property
   , ( (\v -> CssDeclarationZIndex v), 79 )
   , ( (\v -> CssDeclaration_LAST), 80 )                  -- CssDeclarationXLink; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXLinkOfNode
-  , ( (\v -> CssDeclarationXColSpan v), 81 )
-  , ( (\v -> CssDeclarationXRowSpan v), 82 )
-  , ( (\v -> CssDeclarationXLang v), 83 )
+  , ( (\v -> CssDeclaration_LAST), 81 )                  -- CssDeclarationXColSpan; C++ code will never ask for this property
+  , ( (\v -> CssDeclaration_LAST), 82 )                  -- CssDeclarationXRowSpan; C++ code will never ask for this property
+  , ( (\v -> CssDeclaration_LAST), 83 )                  -- CssDeclarationXLang; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXTooltipOfNode
   , ( (\v -> CssDeclarationXImg v), 84 )
   , ( (\v -> CssDeclaration_LAST), 85 )                  -- CssDeclarationXTooltip; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXTooltipOfNode
   , ( (\v -> CssDeclaration_LAST), 86 )

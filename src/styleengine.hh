@@ -40,9 +40,9 @@ void cpp_styleEngineSetNonCssHintOfNodeLength2(StyleNode * styleNode, CssDeclara
 void cpp_styleEngineSetNonCssHintOfNodeInt(StyleNode * styleNode, int property, int valueType, int intVal, float lengthValue, int lengthType);
 void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property, int enumVal);
 void cpp_styleEngineSetNonCssHintOfNodeColor(StyleNode * styleNode, int property, int color);
-void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, int valueType, const char * stringVal);
-void cpp_styleEngineSetNonCssHintOfNodeString2(StyleNode * styleNode, int property, const char * stringVal);
+void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, const char * stringVal);
 
+void cpp_styleEngineSetXLangOfNode(StyleNode * styleNode, const char * stringVal);
 void cpp_styleEngineSetXLinkOfNode(StyleNode * styleNode, int intVal);
 void cpp_styleEngineSetXTooltipOfNode(StyleNode * styleNode, const char * stringVal);
 

@@ -85,10 +85,10 @@ foreign export ccall "hll_styleEngineSetNonCssHintOfNodeInt" hll_styleEngineSetN
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeInt2" hll_styleEngineSetNonCssHintOfNodeInt2 :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeLength2" hll_styleEngineSetNonCssHintOfNodeLength2 :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeEnum" hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
-foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CInt -> CString -> IO CInt
-foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString2" hll_styleEngineSetNonCssHintOfNodeString2 :: CInt -> CInt -> CString -> IO CInt
+foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeColor" hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
 
+foreign export ccall "hll_styleEngineSetXLangOfNode" hll_styleEngineSetXLangOfNode :: CInt -> CString -> IO CInt
 foreign export ccall "hll_styleEngineSetXLinkOfNode" hll_styleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetXTooltipOfNode" hll_styleEngineSetXTooltipOfNode :: CInt -> CString -> IO CInt
 
@@ -360,33 +360,8 @@ hll_styleEngineSetNonCssHintOfNodeColor cNonCssDeclSetRef cProperty cColor  = do
 
 
 
-hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CInt -> CString -> IO CInt
-hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cValueType cStringVal = do
-
-  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
-
-  let propMaker = fst (allDeclMakers !! (fromIntegral cProperty))
-  let valType  = fromIntegral cValueType
-  let intVal   = 0
-  stringVal <- BSU.unsafePackCString $ cStringVal
-  let textVal  = T.E.decodeLatin1 stringVal
-  let lengthValue = 0 -- cLengthValue
-  let lengthType  = 0 -- fromIntegral cLengthType
-
-  let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
-  let decl :: CssDeclWrapper = CssDeclWrapper (propMaker cssValue) False
-
-  let newDeclSet = declarationsSetUpdateOrAdd declSet decl
-
-  globalDeclarationSetUpdate ref newDeclSet
-
-  return . fromIntegral $ ref
-
-
-
-
-hll_styleEngineSetNonCssHintOfNodeString2 :: CInt -> CInt -> CString -> IO CInt
-hll_styleEngineSetNonCssHintOfNodeString2 cNonCssDeclSetRef cProperty cStringVal = do
+hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
+hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cStringVal = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
@@ -396,6 +371,22 @@ hll_styleEngineSetNonCssHintOfNodeString2 cNonCssDeclSetRef cProperty cStringVal
   let decl | property == 32 = CssDeclarationFontFamily $ CssValueFontFamilyList [textVal]
            | otherwise      = trace ("[EE] Unhandled string property " ++ (show property)) (undefined)
 
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
+
+  globalDeclarationSetUpdate ref newDeclSet
+
+  return . fromIntegral $ ref
+
+
+
+
+hll_styleEngineSetXLangOfNode :: CInt -> CString -> IO CInt
+hll_styleEngineSetXLangOfNode cNonCssDeclSetRef cStringVal = do
+
+  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
+
+  textVal <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
+  let decl = CssDeclarationXLang $ CssValueXLang textVal
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
 
   globalDeclarationSetUpdate ref newDeclSet

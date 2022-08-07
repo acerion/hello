@@ -508,7 +508,7 @@ yet because a full support for them in dillo seems to be missing or broken.
                                                           styleVBorderSpacing = getBorderSpacing declValue fontAttrs display }
     CssDeclarationWordSpacing declValue   -> styleAttrs { styleWordSpacing    = getWordSpacig declValue fontAttrs display }
     CssDeclarationXLink declValue         -> styleAttrs { styleXLink          = getXLink declValue }
-    CssDeclarationXLang value             -> styleAttrs { styleXLang          = getXLang value }
+    CssDeclarationXLang declValue         -> styleAttrs { styleXLang          = getXLang declValue }
     CssDeclarationXImg value              -> styleAttrs { styleXImg           = getXImg value }
     CssDeclarationXTooltip declValue      -> styleAttrs { styleXTooltip       = getXTooltip declValue }
     otherwise                             -> styleAttrs
@@ -851,11 +851,11 @@ getXLink (CssValueXLink i) = i
 
 
 
-getXLang value = case value of
-                   CssValueTypeString s -> if T.length s == 2 -- Only two-letter values of 'lang' attribute are allowed. TODO: is style engine the best place to validate the length?
-                                           then T.toLower s
-                                           else ""
-                   otherwise            -> ""
+-- Only two-letter values of 'lang' attribute are allowed. TODO: is style
+-- engine the best place to validate the length?
+getXLang :: CssValueXLang -> T.Text
+getXLang (CssValueXLang l) | T.length l == 2 = T.toLower l
+                           | otherwise       = ""
 
 
 
