@@ -65,6 +65,7 @@ module Hello.Css.Declaration
   , CssValueVerticalAlign (..)
   , CssValueWhitespace (..)
   , CssValueWordSpacing (..)
+  , CssValueXLink (..)
 
   , makeCssDeclarationBackgroundAttachment
   , makeCssDeclarationBackgroundColor
@@ -152,7 +153,6 @@ module Hello.Css.Declaration
   , makeCssDeclarationWidth
   , makeCssDeclarationWordSpacing
   , makeCssDeclarationZIndex
-  , makeCssDeclarationXLink
   , makeCssDeclarationXColSpan
   , makeCssDeclarationXRowSpan
   , makeCssDeclarationXLang
@@ -302,7 +302,7 @@ data CssDeclaration
 
   -- Pseudo-property used internally by dillo/hello. Without it following
   -- a/href links won't work.
-  | CssDeclarationXLink CssValue                        -- 80
+  | CssDeclarationXLink CssValueXLink                   -- 80
 
   | CssDeclarationXColSpan CssValue                     -- 81
   | CssDeclarationXRowSpan CssValue                     -- 82
@@ -1749,7 +1749,38 @@ makeCssDeclarationWordSpacing pat = (pat', fmap CssDeclarationWordSpacing declVa
 
 
 makeCssDeclarationZIndex v = CssDeclarationZIndex v
-makeCssDeclarationXLink v = CssDeclarationXLink v
+
+
+
+
+-- ------------------------------------------------
+-- x-link pseudoproperty
+-- ------------------------------------------------
+
+
+
+
+data CssValueXLink
+  = CssValueXLink Int
+  deriving (Data, Eq, Show)
+
+
+
+
+-- There is no parser/constructor function because the value is set not
+-- during parsing of CSS, but during parsing of HTML. The HTML parser has a
+-- dedicated method of passsing the value of x-link pseudo-property that
+-- doesn't require us to pretend that we parse x-link property.
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclarationXColSpan v = CssDeclarationXColSpan v
 makeCssDeclarationXRowSpan v = CssDeclarationXRowSpan v
 makeCssDeclarationXLang v = CssDeclarationXLang v

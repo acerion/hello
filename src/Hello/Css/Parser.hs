@@ -206,7 +206,7 @@ cssPropertyInfo = M.fromList [
 
    -- These are extensions for internal use, and never parsed by CSS parser.
    -- Related CSS "pseudo-properties" are set from HTML parser.
-   , ("x-link",                 ((Just makeCssDeclarationXLink, Nothing),                [ declValueAsInt ],                                                   []))
+   , ("x-link",                 ((Nothing, Nothing),                                     [],                                                                   []))
    -- TODO: verify whether we need x-colspan and x-rowspan.
    , ("x-colspan",              ((Just makeCssDeclarationXColSpan, Nothing),             [ declValueAsInt ],                                                   []))
    , ("x-rowspan",              ((Just makeCssDeclarationXRowSpan, Nothing),             [ declValueAsInt ],                                                   []))

@@ -43,6 +43,7 @@ void cpp_styleEngineSetNonCssHintOfNodeColor(StyleNode * styleNode, int property
 void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, int valueType, const char * stringVal);
 void cpp_styleEngineSetNonCssHintOfNodeString2(StyleNode * styleNode, int property, const char * stringVal);
 
+void cpp_styleEngineSetXLinkOfNode(StyleNode * styleNode, int intVal);
 
 class StyleEngine {
 public:

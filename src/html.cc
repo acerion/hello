@@ -1611,7 +1611,7 @@ static void Html_tag_open_frame (DilloHtml *html, const char *tag, int tagsize)
    }
 
    StyleNode * currentNode = getCurrentNode(html->styleEngine);
-   cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html,&url), 0.0, 0);
+   cpp_styleEngineSetXLinkOfNode(currentNode, Html_set_new_link(html,&url));
 }
 
 static void
@@ -2150,7 +2150,7 @@ static void Html_tag_open_object(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
+      cpp_styleEngineSetXLinkOfNode(currentNode, Html_set_new_link(html, &url));
    }
    a_Url_free(base_url);
 }
@@ -2188,7 +2188,7 @@ static void Html_tag_open_video(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
+      cpp_styleEngineSetXLinkOfNode(currentNode, Html_set_new_link(html, &url));
 
       Html2TextBlock(html)->addText("[VIDEO]", html->styleEngine->getWordStyle (html->bw));
    }
@@ -2220,7 +2220,7 @@ static void Html_tag_open_audio(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
+      cpp_styleEngineSetXLinkOfNode(currentNode, Html_set_new_link(html, &url));
 
       Html2TextBlock(html)->addText("[AUDIO]", html->styleEngine->getWordStyle (html->bw));
    }
@@ -2254,7 +2254,7 @@ static void Html_tag_open_source(DilloHtml *html, const char *tag,
          html->styleEngine->setPseudoLink ();
       }
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
+      cpp_styleEngineSetXLinkOfNode(currentNode, Html_set_new_link(html, &url));
    }
 }
 
@@ -2293,7 +2293,7 @@ static void Html_tag_open_embed(DilloHtml *html, const char *tag, int tagsize)
       }
 
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
+      cpp_styleEngineSetXLinkOfNode(currentNode, Html_set_new_link(html, &url));
    }
 }
 
@@ -2379,7 +2379,7 @@ static void Html_tag_open_a(DilloHtml *html, const char *tag, int tagsize)
             cpp_styleEngineSetNonCssHintOfNodeColor(currentNode, CSS_PROPERTY_COLOR, html->non_css_link_color);
       }
 
-      cpp_styleEngineSetNonCssHintOfNodeInt(currentNode, CSS_PROPERTY_X_LINK, CssDeclarationValueTypeINTEGER, Html_set_new_link(html, &url), 0.0, 0);
+      cpp_styleEngineSetXLinkOfNode(currentNode, Html_set_new_link(html, &url));
    }
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);

@@ -1190,7 +1190,7 @@ allDeclMakers =
   , ( (\v -> CssDeclarationWidth v), 77 )
   , ( (\v -> CssDeclaration_LAST), 78 )                  -- CssDeclarationWordSpacing; C++ code will never ask for this property
   , ( (\v -> CssDeclarationZIndex v), 79 )
-  , ( (\v -> CssDeclarationXLink v), 80 )
+  , ( (\v -> CssDeclaration_LAST), 80 )                  -- CssDeclarationXLink; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeInt2
   , ( (\v -> CssDeclarationXColSpan v), 81 )
   , ( (\v -> CssDeclarationXRowSpan v), 82 )
   , ( (\v -> CssDeclarationXLang v), 83 )

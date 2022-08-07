@@ -793,4 +793,9 @@ void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property,
    return;
 }
 
+void cpp_styleEngineSetXLinkOfNode(StyleNode * styleNode, int intVal)
+{
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetXLinkOfNode(styleNode->declLists.non_css_decl_set_ref, intVal);
+   return;
+}
 

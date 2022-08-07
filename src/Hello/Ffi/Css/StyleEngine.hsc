@@ -82,11 +82,14 @@ import Hello.Ffi.Utils
 
 --foreign export ccall "hll_makeCssDeclaration" hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeInt" hll_styleEngineSetNonCssHintOfNodeInt :: CInt -> CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
+foreign export ccall "hll_styleEngineSetXLinkOfNode" hll_styleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
+foreign export ccall "hll_styleEngineSetNonCssHintOfNodeInt2" hll_styleEngineSetNonCssHintOfNodeInt2 :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeLength2" hll_styleEngineSetNonCssHintOfNodeLength2 :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeEnum" hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CInt -> CString -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString2" hll_styleEngineSetNonCssHintOfNodeString2 :: CInt -> CInt -> CString -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeColor" hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
+
 
 --foreign export ccall "hll_styleEngineComputeAbsoluteLengthValue" hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> Ptr FfiFontAttrs -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
 --foreign export ccall "hll_setFontFamily" hll_setFontFamily :: Ptr FfiCssValue -> Ptr FfiPreferences -> Ptr FfiFontAttrs -> IO ()
@@ -162,6 +165,44 @@ hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIn
 
 
 
+hll_styleEngineSetNonCssHintOfNodeInt2 :: CInt -> CInt -> CInt -> IO CInt
+hll_styleEngineSetNonCssHintOfNodeInt2 cNonCssDeclSetRef cProperty cIntVal = do
+
+  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
+
+  let propMaker = fst (allDeclMakers !! (fromIntegral cProperty))
+  let intVal   = fromIntegral cIntVal
+
+  let property = fromIntegral cProperty
+  let decl | property == 80 = CssDeclarationXLink $ CssValueXLink intVal
+           | otherwise      = trace ("[EE] Unhandled int property " ++ (show property)) (undefined)
+
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
+
+  globalDeclarationSetUpdate ref newDeclSet
+
+  return . fromIntegral $ ref
+
+
+
+
+hll_styleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
+hll_styleEngineSetXLinkOfNode cNonCssDeclSetRef cIntVal = do
+
+  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
+
+  let intVal     = fromIntegral cIntVal
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper (CssDeclarationXLink $ CssValueXLink intVal) False)
+
+  globalDeclarationSetUpdate ref newDeclSet
+
+  return . fromIntegral $ ref
+
+
+
+
+-- TODO: clean up unused function args (e.g. length args). Clean up
+-- implementation: remove unused variables.
 hll_styleEngineSetNonCssHintOfNodeLength2 :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
 hll_styleEngineSetNonCssHintOfNodeLength2 cNonCssDeclSetRef cProperty cValueType cLengthValue cLengthType  = do
 

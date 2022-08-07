@@ -507,7 +507,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationBorderSpacing declValue -> styleAttrs { styleHBorderSpacing = getBorderSpacing declValue fontAttrs display,
                                                           styleVBorderSpacing = getBorderSpacing declValue fontAttrs display }
     CssDeclarationWordSpacing declValue   -> styleAttrs { styleWordSpacing    = getWordSpacig declValue fontAttrs display }
-    CssDeclarationXLink value             -> styleAttrs { styleXLink          = getXLink value }
+    CssDeclarationXLink declValue         -> styleAttrs { styleXLink          = getXLink declValue }
     CssDeclarationXLang value             -> styleAttrs { styleXLang          = getXLang value }
     CssDeclarationXImg value              -> styleAttrs { styleXImg           = getXImg value }
     CssDeclarationXTooltip value          -> styleAttrs { styleXTooltip       = getXTooltip value }
@@ -843,9 +843,10 @@ getWordSpacig declValue fontAttrs display = clipSpacing (getSpacing declValue fo
 
 
 
-getXLink value = case value of
-                   CssValueTypeInt i -> i
-                   otherwise         -> 0
+-- Translate value of "x-link" pseudo-property from Haskell data into value
+-- understood by C++ code.
+getXLink :: CssValueXLink -> Int
+getXLink (CssValueXLink i) = i
 
 
 
