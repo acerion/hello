@@ -1726,7 +1726,7 @@ static void Html_tag_open_abbr(DilloHtml *html, const char *tag, int tagsize)
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeString(currentNode, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      cpp_styleEngineSetXTooltipOfNode(currentNode, attr_value);
    }
 }
 
@@ -1744,7 +1744,7 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeString(currentNode, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      cpp_styleEngineSetXTooltipOfNode(currentNode, attr_value);
    }
    width_ptr = html_attribute_get_value_with_default(tag, tagsize, "width", NULL);
    height_ptr = html_attribute_get_value_with_default(tag, tagsize, "height", NULL);
@@ -2383,7 +2383,7 @@ static void Html_tag_open_a(DilloHtml *html, const char *tag, int tagsize)
    }
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeString(currentNode, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      cpp_styleEngineSetXTooltipOfNode(currentNode, attr_value);
    }
 
    html->styleEngine->inheritBackgroundColor ();
@@ -3019,7 +3019,7 @@ static void Html_tag_open_span(DilloHtml *html, const char *tag, int tagsize)
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeString(currentNode, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      cpp_styleEngineSetXTooltipOfNode(currentNode, attr_value);
    }
 }
 
@@ -3033,7 +3033,7 @@ static void Html_tag_open_sectioning(DilloHtml *html, const char *tag,
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeString(currentNode, PROPERTY_X_TOOLTIP, CssDeclarationValueTypeSTRING, attr_value);
+      cpp_styleEngineSetXTooltipOfNode(currentNode, attr_value);
    }
 }
 

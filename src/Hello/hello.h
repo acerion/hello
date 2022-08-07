@@ -449,6 +449,7 @@ int hll_styleEngineSetNonCssHintOfNodeString2(int non_css_decl_set_ref, int prop
 
 /* For setting pseudo-css-properties. */
 int hll_styleEngineSetXLinkOfNode(int non_css_decl_set_ref, int intVal);
+int hll_styleEngineSetXTooltipOfNode(int non_css_decl_set_ref, const char * stringVal);
 
 
 void hll_styleEngineSetElementId(int doc_tree_ref, const char * element_id);

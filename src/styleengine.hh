@@ -44,6 +44,7 @@ void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int propert
 void cpp_styleEngineSetNonCssHintOfNodeString2(StyleNode * styleNode, int property, const char * stringVal);
 
 void cpp_styleEngineSetXLinkOfNode(StyleNode * styleNode, int intVal);
+void cpp_styleEngineSetXTooltipOfNode(StyleNode * styleNode, const char * stringVal);
 
 class StyleEngine {
 public:

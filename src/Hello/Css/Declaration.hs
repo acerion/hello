@@ -66,6 +66,7 @@ module Hello.Css.Declaration
   , CssValueWhitespace (..)
   , CssValueWordSpacing (..)
   , CssValueXLink (..)
+  , CssValueXTooltip (..)
 
   , makeCssDeclarationBackgroundAttachment
   , makeCssDeclarationBackgroundColor
@@ -155,7 +156,6 @@ module Hello.Css.Declaration
   , makeCssDeclarationZIndex
   , makeCssDeclarationXLang
   , makeCssDeclarationXImg
-  , makeCssDeclarationXTooltip
   , makeCssDeclaration_LAST
 
   , defaultDeclaration
@@ -300,17 +300,17 @@ data CssDeclaration
 
   -- Pseudo-property used internally by dillo/hello. Without it following
   -- a/href links won't work.
-  | CssDeclarationXLink CssValueXLink                   -- 80               parsing is NOT unit-tested because there is no parsing of this property
+  | CssDeclarationXLink CssValueXLink                   -- 80               parsing is NOT unit-tested because there is no CSS parsing of this property
 
-  | CssDeclarationXColSpan CssValue                     -- 81
-  | CssDeclarationXRowSpan CssValue                     -- 82
+  | CssDeclarationXColSpan CssValue                     -- 81               parsing is NOT unit-tested because there is no CSS parsing of this property
+  | CssDeclarationXRowSpan CssValue                     -- 82               parsing is NOT unit-tested because there is no CSS parsing of this property
 
   -- Pseudo-property for "lang" or "xml:lang" attribute of html element.
   | CssDeclarationXLang CssValue                        -- 83
 
   -- Pseudo-property used (probably) to index images in a html document.
   | CssDeclarationXImg CssValue                         -- 84
-  | CssDeclarationXTooltip CssValue                     -- 85
+  | CssDeclarationXTooltip CssValueXTooltip             -- 85               parsing is NOT unit-tested because there is no CSS parsing of this property
 
   | CssDeclaration_LAST                                 -- 86
   deriving (Eq, Show, Data)
@@ -1810,7 +1810,37 @@ data CssValueXLink
 
 makeCssDeclarationXLang v = CssDeclarationXLang v
 makeCssDeclarationXImg v = CssDeclarationXImg v
-makeCssDeclarationXTooltip v = CssDeclarationXTooltip v
+
+
+
+
+-- ------------------------------------------------
+-- x-tooltip pseudo-property
+-- ------------------------------------------------
+
+
+
+
+data CssValueXTooltip
+  = CssValueXTooltip T.Text
+  deriving (Data, Eq, Show)
+
+
+
+
+-- There is no parser/constructor function because the value never appears in
+-- CSS input.
+
+
+
+
+-- ------------------------------------------------
+--
+-- ------------------------------------------------
+
+
+
+
 makeCssDeclaration_LAST _ = CssDeclaration_LAST
 
 

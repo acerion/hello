@@ -510,7 +510,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationXLink declValue         -> styleAttrs { styleXLink          = getXLink declValue }
     CssDeclarationXLang value             -> styleAttrs { styleXLang          = getXLang value }
     CssDeclarationXImg value              -> styleAttrs { styleXImg           = getXImg value }
-    CssDeclarationXTooltip value          -> styleAttrs { styleXTooltip       = getXTooltip value }
+    CssDeclarationXTooltip declValue      -> styleAttrs { styleXTooltip       = getXTooltip declValue }
     otherwise                             -> styleAttrs
     -- TODO: add support for missing cases
 
@@ -867,9 +867,8 @@ getXImg value = case value of
 
 
 
-getXTooltip value = case value of
-                      CssValueTypeString s -> s
-                      otherwise            -> ""
+getXTooltip :: CssValueXTooltip -> T.Text
+getXTooltip (CssValueXTooltip t) = t
 
 
 

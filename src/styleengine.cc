@@ -799,3 +799,9 @@ void cpp_styleEngineSetXLinkOfNode(StyleNode * styleNode, int intVal)
    return;
 }
 
+void cpp_styleEngineSetXTooltipOfNode(StyleNode * styleNode, const char * stringVal)
+{
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetXTooltipOfNode(styleNode->declLists.non_css_decl_set_ref, stringVal);
+   return;
+}
+
