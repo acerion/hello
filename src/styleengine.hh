@@ -41,6 +41,7 @@ void cpp_styleEngineSetNonCssHintOfNodeInt(StyleNode * styleNode, int property, 
 void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property, int enumVal);
 void cpp_styleEngineSetNonCssHintOfNodeColor(StyleNode * styleNode, int property, int color);
 void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, int valueType, const char * stringVal);
+void cpp_styleEngineSetNonCssHintOfNodeString2(StyleNode * styleNode, int property, const char * stringVal);
 
 
 class StyleEngine {

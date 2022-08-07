@@ -42,6 +42,7 @@ module Hello.Css.ParserHelpers
   , rgbFunctionToColor
   , parseUrl
   , consumeFunctionBody
+  , tokensAsValueStringList
 
   , takeLengthTokens
   , lengthValueToDistance
@@ -54,6 +55,7 @@ module Hello.Css.ParserHelpers
   , tokensAsValueMultiEnum3
   , tokensAsValueColor3
   , tokensAsValueBgPosition3
+  , tokensAsValueStringList3
   , declValueAsURI3
   )
 where
@@ -72,6 +74,7 @@ import Colors
 
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
+import Hello.Css.Value
 
 
 
@@ -100,6 +103,10 @@ data ValueState3 declValueT = ValueState3
     -- "CssValueBackgroundImageUri T.Text".
   , uriValueCtor          :: Maybe (T.Text -> declValueT)
 
+    -- Constructor for creating declaration values that are lists of strings,
+    -- e.g. "CssValueFontFamilyList ["monospace", "serif"]
+  , stringListCtor        :: Maybe ([T.Text] -> declValueT)
+
     -- A dictionary for mapping from a text token/value in CSS declaration to
     -- Haskell value, e.g. "italic" to CssValueFontStyleItalic or "thin" to
     -- CssValueBorderWidthThin.
@@ -120,6 +127,7 @@ defaultValueState3 pat = ValueState3 { pt3                   = pat
                                      , fontWeightValueCtor   = Nothing
                                      , bgPositionValueCtor   = Nothing
                                      , uriValueCtor          = Nothing
+                                     , stringListCtor        = Nothing
                                      , enums3                = []
                                      , allowUnitlessDistance = False
                                      }
@@ -538,5 +546,53 @@ consumeFunctionBody p1 acc = case nextToken1 p1 of
                                (p2, t2)                  -> consumeFunctionBody p2 (t2:acc)
 
 
+
+
+
+
+-- Interpret current CssTokIdent/CssTokStr token (and possibly more following
+-- CssTokIdent and CssTokStr tokens) as list value (value of type
+-- CssValueTypeStringList). The tokens should be separated by comma tokens.
+-- Returned value is a string of items separated by commas.
+--
+-- TODO: how we should handle list separated by spaces instead of commas? How
+-- should we handle multiple consecutive commas?
+--
+-- TODO: all tokens in declaration's value should be
+-- strings/symbols/commas/spaces. There can be no other tokens (e.g. numeric
+-- or hash). Such declaration should be rejected:
+-- 'font-family: "URW Gothic L", "Courier New", monospace, 90mph'
+-- Rationale: behaviour of FF and Chromium.
+--
+-- Read comma-separated list of items, e.g. font family names. The items can
+-- be strings with spaces, therefore the function consumes both CssTokIdent and
+-- CssTokStr tokens. TODO: test the code for list of symbols separated by
+-- space or comma.
+tokensAsValueStringList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+tokensAsValueStringList (parser, token) enums = asList (parser, token) []
+  where
+    asList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
+    asList (p, (CssTokIdent sym)) acc = asList (nextToken1 p) (sym:acc)
+    asList (p, (CssTokStr str)) acc   = asList (nextToken1 p) (str:acc)
+    asList (p, (CssTokComma)) acc     = asList (nextToken1 p) acc
+    asList (p, t@(CssTokSemicolon)) acc       = final (p, t) acc
+    asList (p, t@(CssTokBraceCurlyClose)) acc = final (p, t) acc
+    asList (p, t@(CssTokEnd)) acc     = final (p, t) acc
+    asList (p, t) acc                 = ((parser, token), Nothing) -- TODO: this implmentation does not allow for final "!important" token.
+
+    final (p, t) acc = if 0 == L.length acc
+                       then ((p, t), Nothing)
+                       else ((p, t), Just (CssValueTypeStringList . L.reverse $ acc))
+
+
+
+
+tokensAsValueStringList3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+tokensAsValueStringList3 vs@ValueState3 { pt3 = pat } = (vs { pt3 = pat' }, declValue)
+  where
+    (pat', cssValue) = tokensAsValueStringList pat []
+    declValue = case cssValue of
+                  Just (CssValueTypeStringList l) -> Just $ (fromJust . stringListCtor $ vs) l
+                  otherwise                       -> Nothing
 
 

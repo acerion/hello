@@ -85,6 +85,7 @@ foreign export ccall "hll_styleEngineSetNonCssHintOfNodeInt" hll_styleEngineSetN
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeLength2" hll_styleEngineSetNonCssHintOfNodeLength2 :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeEnum" hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CInt -> CString -> IO CInt
+foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString2" hll_styleEngineSetNonCssHintOfNodeString2 :: CInt -> CInt -> CString -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeColor" hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
 
 --foreign export ccall "hll_styleEngineComputeAbsoluteLengthValue" hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> Ptr FfiFontAttrs -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
@@ -306,7 +307,7 @@ hll_styleEngineSetNonCssHintOfNodeColor cNonCssDeclSetRef cProperty cColor  = do
   let color    = fromIntegral cColor
   let decl | property ==  1 = CssDeclarationBackgroundColor $ CssValueBackgroundColorColor color
            | property == 23 = CssDeclarationColor $ CssValueColor color
-           | otherwise      = trace ("Unhandled color property " ++ (show property)) (undefined)
+           | otherwise      = trace ("[EE] Unhandled color property " ++ (show property)) (undefined)
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
 
@@ -334,6 +335,26 @@ hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cValueType 
   let decl :: CssDeclWrapper = CssDeclWrapper (propMaker cssValue) False
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
+
+  globalDeclarationSetUpdate ref newDeclSet
+
+  return . fromIntegral $ ref
+
+
+
+
+hll_styleEngineSetNonCssHintOfNodeString2 :: CInt -> CInt -> CString -> IO CInt
+hll_styleEngineSetNonCssHintOfNodeString2 cNonCssDeclSetRef cProperty cStringVal = do
+
+  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
+
+  textVal     <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
+  let property = fromIntegral cProperty
+
+  let decl | property == 32 = CssDeclarationFontFamily $ CssValueFontFamilyList [textVal]
+           | otherwise      = trace ("[EE] Unhandled string property " ++ (show property)) (undefined)
+
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
 
   globalDeclarationSetUpdate ref newDeclSet
 

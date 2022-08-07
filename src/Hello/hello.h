@@ -445,6 +445,7 @@ int hll_styleEngineSetNonCssHintOfNodeLength2(int non_css_decl_set_ref, int prop
 int hll_styleEngineSetNonCssHintOfNodeEnum(int non_css_decl_set_ref, int property, int enumVal);
 int hll_styleEngineSetNonCssHintOfNodeColor(int non_css_decl_set_ref, int property, int color);
 int hll_styleEngineSetNonCssHintOfNodeString(int non_css_decl_set_ref, int property, int valueType, const char * stringVal);
+int hll_styleEngineSetNonCssHintOfNodeString2(int non_css_decl_set_ref, int property, const char * stringVal);
 
 
 void hll_styleEngineSetElementId(int doc_tree_ref, const char * element_id);

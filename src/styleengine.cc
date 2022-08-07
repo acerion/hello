@@ -781,6 +781,12 @@ void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int propert
    return;
 }
 
+void cpp_styleEngineSetNonCssHintOfNodeString2(StyleNode * styleNode, int property, const char * stringVal)
+{
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeString2(styleNode->declLists.non_css_decl_set_ref, property, stringVal);
+   return;
+}
+
 void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property, int enumVal)
 {
    styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeEnum(styleNode->declLists.non_css_decl_set_ref, property, enumVal);

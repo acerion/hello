@@ -334,6 +334,17 @@ parseDeclarationTestData =
 
 
 
+    -- TODO: "!important" keyword is not parsed correctly, fix it.
+    -- TODO: rules for font-family are compilcated, but we don't support them well, fix it.
+  , ("font-family: monospace",                  [CssDeclWrapper { property = CssDeclarationFontFamily $ CssValueFontFamilyList ["monospace"],             important = False } ])
+  , ("font-family: \"Comic Sans\", serif",      [CssDeclWrapper { property = CssDeclarationFontFamily $ CssValueFontFamilyList ["Comic Sans", "serif"],   important = False } ])
+  , ("font-family: 'My Font', cursive",         [CssDeclWrapper { property = CssDeclarationFontFamily $ CssValueFontFamilyList ["My Font", "cursive"],    important = False } ])
+  -- Testing for parsing of bad css: invalid property name.
+  , ( "foht-family: monospace",                 [])
+
+
+
+
   , ("font-size: xx-small",            [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeXXSmall,   important = False } ])
   , ("font-size: x-small !important",  [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeXSmall,    important = True  } ])
   , ("font-size: small",               [CssDeclWrapper { property = CssDeclarationFontSize CssValueFontSizeSmall,     important = False } ])

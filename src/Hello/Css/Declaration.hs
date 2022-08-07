@@ -48,6 +48,7 @@ module Hello.Css.Declaration
   , CssValueColor (..)
   , CssValueDisplay (..)
   , CssValueCursor (..)
+  , CssValueFontFamily (..)
   , CssValueFontSize (..)
   , CssValueFontStyle (..)
   , CssValueFontVariant (..)
@@ -250,7 +251,7 @@ data CssDeclaration
   | CssDeclarationDisplay CssValueDisplay               -- 29               parsing is unit-tested
   | CssDeclarationEmptyCells CssValue                   -- 30
   | CssDeclarationFloat CssValue                        -- 31
-  | CssDeclarationFontFamily CssValue                   -- 32
+  | CssDeclarationFontFamily CssValueFontFamily         -- 32               parsing is unit-tested (poorly)
   | CssDeclarationFontSize CssValueFontSize             -- 33               parsing is unit-tested
   | CssDeclarationFontSizeAdjust CssValue               -- 34
   | CssDeclarationFontStretch CssValue                  -- 35
@@ -913,7 +914,33 @@ makeCssDeclarationDisplay pat = (pat', fmap CssDeclarationDisplay declValue)
 
 makeCssDeclarationEmptyCells v = CssDeclarationEmptyCells v
 makeCssDeclarationFloat v = CssDeclarationFloat v
-makeCssDeclarationFontFamily v = CssDeclarationFontFamily v
+
+
+
+
+-- --------------------------------
+-- Font family (font-family)
+-- --------------------------------
+
+
+
+
+data CssValueFontFamily
+  = CssValueFontFamilyList [T.Text]
+  deriving (Eq, Show, Data)
+
+
+
+
+makeCssDeclarationFontFamily :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationFontFamily pat = (pat', fmap CssDeclarationFontFamily declValue)
+  where
+    (vs', declValue) = tokensAsValueStringList3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueFontFamily
+    vs = (defaultValueState3 pat) { stringListCtor = Just CssValueFontFamilyList
+                                  }
 
 
 
@@ -958,6 +985,7 @@ makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize value)
                   , fontWeightValueCtor = Nothing
                   , bgPositionValueCtor = Nothing
                   , uriValueCtor        = Nothing
+                  , stringListCtor      = Nothing
                   , enums3 = [ ("xx-small", CssValueFontSizeXXSmall)
                              , ("x-small",  CssValueFontSizeXSmall)
                              , ("small",    CssValueFontSizeSmall)
@@ -1015,6 +1043,7 @@ makeCssDeclarationFontStyle pat = (pat', fmap CssDeclarationFontStyle declValue)
                   , fontWeightValueCtor = Nothing
                   , bgPositionValueCtor = Nothing
                   , uriValueCtor        = Nothing
+                  , stringListCtor      = Nothing
                   , enums3 = [ ("normal",  CssValueFontStyleNormal)
                              , ("italic",  CssValueFontStyleItalic)
                              , ("oblique", CssValueFontStyleOblique)
@@ -1052,6 +1081,7 @@ makeCssDeclarationFontVariant pat = (pat', fmap CssDeclarationFontVariant declVa
                   , fontWeightValueCtor = Nothing
                   , bgPositionValueCtor = Nothing
                   , uriValueCtor        = Nothing
+                  , stringListCtor      = Nothing
                   , enums3 = [ ("normal",  CssValueFontVariantNormal)
                              , ("small-caps",  CssValueFontVariantSmallCaps)
                              ]
@@ -1378,6 +1408,7 @@ parseTokensAsPaddingValue (parser, token) = ((parser', token'), value)
                     , fontWeightValueCtor   = Nothing
                     , bgPositionValueCtor = Nothing
                     , uriValueCtor        = Nothing
+                    , stringListCtor      = Nothing
                     , enums3                = []
                     , allowUnitlessDistance = False -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
                     }

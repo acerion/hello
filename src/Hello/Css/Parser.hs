@@ -55,7 +55,6 @@ module Hello.Css.Parser(
                        , tokensAsValueColor
                        , declValueAsString
                        , tokensAsValueAuto
-                       , tokensAsValueStringList
                        , tokensAsValueString
                        , declValueAsLength
                        , declValueAsURI
@@ -156,7 +155,7 @@ cssPropertyInfo = M.fromList [
    , ("display",                ((Nothing, Just makeCssDeclarationDisplay),              [],                                                                   []))
    , ("empty-cells",            ((Just makeCssDeclarationEmptyCells, Nothing),           [],                                                                   []))
    , ("float",                  ((Just makeCssDeclarationFloat, Nothing),                [],                                                                   []))
-   , ("font-family",            ((Just makeCssDeclarationFontFamily, Nothing),           [ tokensAsValueStringList ],                                          []))
+   , ("font-family",            ((Nothing, Just makeCssDeclarationFontFamily),           [],                                                                   []))
    , ("font-size",              ((Nothing, Just makeCssDeclarationFontSize),             [],                                                                   []))
    , ("font-size-adjust",       ((Just makeCssDeclarationFontSizeAdjust, Nothing),       [],                                                                   []))
    , ("font-stretch",           ((Just makeCssDeclarationFontStretch, Nothing),          [],                                                                   []))
@@ -428,43 +427,6 @@ declValueAsURI :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), M
 declValueAsURI (parser, token) enums = case parseUrl (parser, token) of
                                          ((newParser, newToken), Just url) -> ((newParser, newToken), Just (CssValueTypeURI url))
                                          ((newParser, newToken), Nothing)  -> ((newParser, newToken), Nothing)
-
-
-
-
--- Interpret current CssTokIdent/CssTokStr token (and possibly more following
--- CssTokIdent and CssTokStr tokens) as list value (value of type
--- CssValueTypeStringList). The tokens should be separated by comma tokens.
--- Returned value is a string of items separated by commas.
---
--- TODO: how we should handle list separated by spaces instead of commas? How
--- should we handle multiple consecutive commas?
---
--- TODO: all tokens in declaration's value should be
--- strings/symbols/commas/spaces. There can be no other tokens (e.g. numeric
--- or hash). Such declaration should be rejected:
--- 'font-family: "URW Gothic L", "Courier New", monospace, 90mph'
--- Rationale: behaviour of FF and Chromium.
---
--- Read comma-separated list of items, e.g. font family names. The items can
--- be strings with spaces, therefore the function consumes both CssTokIdent and
--- CssTokStr tokens. TODO: test the code for list of symbols separated by
--- space or comma.
-tokensAsValueStringList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueStringList (parser, token) enums = asList (parser, token) []
-  where
-    asList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-    asList (p, (CssTokIdent sym)) acc = asList (nextToken1 p) (sym:acc)
-    asList (p, (CssTokStr str)) acc   = asList (nextToken1 p) (str:acc)
-    asList (p, (CssTokComma)) acc     = asList (nextToken1 p) acc
-    asList (p, t@(CssTokSemicolon)) acc       = final (p, t) acc
-    asList (p, t@(CssTokBraceCurlyClose)) acc = final (p, t) acc
-    asList (p, t@(CssTokEnd)) acc     = final (p, t) acc
-    asList (p, t) acc                 = ((parser, token), Nothing) -- TODO: this implmentation does not allow for final "!important" token.
-
-    final (p, t) acc = if 0 == length acc
-                       then ((p, t), Nothing)
-                       else ((p, t), Just (CssValueTypeStringList . reverse $ acc))
 
 
 

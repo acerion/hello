@@ -291,7 +291,7 @@ styleEngineApplyStyleToFontTestData =
                                                                , CssDeclWrapper {property = CssDeclarationMarginRight (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginBottom (CssValueTypeSignedLength (CssDistanceRelEm 0.5)), important = False}
                                                                , CssDeclWrapper {property = CssDeclarationMarginLeft (CssValueTypeSignedLength (CssNumericNone 0.0)), important = False}
-                                                               , CssDeclWrapper {property = CssDeclarationFontFamily (CssValueTypeStringList ["serif"]), important = False}]} -- font family
+                                                               , CssDeclWrapper {property = CssDeclarationFontFamily (CssValueFontFamilyList ["serif"]), important = False}]} -- font family
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -572,7 +572,7 @@ styleEngineApplyStyleToFontTestData =
     {
       -- This declaration set will modify these font attributes:
       -- - font family = monospace
-      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclWrapper {property = CssDeclarationFontFamily (CssValueTypeStringList ["monospace"]), important = False}]}
+      testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList [CssDeclWrapper {property = CssDeclarationFontFamily (CssValueFontFamilyList ["monospace"]), important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -593,7 +593,7 @@ styleEngineApplyStyleToFontTestData =
       -- - font familty = monospace
       testDeclSet = CssDeclarationSet {isSafe = True, items = S.fromList
                                                               [
-                                                                CssDeclWrapper {property = CssDeclarationFontFamily (CssValueTypeStringList ["monospace"]), important = False}
+                                                                CssDeclWrapper {property = CssDeclarationFontFamily (CssValueFontFamilyList ["monospace"]), important = False}
                                                               , CssDeclWrapper {property = CssDeclarationFontSize (CssValueFontSizeDistance (CssDistanceRelEm 1.5)), important = False}
                                                               ]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"

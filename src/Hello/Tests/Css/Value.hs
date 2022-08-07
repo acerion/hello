@@ -25,8 +25,9 @@ import qualified Data.Text as T
 import Test.HUnit
 
 import Hello.Css.Distance
-import Hello.Css.Tokenizer
 import Hello.Css.Parser
+import Hello.Css.ParserHelpers
+import Hello.Css.Tokenizer
 import Hello.Css.Value
 
 import Hello.Utils

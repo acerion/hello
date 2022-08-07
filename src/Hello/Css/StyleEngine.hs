@@ -124,11 +124,9 @@ styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display 
 
 -- https://www.w3schools.com/cssref/pr_font_font-family.asp
 -- https://developer.mozilla.org/pl/docs/Web/CSS/font-family
-styleEngineSetFontFamily :: CssValue -> Preferences -> FontAttrs -> FontAttrs
-styleEngineSetFontFamily value prefs fontAttrs = case value of
-                                                   CssValueTypeStringList xs -> setName xs prefs fontAttrs
-                                                   otherwise                 -> fontAttrs
-
+-- https://www.w3.org/TR/CSS22/fonts.html#font-family-prop
+styleEngineSetFontFamily :: CssValueFontFamily -> Preferences -> FontAttrs -> FontAttrs
+styleEngineSetFontFamily (CssValueFontFamilyList l) prefs fontAttrs = setName l prefs fontAttrs
   where
     setName (x:xs) prefs fontAttrs | x == "serif"      = fontAttrs { fontName = prefsFontSerif prefs }
                                    | x == "sans-serif" = fontAttrs { fontName = prefsFontSansSerif prefs }

@@ -1142,7 +1142,7 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 29 )                  -- CssDeclarationDisplay; C++ code will never ask for this property
   , ( (\v -> CssDeclarationEmptyCells v), 30 )
   , ( (\v -> CssDeclarationFloat v), 31 )
-  , ( (\v -> CssDeclarationFontFamily v), 32 )
+  , ( (\v -> CssDeclaration_LAST), 32 )                  -- CssDeclarationFontFamily; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeString2
   , ( (\v -> CssDeclaration_LAST), 33 )                  -- CssDeclarationFontSize; C++ code will never ask for this property
   , ( (\v -> CssDeclarationFontSizeAdjust v), 34 )
   , ( (\v -> CssDeclarationFontStretch v), 35 )

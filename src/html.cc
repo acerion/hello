@@ -1694,10 +1694,9 @@ static void Html_tag_content_br(DilloHtml *html, const char *tag, int tagsize)
 static void Html_tag_open_font(DilloHtml *html, const char *tag, int tagsize)
 {
    const char *attr_value;
-   char *fontFamily = NULL;
-   int32_t color;
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "color"))) {
+      int32_t color;
       if (prefs.contrast_visited_color && html->InVisitedLink) {
          color = html->visited_color;
       } else {
@@ -1711,12 +1710,9 @@ static void Html_tag_open_font(DilloHtml *html, const char *tag, int tagsize)
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "face"))) {
-      fontFamily = dStrdup(attr_value);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeString(currentNode, CSS_PROPERTY_FONT_FAMILY, CssDeclarationValueTypeSYMBOL, fontFamily);
+      cpp_styleEngineSetNonCssHintOfNodeString2(currentNode, CSS_PROPERTY_FONT_FAMILY, attr_value);
    }
-
-   dFree(fontFamily);
 }
 
 /*
