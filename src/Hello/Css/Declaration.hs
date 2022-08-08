@@ -65,6 +65,7 @@ module Hello.Css.Declaration
   , CssValueTextTransform (..)
   , CssValueVerticalAlign (..)
   , CssValueWhitespace (..)
+  , CssValueWidth (..)
   , CssValueWordSpacing (..)
   , CssValueXImg (..)
   , CssValueXLang (..)
@@ -294,7 +295,7 @@ data CssDeclaration
   | CssDeclarationVerticalAlign CssValueVerticalAlign   -- 74               parsing is unit-tested
   | CssDeclarationVisibility CssValue                   -- 75
   | CssDeclarationWhitespace CssValueWhitespace         -- 76               parsing is unit-tested
-  | CssDeclarationWidth CssValue                        -- 77
+  | CssDeclarationWidth CssValueWidth                   -- 77
   | CssDeclarationWordSpacing CssValueWordSpacing       -- 78               parsing is unit-tested
   | CssDeclarationZIndex CssValue                       -- 79
 
@@ -1141,7 +1142,7 @@ makeCssDeclarationFontWeight pat = (pat', fmap CssDeclarationFontWeight declValu
 
 -- ------------------------------------------------
 -- Height (height)
---
+-- https://www.w3.org/TR/CSS22/visudet.html#propdef-height
 -- ------------------------------------------------
 
 
@@ -1154,6 +1155,7 @@ data CssValueHeight
 
 
 
+-- TODO: CSS2.2 says: "Negative values for 'height' are illegal.". Implement this.
 makeCssDeclarationHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationHeight pat = (pat', fmap CssDeclarationHeight declValue)
   where
@@ -1747,12 +1749,29 @@ makeCssDeclarationWhitespace pat = (pat', fmap CssDeclarationWhitespace declValu
 
 -- ------------------------------------------------
 -- Width (width)
+-- https://www.w3.org/TR/CSS22/visudet.html#propdef-width
 -- ------------------------------------------------
 
 
 
 
-makeCssDeclarationWidth v = CssDeclarationWidth v
+data CssValueWidth
+  = CssValueWidthDistance CssDistance
+  deriving (Data, Eq, Show)
+
+
+
+
+-- TODO: CSS2.2 says: "Negative values for 'width' are illegal.". Implement this.
+makeCssDeclarationWidth :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationWidth pat = (pat', fmap CssDeclarationWidth declValue)
+  where
+    (vs', declValue) = declValueAsLength3 vs >>? tokensAsValueAuto3
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueWidth
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueWidthDistance
+                                  }
 
 
 

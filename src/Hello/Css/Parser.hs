@@ -199,7 +199,7 @@ cssPropertyInfo = M.fromList [
    , ("vertical-align",         ((Nothing, Just makeCssDeclarationVerticalAlign),        [],                                                                   []))
    , ("visibility",             ((Just makeCssDeclarationVisibility, Nothing),           [],                                                                   []))
    , ("white-space",            ((Nothing, Just makeCssDeclarationWhitespace),           [],                                                                   []))
-   , ("width",                  ((Just makeCssDeclarationWidth, Nothing),                [ declValueAsLengthPercent, tokensAsValueAuto ],                      []))
+   , ("width",                  ((Nothing, Just makeCssDeclarationWidth),                [],                                                                   []))
    , ("word-spacing",           ((Nothing, Just makeCssDeclarationWordSpacing),          [],                                                                   []))
    , ("z-index",                ((Just makeCssDeclarationZIndex, Nothing),               [],                                                                   []))
    ] :: M.Map T.Text CssPropertyInfo

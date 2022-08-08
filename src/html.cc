@@ -1777,7 +1777,7 @@ void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
    } else {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       if (cpp_cssLengthType(l_w) != CSS_LENGTH_TYPE_AUTO) {
-         cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_w);
+         cpp_styleEngineSetNonCssHintOfNodeLength2(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_w);
       }
       if (cpp_cssLengthType(l_h) != CSS_LENGTH_TYPE_AUTO) {
          cpp_styleEngineSetNonCssHintOfNodeLength2(currentNode, CSS_PROPERTY_HEIGHT, CssDeclarationValueTypeLENGTH_PERCENTAGE, l_h);
@@ -2609,7 +2609,7 @@ static void Html_tag_open_hr(DilloHtml *html, const char *tag, int tagsize)
          BUG_MSG("<hr> width attribute is obsolete.");
       CssLength width = html_parse_attribute_width_or_height(width_ptr);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
+      cpp_styleEngineSetNonCssHintOfNodeLength2(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
       dFree(width_ptr);
    }
 

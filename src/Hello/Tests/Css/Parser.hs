@@ -422,6 +422,8 @@ parseDeclarationTestData =
   , ("heigth:  77.7em",                  [])
     -- Testing for parsing of bad css: invalid value.
   , ("height:  left",                    [])
+    -- TODO: per CSS2.2 negative values are invalid. Fix this case in parser.
+  , ("height: -500.0mm",                 [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceAbsMm (-500.00))),         important = False } ])
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
   , ("height:  22.22mm !importat",       [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceAbsMm  22.22)),            important = False } ])
 
@@ -668,6 +670,29 @@ parseDeclarationTestData =
   , ( "vertical-align: suber",                [])
   -- Testing for parsing of bad css: incorrect value of "important" keyword. TODO: check how parser should behave here according to spec.
   , ( "vertical-align: top !!important",      [CssDeclWrapper { property = CssDeclarationVerticalAlign CssValueVerticalAlignTop,        important = False } ])
+
+
+
+
+  , ("width: auto",                     [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssNumericAuto cssLengthTypeAuto)),   important = False } ])
+  , ("width: auto !important",          [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssNumericAuto cssLengthTypeAuto)),   important = True  } ])
+  , ("width:   1px",                    [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceAbsPx   1.0)),             important = False } ])
+  , ("width:   1px !important",         [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceAbsPx   1.0)),             important = True  } ])
+  , ("width:  22.22mm",                 [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceAbsMm  22.22)),            important = False } ])
+  , ("width:  22.22mm !important",      [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceAbsMm  22.22)),            important = True  } ])
+  , ("width:  33.3em",                  [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceRelEm  33.3)),             important = False } ])
+  , ("width:  33.3em !important",       [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceRelEm  33.3)),             important = True  } ])
+  , ("width: 444.44ex",                 [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceRelEx 444.44)),            important = False } ])
+  , ("width: 444.44ex !important",      [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceRelEx 444.44)),            important = True  } ])
+
+    -- Testing for parsing of bad css: invalid property name.
+  , ("widht:  77.7em",                  [])
+    -- Testing for parsing of bad css: invalid value.
+  , ("width:  left",                    [])
+    -- TODO: per CSS2.2 negative values are invalid. Fix this case in parser.
+  , ("width: -500.0mm",                 [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceAbsMm (-500.00))),         important = False } ])
+    -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ("width:  22.22mm !importat",       [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceAbsMm  22.22)),            important = False } ])
 
 
 

@@ -1093,7 +1093,7 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 74 )                  -- CssDeclarationVerticalAlign; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclarationVisibility v), 75 )
   , ( (\v -> CssDeclaration_LAST), 76 )                  -- CssDeclarationWhitespace; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclarationWidth v), 77 )
+  , ( (\v -> CssDeclaration_LAST), 77 )                  -- CssDeclarationWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclaration_LAST), 78 )                  -- CssDeclarationWordSpacing; C++ code will never ask for this property
   , ( (\v -> CssDeclarationZIndex v), 79 )
   , ( (\v -> CssDeclaration_LAST), 80 )                  -- CssDeclarationXLink; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXLinkOfNode

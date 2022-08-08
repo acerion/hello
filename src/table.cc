@@ -79,7 +79,7 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    if ((attr_value = html_attribute_get_value(tag, tagsize, "width"))) {
       CssLength width = html_parse_attribute_width_or_height(attr_value);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
+      cpp_styleEngineSetNonCssHintOfNodeLength2(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
       if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<table> width attribute is obsolete.");
    }
@@ -381,7 +381,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
       if ((attr_value = html_attribute_get_value(tag, tagsize, "width"))) {
          CssLength width = html_parse_attribute_width_or_height(attr_value);
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
+         cpp_styleEngineSetNonCssHintOfNodeLength2(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
          if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
             BUG_MSG("<t%c> width attribute is obsolete.",
                (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');

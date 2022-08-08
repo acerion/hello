@@ -496,7 +496,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationTextTransform declValue -> styleAttrs { styleTextTransform  = getTextTransform declValue }
     CssDeclarationVerticalAlign value     -> styleAttrs { styleVerticalAlign  = getVerticalAlign value }
     CssDeclarationWhitespace value        -> styleAttrs { styleWhiteSpace     = getWhiteSpace value }
-    CssDeclarationWidth value             -> styleAttrs { styleWidth          = getWidthOrHeight (cssValueToDistance value) fontAttrs display }
+    CssDeclarationWidth declValue         -> styleAttrs { styleWidth          = getWidth declValue fontAttrs display }
     CssDeclarationHeight declValue        -> styleAttrs { styleHeight         = getHeight declValue fontAttrs display }
     CssDeclarationListStylePosition value -> styleAttrs { styleListStylePosition    = getListStylePosition value }
     CssDeclarationListStyleType value     -> styleAttrs { styleListStyleType        = getListStyleType value }
@@ -706,7 +706,8 @@ getWhiteSpace declValue = fromEnum declValue
 
 
 
-getWidthOrHeight distance fontAttrs display =
+getHeight :: CssValueHeight -> FontAttrs -> Display -> DwLength
+getHeight (CssValueHeightDistance distance) fontAttrs display =
   case styleEngineCalculateDwLength distance fontAttrs display of
     Just length -> length
     Nothing     -> createPercentageDwLength 100 -- "100%" seems to be a sane default; TODO: is it really?
@@ -714,8 +715,8 @@ getWidthOrHeight distance fontAttrs display =
 
 
 
-getHeight :: CssValueHeight -> FontAttrs -> Display -> DwLength
-getHeight (CssValueHeightDistance distance) fontAttrs display =
+getWidth :: CssValueWidth -> FontAttrs -> Display -> DwLength
+getWidth (CssValueWidthDistance distance) fontAttrs display =
   case styleEngineCalculateDwLength distance fontAttrs display of
     Just length -> length
     Nothing     -> createPercentageDwLength 100 -- "100%" seems to be a sane default; TODO: is it really?

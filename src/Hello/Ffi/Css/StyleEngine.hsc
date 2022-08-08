@@ -189,6 +189,7 @@ hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cValueType 
            | property == 61 = CssDeclarationPaddingLeft       $ CssValuePadding distance
            | property == 62 = CssDeclarationPaddingRight      $ CssValuePadding distance
            | property == 63 = CssDeclarationPaddingTop        $ CssValuePadding distance
+           | property == 77 = CssDeclarationWidth             $ CssValueWidthDistance distance
            | otherwise      = trace ("[EE] Unhandled length property " ++ (show property)) (undefined)
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
