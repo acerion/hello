@@ -58,6 +58,7 @@ module Hello.Css.Declaration
   , CssValueLineHeight (..)
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
+  , CssValueMargin (..)
   , CssValuePadding (..)
   , CssValueTextAlign (..)
   , CssValueTextDecoration (..)
@@ -166,6 +167,7 @@ module Hello.Css.Declaration
   , parseTokensAsBorderWidthValue
   , parseTokensAsBorderStyleValue
   , parseTokensAsBorderColorValue
+  , parseTokensAsMarginValue
   , parseTokensAsPaddingValue
   )
 where
@@ -264,10 +266,12 @@ data CssDeclaration
   | CssDeclarationListStyleImage CssValue               -- 43               not supported by hello
   | CssDeclarationListStylePosition CssValueListStylePosition  -- 44        parsing is unit-tested
   | CssDeclarationListStyleType CssValueListStyleType   -- 45               parsing is unit-tested
-  | CssDeclarationMarginBottom CssValue                 -- 46
-  | CssDeclarationMarginLeft CssValue                   -- 47
-  | CssDeclarationMarginRight CssValue                  -- 48
-  | CssDeclarationMarginTop CssValue                    -- 49
+
+  | CssDeclarationMarginTop CssValueMargin              -- 49               parsing is unit-tested
+  | CssDeclarationMarginRight CssValueMargin            -- 48               parsing is unit-tested
+  | CssDeclarationMarginBottom CssValueMargin           -- 46               parsing is unit-tested
+  | CssDeclarationMarginLeft CssValueMargin             -- 47               parsing is unit-tested
+
   | CssDeclarationMarkerOffset CssValue                 -- 50
   | CssDeclarationMarks CssValue                        -- 51
   | CssDeclarationMaxHeight CssValue                    -- 52
@@ -544,8 +548,8 @@ makeCssDeclarationBorderSpacing pat =  (pat', fmap CssDeclarationBorderSpacing d
 
 
 
--- Here is a tricky question: should I make separate types for colors of
--- Bottom/Top/Left/Right, or can I get away with common type for all four
+-- TODO: Here is a tricky question: should I make separate types for colors
+-- of Bottom/Top/Left/Right, or can I get away with common type for all four
 -- properties?
 data CssValueBorderColor
   = CssValueBorderColorInherit
@@ -1387,16 +1391,59 @@ makeCssDeclarationListStyleType pat = (pat', fmap CssDeclarationListStyleType de
 
 
 -- ------------------------------------------------
+-- Margin
+-- margin-top, margin-right, margin-bottom, margin-left
+-- ------------------------------------------------
+
+
+
+
+-- TODO: Here is a tricky question: should I make separate types for margin
+-- of Bottom/Top/Left/Right, or can I get away with common type for all four
+-- properties?
+data CssValueMargin
+  = CssValueMarginDistance CssDistance
+  deriving (Data, Eq, Show)
+
+
+
+
+makeCssDeclarationMarginX :: (CssValueMargin -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationMarginX declCtor pat = (pat', fmap declCtor value)
+  where
+    (pat', value) = parseTokensAsMarginValue pat
+
+
+
+
+parseTokensAsMarginValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueMargin)
+parseTokensAsMarginValue pat = (pat', declValue)
+  where
+    (vs', declValue) = declValueAsLength3 vs >>? tokensAsValueAuto3
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueMargin
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just CssValueMarginDistance
+                                  }
+
+
+
+
+makeCssDeclarationMarginTop    = makeCssDeclarationMarginX CssDeclarationMarginTop
+makeCssDeclarationMarginRight  = makeCssDeclarationMarginX CssDeclarationMarginRight
+makeCssDeclarationMarginBottom = makeCssDeclarationMarginX CssDeclarationMarginBottom
+makeCssDeclarationMarginLeft   = makeCssDeclarationMarginX CssDeclarationMarginLeft
+
+
+
+
+-- ------------------------------------------------
 --
 -- ------------------------------------------------
 
 
 
 
-makeCssDeclarationMarginBottom v = CssDeclarationMarginBottom v
-makeCssDeclarationMarginLeft v = CssDeclarationMarginLeft v
-makeCssDeclarationMarginRight v = CssDeclarationMarginRight v
-makeCssDeclarationMarginTop v = CssDeclarationMarginTop v
 makeCssDeclarationMarkerOffset v = CssDeclarationMarkerOffset v
 makeCssDeclarationMarks v = CssDeclarationMarks v
 makeCssDeclarationMaxHeight v = CssDeclarationMaxHeight v
@@ -1417,8 +1464,8 @@ makeCssDeclarationOverflow v = CssDeclarationOverflow v
 
 
 
--- Here is a tricky question: should I make separate types for padding of
--- Bottom/Top/Left/Right, or can I get away with common type for all four
+-- TODO: Here is a tricky question: should I make separate types for padding
+-- of Bottom/Top/Left/Right, or can I get away with common type for all four
 -- properties?
 data CssValuePadding
   = CssValuePadding CssDistance

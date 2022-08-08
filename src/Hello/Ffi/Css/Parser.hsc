@@ -1062,10 +1062,10 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 43 )                  -- CssDeclarationListStyleImage; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 44 )                  -- CssDeclarationListStylePosition; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclaration_LAST), 45 )                  -- CssDeclarationListStyleType; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclarationMarginBottom v), 46 )
-  , ( (\v -> CssDeclarationMarginLeft v), 47 )
-  , ( (\v -> CssDeclarationMarginRight v), 48 )
-  , ( (\v -> CssDeclarationMarginTop v), 49 )
+  , ( (\v -> CssDeclaration_LAST), 46 )                  -- CssDeclarationMarginBottom; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 47 )                  -- CssDeclarationMarginLeft;   Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 48 )                  -- CssDeclarationMarginRight;  Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 49 )                  -- CssDeclarationMarginTop;    Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclarationMarkerOffset v), 50 )
   , ( (\v -> CssDeclarationMarks v), 51 )
   , ( (\v -> CssDeclarationMaxHeight v), 52 )

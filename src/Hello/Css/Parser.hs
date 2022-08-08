@@ -65,7 +65,6 @@ module Hello.Css.Parser(
                        , parseDeclarationShorthand
 
                        , cssShorthandTypeMultiple
-                       , cssShorthandTypeDirections
                        , cssShorthandTypeBorder
                        , cssShorthandTypeFont
 
@@ -168,10 +167,12 @@ cssPropertyInfo = M.fromList [
    , ("list-style-image",       ((Nothing, Just makeCssDeclarationListStyleImage),       [],                                                                   []))
    , ("list-style-position",    ((Nothing, Just makeCssDeclarationListStylePosition),    [],                                                                   []))
    , ("list-style-type",        ((Nothing, Just makeCssDeclarationListStyleType),        [],                                                                   []))
-   , ("margin-bottom",          ((Just makeCssDeclarationMarginBottom, Nothing),         [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
-   , ("margin-left",            ((Just makeCssDeclarationMarginLeft, Nothing),           [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
-   , ("margin-right",           ((Just makeCssDeclarationMarginRight, Nothing),          [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
-   , ("margin-top",             ((Just makeCssDeclarationMarginTop, Nothing),            [ declValueAsSignedLength, tokensAsValueAuto ],                       []))
+
+   , ("margin-top",             ((Nothing, Just makeCssDeclarationMarginTop),            [],                                                                   []))
+   , ("margin-right",           ((Nothing, Just makeCssDeclarationMarginRight),          [],                                                                   []))
+   , ("margin-bottom",          ((Nothing, Just makeCssDeclarationMarginBottom),         [],                                                                   []))
+   , ("margin-left",            ((Nothing, Just makeCssDeclarationMarginLeft),           [],                                                                   []))
+
    , ("marker-offset",          ((Just makeCssDeclarationMarkerOffset, Nothing),         [],                                                                   []))
    , ("marks",                  ((Just makeCssDeclarationMarks, Nothing),                [],                                                                   []))
    , ("max-height",             ((Just makeCssDeclarationMaxHeight, Nothing),            [],                                                                   []))
@@ -216,7 +217,7 @@ type CssPropertyInfo = ((Maybe Ctor1, Maybe Ctor2), [CssPropertyValueFun], [T.Te
 
 
 cssShorthandTypeMultiple      =  0 -- [ p1 || p2 || ...], the property pi is determined  by the type; array of properties must be terminated by CSS_PROPERTY_End.
-cssShorthandTypeDirections    =  1 --  <t>{1,4}; array of properties must have length 4.
+cssShorthandTypeMargin        =  1
 cssShorthandTypeBorder        =  2 -- special, used for 'border'; array of properties must have length 12.
 cssShorthandTypeFont          =  3 -- special, used for 'font'
 cssShorthandTypeBorderWidth   =  4
@@ -233,6 +234,11 @@ cssShorthandTypeBackground    = 13
 
 
 
+-- Mapping between shorthand name of property and an enum. Currently the
+-- strings aren't used for any purposes, it's the enum that is used for
+-- lookup of code that should be executed for the shortcut property.
+--
+-- I need to make a decision on how to handle the shortcut properties.
 type ShorthandInfo = (Int, [T.Text])
 cssShorthandInfo = M.fromList [
     ("background",     (cssShorthandTypeBackground,    [ "background-color", "background-image", "background-repeat", "background-attachment", "background-position" ]))
@@ -260,13 +266,15 @@ cssShorthandInfo = M.fromList [
 
   , ("font",           (cssShorthandTypeFont,          [ "font-size",  "font-style", "font-variant", "font-weight", "font-family" ]))
 
-  -- Parsing of this property is unit-tested (poorly).
+    -- Parsing of this property is unit-tested (poorly).
   , ("list-style",     (cssShorthandTypeListStyle,     [ "list-style-type", "list-style-position", "list-style-image" ]))
 
-  , ("margin",         (cssShorthandTypeDirections,    [ "margin-top",      "margin-right",        "margin-bottom",      "margin-left" ]))
+    -- Parsing of this property is unit-tested.
+  , ("margin",         (cssShorthandTypeMargin,        [ "margin-top",      "margin-right",        "margin-bottom",      "margin-left" ]))
+
   , ("outline",        (cssShorthandTypeMultiple,      [ "outline-color",   "outline-style",       "outline-width"]))
 
-  -- Parsing of this property is unit-tested (poorly).
+    -- Parsing of this property is unit-tested (poorly).
   , ("padding",        (cssShorthandTypePadding,       [ "padding-top",     "padding-right",       "padding-bottom",     "padding-left" ]))
   ] :: M.Map T.Text ShorthandInfo
 
@@ -885,6 +893,13 @@ parseDeclarationDirections (parser, token) _ = ((parser, token), [])
 
 
 
+-- Parse 4, 3, 2 or 1 tokens, specifying values for top, right, bottom, left,
+-- or for t, r-l, b, or for t-b, r-l, or for all of them at once.
+parseDeclaration4321trbl = parseDeclarationDirections2
+
+
+
+
 parseDeclarationDirections2 :: (CssParser, CssToken) -> [b -> CssDeclaration] -> DeclarationValueCtor b -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationDirections2 (parser, token) (declCtorT:declCtorR:declCtorB:declCtorL:ctors) declValueCtor = ((outParser, outToken), ds)
   where
@@ -975,7 +990,12 @@ parseDeclarationBorder (parser, token) pinfo ds = ((p', t'), wrappedDecls)
 
 parseDeclarationShorthand :: (CssParser, CssToken) -> [CssPropertyInfo] -> Int -> ((CssParser, CssToken), [CssDeclWrapper])
 parseDeclarationShorthand (parser, token) pinfos shorthandType | shorthandType == cssShorthandTypeMultiple   = parseDeclarationMultiple (parser, token) pinfos []
-                                                               | shorthandType == cssShorthandTypeDirections = parseDeclarationDirections (parser, token) pinfos
+                                                               | shorthandType == cssShorthandTypeMargin     = parseDeclaration4321trbl (parser, token)
+                                                                                                                  [ CssDeclarationMarginTop
+                                                                                                                  , CssDeclarationMarginRight
+                                                                                                                  , CssDeclarationMarginBottom
+                                                                                                                  , CssDeclarationMarginLeft ]
+                                                                                                                  parseTokensAsMarginValue
                                                                | shorthandType == cssShorthandTypeBorder     = parseDeclarationBorder (parser, token) pinfos []
                                                                | shorthandType == cssShorthandTypeFont       = parseDeclarationMultiple (parser, token) pinfos []
                                                                | shorthandType == cssShorthandTypeBorderWidth   = parseDeclarationDirections2 (parser, token)

@@ -480,10 +480,10 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssDeclarationBorderBottomColor value -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColorBottom parentStyleAttrs value }}
     CssDeclarationBorderLeftColor value   -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColorLeft   parentStyleAttrs value }}
 
-    CssDeclarationMarginBottom value      -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin (cssValueToDistance value) fontAttrs display }}
-    CssDeclarationMarginLeft value        -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin (cssValueToDistance value) fontAttrs display }}
-    CssDeclarationMarginRight value       -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin (cssValueToDistance value) fontAttrs display }}
-    CssDeclarationMarginTop value         -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin (cssValueToDistance value) fontAttrs display }}
+    CssDeclarationMarginTop declValue     -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin declValue fontAttrs display }}
+    CssDeclarationMarginRight declValue   -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin declValue fontAttrs display }}
+    CssDeclarationMarginBottom declValue  -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin declValue fontAttrs display }}
+    CssDeclarationMarginLeft declValue    -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin declValue fontAttrs display }}
 
     CssDeclarationPaddingTop declValue    -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding declValue fontAttrs display }}
     CssDeclarationPaddingRight declValue  -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding declValue fontAttrs display }}
@@ -661,7 +661,8 @@ getTextTransform declValue = fromEnum declValue
 
 
 
-getMargin distance fontAttrs display = clip . calculate $ distance
+getMargin :: CssValueMargin -> FontAttrs -> Display -> Int
+getMargin (CssValueMarginDistance distance) fontAttrs display = clip . calculate $ distance
   where
     calculate dist = case styleEngineComputeAbsoluteLengthValue dist fontAttrs 0 display of
                        -- TODO: another place where Maybe returned by Compute function

@@ -509,6 +509,70 @@ parseDeclarationTestData =
 
 
 
+  , ( "margin-top: auto",                      [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssNumericAuto    7)),          important = False } ])
+  , ( "margin-top: auto !important",           [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssNumericAuto    7)),          important = True  } ])
+  , ( "margin-top:  1px",                      [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssDistanceAbsPx  1.0)),        important = False } ])
+  , ( "margin-top:  2.2mm !important",         [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssDistanceAbsMm  2.2)),        important = True  } ])
+  , ( "margin-top:  3.0em",                    [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssDistanceRelEm  3.0)),        important = False } ])
+  , ( "margin-top: 93.0ex",                    [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssDistanceRelEx 93.0)),        important = False } ])
+    -- Testing for parsing of bad css: invalid property name.
+  , ( "margin-to: 11.0px",                     [])
+    -- Testing for parsing of bad css: invalid value.
+  , ( "margin-top: red",                       [])
+    -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "margin-top: 26.6px !inportant",         [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssDistanceAbsPx 26.6)),        important = False  } ])
+
+
+
+
+  , ( "margin-right: auto",                    [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssNumericAuto    7)),        important = False } ])
+  , ( "margin-right: auto !important",         [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssNumericAuto    7)),        important = True  } ])
+  , ( "margin-right: 111px",                   [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssDistanceAbsPx 111.0)),     important = False } ])
+  , ( "margin-right: 222mm !important",        [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssDistanceAbsMm 222.0)),     important = True  } ])
+  , ( "margin-right: 333.0em",                 [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssDistanceRelEm 333.0)),     important = False } ])
+  , ( "margin-right: 444.0ex !important",      [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssDistanceRelEx 444.0)),     important = True  } ])
+    -- Testing for parsing of bad css: invalid property name.
+  , ( "margin-rigth: 11.0px",                  [])
+    -- Testing for parsing of bad css: invalid value.
+  , ( "margin-right: italic",                  [])
+    -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "margin-right: 33.6px !inportant",       [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssDistanceAbsPx 33.6)),      important = False  } ])
+
+
+
+
+  , ( "margin-bottom: auto",                   [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssNumericAuto    7)),       important = False } ])
+  , ( "margin-bottom: auto !important",        [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssNumericAuto    7)),       important = True  } ])
+  , ( "margin-bottom: 1.110px",                [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceAbsPx 1.11)),     important = False } ])
+  , ( "margin-bottom: 2.220mm !important",     [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceAbsMm 2.22)),     important = True  } ])
+  , ( "margin-bottom: 3.330em",                [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceRelEm 3.33)),     important = False } ])
+  , ( "margin-bottom: 4.440ex !important",     [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceRelEx 4.44)),     important = True  } ])
+    -- Testing for parsing of bad css: invalid property name.
+  , ( "margin-botom: 11.0px",                  [])
+    -- Testing for parsing of bad css: invalid value.
+  , ( "margin-bottom: none",                   [])
+    -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "margin-bottom: 33.6px !inportant",      [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceAbsPx 33.6)),     important = False  } ])
+
+
+
+
+  , ( "margin-left: auto",                     [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssNumericAuto    7)),         important = False } ])
+  , ( "margin-left: auto !important",          [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssNumericAuto    7)),         important = True  } ])
+  , ( "margin-left: 1.110px !important",       [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssDistanceAbsPx 1.11)),       important = True  } ])
+  , ( "margin-left: 2.220mm",                  [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssDistanceAbsMm 2.22)),       important = False } ])
+  , ( "margin-left: 3.330em !important",       [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssDistanceRelEm 3.33)),       important = True  } ])
+  , ( "margin-left: 4.440ex",                  [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssDistanceRelEx 4.44)),       important = False } ])
+    -- Testing for parsing of bad css: invalid property name.
+  , ( "margin_left: 11.0px",                   [])
+    -- Testing for parsing of bad css: invalid value.
+  , ( "margin-left: latin",                    [])
+    -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "margin-left: 33.6px !inportant",        [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssDistanceAbsPx 33.6)),       important = False  } ])
+
+
+
+
   , ( "padding-top: 1.0px",                   [CssDeclWrapper { property = CssDeclarationPaddingTop (CssValuePadding (CssDistanceAbsPx 1.0)),       important = False } ])
   , ( "padding-top: 2.3mm !important",        [CssDeclWrapper { property = CssDeclarationPaddingTop (CssValuePadding (CssDistanceAbsMm 2.3)),       important = True  } ])
   , ( "padding-top: 4.5em",                   [CssDeclWrapper { property = CssDeclarationPaddingTop (CssValuePadding (CssDistanceRelEm 4.5)),       important = False } ])
@@ -798,6 +862,33 @@ parseDeclarationShorthandTestData =
                                              , CssDeclWrapper { property = CssDeclarationPaddingRight  (CssValuePadding (CssDistanceAbsMm  2.5)),       important = False }
                                              , CssDeclWrapper { property = CssDeclarationPaddingBottom (CssValuePadding (CssDistanceRelEm 33.1)),       important = False }
                                              , CssDeclWrapper { property = CssDeclarationPaddingLeft   (CssValuePadding (CssDistanceRelEx 21.9)),       important = False }
+                                             ])
+
+
+
+    -- All four values provided: top, right, bottom, left.
+  , ("margin: 10.1px 20.2mm 30.3em 40.4ex",  [ CssDeclWrapper { property = CssDeclarationMarginTop    (CssValueMarginDistance (CssDistanceAbsPx 10.1)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginRight  (CssValueMarginDistance (CssDistanceAbsMm 20.2)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceRelEm 30.3)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginLeft   (CssValueMarginDistance (CssDistanceRelEx 40.4)),  important = False }
+                                             ])
+    -- Three values are provided: top, right-left, bottom.
+  , ("margin: 11px 22mm 33.3em",             [ CssDeclWrapper { property = CssDeclarationMarginTop    (CssValueMarginDistance (CssDistanceAbsPx 11.0)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginRight  (CssValueMarginDistance (CssDistanceAbsMm 22.0)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceRelEm 33.3)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginLeft   (CssValueMarginDistance (CssDistanceAbsMm 22.0)),  important = False }
+                                             ])
+    -- Two values are provided: top-bottom, right-left.
+  , ("margin: 100px 200mm",                  [ CssDeclWrapper { property = CssDeclarationMarginTop    (CssValueMarginDistance (CssDistanceAbsPx 100.0)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginRight  (CssValueMarginDistance (CssDistanceAbsMm 200.0)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceAbsPx 100.0)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginLeft   (CssValueMarginDistance (CssDistanceAbsMm 200.0)),  important = False }
+                                             ])
+    -- One value is provided: top-right-bottom-left.
+  , ("margin: 38.01em",                      [ CssDeclWrapper { property = CssDeclarationMarginTop    (CssValueMarginDistance (CssDistanceRelEm 38.01)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginRight  (CssValueMarginDistance (CssDistanceRelEm 38.01)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceRelEm 38.01)),  important = False },
+                                               CssDeclWrapper { property = CssDeclarationMarginLeft   (CssValueMarginDistance (CssDistanceRelEm 38.01)),  important = False }
                                              ])
 
 
