@@ -1040,7 +1040,7 @@ allDeclMakers =
   , ( (\v -> CssDeclarationClear v), 21 )
   , ( (\v -> CssDeclarationClip v), 22 )
   , ( (\v -> CssDeclaration_LAST), 23 )                  -- CssDeclarationColor; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeColor
-  , ( (\v -> CssDeclarationContent v), 24 )
+  , ( (\v -> CssDeclaration_LAST), 24 )                  -- CssDeclarationContent; C++ code will never ask for this property
   , ( (\v -> CssDeclarationCounterIncrement v), 25 )
   , ( (\v -> CssDeclarationCounterReset v), 26 )
   , ( (\v -> CssDeclaration_LAST), 27 )                  -- CssDeclarationCursor; C++ code will never ask for this property

@@ -58,6 +58,7 @@ module Hello.Css.ParserHelpers
   , tokensAsValueStringList3
   , declValueAsURI3
   , tokensAsValueAuto3
+  , tokensAsValueString3
   )
 where
 
@@ -108,6 +109,10 @@ data ValueState3 declValueT = ValueState3
     -- e.g. "CssValueFontFamilyList ["monospace", "serif"]
   , stringListCtor        :: Maybe ([T.Text] -> declValueT)
 
+    -- Constructor for creating declaration values that are a string,
+    -- e.g. "CssValueContent "some content"
+  , stringCtor            :: Maybe (T.Text -> declValueT)
+
     -- A dictionary for mapping from a text token/value in CSS declaration to
     -- Haskell value, e.g. "italic" to CssValueFontStyleItalic or "thin" to
     -- CssValueBorderWidthThin.
@@ -129,6 +134,7 @@ defaultValueState3 pat = ValueState3 { pt3                   = pat
                                      , bgPositionValueCtor   = Nothing
                                      , uriValueCtor          = Nothing
                                      , stringListCtor        = Nothing
+                                     , stringCtor            = Nothing
                                      , dict                  = []
                                      , allowUnitlessDistance = False
                                      }
@@ -618,6 +624,18 @@ tokensAsValueAuto3 (p, t@(CssTokIdent sym)) | T.toLower sym == "auto" = ((nextTo
                                             | otherwise               = ((p, t), Nothing)
 tokensAsValueAuto3 (p, t)                                             = ((p, t), Nothing)
 -}
+
+
+
+
+-- Interpret current token as "string" value
+--
+-- In case of "string" value there is no need to consume more than current
+-- token to build the String, but for consistency with other similar
+-- functions the function is still called "tokensAs...".
+tokensAsValueString3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+tokensAsValueString3 vs@ValueState3 { pt3 = (p, (CssTokStr s)) } = (vs { pt3 = nextToken1 p}, Just $ (fromJust . stringCtor $ vs) s)
+tokensAsValueString3 vs                                          = (vs, Nothing)
 
 
 

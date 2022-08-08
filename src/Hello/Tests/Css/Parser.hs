@@ -287,6 +287,30 @@ parseDeclarationTestData =
 
 
 
+    -- For now only quoted strings are supported (with single or double quotes).
+  , ( "content: \"\"",                           [CssDeclWrapper { property = CssDeclarationContent (CssValueContent ""),        important = False } ])
+  , ( "content: \"\" !important",                [CssDeclWrapper { property = CssDeclarationContent (CssValueContent ""),        important = True } ])
+  , ( "content: \"bullet\"",                     [CssDeclWrapper { property = CssDeclarationContent (CssValueContent "bullet"),  important = False } ])
+  , ( "content: \"bullet\" !important",          [CssDeclWrapper { property = CssDeclarationContent (CssValueContent "bullet"),  important = True } ])
+  , ( "content: \"train\"",                      [CssDeclWrapper { property = CssDeclarationContent (CssValueContent "train"),   important = False } ])
+  , ( "content: \"train\" !important",           [CssDeclWrapper { property = CssDeclarationContent (CssValueContent "train"),   important = True } ])
+  , ( "content: ''",                             [CssDeclWrapper { property = CssDeclarationContent (CssValueContent ""),        important = False } ])
+  , ( "content: '' !important",                  [CssDeclWrapper { property = CssDeclarationContent (CssValueContent ""),        important = True } ])
+  , ( "content: 'bus'",                          [CssDeclWrapper { property = CssDeclarationContent (CssValueContent "bus"),     important = False } ])
+  , ( "content: 'bus' !important",               [CssDeclWrapper { property = CssDeclarationContent (CssValueContent "bus"),     important = True } ])
+  , ( "content: 'car'",                          [CssDeclWrapper { property = CssDeclarationContent (CssValueContent "car"),     important = False } ])
+  , ( "content: 'car' !important",               [CssDeclWrapper { property = CssDeclarationContent (CssValueContent "car"),     important = True } ])
+    -- Testing for parsing of bad css: invalid property name.
+  , ( "contet: \"bullet\"",                      [])
+    -- Testing for parsing of bad css: invalid value.
+  , ( "content: train",                          [])
+    -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
+  , ( "content: \"bullet\" !improtant",          [CssDeclWrapper { property = CssDeclarationContent (CssValueContent "bullet"),  important = False  } ])
+  , ( "content: 'train' !improtant",             [CssDeclWrapper { property = CssDeclarationContent (CssValueContent "train"),   important = False  } ])
+
+
+
+
   , ( "cursor: crosshair",            [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorCrosshair,   important = False } ])
   , ( "cursor: default !important",   [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorDefault,     important = True  } ])
   , ( "cursor: pointer",              [CssDeclWrapper { property = CssDeclarationCursor CssValueCursorPointer,     important = False } ])

@@ -145,7 +145,7 @@ cssPropertyInfo = M.fromList [
    , ("clear",                  ((Just makeCssDeclarationClear, Nothing),                [],                                                                   []))
    , ("clip",                   ((Just makeCssDeclarationClip, Nothing),                 [],                                                                   []))
    , ("color",                  ((Nothing, Just makeCssDeclarationColor),                [],                                                                   []))
-   , ("content",                ((Just makeCssDeclarationContent, Nothing),              [ tokensAsValueString ],                                              []))
+   , ("content",                ((Nothing, Just makeCssDeclarationContent),              [],                                                                   []))
    , ("counter-increment",      ((Just makeCssDeclarationCounterIncrement, Nothing),     [],                                                                   []))
    , ("counter-reset",          ((Just makeCssDeclarationCounterReset, Nothing),         [],                                                                   []))
    , ("cursor",                 ((Nothing, Just makeCssDeclarationCursor),               [],                                                                   []))

@@ -46,6 +46,7 @@ module Hello.Css.Declaration
   , CssValueBorderStyle (..)
   , CssValueBorderWidth (..)
   , CssValueColor (..)
+  , CssValueContent (..)
   , CssValueDisplay (..)
   , CssValueCursor (..)
   , CssValueFontFamily (..)
@@ -244,7 +245,7 @@ data CssDeclaration
   | CssDeclarationClear CssValue                        -- 21
   | CssDeclarationClip CssValue                         -- 22
   | CssDeclarationColor CssValueColor                   -- 23               parsing is tested
-  | CssDeclarationContent CssValue                      -- 24
+  | CssDeclarationContent CssValueContent               -- 24               parsing is unit-tested
   | CssDeclarationCounterIncrement CssValue             -- 25
   | CssDeclarationCounterReset CssValue                 -- 26
   | CssDeclarationCursor CssValueCursor                 -- 27               parsing is unit-tested
@@ -781,13 +782,42 @@ makeCssDeclarationColor pat = (pat', fmap CssDeclarationColor declValue)
 
 
 -- ------------------------------------------------
+-- Content (content)
+--
+-- Not really supported by dillo, and not supported by this implementation
+-- either (beyond simple creation of declaration).
+-- ------------------------------------------------
+
+
+
+
+data CssValueContent
+  = CssValueContent T.Text
+  deriving (Data, Eq, Show)
+
+
+
+
+makeCssDeclarationContent :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+makeCssDeclarationContent pat = (pat', fmap CssDeclarationContent declValue)
+  where
+    (vs', declValue) = tokensAsValueString3 vs
+    pat'             = pt3 vs'
+
+    vs :: ValueState3 CssValueContent
+    vs = (defaultValueState3 pat) { stringCtor = Just CssValueContent
+                                  }
+
+
+
+
+-- ------------------------------------------------
 --
 -- ------------------------------------------------
 
 
 
 
-makeCssDeclarationContent v = CssDeclarationContent v
 makeCssDeclarationCounterIncrement v = CssDeclarationCounterIncrement v
 makeCssDeclarationCounterReset v = CssDeclarationCounterReset v
 
