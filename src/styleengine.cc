@@ -746,15 +746,7 @@ void StyleEngine::buildUserStyle(int context_ref)
    dFree (filename);
 }
 
-void cpp_styleEngineSetNonCssHintOfNodeLength(StyleNode * styleNode, CssDeclarationProperty property, CssDeclarationValueType type, CssLength cssLength)
-{
-   float lengthValue = cpp_cssLengthValue(cssLength);
-   int lengthType  = (int) cpp_cssLengthType(cssLength);
-   cpp_styleEngineSetNonCssHintOfNodeInt(styleNode, property, type, 0, lengthValue, lengthType);
-   return;
-}
-
-void cpp_styleEngineSetNonCssHintOfNodeLength2(StyleNode * styleNode, CssDeclarationProperty property, CssDeclarationValueType valueType, CssLength cssLength)
+void cpp_styleEngineSetNonCssHintOfNodeLength(StyleNode * styleNode, CssDeclarationProperty property, CssDeclarationValueType valueType, CssLength cssLength)
 {
    float lengthValue = cpp_cssLengthValue(cssLength);
    int lengthType  = (int) cpp_cssLengthType(cssLength);
@@ -762,13 +754,6 @@ void cpp_styleEngineSetNonCssHintOfNodeLength2(StyleNode * styleNode, CssDeclara
    return;
 }
 
-void cpp_styleEngineSetNonCssHintOfNodeInt(StyleNode * styleNode, int property, int valueType, int intVal, float lengthValue, int lengthType)
-{
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeInt(styleNode->declLists.non_css_decl_set_ref, property, valueType, intVal, lengthValue, lengthType);
-   return;
-}
-
-// cpp_styleEngineSetNonCssHintOfNodeInt, but specialized for color.
 void cpp_styleEngineSetNonCssHintOfNodeColor(StyleNode * styleNode, int property, int color)
 {
    styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeColor(styleNode->declLists.non_css_decl_set_ref, property, color);

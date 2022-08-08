@@ -80,7 +80,6 @@ import Hello.Ffi.Utils
 
 
 
-foreign export ccall "hll_styleEngineSetNonCssHintOfNodeInt" hll_styleEngineSetNonCssHintOfNodeInt :: CInt -> CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeLength" hll_styleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeEnum" hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
@@ -107,30 +106,6 @@ getSomeDeclSet3 nonCssDeclSetRef = if (-1) == nonCssDeclSetRef
                                      do
                                        declSet <- globalDeclarationSetGet nonCssDeclSetRef
                                        return (declSet, nonCssDeclSetRef)
-
-
-
-
-hll_styleEngineSetNonCssHintOfNodeInt :: CInt -> CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
-hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIntVal cLengthValue cLengthType  = do
-
-  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
-
-  let propMaker = fst (allDeclMakers !! (fromIntegral cProperty))
-  let valType  = fromIntegral cValueType
-  let intVal   = fromIntegral cIntVal
-  let textVal  = ""
-  let lengthValue = cLengthValue
-  let lengthType  = fromIntegral cLengthType
-
-  let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
-  let decl :: CssDeclWrapper = CssDeclWrapper (propMaker cssValue) False
-
-  let newDeclSet = declarationsSetUpdateOrAdd declSet decl
-
-  globalDeclarationSetUpdate ref newDeclSet
-
-  return . fromIntegral $ ref
 
 
 
@@ -695,6 +670,32 @@ hll_makeCssDeclaration cProperty ptrFfiCssValue = do
   let declaration = CssDeclaration property cssValue False
 
   allocAndPokeCssDeclaration declaration
+-}
+
+
+
+
+{-
+hll_styleEngineSetNonCssHintOfNodeInt :: CInt -> CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
+hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIntVal cLengthValue cLengthType  = do
+
+  (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
+
+  let propMaker = fst (allDeclMakers !! (fromIntegral cProperty))
+  let valType  = fromIntegral cValueType
+  let intVal   = fromIntegral cIntVal
+  let textVal  = ""
+  let lengthValue = cLengthValue
+  let lengthType  = fromIntegral cLengthType
+
+  let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
+  let decl :: CssDeclWrapper = CssDeclWrapper (propMaker cssValue) False
+
+  let newDeclSet = declarationsSetUpdateOrAdd declSet decl
+
+  globalDeclarationSetUpdate ref newDeclSet
+
+  return . fromIntegral $ ref
 -}
 
 
