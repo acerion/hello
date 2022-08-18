@@ -13,7 +13,7 @@ import datetime as dt
 # src/Hello/Tests
 # src/Hello/Ffi
 
-# C/C++ numbers don't include code in these dirs/files:
+# C & C++ numbers don't include code in these dirs/files:
 # src/Hello/
 # test/
 
@@ -62,6 +62,7 @@ arr = np.array((
     ["2022-06-17",     29573,     18385,      3457],
     ["2022-06-29",     29555,     18376,      3869],
     ["2022-07-06",     29444,     18239,      3973],
+    ["2022-08-08",     29485,     18357,      4957],
 ))
 
 
