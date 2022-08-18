@@ -350,7 +350,7 @@ declValueAsString id (parser, token) = case ((retParser, retToken), value) of
 -- token to build the Auto, but for consistency with other similar functions
 -- the function is still called "tokensAs...".
 tokensAsValueAuto :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueAuto (p, t@(CssTokIdent sym)) _ | T.toLower sym == "auto" = ((nextToken1 p), Just (CssValueTypeAuto (CssNumericAuto cssLengthTypeAuto)))
+tokensAsValueAuto (p, t@(CssTokIdent sym)) _ | T.toLower sym == "auto" = ((nextToken1 p), Just . CssValueTypeAuto $ CssDistanceAuto)
                                              | otherwise               = ((p, t), Nothing)
 tokensAsValueAuto (p, t) _                 = ((p, t), Nothing)
 

@@ -110,7 +110,7 @@ styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display 
                               -- assert ((int) cpp_cssLengthValue(value) == 0);
     CssNumericPercentage d -> Just (fromIntegral (roundInt (d * (fromIntegral referenceValue))))
     CssNumericRelative _   -> Nothing
-    CssNumericAuto _       -> Nothing
+    CssDistanceAuto        -> Nothing
 
   where
     -- Assume dpiX == dpiY
@@ -400,7 +400,7 @@ styleEngineCalculateDwLength :: CssDistance -> FontAttrs -> Display -> Maybe DwL
 styleEngineCalculateDwLength distance fontAttrs display =
   case distance of
     CssNumericPercentage v -> Just $ createPercentageDwLength (realToFrac v)
-    CssNumericAuto _       -> Just createAutoDwLength -- TODO: why the value of Auto is ignored?
+    CssDistanceAuto        -> Just createAutoDwLength
     otherwise              -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
                                 Just val -> Just $ createAbsoluteDwLength (round val) -- TODO: a type of Float -> Int function to be verified here
                                 Nothing  -> Nothing
@@ -527,7 +527,7 @@ cssValueToDistance value = case value of
                              CssValueTypeSignedLength d        -> d
                              CssValueTypeLengthPercentNumber d -> d
                              CssValueTypeAuto d                -> d  -- TODO: 'auto' appears to be handled incorrectly this function
-                             otherwise                         -> CssNumericAuto 0 -- TODO: I'm not sure if this is the best 'otherwise' value
+                             otherwise                         -> CssDistanceAuto -- TODO: I'm not sure if this is the best 'otherwise' value
 
 
 

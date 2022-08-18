@@ -189,7 +189,7 @@ cssValueToDistance value = case value of
                              CssValueTypeSignedLength d        -> d
                              CssValueTypeLengthPercentNumber d -> d
                              CssValueTypeAuto d                -> d  -- TODO: 'auto' appears to be handled incorrectly this function
-                             otherwise                         -> CssNumericAuto 0 -- TODO: I'm not sure if this is the best 'otherwise' value
+                             otherwise                         -> CssDistanceAuto -- TODO: I'm not sure if this is the best 'otherwise' value
 
 
 

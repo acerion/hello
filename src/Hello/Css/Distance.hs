@@ -86,8 +86,8 @@ data CssDistance =
 
   | CssNumericNone     Float     -- CSS_LENGTH_TYPE_NONE
   | CssNumericRelative Float     -- CSS_LENGTH_TYPE_RELATIVE; This does not exist in CSS but is used in HTML
-    -- Value corresponding to "auto" value of "height" property.
-  | CssNumericAuto     Int       -- CSS_LENGTH_TYPE_AUTO; This can be used as a simple value; TODO: we most probably don't need to provide Int value to this constructor.
+    -- Value corresponding to "auto" value of "height", "width", "margin-*" property.
+  | CssDistanceAuto              -- CSS_LENGTH_TYPE_AUTO;
   deriving (Show, Eq, Data)
 
 
@@ -113,7 +113,7 @@ cssLengthToDistance lenValue lenType | lenType == cssLengthTypeNone       = CssN
                                      | lenType == cssLengthTypeEX         = CssDistanceRelEx lenValue
                                      | lenType == cssLengthTypePercentage = CssNumericPercentage lenValue
                                      | lenType == cssLengthTypeRelative   = CssNumericRelative lenValue
-                                     | lenType == cssLengthTypeAuto       = CssNumericAuto (round lenValue)
+                                     | lenType == cssLengthTypeAuto       = CssDistanceAuto
                                      | otherwise                          = CssNumericNone 0.0
 
 
@@ -128,6 +128,6 @@ distanceToCssLength distance = case distance of
                                  CssNumericPercentage x -> (x, cssLengthTypePercentage)
                                  CssNumericNone     x   -> (x, cssLengthTypeNone)
                                  CssNumericRelative x   -> (x, cssLengthTypeRelative)
-                                 CssNumericAuto     x   -> (0.0, cssLengthTypeAuto)
+                                 CssDistanceAuto        -> (0.0, cssLengthTypeAuto)
 
 

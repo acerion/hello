@@ -613,14 +613,14 @@ tokensAsValueStringList3 vs@ValueState3 { pt3 = pat } = (vs { pt3 = pat' }, decl
 
 tokensAsValueAuto3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
 tokensAsValueAuto3 vs@ValueState3 { pt3 = (p, t@(CssTokIdent sym)) } | T.toLower sym == "auto" = (vs {pt3 = (nextToken1 p)}
-                                                                                                 , Just $ (fromJust . distanceValueCtor $ vs) (CssNumericAuto cssLengthTypeAuto)
+                                                                                                 , Just . (fromJust . distanceValueCtor $ vs) $ CssDistanceAuto
                                                                                                  )
                                                                      | otherwise               = (vs, Nothing)
 tokensAsValueAuto3 vs                                                                          = (vs, Nothing)
 
 {-
 tokensAsValueAuto3 :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueAuto3 (p, t@(CssTokIdent sym)) | T.toLower sym == "auto" = ((nextToken1 p), Just (CssValueTypeAuto (CssNumericAuto cssLengthTypeAuto)))
+tokensAsValueAuto3 (p, t@(CssTokIdent sym)) | T.toLower sym == "auto" = ((nextToken1 p), Just . CssValueTypeAuto $ CssDistanceAuto)
                                             | otherwise               = ((p, t), Nothing)
 tokensAsValueAuto3 (p, t)                                             = ((p, t), Nothing)
 -}

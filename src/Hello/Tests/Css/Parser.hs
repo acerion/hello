@@ -431,8 +431,8 @@ parseDeclarationTestData =
 
 
 
-  , ("height: auto",                     [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssNumericAuto cssLengthTypeAuto)),   important = False } ])
-  , ("height: auto !important",          [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssNumericAuto cssLengthTypeAuto)),   important = True  } ])
+  , ("height: auto",                     [CssDeclWrapper { property = CssDeclarationHeight . CssValueHeightDistance $ CssDistanceAuto,                    important = False } ])
+  , ("height: auto !important",          [CssDeclWrapper { property = CssDeclarationHeight . CssValueHeightDistance $ CssDistanceAuto,                    important = True  } ])
   , ("height:   1px",                    [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceAbsPx   1.0)),             important = False } ])
   , ("height:   1px !important",         [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceAbsPx   1.0)),             important = True  } ])
   , ("height:  22.22mm",                 [CssDeclWrapper { property = CssDeclarationHeight (CssValueHeightDistance (CssDistanceAbsMm  22.22)),            important = False } ])
@@ -533,8 +533,8 @@ parseDeclarationTestData =
 
 
 
-  , ( "margin-top: auto",                      [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssNumericAuto    7)),          important = False } ])
-  , ( "margin-top: auto !important",           [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssNumericAuto    7)),          important = True  } ])
+  , ( "margin-top: auto",                      [CssDeclWrapper { property = CssDeclarationMarginTop . CssValueMarginDistance $ CssDistanceAuto,              important = False } ])
+  , ( "margin-top: auto !important",           [CssDeclWrapper { property = CssDeclarationMarginTop . CssValueMarginDistance $ CssDistanceAuto,              important = True  } ])
   , ( "margin-top:  1px",                      [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssDistanceAbsPx  1.0)),        important = False } ])
   , ( "margin-top:  2.2mm !important",         [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssDistanceAbsMm  2.2)),        important = True  } ])
   , ( "margin-top:  3.0em",                    [CssDeclWrapper { property = CssDeclarationMarginTop (CssValueMarginDistance (CssDistanceRelEm  3.0)),        important = False } ])
@@ -549,8 +549,8 @@ parseDeclarationTestData =
 
 
 
-  , ( "margin-right: auto",                    [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssNumericAuto    7)),        important = False } ])
-  , ( "margin-right: auto !important",         [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssNumericAuto    7)),        important = True  } ])
+  , ( "margin-right: auto",                    [CssDeclWrapper { property = CssDeclarationMarginRight . CssValueMarginDistance $ CssDistanceAuto,            important = False } ])
+  , ( "margin-right: auto !important",         [CssDeclWrapper { property = CssDeclarationMarginRight . CssValueMarginDistance $ CssDistanceAuto,            important = True  } ])
   , ( "margin-right: 111px",                   [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssDistanceAbsPx 111.0)),     important = False } ])
   , ( "margin-right: 222mm !important",        [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssDistanceAbsMm 222.0)),     important = True  } ])
   , ( "margin-right: 333.0em",                 [CssDeclWrapper { property = CssDeclarationMarginRight (CssValueMarginDistance (CssDistanceRelEm 333.0)),     important = False } ])
@@ -565,8 +565,8 @@ parseDeclarationTestData =
 
 
 
-  , ( "margin-bottom: auto",                   [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssNumericAuto    7)),       important = False } ])
-  , ( "margin-bottom: auto !important",        [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssNumericAuto    7)),       important = True  } ])
+  , ( "margin-bottom: auto",                   [CssDeclWrapper { property = CssDeclarationMarginBottom . CssValueMarginDistance $ CssDistanceAuto,           important = False } ])
+  , ( "margin-bottom: auto !important",        [CssDeclWrapper { property = CssDeclarationMarginBottom . CssValueMarginDistance $ CssDistanceAuto,           important = True  } ])
   , ( "margin-bottom: 1.110px",                [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceAbsPx 1.11)),     important = False } ])
   , ( "margin-bottom: 2.220mm !important",     [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceAbsMm 2.22)),     important = True  } ])
   , ( "margin-bottom: 3.330em",                [CssDeclWrapper { property = CssDeclarationMarginBottom (CssValueMarginDistance (CssDistanceRelEm 3.33)),     important = False } ])
@@ -581,8 +581,8 @@ parseDeclarationTestData =
 
 
 
-  , ( "margin-left: auto",                     [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssNumericAuto    7)),         important = False } ])
-  , ( "margin-left: auto !important",          [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssNumericAuto    7)),         important = True  } ])
+  , ( "margin-left: auto",                     [CssDeclWrapper { property = CssDeclarationMarginLeft . CssValueMarginDistance $ CssDistanceAuto,             important = False } ])
+  , ( "margin-left: auto !important",          [CssDeclWrapper { property = CssDeclarationMarginLeft . CssValueMarginDistance $ CssDistanceAuto,             important = True  } ])
   , ( "margin-left: 1.110px !important",       [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssDistanceAbsPx 1.11)),       important = True  } ])
   , ( "margin-left: 2.220mm",                  [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssDistanceAbsMm 2.22)),       important = False } ])
   , ( "margin-left: 3.330em !important",       [CssDeclWrapper { property = CssDeclarationMarginLeft (CssValueMarginDistance (CssDistanceRelEm 3.33)),       important = True  } ])
@@ -762,8 +762,8 @@ parseDeclarationTestData =
 
 
 
-  , ("width: auto",                     [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssNumericAuto cssLengthTypeAuto)),   important = False } ])
-  , ("width: auto !important",          [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssNumericAuto cssLengthTypeAuto)),   important = True  } ])
+  , ("width: auto",                     [CssDeclWrapper { property = CssDeclarationWidth . CssValueWidthDistance $ CssDistanceAuto,                    important = False } ])
+  , ("width: auto !important",          [CssDeclWrapper { property = CssDeclarationWidth . CssValueWidthDistance $ CssDistanceAuto,                    important = True  } ])
   , ("width:   1px",                    [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceAbsPx   1.0)),             important = False } ])
   , ("width:   1px !important",         [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceAbsPx   1.0)),             important = True  } ])
   , ("width:  22.22mm",                 [CssDeclWrapper { property = CssDeclarationWidth (CssValueWidthDistance (CssDistanceAbsMm  22.22)),            important = False } ])
