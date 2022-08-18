@@ -271,7 +271,7 @@ cssGetMinSpecIndex rulesLists index minSpecIndex = do
   let minPos'       = triplet2nd state
   let minSpecIndex' = triplet3rd state
 
-  putStrLn ("minSpec = " ++ (show minSpec') ++ ", minPos = " ++ (show minPos') ++ ", minSpecIndex = " ++ (show minSpecIndex'))
+  --putStrLn ("minSpec = " ++ (show minSpec') ++ ", minPos = " ++ (show minPos') ++ ", minSpecIndex = " ++ (show minSpecIndex'))
 
   return minSpecIndex'
 
@@ -306,8 +306,8 @@ applyMatchingRules' index doctree mDtn targetDeclSet matchCache rulesLists = do
       let oldElem = index !! minSpecIndex'
       let index2 = listReplaceElem index (oldElem + 1) minSpecIndex'
 
-      putStrLn . show $ targetDeclSet'
-      putStrLn . show $ V.fromList $ index2
+      --putStrLn . show $ targetDeclSet'
+      --putStrLn . show $ V.fromList $ index2
 
       applyMatchingRules' index2 doctree mDtn targetDeclSet' matchCache' rulesLists
     else return (targetDeclSet, matchCache)
