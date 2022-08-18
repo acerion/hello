@@ -2,56 +2,66 @@
 NEWS
 ----
 
-Nov 2000:
-
-  Introduced a new design layer between the IO and the Dw.
-
-March 2001:
-
-  Finally the new dillo widget is ready! (dillo >= 0.4.0).
-  0.4.0 is able to cope with low resolution depths.
-
-Apr 2002:
-
-  We moved to:  http://dillo.cipsga.org.br/
-
-Dec 2002
-
-  We moved to:  http://dillo.auriga.wearlab.de/
-
-Jun 2003
-
-  http://www.dillo.org/     (hosted at the wearlab!)
-
-Sep 2007
-
-  The new FLTK2-based dillo code is released! (under GPL3)
-
-Jul 2011
-
-  Dillo switches to fltk-1.3.0.
-  dillo-2.2.1, the last of the 2.x series is released.
-
-Sep 2011
-
-  dillo-3.0, the first of the 3.x series is released.
-
-  dillo-3.0.1, a bugfix release for the new 3.x series is out.
-
-Mar 2013
-
-  dillo-3.0.3, a new release for the new 3.x series is out.
-
-Apr 2014
-
-  dillo-3.0.4, a new release for the new 3.x series is out.
-
-Dec 2014
-
-  dillo-3.0.4.1, a new release for the new 3.x series is out.
 
 
-  Jorge.-
-  jcid@dillo.org
-  Project maintainer, core developer, patcher, you name it! :-)
+
+High-level information about changes and progress of the project.
+
+
+
+
+2022.08.18
+
+ - First public release: hello-0.1.0.
+
+ - Haskell is used mostly in CSS code. Not all CSS code is being rewritten in
+   Haskell yet. Some CSS functionality has been disabled or limited (e.g.
+   @media, @import), and will be re-implemented later.
+
+ - Haskell is used in few other, minor places. Most notable one is GIF image
+   parsing, although displaying of images may not work very well.
+
+ - Quality of Haskell code is low, which reflects my current knowledge of the
+   language. The most advanced feature that I use right now with some level
+   of confidence is probably fmap. Few commit messages explicitly mention
+   commits of "ugly" Haskell code. Many other places are ugly too.
+
+ - The good news is that there are some unit tests: mostly HUnit, but there
+   is also some QuickCheck code. I will keep adding more unit tests as I
+   write new code and improve or modify existing one.
+
+ - This project contains many references to dillo, and some of them should be
+   removed in the future. One example is the name of the executable binary
+   file.
+
+ - hello is not the most user-friendly web browser. You will need to manually
+   start 'dpid' binary from original dillo package (sic!), and then use
+   'run.sh' script from repo's main dir to open a page (i.e. "./run.sh
+   <URL>").
+
+ - hello has been tested with two relatively simple web sites that I won't
+   name here. Don't expect too much from the program.
+
+ - The project is NOT using stack or cabal as build tool. Learning these
+   tools is not my main focus now.
+
+ - The project is NOT using any Haskell libraries beyond Prelude and some
+   basic libraries (e.g. Data.Map). CSS parsing code is written from scratch
+   and looks very much like original C code. This is intentional: I want to
+   see how much more compact Haskell code can become compared to C & C++
+   code. I also don't want to focus on learning any particular parsing
+   library or any other specialized library. That may come later.
+
+ - The project is using FFI. The quality of the FFI is not top-notch. There
+   may be some memory leaks, and the performance perhaps could be better. But
+   the boundary between Haskell code and C & C++ code is constantly shifting,
+   and I don't want to spend too much time tweaking things that are in
+   constant flux.
+
+
+
+
+2021.01.05
+
+ - First commit of code from dillo-3.0.5.tar.bz2.
 

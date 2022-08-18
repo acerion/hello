@@ -1,3 +1,23 @@
-Learning Haskell by re-implementing (small parts of) web browser.
+The goal of this project is to allow me to learn Haskell by re-implementing
+(small parts of) web browser.
 
-This project is based on Dillo web browser (dillo.org), version 3.0.5.
+
+
+
+This project is based on Dillo web browser (dillo.org,
+https://en.wikipedia.org/wiki/Dillo), version 3.0.5.
+
+
+
+
+This project is not using Haskell tool X or Haskell library Y because these
+are not the things that I want to focus on right now. My main focus is on
+learning the core language and its features (hopefully more and more advanced
+features). Examples of X and Y are stack/cabal or a parsing library.
+
+
+
+
+Currently (August 2022) the project is hosted on GitHub:
+https://github.com/acerion/hello.
+
