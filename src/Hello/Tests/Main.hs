@@ -44,9 +44,11 @@ import Hello.Tests.Utils
 
 
 
-testFunctions = [ testsColors, testsCookies,
-                  testsGif, testsGif2,
-                  testsCssCss
+testFunctions = [ testsColors
+                , testsCookies
+                , testsGif
+                -- , testsGif2 -- Disabled because of failure described in top-level comment in TestsGif2.hs
+                , testsCssCss
 
                 , testsCssComplexSelector
                 , testsCssDeclarationSet

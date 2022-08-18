@@ -79,12 +79,27 @@ instance QC.Arbitrary ValuesAndUnitsNN where
 
 getValueNN :: QC.Gen Float
 getValueNN = do
-  value <- QC.choose (0, 100000) :: QC.Gen Int
-  let v = (fromIntegral value) / 100 :: Float
+  value <- QC.choose (0, 20000) :: QC.Gen Int
+  let v = (fromIntegral value) / 50 :: Float
   return v
 
 
 
+
+-- Notice that you can generate float values like this, but it's harder to
+-- generate "0.0" value with this code, and it's easer to generate value that
+-- will be shown in exponent notation.
+{-
+getValueNN :: QC.Gen Float
+getValueNN = do
+  value <- QC.choose (0, 50) :: QC.Gen Float
+  return value
+-}
+
+
+
+
+-- TODO: add more units? Percentages?
 getUnit :: QC.Gen String
 getUnit = do
   let units :: [String] = ["mm", "px", "em", "ex"]
@@ -113,7 +128,14 @@ parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected
 
 
 
-testsCssParserQuickCheck :: IO String
+-- TODO: the parsing code doesn't handle exponent notation of values well.
+-- QuickCheck tests can fail like this:
+--
+-- Failed! Falsified (after 5 tests):
+-- ValuesAndUnitsNN {v = [622.59,9.0e-2,853.38,416.31], u = ["mm","ex","em","em"]}
+--
+-- Verify if exponent values are allowed by CSS (they probably are, but
+-- perhaps in slightly different form).testsCssParserQuickCheck :: IO String
 testsCssParserQuickCheck = do
   -- All I had to do to find stdArgs and xWith is to read documentation :)
   -- http://hackage.haskell.org/package/QuickCheck-2.8/docs/Test-QuickCheck.html
