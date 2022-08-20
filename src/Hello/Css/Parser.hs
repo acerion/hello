@@ -52,7 +52,6 @@ module Hello.Css.Parser(
                        , readSelectorList
                        , removeSpaceTokens
 
-                       , tokensAsValueColor
                        , declValueAsString
                        , tokensAsValueString
                        , declValueAsLength
@@ -304,29 +303,6 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
                                           | otherwise -> (parser, CssTokNone)
                             Nothing -> (parser, CssTokNone)
 -}
-
-
-
-
--- Interpret current token (and possibly more following tokens) as color
--- value (value of type CssValueTypeColor).
---
--- If current token is a Hash token, then there will be no need to take more
--- tokens. If current token is e.g. "rgb(" function, then the function should
--- (TODO) take as many tokens as necessary to build, parse and convert the
--- function into color value.
-tokensAsValueColor :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueColor (p1, (CssTokHash _ str)) _  = case colorsHexStringToColor str of
-                                                   Just i  -> (nextToken1 p1, Just (CssValueTypeColor i))
-                                                   Nothing -> (nextToken1 p1, Nothing)
-tokensAsValueColor (p1, (CssTokFunc "rgb")) _  = case rgbFunctionToColor p1 of
-                                                   ((p2, t2), Just i)  -> ((p2, t2), Just (CssValueTypeColor i))
-                                                   ((p2, t2), Nothing) -> ((p2, t2), Nothing)
-tokensAsValueColor (p1, (CssTokIdent ident)) _ = case colorsStringToColor ident of
-                                                   Just i  -> (nextToken1 p1, Just (CssValueTypeColor i))
-                                                   Nothing -> (nextToken1 p1, Nothing)
-tokensAsValueColor (p1, t1) _                  = ((p1, t1), Nothing)
-
 
 
 

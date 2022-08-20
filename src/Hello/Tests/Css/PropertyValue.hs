@@ -7,6 +7,8 @@ may be different than a license for whole "Hello" package.
 
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE PartialTypeSignatures #-}
 
 
 
@@ -457,6 +459,271 @@ autoTestFunction (x:xs) = if not success
 
 
 
+-- --------------------------------------------------------------------------
+-- Tests of interpretTokensAsColor
+-- --------------------------------------------------------------------------
+
+
+
+
+type ValueCtor propValueT = ValueState3 propValueT -> (ValueState3 propValueT, Maybe propValueT)
+
+
+
+
+data TestData propValueT = TestData
+  { initialRem      :: T.Text                    -- Initial remainder of CSS parser.
+  , initialToken    :: CssToken                  -- Initial current token.
+  , dictionary      :: [Int]                     -- Unused in this test.
+  , finalRem        :: T.Text                    -- Final (after a single test) remainder of CSS parser.
+  , finalToken      :: CssToken                  -- Final (after a single test) token.
+  , expectedValue   :: Maybe propValueT          -- Expected value parsed from (parser+token) pair.
+  , valueState      :: ValueState3 propValueT
+  , testedFunction  :: ValueCtor propValueT
+  }
+
+
+
+
+-- An artifical value ctor for value of some artifical CSS property.
+data ColorTestValue = ColorTestValueCtor Int
+  deriving (Eq, Show)
+
+
+
+
+colorTestData1 :: [TestData ColorTestValue]
+colorTestData1 =
+  [
+    -- Success case. Color as hex.
+    TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other1", initialToken = CssTokHash CssHashId "fb5"  -- fb5 interpreted as rgb should be expanded to rrggbb in form of ffbb55
+             , finalRem   = "; other1",          finalToken   = CssTokIdent "something"
+             , expectedValue  = Just . ColorTestValueCtor $ 0xffbb55
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Success case. Color as hex.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other2", initialToken = CssTokHash CssHashId "12de56"
+             , finalRem   = "; other2",          finalToken   = CssTokIdent "something"
+             , expectedValue  = Just . ColorTestValueCtor $ 0x12de56
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Success case. Color as hex. Capital letters in hex string.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other3", initialToken = CssTokHash CssHashId "12DE5A"
+             , finalRem   = "; other3",          finalToken   = CssTokIdent "something"
+             , expectedValue  = Just . ColorTestValueCtor $ 0x12de5A
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Success case. Color as name.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other4", initialToken = CssTokIdent "red"
+             , finalRem   = "; other4",          finalToken   = CssTokIdent "something"
+             , expectedValue  = Just . ColorTestValueCtor $ 0xff0000
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Success case. Color as less frequently used name.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other5", initialToken = CssTokIdent "antiquewhite"
+             , finalRem   = "; other5",          finalToken   = CssTokIdent "something"
+             , expectedValue  = Just . ColorTestValueCtor $ 0xfaebd7
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Failure case. Name is not a proper color name.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other6", initialToken = CssTokIdent "czerwony"
+             , finalRem   = "something; other6", finalToken   = CssTokIdent "czerwony"
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Failure, hash is not a hex-digit string.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other7", initialToken = CssTokHash CssHashId "ident"
+             , finalRem   = "something; other7", finalToken   = CssTokHash CssHashId "ident"
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Failure, hash has incorrect count of digits (should be either 3 or 6).
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other8", initialToken = CssTokHash CssHashId "a"
+             , finalRem   = "something; other8", finalToken   = CssTokHash CssHashId "a"
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Failure, hash has incorrect count of digits (should be either 3 or 6).
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other9", initialToken = CssTokHash CssHashId "ab"
+             , finalRem   = "something; other9", finalToken   = CssTokHash CssHashId "ab"
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Success, just a sanity check.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other10", initialToken = CssTokHash CssHashId "abc"
+             , finalRem   = "; other10",          finalToken   = CssTokIdent "something"
+             , expectedValue  = Just . ColorTestValueCtor $ 0xaabbcc
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Failure, hash has incorrect count of digits (should be either 3 or 6).
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other11", initialToken = CssTokHash CssHashId "abcd"
+             , finalRem   = "something; other11", finalToken   = CssTokHash CssHashId "abcd"
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Failure, hash has incorrect count of digits (should be either 3 or 6).
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other12", initialToken = CssTokHash CssHashId "abcde"
+             , finalRem   = "something; other12", finalToken   = CssTokHash CssHashId "abcde"
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Success, just a sanity check.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other13", initialToken = CssTokHash CssHashId "abcdef"
+             , finalRem   = "; other13",          finalToken   = CssTokIdent "something"
+             , expectedValue  = Just . ColorTestValueCtor $ 0xabcdef
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Failure, empty hash string.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other14", initialToken = CssTokHash CssHashId ""
+             , finalRem   = "something; other14", finalToken   = CssTokHash CssHashId ""
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Failure. Empty ident string.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other15", initialToken = CssTokIdent ""
+             , finalRem   = "something; other15", finalToken   = CssTokIdent ""
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Failure. Unexpected current token type.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other16", initialToken = CssTokDelim '@'
+             , finalRem   = "something; other16", finalToken   = CssTokDelim '@'
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+  -- Failure. Unexpected current token type.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other17", initialToken = CssTokPerc . CssNumF $ 50.0
+             , finalRem   = "something; other17", finalToken   = CssTokPerc . CssNumF $ 50.0
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+  ]
+
+
+
+
+-- Input data is a rgb function
+colorTestData2 :: [TestData ColorTestValue]
+colorTestData2 =
+  [
+    -- Success case. Color as rgb function.
+    TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "15,50,200); next-property1", initialToken = CssTokFunc "rgb"
+             , finalRem   = " next-property1",            finalToken   = CssTokSemicolon
+             , expectedValue  = Just . ColorTestValueCtor $ 0x0f32c8
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Success case. Color as rgb function, with percentages.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "90%,20%,0%); next-property2", initialToken = CssTokFunc "rgb"
+             , finalRem   = " next-property2",             finalToken   = CssTokSemicolon
+             , expectedValue  = Just . ColorTestValueCtor $ 0xe63300
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Success case. Color as rgb function, with percentages.
+    --
+    -- Percentage values over 100% or under 0% should be clipped (in this
+    -- case to 100%,0%,15%).
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "120%,-20%,15%); next-property3", initialToken = CssTokFunc "rgb"
+             , finalRem   = " next-property3",                finalToken   = CssTokSemicolon
+             , expectedValue  = Just . ColorTestValueCtor $ 0xff0026
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+
+    -- Failure. Mix of dimensionless values and percentages should be rejected.
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "90%,20,0%); next-property4", initialToken = CssTokFunc "rgb"
+             , finalRem   = "90%,20,0%); next-property4", finalToken   = CssTokFunc "rgb"
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { colorValueCtor3 = Just ColorTestValueCtor }
+             , testedFunction = interpretTokensAsColor
+             }
+  ]
+
+
+
+
+-- On success return empty string. On failure return string showing
+-- approximately where the problem is.
+colorTestFunction :: [TestData ColorTestValue] -> T.Text
+colorTestFunction []     = ""
+colorTestFunction (x:xs) = if not success
+                           then T.pack ("Got: " ++ show propertyValue ++ ", Expected: " ++ show expectedPropertyValue ++ "; pat' = " ++ (show parser') ++ (show token'))
+                           else colorTestFunction xs
+  where
+    expectedPropertyValue = expectedValue x
+
+    pat = (defaultParser{remainder = initialRem x}, initialToken x)
+    vs  = (valueState x) { pt3 = pat }
+
+    (vs', propertyValue) = (testedFunction x) vs
+    (parser', token') = pt3 vs'
+
+    success = and [ expectedPropertyValue == propertyValue
+                  , token' == finalToken x
+                  , remainder parser' == finalRem x
+                  ]
+
+
+
+
+
 {- -------------------------------------------------------------------------- -}
 
 
@@ -469,6 +736,8 @@ testCases =
     TestCase (do assertEqual "manual tests of interpretTokensAsEnum"              "" (enumTestFunction enumTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsMultiEnum"         "" (multiEnumTestFunction multiEnumTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsAuto"              "" (autoTestFunction autoTestData))
+  , TestCase (do assertEqual "manual tests of interpretTokensAsColor (value)"     "" (colorTestFunction colorTestData1))
+  , TestCase (do assertEqual "manual tests of interpretTokensAsColor (rgb)"       "" (colorTestFunction colorTestData2))
   ]
 
 

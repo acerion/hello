@@ -70,7 +70,7 @@ data CssValue =
   | CssValueTypeSignedLength CssDistance    -- As CSS_TYPE_LENGTH but may be negative.
   | CssValueTypeLengthPercentNumber CssDistance -- <length> or <percentage>, or <number>
   | CssValueTypeAuto CssDistance    -- Represented as CssDistance of type CssDistanceAuto
-  | CssValueTypeColor Int           -- Represented as integer.
+  --  | CssValueTypeColor Int           -- Represented as integer.
   --  | CssValueTypeFontWeight Int      -- This very special and only used by 'font-weight'
   | CssValueTypeString T.Text       -- <string>
   | CssValueTypeStringList [T.Text] -- List of symbols, which are directly

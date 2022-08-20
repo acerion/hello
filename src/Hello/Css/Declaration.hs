@@ -376,7 +376,7 @@ cssValueBackgroundColorDict = [ ("inherit",    CssValueBackgroundColorInherit)
 makeCssDeclarationBackgroundColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationBackgroundColor pat = (pat', fmap CssDeclarationBackgroundColor declValue)
   where
-    (vs', declValue) = interpretTokensAsEnum vs >>? tokensAsValueColor3
+    (vs', declValue) = interpretTokensAsEnum vs >>? interpretTokensAsColor
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBackgroundColor
@@ -572,7 +572,7 @@ cssValueBorderColorDict = [ ("transparent", CssValueBorderColorTransparent)
 parseTokensAsBorderColorValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderColor)
 parseTokensAsBorderColorValue pat = (pat', declValue)
   where
-    (vs', declValue) = interpretTokensAsEnum vs >>? tokensAsValueColor3
+    (vs', declValue) = interpretTokensAsEnum vs >>? interpretTokensAsColor
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBorderColor
@@ -770,7 +770,7 @@ cssValueColorDict = [ ("inherit", CssValueColorInherit)
 makeCssDeclarationColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationColor pat = (pat', fmap CssDeclarationColor declValue)
   where
-    (vs', declValue) = interpretTokensAsEnum vs >>? tokensAsValueColor3
+    (vs', declValue) = interpretTokensAsEnum vs >>? interpretTokensAsColor
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueColor
