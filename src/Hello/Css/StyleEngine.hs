@@ -320,82 +320,6 @@ styleEngineApplyStyleToFont declSet prefs display parentFontAttrs fontAttrs = ap
 
 
 
-{-
-styleEngineSetBorderStyle :: Int -> CssValue -> StyleBorderStyle -> StyleBorderStyle
-styleEngineSetBorderStyle property value borderStyle
-  | property == cssDeclPropertyBorderTopStyle    = borderStyle { styleBorderStyleTop    = style }
-  | property == cssDeclPropertyBorderRightStyle  = borderStyle { styleBorderStyleRight  = style }
-  | property == cssDeclPropertyBorderBottomStyle = borderStyle { styleBorderStyleBottom = style }
-  | property == cssDeclPropertyBorderLeftStyle   = borderStyle { styleBorderStyleLeft   = style }
-  | otherwise                                    = borderStyle
-  where
-    style = case value of
-              CssValueTypeEnum i -> i
-              otherwise          -> 0
-
-
-
-
-styleEngineSetBorderWidth :: Int -> CssValue -> Display -> FontAttrs -> StyleBorderWidth -> StyleBorderWidth
-styleEngineSetBorderWidth property value display fontAttrs borderWidth
-  | property == cssDeclPropertyBorderTopWidth    = borderWidth { styleBorderWidthTop    = width }
-  | property == cssDeclPropertyBorderRightWidth  = borderWidth { styleBorderWidthRight  = width }
-  | property == cssDeclPropertyBorderBottomWidth = borderWidth { styleBorderWidthBottom = width }
-  | property == cssDeclPropertyBorderLeftWidth   = borderWidth { styleBorderWidthLeft   = width }
-  | otherwise                                    = borderWidth
-  where
-    width = case styleEngineComputeBorderWidth value display fontAttrs of
-              -- TODO: another place where Maybe returned by Compute function
-              -- causes unnecessary trouble.
-              Just x  -> x
-              Nothing -> 0
-
-
-
-
-styleEngineSetMargin :: Int -> CssValue -> Display -> FontAttrs -> StyleMargin -> StyleMargin
-styleEngineSetMargin property value display fontAttrs margin
-  | property == cssDeclPropertyMarginBottom = margin { styleMarginBottom = clip m }
-  | property == cssDeclPropertyMarginLeft   = margin { styleMarginLeft   = clip m }
-  | property == cssDeclPropertyMarginRight  = margin { styleMarginRight  = clip m }
-  | property == cssDeclPropertyMarginTop    = margin { styleMarginTop    = clip m }
-  | otherwise                               = margin
-  where
-    clip x = if x > 0 then x else 0   -- TODO: fix negative margins in dw/*
-    m = case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
-          -- TODO: another place where Maybe returned by Compute function
-          -- causes unnecessary trouble.
-          Just x  -> roundInt x
-          Nothing -> 0
-
-    distance = case value of
-                 CssValueTypeSignedLength d -> d
-                 CssValueTypeAuto d         -> d -- TODO: 'auto' appears to be handled incorrectly this function
-
-
-
-
-styleEngineSetPadding :: Int -> CssValue -> Display -> FontAttrs -> StylePadding -> StylePadding
-styleEngineSetPadding property value display fontAttrs padding
-  | property == cssDeclPropertyPaddingBottom = padding { stylePaddingBottom = p }
-  | property == cssDeclPropertyPaddingLeft   = padding { stylePaddingLeft   = p }
-  | property == cssDeclPropertyPaddingRight  = padding { stylePaddingRight  = p }
-  | property == cssDeclPropertyPaddingTop    = padding { stylePaddingTop    = p }
-  | otherwise                                = padding
-  where
-    p = case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
-          -- TODO: another place where Maybe returned by Compute function
-          -- causes unnecessary trouble.
-          Just x  -> roundInt x
-          Nothing -> 0
-
-    distance = case value of
-                 CssValueTypeLength d -> d
--}
-
-
-
-
 styleEngineCalculateDwLength :: CssDistance -> FontAttrs -> Display -> Maybe DwLength
 styleEngineCalculateDwLength distance fontAttrs display =
   case distance of
@@ -516,18 +440,6 @@ yet because a full support for them in dillo seems to be missing or broken.
 
   where
     fontAttrs = styleFontAttrs styleAttrs
-
-
-
-
-cssValueToDistance :: CssValue -> CssDistance
-cssValueToDistance value = case value of
-                             CssValueTypeLengthPercent d       -> d
-                             CssValueTypeLength d              -> d
-                             CssValueTypeSignedLength d        -> d
-                             CssValueTypeLengthPercentNumber d -> d
-                             CssValueTypeAuto d                -> d  -- TODO: 'auto' appears to be handled incorrectly this function
-                             otherwise                         -> CssDistanceAuto -- TODO: I'm not sure if this is the best 'otherwise' value
 
 
 

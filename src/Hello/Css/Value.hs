@@ -38,7 +38,6 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 module Hello.Css.Value
   (
     CssValue (..)
-  , distanceFromValue
   )
 where
 
@@ -57,10 +56,10 @@ import Hello.Css.Distance
 
 
 data CssValue =
-    CssValueTypeInt Int             -- This type is only used internally, for x-* properties.
-  | CssValueTypeEnum Int            -- Value is i, if represented by enum_symbols[i].
-  | CssValueTypeMultiEnum Int       -- For all enum_symbols[i], 1 << i are combined.
-  | CssValueTypeLengthPercent CssDistance   -- <length> or <percentage>. Represented by CssDistance.
+  -- CssValueTypeInt Int             -- This type is only used internally, for x-* properties.
+  -- CssValueTypeEnum Int            -- Value is i, if represented by enum_symbols[i].
+  -- CssValueTypeMultiEnum Int       -- For all enum_symbols[i], 1 << i are combined.
+  CssValueTypeLengthPercent CssDistance   -- <length> or <percentage>. Represented by CssDistance.
   | CssValueTypeLength CssDistance          -- <length>, represented as CssDistance.
                                     -- Note: In some cases, CSS_TYPE_LENGTH
                                     -- is used instead of
@@ -72,7 +71,7 @@ data CssValue =
   | CssValueTypeLengthPercentNumber CssDistance -- <length> or <percentage>, or <number>
   | CssValueTypeAuto CssDistance    -- Represented as CssDistance of type CssDistanceAuto
   | CssValueTypeColor Int           -- Represented as integer.
-  | CssValueTypeFontWeight Int      -- This very special and only used by 'font-weight'
+  --  | CssValueTypeFontWeight Int      -- This very special and only used by 'font-weight'
   | CssValueTypeString T.Text       -- <string>
   | CssValueTypeStringList [T.Text] -- List of symbols, which are directly
                                     -- copied (as opposed to
@@ -80,20 +79,10 @@ data CssValue =
                                     -- CSS_PROPERTY_DATA_TYPE_MULTI_ENUM).
                                     -- Used for 'font-family'.
   | CssValueTypeURI T.Text          -- <uri>
-  | CssValueTypeBgPosition          -- TODO: add values to this constructor
-  | CssValueTypeUnused              -- Not yet used. Will itself get unused some day.
+  --  | CssValueTypeBgPosition          -- TODO: add values to this constructor
+  --  | CssValueTypeUnused              -- Not yet used. Will itself get unused some day.
   deriving (Show, Eq, Data)
 
 
-
-
-distanceFromValue :: CssValue -> Maybe CssDistance
-distanceFromValue value = case value of
-                            CssValueTypeLengthPercent distance       -> Just distance
-                            CssValueTypeLength distance              -> Just distance
-                            CssValueTypeSignedLength distance        -> Just distance
-                            CssValueTypeLengthPercentNumber distance -> Just distance
-                            CssValueTypeAuto distance                -> Just distance
-                            otherwise                                -> Nothing
 
 

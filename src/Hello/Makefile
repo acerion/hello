@@ -12,7 +12,6 @@ all:
 	hsc2hs ./Ffi/Css/Parser.hsc
 	hsc2hs ./Ffi/Css/StyleEngine.hsc
 	hsc2hs ./Ffi/Css/StyleSheet.hsc
-	hsc2hs ./Ffi/Css/Value.hsc
 	hsc2hs ./Ffi/Dw/DwLength.hsc
 	hsc2hs ./Ffi/Dw/FontAttrs.hsc
 	hsc2hs ./Ffi/Dw/Style.hsc
@@ -58,7 +57,6 @@ clean:
 	rm -f ./Ffi/Css/Parser.hs
 	rm -f ./Ffi/Css/StyleEngine.hs
 	rm -f ./Ffi/Css/StyleSheet.hs
-	rm -f ./Ffi/Css/Value.hs
 	rm -f ./Ffi/Dw/DwLength.hs
 	rm -f ./Ffi/Dw/FontAttrs.hs
 	rm -f ./Ffi/Dw/Style.hs

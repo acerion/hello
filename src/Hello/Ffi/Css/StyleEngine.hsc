@@ -53,7 +53,6 @@ import Hello.Css.Distance
 import Hello.Css.Parser
 import Hello.Css.StyleEngine
 import Hello.Css.UserAgentStyle
-import Hello.Css.Value
 
 import Hello.Display
 
@@ -63,7 +62,6 @@ import Hello.Dw.Style
 
 import Hello.Ffi.Css.Context
 import Hello.Ffi.Css.Parser
-import Hello.Ffi.Css.Value
 
 import Hello.Ffi.Dw.DwLength
 import Hello.Ffi.Dw.FontAttrs
@@ -80,7 +78,7 @@ import Hello.Ffi.Utils
 
 
 
-foreign export ccall "hll_styleEngineSetNonCssHintOfNodeLength" hll_styleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
+foreign export ccall "hll_styleEngineSetNonCssHintOfNodeLength" hll_styleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> Float -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeEnum" hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
 foreign export ccall "hll_styleEngineSetNonCssHintOfNodeColor" hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
@@ -140,20 +138,16 @@ hll_styleEngineSetXLinkOfNode cNonCssDeclSetRef cIntVal = do
 
 
 
-hll_styleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
-hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cValueType cLengthValue cLengthType  = do
+hll_styleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> Float -> CInt -> IO CInt
+hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cLengthValue cLengthType  = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
-  let valType  = fromIntegral cValueType
-  let intVal   = 0
-  let textVal  = ""
   let lengthValue = cLengthValue
   let lengthType  = fromIntegral cLengthType
+  let property    = fromIntegral cProperty
+  let distance    = cssLengthToDistance lengthValue lengthType
 
-  let property = fromIntegral cProperty
-  let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
-  let distance = cssValueToDistance cssValue
   let decl | property ==  7 = CssDeclarationBorderBottomWidth $ CssValueBorderWidthDistance distance
            | property == 11 = CssDeclarationBorderLeftWidth   $ CssValueBorderWidthDistance distance
            | property == 14 = CssDeclarationBorderRightWidth  $ CssValueBorderWidthDistance distance
@@ -178,18 +172,6 @@ hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cValueType 
   globalDeclarationSetUpdate ref newDeclSet
 
   return . fromIntegral $ ref
-
-
-
-
-cssValueToDistance :: CssValue -> CssDistance
-cssValueToDistance value = case value of
-                             CssValueTypeLengthPercent d       -> d
-                             CssValueTypeLength d              -> d
-                             CssValueTypeSignedLength d        -> d
-                             CssValueTypeLengthPercentNumber d -> d
-                             CssValueTypeAuto d                -> d  -- TODO: 'auto' appears to be handled incorrectly this function
-                             otherwise                         -> CssDistanceAuto -- TODO: I'm not sure if this is the best 'otherwise' value
 
 
 

@@ -746,11 +746,11 @@ void StyleEngine::buildUserStyle(int context_ref)
    dFree (filename);
 }
 
-void cpp_styleEngineSetNonCssHintOfNodeLength(StyleNode * styleNode, CssDeclarationProperty property, CssDeclarationValueType valueType, CssLength cssLength)
+void cpp_styleEngineSetNonCssHintOfNodeLength(StyleNode * styleNode, CssDeclarationProperty property, CssLength cssLength)
 {
    float lengthValue = cpp_cssLengthValue(cssLength);
    int lengthType  = (int) cpp_cssLengthType(cssLength);
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeLength(styleNode->declLists.non_css_decl_set_ref, property, valueType, lengthValue, lengthType);
+   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeLength(styleNode->declLists.non_css_decl_set_ref, property, lengthValue, lengthType);
    return;
 }
 

@@ -36,8 +36,6 @@ module Hello.Ffi.Css.Parser
   , pokeCssToken
 
   , getCssOrigin
-
-  , allDeclMakers
   )
 where
 
@@ -69,11 +67,9 @@ import Hello.Css.Distance
 import Hello.Css.Parser
 import Hello.Css.Selector
 import Hello.Css.Tokenizer
-import Hello.Css.Value
 
 import Hello.Ffi.Css.Distance
 import Hello.Ffi.Css.SelectorLink
-import Hello.Ffi.Css.Value
 import Hello.Ffi.Utils
 
 
@@ -1013,7 +1009,7 @@ hll_isTokenSemicolon ptrStructCssToken = do
 
 
 
-
+{-
 allDeclMakers :: [(CssValue -> CssDeclaration, Int)]
 allDeclMakers =
   [ ( (\v -> CssDeclaration_LAST), 0 )                   -- CssDeclarationBackgroundAttachment; C++ code will never ask for this property
@@ -1104,4 +1100,5 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 85 )                  -- CssDeclarationXTooltip; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXTooltipOfNode
   , ( (\v -> CssDeclaration_LAST), 86 )                  -- "last" item
   ]
+-}
 

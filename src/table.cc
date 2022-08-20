@@ -60,10 +60,10 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    if (border != -1) {
       cssLength = cpp_cssCreateLength(border, CSS_LENGTH_TYPE_PX);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_TOP_WIDTH,    cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_LEFT_WIDTH,   cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  cssLength);
       cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_TOP_STYLE,    BORDER_OUTSET);
       cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_BOTTOM_STYLE, BORDER_OUTSET);
       cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_LEFT_STYLE,   BORDER_OUTSET);
@@ -73,13 +73,13 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    if (cellspacing != -1) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       cssLength = cpp_cssCreateLength(cellspacing, CSS_LENGTH_TYPE_PX);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_SPACING, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_SPACING, cssLength);
    }
 
    if ((attr_value = html_attribute_get_value(tag, tagsize, "width"))) {
       CssLength width = html_parse_attribute_width_or_height(attr_value);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_WIDTH, width);
       if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
          BUG_MSG("<table> width attribute is obsolete.");
    }
@@ -115,10 +115,10 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    if (border > 0) {
       cssLength = cpp_cssCreateLength(1, CSS_LENGTH_TYPE_PX);
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_TOP_WIDTH,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_LEFT_WIDTH,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_TOP_WIDTH,    cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_BOTTOM_WIDTH, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_LEFT_WIDTH,   cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_BORDER_RIGHT_WIDTH,  cssLength);
       cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_TOP_STYLE,    BORDER_INSET);
       cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_BOTTOM_STYLE, BORDER_INSET);
       cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_BORDER_LEFT_STYLE,   BORDER_INSET);
@@ -128,10 +128,10 @@ void Html_tag_open_table(DilloHtml *html, const char *tag, int tagsize)
    if (cellpadding != -1) {
       StyleNode * currentNode = getCurrentNode(html->styleEngine);
       cssLength = cpp_cssCreateLength(cellpadding, CSS_LENGTH_TYPE_PX);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_TOP,    CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_BOTTOM, CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_LEFT,   CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
-      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_RIGHT,  CssDeclarationValueTypeLENGTH_PERCENTAGE, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_TOP,    cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_BOTTOM, cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_LEFT,   cssLength);
+      cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_PADDING_RIGHT,  cssLength);
    }
 
 }
@@ -381,7 +381,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
       if ((attr_value = html_attribute_get_value(tag, tagsize, "width"))) {
          CssLength width = html_parse_attribute_width_or_height(attr_value);
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_WIDTH, CssDeclarationValueTypeLENGTH_PERCENTAGE, width);
+         cpp_styleEngineSetNonCssHintOfNodeLength(currentNode, CSS_PROPERTY_WIDTH, width);
          if (html->doctype.c_doc_type == DT_HTML && html->doctype.c_doc_type_version >= 5.0f)
             BUG_MSG("<t%c> width attribute is obsolete.",
                (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');
