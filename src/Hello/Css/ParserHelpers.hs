@@ -57,7 +57,7 @@ module Hello.Css.ParserHelpers
   , tokensAsValueBgPosition3
   , tokensAsValueStringList3
   , declValueAsURI3
-  , tokensAsValueAuto3
+  , interpretTokensAsAuto
   , tokensAsValueString3
   )
 where
@@ -612,21 +612,19 @@ tokensAsValueStringList3 vs@ValueState3 { pt3 = pat } = (vs { pt3 = pat' }, decl
 --
 -- In case of "auto" value there is no need to consume more than current
 -- token to build the Auto, but for consistency with other similar functions
--- the function is still called "tokensAs...".
+-- the function is still called "tokenS as".
+--
+-- The tests show that the function will interpret "auto italic" as
+-- CssValueTypeAuto, but this is problematic because "italic" doesn't seem to
+-- be something expected after "auto". Should we reject such input string
+-- here, or in higher layer?
+interpretTokensAsAuto :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+interpretTokensAsAuto vs@ValueState3 { pt3 = (p, t@(CssTokIdent sym)) } | T.toLower sym == "auto" = (vs {pt3 = (nextToken1 p)}
+                                                                                                    , Just . (fromJust . distanceValueCtor $ vs) $ CssDistanceAuto
+                                                                                                    )
+                                                                        | otherwise               = (vs, Nothing)
+interpretTokensAsAuto vs                                                                          = (vs, Nothing)
 
-tokensAsValueAuto3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-tokensAsValueAuto3 vs@ValueState3 { pt3 = (p, t@(CssTokIdent sym)) } | T.toLower sym == "auto" = (vs {pt3 = (nextToken1 p)}
-                                                                                                 , Just . (fromJust . distanceValueCtor $ vs) $ CssDistanceAuto
-                                                                                                 )
-                                                                     | otherwise               = (vs, Nothing)
-tokensAsValueAuto3 vs                                                                          = (vs, Nothing)
-
-{-
-tokensAsValueAuto3 :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueAuto3 (p, t@(CssTokIdent sym)) | T.toLower sym == "auto" = ((nextToken1 p), Just . CssValueTypeAuto $ CssDistanceAuto)
-                                            | otherwise               = ((p, t), Nothing)
-tokensAsValueAuto3 (p, t)                                             = ((p, t), Nothing)
--}
 
 
 

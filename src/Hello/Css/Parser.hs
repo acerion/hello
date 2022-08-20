@@ -54,7 +54,6 @@ module Hello.Css.Parser(
 
                        , tokensAsValueColor
                        , declValueAsString
-                       , tokensAsValueAuto
                        , tokensAsValueString
                        , declValueAsLength
                        , declValueAsURI
@@ -340,19 +339,6 @@ declValueAsString id (parser, token) = case ((retParser, retToken), value) of
     ((retParser, retToken), value) | id == 10  = tokensAsValueString (parser, token) [] -- TODO: magic value
                                    | id == 12  = declValueAsURI (parser, token) []      -- TODO: magic value
                                    | otherwise = ((parser, token), Nothing)
-
-
-
-
--- Interpret current token as "auto" value (value of type CssValueTypeAuto).
---
--- In case of "auto" value there is no need to consume more than current
--- token to build the Auto, but for consistency with other similar functions
--- the function is still called "tokensAs...".
-tokensAsValueAuto :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueAuto (p, t@(CssTokIdent sym)) _ | T.toLower sym == "auto" = ((nextToken1 p), Just . CssValueTypeAuto $ CssDistanceAuto)
-                                             | otherwise               = ((p, t), Nothing)
-tokensAsValueAuto (p, t) _                 = ((p, t), Nothing)
 
 
 

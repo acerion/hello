@@ -357,17 +357,115 @@ multiEnumTestFunction (x:xs) = if not success
 
 
 
+-- --------------------------------------------------------------------------
+-- Tests of interpretTokensAsAuto
+-- --------------------------------------------------------------------------
+
+
+
+
+data AutoTestData = AutoTestData
+  { initialRem3    :: T.Text                   -- Initial remainder of CSS parser.
+  , initialToken3  :: CssToken                 -- Initial current token.
+  , dictionary3    :: [Int]                    -- Unused in this test.
+  , finalRem3      :: T.Text                   -- Final (after a single test) remainder of CSS parser.
+  , finalToken3    :: CssToken                 -- Final (after a single test) token.
+  , expectedValue3 :: Maybe AutoTestValue      -- Expected value parsed from (parser+token) pair.
+  }
+
+
+
+
+-- An artifical value ctor for value of some artifical CSS property.
+data AutoTestValue = AutoTestValueCtor CssDistance
+  deriving (Eq, Show)
+
+
+
+
+-- TODO: add tests of strings with capital letters after you verify expected
+-- behaviour in CSS spec.
+--
+-- TODO: notice that the actual value of property that is being parsed in the
+-- first example is "auto something;". This doesn't look like a string that
+-- should be successfully parsed as "auto". Should we reject an "auto
+-- something" string as something that can't be parsed as "auto"?
+autoTestData :: [AutoTestData]
+autoTestData =
+  [
+    -- Success case. Current token is "auto".
+    --
+    -- Declaration value ends with ';' here. Tokenizer will take the char but
+    -- tested function will keep it as current token.
+    AutoTestData { dictionary3 = [] -- unused in tests of this function
+                 , initialRem3 = "something; other", initialToken3 = CssTokIdent "auto"
+                 , finalRem3   = "; other",          finalToken3   = CssTokIdent "something"
+                 , expectedValue3 = Just . AutoTestValueCtor $ CssDistanceAuto
+                 }
+
+    -- Failure case. Current token is not "auto".
+  , AutoTestData { dictionary3 = [] -- unused in tests of this function
+                 , initialRem3 = "something; other", initialToken3 = CssTokIdent "italic"
+                 , finalRem3   = "something; other", finalToken3   = CssTokIdent "italic"
+                 , expectedValue3 = Nothing
+                 }
+
+    -- Failure case. Current token is definitely not "auto".
+  , AutoTestData { dictionary3 = [] -- unused in tests of this function
+                 , initialRem3 = "something; other", initialToken3 = CssTokBraceCurlyClose
+                 , finalRem3   = "something; other", finalToken3   = CssTokBraceCurlyClose
+                 , expectedValue3 = Nothing
+                 }
+
+    -- Failure case. Current token is definitely not "auto".
+  , AutoTestData { dictionary3 = [] -- unused in tests of this function
+                 , initialRem3 = "something; other", initialToken3 = CssTokDelim '@'
+                 , finalRem3   = "something; other", finalToken3   = CssTokDelim '@'
+                 , expectedValue3 = Nothing
+                 }
+  ]
+
+
+
+
+-- On success return empty string. On failure return string showing
+-- approximately where the problem is.
+autoTestFunction :: [AutoTestData] -> T.Text
+autoTestFunction []     = ""
+autoTestFunction (x:xs) = if not success
+                          then T.pack ("Got: " ++ show propertyValue ++ ", Expected: " ++ show expectedPropertyValue ++ "; pat' = " ++ (show parser') ++ (show token'))
+                          else autoTestFunction xs
+  where
+    expectedPropertyValue = expectedValue3 x
+
+    vs :: ValueState3 AutoTestValue
+    vs = (defaultValueState3 pat) { distanceValueCtor = Just AutoTestValueCtor }
+
+    (vs', propertyValue) = interpretTokensAsAuto vs
+
+    pat = (defaultParser{remainder = initialRem3 x}, initialToken3 x)
+    (parser', token') = pt3 vs'
+
+    success = and [ expectedPropertyValue == propertyValue
+                  , token' == finalToken3 x
+                  , remainder parser' == finalRem3 x
+                  ]
+
+
+
+
 {- -------------------------------------------------------------------------- -}
 
 
 
 
 -- If some error is found, test function returns non-empty string which can
--- help identify which test failed.
+-- help identify a test that failed.
 testCases =
   [
     TestCase (do assertEqual "manual tests of interpretTokensAsEnum"              "" (enumTestFunction enumTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsMultiEnum"         "" (multiEnumTestFunction multiEnumTestData))
+  , TestCase (do assertEqual "manual tests of interpretTokensAsAuto"              "" (autoTestFunction autoTestData))
   ]
 
 

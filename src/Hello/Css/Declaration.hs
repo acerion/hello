@@ -1193,7 +1193,7 @@ data CssValueHeight
 makeCssDeclarationHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationHeight pat = (pat', fmap CssDeclarationHeight declValue)
   where
-    (vs', declValue) = declValueAsLength3 vs >>? tokensAsValueAuto3
+    (vs', declValue) = declValueAsLength3 vs >>? interpretTokensAsAuto
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueHeight
@@ -1449,7 +1449,7 @@ makeCssDeclarationMarginX declCtor pat = (pat', fmap declCtor value)
 parseTokensAsMarginValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueMargin)
 parseTokensAsMarginValue pat = (pat', declValue)
   where
-    (vs', declValue) = declValueAsLength3 vs >>? tokensAsValueAuto3
+    (vs', declValue) = declValueAsLength3 vs >>? interpretTokensAsAuto
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueMargin
@@ -1843,7 +1843,7 @@ data CssValueWidth
 makeCssDeclarationWidth :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationWidth pat = (pat', fmap CssDeclarationWidth declValue)
   where
-    (vs', declValue) = declValueAsLength3 vs >>? tokensAsValueAuto3
+    (vs', declValue) = declValueAsLength3 vs >>? interpretTokensAsAuto
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueWidth

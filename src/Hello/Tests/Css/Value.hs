@@ -163,44 +163,6 @@ tokenAsValueColorRgbTestManualData = [
       ]
 
 
--- Tests for tokenAsValueAuto function
---
--- These test cases specify parser's remainder before and after parsing.
---
--- This array is called "Manual" because these tests were written manually.
--- Perhaps in the future I will write some generator of test data.
-tokenAsValueAutoTestManualData = [
-
-  -- Success
-      AsTestData2 { testedFunction2 = tokensAsValueAuto
-                  , enums2 = [] -- Doesn't matter for this tested function.
-                  , tokenBefore2 = CssTokIdent "auto"
-                  , remainderBefore2 = "oxygen; next-property"
-                  , remainderAfter2  = "; next-property"
-                  , tokenAfter2 = CssTokIdent "oxygen"
-                  , expectedCssValue2 = Just . CssValueTypeAuto $ CssDistanceAuto
-                  }
-    , AsTestData2 { testedFunction2 = tokensAsValueAuto
-                  , enums2 = [] -- Doesn't matter for this tested function.
-                  , tokenBefore2 = CssTokIdent "AUto"
-                  , remainderBefore2 = "nitro}"
-                  , remainderAfter2  = "}"
-                  , tokenAfter2 = CssTokIdent "nitro"
-                  , expectedCssValue2 = Just . CssValueTypeAuto $ CssDistanceAuto
-                  }
-
-    -- Failure. Current token is not "auto".
-    , AsTestData2 { testedFunction2 = tokensAsValueAuto
-                  , enums2 = [] -- Doesn't matter for this tested function.
-                  , tokenBefore2 = CssTokIdent "gemini"
-                  , remainderBefore2 = "taurus}"
-                  , remainderAfter2  = "taurus}"
-                  , tokenAfter2 = CssTokIdent "gemini"
-                  , expectedCssValue2 = Nothing
-                  }
-      ]
-
-
 
 
 -- Tests for tokenAsValueStringList function
@@ -280,9 +242,7 @@ tokenAsValueTest2 idx (x:xs) = if (expectedCssValue2 x) /= value || (remainderAf
 valueTestCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.
-     -- , TestCase (do assertEqual "manual tests of tokenAsValueMultiEnum"     Nothing (tokenAsValueTest2 0 tokenAsValueMultiEnumTestManualData))
-     TestCase (do assertEqual "manual tests of tokenAsValueAuto"          Nothing (tokenAsValueTest2 0 tokenAsValueAutoTestManualData))
-   , TestCase (do assertEqual "manual tests of tokenAsValueStringList"    Nothing (tokenAsValueTest2 0 tokenAsValueStringListTestManualData))
+     TestCase (do assertEqual "manual tests of tokenAsValueStringList"    Nothing (tokenAsValueTest2 0 tokenAsValueStringListTestManualData))
    , TestCase (do assertEqual "manual tests of tokenAsValueColor - hash"  Nothing (tokenAsValueTest1 0 tokenAsValueColorHashTestManualData))
    , TestCase (do assertEqual "manual tests of tokenAsValueColor - rgb"   Nothing (tokenAsValueTest2 0 tokenAsValueColorRgbTestManualData))
   ]
