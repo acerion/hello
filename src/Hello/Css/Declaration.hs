@@ -1622,7 +1622,7 @@ cssValueTextDecorationDict = [ ("underline",     CssValueTextDecorationUnderline
 makeCssDeclarationTextDecoration :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationTextDecoration pat = (pat', fmap CssDeclarationTextDecoration declValue)
   where
-    (vs', declValue) = tokensAsValueMultiEnum3 vs
+    (vs', declValue) = interpretTokensAsMultiEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueTextDecoration

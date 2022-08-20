@@ -162,10 +162,212 @@ enumTestFunction (x:xs) = if not success
 
 
 
-testCases = [
-  -- If some error is found, test function returns non-empty string which can
-  -- help identify which test failed.
-     TestCase (do assertEqual "manual tests of interpretTokensAsEnum"  "" (enumTestFunction enumTestData))
+data MultiEnumTestData = MultiEnumTestData
+  { initialRem2    :: T.Text                             -- Initial remainder of CSS parser.
+  , initialToken2  :: CssToken                           -- Initial current token.
+  , dictionary2    :: [(T.Text, MultiEnumTestDataMultiEnum)]
+  , finalRem2      :: T.Text                             -- Final (after a single test) remainder of CSS parser.
+  , finalToken2    :: CssToken                           -- Final (after a single test) token.
+  , expectedValue2 :: Maybe [MultiEnumTestDataMultiEnum] -- Expected value parsed from (parser+token) pair.
+  }
+
+
+
+
+-- An artifical set of values of some artifical CSS property.
+data MultiEnumTestDataMultiEnum
+  = MultiEnumTestDataMultiEnumFirst
+  | MultiEnumTestDataMultiEnumSecond
+  | MultiEnumTestDataMultiEnumThird
+  | MultiEnumTestDataMultiEnumFourth
+  | MultiEnumTestDataMultiEnumFifth
+  deriving (Enum, Eq, Show)
+
+
+
+
+-- The test code will be testing if parsing a string token will result in
+-- proper Haskell enum value. This dict is specifying the mapping from the
+-- string to enum.
+multiEnumTestDict = [ ("first",    MultiEnumTestDataMultiEnumFirst)
+                    , ("second",   MultiEnumTestDataMultiEnumSecond)
+                    , ("third",    MultiEnumTestDataMultiEnumThird)
+                    , ("fourth",   MultiEnumTestDataMultiEnumFourth)
+                    , ("fifth",    MultiEnumTestDataMultiEnumFifth)
+                    ]
+
+
+
+
+-- TODO: add tests of strings with capital letters after you verify expected
+-- behaviour in CSS spec.
+--
+-- TODO: add test where a valid token (e.g. "second") appears more than once
+-- in the input.
+multiEnumTestData :: [MultiEnumTestData]
+multiEnumTestData =
+  [
+    -- Success case. All elements on the list are found in CSS input.
+    --
+    -- Declaration value ends with ';' here. Tokenizer will take the char but
+    -- tested function will keep it as current token.
+    MultiEnumTestData { dictionary2 = multiEnumTestDict
+                      , initialRem2 = "second third fourth fifth !important;", initialToken2 = CssTokIdent "first"
+                      , finalRem2   = "important;",                            finalToken2   = CssTokDelim '!'
+                      , expectedValue2 = Just [ MultiEnumTestDataMultiEnumFirst
+                                              , MultiEnumTestDataMultiEnumSecond
+                                              , MultiEnumTestDataMultiEnumThird
+                                              , MultiEnumTestDataMultiEnumFourth
+                                              , MultiEnumTestDataMultiEnumFifth
+                                              ] }
+
+    -- Success case.
+    --
+    -- Declaration value ends with '}' here. Tokenizer will take the char but
+    -- tested function will keep it as current token.
+  , MultiEnumTestData { dictionary2 = multiEnumTestDict
+                      , initialRem2 = "third fourth} selector", initialToken2 = CssTokIdent "second"
+                      , finalRem2   = " selector",              finalToken2   = CssTokBraceCurlyClose
+                      , expectedValue2 = Just [ MultiEnumTestDataMultiEnumSecond
+                                              , MultiEnumTestDataMultiEnumThird
+                                              , MultiEnumTestDataMultiEnumFourth
+                                              ] }
+
+    -- Success case.
+    --
+    -- Tokens in input text appear in order that does not match order of
+    -- enums. Tested function should not care about the order.
+  , MultiEnumTestData { dictionary2 = multiEnumTestDict
+                      , initialRem2 = "fifth first; selector", initialToken2 = CssTokIdent "second"
+                      , finalRem2   = " selector",             finalToken2   = CssTokSemicolon
+                      , expectedValue2 = Just [ MultiEnumTestDataMultiEnumSecond
+                                              , MultiEnumTestDataMultiEnumFifth
+                                              , MultiEnumTestDataMultiEnumFirst
+                                              ] }
+
+
+    -- Failure case.
+    --
+    -- Remainder tokens with values not on list of enums should result in Nothing.
+  , MultiEnumTestData { dictionary2 = multiEnumTestDict
+                      , initialRem2 = "hello there first; selector", initialToken2 = CssTokIdent "second"
+                      , finalRem2   = "hello there first; selector", finalToken2   = CssTokIdent "second"
+                      , expectedValue2 = Nothing
+                      }
+
+    -- Failure case.
+    --
+    -- Current token with value not on list of enums should also result in Nothing.
+  , MultiEnumTestData { dictionary2 = multiEnumTestDict
+                      , initialRem2 = "second third fourth; selector", initialToken2 = CssTokIdent "red"
+                      , finalRem2   = "second third fourth; selector", finalToken2   = CssTokIdent "red"
+                      , expectedValue2 = Nothing
+                      }
+
+    -- Failure case.
+    --
+    -- One of remainder tokens is a color, so the result is Nothing.
+  , MultiEnumTestData { dictionary2 = multiEnumTestDict
+                      , initialRem2 = "hello #aabbcc first; selector", initialToken2 = CssTokIdent "second"
+                      , finalRem2   = "hello #aabbcc first; selector", finalToken2   = CssTokIdent "second"
+                      , expectedValue2 = Nothing
+                      }
+
+    -- Failure case.
+    --
+    -- Current token is a color, so the result is Nothing.
+  , MultiEnumTestData { dictionary2 = multiEnumTestDict
+                      , initialRem2 = "second third fourth; selector", initialToken2 = CssTokIdent "#aabbcc"
+                      , finalRem2   = "second third fourth; selector", finalToken2   = CssTokIdent "#aabbcc"
+                      , expectedValue2 = Nothing
+                      }
+
+{-  -- FIXME: the tested function recognizes current token as valid token, but
+    -- then it doesn't discard "12px" in remainder as something unexpected.
+    -- The result of the test function is "Just
+    -- [MultiEnumTestDataMultiEnumSecond]", while it probably should be
+    -- Nothing.
+
+    -- Failure case.
+    --
+    -- One of remainder tokens is a length, so the result is Nothing.
+  , MultiEnumTestData { dictionary2 = multiEnumTestDict
+                      , initialRem2 = "12px !important", initialToken2 = CssTokIdent "second"
+                      , finalRem2   = "12px !important", finalToken2   = CssTokIdent "second"
+                      , expectedValue2 = Nothing
+                      }
+-}
+
+    -- Failure case.
+    --
+    -- Current token is a length, so the result is Nothing.
+  , MultiEnumTestData { dictionary2 = multiEnumTestDict
+                      , initialRem2 = "second third fourth; selector", initialToken2 = CssTokPerc . CssNumF $ 50.0
+                      , finalRem2   = "second third fourth; selector", finalToken2   = CssTokPerc . CssNumF $ 50.0
+                      , expectedValue2 = Nothing
+                      }
+
+
+    -- Failure case: empty dict. Not going to happen in practice because that
+    -- would be a coding error that would be caught by other tests, and would
+    -- require a deliberate omission of dictionary in parser code. Such
+    -- situation will not be triggered by incoming CSS data. But still this
+    -- is an interesting case worth testing.
+  , MultiEnumTestData { dictionary2 = []
+                      , initialRem2 = "first third; selector", initialToken2 = CssTokIdent "second"
+                      , finalRem2   = "first third; selector", finalToken2   = CssTokIdent "second"
+                      , expectedValue2 = Nothing
+                      }
+
+
+    -- Atypical data: empty string in token.
+  , MultiEnumTestData { dictionary2 = multiEnumTestDict
+                      , initialRem2 = "second third fourth fifth !important;", initialToken2 = CssTokIdent ""
+                      , finalRem2   = "second third fourth fifth !important;", finalToken2   = CssTokIdent ""
+                      , expectedValue2 = Nothing
+                      }
+  ]
+
+
+
+
+-- On success return empty string. On failure return string showing
+-- approximately where the problem is.
+multiEnumTestFunction :: [MultiEnumTestData] -> T.Text
+multiEnumTestFunction []     = ""
+multiEnumTestFunction (x:xs) = if not success
+                               then T.pack ("Got: " ++ show propertyValue ++ ", Expected: " ++ show expectedPropertyValue ++ "; pat' = " ++ (show parser') ++ (show token'))
+                               else multiEnumTestFunction xs
+  where
+    expectedPropertyValue = expectedValue2 x
+
+    vs :: ValueState3 MultiEnumTestDataMultiEnum
+    vs = (defaultValueState3 pat) { dict = dictionary2 x }
+
+    (vs', propertyValue) = interpretTokensAsMultiEnum vs
+
+    pat = (defaultParser{remainder = initialRem2 x}, initialToken2 x)
+    (parser', token') = pt3 vs'
+
+    success = and [ expectedPropertyValue == propertyValue
+                  , token' == finalToken2 x
+                  , remainder parser' == finalRem2 x
+                  ]
+
+
+
+
+{- -------------------------------------------------------------------------- -}
+
+
+
+
+-- If some error is found, test function returns non-empty string which can
+-- help identify which test failed.
+testCases =
+  [
+    TestCase (do assertEqual "manual tests of interpretTokensAsEnum"              "" (enumTestFunction enumTestData))
+  , TestCase (do assertEqual "manual tests of interpretTokensAsMultiEnum"         "" (multiEnumTestFunction multiEnumTestData))
   ]
 
 

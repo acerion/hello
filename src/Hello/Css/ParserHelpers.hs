@@ -50,9 +50,9 @@ module Hello.Css.ParserHelpers
   , ValueState3 (..)
   , defaultValueState3
   , interpretTokensAsEnum
+  , interpretTokensAsMultiEnum
   , declValueAsLength3
   , declValueAsFontWeightInteger3
-  , tokensAsValueMultiEnum3
   , tokensAsValueColor3
   , tokensAsValueBgPosition3
   , tokensAsValueStringList3
@@ -366,8 +366,8 @@ lengthValueToDistance fval unitStr | unitStr == "px" = CssDistanceAbsPx fval
 
 
 -- Match current CssTokIdent token (and possibly more following CssTokIdent
--- tokens) agains a dictonary of (ident, declValue) items. Return list of
--- declValue items for which a match was successful.
+-- tokens) agains a dictonary of (ident, 'property value') items. Return list
+-- of 'property value' items for which a match was successful.
 --
 -- If input stream contains CssTokIdent tokens with values not present in the
 -- dictionary (perhaps they come from newer version of standard or perhaps
@@ -391,12 +391,12 @@ lengthValueToDistance fval unitStr | unitStr == "px" = CssDistanceAbsPx fval
 -- TODO: check in spec if the dictionary should always include an implicit
 -- "none" value. Original C++ code indicates that "none" was treated in
 -- special way.
-tokensAsValueMultiEnum3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe [declValueT])
-tokensAsValueMultiEnum3 vs@ValueState3 { pt3 = (parser, token@(CssTokIdent sym)) } =
+interpretTokensAsMultiEnum :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe [declValueT])
+interpretTokensAsMultiEnum vs@ValueState3 { pt3 = (parser, token@(CssTokIdent sym)) } =
   case matchSymbolTokensWithListRigid (parser, token) (dict vs) [] of
     ((_, _), [])    -> (vs, Nothing) -- None of input tokens were matched agains list of enums.
     ((p2, t2), val) -> (vs { pt3 = (p2, t2) }, Just val)
-tokensAsValueMultiEnum3 vs                                                         = (vs, Nothing)
+interpretTokensAsMultiEnum vs = (vs, Nothing)
 
 
 
