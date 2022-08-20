@@ -37,19 +37,20 @@ import Hello.Utils
 
 
 
-
-{- -------------------------------------------------------------------------- -}
+-- --------------------------------------------------------------------------
+-- Tests of interpretTokensAsEnum
+-- --------------------------------------------------------------------------
 
 
 
 
 data EnumTestData = EnumTestData
-  { initialRem    :: T.Text                          -- Initial remainder of CSS parser.
-  , initialToken  :: CssToken                        -- Initial current token.
-  , dictionary    :: [(T.Text, EnumTestDataEnum)]
-  , finalRem      :: T.Text                          -- Final (after a single test) remainder of CSS parser.
-  , finalToken    :: CssToken                        -- Final (after a single test) token.
-  , expectedValue :: Maybe EnumTestDataEnum          -- Expected value parsed from (parser+token) pair.
+  { initialRem1    :: T.Text                          -- Initial remainder of CSS parser.
+  , initialToken1  :: CssToken                        -- Initial current token.
+  , dictionary1    :: [(T.Text, EnumTestDataEnum)]
+  , finalRem1      :: T.Text                          -- Final (after a single test) remainder of CSS parser.
+  , finalToken1    :: CssToken                        -- Final (after a single test) token.
+  , expectedValue1 :: Maybe EnumTestDataEnum          -- Expected value parsed from (parser+token) pair.
   }
 
 
@@ -86,46 +87,46 @@ enumTestData :: [EnumTestData]
 enumTestData =
   [
     -- Success case. First element on the list matches.
-    EnumTestData { dictionary = enumTestDict
-                 , initialRem = "!important;",  initialToken = CssTokIdent "first"
-                 , finalRem   = "important;",   finalToken   = CssTokDelim '!'
-                 , expectedValue = Just EnumTestDataEnumFirst }
+    EnumTestData { dictionary1 = enumTestDict
+                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent "first"
+                 , finalRem1   = "important;",   finalToken1   = CssTokDelim '!'
+                 , expectedValue1 = Just EnumTestDataEnumFirst }
 
     -- Success case. Middle element on the list matches.
-  , EnumTestData { dictionary = enumTestDict
-                 , initialRem = "!important;",  initialToken = CssTokIdent "third"
-                 , finalRem   = "important;",   finalToken   = CssTokDelim '!'
-                 , expectedValue = Just EnumTestDataEnumThird }
+  , EnumTestData { dictionary1 = enumTestDict
+                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent "third"
+                 , finalRem1   = "important;",   finalToken1   = CssTokDelim '!'
+                 , expectedValue1 = Just EnumTestDataEnumThird }
 
     -- Success case. Last element on the list matches.
-  , EnumTestData { dictionary = enumTestDict
-                 , initialRem = "!important;",  initialToken = CssTokIdent "fifth"
-                 , finalRem   = "important;",   finalToken   = CssTokDelim '!'
-                 , expectedValue = Just EnumTestDataEnumFifth }
+  , EnumTestData { dictionary1 = enumTestDict
+                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent "fifth"
+                 , finalRem1   = "important;",   finalToken1   = CssTokDelim '!'
+                 , expectedValue1 = Just EnumTestDataEnumFifth }
 
     -- Failure case: token not matching a dict. This may happen if input
     -- document supports newer CSS standard, and the implementation
     -- implements older CSS standard.
-  , EnumTestData { dictionary = enumTestDict
-                 , initialRem = "!important;",  initialToken = CssTokIdent "eight"
-                 , finalRem   = "!important;",  finalToken   = CssTokIdent "eight"
-                 , expectedValue = Nothing }
+  , EnumTestData { dictionary1 = enumTestDict
+                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent "eight"
+                 , finalRem1   = "!important;",  finalToken1   = CssTokIdent "eight"
+                 , expectedValue1 = Nothing }
 
     -- Failure case: empty dict. Not going to happen in practice because that
     -- would be a coding error that would be caught by other tests, and would
     -- require a deliberate omission of dictionary in parser code. Such
     -- situation will not be triggered by incoming CSS data. But still this
     -- is an interesting case worth testing.
-  , EnumTestData { dictionary = []
-                 , initialRem = "!important;",  initialToken = CssTokIdent "first"
-                 , finalRem   = "!important;",  finalToken   = CssTokIdent "first"
-                 , expectedValue = Nothing }
+  , EnumTestData { dictionary1 = []
+                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent "first"
+                 , finalRem1   = "!important;",  finalToken1   = CssTokIdent "first"
+                 , expectedValue1 = Nothing }
 
     -- Atypical data: empty string in token.
-  , EnumTestData { dictionary = []
-                 , initialRem = "!important;",  initialToken = CssTokIdent ""
-                 , finalRem   = "!important;",  finalToken   = CssTokIdent ""
-                 , expectedValue = Nothing }
+  , EnumTestData { dictionary1 = []
+                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent ""
+                 , finalRem1   = "!important;",  finalToken1   = CssTokIdent ""
+                 , expectedValue1 = Nothing }
   ]
 
 
@@ -139,25 +140,27 @@ enumTestFunction (x:xs) = if not success
                           then T.pack ("Got: " ++ show propertyValue ++ ", Expected: " ++ show expectedPropertyValue ++ "; pat' = " ++ (show parser') ++ (show token'))
                           else enumTestFunction xs
   where
-    expectedPropertyValue = expectedValue x
+    expectedPropertyValue = expectedValue1 x
 
     vs :: ValueState3 EnumTestDataEnum
-    vs = (defaultValueState3 pat) { dict = dictionary x }
+    vs = (defaultValueState3 pat) { dict = dictionary1 x }
 
     (vs', propertyValue) = interpretTokensAsEnum vs
 
-    pat = (defaultParser{remainder = initialRem x}, initialToken x)
+    pat = (defaultParser{remainder = initialRem1 x}, initialToken1 x)
     (parser', token') = pt3 vs'
 
     success = and [ expectedPropertyValue == propertyValue
-                  , token' == finalToken x
-                  , remainder parser' == finalRem x
+                  , token' == finalToken1 x
+                  , remainder parser' == finalRem1 x
                   ]
 
 
 
 
-{- -------------------------------------------------------------------------- -}
+-- --------------------------------------------------------------------------
+-- Tests of interpretTokensAsMultiEnum
+-- --------------------------------------------------------------------------
 
 
 
