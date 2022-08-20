@@ -60,51 +60,6 @@ data AsTestData2 = AsTestData2 {
 
 
 
--- TODO: restore the test. Or not. The function parsed here is being replaced by a bit different function.
-{-
--- Tests for tokenAsValue* functions
---
--- These test cases don't specify parser's remainder before and after parsing.
---
--- This array is called "Manual" because these tests were written manually.
--- Perhaps in the future I will write some generator of test data.
-tokenAsValueTestManualData1 = [
-
-  -- Success
-    AsTestData1 { testedFunction1 = tokensAsValueEnum
-                , enums1 = ["something", "other", "auto"]
-                , tokenBefore1 = CssTokIdent "something"
-                , expectedCssValue1 = Just (CssValueTypeEnum 0)
-                }
-  , AsTestData1 { testedFunction1 = tokensAsValueEnum
-                , enums1 = ["zeroth", "first", "second", "third", "fourth", "fifth"]
-                , tokenBefore1 = CssTokIdent "fifth"
-                , expectedCssValue1 = Just (CssValueTypeEnum 5)
-                }
-  -- Atypical data: empty list of enums.
-  , AsTestData1 { testedFunction1 = tokensAsValueEnum
-                , enums1 = []
-                , tokenBefore1 = CssTokIdent "auto"
-                , expectedCssValue1 = Nothing
-                }
-  -- Atypical data: empty string in token.
-  , AsTestData1 { testedFunction1 = tokensAsValueEnum
-                , enums1 = ["sun", "stars", "moon"]
-                , tokenBefore1 = CssTokIdent ""
-                , expectedCssValue1 = Nothing
-                }
-
-  -- Failure: no such string on list of enums
-  , AsTestData1 { testedFunction1 = tokensAsValueEnum
-                , enums1 = ["red", "blue", "orange"]
-                , tokenBefore1 = CssTokIdent "elephant"
-                , expectedCssValue1 = Nothing
-                }
-  ]
--}
-
-
-
 
 -- Tests for tokenAsValueColor function
 --
@@ -397,7 +352,6 @@ tokenAsValueTest2 idx (x:xs) = if (expectedCssValue2 x) /= value || (remainderAf
 valueTestCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.
-      -- TestCase (do assertEqual "manual tests of tokenAsValue 1"            Nothing (tokenAsValueTest1 0 tokenAsValueTestManualData1))
      -- , TestCase (do assertEqual "manual tests of tokenAsValueMultiEnum"     Nothing (tokenAsValueTest2 0 tokenAsValueMultiEnumTestManualData))
      TestCase (do assertEqual "manual tests of tokenAsValueAuto"          Nothing (tokenAsValueTest2 0 tokenAsValueAutoTestManualData))
    , TestCase (do assertEqual "manual tests of tokenAsValueStringList"    Nothing (tokenAsValueTest2 0 tokenAsValueStringListTestManualData))

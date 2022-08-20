@@ -342,7 +342,7 @@ cssValueBackgroundAttachmentDict = [ ("scroll",  CssValueBackgroundAttachmentScr
 makeCssDeclarationBackgroundAttachment :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationBackgroundAttachment pat = (pat', fmap CssDeclarationBackgroundAttachment declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBackgroundAttachment
@@ -376,7 +376,7 @@ cssValueBackgroundColorDict = [ ("inherit",    CssValueBackgroundColorInherit)
 makeCssDeclarationBackgroundColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationBackgroundColor pat = (pat', fmap CssDeclarationBackgroundColor declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs >>? tokensAsValueColor3
+    (vs', declValue) = interpretTokensAsEnum vs >>? tokensAsValueColor3
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBackgroundColor
@@ -470,7 +470,7 @@ cssValueBackgroundRepeatDict = [ ("repeat",     CssValueBackgroundRepeatRepeat)
 makeCssDeclarationBackgroundRepeat :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationBackgroundRepeat pat = (pat', fmap CssDeclarationBackgroundRepeat declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBackgroundRepeat
@@ -505,7 +505,7 @@ cssValueBorderCollapseDict = [ ("separate",   CssValueBorderCollapseSeparate)
 makeCssDeclarationBorderCollapse :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationBorderCollapse pat = (pat', fmap CssDeclarationBorderCollapse declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBorderCollapse
@@ -572,7 +572,7 @@ cssValueBorderColorDict = [ ("transparent", CssValueBorderColorTransparent)
 parseTokensAsBorderColorValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderColor)
 parseTokensAsBorderColorValue pat = (pat', declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs >>? tokensAsValueColor3
+    (vs', declValue) = interpretTokensAsEnum vs >>? tokensAsValueColor3
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBorderColor
@@ -645,7 +645,7 @@ cssValueBorderStyleDict = [ ("none",     CssValueBorderStyleNone)
 parseTokensAsBorderStyleValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderStyle)
 parseTokensAsBorderStyleValue pat = ((pat'), declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBorderStyle
@@ -703,7 +703,7 @@ cssValueBorderWidthDict = [ ("thin",    CssValueBorderWidthThin)
 parseTokensAsBorderWidthValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderWidth)
 parseTokensAsBorderWidthValue pat = (pat', declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsLength3
+    (vs', declValue) = interpretTokensAsEnum vs >>? declValueAsLength3
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBorderWidth
@@ -770,7 +770,7 @@ cssValueColorDict = [ ("inherit", CssValueColorInherit)
 makeCssDeclarationColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationColor pat = (pat', fmap CssDeclarationColor declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs >>? tokensAsValueColor3
+    (vs', declValue) = interpretTokensAsEnum vs >>? tokensAsValueColor3
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueColor
@@ -875,7 +875,7 @@ cssValueCursorDict = [ ("crosshair", CssValueCursorCrosshair)
 makeCssDeclarationCursor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationCursor pat = (pat', fmap CssDeclarationCursor declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueCursor
@@ -941,7 +941,7 @@ cssValueDisplayDict = [ ("block",              CssValueDisplayBlock)
 makeCssDeclarationDisplay :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationDisplay pat = (pat', fmap CssDeclarationDisplay declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueDisplay
@@ -1036,7 +1036,7 @@ cssValueFontSizeDict = [ ("xx-small", CssValueFontSizeXXSmall)
 makeCssDeclarationFontSize :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsLength3
+    (vs', declValue) = interpretTokensAsEnum vs >>? declValueAsLength3
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueFontSize
@@ -1087,7 +1087,7 @@ cssValueFontStyleDict = [ ("normal",  CssValueFontStyleNormal)
 makeCssDeclarationFontStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationFontStyle pat = (pat', fmap CssDeclarationFontStyle declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueFontStyle
@@ -1122,7 +1122,7 @@ cssValueFontVariantDict = [ ("normal",  CssValueFontVariantNormal)
 makeCssDeclarationFontVariant :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationFontVariant pat = (pat', fmap CssDeclarationFontVariant declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueFontVariant
@@ -1163,7 +1163,7 @@ cssValueFontWeightDict = [ ("normal",  CssValueFontWeightNormal)
 makeCssDeclarationFontWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationFontWeight pat = (pat', fmap CssDeclarationFontWeight declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsFontWeightInteger3
+    (vs', declValue) = interpretTokensAsEnum vs >>? declValueAsFontWeightInteger3
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueFontWeight
@@ -1239,7 +1239,7 @@ cssValueLetterSpacingDict = [ ("normal",    CssValueLetterSpacingNormal)
 makeCssDeclarationLetterSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationLetterSpacing pat = (pat', fmap CssDeclarationLetterSpacing declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsLength3
+    (vs', declValue) = interpretTokensAsEnum vs >>? declValueAsLength3
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueLetterSpacing
@@ -1274,7 +1274,7 @@ cssValueLineHeightDict = [ ("normal",    CssValueLineHeightNormal)
 makeCssDeclarationLineHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationLineHeight pat = (pat', fmap CssDeclarationLineHeight declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsLength3 -- declValueAsLengthPercentNumber
+    (vs', declValue) = interpretTokensAsEnum vs >>? declValueAsLength3 -- declValueAsLengthPercentNumber
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueLineHeight
@@ -1334,7 +1334,7 @@ cssValueListStylePositionDict = [ ("inside",               CssValueListStylePosi
 makeCssDeclarationListStylePosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationListStylePosition pat = (pat', fmap CssDeclarationListStylePosition declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueListStylePosition
@@ -1410,7 +1410,7 @@ cssValueListStyleTypeDict = [ ("disc",                 CssValueListStyleTypeDisc
 makeCssDeclarationListStyleType :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationListStyleType pat = (pat', fmap CssDeclarationListStyleType declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueListStyleType
@@ -1580,7 +1580,7 @@ cssValueTextAlignDict = [ ("left",    CssValueTextAlignLeft)
 makeCssDeclarationTextAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationTextAlign pat = (pat', fmap CssDeclarationTextAlign declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueTextAlign
@@ -1699,7 +1699,7 @@ cssValueTextTransformDict = [ ("none",       CssValueTextTransformNone)
 makeCssDeclarationTextTransform :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationTextTransform pat = (pat', fmap CssDeclarationTextTransform declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueTextTransform
@@ -1761,7 +1761,7 @@ cssValueVerticalAlignDict = [ ("top",         CssValueVerticalAlignTop)
 makeCssDeclarationVerticalAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationVerticalAlign pat = (pat', fmap CssDeclarationVerticalAlign declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueVerticalAlign
@@ -1814,7 +1814,7 @@ cssValueWhitespaceDict = [ ("normal",   CssValueWhitespaceNormal)
 makeCssDeclarationWhitespace :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationWhitespace pat = (pat', fmap CssDeclarationWhitespace declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs
+    (vs', declValue) = interpretTokensAsEnum vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueWhitespace
@@ -1878,7 +1878,7 @@ cssValueWordSpacingDict = [ ("normal",    CssValueWordSpacingNormal)
 makeCssDeclarationWordSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationWordSpacing pat = (pat', fmap CssDeclarationWordSpacing declValue)
   where
-    (vs', declValue) = tokensAsValueEnumString3 vs >>? declValueAsLength3
+    (vs', declValue) = interpretTokensAsEnum vs >>? declValueAsLength3
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueWordSpacing
