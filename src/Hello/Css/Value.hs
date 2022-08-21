@@ -73,7 +73,7 @@ data CssValue =
   --  | CssValueTypeColor Int           -- Represented as integer.
   --  | CssValueTypeFontWeight Int      -- This very special and only used by 'font-weight'
   | CssValueTypeString T.Text       -- <string>
-  | CssValueTypeStringList [T.Text] -- List of symbols, which are directly
+  --  | CssValueTypeStringList [T.Text] -- List of symbols, which are directly
                                     -- copied (as opposed to
                                     -- CSS_PROPERTY_DATA_TYPE_ENUM and
                                     -- CSS_PROPERTY_DATA_TYPE_MULTI_ENUM).

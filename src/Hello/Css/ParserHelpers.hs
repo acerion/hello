@@ -42,7 +42,6 @@ module Hello.Css.ParserHelpers
   , rgbFunctionToColor
   , parseUrl
   , consumeFunctionBody
-  , tokensAsValueStringList
 
   , takeLengthTokens
   , lengthValueToDistance
@@ -56,7 +55,7 @@ module Hello.Css.ParserHelpers
   , declValueAsFontWeightInteger3
   , interpretTokensAsColor
   , tokensAsValueBgPosition3
-  , tokensAsValueStringList3
+  , interpretTokensAsStringList
   , declValueAsURI3
   , interpretTokensAsAuto
   , tokensAsValueString3
@@ -575,12 +574,10 @@ consumeFunctionBody p1 acc = case nextToken1 p1 of
 
 
 
-
-
 -- Interpret current CssTokIdent/CssTokStr token (and possibly more following
--- CssTokIdent and CssTokStr tokens) as list value (value of type
--- CssValueTypeStringList). The tokens should be separated by comma tokens.
--- Returned value is a string of items separated by commas.
+-- CssTokIdent and CssTokStr tokens) as list of strings. The tokens should be
+-- separated by comma tokens. Returned value is a string of items separated
+-- by commas.
 --
 -- TODO: how we should handle list separated by spaces instead of commas? How
 -- should we handle multiple consecutive commas?
@@ -595,32 +592,30 @@ consumeFunctionBody p1 acc = case nextToken1 p1 of
 -- be strings with spaces, therefore the function consumes both CssTokIdent and
 -- CssTokStr tokens. TODO: test the code for list of symbols separated by
 -- space or comma.
-tokensAsValueStringList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueStringList (parser, token) enums = asList (parser, token) []
+tokensAsValueStringList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), [T.Text])
+tokensAsValueStringList pat enums = (pat', L.reverse list)
   where
-    asList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-    asList (p, (CssTokIdent sym)) acc = asList (nextToken1 p) (sym:acc)
-    asList (p, (CssTokStr str)) acc   = asList (nextToken1 p) (str:acc)
-    asList (p, (CssTokComma)) acc     = asList (nextToken1 p) acc
-    asList (p, t@(CssTokSemicolon)) acc       = final (p, t) acc
-    asList (p, t@(CssTokBraceCurlyClose)) acc = final (p, t) acc
-    asList (p, t@(CssTokEnd)) acc     = final (p, t) acc
-    asList (p, t) acc                 = ((parser, token), Nothing) -- TODO: this implmentation does not allow for final "!important" token.
+    (pat', list) = asList pat []
 
-    final (p, t) acc = if 0 == L.length acc
-                       then ((p, t), Nothing)
-                       else ((p, t), Just (CssValueTypeStringList . L.reverse $ acc))
+    asList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), [T.Text])
+    asList (p, (CssTokIdent sym)) acc         = asList (nextToken1 p) (sym:acc)
+    asList (p, (CssTokStr str)) acc           = asList (nextToken1 p) (str:acc)
+    asList (p, (CssTokComma)) acc             = asList (nextToken1 p) acc
+    asList (p, t@(CssTokSemicolon)) acc       = ((p, t), acc)
+    asList (p, t@(CssTokBraceCurlyClose)) acc = ((p, t), acc)
+    asList (p, t@(CssTokEnd)) acc             = ((p, t), acc)
+    asList (p, t) acc                         = (pat, []) -- TODO: this implmentation does not allow for final "!important" token.
 
 
 
 
-tokensAsValueStringList3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-tokensAsValueStringList3 vs@ValueState3 { pt3 = pat } = (vs { pt3 = pat' }, declValue)
+interpretTokensAsStringList :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+interpretTokensAsStringList vs@ValueState3 { pt3 = pat } = (vs { pt3 = pat' }, declValue)
   where
-    (pat', cssValue) = tokensAsValueStringList pat []
-    declValue = case cssValue of
-                  Just (CssValueTypeStringList l) -> Just $ (fromJust . stringListCtor $ vs) l
-                  otherwise                       -> Nothing
+    (pat', list) = tokensAsValueStringList pat []
+    declValue = if L.null list
+                then Nothing
+                else Just $ (fromJust . stringListCtor $ vs) list
 
 
 

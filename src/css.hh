@@ -24,14 +24,14 @@ enum CssDeclarationValueType {
                                                              'margin-*-width'). */
    CssDeclarationValueTypeSIGNED_LENGTH            =  5,  /* As CSS_TYPE_LENGTH but may be negative. */
    CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER =  6,  /* <length> or <percentage>, or <number> */
-   CssDeclarationValueTypeAUTO                     =  7,  /* Represented as CssLength of type CSS_LENGTH_TYPE_AUTO */
+   // CssDeclarationValueTypeAUTO                     =  7,  /* Represented as CssLength of type CSS_LENGTH_TYPE_AUTO */
    // CssDeclarationValueTypeCOLOR                    =  8,  /* Represented as integer. */
    // CssDeclarationValueTypeFONT_WEIGHT              =  9,  /* this very special and only used by 'font-weight' */
    CssDeclarationValueTypeSTRING                   = 10,  /* <string> */
-   CssDeclarationValueTypeSYMBOL                   = 11,  /* Symbols, which are directly copied (as opposed to
-                                                             CSS_PROPERTY_DATA_TYPE_ENUM and
-                                                             CSS_PROPERTY_DATA_TYPE_MULTI_ENUM). Used for
-                                                            'font-family'. */
+   //CssDeclarationValueTypeSYMBOL                   = 11,  /* Symbols, which are directly copied (as opposed to
+   //                                                          CSS_PROPERTY_DATA_TYPE_ENUM and
+   //                                                          CSS_PROPERTY_DATA_TYPE_MULTI_ENUM). Used for
+   //                                                         'font-family'. */
    CssDeclarationValueTypeURI                      = 12,  /* <uri> */
    // CssDeclarationValueTypeBACKGROUND_POSITION      = 13,
    // CssDeclarationValueTypeUNUSED                   = 14   /* Not yet used. Will itself get unused some day. */

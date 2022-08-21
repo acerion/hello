@@ -981,7 +981,7 @@ data CssValueFontFamily
 makeCssDeclarationFontFamily :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationFontFamily pat = (pat', fmap CssDeclarationFontFamily declValue)
   where
-    (vs', declValue) = tokensAsValueStringList3 vs
+    (vs', declValue) = interpretTokensAsStringList vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueFontFamily

@@ -65,6 +65,20 @@ data TestData propValueT = TestData
 
 
 
+defaultTestData :: ValueCtor propValueT -> ValueState3 propValueT -> TestData propValueT
+defaultTestData f vs = TestData { initialRem     = ""
+                                , initialToken   = CssTokNone
+                                , dictionary     = []
+                                , finalRem       = ""
+                                , finalToken     = CssTokNone
+                                , expectedValue  = Nothing
+                                , valueState     = vs
+                                , testedFunction = f
+                                }
+
+
+
+
 -- On success return empty string. On failure return string showing
 -- approximately where the problem is.
 --
@@ -683,6 +697,63 @@ colorTestData2 =
 
 
 
+-- --------------------------------------------------------------------------
+-- Tests of interpretTokensAsStringList
+-- --------------------------------------------------------------------------
+
+
+
+
+-- An artifical value ctor for value of some artifical CSS property.
+data StringListTestType = StringListTestCtor [T.Text]
+  deriving (Eq, Show)
+
+
+
+
+-- 'test data' item for 'string list' function.
+tdsl = defaultTestData interpretTokensAsStringList defaultValueState2 { stringListCtor = Just StringListTestCtor }
+
+
+
+
+stringListTestData :: [TestData StringListTestType]
+stringListTestData =
+  [
+
+    -- Success case.
+    tdsl { initialRem    = ",tuesday, wednesday , thursday; next-property", initialToken = CssTokIdent "monday"
+         , finalRem      = " next-property",                                finalToken   = CssTokSemicolon
+         , expectedValue = Just . StringListTestCtor $ ["monday", "tuesday", "wednesday", "thursday"]
+         }
+
+    -- Success case.
+  , tdsl { initialRem    = "; next-property",  initialToken = CssTokIdent "monday"
+         , finalRem      = " next-property",   finalToken   = CssTokSemicolon
+         , expectedValue = Just . StringListTestCtor $ ["monday"]
+         }
+
+    -- Failure case.
+    --
+    -- Hash token won't be interpreted as valid token for a list, and none of
+    -- following tokens will.
+  , tdsl { initialRem     = "tuesday; next-property",  initialToken = CssTokHash CssHashId "monday"
+         , finalRem       = "tuesday; next-property",  finalToken   = CssTokHash CssHashId "monday"
+         , expectedValue  = Nothing
+         }
+
+    -- Failure case.
+    --
+    -- Numeric values in input text should also lead to invalid parsing.
+  , tdsl { initialRem     = "tuesday, 99redbaloons, wednesday; next-property",  initialToken = CssTokIdent "monday"
+         , finalRem       = "tuesday, 99redbaloons, wednesday; next-property",  finalToken   = CssTokIdent "monday"
+         , expectedValue  = Nothing
+         }
+  ]
+
+
+
+
 {- -------------------------------------------------------------------------- -}
 
 
@@ -697,6 +768,7 @@ testCases =
   , TestCase (do assertEqual "manual tests of interpretTokensAsAuto"              "" (testFunction autoTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsColor (value)"     "" (testFunction colorTestData1))
   , TestCase (do assertEqual "manual tests of interpretTokensAsColor (rgb)"       "" (testFunction colorTestData2))
+  , TestCase (do assertEqual "manual tests of interpretTokensAsStringList"        "" (testFunction stringListTestData))
   ]
 
 

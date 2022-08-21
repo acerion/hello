@@ -32,7 +32,6 @@ import Hello.Tests.Css.Rule
 import Hello.Tests.Css.Selector
 import Hello.Tests.Css.StyleEngine
 import Hello.Tests.Css.Tokenizer
-import Hello.Tests.Css.Value
 
 import Hello.Tests.Html.Attribute
 import Hello.Tests.Html.Doctree
@@ -59,7 +58,6 @@ testFunctions = [ testsColors
                 , testsCssRule
                 , testsCssStyleEngine
                 , testsCssTokenizer
-                , testsCssValue
 
                 , testsHtmlAttribute
                 , testsHtmlDoctree
