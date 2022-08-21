@@ -404,7 +404,7 @@ data CssValueBackgroundImage
 makeCssDeclarationBackgroundImage :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationBackgroundImage pat = (pat', fmap CssDeclarationBackgroundImage declValue)
   where
-    (vs', declValue) = declValueAsURI3 vs
+    (vs', declValue) = interpretTokensAsURI vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueBackgroundImage
@@ -801,7 +801,7 @@ data CssValueContent
 makeCssDeclarationContent :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationContent pat = (pat', fmap CssDeclarationContent declValue)
   where
-    (vs', declValue) = tokensAsValueString3 vs
+    (vs', declValue) = interpretTokensAsString vs
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueContent

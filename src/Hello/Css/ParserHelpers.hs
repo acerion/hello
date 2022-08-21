@@ -49,6 +49,7 @@ module Hello.Css.ParserHelpers
   , ValueState3 (..)
   , defaultValueState3
   , defaultValueState2
+
   , interpretTokensAsEnum
   , interpretTokensAsMultiEnum
   , declValueAsLength3
@@ -56,9 +57,9 @@ module Hello.Css.ParserHelpers
   , interpretTokensAsColor
   , tokensAsValueBgPosition3
   , interpretTokensAsStringList
-  , declValueAsURI3
+  , interpretTokensAsURI
   , interpretTokensAsAuto
-  , tokensAsValueString3
+  , interpretTokensAsString
   )
 where
 
@@ -547,13 +548,13 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
 
 
-declValueAsURI3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-declValueAsURI3 vs@ValueState3 { pt3 = pat } = case parseUrl pat of
-                                                 (pat', Just url) -> (vs { pt3 = pat' }, Just $ (fromJust . uriValueCtor $ vs) url)
-                                                 -- TODO: should we assign here pat' or pat?
-                                                 -- A token that is not an URI should be
-                                                 -- re-parsed by another function, not skipped.
-                                                 (pat', Nothing)  -> (vs { pt3 = pat' }, Nothing)
+interpretTokensAsURI :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+interpretTokensAsURI vs@ValueState3 { pt3 = pat } = case parseUrl pat of
+                                                      (pat', Just url) -> (vs { pt3 = pat' }, Just $ (fromJust . uriValueCtor $ vs) url)
+                                                      -- TODO: should we assign here pat' or pat?
+                                                      -- A token that is not an URI should be
+                                                      -- re-parsed by another function, not skipped.
+                                                      (pat', Nothing)  -> (vs { pt3 = pat' }, Nothing)
 
 
 
@@ -647,10 +648,10 @@ interpretTokensAsAuto vs                                                        
 --
 -- In case of "string" value there is no need to consume more than current
 -- token to build the String, but for consistency with other similar
--- functions the function is still called "tokensAs...".
-tokensAsValueString3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-tokensAsValueString3 vs@ValueState3 { pt3 = (p, (CssTokStr s)) } = (vs { pt3 = nextToken1 p}, Just $ (fromJust . stringCtor $ vs) s)
-tokensAsValueString3 vs                                          = (vs, Nothing)
+-- functions the function is still called "tokenS as".
+interpretTokensAsString :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+interpretTokensAsString vs@ValueState3 { pt3 = (p, (CssTokStr s)) } = (vs { pt3 = nextToken1 p}, Just $ (fromJust . stringCtor $ vs) s)
+interpretTokensAsString vs                                          = (vs, Nothing)
 
 
 

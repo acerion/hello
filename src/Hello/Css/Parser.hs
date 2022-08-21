@@ -53,7 +53,6 @@ module Hello.Css.Parser(
                        , removeSpaceTokens
 
                        , declValueAsString
-                       , tokensAsValueString
                        , declValueAsLength
                        , declValueAsURI
 
