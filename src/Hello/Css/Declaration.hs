@@ -1163,12 +1163,13 @@ cssValueFontWeightDict = [ ("normal",  CssValueFontWeightNormal)
 makeCssDeclarationFontWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 makeCssDeclarationFontWeight pat = (pat', fmap CssDeclarationFontWeight declValue)
   where
-    (vs', declValue) = interpretTokensAsEnum vs >>? declValueAsFontWeightInteger3
+    (vs', declValue) = interpretTokensAsEnum vs >>? interpretTokensAsInteger
     pat'             = pt3 vs'
 
     vs :: ValueState3 CssValueFontWeight
-    vs = (defaultValueState3 pat) { fontWeightValueCtor = Just CssValueFontWeightInt
-                                  , dict                = cssValueFontWeightDict
+    vs = (defaultValueState3 pat) { integerValueCtor = Just CssValueFontWeightInt
+                                  , dict             = cssValueFontWeightDict
+                                  , integersRange    = (100, 900)
                                   }
 
 

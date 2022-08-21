@@ -52,7 +52,7 @@ module Hello.Css.ParserHelpers
   , interpretTokensAsEnum
   , interpretTokensAsMultiEnum
   , declValueAsLength3
-  , declValueAsFontWeightInteger3
+  , interpretTokensAsInteger
   , interpretTokensAsColor
   , tokensAsValueBgPosition3
   , interpretTokensAsStringList
@@ -93,9 +93,9 @@ data ValueState3 declValueT = ValueState3
     -- "CssValuePadding CssDistance".
   , distanceValueCtor     :: Maybe (CssDistance -> declValueT)
 
-    -- Constructor for creating declaration values that are font weights,
+    -- Constructor for creating declaration values that are integers,
     -- e.g. "CssValueFontWeightInt Int".
-  , fontWeightValueCtor   :: Maybe (Int -> declValueT)
+  , integerValueCtor      :: Maybe (Int -> declValueT)
 
     -- Constructor for creating declaration values that are background
     -- position, e.g. "CssValueBackgroundPositionXY CssDistance".
@@ -118,26 +118,20 @@ data ValueState3 declValueT = ValueState3
     -- CssValueBorderWidthThin.
   , dict                  :: [(T.Text, declValueT)]
 
-    -- Are distance values without unit (e.g. "1.0", as opposed to "1.0px"
+    -- Are distance values without unit (e.g. "1.0", as opposed to "1.0px")
     -- allowed/accepted for this declaration value?
   , allowUnitlessDistance :: Bool
+
+    -- Lower and upper value (inclusive) of allowed integer values. Used to
+    -- parse e.g. font weight.
+  , integersRange         :: (Int, Int)
   }
 
 
 
 
 defaultValueState3 :: (CssParser, CssToken) -> ValueState3 a
-defaultValueState3 pat = ValueState3 { pt3                   = pat
-                                     , colorValueCtor3       = Nothing
-                                     , distanceValueCtor     = Nothing
-                                     , fontWeightValueCtor   = Nothing
-                                     , bgPositionValueCtor   = Nothing
-                                     , uriValueCtor          = Nothing
-                                     , stringListCtor        = Nothing
-                                     , stringCtor            = Nothing
-                                     , dict                  = []
-                                     , allowUnitlessDistance = False
-                                     }
+defaultValueState3 pat = defaultValueState2 { pt3 = pat }
 
 
 
@@ -146,13 +140,14 @@ defaultValueState2 :: ValueState3 a
 defaultValueState2 = ValueState3 { pt3                   = (defaultParser, CssTokNone)
                                  , colorValueCtor3       = Nothing
                                  , distanceValueCtor     = Nothing
-                                 , fontWeightValueCtor   = Nothing
+                                 , integerValueCtor      = Nothing
                                  , bgPositionValueCtor   = Nothing
                                  , uriValueCtor          = Nothing
                                  , stringListCtor        = Nothing
                                  , stringCtor            = Nothing
                                  , dict                  = []
                                  , allowUnitlessDistance = False
+                                 , integersRange         = (0, 0)
                                  }
 
 
@@ -322,15 +317,22 @@ declValueAsLength3 vs@ValueState3 {pt3 = (parser, token) } = ((vs { pt3 = (p', t
 
 
 
--- TODO: what to do with integer values out of range: reject them or clip
--- them?
+-- Parse current token as integer
 --
--- TODO: restrict the integer values only to multiples of hundreds.
-declValueAsFontWeightInteger3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-declValueAsFontWeightInteger3 vs@ValueState3 {pt3 = (parser, token@(CssTokNum (CssNumI i))) } = if i >= 100 && i <= 900
-                                                                                                then (vs {pt3 = nextToken1 . fst . pt3 $ vs}, Just $ (fromJust . fontWeightValueCtor $ vs) i)
-                                                                                                else (vs, Nothing)
-declValueAsFontWeightInteger3 vs                                                              = (vs, Nothing)
+-- Value of integer that is outside of ValueState3::integersRange is
+-- rejected.
+--
+-- Notice that thanks to matching on "CssTokNum CssNumI i" value, the
+-- function can reject property values that start as a number, e.g. "100px".
+-- Tokenizing of "100px" input string by tokenizer will not result in
+-- "CssTokNum CssNumI i" value.
+--
+-- TODO: restrict the integer values only to multiples of hundreds?
+interpretTokensAsInteger :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
+interpretTokensAsInteger vs@ValueState3 {pt3 = (_, (CssTokNum (CssNumI i))) } = if i >= (fst . integersRange $ vs) && i <= (snd . integersRange $ vs)
+                                                                                then (vs {pt3 = nextToken1 . fst . pt3 $ vs}, Just $ (fromJust . integerValueCtor $ vs) i)
+                                                                                else (vs, Nothing)
+interpretTokensAsInteger vs                                                   = (vs, Nothing)
 
 
 

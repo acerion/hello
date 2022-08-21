@@ -158,7 +158,7 @@ styleEngineSetFontWeight declValue attrs = clipWeight $ setWeight declValue attr
 
     -- TODO: the limit may be 1000, not 900.
     --
-    -- Even though declValueAsFontWeightInteger ensures that only values in
+    -- Even though interpretTokensAsInteger ensures that only values in
     -- range 100-900 are accepted, a clipping is still necessary: if
     -- calculations done for 'bolder' or 'lighter' result in values out of
     -- the range, the calculated values must be clipped.

@@ -754,6 +754,79 @@ stringListTestData =
 
 
 
+-- --------------------------------------------------------------------------
+-- Tests of interpretTokensAsInteger
+-- --------------------------------------------------------------------------
+
+
+
+
+-- An artifical value ctor for value of some artifical CSS property.
+data IntegerTestType = IntegerTestCtor Int
+  deriving (Eq, Show)
+
+
+
+
+-- 'test data' item for 'integer' function.
+tdi = defaultTestData interpretTokensAsInteger defaultValueState2 { integerValueCtor = Just IntegerTestCtor }
+
+
+
+
+integerTestData :: [TestData IntegerTestType]
+integerTestData =
+  [
+    -- Success case. Numeric token with value within range.
+    tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ 9
+        , finalRem      = "important",   finalToken   = CssTokDelim '!'
+        , valueState    = (valueState tdi) { integersRange    = (0, 900) }
+        , expectedValue = Just . IntegerTestCtor $ 9
+        }
+
+    -- Success case. Numeric token with value within range.
+  , tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ -150
+        , finalRem      = "important",   finalToken   = CssTokDelim '!'
+        , valueState    = (valueState tdi) { integersRange    = (-200, 900) }
+        , expectedValue = Just . IntegerTestCtor $ (-150)
+        }
+
+    -- Success case. Numeric token with value that is equal to lower bound of
+    -- range.
+  , tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ 0
+        , finalRem      = "important",   finalToken   = CssTokDelim '!'
+        , valueState    = (valueState tdi) { integersRange    = (0, 900) }
+        , expectedValue = Just . IntegerTestCtor $ 0
+        }
+
+    -- Success case. Numeric token with value that is equal to upper bound of
+    -- range.
+  , tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ 900
+        , finalRem      = "important",   finalToken   = CssTokDelim '!'
+        , valueState    = (valueState tdi) { integersRange    = (0, 900) }
+        , expectedValue = Just . IntegerTestCtor $ 900
+        }
+
+    -- Failure case. Numeric token with value that is below lower bound of
+    -- range.
+  , tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ 99
+        , finalRem      = "!important",  finalToken   = CssTokNum . CssNumI $ 99
+        , valueState    = (valueState tdi) { integersRange    = (100, 900) }
+        , expectedValue = Nothing
+        }
+
+    -- Failure case. Numeric token with value that is above lower bound of
+    -- range.
+  , tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ 901
+        , finalRem      = "!important",  finalToken   = CssTokNum . CssNumI $ 901
+        , valueState    = (valueState tdi) { integersRange    = (100, 900) }
+        , expectedValue = Nothing
+        }
+  ]
+
+
+
+
 {- -------------------------------------------------------------------------- -}
 
 
@@ -769,6 +842,7 @@ testCases =
   , TestCase (do assertEqual "manual tests of interpretTokensAsColor (value)"     "" (testFunction colorTestData1))
   , TestCase (do assertEqual "manual tests of interpretTokensAsColor (rgb)"       "" (testFunction colorTestData2))
   , TestCase (do assertEqual "manual tests of interpretTokensAsStringList"        "" (testFunction stringListTestData))
+  , TestCase (do assertEqual "manual tests of interpretTokensAsInteger"           "" (testFunction integerTestData))
   ]
 
 
