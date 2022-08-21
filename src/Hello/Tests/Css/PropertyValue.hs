@@ -40,31 +40,72 @@ import Hello.Utils
 
 
 -- --------------------------------------------------------------------------
+-- Common definitions
+-- --------------------------------------------------------------------------
+
+
+
+
+type ValueCtor propValueT = ValueState3 propValueT -> (ValueState3 propValueT, Maybe propValueT)
+
+
+
+
+data TestData propValueT = TestData
+  { initialRem      :: T.Text                    -- Initial remainder of CSS parser.
+  , initialToken    :: CssToken                  -- Initial current token.
+  , dictionary      :: [(T.Text, propValueT)]    -- Used only in tests of enum and multi-enum.
+  , finalRem        :: T.Text                    -- Final (after a single test) remainder of CSS parser.
+  , finalToken      :: CssToken                  -- Final (after a single test) token.
+  , expectedValue   :: Maybe propValueT          -- Expected value parsed from (parser+token) pair.
+  , valueState      :: ValueState3 propValueT
+  , testedFunction  :: ValueCtor propValueT
+  }
+
+
+
+
+-- On success return empty string. On failure return string showing
+-- approximately where the problem is.
+--
+-- testFunction :: [TestData propValueT] -> T.Text
+testFunction []     = ""
+testFunction (x:xs) = if not success
+                      then T.pack ("Got: " ++ show propertyValue ++ ", Expected: " ++ show expectedPropertyValue ++ "; pat' = " ++ (show parser') ++ (show token'))
+                      else testFunction xs
+  where
+    expectedPropertyValue = expectedValue x
+
+    pat = (defaultParser{remainder = initialRem x}, initialToken x)
+    vs  = (valueState x) { pt3  = pat
+                         , dict = dictionary x
+                         }
+
+    (vs', propertyValue) = (testedFunction x) vs
+    (parser', token') = pt3 vs'
+
+    success = and [ expectedPropertyValue == propertyValue
+                  , token' == finalToken x
+                  , remainder parser' == finalRem x
+                  ]
+
+
+
+
+-- --------------------------------------------------------------------------
 -- Tests of interpretTokensAsEnum
 -- --------------------------------------------------------------------------
 
 
 
 
-data EnumTestData = EnumTestData
-  { initialRem1    :: T.Text                          -- Initial remainder of CSS parser.
-  , initialToken1  :: CssToken                        -- Initial current token.
-  , dictionary1    :: [(T.Text, EnumTestDataEnum)]
-  , finalRem1      :: T.Text                          -- Final (after a single test) remainder of CSS parser.
-  , finalToken1    :: CssToken                        -- Final (after a single test) token.
-  , expectedValue1 :: Maybe EnumTestDataEnum          -- Expected value parsed from (parser+token) pair.
-  }
-
-
-
-
 -- An artifical set of values of some artifical CSS property.
-data EnumTestDataEnum
-  = EnumTestDataEnumFirst
-  | EnumTestDataEnumSecond
-  | EnumTestDataEnumThird
-  | EnumTestDataEnumFourth
-  | EnumTestDataEnumFifth
+data EnumTestData
+  = EnumTestDataFirst
+  | EnumTestDataSecond
+  | EnumTestDataThird
+  | EnumTestDataFourth
+  | EnumTestDataFifth
   deriving (Enum, Eq, Show)
 
 
@@ -73,11 +114,11 @@ data EnumTestDataEnum
 -- The test code will be testing if parsing a string token will result in
 -- proper Haskell enum value. This dict is specifying the mapping from the
 -- string to enum.
-enumTestDict = [ ("first",    EnumTestDataEnumFirst)
-               , ("second",   EnumTestDataEnumSecond)
-               , ("third",    EnumTestDataEnumThird)
-               , ("fourth",   EnumTestDataEnumFourth)
-               , ("fifth",    EnumTestDataEnumFifth)
+enumTestDict = [ ("first",    EnumTestDataFirst)
+               , ("second",   EnumTestDataSecond)
+               , ("third",    EnumTestDataThird)
+               , ("fourth",   EnumTestDataFourth)
+               , ("fifth",    EnumTestDataFifth)
                ]
 
 
@@ -85,77 +126,69 @@ enumTestDict = [ ("first",    EnumTestDataEnumFirst)
 
 -- TODO: add tests of strings with capital letters after you verify expected
 -- behaviour in CSS spec.
-enumTestData :: [EnumTestData]
+enumTestData :: [TestData EnumTestData]
 enumTestData =
   [
     -- Success case. First element on the list matches.
-    EnumTestData { dictionary1 = enumTestDict
-                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent "first"
-                 , finalRem1   = "important;",   finalToken1   = CssTokDelim '!'
-                 , expectedValue1 = Just EnumTestDataEnumFirst }
+    TestData { dictionary = enumTestDict
+             , initialRem = "!important;",  initialToken = CssTokIdent "first"
+             , finalRem   = "important;",   finalToken   = CssTokDelim '!'
+             , expectedValue  = Just EnumTestDataFirst
+             , valueState     = defaultValueState2
+             , testedFunction = interpretTokensAsEnum
+             }
 
     -- Success case. Middle element on the list matches.
-  , EnumTestData { dictionary1 = enumTestDict
-                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent "third"
-                 , finalRem1   = "important;",   finalToken1   = CssTokDelim '!'
-                 , expectedValue1 = Just EnumTestDataEnumThird }
+  , TestData { dictionary = enumTestDict
+             , initialRem = "!important;",  initialToken = CssTokIdent "third"
+             , finalRem   = "important;",   finalToken   = CssTokDelim '!'
+             , expectedValue  = Just EnumTestDataThird
+             , valueState     = defaultValueState2
+             , testedFunction = interpretTokensAsEnum
+             }
 
     -- Success case. Last element on the list matches.
-  , EnumTestData { dictionary1 = enumTestDict
-                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent "fifth"
-                 , finalRem1   = "important;",   finalToken1   = CssTokDelim '!'
-                 , expectedValue1 = Just EnumTestDataEnumFifth }
+  , TestData { dictionary = enumTestDict
+             , initialRem = "!important;",  initialToken = CssTokIdent "fifth"
+             , finalRem   = "important;",   finalToken   = CssTokDelim '!'
+             , expectedValue  = Just EnumTestDataFifth
+             , valueState     = defaultValueState2
+             , testedFunction = interpretTokensAsEnum
+             }
 
     -- Failure case: token not matching a dict. This may happen if input
     -- document supports newer CSS standard, and the implementation
     -- implements older CSS standard.
-  , EnumTestData { dictionary1 = enumTestDict
-                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent "eight"
-                 , finalRem1   = "!important;",  finalToken1   = CssTokIdent "eight"
-                 , expectedValue1 = Nothing }
+  , TestData { dictionary = enumTestDict
+             , initialRem = "!important;",  initialToken = CssTokIdent "eight"
+             , finalRem   = "!important;",  finalToken   = CssTokIdent "eight"
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2
+             , testedFunction = interpretTokensAsEnum
+             }
 
     -- Failure case: empty dict. Not going to happen in practice because that
     -- would be a coding error that would be caught by other tests, and would
     -- require a deliberate omission of dictionary in parser code. Such
     -- situation will not be triggered by incoming CSS data. But still this
     -- is an interesting case worth testing.
-  , EnumTestData { dictionary1 = []
-                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent "first"
-                 , finalRem1   = "!important;",  finalToken1   = CssTokIdent "first"
-                 , expectedValue1 = Nothing }
+  , TestData { dictionary = []
+             , initialRem = "!important;",  initialToken = CssTokIdent "first"
+             , finalRem   = "!important;",  finalToken   = CssTokIdent "first"
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2
+             , testedFunction = interpretTokensAsEnum
+             }
 
     -- Atypical data: empty string in token.
-  , EnumTestData { dictionary1 = []
-                 , initialRem1 = "!important;",  initialToken1 = CssTokIdent ""
-                 , finalRem1   = "!important;",  finalToken1   = CssTokIdent ""
-                 , expectedValue1 = Nothing }
+  , TestData { dictionary = []
+             , initialRem = "!important;",  initialToken = CssTokIdent ""
+             , finalRem   = "!important;",  finalToken   = CssTokIdent ""
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2
+             , testedFunction = interpretTokensAsEnum
+             }
   ]
-
-
-
-
--- On success return empty string. On failure return string showing
--- approximately where the problem is.
-enumTestFunction :: [EnumTestData] -> T.Text
-enumTestFunction []     = ""
-enumTestFunction (x:xs) = if not success
-                          then T.pack ("Got: " ++ show propertyValue ++ ", Expected: " ++ show expectedPropertyValue ++ "; pat' = " ++ (show parser') ++ (show token'))
-                          else enumTestFunction xs
-  where
-    expectedPropertyValue = expectedValue1 x
-
-    vs :: ValueState3 EnumTestDataEnum
-    vs = (defaultValueState3 pat) { dict = dictionary1 x }
-
-    (vs', propertyValue) = interpretTokensAsEnum vs
-
-    pat = (defaultParser{remainder = initialRem1 x}, initialToken1 x)
-    (parser', token') = pt3 vs'
-
-    success = and [ expectedPropertyValue == propertyValue
-                  , token' == finalToken1 x
-                  , remainder parser' == finalRem1 x
-                  ]
 
 
 
@@ -369,18 +402,6 @@ multiEnumTestFunction (x:xs) = if not success
 
 
 
-data AutoTestData = AutoTestData
-  { initialRem3    :: T.Text                   -- Initial remainder of CSS parser.
-  , initialToken3  :: CssToken                 -- Initial current token.
-  , dictionary3    :: [Int]                    -- Unused in this test.
-  , finalRem3      :: T.Text                   -- Final (after a single test) remainder of CSS parser.
-  , finalToken3    :: CssToken                 -- Final (after a single test) token.
-  , expectedValue3 :: Maybe AutoTestValue      -- Expected value parsed from (parser+token) pair.
-  }
-
-
-
-
 -- An artifical value ctor for value of some artifical CSS property.
 data AutoTestValue = AutoTestValueCtor CssDistance
   deriving (Eq, Show)
@@ -395,66 +416,48 @@ data AutoTestValue = AutoTestValueCtor CssDistance
 -- first example is "auto something;". This doesn't look like a string that
 -- should be successfully parsed as "auto". Should we reject an "auto
 -- something" string as something that can't be parsed as "auto"?
-autoTestData :: [AutoTestData]
+autoTestData :: [TestData AutoTestValue]
 autoTestData =
   [
     -- Success case. Current token is "auto".
     --
     -- Declaration value ends with ';' here. Tokenizer will take the char but
     -- tested function will keep it as current token.
-    AutoTestData { dictionary3 = [] -- unused in tests of this function
-                 , initialRem3 = "something; other", initialToken3 = CssTokIdent "auto"
-                 , finalRem3   = "; other",          finalToken3   = CssTokIdent "something"
-                 , expectedValue3 = Just . AutoTestValueCtor $ CssDistanceAuto
-                 }
+    TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other", initialToken = CssTokIdent "auto"
+             , finalRem   = "; other",          finalToken   = CssTokIdent "something"
+             , expectedValue  = Just . AutoTestValueCtor $ CssDistanceAuto
+             , valueState     = defaultValueState2 { distanceValueCtor = Just AutoTestValueCtor }
+             , testedFunction = interpretTokensAsAuto
+             }
 
     -- Failure case. Current token is not "auto".
-  , AutoTestData { dictionary3 = [] -- unused in tests of this function
-                 , initialRem3 = "something; other", initialToken3 = CssTokIdent "italic"
-                 , finalRem3   = "something; other", finalToken3   = CssTokIdent "italic"
-                 , expectedValue3 = Nothing
-                 }
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other", initialToken = CssTokIdent "italic"
+             , finalRem   = "something; other", finalToken   = CssTokIdent "italic"
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { distanceValueCtor = Just AutoTestValueCtor }
+             , testedFunction = interpretTokensAsAuto
+             }
 
     -- Failure case. Current token is definitely not "auto".
-  , AutoTestData { dictionary3 = [] -- unused in tests of this function
-                 , initialRem3 = "something; other", initialToken3 = CssTokBraceCurlyClose
-                 , finalRem3   = "something; other", finalToken3   = CssTokBraceCurlyClose
-                 , expectedValue3 = Nothing
-                 }
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other", initialToken = CssTokBraceCurlyClose
+             , finalRem   = "something; other", finalToken   = CssTokBraceCurlyClose
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { distanceValueCtor = Just AutoTestValueCtor }
+             , testedFunction = interpretTokensAsAuto
+             }
 
     -- Failure case. Current token is definitely not "auto".
-  , AutoTestData { dictionary3 = [] -- unused in tests of this function
-                 , initialRem3 = "something; other", initialToken3 = CssTokDelim '@'
-                 , finalRem3   = "something; other", finalToken3   = CssTokDelim '@'
-                 , expectedValue3 = Nothing
-                 }
+  , TestData { dictionary = [] -- unused in tests of this function
+             , initialRem = "something; other", initialToken = CssTokDelim '@'
+             , finalRem   = "something; other", finalToken   = CssTokDelim '@'
+             , expectedValue  = Nothing
+             , valueState     = defaultValueState2 { distanceValueCtor = Just AutoTestValueCtor }
+             , testedFunction = interpretTokensAsAuto
+             }
   ]
-
-
-
-
--- On success return empty string. On failure return string showing
--- approximately where the problem is.
-autoTestFunction :: [AutoTestData] -> T.Text
-autoTestFunction []     = ""
-autoTestFunction (x:xs) = if not success
-                          then T.pack ("Got: " ++ show propertyValue ++ ", Expected: " ++ show expectedPropertyValue ++ "; pat' = " ++ (show parser') ++ (show token'))
-                          else autoTestFunction xs
-  where
-    expectedPropertyValue = expectedValue3 x
-
-    vs :: ValueState3 AutoTestValue
-    vs = (defaultValueState3 pat) { distanceValueCtor = Just AutoTestValueCtor }
-
-    (vs', propertyValue) = interpretTokensAsAuto vs
-
-    pat = (defaultParser{remainder = initialRem3 x}, initialToken3 x)
-    (parser', token') = pt3 vs'
-
-    success = and [ expectedPropertyValue == propertyValue
-                  , token' == finalToken3 x
-                  , remainder parser' == finalRem3 x
-                  ]
 
 
 
@@ -462,25 +465,6 @@ autoTestFunction (x:xs) = if not success
 -- --------------------------------------------------------------------------
 -- Tests of interpretTokensAsColor
 -- --------------------------------------------------------------------------
-
-
-
-
-type ValueCtor propValueT = ValueState3 propValueT -> (ValueState3 propValueT, Maybe propValueT)
-
-
-
-
-data TestData propValueT = TestData
-  { initialRem      :: T.Text                    -- Initial remainder of CSS parser.
-  , initialToken    :: CssToken                  -- Initial current token.
-  , dictionary      :: [Int]                     -- Unused in this test.
-  , finalRem        :: T.Text                    -- Final (after a single test) remainder of CSS parser.
-  , finalToken      :: CssToken                  -- Final (after a single test) token.
-  , expectedValue   :: Maybe propValueT          -- Expected value parsed from (parser+token) pair.
-  , valueState      :: ValueState3 propValueT
-  , testedFunction  :: ValueCtor propValueT
-  }
 
 
 
@@ -699,31 +683,6 @@ colorTestData2 =
 
 
 
--- On success return empty string. On failure return string showing
--- approximately where the problem is.
-colorTestFunction :: [TestData ColorTestValue] -> T.Text
-colorTestFunction []     = ""
-colorTestFunction (x:xs) = if not success
-                           then T.pack ("Got: " ++ show propertyValue ++ ", Expected: " ++ show expectedPropertyValue ++ "; pat' = " ++ (show parser') ++ (show token'))
-                           else colorTestFunction xs
-  where
-    expectedPropertyValue = expectedValue x
-
-    pat = (defaultParser{remainder = initialRem x}, initialToken x)
-    vs  = (valueState x) { pt3 = pat }
-
-    (vs', propertyValue) = (testedFunction x) vs
-    (parser', token') = pt3 vs'
-
-    success = and [ expectedPropertyValue == propertyValue
-                  , token' == finalToken x
-                  , remainder parser' == finalRem x
-                  ]
-
-
-
-
-
 {- -------------------------------------------------------------------------- -}
 
 
@@ -733,11 +692,11 @@ colorTestFunction (x:xs) = if not success
 -- help identify a test that failed.
 testCases =
   [
-    TestCase (do assertEqual "manual tests of interpretTokensAsEnum"              "" (enumTestFunction enumTestData))
+    TestCase (do assertEqual "manual tests of interpretTokensAsEnum"              "" (testFunction enumTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsMultiEnum"         "" (multiEnumTestFunction multiEnumTestData))
-  , TestCase (do assertEqual "manual tests of interpretTokensAsAuto"              "" (autoTestFunction autoTestData))
-  , TestCase (do assertEqual "manual tests of interpretTokensAsColor (value)"     "" (colorTestFunction colorTestData1))
-  , TestCase (do assertEqual "manual tests of interpretTokensAsColor (rgb)"       "" (colorTestFunction colorTestData2))
+  , TestCase (do assertEqual "manual tests of interpretTokensAsAuto"              "" (testFunction autoTestData))
+  , TestCase (do assertEqual "manual tests of interpretTokensAsColor (value)"     "" (testFunction colorTestData1))
+  , TestCase (do assertEqual "manual tests of interpretTokensAsColor (rgb)"       "" (testFunction colorTestData2))
   ]
 
 
