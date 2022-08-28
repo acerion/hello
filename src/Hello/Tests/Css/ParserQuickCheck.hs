@@ -117,7 +117,7 @@ parse4321trblMarginSuccess :: ValuesAndUnitsNN -> Bool
 parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected == outDeclarations
 --parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = trace (traceData) (expected == outDeclarations)
   where
-    (pat', outDeclarations) = parseDeclaration pat
+    (pat', outDeclarations) = parseSingleDeclaration pat
     pat                     = nextToken2 defaultParser { remainder = input }
     (input, expected)       = buildSuccessRow "margin" [CssDeclarationMarginTop, CssDeclarationMarginRight, CssDeclarationMarginBottom, CssDeclarationMarginLeft] CssValueMarginDistance units values
 

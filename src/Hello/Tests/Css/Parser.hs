@@ -944,7 +944,7 @@ parseDeclarationTest (x:xs) = if expectedDeclarations /= declarations
   where
     rem                  = fst x
     expectedDeclarations = snd x
-    ((parser', token'), declarations) = parseDeclaration (nextToken2 defaultParser { remainder = rem })
+    ((parser', token'), declarations) = parseSingleDeclaration (nextToken2 defaultParser { remainder = rem })
 
 
 

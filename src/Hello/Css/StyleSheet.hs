@@ -405,7 +405,7 @@ readDeclarations' ((parser, token), (declSet, declSetImp)) =
     CssTokBraceCurlyClose -> ((parser, token), (declSet, declSetImp)) -- TODO: this should be (nextToken parser)
                              -- instead of (parser, token): ensure that '}' that is part of "declartions" block
                              -- is handled and consumed, so that the next part of code doesn't have to handle it.
-    otherwise             -> readDeclarations' (parseDeclarationWrapper2 (parser, token) (declSet, declSetImp))
+    otherwise             -> readDeclarations' (parseDeclarationWrapper (parser, token) (declSet, declSetImp))
 
 
 
