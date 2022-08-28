@@ -23,23 +23,33 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 
 
+
+{-
+Code in this file is implementing two things:
+1. CSS cascading.
+2. Matching of CSS selectors.
+
+References:
+
+CSS 2.2 spec
+https://www.w3.org/TR/CSS22/cascade.html#cascade
+-}
+
+
+
+
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
 
-module Hello.Css.Match
+
+
+module Hello.Css.Cascade
   (
-    cssComplexSelectorMatches2
-  , compoundSelectorMatches' -- For tests code
+    cssContextApplyCssContext
 
-  , applyCssRule
-  , cssGetMinSpecIndex
-  , applyMatchingRules
-  , cssStyleSheetApplyStyleSheet
-
-  , cssContextApplyCssContext
-
-  , minSpecificityForRulesLists
-  , CssSpecificityState (..)
+    -- For tests code
+  , compoundSelectorMatches'
+  , CssCompoundSelectorMatch (..)
   )
   where
 
@@ -48,6 +58,7 @@ module Hello.Css.Match
 
 import Data.Bits
 import Data.Maybe
+import qualified Data.List as L
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Vector as V
@@ -65,12 +76,12 @@ import Hello.Utils
 
 
 
-cssComplexSelectorMatches :: CssComplexSelector -> Maybe DoctreeNode -> DoctreeItems -> CssMatchCache -> Int -> (Bool, CssMatchCache)
+cssComplexSelectorMatches :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
 cssComplexSelectorMatches _                                      Nothing    _    mc _           = (False, mc)
-cssComplexSelectorMatches (Datum compound)                       (Just dtn) tree mc cacheOffset = (compoundSelectorMatches compound dtn, mc)
-cssComplexSelectorMatches (Link (Datum compound) combinator rem) (Just dtn) tree mc cacheOffset =
+cssComplexSelectorMatches (Datum compound)                       (Just dtn) doctree mc cacheOffset = (compoundSelectorMatches compound dtn, mc)
+cssComplexSelectorMatches (Link (Datum compound) combinator rem) (Just dtn) doctree mc cacheOffset =
   if compoundSelectorMatches compound dtn
-  then matchCombinatorAndRemainder combinator rem dtn tree mc cacheOffset
+  then matchCombinatorAndRemainder combinator rem dtn doctree mc cacheOffset
   else (False, mc)
 
 
@@ -80,51 +91,39 @@ cssComplexSelectorMatches (Link (Datum compound) combinator rem) (Just dtn) tree
 cssComplexSelectorMatches2 :: CssCachedComplexSelector -> Doctree -> Maybe DoctreeNode -> CssMatchCache -> (Bool, CssMatchCache)
 cssComplexSelectorMatches2 cachedComplexSelector doctree mDtn matchCache = (isMatch, matchCache2)
   where
-    (isMatch, matchCache2) = cssComplexSelectorMatches (chain cachedComplexSelector) mDtn ns matchCache cacheOffset
-    cacheOffset = matchCacheOffset cachedComplexSelector
-    ns = nodes doctree
+    (isMatch, matchCache2) = cssComplexSelectorMatches (chain cachedComplexSelector) mDtn doctree matchCache cacheOffset
+    cacheOffset            = matchCacheOffset cachedComplexSelector
 
 
 
 -- Test whether a pair of <combinator> + <remainder of complex selector>
 -- matches a doctree.
-matchCombinatorAndRemainder :: CssCombinator -> CssComplexSelector -> DoctreeNode -> DoctreeItems -> CssMatchCache -> Int -> (Bool, CssMatchCache)
-matchCombinatorAndRemainder combinator complex dtn tree mc cacheOffset =
-  case combinator of
-    CssCombinatorDescendant      -> matchDescendant    complex (getDtnParent tree dtn)  tree mc cacheOffset
-    CssCombinatorChild           -> matchNonDescendant complex (getDtnParent tree dtn)  tree mc cacheOffset
-    CssCombinatorAdjacentSibling -> matchNonDescendant complex (getDtnSibling tree dtn) tree mc cacheOffset
-
-
-
-
--- Try to match inntermost Compound of Complex agains given node (which is
--- either Sibling or Parent of some other node). On success, try to match
--- remainder of Complex against remainder of tree.
-matchNonDescendant :: CssComplexSelector -> Maybe DoctreeNode -> DoctreeItems -> CssMatchCache -> Int -> (Bool, CssMatchCache)
-matchNonDescendant = cssComplexSelectorMatches
+matchCombinatorAndRemainder :: CssCombinator -> CssComplexSelector -> DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
+matchCombinatorAndRemainder CssCombinatorDescendant      complex dtn doctree mc cacheOffset = matchDescendant           complex (getDtnParent doctree dtn)  doctree mc cacheOffset
+matchCombinatorAndRemainder CssCombinatorChild           complex dtn doctree mc cacheOffset = cssComplexSelectorMatches complex (getDtnParent doctree dtn)  doctree mc cacheOffset
+matchCombinatorAndRemainder CssCombinatorAdjacentSibling complex dtn doctree mc cacheOffset = cssComplexSelectorMatches complex (getDtnSibling doctree dtn) doctree mc cacheOffset
 
 
 
 
 -- Go upwards of DocTree looking for a matching parent (because of Descendant
 -- combinator), and then try to match remainder of Complex Selector.
-findMatchingDescendantAndFollowers  :: CssComplexSelector -> Maybe DoctreeNode -> DoctreeItems -> CssMatchCache -> Int -> Int -> (Bool, CssMatchCache)
-findMatchingDescendantAndFollowers _       Nothing    _    mc _               _           = (False, mc)
-findMatchingDescendantAndFollowers complex (Just dtn) tree mc matchCacheEntry cacheOffset =
-  if uniqueNum dtn > matchCacheEntry
-  then case cssComplexSelectorMatches complex (Just dtn) tree mc cacheOffset of
+findMatchingParentAndFollowers  :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> Int -> (Bool, CssMatchCache)
+findMatchingParentAndFollowers _       Nothing    _       mc _                 _           = (False, mc)
+findMatchingParentAndFollowers complex (Just dtn) doctree mc dtnNumForCompound cacheOffset =
+  if uniqueNum dtn > dtnNumForCompound
+  then case cssComplexSelectorMatches complex (Just dtn) doctree mc cacheOffset of
          -- This dtn node matched innermost Compound of Complex, and the rest
          -- of tree matched remainder of Complex.
          (True, mc2)  -> (True, mc2)
          -- Go up the tree searching for another candidate node that would
          -- match the innermost Compound of Complex (and the rest of tree
          -- would also match the remainder of Complex).
-         (False, mc2) -> findMatchingDescendantAndFollowers complex parentDtn tree mc2 matchCacheEntry cacheOffset
+         (False, mc2) -> findMatchingParentAndFollowers complex parentDtn doctree mc2 dtnNumForCompound cacheOffset
   else (False, mc)
 
   where
-    parentDtn = getDtnParent tree dtn
+    parentDtn = getDtnParent doctree dtn
 
 
 
@@ -133,17 +132,17 @@ findMatchingDescendantAndFollowers complex (Just dtn) tree mc matchCacheEntry ca
 -- Parent of some other node). If this fails, try to match agains parent, and
 -- grandparent, until you find a match. On success, try to match remainder of
 -- Complex against remainder of tree.
-matchDescendant :: CssComplexSelector -> Maybe DoctreeNode -> DoctreeItems -> CssMatchCache -> Int -> (Bool, CssMatchCache)
-matchDescendant complex mDtn tree mc cacheOffset =
-  case findMatchingDescendantAndFollowers complex mDtn tree mc matchCacheEntry cacheOffset of
+matchDescendant :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
+matchDescendant complex mDtn doctree mc cacheOffset =
+  case findMatchingParentAndFollowers complex mDtn doctree mc dtnNumForCompound cacheOffset of
     (True, mc2)  -> (True, mc2)
     (False, mc2) -> case mDtn of
                       Nothing  -> (False, mc2)
                       Just dtn -> (False, matchCacheSetItem mc2 (uniqueNum dtn) compoundOffset)
   where
-    compoundIdx     = (chainLength complex) - 1
-    compoundOffset  = cacheOffset + compoundIdx
-    matchCacheEntry = matchCacheGetItem mc compoundOffset
+    compoundIdx       = (chainLength complex) - 1
+    compoundOffset    = cacheOffset + compoundIdx
+    dtnNumForCompound = matchCacheGetItem mc compoundOffset
 
 
 
@@ -158,17 +157,28 @@ TODO: in C++ code the string comparisons were case-insensitive.
 -}
 
 compoundSelectorMatches :: CssCompoundSelector -> DoctreeNode -> Bool
-compoundSelectorMatches compound dtn = ((compoundSelectorMatches' compound dtn) == 0)
+compoundSelectorMatches compound dtn = ((compoundSelectorMatches' compound dtn) == CssCompoundSelectorMatch)
 
 
 
 
-compoundSelectorMatches' :: CssCompoundSelector -> DoctreeNode -> Int
-compoundSelectorMatches' compound dtn | mismatchOnElement compound dtn     = 4
-                                      | mismatchOnPseudoClass compound dtn = 3
-                                      | mismatchOnId compound dtn          = 2
-                                      | mismatchOnClass compound dtn       = 1
-                                      | otherwise                          = 0
+data CssCompoundSelectorMatch
+  = CssCompoundSelectorMatch
+  | CssCompoundSelectorMismatchElement
+  | CssCompoundSelectorMismatchPseudoClass
+  | CssCompoundSelectorMismatchId
+  | CssCompoundSelectorMismatchClass
+  deriving (Eq)
+
+
+
+
+compoundSelectorMatches' :: CssCompoundSelector -> DoctreeNode -> CssCompoundSelectorMatch
+compoundSelectorMatches' compound dtn | mismatchOnElement compound dtn     = CssCompoundSelectorMismatchElement
+                                      | mismatchOnPseudoClass compound dtn = CssCompoundSelectorMismatchPseudoClass
+                                      | mismatchOnId compound dtn          = CssCompoundSelectorMismatchId
+                                      | mismatchOnClass compound dtn       = CssCompoundSelectorMismatchClass
+                                      | otherwise                          = CssCompoundSelectorMatch
   where
     mismatchOnElement :: CssCompoundSelector -> DoctreeNode -> Bool
     mismatchOnElement csel dtn = (compoundTagName csel) /= CssTypeSelectorUniv && (unCssTypeSelector . compoundTagName $ csel) /= (htmlElementIdx dtn)
@@ -208,109 +218,122 @@ compoundSelectorMatches' compound dtn | mismatchOnElement compound dtn     = 4
 
 
 
+
+-- (minSpec, minPos, minSpecIndex)
 type CssSpecificityState = (Int, Int, Int)
 
+-- The data structure with nested lists is a copy of solution from C, where
+-- we had an array of pointers to lists of rules. Perhaps we don't really
+-- need the list of lists, and all matching rules can be put into a single
+-- list?
+type MatchingRulesIndices = [Int]
+type MatchingRulesGroup   = [[CssRule]]
 
 
 
-minSpecificityForRulesLists :: [[CssRule]] -> Int -> [Int] -> CssSpecificityState -> CssSpecificityState
-minSpecificityForRulesLists []       listIdx index state = state
-minSpecificityForRulesLists (rl:rls) listIdx index state = minSpecificityForRulesLists rls (listIdx + 1) index state2
+
+data MatchingRules = MatchingRules
+  {
+    rules   :: MatchingRulesGroup
+  , indices :: MatchingRulesIndices
+  }
+
+
+
+
+minSpecificityForRulesLists :: MatchingRulesGroup -> MatchingRulesIndices -> Int -> CssSpecificityState -> CssSpecificityState
+minSpecificityForRulesLists (rl:rls) (ruleIdx:rix) rulesListIdx state = minSpecificityForRulesLists rls rix (rulesListIdx + 1) state2
   where
-    state2 = minSpecificityForRulesList rl listIdx index state
+    state2 = minSpecificityForRulesList rl ruleIdx rulesListIdx state
+minSpecificityForRulesLists _        _             _            state = state
 
 
 
 
-minSpecificityForRulesList :: [CssRule] -> Int -> [Int] -> CssSpecificityState -> CssSpecificityState
-minSpecificityForRulesList rulesList listIdx index state =
+minSpecificityForRulesList :: [CssRule] -> Int -> Int -> CssSpecificityState -> CssSpecificityState
+minSpecificityForRulesList rulesList ruleIdx rulesListIdx state =
   if length rulesList <= ruleIdx
   then state
-  else (minSpecificityForRule rule listIdx state)
+  else (minSpecificityForRule rule rulesListIdx state)
   where
     rule = rulesList !! ruleIdx
-    ruleIdx = index !! listIdx
 
 
 
 
 minSpecificityForRule :: CssRule -> Int -> CssSpecificityState -> CssSpecificityState
-minSpecificityForRule rule listIdx state =
+minSpecificityForRule rule rulesListIdx state =
   if ((specificity rule < minSpec) || (specificity rule == minSpec && position rule < minPos))
-  then (specificity rule, position rule, listIdx)
+  then (specificity rule, position rule, rulesListIdx) -- update state with index of rules with lowest specificity
   else (minSpec, minPos, minSpecIndex)
   where (minSpec, minPos, minSpecIndex) = state
 
 
 
 
-applyCssRule :: CssDeclarationSet -> CssMatchCache -> Doctree -> Maybe DoctreeNode -> CssRule -> (CssDeclarationSet, CssMatchCache)
-applyCssRule targetDeclSet matchCache doctree mDtn rule =
+applyCssRule :: CssCachedDeclarationSet -> Doctree -> Maybe DoctreeNode -> CssRule -> CssCachedDeclarationSet
+applyCssRule cachedDeclSet doctree mDtn rule =
   case match of
     True      -> (targetDeclSet', matchCache2)
-    otherwise -> (targetDeclSet,  matchCache2)
+    otherwise -> (fst cachedDeclSet,  matchCache2)
 
   where
-    targetDeclSet'       = declarationsSetAppend targetDeclSet (declarationSet rule)
-    (match, matchCache2) = cssComplexSelectorMatches2 (complexSelector rule) doctree mDtn matchCache
+    targetDeclSet'       = declarationsSetAppend (fst cachedDeclSet) (declarationSet rule)
+    (match, matchCache2) = cssComplexSelectorMatches2 (complexSelector rule) doctree mDtn (snd cachedDeclSet)
 
 
 
 
 
-cssGetMinSpecIndex :: [[CssRule]] -> [Int] -> Int -> IO Int
-cssGetMinSpecIndex rulesLists index minSpecIndex = do
-
-  -- TODO: why shifting by 30 and not 31?
-  let minSpec :: Int = 1 `shift` 30;
-  let minPos  :: Int = 1 `shift` 30;
-
-  let state = minSpecificityForRulesLists rulesLists 0 index (minSpec, minPos, minSpecIndex)
-
-  let minSpec'      = triplet1st state
-  let minPos'       = triplet2nd state
-  let minSpecIndex' = triplet3rd state
-
-  putStrLn ("minSpec = " ++ (show minSpec') ++ ", minPos = " ++ (show minPos') ++ ", minSpecIndex = " ++ (show minSpecIndex'))
-
-  return minSpecIndex'
-
-
-
-
-
-applyMatchingRules :: Doctree -> Maybe DoctreeNode -> CssDeclarationSet -> CssMatchCache -> [[CssRule]] -> IO (CssDeclarationSet, CssMatchCache)
-applyMatchingRules = applyMatchingRules' index
+cssGetMinSpecState :: MatchingRules -> CssSpecificityState
+cssGetMinSpecState matchingRules = minSpecificityForRulesLists (rules matchingRules) (indices matchingRules) 0 (minSpec, minPos, minSpecIndex)
   where
-    index = take 32 $ repeat 0
+    -- Get maximal value of integer as a starting value. This function will be
+    -- looking for a minimum. TODO: why shifting by 30 and not 31?
+    minSpec :: Int = 1 `shift` 30;
+    minPos  :: Int = 1 `shift` 30;
+
+    minSpecIndex = -1
+
+
+
+getSomeRule matchingRules minSpecIndex = rulesList !! idx
+  where
+    rulesList = (rules matchingRules) !! minSpecIndex
+    idx       = (indices matchingRules) !! minSpecIndex
 
 
 
 
--- Apply potentially matching rules from rules_lists[0-numLists] with
--- ascending specificity. If specificity is equal, rules are applied in
--- order of appearance. Each rules_list is sorted already.
-applyMatchingRules' :: [Int] -> Doctree -> Maybe DoctreeNode -> CssDeclarationSet -> CssMatchCache -> [[CssRule]] -> IO (CssDeclarationSet, CssMatchCache)
-applyMatchingRules' index doctree mDtn targetDeclSet matchCache rulesLists = do
-  let minSpecIndex = -1
-  minSpecIndex' <- cssGetMinSpecIndex rulesLists index minSpecIndex
-  if minSpecIndex' >= 0
+updateMatchingRulesIndices matchingRulesIndices minSpecIndex = listReplaceElem matchingRulesIndices (oldElem + 1) minSpecIndex
+  where
+    oldElem = matchingRulesIndices !! minSpecIndex
+
+
+
+
+-- Apply potentially matching rules from matchingRules with ascending
+-- specificity. If specificity is equal, rules are applied in order of
+-- appearance. Each matchingRules is sorted already.
+applyMatchingRules :: MatchingRules -> Doctree -> Maybe DoctreeNode -> CssCachedDeclarationSet -> IO CssCachedDeclarationSet
+applyMatchingRules matchingRules doctree mDtn cachedDeclSet = do
+  let state = cssGetMinSpecState matchingRules
+  putStrLn ("minSpec = " ++ (show . triplet1st $ state) ++ ", minPos = " ++ (show . triplet2nd $ state) ++ ", minSpecIndex = " ++ (show . triplet3rd $ state))
+  let minSpecIndex = triplet3rd state
+  if minSpecIndex >= 0
     then
     do
-      let rulesList = rulesLists !! minSpecIndex'
-      let idx = index !! minSpecIndex'
-      let rule = rulesList !! idx
+      let rule = getSomeRule matchingRules minSpecIndex
 
-      let (targetDeclSet', matchCache') = applyCssRule targetDeclSet matchCache doctree mDtn rule
+      let cachedDeclSet' = applyCssRule cachedDeclSet doctree mDtn rule
 
-      let oldElem = index !! minSpecIndex'
-      let index2 = listReplaceElem index (oldElem + 1) minSpecIndex'
+      let matchingRules' = matchingRules { indices = updateMatchingRulesIndices (indices matchingRules) minSpecIndex }
 
-      putStrLn . show $ targetDeclSet'
-      putStrLn . show $ V.fromList $ index2
+      putStrLn . show $ (fst cachedDeclSet')
+      putStrLn . show $ V.fromList . indices $ matchingRules'
 
-      applyMatchingRules' index2 doctree mDtn targetDeclSet' matchCache' rulesLists
-    else return (targetDeclSet, matchCache)
+      applyMatchingRules matchingRules' doctree mDtn cachedDeclSet'
+    else return cachedDeclSet
 
 
 
@@ -319,17 +342,38 @@ applyMatchingRules' index doctree mDtn targetDeclSet matchCache rulesLists = do
 --
 -- The declarations (list property+value) are set as defined by the rules in
 -- the stylesheet that match at the given node in the document tree.
-cssStyleSheetApplyStyleSheet :: CssStyleSheet -> CssDeclarationSet -> CssMatchCache -> Doctree -> DoctreeNode -> IO (CssDeclarationSet, CssMatchCache)
-cssStyleSheetApplyStyleSheet styleSheet targetDeclSet  matchCache doctree dtn = do
-    let rulesLists :: [[CssRule]] = buildRulesListsForDtn styleSheet dtn
-    (targetDeclSet', matchCache') <- applyMatchingRules doctree (Just dtn) targetDeclSet matchCache rulesLists
-    return (targetDeclSet', matchCache')
+cssStyleSheetApplyStyleSheet :: CssStyleSheet -> CssCachedDeclarationSet -> Doctree -> DoctreeNode -> IO CssCachedDeclarationSet
+cssStyleSheetApplyStyleSheet styleSheet cachedDeclSet doctree dtn = do
+
+  let matchingRules = MatchingRules
+        {
+          rules = buildMatchingRulesGroupForDtn styleSheet dtn
+
+          -- 'indices' is a list of indices for sub-listss in 'rules'. It
+          -- should have the same length as 'rules' list.
+        , indices = take (L.length . rules $ matchingRules) $ repeat 0
+        }
+
+  cachedDeclSet' <- applyMatchingRules matchingRules doctree (Just dtn) cachedDeclSet
+  return cachedDeclSet'
 
 
 
 
-buildRulesListsForDtn :: CssStyleSheet -> DoctreeNode -> [[CssRule]]
-buildRulesListsForDtn styleSheet dtn = reverse rulesLists
+-- This function appears to be implementing (in its own way) this part of CSS
+-- 2.2 cascading: "Find all declarations that apply to the element and
+-- property in question...".
+--
+-- The function doesn't seem to fully implement this part: "Declarations
+-- apply if the associated selector matches the element in question" because
+-- matching of complex selector is not done here. Only a first selector in a
+-- complex selector of a rule is compared, and if it matches, the rule is
+-- appended to result.
+--
+-- So this function pre-selects rules, and full matching of complex selectors
+-- is done elsewhere (in cssComplexSelectorMatches*?).
+buildMatchingRulesGroupForDtn :: CssStyleSheet -> DoctreeNode -> MatchingRulesGroup
+buildMatchingRulesGroupForDtn styleSheet dtn = reverse rulesLists
   where
     rulesLists = byAnyElement . byElementId . byClass . bySelId $ []
 
@@ -392,6 +436,16 @@ buildRulesListsForDtn styleSheet dtn = reverse rulesLists
 
 
 
+type CssCachedDeclarationSet = (CssDeclarationSet, CssMatchCache)
+
+
+
+
+declarationsSetAppend' (targetDs, cache) ds = (declarationsSetAppend targetDs ds, cache)
+
+
+
+
 
 -- Apply a CSS context to a property list.
 --
@@ -402,30 +456,27 @@ buildRulesListsForDtn styleSheet dtn = reverse rulesLists
 cssContextApplyCssContext :: CssContext -> Doctree -> DoctreeNode -> StyleNode -> IO (CssDeclarationSet, CssMatchCache)
 cssContextApplyCssContext context doctree dtn styleNode = do
 
-  let cssPrimaryUserAgent       = 0
-  let cssPrimaryUser            = 1
-  let cssPrimaryAuthor          = 2
-  let cssPrimaryAuthorImportant = 3
-  let cssPrimaryUserImportant   = 4
+  let cachedDeclSet1 = (defaultCssDeclarationSet, matchCache context)
 
-  let targetDeclSet1 = defaultCssDeclarationSet
-  let matchCache1    = matchCache context
+  cachedDeclSet2 <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUserAgent) cachedDeclSet1 doctree dtn
 
-  (targetDeclSet2, matchCache2) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUserAgent) targetDeclSet1 matchCache1 doctree dtn
+  cachedDeclSet3 <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUser) cachedDeclSet2 doctree dtn
 
-  (targetDeclSet3, matchCache3) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUser) targetDeclSet2 matchCache2 doctree dtn
+  let cachedDeclSet4 = declarationsSetAppend' cachedDeclSet3 (nonCssDeclSet styleNode)
 
-  let targetDeclSet4 = declarationsSetAppend targetDeclSet3 (nonCssDeclSet styleNode)
+  cachedDeclSet5 <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryAuthor) cachedDeclSet4 doctree dtn
 
-  (targetDeclSet5, matchCache5) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryAuthor) targetDeclSet4 matchCache3 doctree dtn
+  let cachedDeclSet6 = declarationsSetAppend' cachedDeclSet5 (mainDeclSet styleNode)
 
-  let targetDeclSet6 = declarationsSetAppend targetDeclSet5 (mainDeclSet styleNode)
+  cachedDeclSet7 <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryAuthorImportant) cachedDeclSet6 doctree dtn
 
-  (targetDeclSet7, matchCache7) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryAuthorImportant) targetDeclSet6 matchCache5 doctree dtn
+  let cachedDeclSet8 = declarationsSetAppend' cachedDeclSet7 (importantDeclSet styleNode)
 
-  let targetDeclSet8 = declarationsSetAppend targetDeclSet7 (importantDeclSet styleNode)
+  cachedDeclSet9 <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUserImportant) cachedDeclSet8 doctree dtn
 
-  (targetDeclSet9, matchCache9) <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUserImportant) targetDeclSet8 matchCache7 doctree dtn
+  return cachedDeclSet9
 
-  return (targetDeclSet9, matchCache9)
+
+
+
 

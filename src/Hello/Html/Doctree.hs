@@ -31,8 +31,7 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 module Hello.Html.Doctree
   (
-    DoctreeItems (..)
-  , Doctree (..)
+    Doctree (..)
   , doctreeCtor
   , defaultDoctree
 
@@ -84,10 +83,12 @@ getDtnUnsafe :: Doctree -> Int -> DoctreeNode
 getDtnUnsafe tree dtnNum = (nodes tree) M.! dtnNum
 
 
-getDtnParent tree dtn = M.lookup (dtnParentNum dtn) tree
+getDtnParent :: Doctree -> DoctreeNode -> Maybe DoctreeNode
+getDtnParent tree dtn = M.lookup (dtnParentNum dtn) (nodes tree)
 
 
-getDtnSibling tree dtn = M.lookup (dtnSiblingNum dtn) tree
+getDtnSibling :: Doctree -> DoctreeNode -> Maybe DoctreeNode
+getDtnSibling tree dtn = M.lookup (dtnSiblingNum dtn) (nodes tree)
 
 
 

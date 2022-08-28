@@ -46,7 +46,6 @@ import qualified Data.List as L
 import Control.Monad -- when
 import Debug.Trace
 
-import Hello.Css.Match
 import Hello.Css.MatchCache
 import Hello.Css.MediaQuery
 import Hello.Css.Parser

@@ -99,14 +99,17 @@ styleSheetElementCount = (90 + 14) :: Int
 
 
 
-
+-- https://www.w3.org/TR/selectors-4/#structure: "A compound selector is a
+-- sequence of simple selectors that are not separated by a combinator, and
+-- represents a set of simultaneous conditions on a single element."
 data CssCompoundSelector = CssCompoundSelector
   { selectorPseudoClass :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#pseudo-class
   , selectorId          :: T.Text          -- https://www.w3.org/TR/selectors-4/#id-selector
   , selectorClass       :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#class-selector
-  , selectorTagName     :: CssTypeSelector
+  , selectorTagName     :: CssTypeSelector -- https://www.w3.org/TR/selectors-4/#type-selectors
                                            -- TODO: add https://www.w3.org/TR/selectors-4/#attribute-selector
   } deriving (Show, Eq)
+
 
 
 
@@ -118,7 +121,8 @@ data CssCachedComplexSelector = CssCachedComplexSelector {
 
 
 
--- https://www.w3.org/TR/selectors-4/#typedef-type-selector
+-- Type (tag name) selector
+-- https://www.w3.org/TR/selectors-4/#type-selectors
 data CssTypeSelector
     -- Type selectors: "regular" and universal
   = CssTypeSelector Int  --   https://www.w3.org/TR/selectors-4/#type-selector; Use htmlTagIndex "text" to get the integer value.
@@ -219,8 +223,8 @@ compoundHasId = not . T.null . selectorId
 
 
 data CssCombinator =
-    CssCombinatorDescendant        -- ' '
-  | CssCombinatorChild             -- '>'
+    CssCombinatorDescendant        -- ' '      "x y"   selects y that is a direct or indirect child of x
+  | CssCombinatorChild             -- '>'      "x > y" selects y that is a direct child of x
   | CssCombinatorAdjacentSibling   -- '+'
   deriving (Show, Eq)
 
@@ -262,6 +266,8 @@ ch44 = Link (Datum "four") '/'  (Link (Datum "three") '-' (Link (Datum "two") '+
 
 
 
+-- https://www.w3.org/TR/selectors-4/#structure: "A complex selector is a
+-- sequence of one or more compound selectors separated by combinators."
 type CssComplexSelector = Chain CssCompoundSelector CssCombinator
 
 

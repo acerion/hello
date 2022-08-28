@@ -24,9 +24,9 @@ where
 import qualified Data.Text as T
 import Test.HUnit
 
+import Hello.Css.Cascade
 import Hello.Css.Parser
 import Hello.Css.Selector
-import Hello.Css.Match
 import Hello.Html.DoctreeNode
 import Hello.Utils
 
@@ -52,7 +52,7 @@ specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity complex)
 
 -- On success return empty string. On failure return string representation of
 -- selector, for which test failed.
-matchTest :: [(Int, CssCompoundSelector, DoctreeNode)] -> T.Text
+matchTest :: [(CssCompoundSelectorMatch, CssCompoundSelector, DoctreeNode)] -> T.Text
 matchTest []     = ""
 matchTest (x:xs) = if expectedMatch x /= (compoundSelectorMatches' (cpdSel x) (dtn x))
                          then T.pack ((show $ cpdSel x) ++ "    @@@@    " ++ (show $ dtn x))

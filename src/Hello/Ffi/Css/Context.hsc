@@ -53,9 +53,9 @@ import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
 import Hello.Utils
 
+import Hello.Css.Cascade
 import Hello.Css.ContextGlobal
 import Hello.Css.DeclarationSetsGlobal
-import Hello.Css.Match
 import Hello.Css.MatchCache
 import Hello.Css.Parser
 import Hello.Css.StyleNode
