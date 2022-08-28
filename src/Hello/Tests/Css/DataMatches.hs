@@ -26,6 +26,7 @@ import qualified Data.Text as T
 import Hello.Css.Cascade
 import Hello.Css.Parser
 import Hello.Css.Selector
+import Hello.Css.SelectorMatch
 import Hello.Html.DoctreeNode
 
 

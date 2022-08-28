@@ -79,6 +79,7 @@ import qualified Data.Sequence as S
 import Debug.Trace
 import Control.Monad -- when
 
+import Hello.Chain
 import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Css.Selector
@@ -195,11 +196,6 @@ insertRuleInListOfRules :: [CssRule] -> CssRule -> [CssRule]
 insertRuleInListOfRules list rule = L.concat [smallerOrEqual, [rule], larger]
   where
     (smallerOrEqual, larger) = L.span (\r -> (specificity rule) >= (specificity r)) list
-
-
-
-
-type CssMatchCache = CssMatchCacheWrapper Int
 
 
 

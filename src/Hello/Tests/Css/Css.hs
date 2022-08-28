@@ -27,6 +27,7 @@ import Test.HUnit
 import Hello.Css.Cascade
 import Hello.Css.Parser
 import Hello.Css.Selector
+import Hello.Css.SelectorMatch
 import Hello.Html.DoctreeNode
 import Hello.Utils
 

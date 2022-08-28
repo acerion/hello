@@ -25,6 +25,7 @@ import qualified Data.Text as T
 import Test.HUnit
 import Debug.Trace
 
+import Hello.Chain
 import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Css.Selector

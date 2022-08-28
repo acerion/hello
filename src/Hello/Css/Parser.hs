@@ -98,6 +98,7 @@ import qualified Data.Sequence as S
 import Data.Bits
 import Debug.Trace
 
+import Hello.Chain
 import Hello.Utils
 import Hello.Css.Declaration
 import Hello.Css.Distance

@@ -52,10 +52,6 @@ module Hello.Css.Selector
   , compoundHasClass
   , compoundHasId
 
-  , Chain (..)
-  , chainLength
-  , chainAny
-
   , CssSubclassSelector (..)
 
   , CssCachedComplexSelector (..)
@@ -82,6 +78,8 @@ import qualified Data.Map as M
 import qualified Data.Sequence as S
 import Data.Bits
 import Debug.Trace
+
+import Hello.Chain
 
 
 
@@ -249,40 +247,9 @@ defaultComplexSelector = CssCachedComplexSelector {
 
 
 
-data Chain a b
-  = Datum a
-  | Link (Chain a b) b (Chain a b)
-  deriving (Show, Eq)
-
-
-
-{-
-ch41 =                                                                             Datum "one"
-ch42 =                                                     Link (Datum "two") '+' (Datum "one")
-ch43 =                           Link (Datum "three") '-' (Link (Datum "two") '+' (Datum "one"))
-ch44 = Link (Datum "four") '/'  (Link (Datum "three") '-' (Link (Datum "two") '+' (Datum "one")))
--}
-
-
-
-
 -- https://www.w3.org/TR/selectors-4/#structure: "A complex selector is a
 -- sequence of one or more compound selectors separated by combinators."
 type CssComplexSelector = Chain CssCompoundSelector CssCombinator
-
-
-
-
-chainLength chain = chainLength' chain 0
-chainLength' (Link (Datum _) _ remainder) acc = chainLength' remainder (acc + 1)
-chainLength' (Datum _)                    acc =                        (acc + 1)
-
-
-
-
-chainAny :: (CssCompoundSelector -> Bool) -> CssComplexSelector -> Bool
-chainAny fn (Datum compound)                             = fn compound
-chainAny fn (Link (Datum compound) combinator remainder) = (fn compound) || (chainAny fn remainder)
 
 
 
