@@ -46,16 +46,16 @@ module Hello.Css.ParserHelpers
   , takeLengthTokens
   , lengthValueToDistance
 
-  , ValueState3 (..)
-  , defaultValueState3
-  , defaultValueState2
+  , ValueHelper (..)
+  , defaultValueHelper
+  , defaultValueHelper2
 
   , interpretTokensAsEnum
   , interpretTokensAsMultiEnum
-  , declValueAsLength3
+  , interpretTokensAsLength
   , interpretTokensAsInteger
   , interpretTokensAsColor
-  , tokensAsValueBgPosition3
+  , interpretTokensAsBgPosition
   , interpretTokensAsStringList
   , interpretTokensAsURI
   , interpretTokensAsAuto
@@ -82,7 +82,7 @@ import Hello.Css.Value
 
 
 
-data ValueState3 declValueT = ValueState3
+data ValueHelper declValueT = ValueHelper
   {
     pt3                   :: (CssParser, CssToken)
 
@@ -131,25 +131,25 @@ data ValueState3 declValueT = ValueState3
 
 
 
-defaultValueState3 :: (CssParser, CssToken) -> ValueState3 a
-defaultValueState3 pat = defaultValueState2 { pt3 = pat }
+defaultValueHelper :: (CssParser, CssToken) -> ValueHelper a
+defaultValueHelper pat = defaultValueHelper2 { pt3 = pat }
 
 
 
 
-defaultValueState2 :: ValueState3 a
-defaultValueState2 = ValueState3 { pt3                   = (defaultParser, CssTokNone)
-                                 , colorValueCtor3       = Nothing
-                                 , distanceValueCtor     = Nothing
-                                 , integerValueCtor      = Nothing
-                                 , bgPositionValueCtor   = Nothing
-                                 , uriValueCtor          = Nothing
-                                 , stringListCtor        = Nothing
-                                 , stringCtor            = Nothing
-                                 , dict                  = []
-                                 , allowUnitlessDistance = False
-                                 , integersRange         = (0, 0)
-                                 }
+defaultValueHelper2 :: ValueHelper a
+defaultValueHelper2 = ValueHelper { pt3                   = (defaultParser, CssTokNone)
+                                  , colorValueCtor3       = Nothing
+                                  , distanceValueCtor     = Nothing
+                                  , integerValueCtor      = Nothing
+                                  , bgPositionValueCtor   = Nothing
+                                  , uriValueCtor          = Nothing
+                                  , stringListCtor        = Nothing
+                                  , stringCtor            = Nothing
+                                  , dict                  = []
+                                  , allowUnitlessDistance = False
+                                  , integersRange         = (0, 0)
+                                  }
 
 
 
@@ -234,19 +234,19 @@ rgbFunctionToColor p1 = let
 -- corresponding Haskell enum value.
 --
 -- The mapping between string identifiers and Haskell enums is specified by
--- 'dict' member of 'vs'
+-- 'dict' member of 'vh'
 --
 -- In case of enum value there is no need to consume more than current token
 -- to recognize the enum, but for consistency with other similar functions
 -- the function is still called "tokenS as".
-interpretTokensAsEnum :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-interpretTokensAsEnum vs@ValueState3{ pt3 = (_, token@(CssTokIdent sym)) } =
-  case L.lookup sym' (dict vs) of
-    Just declValue -> (vs { pt3 = nextToken1 . fst . pt3 $ vs}, Just declValue)
-    Nothing        -> (vs, Nothing)
+interpretTokensAsEnum :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsEnum vh@ValueHelper{ pt3 = (_, token@(CssTokIdent sym)) } =
+  case L.lookup sym' (dict vh) of
+    Just declValue -> (vh { pt3 = nextToken1 . fst . pt3 $ vh}, Just declValue)
+    Nothing        -> (vh, Nothing)
   where
     sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
-interpretTokensAsEnum vs = (vs, Nothing)
+interpretTokensAsEnum vh = (vh, Nothing)
                            -- TODO: is this the right place to reject everything else other than CssTokIdent?
                            -- Shouldn't we do it somewhere else?
 
@@ -260,29 +260,29 @@ interpretTokensAsEnum vs = (vs, Nothing)
 -- tokens. If current token is e.g. "rgb(" function, then the function should
 -- (TODO) take as many tokens as necessary to build, parse and convert the
 -- function into color value.
-interpretTokensAsColor :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-interpretTokensAsColor vs@ValueState3{ pt3 = (p1, (CssTokHash _ str)) }  = case colorsHexStringToColor str of
-                                                                             Just c  -> (vs {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vs) c)
-                                                                             Nothing -> (vs, Nothing)
-interpretTokensAsColor vs@ValueState3{ pt3 = (p1, (CssTokFunc "rgb")) }  = case rgbFunctionToColor p1 of
-                                                                             ((p2, t2), Just c)  -> (vs {pt3 = (p2, t2)}, Just $ (fromJust . colorValueCtor3 $ vs) c)
-                                                                             ((p2, t2), Nothing) -> (vs, Nothing)
-interpretTokensAsColor vs@ValueState3{ pt3 = (p1, (CssTokIdent ident)) } = case colorsStringToColor ident of
-                                                                             Just c  -> (vs {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vs) c)
-                                                                             Nothing -> (vs, Nothing)
-interpretTokensAsColor vs                                                = (vs, Nothing)
+interpretTokensAsColor :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, (CssTokHash _ str)) }  = case colorsHexStringToColor str of
+                                                                             Just c  -> (vh {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
+                                                                             Nothing -> (vh, Nothing)
+interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, (CssTokFunc "rgb")) }  = case rgbFunctionToColor p1 of
+                                                                             ((p2, t2), Just c)  -> (vh {pt3 = (p2, t2)}, Just $ (fromJust . colorValueCtor3 $ vh) c)
+                                                                             ((p2, t2), Nothing) -> (vh, Nothing)
+interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, (CssTokIdent ident)) } = case colorsStringToColor ident of
+                                                                             Just c  -> (vh {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
+                                                                             Nothing -> (vh, Nothing)
+interpretTokensAsColor vh                                                = (vh, Nothing)
 
 
 
 
-declValueAsLength3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-declValueAsLength3 vs@ValueState3 {pt3 = (parser, token) } = ((vs { pt3 = (p', t') }), value)
+interpretTokensAsLength :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsLength vh@ValueHelper {pt3 = (parser, token) } = ((vh { pt3 = (p', t') }), value)
   where
     ((p', t'), value) = case tokens of
-                          [CssTokDim cssNum ident] -> ((newParser, newToken), Just $ (fromJust . distanceValueCtor $ vs) (unitValue cssNum ident))
-                          [CssTokPerc cssNum]      -> ((newParser, newToken), Just $ (fromJust . distanceValueCtor $ vs) (percentValue cssNum))
+                          [CssTokDim cssNum ident] -> ((newParser, newToken), Just $ (fromJust . distanceValueCtor $ vh) (unitValue cssNum ident))
+                          [CssTokPerc cssNum]      -> ((newParser, newToken), Just $ (fromJust . distanceValueCtor $ vh) (percentValue cssNum))
                           [CssTokNum cssNum]       -> case ((newParser, newToken), unitlessValue cssNum) of
-                                                        ((p2, t2), Just i)  -> ((p2, t2), Just $ (fromJust . distanceValueCtor $ vs) i)
+                                                        ((p2, t2), Just i)  -> ((p2, t2), Just $ (fromJust . distanceValueCtor $ vh) i)
                                                         ((p2, t2), Nothing) -> ((p2, t2), Nothing)
                           _                        -> ((parser, token), Nothing)
 
@@ -308,7 +308,7 @@ declValueAsLength3 vs@ValueState3 {pt3 = (parser, token) } = ((vs { pt3 = (p', t
     -- TODO: original code allowed a value to be unitless if value type was
     -- CssValueTypeLengthPercentNumber or value was 0.0. Do we need to
     -- restore the condition on value type, or can we use the boolean flag?
-    unitlessValue cssNum = if allowUnitlessDistance vs || fval == 0.0
+    unitlessValue cssNum = if allowUnitlessDistance vh || fval == 0.0
                            then Just distance
                            else Nothing
       where
@@ -320,7 +320,7 @@ declValueAsLength3 vs@ValueState3 {pt3 = (parser, token) } = ((vs { pt3 = (p', t
 
 -- Parse current token as integer
 --
--- Value of integer that is outside of ValueState3::integersRange is
+-- Value of integer that is outside of ValueHelper::integersRange is
 -- rejected.
 --
 -- Notice that thanks to matching on "CssTokNum CssNumI i" value, the
@@ -329,11 +329,11 @@ declValueAsLength3 vs@ValueState3 {pt3 = (parser, token) } = ((vs { pt3 = (p', t
 -- "CssTokNum CssNumI i" value.
 --
 -- TODO: restrict the integer values only to multiples of hundreds?
-interpretTokensAsInteger :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-interpretTokensAsInteger vs@ValueState3 {pt3 = (_, (CssTokNum (CssNumI i))) } = if i >= (fst . integersRange $ vs) && i <= (snd . integersRange $ vs)
-                                                                                then (vs {pt3 = nextToken1 . fst . pt3 $ vs}, Just $ (fromJust . integerValueCtor $ vs) i)
-                                                                                else (vs, Nothing)
-interpretTokensAsInteger vs                                                   = (vs, Nothing)
+interpretTokensAsInteger :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsInteger vh@ValueHelper {pt3 = (_, (CssTokNum (CssNumI i))) } = if i >= (fst . integersRange $ vh) && i <= (snd . integersRange $ vh)
+                                                                                then (vh {pt3 = nextToken1 . fst . pt3 $ vh}, Just $ (fromJust . integerValueCtor $ vh) i)
+                                                                                else (vh, Nothing)
+interpretTokensAsInteger vh                                                   = (vh, Nothing)
 
 
 
@@ -410,12 +410,12 @@ lengthValueToDistance fval unitStr | unitStr == "px" = CssDistanceAbsPx fval
 -- TODO: check in spec if the dictionary should always include an implicit
 -- "none" value. Original C++ code indicates that "none" was treated in
 -- special way.
-interpretTokensAsMultiEnum :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe [declValueT])
-interpretTokensAsMultiEnum vs@ValueState3 { pt3 = (parser, token@(CssTokIdent sym)) } =
-  case matchSymbolTokensWithListRigid (parser, token) (dict vs) [] of
-    ((_, _), [])    -> (vs, Nothing) -- None of input tokens were matched agains list of enums.
-    ((p2, t2), val) -> (vs { pt3 = (p2, t2) }, Just val)
-interpretTokensAsMultiEnum vs = (vs, Nothing)
+interpretTokensAsMultiEnum :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe [declValueT])
+interpretTokensAsMultiEnum vh@ValueHelper { pt3 = (parser, token@(CssTokIdent sym)) } =
+  case matchSymbolTokensWithListRigid (parser, token) (dict vh) [] of
+    ((_, _), [])    -> (vh, Nothing) -- None of input tokens were matched agains list of enums.
+    ((p2, t2), val) -> (vh { pt3 = (p2, t2) }, Just val)
+interpretTokensAsMultiEnum vh = (vh, Nothing)
 
 
 
@@ -449,11 +449,11 @@ matchSymbolTokensWithListRigid (p, t) _ acc                      = ((p, t), acc)
 
 
 
-tokensAsValueBgPosition3 :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-tokensAsValueBgPosition3 vs@ValueState3 { pt3 = pat } = (vs { pt3 = pat' }, declValue)
+interpretTokensAsBgPosition :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsBgPosition vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, declValue)
   where
     (pat', tokens) = takeBgTokens pat
-    declValue      = Just $ (fromJust . bgPositionValueCtor $ vs) 0 0
+    declValue      = Just $ (fromJust . bgPositionValueCtor $ vh) 0 0
     -- TODO: right now the original dillo doesn't seem to display background
     -- images at all, so I will stop the work on this function for now.
     -- Later, as I get to know dillo better, I will resume work on this
@@ -548,13 +548,13 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
 
 
-interpretTokensAsURI :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-interpretTokensAsURI vs@ValueState3 { pt3 = pat } = case parseUrl pat of
-                                                      (pat', Just url) -> (vs { pt3 = pat' }, Just $ (fromJust . uriValueCtor $ vs) url)
+interpretTokensAsURI :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsURI vh@ValueHelper { pt3 = pat } = case parseUrl pat of
+                                                      (pat', Just url) -> (vh { pt3 = pat' }, Just $ (fromJust . uriValueCtor $ vh) url)
                                                       -- TODO: should we assign here pat' or pat?
                                                       -- A token that is not an URI should be
                                                       -- re-parsed by another function, not skipped.
-                                                      (pat', Nothing)  -> (vs { pt3 = pat' }, Nothing)
+                                                      (pat', Nothing)  -> (vh { pt3 = pat' }, Nothing)
 
 
 
@@ -612,13 +612,13 @@ tokensAsValueStringList pat enums = (pat', L.reverse list)
 
 
 
-interpretTokensAsStringList :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-interpretTokensAsStringList vs@ValueState3 { pt3 = pat } = (vs { pt3 = pat' }, declValue)
+interpretTokensAsStringList :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsStringList vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, declValue)
   where
     (pat', list) = tokensAsValueStringList pat []
     declValue = if L.null list
                 then Nothing
-                else Just $ (fromJust . stringListCtor $ vs) list
+                else Just $ (fromJust . stringListCtor $ vh) list
 
 
 
@@ -633,12 +633,12 @@ interpretTokensAsStringList vs@ValueState3 { pt3 = pat } = (vs { pt3 = pat' }, d
 -- CssValueTypeAuto, but this is problematic because "italic" doesn't seem to
 -- be something expected after "auto". Should we reject such input string
 -- here, or in higher layer?
-interpretTokensAsAuto :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-interpretTokensAsAuto vs@ValueState3 { pt3 = (p, t@(CssTokIdent sym)) } | T.toLower sym == "auto" = (vs {pt3 = (nextToken1 p)}
-                                                                                                    , Just . (fromJust . distanceValueCtor $ vs) $ CssDistanceAuto
+interpretTokensAsAuto :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsAuto vh@ValueHelper { pt3 = (p, t@(CssTokIdent sym)) } | T.toLower sym == "auto" = (vh {pt3 = (nextToken1 p)}
+                                                                                                    , Just . (fromJust . distanceValueCtor $ vh) $ CssDistanceAuto
                                                                                                     )
-                                                                        | otherwise               = (vs, Nothing)
-interpretTokensAsAuto vs                                                                          = (vs, Nothing)
+                                                                        | otherwise               = (vh, Nothing)
+interpretTokensAsAuto vh                                                                          = (vh, Nothing)
 
 
 
@@ -649,9 +649,9 @@ interpretTokensAsAuto vs                                                        
 -- In case of "string" value there is no need to consume more than current
 -- token to build the String, but for consistency with other similar
 -- functions the function is still called "tokenS as".
-interpretTokensAsString :: ValueState3 declValueT -> (ValueState3 declValueT, Maybe declValueT)
-interpretTokensAsString vs@ValueState3 { pt3 = (p, (CssTokStr s)) } = (vs { pt3 = nextToken1 p}, Just $ (fromJust . stringCtor $ vs) s)
-interpretTokensAsString vs                                          = (vs, Nothing)
+interpretTokensAsString :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsString vh@ValueHelper { pt3 = (p, (CssTokStr s)) } = (vh { pt3 = nextToken1 p}, Just $ (fromJust . stringCtor $ vh) s)
+interpretTokensAsString vh                                          = (vh, Nothing)
 
 
 
