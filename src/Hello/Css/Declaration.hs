@@ -74,11 +74,24 @@ module Hello.Css.Declaration
   , CssValueXLink (..)
   , CssValueXTooltip (..)
 
+  -- , makeCssDeclarationFont
+
+  , makeCssDeclarationBackground
   , makeCssDeclarationBackgroundAttachment
   , makeCssDeclarationBackgroundColor
   , makeCssDeclarationBackgroundImage
   , makeCssDeclarationBackgroundPosition
   , makeCssDeclarationBackgroundRepeat
+
+  , makeCssDeclarationBorder
+  , makeCssDeclarationBorderWidth
+  , makeCssDeclarationBorderColor
+  , makeCssDeclarationBorderStyle
+
+  , makeCssDeclarationBorderTop
+  , makeCssDeclarationBorderRight
+  , makeCssDeclarationBorderBottom
+  , makeCssDeclarationBorderLeft
 
   , makeCssDeclarationBorderCollapse
   , makeCssDeclarationBorderSpacing
@@ -122,9 +135,11 @@ module Hello.Css.Declaration
   , makeCssDeclarationLeft
   , makeCssDeclarationLetterSpacing
   , makeCssDeclarationLineHeight
+  , makeCssDeclarationListStyle
   , makeCssDeclarationListStyleImage
   , makeCssDeclarationListStylePosition
   , makeCssDeclarationListStyleType
+  , makeCssDeclarationMargin
   , makeCssDeclarationMarginBottom
   , makeCssDeclarationMarginLeft
   , makeCssDeclarationMarginRight
@@ -139,6 +154,7 @@ module Hello.Css.Declaration
   , makeCssDeclarationOutlineStyle
   , makeCssDeclarationOutlineWidth
   , makeCssDeclarationOverflow
+  , makeCssDeclarationPadding
   , makeCssDeclarationPaddingBottom
   , makeCssDeclarationPaddingLeft
   , makeCssDeclarationPaddingRight
@@ -164,12 +180,9 @@ module Hello.Css.Declaration
   , defaultDeclaration
   , CssDeclWrapper (..)
 
-  , makeCssDeclarationBorder
-  , parseTokensAsBorderWidthValue
-  , parseTokensAsBorderStyleValue
-  , parseTokensAsBorderColorValue
-  , parseTokensAsMarginValue
-  , parseTokensAsPaddingValue
+  , DeclarationShorthandCtor
+  , DeclarationCtor
+  , DeclarationValueCtor
   )
 where
 
@@ -189,6 +202,13 @@ import Hello.Css.Tokenizer
 import Hello.Css.Value
 
 import Hello.Utils
+
+
+
+
+type DeclarationShorthandCtor = (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+type DeclarationCtor = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+type DeclarationValueCtor a = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe a)
 
 
 
@@ -313,6 +333,28 @@ data CssDeclaration
 
   | CssDeclaration_LAST                                 -- 86
   deriving (Eq, Show, Data)
+
+
+
+
+-- ------------------------------------------------
+-- Background (background)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+makeCssDeclarationBackground :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBackground pat = parseDeclarationMultiple
+                                   pat
+                                   [ makeCssDeclarationBackgroundColor
+                                   , makeCssDeclarationBackgroundImage
+                                   , makeCssDeclarationBackgroundRepeat
+                                   , makeCssDeclarationBackgroundAttachment
+                                   , makeCssDeclarationBackgroundPosition
+                                   ]
+                                   []
 
 
 
@@ -476,6 +518,193 @@ makeCssDeclarationBackgroundRepeat pat = (pat', fmap CssDeclarationBackgroundRep
     vh :: ValueHelper CssValueBackgroundRepeat
     vh = (defaultValueHelper pat) { dict = cssValueBackgroundRepeatDict
                                   }
+
+
+
+-- ------------------------------------------------
+-- Border (border)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+makeCssDeclarationBorder :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorder pat = (pat', wrappedDecls)
+  where
+    (pat', decls) = makeCssDeclarationBorder' pat
+    wrappedDecls = fmap (\x -> defaultDeclaration { property = x}) decls
+
+
+
+
+-- Parse "{ border = X Y Z }" CSS declaration. Expand the single "border"
+-- declaration into a series of "border-top-width", "border-left-color" etc.
+-- properties with their values. Return the list of the expanded
+-- declarations.
+--
+-- TODO: this implementation can correctly parse all value tokens only when
+-- they appear in the same order as 'property' integers. The function should
+-- be able to handle the tokens in any order.
+makeCssDeclarationBorder' :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
+makeCssDeclarationBorder' pt0 = (pt3, declarations)
+  where
+    declarations = catMaybes [ fmap CssDeclarationBorderTopWidth    declValueWidth,
+                               fmap CssDeclarationBorderRightWidth  declValueWidth,
+                               fmap CssDeclarationBorderBottomWidth declValueWidth,
+                               fmap CssDeclarationBorderLeftWidth   declValueWidth
+
+                             , fmap CssDeclarationBorderTopStyle    declValueStyle,
+                               fmap CssDeclarationBorderRightStyle  declValueStyle,
+                               fmap CssDeclarationBorderBottomStyle declValueStyle,
+                               fmap CssDeclarationBorderLeftStyle   declValueStyle
+
+                             , fmap CssDeclarationBorderTopColor    declValueColor,
+                               fmap CssDeclarationBorderRightColor  declValueColor,
+                               fmap CssDeclarationBorderBottomColor declValueColor,
+                               fmap CssDeclarationBorderLeftColor   declValueColor
+                             ]
+
+    -- TODO: this piece of code has zero error checking.
+    (pt1, declValueWidth) :: ((CssParser, CssToken), Maybe CssValueBorderWidth) = parseTokensAsBorderWidthValue pt0
+    (pt2, declValueStyle) :: ((CssParser, CssToken), Maybe CssValueBorderStyle) = parseTokensAsBorderStyleValue pt1
+    (pt3, declValueColor) :: ((CssParser, CssToken), Maybe CssValueBorderColor) = parseTokensAsBorderColorValue pt2
+
+
+
+
+-- ------------------------------------------------
+-- Border width (border-width)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+makeCssDeclarationBorderWidth :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderWidth pat = parseDeclaration4321trbl
+                                    pat
+                                    [ CssDeclarationBorderTopWidth
+                                    , CssDeclarationBorderRightWidth
+                                    , CssDeclarationBorderBottomWidth
+                                    , CssDeclarationBorderLeftWidth ]
+                                    parseTokensAsBorderWidthValue
+
+
+
+
+-- ------------------------------------------------
+-- Border color (border-color)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+makeCssDeclarationBorderColor :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderColor pat = parseDeclaration4321trbl
+                                    pat
+                                    [ CssDeclarationBorderTopColor
+                                    , CssDeclarationBorderRightColor
+                                    , CssDeclarationBorderBottomColor
+                                    , CssDeclarationBorderLeftColor ]
+                                    parseTokensAsBorderColorValue
+
+
+
+
+-- ------------------------------------------------
+-- Border style (border-style)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+makeCssDeclarationBorderStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderStyle pat = parseDeclaration4321trbl
+                                    pat
+                                    [ CssDeclarationBorderTopStyle
+                                    , CssDeclarationBorderRightStyle
+                                    , CssDeclarationBorderBottomStyle
+                                    , CssDeclarationBorderLeftStyle ]
+                                    parseTokensAsBorderStyleValue
+
+
+
+
+-- ------------------------------------------------
+-- Border top (border-top)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+makeCssDeclarationBorderTop :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderTop pat = parseDeclarationMultiple
+                                  pat
+                                  [ makeCssDeclarationBorderTopWidth
+                                  , makeCssDeclarationBorderTopStyle
+                                  , makeCssDeclarationBorderTopColor ]
+                                  []
+
+
+
+
+-- ------------------------------------------------
+-- Border right (border-right)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+makeCssDeclarationBorderRight :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderRight pat = parseDeclarationMultiple
+                                    pat
+                                    [ makeCssDeclarationBorderRightWidth
+                                    , makeCssDeclarationBorderRightStyle
+                                    , makeCssDeclarationBorderRightColor ]
+                                    []
+
+
+
+
+-- ------------------------------------------------
+-- Border bottom (border-bottom)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+makeCssDeclarationBorderBottom :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderBottom pat  = parseDeclarationMultiple
+                                      pat
+                                      [ makeCssDeclarationBorderBottomWidth
+                                      , makeCssDeclarationBorderBottomStyle
+                                      , makeCssDeclarationBorderBottomColor ]
+                                      []
+
+
+
+
+-- ------------------------------------------------
+-- Border left (border-left)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+makeCssDeclarationBorderLeft :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderLeft pat = parseDeclarationMultiple
+                                   pat
+                                   [ makeCssDeclarationBorderLeftWidth
+                                   , makeCssDeclarationBorderLeftStyle
+                                   , makeCssDeclarationBorderLeftColor ]
+                                   []
 
 
 
@@ -965,6 +1194,20 @@ makeCssDeclarationFloat v = CssDeclarationFloat v
 
 
 -- ------------------------------------------------
+-- Font (font)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+-- TODO: restore parsing of font properties
+-- makeCssDeclarationFont          = parseDeclarationMultiple pat pinfos []
+
+
+
+
+-- ------------------------------------------------
 -- Font family (font-family)
 -- ------------------------------------------------
 
@@ -1292,6 +1535,26 @@ makeCssDeclarationLineHeight pat = (pat', fmap CssDeclarationLineHeight declValu
 
 
 
+
+-- ------------------------------------------------
+-- List Style (list-style)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+makeCssDeclarationListStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationListStyle pat = parseDeclarationMultiple
+                                  pat
+                                  [ makeCssDeclarationListStyleType
+                                  , makeCssDeclarationListStylePosition
+                                  , makeCssDeclarationListStyleImage ]
+                                  []
+
+
+
+
 -- ------------------------------------------------
 -- List Style Image
 --
@@ -1422,6 +1685,26 @@ makeCssDeclarationListStyleType pat = (pat', fmap CssDeclarationListStyleType de
 
 
 -- ------------------------------------------------
+-- Margin (margin)
+-- This is a shorthand property.
+-- ------------------------------------------------
+
+
+
+
+makeCssDeclarationMargin :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationMargin pat = parseDeclaration4321trbl
+                               pat
+                               [ CssDeclarationMarginTop
+                               , CssDeclarationMarginRight
+                               , CssDeclarationMarginBottom
+                               , CssDeclarationMarginLeft ]
+                               parseTokensAsMarginValue
+
+
+
+
+-- ------------------------------------------------
 -- Margin
 -- margin-top, margin-right, margin-bottom, margin-left
 -- ------------------------------------------------
@@ -1490,8 +1773,29 @@ makeCssDeclarationOverflow v = CssDeclarationOverflow v
 
 
 -- ------------------------------------------------
--- Padding
+-- Padding (padding)
+-- This is a shorthand property.
 -- ------------------------------------------------
+
+
+
+
+makeCssDeclarationPadding :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationPadding pat = parseDeclaration4321trbl
+                                pat
+                                [ CssDeclarationPaddingTop
+                                , CssDeclarationPaddingRight
+                                , CssDeclarationPaddingBottom
+                                , CssDeclarationPaddingLeft ]
+                                parseTokensAsPaddingValue
+
+
+
+
+-- ------------------------------------------------
+-- Padding-X (padding-X)
+-- ------------------------------------------------
+
 
 
 
@@ -2039,41 +2343,56 @@ makeCssDeclaration_LAST _ = CssDeclaration_LAST
 
 
 
-
-
-
-
--- Parse "{ border = X Y Z }" CSS declaration. Expand the single "border"
--- declaration into a series of "border-top-width", "border-left-color" etc.
--- properties with their values. Return the list of the expanded
--- declarations.
---
 -- TODO: this implementation can correctly parse all value tokens only when
 -- they appear in the same order as 'property' integers. The function should
 -- be able to handle the tokens in any order.
-makeCssDeclarationBorder :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationBorder pt0 = (pt3, declarations)
+parseDeclarationMultiple :: (CssParser, CssToken) -> [(CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
+parseDeclarationMultiple (parser, token) (declCtor:declCtors) wrappedDecls =
+    case declCtor (parser, token) of
+      ((p, t), Nothing)   -> parseDeclarationMultiple (p, t) declCtors wrappedDecls
+      ((p, t), Just decl) -> parseDeclarationMultiple (p, t) declCtors (wrappedDecls ++ [defaultDeclaration{property = decl}])
+parseDeclarationMultiple (parser, token) [] wrappedDecls = ((parser, token), wrappedDecls)
+
+
+
+
+-- Parse 4, 3, 2 or 1 tokens, specifying values for top, right, bottom, left,
+-- or for t, r-l, b, or for t-b, r-l, or for all of them at once.
+parseDeclaration4321trbl :: (CssParser, CssToken) -> [b -> CssDeclaration] -> DeclarationValueCtor b -> ((CssParser, CssToken), [CssDeclWrapper])
+parseDeclaration4321trbl (parser, token) (declCtorT:declCtorR:declCtorB:declCtorL:ctors) declValueCtor = ((outParser, outToken), ds)
   where
-    declarations = catMaybes [ fmap CssDeclarationBorderTopWidth    declValueWidth,
-                               fmap CssDeclarationBorderRightWidth  declValueWidth,
-                               fmap CssDeclarationBorderBottomWidth declValueWidth,
-                               fmap CssDeclarationBorderLeftWidth   declValueWidth
+    ds = case declarationValues of
+           (top:right:bottom:left:[]) -> [ defaultDeclaration{property = declCtorT top    }
+                                         , defaultDeclaration{property = declCtorR right  }
+                                         , defaultDeclaration{property = declCtorB bottom }
+                                         , defaultDeclaration{property = declCtorL left   }]
+           (top:rl:bottom:[])         -> [ defaultDeclaration{property = declCtorT top    }
+                                         , defaultDeclaration{property = declCtorR rl     }
+                                         , defaultDeclaration{property = declCtorB bottom }
+                                         , defaultDeclaration{property = declCtorL rl     }]
+           (tb:rl:[])                 -> [ defaultDeclaration{property = declCtorT tb     }
+                                         , defaultDeclaration{property = declCtorR rl     }
+                                         , defaultDeclaration{property = declCtorB tb     }
+                                         , defaultDeclaration{property = declCtorL rl     }]
+           (v:[])                     -> [ defaultDeclaration{property = declCtorT v      }
+                                         , defaultDeclaration{property = declCtorR v      }
+                                         , defaultDeclaration{property = declCtorB v      }
+                                         , defaultDeclaration{property = declCtorL v      }]
+           _                          -> []
+    ((outParser, outToken), declarationValues) = matchOrderedTokens (parser, token) declValueCtor []
+parseDeclaration4321trbl (parser, token) _ _ = ((parser, token), [])
 
-                             , fmap CssDeclarationBorderTopStyle    declValueStyle,
-                               fmap CssDeclarationBorderRightStyle  declValueStyle,
-                               fmap CssDeclarationBorderBottomStyle declValueStyle,
-                               fmap CssDeclarationBorderLeftStyle   declValueStyle
 
-                             , fmap CssDeclarationBorderTopColor    declValueColor,
-                               fmap CssDeclarationBorderRightColor  declValueColor,
-                               fmap CssDeclarationBorderBottomColor declValueColor,
-                               fmap CssDeclarationBorderLeftColor   declValueColor
-                             ]
 
-    -- TODO: this piece of code has zero error checking.
-    (pt1, declValueWidth) :: ((CssParser, CssToken), Maybe CssValueBorderWidth) = parseTokensAsBorderWidthValue pt0
-    (pt2, declValueStyle) :: ((CssParser, CssToken), Maybe CssValueBorderStyle) = parseTokensAsBorderStyleValue pt1
-    (pt3, declValueColor) :: ((CssParser, CssToken), Maybe CssValueBorderColor) = parseTokensAsBorderColorValue pt2
+
+-- Value tokens must be in proper order. Example: if property is
+-- "border-color", and there are four value tokens, then tokens must
+-- represent colors of "top","right","bottom","left" borders.
+matchOrderedTokens :: (CssParser, CssToken) -> DeclarationValueCtor b -> [b] -> ((CssParser, CssToken), [b])
+matchOrderedTokens(parser, token) declValueCtor declarationValues =
+  case declValueCtor (parser, token) of
+    ((p, t), Just v)  -> matchOrderedTokens (p, t) declValueCtor (declarationValues ++ [v])
+    ((p, t), Nothing) -> ((p, t), declarationValues)
 
 
 

@@ -55,9 +55,6 @@ module Hello.Css.Parser
   , declValueAsString
   , declValueAsURI
 
-  , parseDeclarationBorder
-  , parseDeclarationShorthand
-
   , CssCombinator (..)
 
   , parseDeclarationWrapper
@@ -199,75 +196,50 @@ cssPropertyCtors = M.fromList [
 
 
 
-type DeclarationCtor = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-type DeclarationValueCtor a = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe a)
-
-
-
-
-data ShorthandType
- = ShorthandTypeMultiple       -- [ p1 || p2 || ...], the property pi is determined  by the type; array of properties must be terminated by CSS_PROPERTY_End.
- | ShorthandTypeMargin
- | ShorthandTypeBorder         -- special, used for 'border'; array of properties must have length 12.
- | ShorthandTypeFont           -- special, used for 'font'
- | ShorthandTypeBorderWidth
- | ShorthandTypeBorderStyle
- | ShorthandTypeBorderColor
- | ShorthandTypeBorderTop
- | ShorthandTypeBorderRight
- | ShorthandTypeBorderBottom
- | ShorthandTypeBorderLeft
- | ShorthandTypeListStyle
- | ShorthandTypePadding
- | ShorthandTypeBackground
-
-
-
-
--- Mapping between shorthand name of property and an enum. Currently the
--- strings aren't used for any purposes, it's the enum that is used for
--- lookup of code that should be executed for the shortcut property.
---
--- I need to make a decision on how to handle the shortcut properties.
-type ShorthandInfo = (ShorthandType, [T.Text])
+-- Mapping between shorthand name of property and a constructor
+cssShorthandInfo :: M.Map T.Text DeclarationShorthandCtor
 cssShorthandInfo = M.fromList [
-    ("background",     (ShorthandTypeBackground,    [ "background-color", "background-image", "background-repeat", "background-attachment", "background-position" ]))
+    ("background",         makeCssDeclarationBackground)
 
     -- Parsing of this property is unit-tested.
-  , ("border",         (ShorthandTypeBorder,        [ "border-top-width", "border-right-width", "border-bottom-width", "border-left-width",
-                                                      "border-top-style", "border-right-style", "border-bottom-style", "border-left-style",
-                                                      "border-top-color", "border-right-color", "border-bottom-color", "border-left-color"]))
+  , ("border",             makeCssDeclarationBorder)
 
     -- Parsing of this property is unit-tested.
-  , ("border-top",     (ShorthandTypeBorderTop,     [ "border-top-width",    "border-top-style",     "border-top-color" ]))
+  , ("border-top",         makeCssDeclarationBorderTop)
     -- Parsing of this property is unit-tested.
-  , ("border-right",   (ShorthandTypeBorderRight,   [ "border-right-width",  "border-right-style",   "border-right-color" ]))
+  , ("border-right",       makeCssDeclarationBorderRight)
     -- Parsing of this property is unit-tested.
-  , ("border-bottom",  (ShorthandTypeBorderBottom,  [ "border-bottom-width", "border-bottom-style",  "border-bottom-color" ]))
+  , ("border-bottom",      makeCssDeclarationBorderBottom)
     -- Parsing of this property is unit-tested.
-  , ("border-left",    (ShorthandTypeBorderLeft,    [ "border-left-width",   "border-left-style",    "border-left-color" ]))
+  , ("border-left",        makeCssDeclarationBorderLeft)
 
     -- Parsing of this property is unit-tested.
-  , ("border-width",   (ShorthandTypeBorderWidth,   [ "border-top-width",    "border-right-width",   "border-bottom-width", "border-left-width" ]))
+  , ("border-width",       makeCssDeclarationBorderWidth)
     -- Parsing of this property is unit-tested.
-  , ("border-style",   (ShorthandTypeBorderStyle,   [ "border-top-style",    "border-right-style",   "border-bottom-style", "border-left-style" ]))
+  , ("border-style",       makeCssDeclarationBorderStyle)
     -- Parsing of this property is unit-tested.
-  , ("border-color",   (ShorthandTypeBorderColor,   [ "border-top-color",    "border-right-color",   "border-bottom-color", "border-left-color" ]))
+  , ("border-color",       makeCssDeclarationBorderColor)
 
-  , ("font",           (ShorthandTypeFont,          [ "font-size",  "font-style", "font-variant", "font-weight", "font-family" ]))
+  --, ("font",           makeCssDeclarationFont)
 
     -- Parsing of this property is unit-tested (poorly).
-  , ("list-style",     (ShorthandTypeListStyle,     [ "list-style-type", "list-style-position", "list-style-image" ]))
+  , ("list-style",         makeCssDeclarationListStyle)
 
     -- Parsing of this property is unit-tested.
-  , ("margin",         (ShorthandTypeMargin,        [ "margin-top",      "margin-right",        "margin-bottom",      "margin-left" ]))
+  , ("margin",             makeCssDeclarationMargin)
 
-{-
-  , ("outline",        (ShorthandTypeMultiple,      [ "outline-color",   "outline-style",       "outline-width"]))
--}
     -- Parsing of this property is unit-tested (poorly).
-  , ("padding",        (ShorthandTypePadding,       [ "padding-top",     "padding-right",       "padding-bottom",     "padding-left" ]))
-  ] :: M.Map T.Text ShorthandInfo
+  , ("padding",            makeCssDeclarationPadding)
+  ]
+
+
+
+
+-- Use property name string to look up constructor of CSS declaration.
+--
+-- TODO: case-insensitive search?
+getDeclarationCtorByName :: T.Text -> Maybe DeclarationCtor
+getDeclarationCtorByName propertyName = M.lookup propertyName cssPropertyCtors
 
 
 
@@ -276,8 +248,8 @@ cssShorthandInfo = M.fromList [
 -- the shorthand property and the property's value.
 --
 -- TODO: case-insensitive search?
-getShorthandInfoByName :: T.Text -> Maybe ShorthandInfo
-getShorthandInfoByName shorthandName = M.lookup shorthandName cssShorthandInfo
+getShorthandCtorByName :: T.Text -> Maybe DeclarationShorthandCtor
+getShorthandCtorByName shorthandName = M.lookup shorthandName cssShorthandInfo
 
 
 
@@ -448,15 +420,6 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
       nextToken(tokenizer, hll_css_parser);
    }
 -}
-
-
-
-
--- Use property name string to look up constructor of CSS declaration.
---
--- TODO: case-insensitive search?
-getDeclarationCtorByName :: T.Text -> Maybe DeclarationCtor
-getDeclarationCtorByName propertyName = M.lookup propertyName cssPropertyCtors
 
 
 
@@ -696,137 +659,8 @@ parseDeclarationNormal pat ctor = case ctor pat of
 
 
 
--- TODO: this implementation can correctly parse all value tokens only when
--- they appear in the same order as 'property' integers. The function should
--- be able to handle the tokens in any order.
-parseDeclarationMultiple :: (CssParser, CssToken) -> [(CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationMultiple (parser, token) (declCtor:declCtors) wrappedDecls =
-    case declCtor (parser, token) of
-      ((p, t), Nothing)   -> parseDeclarationMultiple (p, t) declCtors wrappedDecls
-      ((p, t), Just decl) -> parseDeclarationMultiple (p, t) declCtors (wrappedDecls ++ [defaultDeclaration{property = decl}])
-parseDeclarationMultiple (parser, token) [] wrappedDecls = ((parser, token), wrappedDecls)
-
-
-
-
--- Parse 4, 3, 2 or 1 tokens, specifying values for top, right, bottom, left,
--- or for t, r-l, b, or for t-b, r-l, or for all of them at once.
-parseDeclaration4321trbl :: (CssParser, CssToken) -> [b -> CssDeclaration] -> DeclarationValueCtor b -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclaration4321trbl (parser, token) (declCtorT:declCtorR:declCtorB:declCtorL:ctors) declValueCtor = ((outParser, outToken), ds)
-  where
-    ds = case declarationValues of
-           (top:right:bottom:left:[]) -> [ defaultDeclaration{property = declCtorT top    }
-                                         , defaultDeclaration{property = declCtorR right  }
-                                         , defaultDeclaration{property = declCtorB bottom }
-                                         , defaultDeclaration{property = declCtorL left   }]
-           (top:rl:bottom:[])         -> [ defaultDeclaration{property = declCtorT top    }
-                                         , defaultDeclaration{property = declCtorR rl     }
-                                         , defaultDeclaration{property = declCtorB bottom }
-                                         , defaultDeclaration{property = declCtorL rl     }]
-           (tb:rl:[])                 -> [ defaultDeclaration{property = declCtorT tb     }
-                                         , defaultDeclaration{property = declCtorR rl     }
-                                         , defaultDeclaration{property = declCtorB tb     }
-                                         , defaultDeclaration{property = declCtorL rl     }]
-           (v:[])                     -> [ defaultDeclaration{property = declCtorT v      }
-                                         , defaultDeclaration{property = declCtorR v      }
-                                         , defaultDeclaration{property = declCtorB v      }
-                                         , defaultDeclaration{property = declCtorL v      }]
-           _                          -> []
-    ((outParser, outToken), declarationValues) = matchOrderedTokens (parser, token) declValueCtor []
-parseDeclaration4321trbl (parser, token) _ _ = ((parser, token), [])
-
-
-
-
--- Value tokens must be in proper order. Example: if property is
--- "border-color", and there are four value tokens, then tokens must
--- represent colors of "top","right","bottom","left" borders.
-matchOrderedTokens :: (CssParser, CssToken) -> DeclarationValueCtor b -> [b] -> ((CssParser, CssToken), [b])
-matchOrderedTokens(parser, token) declValueCtor declarationValues =
-  case declValueCtor (parser, token) of
-    ((p, t), Just v)  -> matchOrderedTokens (p, t) declValueCtor (declarationValues ++ [v])
-    ((p, t), Nothing) -> ((p, t), declarationValues)
-
-
-
-
-parseDeclarationBorder :: (CssParser, CssToken) -> [DeclarationCtor] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationBorder (parser, token) pinfo ds = ((p', t'), wrappedDecls)
-  where
-    ((p', t'), decls) = makeCssDeclarationBorder (parser, token)
-    wrappedDecls = fmap (\x -> defaultDeclaration { property = x}) decls
-
-
-
-
-parseDeclarationShorthand :: (CssParser, CssToken) -> ShorthandType -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationShorthand pat ShorthandTypeMargin        = parseDeclaration4321trbl pat
-                                                           [ CssDeclarationMarginTop
-                                                           , CssDeclarationMarginRight
-                                                           , CssDeclarationMarginBottom
-                                                           , CssDeclarationMarginLeft]
-                                                           parseTokensAsMarginValue
--- parseDeclarationShorthand pat ShorthandTypeMultiple   = parseDeclarationMultiple pat pinfos [] -- TODO: restore
-parseDeclarationShorthand pat ShorthandTypeBorder        = parseDeclarationBorder pat [] []
--- parseDeclarationShorthand pat ShorthandTypeFont          = parseDeclarationMultiple pat pinfos [] -- TODO: restore parsing of font properties
-parseDeclarationShorthand pat ShorthandTypeBorderWidth   = parseDeclaration4321trbl pat
-                                                           [ CssDeclarationBorderTopWidth
-                                                           , CssDeclarationBorderRightWidth
-                                                           , CssDeclarationBorderBottomWidth
-                                                           , CssDeclarationBorderLeftWidth ]
-                                                           parseTokensAsBorderWidthValue
-parseDeclarationShorthand pat ShorthandTypeBorderColor   = parseDeclaration4321trbl pat
-                                                           [ CssDeclarationBorderTopColor
-                                                           , CssDeclarationBorderRightColor
-                                                           , CssDeclarationBorderBottomColor
-                                                           , CssDeclarationBorderLeftColor ]
-                                                           parseTokensAsBorderColorValue
-parseDeclarationShorthand pat ShorthandTypeBorderStyle   = parseDeclaration4321trbl pat
-                                                           [ CssDeclarationBorderTopStyle
-                                                           , CssDeclarationBorderRightStyle
-                                                           , CssDeclarationBorderBottomStyle
-                                                           , CssDeclarationBorderLeftStyle ]
-                                                           parseTokensAsBorderStyleValue
-parseDeclarationShorthand pat  ShorthandTypeBorderTop     = parseDeclarationMultiple pat
-                                                            [ makeCssDeclarationBorderTopWidth
-                                                            , makeCssDeclarationBorderTopStyle
-                                                            , makeCssDeclarationBorderTopColor ]
-                                                            []
-parseDeclarationShorthand pat  ShorthandTypeBorderRight   = parseDeclarationMultiple pat
-                                                            [ makeCssDeclarationBorderRightWidth
-                                                            , makeCssDeclarationBorderRightStyle
-                                                            , makeCssDeclarationBorderRightColor ]
-                                                            []
-parseDeclarationShorthand pat  ShorthandTypeBorderBottom  = parseDeclarationMultiple pat
-                                                            [ makeCssDeclarationBorderBottomWidth
-                                                            , makeCssDeclarationBorderBottomStyle
-                                                            , makeCssDeclarationBorderBottomColor ]
-                                                            []
-parseDeclarationShorthand pat  ShorthandTypeBorderLeft    = parseDeclarationMultiple pat
-                                                            [ makeCssDeclarationBorderLeftWidth
-                                                            , makeCssDeclarationBorderLeftStyle
-                                                            , makeCssDeclarationBorderLeftColor ]
-                                                            []
-parseDeclarationShorthand pat  ShorthandTypeListStyle     = parseDeclarationMultiple pat
-                                                            [ makeCssDeclarationListStyleType
-                                                            , makeCssDeclarationListStylePosition
-                                                            , makeCssDeclarationListStyleImage ]
-                                                            []
-parseDeclarationShorthand pat  ShorthandTypePadding       = parseDeclaration4321trbl pat
-                                                            [ CssDeclarationPaddingTop
-                                                            , CssDeclarationPaddingRight
-                                                            , CssDeclarationPaddingBottom
-                                                            , CssDeclarationPaddingLeft ]
-                                                            parseTokensAsPaddingValue
-parseDeclarationShorthand pat  ShorthandTypeBackground    = parseDeclarationMultiple pat
-                                                            [ makeCssDeclarationBackgroundColor
-                                                            , makeCssDeclarationBackgroundImage
-                                                            , makeCssDeclarationBackgroundRepeat
-                                                            , makeCssDeclarationBackgroundAttachment
-                                                            , makeCssDeclarationBackgroundPosition
-                                                            ]
-                                                            []
-parseDeclarationShorthand pat _ = (pat, [])
+parseDeclarationShorthand :: (CssParser, CssToken) -> DeclarationShorthandCtor -> ((CssParser, CssToken), [CssDeclWrapper])
+parseDeclarationShorthand pat ctor = ctor pat
 
 
 
@@ -851,25 +685,11 @@ takePropertyNameToken (parser, nameToken) =
 parseSingleDeclarationNormalOrShorthand :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
 parseSingleDeclarationNormalOrShorthand pat = case takePropertyNameToken pat of
                                                 (pat', Just (CssTokIdent sym)) -> case getDeclarationCtorByName sym of
-                                                                                    Just ctor -> tryNormal pat' ctor
-                                                                                    Nothing   -> case getShorthandInfoByName sym of
-                                                                                                   Just sinfo -> tryShorthand pat' sinfo
-                                                                                                   Nothing    -> (pat', [])
+                                                                                    Just ctor -> parseDeclarationNormal pat' ctor
+                                                                                    Nothing   -> case getShorthandCtorByName sym of
+                                                                                                   Just ctor -> parseDeclarationShorthand pat' ctor
+                                                                                                   Nothing   -> (pat', [])
                                                 (pat', _)                 -> (pat', [])
-
-
-
-
-tryNormal :: (CssParser, CssToken) -> DeclarationCtor -> ((CssParser, CssToken), [CssDeclWrapper])
-tryNormal = parseDeclarationNormal
-
-
-
-
-tryShorthand :: (CssParser, CssToken) -> ShorthandInfo -> ((CssParser, CssToken), [CssDeclWrapper])
-tryShorthand (parser, token) sinfo = parseDeclarationShorthand (parser, token) shorthandType
-  where
-    shorthandType = fst sinfo
 
 
 
