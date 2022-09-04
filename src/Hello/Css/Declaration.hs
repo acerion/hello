@@ -347,7 +347,19 @@ data CssDeclaration
 -- ------------------------------------------------
 -- Background (background)
 -- This is a shorthand property.
+--
+-- https://www.w3.org/TR/CSS22/colors.html#propdef-background
+-- https://www.w3.org/TR/css-backgrounds-3/#background
 -- ------------------------------------------------
+
+
+
+
+-- TODO: this behaviour from CSS2.2 should be implemented:
+--
+-- "Given a valid declaration, the 'background' property first sets all the
+-- individual background properties to their initial values, then assigns
+-- explicit values given in the declaration."
 
 
 
@@ -361,7 +373,6 @@ makeCssDeclarationBackground pat = parseDeclarationMultiple
                                    , makeCssDeclarationBackgroundAttachment
                                    , makeCssDeclarationBackgroundPosition
                                    ]
-                                   []
 
 
 
@@ -645,7 +656,6 @@ makeCssDeclarationBorderTop pat = parseDeclarationMultiple
                                   [ makeCssDeclarationBorderTopWidth
                                   , makeCssDeclarationBorderTopStyle
                                   , makeCssDeclarationBorderTopColor ]
-                                  []
 
 
 
@@ -664,7 +674,6 @@ makeCssDeclarationBorderRight pat = parseDeclarationMultiple
                                     [ makeCssDeclarationBorderRightWidth
                                     , makeCssDeclarationBorderRightStyle
                                     , makeCssDeclarationBorderRightColor ]
-                                    []
 
 
 
@@ -683,7 +692,6 @@ makeCssDeclarationBorderBottom pat  = parseDeclarationMultiple
                                       [ makeCssDeclarationBorderBottomWidth
                                       , makeCssDeclarationBorderBottomStyle
                                       , makeCssDeclarationBorderBottomColor ]
-                                      []
 
 
 
@@ -702,7 +710,6 @@ makeCssDeclarationBorderLeft pat = parseDeclarationMultiple
                                    [ makeCssDeclarationBorderLeftWidth
                                    , makeCssDeclarationBorderLeftStyle
                                    , makeCssDeclarationBorderLeftColor ]
-                                   []
 
 
 
@@ -1200,7 +1207,7 @@ makeCssDeclarationFloat v = CssDeclarationFloat v
 
 
 -- TODO: restore parsing of font properties
--- makeCssDeclarationFont          = parseDeclarationMultiple pat pinfos []
+-- makeCssDeclarationFont          = parseDeclarationMultiple pat pinfos
 
 
 
@@ -1548,7 +1555,6 @@ makeCssDeclarationListStyle pat = parseDeclarationMultiple
                                   [ makeCssDeclarationListStyleType
                                   , makeCssDeclarationListStylePosition
                                   , makeCssDeclarationListStyleImage ]
-                                  []
 
 
 
@@ -2341,15 +2347,17 @@ makeCssDeclaration_LAST _ = CssDeclaration_LAST
 
 
 
--- TODO: this implementation can correctly parse all value tokens only when
--- they appear in the same order as 'property' integers. The function should
--- be able to handle the tokens in any order.
-parseDeclarationMultiple :: (CssParser, CssToken) -> [(CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)] -> [CssDeclaration] -> ((CssParser, CssToken), [CssDeclaration])
-parseDeclarationMultiple (parser, token) (declCtor:declCtors) decls =
-    case declCtor (parser, token) of
-      ((p, t), Nothing)   -> parseDeclarationMultiple (p, t) declCtors decls
-      ((p, t), Just decl) -> parseDeclarationMultiple (p, t) declCtors (decls ++ [decl])
-parseDeclarationMultiple (parser, token) [] decls = ((parser, token), decls)
+-- TODO: this implementation can correctly parse all values only if they
+-- appear in input CSS in the same order as they appear in a list of ctors.
+-- The example in CSS2.2 for "background" property suggests that values in
+-- input CSS string may appear in any order. This function should be able to
+-- handle this situation.
+parseDeclarationMultiple :: (CssParser, CssToken) -> [DeclarationCtor] -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationMultiple pat declCtors = L.foldl f (pat, []) declCtors
+  where
+    f (pat, acc) declCtor = case declCtor pat of
+                              (pat', Nothing)   -> (pat', acc)
+                              (pat', Just decl) -> (pat', (acc ++ [decl]))
 
 
 
