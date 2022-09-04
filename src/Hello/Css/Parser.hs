@@ -660,7 +660,10 @@ parseDeclarationNormal pat ctor = case ctor pat of
 
 
 parseDeclarationShorthand :: (CssParser, CssToken) -> DeclarationShorthandCtor -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationShorthand pat ctor = ctor pat
+parseDeclarationShorthand pat ctor = (pat', wrapped)
+  where
+    (pat', decls) = ctor pat
+    wrapped = fmap (\x -> defaultDeclaration { property = x }) decls
 
 
 

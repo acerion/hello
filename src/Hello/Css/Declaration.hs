@@ -206,8 +206,15 @@ import Hello.Utils
 
 
 
-type DeclarationShorthandCtor = (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+-- I could make the two types equal by turning 'Maybe CssDeclaration' into
+-- '[CssDeclaration]' in type of "normal" constructor. The normal constructor
+-- would then return one-element list if parsing was successfull, and empty
+-- list on non-successful parse. But I don't know if a list is as efficient
+-- (in terms of resources) as Maybe.
+type DeclarationShorthandCtor = (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 type DeclarationCtor = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+
+
 type DeclarationValueCtor a = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe a)
 
 
@@ -345,7 +352,7 @@ data CssDeclaration
 
 
 
-makeCssDeclarationBackground :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBackground :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 makeCssDeclarationBackground pat = parseDeclarationMultiple
                                    pat
                                    [ makeCssDeclarationBackgroundColor
@@ -529,15 +536,6 @@ makeCssDeclarationBackgroundRepeat pat = (pat', fmap CssDeclarationBackgroundRep
 
 
 
-makeCssDeclarationBorder :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
-makeCssDeclarationBorder pat = (pat', wrappedDecls)
-  where
-    (pat', decls) = makeCssDeclarationBorder' pat
-    wrappedDecls = fmap (\x -> defaultDeclaration { property = x}) decls
-
-
-
-
 -- Parse "{ border = X Y Z }" CSS declaration. Expand the single "border"
 -- declaration into a series of "border-top-width", "border-left-color" etc.
 -- properties with their values. Return the list of the expanded
@@ -546,8 +544,8 @@ makeCssDeclarationBorder pat = (pat', wrappedDecls)
 -- TODO: this implementation can correctly parse all value tokens only when
 -- they appear in the same order as 'property' integers. The function should
 -- be able to handle the tokens in any order.
-makeCssDeclarationBorder' :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationBorder' pt0 = (pt3, declarations)
+makeCssDeclarationBorder :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
+makeCssDeclarationBorder pt0 = (pt3, declarations)
   where
     declarations = catMaybes [ fmap CssDeclarationBorderTopWidth    declValueWidth,
                                fmap CssDeclarationBorderRightWidth  declValueWidth,
@@ -581,7 +579,7 @@ makeCssDeclarationBorder' pt0 = (pt3, declarations)
 
 
 
-makeCssDeclarationBorderWidth :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderWidth :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 makeCssDeclarationBorderWidth pat = parseDeclaration4321trbl
                                     pat
                                     [ CssDeclarationBorderTopWidth
@@ -601,7 +599,7 @@ makeCssDeclarationBorderWidth pat = parseDeclaration4321trbl
 
 
 
-makeCssDeclarationBorderColor :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderColor :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 makeCssDeclarationBorderColor pat = parseDeclaration4321trbl
                                     pat
                                     [ CssDeclarationBorderTopColor
@@ -621,7 +619,7 @@ makeCssDeclarationBorderColor pat = parseDeclaration4321trbl
 
 
 
-makeCssDeclarationBorderStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 makeCssDeclarationBorderStyle pat = parseDeclaration4321trbl
                                     pat
                                     [ CssDeclarationBorderTopStyle
@@ -641,7 +639,7 @@ makeCssDeclarationBorderStyle pat = parseDeclaration4321trbl
 
 
 
-makeCssDeclarationBorderTop :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderTop :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 makeCssDeclarationBorderTop pat = parseDeclarationMultiple
                                   pat
                                   [ makeCssDeclarationBorderTopWidth
@@ -660,7 +658,7 @@ makeCssDeclarationBorderTop pat = parseDeclarationMultiple
 
 
 
-makeCssDeclarationBorderRight :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderRight :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 makeCssDeclarationBorderRight pat = parseDeclarationMultiple
                                     pat
                                     [ makeCssDeclarationBorderRightWidth
@@ -679,7 +677,7 @@ makeCssDeclarationBorderRight pat = parseDeclarationMultiple
 
 
 
-makeCssDeclarationBorderBottom :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderBottom :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 makeCssDeclarationBorderBottom pat  = parseDeclarationMultiple
                                       pat
                                       [ makeCssDeclarationBorderBottomWidth
@@ -698,7 +696,7 @@ makeCssDeclarationBorderBottom pat  = parseDeclarationMultiple
 
 
 
-makeCssDeclarationBorderLeft :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationBorderLeft :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 makeCssDeclarationBorderLeft pat = parseDeclarationMultiple
                                    pat
                                    [ makeCssDeclarationBorderLeftWidth
@@ -1544,7 +1542,7 @@ makeCssDeclarationLineHeight pat = (pat', fmap CssDeclarationLineHeight declValu
 
 
 
-makeCssDeclarationListStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationListStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 makeCssDeclarationListStyle pat = parseDeclarationMultiple
                                   pat
                                   [ makeCssDeclarationListStyleType
@@ -1692,7 +1690,7 @@ makeCssDeclarationListStyleType pat = (pat', fmap CssDeclarationListStyleType de
 
 
 
-makeCssDeclarationMargin :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationMargin :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 makeCssDeclarationMargin pat = parseDeclaration4321trbl
                                pat
                                [ CssDeclarationMarginTop
@@ -1780,7 +1778,7 @@ makeCssDeclarationOverflow v = CssDeclarationOverflow v
 
 
 
-makeCssDeclarationPadding :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+makeCssDeclarationPadding :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 makeCssDeclarationPadding pat = parseDeclaration4321trbl
                                 pat
                                 [ CssDeclarationPaddingTop
@@ -2346,41 +2344,29 @@ makeCssDeclaration_LAST _ = CssDeclaration_LAST
 -- TODO: this implementation can correctly parse all value tokens only when
 -- they appear in the same order as 'property' integers. The function should
 -- be able to handle the tokens in any order.
-parseDeclarationMultiple :: (CssParser, CssToken) -> [(CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)] -> [CssDeclWrapper] -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationMultiple (parser, token) (declCtor:declCtors) wrappedDecls =
+parseDeclarationMultiple :: (CssParser, CssToken) -> [(CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)] -> [CssDeclaration] -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationMultiple (parser, token) (declCtor:declCtors) decls =
     case declCtor (parser, token) of
-      ((p, t), Nothing)   -> parseDeclarationMultiple (p, t) declCtors wrappedDecls
-      ((p, t), Just decl) -> parseDeclarationMultiple (p, t) declCtors (wrappedDecls ++ [defaultDeclaration{property = decl}])
-parseDeclarationMultiple (parser, token) [] wrappedDecls = ((parser, token), wrappedDecls)
+      ((p, t), Nothing)   -> parseDeclarationMultiple (p, t) declCtors decls
+      ((p, t), Just decl) -> parseDeclarationMultiple (p, t) declCtors (decls ++ [decl])
+parseDeclarationMultiple (parser, token) [] decls = ((parser, token), decls)
 
 
 
 
 -- Parse 4, 3, 2 or 1 tokens, specifying values for top, right, bottom, left,
 -- or for t, r-l, b, or for t-b, r-l, or for all of them at once.
-parseDeclaration4321trbl :: (CssParser, CssToken) -> [b -> CssDeclaration] -> DeclarationValueCtor b -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclaration4321trbl (parser, token) (declCtorT:declCtorR:declCtorB:declCtorL:ctors) declValueCtor = ((outParser, outToken), ds)
+parseDeclaration4321trbl :: (CssParser, CssToken) -> [b -> CssDeclaration] -> DeclarationValueCtor b -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclaration4321trbl pat (declCtorT:declCtorR:declCtorB:declCtorL:ctors) declValueCtor = (pat', ds)
   where
     ds = case declarationValues of
-           (top:right:bottom:left:[]) -> [ defaultDeclaration{property = declCtorT top    }
-                                         , defaultDeclaration{property = declCtorR right  }
-                                         , defaultDeclaration{property = declCtorB bottom }
-                                         , defaultDeclaration{property = declCtorL left   }]
-           (top:rl:bottom:[])         -> [ defaultDeclaration{property = declCtorT top    }
-                                         , defaultDeclaration{property = declCtorR rl     }
-                                         , defaultDeclaration{property = declCtorB bottom }
-                                         , defaultDeclaration{property = declCtorL rl     }]
-           (tb:rl:[])                 -> [ defaultDeclaration{property = declCtorT tb     }
-                                         , defaultDeclaration{property = declCtorR rl     }
-                                         , defaultDeclaration{property = declCtorB tb     }
-                                         , defaultDeclaration{property = declCtorL rl     }]
-           (v:[])                     -> [ defaultDeclaration{property = declCtorT v      }
-                                         , defaultDeclaration{property = declCtorR v      }
-                                         , defaultDeclaration{property = declCtorB v      }
-                                         , defaultDeclaration{property = declCtorL v      }]
+           (top:right:bottom:left:[]) -> [ declCtorT top, declCtorR right, declCtorB bottom, declCtorL left ]
+           (top:rl:bottom:[])         -> [ declCtorT top, declCtorR rl,    declCtorB bottom, declCtorL rl   ]
+           (tb:rl:[])                 -> [ declCtorT tb,  declCtorR rl,    declCtorB tb,     declCtorL rl   ]
+           (v:[])                     -> [ declCtorT v,   declCtorR v,     declCtorB v,      declCtorL v    ]
            _                          -> []
-    ((outParser, outToken), declarationValues) = matchOrderedTokens (parser, token) declValueCtor []
-parseDeclaration4321trbl (parser, token) _ _ = ((parser, token), [])
+    (pat', declarationValues) = matchOrderedTokens pat declValueCtor []
+parseDeclaration4321trbl pat _ _ = (pat, [])
 
 
 
@@ -2389,7 +2375,7 @@ parseDeclaration4321trbl (parser, token) _ _ = ((parser, token), [])
 -- "border-color", and there are four value tokens, then tokens must
 -- represent colors of "top","right","bottom","left" borders.
 matchOrderedTokens :: (CssParser, CssToken) -> DeclarationValueCtor b -> [b] -> ((CssParser, CssToken), [b])
-matchOrderedTokens(parser, token) declValueCtor declarationValues =
+matchOrderedTokens (parser, token) declValueCtor declarationValues =
   case declValueCtor (parser, token) of
     ((p, t), Just v)  -> matchOrderedTokens (p, t) declValueCtor (declarationValues ++ [v])
     ((p, t), Nothing) -> ((p, t), declarationValues)
