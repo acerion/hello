@@ -40,7 +40,7 @@ import Hello.Utils
 
 
 -- Build a snippet of CSS that will be passed to CSS parser and parsed by it.
--- The parser should then return a CssDeclaration.
+-- The parser should then return a CssProperty.
 --
 -- This function constructs valid CSS, so it can't be used to test handing of
 -- invalid CSS.
@@ -60,32 +60,32 @@ buildValidInput propName values units = T.pack $ propName ++ ": " ++ (L.intercal
 --
 -- | Can be used for shortcut properties such as "margin", where 4, 3, 2 or one property value can be provided.
 --   Output of the function is always four declarations (for top, right, bottom, left properties).
-buildSuccessOut :: [declValue -> CssDeclaration] -- ^ Constructors of declarations, e.g. CssDeclarationMarginTop.
+buildSuccessOut :: [declValue -> CssProperty]    -- ^ Constructors of declarations, e.g. CssPropertyMarginTop.
                 -> (a -> declValue)              -- ^ Constructor of declarations' value, common for all declarations.
                                                  --   E.g. CssValueMargin.
                 -> [v -> a]                      -- ^ Converter between raw value and type accepted by
                                                  --   declaration value constructor. E.g. CssDistanceRelPx constructor.
                 -> [v]                           -- ^ Raw value of property, e.g. 11.5.
-                -> [CssDeclWrapper]
-buildSuccessOut declCtors declValueCtor (ct:cl:cb:cr:[]) (vt:vl:vb:vr:[]) = [ CssDeclWrapper { property = (declCtors !! 0) . declValueCtor . ct $ vt, important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 1) . declValueCtor . cl $ vl, important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 2) . declValueCtor . cb $ vb, important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 3) . declValueCtor . cr $ vr, important = False }
+                -> [CssDeclaration]
+buildSuccessOut declCtors declValueCtor (ct:cl:cb:cr:[]) (vt:vl:vb:vr:[]) = [ CssDeclaration { property = (declCtors !! 0) . declValueCtor . ct $ vt, important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 1) . declValueCtor . cl $ vl, important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 2) . declValueCtor . cb $ vb, important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 3) . declValueCtor . cr $ vr, important = False }
                                                                             ]
-buildSuccessOut declCtors declValueCtor (ct:clr:cb:[])   (vt:vlr:vb:[])   = [ CssDeclWrapper { property = (declCtors !! 0) . declValueCtor . ct $ vt,   important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 1) . declValueCtor . clr $ vlr, important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 2) . declValueCtor . cb $ vb,   important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 3) . declValueCtor . clr $ vlr, important = False }
+buildSuccessOut declCtors declValueCtor (ct:clr:cb:[])   (vt:vlr:vb:[])   = [ CssDeclaration { property = (declCtors !! 0) . declValueCtor . ct $ vt,   important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 1) . declValueCtor . clr $ vlr, important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 2) . declValueCtor . cb $ vb,   important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 3) . declValueCtor . clr $ vlr, important = False }
                                                                             ]
-buildSuccessOut declCtors declValueCtor (ctb:clr:[])     (vtb:vlr:[])     = [ CssDeclWrapper { property = (declCtors !! 0) . declValueCtor . ctb $ vtb, important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 1) . declValueCtor . clr $ vlr, important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 2) . declValueCtor . ctb $ vtb, important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 3) . declValueCtor . clr $ vlr, important = False }
+buildSuccessOut declCtors declValueCtor (ctb:clr:[])     (vtb:vlr:[])     = [ CssDeclaration { property = (declCtors !! 0) . declValueCtor . ctb $ vtb, important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 1) . declValueCtor . clr $ vlr, important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 2) . declValueCtor . ctb $ vtb, important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 3) . declValueCtor . clr $ vlr, important = False }
                                                                             ]
-buildSuccessOut declCtors declValueCtor (ctlbr:[])       (vtlbr:[])       = [ CssDeclWrapper { property = (declCtors !! 0) . declValueCtor . ctlbr $ vtlbr, important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 1) . declValueCtor . ctlbr $ vtlbr, important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 2) . declValueCtor . ctlbr $ vtlbr, important = False }
-                                                                            , CssDeclWrapper { property = (declCtors !! 3) . declValueCtor . ctlbr $ vtlbr, important = False }
+buildSuccessOut declCtors declValueCtor (ctlbr:[])       (vtlbr:[])       = [ CssDeclaration { property = (declCtors !! 0) . declValueCtor . ctlbr $ vtlbr, important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 1) . declValueCtor . ctlbr $ vtlbr, important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 2) . declValueCtor . ctlbr $ vtlbr, important = False }
+                                                                            , CssDeclaration { property = (declCtors !! 3) . declValueCtor . ctlbr $ vtlbr, important = False }
                                                                             ]
 
 
@@ -99,7 +99,7 @@ buildSuccessOut declCtors declValueCtor (ctlbr:[])       (vtlbr:[])       = [ Cs
 --
 -- If CSS parser works correctly, then there will be a match between its
 -- result and a second element of tuple returned by this function.
-buildSuccessRow :: String ->  [(declValue -> CssDeclaration)] -> (CssDistance -> declValue) -> [String] -> [Float] ->  (T.Text, [CssDeclWrapper])
+buildSuccessRow :: String ->  [(declValue -> CssProperty)] -> (CssDistance -> declValue) -> [String] -> [Float] ->  (T.Text, [CssDeclaration])
 buildSuccessRow name declCtors declValueCtor units values = ( buildValidInput name values units
                                                             , buildSuccessOut declCtors declValueCtor distanceCtors values)
     where

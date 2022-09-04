@@ -33,7 +33,8 @@ Copyright assignment from css.cc:
 
 module Hello.Css.Declaration
   (
-    CssDeclaration (..)
+    CssProperty (..)
+  , CssDeclaration (..)
 
   , CssValueBackgroundAttachment (..)
   , CssValueBackgroundColor (..)
@@ -74,115 +75,113 @@ module Hello.Css.Declaration
   , CssValueXLink (..)
   , CssValueXTooltip (..)
 
-  -- , makeCssDeclarationFont
+  -- , makeCssPropertyFont
 
-  , makeCssDeclarationBackground
-  , makeCssDeclarationBackgroundAttachment
-  , makeCssDeclarationBackgroundColor
-  , makeCssDeclarationBackgroundImage
-  , makeCssDeclarationBackgroundPosition
-  , makeCssDeclarationBackgroundRepeat
+  , makeCssPropertyBackground
+  , makeCssPropertyBackgroundAttachment
+  , makeCssPropertyBackgroundColor
+  , makeCssPropertyBackgroundImage
+  , makeCssPropertyBackgroundPosition
+  , makeCssPropertyBackgroundRepeat
 
-  , makeCssDeclarationBorder
-  , makeCssDeclarationBorderWidth
-  , makeCssDeclarationBorderColor
-  , makeCssDeclarationBorderStyle
+  , makeCssPropertyBorder
+  , makeCssPropertyBorderWidth
+  , makeCssPropertyBorderColor
+  , makeCssPropertyBorderStyle
 
-  , makeCssDeclarationBorderTop
-  , makeCssDeclarationBorderRight
-  , makeCssDeclarationBorderBottom
-  , makeCssDeclarationBorderLeft
+  , makeCssPropertyBorderTop
+  , makeCssPropertyBorderRight
+  , makeCssPropertyBorderBottom
+  , makeCssPropertyBorderLeft
 
-  , makeCssDeclarationBorderCollapse
-  , makeCssDeclarationBorderSpacing
+  , makeCssPropertyBorderCollapse
+  , makeCssPropertyBorderSpacing
 
-  , makeCssDeclarationBorderTopColor
-  , makeCssDeclarationBorderRightColor
-  , makeCssDeclarationBorderBottomColor
-  , makeCssDeclarationBorderLeftColor
+  , makeCssPropertyBorderTopColor
+  , makeCssPropertyBorderRightColor
+  , makeCssPropertyBorderBottomColor
+  , makeCssPropertyBorderLeftColor
 
-  , makeCssDeclarationBorderTopStyle
-  , makeCssDeclarationBorderRightStyle
-  , makeCssDeclarationBorderBottomStyle
-  , makeCssDeclarationBorderLeftStyle
+  , makeCssPropertyBorderTopStyle
+  , makeCssPropertyBorderRightStyle
+  , makeCssPropertyBorderBottomStyle
+  , makeCssPropertyBorderLeftStyle
 
-  , makeCssDeclarationBorderTopWidth
-  , makeCssDeclarationBorderRightWidth
-  , makeCssDeclarationBorderBottomWidth
-  , makeCssDeclarationBorderLeftWidth
+  , makeCssPropertyBorderTopWidth
+  , makeCssPropertyBorderRightWidth
+  , makeCssPropertyBorderBottomWidth
+  , makeCssPropertyBorderLeftWidth
 
-  , makeCssDeclarationBottom
-  , makeCssDeclarationCaptionSide
-  , makeCssDeclarationClear
-  , makeCssDeclarationClip
-  , makeCssDeclarationColor
-  , makeCssDeclarationContent
-  , makeCssDeclarationCounterIncrement
-  , makeCssDeclarationCounterReset
-  , makeCssDeclarationCursor
-  , makeCssDeclarationDirection
-  , makeCssDeclarationDisplay
-  , makeCssDeclarationEmptyCells
-  , makeCssDeclarationFloat
-  , makeCssDeclarationFontFamily
-  , makeCssDeclarationFontSize
-  , makeCssDeclarationFontSizeAdjust
-  , makeCssDeclarationFontStretch
-  , makeCssDeclarationFontStyle
-  , makeCssDeclarationFontVariant
-  , makeCssDeclarationFontWeight
-  , makeCssDeclarationHeight
-  , makeCssDeclarationLeft
-  , makeCssDeclarationLetterSpacing
-  , makeCssDeclarationLineHeight
-  , makeCssDeclarationListStyle
-  , makeCssDeclarationListStyleImage
-  , makeCssDeclarationListStylePosition
-  , makeCssDeclarationListStyleType
-  , makeCssDeclarationMargin
-  , makeCssDeclarationMarginBottom
-  , makeCssDeclarationMarginLeft
-  , makeCssDeclarationMarginRight
-  , makeCssDeclarationMarginTop
-  , makeCssDeclarationMarkerOffset
-  , makeCssDeclarationMarks
-  , makeCssDeclarationMaxHeight
-  , makeCssDeclarationMaxWidth
-  , makeCssDeclarationMinHeight
-  , makeCssDeclarationMinWidth
-  , makeCssDeclarationOutlineColor
-  , makeCssDeclarationOutlineStyle
-  , makeCssDeclarationOutlineWidth
-  , makeCssDeclarationOverflow
-  , makeCssDeclarationPadding
-  , makeCssDeclarationPaddingBottom
-  , makeCssDeclarationPaddingLeft
-  , makeCssDeclarationPaddingRight
-  , makeCssDeclarationPaddingTop
-  , makeCssDeclarationPosition
-  , makeCssDeclarationQuotes
-  , makeCssDeclarationRight
-  , makeCssDeclarationTextAlign
-  , makeCssDeclarationTextDecoration
-  , makeCssDeclarationTextIndent
-  , makeCssDeclarationTextShadow
-  , makeCssDeclarationTextTransform
-  , makeCssDeclarationTop
-  , makeCssDeclarationUnicodeBiDi
-  , makeCssDeclarationVerticalAlign
-  , makeCssDeclarationVisibility
-  , makeCssDeclarationWhitespace
-  , makeCssDeclarationWidth
-  , makeCssDeclarationWordSpacing
-  , makeCssDeclarationZIndex
-  , makeCssDeclaration_LAST
+  , makeCssPropertyBottom
+  , makeCssPropertyCaptionSide
+  , makeCssPropertyClear
+  , makeCssPropertyClip
+  , makeCssPropertyColor
+  , makeCssPropertyContent
+  , makeCssPropertyCounterIncrement
+  , makeCssPropertyCounterReset
+  , makeCssPropertyCursor
+  , makeCssPropertyDirection
+  , makeCssPropertyDisplay
+  , makeCssPropertyEmptyCells
+  , makeCssPropertyFloat
+  , makeCssPropertyFontFamily
+  , makeCssPropertyFontSize
+  , makeCssPropertyFontSizeAdjust
+  , makeCssPropertyFontStretch
+  , makeCssPropertyFontStyle
+  , makeCssPropertyFontVariant
+  , makeCssPropertyFontWeight
+  , makeCssPropertyHeight
+  , makeCssPropertyLeft
+  , makeCssPropertyLetterSpacing
+  , makeCssPropertyLineHeight
+  , makeCssPropertyListStyle
+  , makeCssPropertyListStyleImage
+  , makeCssPropertyListStylePosition
+  , makeCssPropertyListStyleType
+  , makeCssPropertyMargin
+  , makeCssPropertyMarginBottom
+  , makeCssPropertyMarginLeft
+  , makeCssPropertyMarginRight
+  , makeCssPropertyMarginTop
+  , makeCssPropertyMarkerOffset
+  , makeCssPropertyMarks
+  , makeCssPropertyMaxHeight
+  , makeCssPropertyMaxWidth
+  , makeCssPropertyMinHeight
+  , makeCssPropertyMinWidth
+  , makeCssPropertyOutlineColor
+  , makeCssPropertyOutlineStyle
+  , makeCssPropertyOutlineWidth
+  , makeCssPropertyOverflow
+  , makeCssPropertyPadding
+  , makeCssPropertyPaddingBottom
+  , makeCssPropertyPaddingLeft
+  , makeCssPropertyPaddingRight
+  , makeCssPropertyPaddingTop
+  , makeCssPropertyPosition
+  , makeCssPropertyQuotes
+  , makeCssPropertyRight
+  , makeCssPropertyTextAlign
+  , makeCssPropertyTextDecoration
+  , makeCssPropertyTextIndent
+  , makeCssPropertyTextShadow
+  , makeCssPropertyTextTransform
+  , makeCssPropertyTop
+  , makeCssPropertyUnicodeBiDi
+  , makeCssPropertyVerticalAlign
+  , makeCssPropertyVisibility
+  , makeCssPropertyWhitespace
+  , makeCssPropertyWidth
+  , makeCssPropertyWordSpacing
+  , makeCssPropertyZIndex
+  , makeCssProperty_LAST
 
   , defaultDeclaration
-  , CssDeclWrapper (..)
 
-  , DeclarationShorthandCtor
-  , DeclarationCtor
-  , DeclarationValueCtor
+  , ShorthandPropertyCtor
+  , PropertyCtor
   )
 where
 
@@ -206,139 +205,134 @@ import Hello.Utils
 
 
 
--- I could make the two types equal by turning 'Maybe CssDeclaration' into
--- '[CssDeclaration]' in type of "normal" constructor. The normal constructor
+-- I could make the two types equal by turning 'Maybe CssProperty' into
+-- '[CssProperty]' in type of "normal" constructor. The normal constructor
 -- would then return one-element list if parsing was successfull, and empty
 -- list on non-successful parse. But I don't know if a list is as efficient
 -- (in terms of resources) as Maybe.
-type DeclarationShorthandCtor = (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-type DeclarationCtor = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+type ShorthandPropertyCtor = (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+type PropertyCtor = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 
 
-type DeclarationValueCtor a = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe a)
+type PropertyValueCtor a = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe a)
 
 
 
 
-data CssDeclWrapper = CssDeclWrapper
-  { property  :: CssDeclaration
-
-  -- https://www.w3.org/TR/css-syntax-3
-  --
-  -- "If the last two non-<whitespace-token>s in the declaration’s value are
-  -- a <delim-token> with the value "!" followed by an <ident-token> with a
-  -- value that is an ASCII case-insensitive match for "important", remove
-  -- them from the declaration’s value and set the declaration’s important
-  -- flag to true."
-  --
-  -- So "important" is per-declaration flag.
+-- https://www.w3.org/TR/css-syntax-3/#declaration: "Conceptually,
+-- declarations are a particular instance of associating a property or
+-- descriptor name with a value. Syntactically, a declaration has a name, a
+-- value consisting of a list of component values, and an important flag
+-- which is initially unset."
+data CssDeclaration = CssDeclaration
+  { property  :: CssProperty
   , important :: Bool
   } deriving (Show, Eq)
 
 
 
 
-defaultDeclaration = CssDeclWrapper
-  { property  = CssDeclaration_LAST -- TODO: make it "CssDeclarationInvalid'; TODO: somewhere there is a code that does not set property2 field.
+defaultDeclaration = CssDeclaration
+  { property  = CssProperty_LAST -- TODO: make it "CssPropertyInvalid'; TODO: somewhere there is a code that does not set property2 field.
   , important = False
   }
 
 
 
 
--- A property in css declaration, but with a value.
-data CssDeclaration
-  = CssDeclarationBackgroundAttachment CssValueBackgroundAttachment      -- 0    parsing is unit-tested
-  | CssDeclarationBackgroundColor CssValueBackgroundColor                -- 1    parsing is unit-tested
-  | CssDeclarationBackgroundImage CssValueBackgroundImage                -- 2    This property is barely unit-tested because some decisions need to be made first.
-  | CssDeclarationBackgroundPosition CssValueBackgroundPosition          -- 3    There are some unit tests, but they don't really test much.
-  | CssDeclarationBackgroundRepeat CssValueBackgroundRepeat              -- 4
-  | CssDeclarationBorderBottomColor CssValueBorderColor -- 5                parsing is tested
-  | CssDeclarationBorderBottomStyle CssValueBorderStyle -- 6                parsing is tested
-  | CssDeclarationBorderBottomWidth CssValueBorderWidth -- 7                parsing is tested
-  | CssDeclarationBorderCollapse CssValueBorderCollapse -- 8                parsing is unit-tested
-  | CssDeclarationBorderLeftColor CssValueBorderColor   -- 9                parsing is tested
-  | CssDeclarationBorderLeftStyle CssValueBorderStyle   -- 10               parsing is tested
-  | CssDeclarationBorderLeftWidth CssValueBorderWidth   -- 11               parsing is tested
-  | CssDeclarationBorderRightColor CssValueBorderColor  -- 12               parsing is tested
-  | CssDeclarationBorderRightStyle CssValueBorderStyle  -- 13               parsing is tested
-  | CssDeclarationBorderRightWidth CssValueBorderWidth  -- 14               parsing is tested
-  | CssDeclarationBorderSpacing CssValueBorderSpacing   -- 15               parsing is unit-tested
-  | CssDeclarationBorderTopColor CssValueBorderColor    -- 16               parsing is tested
-  | CssDeclarationBorderTopStyle CssValueBorderStyle    -- 17               parsing is tested
-  | CssDeclarationBorderTopWidth CssValueBorderWidth    -- 18               parsing is tested
-  | CssDeclarationBottom CssValue                       -- 19
-  | CssDeclarationCaptionSide CssValue                  -- 20
-  | CssDeclarationClear CssValue                        -- 21
-  | CssDeclarationClip CssValue                         -- 22
-  | CssDeclarationColor CssValueColor                   -- 23               parsing is tested
-  | CssDeclarationContent CssValueContent               -- 24               parsing is unit-tested
-  | CssDeclarationCounterIncrement CssValue             -- 25
-  | CssDeclarationCounterReset CssValue                 -- 26
-  | CssDeclarationCursor CssValueCursor                 -- 27               parsing is unit-tested
-  | CssDeclarationDirection CssValue                    -- 28
-  | CssDeclarationDisplay CssValueDisplay               -- 29               parsing is unit-tested
-  | CssDeclarationEmptyCells CssValue                   -- 30
-  | CssDeclarationFloat CssValue                        -- 31
-  | CssDeclarationFontFamily CssValueFontFamily         -- 32               parsing is unit-tested (poorly)
-  | CssDeclarationFontSize CssValueFontSize             -- 33               parsing is unit-tested
-  | CssDeclarationFontSizeAdjust CssValue               -- 34
-  | CssDeclarationFontStretch CssValue                  -- 35
-  | CssDeclarationFontStyle CssValueFontStyle           -- 36               parsing is unit-tested
-  | CssDeclarationFontVariant CssValueFontVariant       -- 37               parsing is unit-tested
-  | CssDeclarationFontWeight CssValueFontWeight         -- 38               parsing is unit-tested
-  | CssDeclarationHeight CssValueHeight                 -- 39               parsing is unit-tested
-  | CssDeclarationLeft CssValue                         -- 40
-  | CssDeclarationLetterSpacing CssValueLetterSpacing   -- 41               parsing is unit-tested
-  | CssDeclarationLineHeight CssValueLineHeight         -- 42               parsing is unit-tested
-  | CssDeclarationListStyleImage CssValue               -- 43               not supported by hello
-  | CssDeclarationListStylePosition CssValueListStylePosition  -- 44        parsing is unit-tested
-  | CssDeclarationListStyleType CssValueListStyleType   -- 45               parsing is unit-tested
+-- A property name + property value.
+data CssProperty
+  = CssPropertyBackgroundAttachment CssValueBackgroundAttachment      -- 0    parsing is unit-tested
+  | CssPropertyBackgroundColor CssValueBackgroundColor                -- 1    parsing is unit-tested
+  | CssPropertyBackgroundImage CssValueBackgroundImage                -- 2    This property is barely unit-tested because some decisions need to be made first.
+  | CssPropertyBackgroundPosition CssValueBackgroundPosition          -- 3    There are some unit tests, but they don't really test much.
+  | CssPropertyBackgroundRepeat CssValueBackgroundRepeat              -- 4
+  | CssPropertyBorderBottomColor CssValueBorderColor -- 5                parsing is tested
+  | CssPropertyBorderBottomStyle CssValueBorderStyle -- 6                parsing is tested
+  | CssPropertyBorderBottomWidth CssValueBorderWidth -- 7                parsing is tested
+  | CssPropertyBorderCollapse CssValueBorderCollapse -- 8                parsing is unit-tested
+  | CssPropertyBorderLeftColor CssValueBorderColor   -- 9                parsing is tested
+  | CssPropertyBorderLeftStyle CssValueBorderStyle   -- 10               parsing is tested
+  | CssPropertyBorderLeftWidth CssValueBorderWidth   -- 11               parsing is tested
+  | CssPropertyBorderRightColor CssValueBorderColor  -- 12               parsing is tested
+  | CssPropertyBorderRightStyle CssValueBorderStyle  -- 13               parsing is tested
+  | CssPropertyBorderRightWidth CssValueBorderWidth  -- 14               parsing is tested
+  | CssPropertyBorderSpacing CssValueBorderSpacing   -- 15               parsing is unit-tested
+  | CssPropertyBorderTopColor CssValueBorderColor    -- 16               parsing is tested
+  | CssPropertyBorderTopStyle CssValueBorderStyle    -- 17               parsing is tested
+  | CssPropertyBorderTopWidth CssValueBorderWidth    -- 18               parsing is tested
+  | CssPropertyBottom CssValue                       -- 19
+  | CssPropertyCaptionSide CssValue                  -- 20
+  | CssPropertyClear CssValue                        -- 21
+  | CssPropertyClip CssValue                         -- 22
+  | CssPropertyColor CssValueColor                   -- 23               parsing is tested
+  | CssPropertyContent CssValueContent               -- 24               parsing is unit-tested
+  | CssPropertyCounterIncrement CssValue             -- 25
+  | CssPropertyCounterReset CssValue                 -- 26
+  | CssPropertyCursor CssValueCursor                 -- 27               parsing is unit-tested
+  | CssPropertyDirection CssValue                    -- 28
+  | CssPropertyDisplay CssValueDisplay               -- 29               parsing is unit-tested
+  | CssPropertyEmptyCells CssValue                   -- 30
+  | CssPropertyFloat CssValue                        -- 31
+  | CssPropertyFontFamily CssValueFontFamily         -- 32               parsing is unit-tested (poorly)
+  | CssPropertyFontSize CssValueFontSize             -- 33               parsing is unit-tested
+  | CssPropertyFontSizeAdjust CssValue               -- 34
+  | CssPropertyFontStretch CssValue                  -- 35
+  | CssPropertyFontStyle CssValueFontStyle           -- 36               parsing is unit-tested
+  | CssPropertyFontVariant CssValueFontVariant       -- 37               parsing is unit-tested
+  | CssPropertyFontWeight CssValueFontWeight         -- 38               parsing is unit-tested
+  | CssPropertyHeight CssValueHeight                 -- 39               parsing is unit-tested
+  | CssPropertyLeft CssValue                         -- 40
+  | CssPropertyLetterSpacing CssValueLetterSpacing   -- 41               parsing is unit-tested
+  | CssPropertyLineHeight CssValueLineHeight         -- 42               parsing is unit-tested
+  | CssPropertyListStyleImage CssValue               -- 43               not supported by hello
+  | CssPropertyListStylePosition CssValueListStylePosition  -- 44        parsing is unit-tested
+  | CssPropertyListStyleType CssValueListStyleType   -- 45               parsing is unit-tested
 
-  | CssDeclarationMarginTop CssValueMargin              -- 49               parsing is unit-tested
-  | CssDeclarationMarginRight CssValueMargin            -- 48               parsing is unit-tested
-  | CssDeclarationMarginBottom CssValueMargin           -- 46               parsing is unit-tested
-  | CssDeclarationMarginLeft CssValueMargin             -- 47               parsing is unit-tested
+  | CssPropertyMarginTop CssValueMargin              -- 49               parsing is unit-tested
+  | CssPropertyMarginRight CssValueMargin            -- 48               parsing is unit-tested
+  | CssPropertyMarginBottom CssValueMargin           -- 46               parsing is unit-tested
+  | CssPropertyMarginLeft CssValueMargin             -- 47               parsing is unit-tested
 
-  | CssDeclarationMarkerOffset CssValue                 -- 50
-  | CssDeclarationMarks CssValue                        -- 51
-  | CssDeclarationMaxHeight CssValue                    -- 52
-  | CssDeclarationMaxWidth CssValue                     -- 53
-  | CssDeclarationMinHeight CssValue                    -- 54
-  | CssDeclarationMinWidth CssValue                     -- 55
-  | CssDeclarationOutlineColor CssValue                 -- 56
-  | CssDeclarationOutlineStyle CssValue                 -- 57
-  | CssDeclarationOutlineWidth CssValue                 -- 58
-  | CssDeclarationOverflow CssValue                     -- 59
-  | CssDeclarationPaddingTop CssValuePadding            -- 63               parsing is unit-tested
-  | CssDeclarationPaddingRight CssValuePadding          -- 62               parsing is unit-tested
-  | CssDeclarationPaddingBottom CssValuePadding         -- 60               parsing is unit-tested
-  | CssDeclarationPaddingLeft CssValuePadding           -- 61               parsing is unit-tested
-  | CssDeclarationPosition CssValue                     -- 64
-  | CssDeclarationQuotes CssValue                       -- 65
-  | CssDeclarationRight CssValue                        -- 66
-  | CssDeclarationTextAlign CssValueTextAlign           -- 67
-  | CssDeclarationTextDecoration [CssValueTextDecoration] -- 68             Parsing is unit-tested. Using a list type because a set of values is allowed for this property.
-  | CssDeclarationTextIndent CssValueTextIndent         -- 69               Parsing is unit-tested.
-  | CssDeclarationTextShadow CssValue                   -- 70
-  | CssDeclarationTextTransform CssValueTextTransform   -- 71               parsing is unit-tested
-  | CssDeclarationTop CssValue                          -- 72
-  | CssDeclarationUnicodeBiDi CssValue                  -- 73
-  | CssDeclarationVerticalAlign CssValueVerticalAlign   -- 74               parsing is unit-tested
-  | CssDeclarationVisibility CssValue                   -- 75
-  | CssDeclarationWhitespace CssValueWhitespace         -- 76               parsing is unit-tested
-  | CssDeclarationWidth CssValueWidth                   -- 77
-  | CssDeclarationWordSpacing CssValueWordSpacing       -- 78               parsing is unit-tested
-  | CssDeclarationZIndex CssValue                       -- 79
+  | CssPropertyMarkerOffset CssValue                 -- 50
+  | CssPropertyMarks CssValue                        -- 51
+  | CssPropertyMaxHeight CssValue                    -- 52
+  | CssPropertyMaxWidth CssValue                     -- 53
+  | CssPropertyMinHeight CssValue                    -- 54
+  | CssPropertyMinWidth CssValue                     -- 55
+  | CssPropertyOutlineColor CssValue                 -- 56
+  | CssPropertyOutlineStyle CssValue                 -- 57
+  | CssPropertyOutlineWidth CssValue                 -- 58
+  | CssPropertyOverflow CssValue                     -- 59
+  | CssPropertyPaddingTop CssValuePadding            -- 63               parsing is unit-tested
+  | CssPropertyPaddingRight CssValuePadding          -- 62               parsing is unit-tested
+  | CssPropertyPaddingBottom CssValuePadding         -- 60               parsing is unit-tested
+  | CssPropertyPaddingLeft CssValuePadding           -- 61               parsing is unit-tested
+  | CssPropertyPosition CssValue                     -- 64
+  | CssPropertyQuotes CssValue                       -- 65
+  | CssPropertyRight CssValue                        -- 66
+  | CssPropertyTextAlign CssValueTextAlign           -- 67
+  | CssPropertyTextDecoration [CssValueTextDecoration] -- 68             Parsing is unit-tested. Using a list type because a set of values is allowed for this property.
+  | CssPropertyTextIndent CssValueTextIndent         -- 69               Parsing is unit-tested.
+  | CssPropertyTextShadow CssValue                   -- 70
+  | CssPropertyTextTransform CssValueTextTransform   -- 71               parsing is unit-tested
+  | CssPropertyTop CssValue                          -- 72
+  | CssPropertyUnicodeBiDi CssValue                  -- 73
+  | CssPropertyVerticalAlign CssValueVerticalAlign   -- 74               parsing is unit-tested
+  | CssPropertyVisibility CssValue                   -- 75
+  | CssPropertyWhitespace CssValueWhitespace         -- 76               parsing is unit-tested
+  | CssPropertyWidth CssValueWidth                   -- 77
+  | CssPropertyWordSpacing CssValueWordSpacing       -- 78               parsing is unit-tested
+  | CssPropertyZIndex CssValue                       -- 79
 
-  | CssDeclarationXLink CssValueXLink                   -- 80               parsing is NOT unit-tested because there is no CSS parsing of this property
-  | CssDeclarationXColSpan CssValue                     -- 81               parsing is NOT unit-tested because there is no CSS parsing of this property
-  | CssDeclarationXRowSpan CssValue                     -- 82               parsing is NOT unit-tested because there is no CSS parsing of this property
-  | CssDeclarationXLang CssValueXLang                   -- 83               parsing is NOT unit-tested because there is no CSS parsing of this property
-  | CssDeclarationXImg CssValueXImg                     -- 84               parsing is NOT unit-tested because there is no CSS parsing of this property
-  | CssDeclarationXTooltip CssValueXTooltip             -- 85               parsing is NOT unit-tested because there is no CSS parsing of this property
+  | CssPropertyXLink CssValueXLink                   -- 80               parsing is NOT unit-tested because there is no CSS parsing of this property
+  | CssPropertyXColSpan CssValue                     -- 81               parsing is NOT unit-tested because there is no CSS parsing of this property
+  | CssPropertyXRowSpan CssValue                     -- 82               parsing is NOT unit-tested because there is no CSS parsing of this property
+  | CssPropertyXLang CssValueXLang                   -- 83               parsing is NOT unit-tested because there is no CSS parsing of this property
+  | CssPropertyXImg CssValueXImg                     -- 84               parsing is NOT unit-tested because there is no CSS parsing of this property
+  | CssPropertyXTooltip CssValueXTooltip             -- 85               parsing is NOT unit-tested because there is no CSS parsing of this property
 
-  | CssDeclaration_LAST                                 -- 86
+  | CssProperty_LAST                                 -- 86
   deriving (Eq, Show, Data)
 
 
@@ -364,14 +358,14 @@ data CssDeclaration
 
 
 
-makeCssDeclarationBackground :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationBackground pat = parseDeclarationMultiple
+makeCssPropertyBackground :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyBackground pat = parseDeclarationMultiple
                                    pat
-                                   [ makeCssDeclarationBackgroundColor
-                                   , makeCssDeclarationBackgroundImage
-                                   , makeCssDeclarationBackgroundRepeat
-                                   , makeCssDeclarationBackgroundAttachment
-                                   , makeCssDeclarationBackgroundPosition
+                                   [ makeCssPropertyBackgroundColor
+                                   , makeCssPropertyBackgroundImage
+                                   , makeCssPropertyBackgroundRepeat
+                                   , makeCssPropertyBackgroundAttachment
+                                   , makeCssPropertyBackgroundPosition
                                    ]
 
 
@@ -399,10 +393,10 @@ cssValueBackgroundAttachmentDict = [ ("scroll",  CssValueBackgroundAttachmentScr
 
 
 
-makeCssDeclarationBackgroundAttachment :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBackgroundAttachment pat = (pat', fmap CssDeclarationBackgroundAttachment declValue)
+makeCssPropertyBackgroundAttachment :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyBackgroundAttachment pat = (pat', fmap CssPropertyBackgroundAttachment propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueBackgroundAttachment
@@ -433,10 +427,10 @@ cssValueBackgroundColorDict = [ ("inherit",    CssValueBackgroundColorInherit)
 
 
 
-makeCssDeclarationBackgroundColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBackgroundColor pat = (pat', fmap CssDeclarationBackgroundColor declValue)
+makeCssPropertyBackgroundColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyBackgroundColor pat = (pat', fmap CssPropertyBackgroundColor propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh >>? interpretTokensAsColor
+    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsColor
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueBackgroundColor
@@ -461,10 +455,10 @@ data CssValueBackgroundImage
 
 
 
-makeCssDeclarationBackgroundImage :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBackgroundImage pat = (pat', fmap CssDeclarationBackgroundImage declValue)
+makeCssPropertyBackgroundImage :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyBackgroundImage pat = (pat', fmap CssPropertyBackgroundImage propValue)
   where
-    (vh', declValue) = interpretTokensAsURI vh
+    (vh', propValue) = interpretTokensAsURI vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueBackgroundImage
@@ -488,10 +482,10 @@ data CssValueBackgroundPosition
 
 
 
-makeCssDeclarationBackgroundPosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBackgroundPosition pat = (pat', fmap CssDeclarationBackgroundPosition declValue)
+makeCssPropertyBackgroundPosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyBackgroundPosition pat = (pat', fmap CssPropertyBackgroundPosition propValue)
   where
-    (vh', declValue) = interpretTokensAsBgPosition vh
+    (vh', propValue) = interpretTokensAsBgPosition vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueBackgroundPosition
@@ -527,10 +521,10 @@ cssValueBackgroundRepeatDict = [ ("repeat",     CssValueBackgroundRepeatRepeat)
 
 
 
-makeCssDeclarationBackgroundRepeat :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBackgroundRepeat pat = (pat', fmap CssDeclarationBackgroundRepeat declValue)
+makeCssPropertyBackgroundRepeat :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyBackgroundRepeat pat = (pat', fmap CssPropertyBackgroundRepeat propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueBackgroundRepeat
@@ -555,29 +549,29 @@ makeCssDeclarationBackgroundRepeat pat = (pat', fmap CssDeclarationBackgroundRep
 -- TODO: this implementation can correctly parse all value tokens only when
 -- they appear in the same order as 'property' integers. The function should
 -- be able to handle the tokens in any order.
-makeCssDeclarationBorder :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationBorder pt0 = (pt3, declarations)
+makeCssPropertyBorder :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyBorder pt0 = (pt3, declarations)
   where
-    declarations = catMaybes [ fmap CssDeclarationBorderTopWidth    declValueWidth,
-                               fmap CssDeclarationBorderRightWidth  declValueWidth,
-                               fmap CssDeclarationBorderBottomWidth declValueWidth,
-                               fmap CssDeclarationBorderLeftWidth   declValueWidth
+    declarations = catMaybes [ fmap CssPropertyBorderTopWidth    propValueWidth,
+                               fmap CssPropertyBorderRightWidth  propValueWidth,
+                               fmap CssPropertyBorderBottomWidth propValueWidth,
+                               fmap CssPropertyBorderLeftWidth   propValueWidth
 
-                             , fmap CssDeclarationBorderTopStyle    declValueStyle,
-                               fmap CssDeclarationBorderRightStyle  declValueStyle,
-                               fmap CssDeclarationBorderBottomStyle declValueStyle,
-                               fmap CssDeclarationBorderLeftStyle   declValueStyle
+                             , fmap CssPropertyBorderTopStyle    propValueStyle,
+                               fmap CssPropertyBorderRightStyle  propValueStyle,
+                               fmap CssPropertyBorderBottomStyle propValueStyle,
+                               fmap CssPropertyBorderLeftStyle   propValueStyle
 
-                             , fmap CssDeclarationBorderTopColor    declValueColor,
-                               fmap CssDeclarationBorderRightColor  declValueColor,
-                               fmap CssDeclarationBorderBottomColor declValueColor,
-                               fmap CssDeclarationBorderLeftColor   declValueColor
+                             , fmap CssPropertyBorderTopColor    propValueColor,
+                               fmap CssPropertyBorderRightColor  propValueColor,
+                               fmap CssPropertyBorderBottomColor propValueColor,
+                               fmap CssPropertyBorderLeftColor   propValueColor
                              ]
 
     -- TODO: this piece of code has zero error checking.
-    (pt1, declValueWidth) :: ((CssParser, CssToken), Maybe CssValueBorderWidth) = parseTokensAsBorderWidthValue pt0
-    (pt2, declValueStyle) :: ((CssParser, CssToken), Maybe CssValueBorderStyle) = parseTokensAsBorderStyleValue pt1
-    (pt3, declValueColor) :: ((CssParser, CssToken), Maybe CssValueBorderColor) = parseTokensAsBorderColorValue pt2
+    (pt1, propValueWidth) :: ((CssParser, CssToken), Maybe CssValueBorderWidth) = parseTokensAsBorderWidthValue pt0
+    (pt2, propValueStyle) :: ((CssParser, CssToken), Maybe CssValueBorderStyle) = parseTokensAsBorderStyleValue pt1
+    (pt3, propValueColor) :: ((CssParser, CssToken), Maybe CssValueBorderColor) = parseTokensAsBorderColorValue pt2
 
 
 
@@ -590,13 +584,13 @@ makeCssDeclarationBorder pt0 = (pt3, declarations)
 
 
 
-makeCssDeclarationBorderWidth :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationBorderWidth pat = parseDeclaration4321trbl
+makeCssPropertyBorderWidth :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyBorderWidth pat = parseDeclaration4321trbl
                                     pat
-                                    [ CssDeclarationBorderTopWidth
-                                    , CssDeclarationBorderRightWidth
-                                    , CssDeclarationBorderBottomWidth
-                                    , CssDeclarationBorderLeftWidth ]
+                                    [ CssPropertyBorderTopWidth
+                                    , CssPropertyBorderRightWidth
+                                    , CssPropertyBorderBottomWidth
+                                    , CssPropertyBorderLeftWidth ]
                                     parseTokensAsBorderWidthValue
 
 
@@ -610,13 +604,13 @@ makeCssDeclarationBorderWidth pat = parseDeclaration4321trbl
 
 
 
-makeCssDeclarationBorderColor :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationBorderColor pat = parseDeclaration4321trbl
+makeCssPropertyBorderColor :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyBorderColor pat = parseDeclaration4321trbl
                                     pat
-                                    [ CssDeclarationBorderTopColor
-                                    , CssDeclarationBorderRightColor
-                                    , CssDeclarationBorderBottomColor
-                                    , CssDeclarationBorderLeftColor ]
+                                    [ CssPropertyBorderTopColor
+                                    , CssPropertyBorderRightColor
+                                    , CssPropertyBorderBottomColor
+                                    , CssPropertyBorderLeftColor ]
                                     parseTokensAsBorderColorValue
 
 
@@ -630,13 +624,13 @@ makeCssDeclarationBorderColor pat = parseDeclaration4321trbl
 
 
 
-makeCssDeclarationBorderStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationBorderStyle pat = parseDeclaration4321trbl
+makeCssPropertyBorderStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyBorderStyle pat = parseDeclaration4321trbl
                                     pat
-                                    [ CssDeclarationBorderTopStyle
-                                    , CssDeclarationBorderRightStyle
-                                    , CssDeclarationBorderBottomStyle
-                                    , CssDeclarationBorderLeftStyle ]
+                                    [ CssPropertyBorderTopStyle
+                                    , CssPropertyBorderRightStyle
+                                    , CssPropertyBorderBottomStyle
+                                    , CssPropertyBorderLeftStyle ]
                                     parseTokensAsBorderStyleValue
 
 
@@ -650,12 +644,12 @@ makeCssDeclarationBorderStyle pat = parseDeclaration4321trbl
 
 
 
-makeCssDeclarationBorderTop :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationBorderTop pat = parseDeclarationMultiple
+makeCssPropertyBorderTop :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyBorderTop pat = parseDeclarationMultiple
                                   pat
-                                  [ makeCssDeclarationBorderTopWidth
-                                  , makeCssDeclarationBorderTopStyle
-                                  , makeCssDeclarationBorderTopColor ]
+                                  [ makeCssPropertyBorderTopWidth
+                                  , makeCssPropertyBorderTopStyle
+                                  , makeCssPropertyBorderTopColor ]
 
 
 
@@ -668,12 +662,12 @@ makeCssDeclarationBorderTop pat = parseDeclarationMultiple
 
 
 
-makeCssDeclarationBorderRight :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationBorderRight pat = parseDeclarationMultiple
+makeCssPropertyBorderRight :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyBorderRight pat = parseDeclarationMultiple
                                     pat
-                                    [ makeCssDeclarationBorderRightWidth
-                                    , makeCssDeclarationBorderRightStyle
-                                    , makeCssDeclarationBorderRightColor ]
+                                    [ makeCssPropertyBorderRightWidth
+                                    , makeCssPropertyBorderRightStyle
+                                    , makeCssPropertyBorderRightColor ]
 
 
 
@@ -686,12 +680,12 @@ makeCssDeclarationBorderRight pat = parseDeclarationMultiple
 
 
 
-makeCssDeclarationBorderBottom :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationBorderBottom pat  = parseDeclarationMultiple
+makeCssPropertyBorderBottom :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyBorderBottom pat  = parseDeclarationMultiple
                                       pat
-                                      [ makeCssDeclarationBorderBottomWidth
-                                      , makeCssDeclarationBorderBottomStyle
-                                      , makeCssDeclarationBorderBottomColor ]
+                                      [ makeCssPropertyBorderBottomWidth
+                                      , makeCssPropertyBorderBottomStyle
+                                      , makeCssPropertyBorderBottomColor ]
 
 
 
@@ -704,12 +698,12 @@ makeCssDeclarationBorderBottom pat  = parseDeclarationMultiple
 
 
 
-makeCssDeclarationBorderLeft :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationBorderLeft pat = parseDeclarationMultiple
+makeCssPropertyBorderLeft :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyBorderLeft pat = parseDeclarationMultiple
                                    pat
-                                   [ makeCssDeclarationBorderLeftWidth
-                                   , makeCssDeclarationBorderLeftStyle
-                                   , makeCssDeclarationBorderLeftColor ]
+                                   [ makeCssPropertyBorderLeftWidth
+                                   , makeCssPropertyBorderLeftStyle
+                                   , makeCssPropertyBorderLeftColor ]
 
 
 
@@ -736,10 +730,10 @@ cssValueBorderCollapseDict = [ ("separate",   CssValueBorderCollapseSeparate)
 
 
 
-makeCssDeclarationBorderCollapse :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBorderCollapse pat = (pat', fmap CssDeclarationBorderCollapse declValue)
+makeCssPropertyBorderCollapse :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyBorderCollapse pat = (pat', fmap CssPropertyBorderCollapse propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueBorderCollapse
@@ -763,10 +757,10 @@ data CssValueBorderSpacing
 
 
 
-makeCssDeclarationBorderSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBorderSpacing pat =  (pat', fmap CssDeclarationBorderSpacing declValue)
+makeCssPropertyBorderSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyBorderSpacing pat =  (pat', fmap CssPropertyBorderSpacing propValue)
   where
-    (vh', declValue) = interpretTokensAsLength vh
+    (vh', propValue) = interpretTokensAsLength vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueBorderSpacing
@@ -804,9 +798,9 @@ cssValueBorderColorDict = [ ("transparent", CssValueBorderColorTransparent)
 
 
 parseTokensAsBorderColorValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderColor)
-parseTokensAsBorderColorValue pat = (pat', declValue)
+parseTokensAsBorderColorValue pat = (pat', propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh >>? interpretTokensAsColor
+    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsColor
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueBorderColor
@@ -817,18 +811,18 @@ parseTokensAsBorderColorValue pat = (pat', declValue)
 
 
 
-makeCssDeclarationBorderXColor :: (CssValueBorderColor -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBorderXColor declCtor pat = (pat', fmap declCtor declValue)
+makeCssPropertyBorderXColor :: (CssValueBorderColor -> CssProperty) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyBorderXColor propCtor pat = (pat', fmap propCtor propValue)
   where
-    (pat', declValue) = parseTokensAsBorderColorValue pat
+    (pat', propValue) = parseTokensAsBorderColorValue pat
 
 
 
 
-makeCssDeclarationBorderTopColor    = makeCssDeclarationBorderXColor CssDeclarationBorderTopColor
-makeCssDeclarationBorderRightColor  = makeCssDeclarationBorderXColor CssDeclarationBorderRightColor
-makeCssDeclarationBorderBottomColor = makeCssDeclarationBorderXColor CssDeclarationBorderBottomColor
-makeCssDeclarationBorderLeftColor   = makeCssDeclarationBorderXColor CssDeclarationBorderLeftColor
+makeCssPropertyBorderTopColor    = makeCssPropertyBorderXColor CssPropertyBorderTopColor
+makeCssPropertyBorderRightColor  = makeCssPropertyBorderXColor CssPropertyBorderRightColor
+makeCssPropertyBorderBottomColor = makeCssPropertyBorderXColor CssPropertyBorderBottomColor
+makeCssPropertyBorderLeftColor   = makeCssPropertyBorderXColor CssPropertyBorderLeftColor
 
 
 
@@ -877,9 +871,9 @@ cssValueBorderStyleDict = [ ("none",     CssValueBorderStyleNone)
 
 
 parseTokensAsBorderStyleValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderStyle)
-parseTokensAsBorderStyleValue pat = ((pat'), declValue)
+parseTokensAsBorderStyleValue pat = ((pat'), propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueBorderStyle
@@ -889,18 +883,18 @@ parseTokensAsBorderStyleValue pat = ((pat'), declValue)
 
 
 
-makeCssDeclarationBorderXStyle :: (CssValueBorderStyle -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBorderXStyle declCtor pat = (pat', fmap declCtor declValue)
+makeCssPropertyBorderXStyle :: (CssValueBorderStyle -> CssProperty) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyBorderXStyle propCtor pat = (pat', fmap propCtor propValue)
   where
-    (pat', declValue) = parseTokensAsBorderStyleValue pat
+    (pat', propValue) = parseTokensAsBorderStyleValue pat
 
 
 
 
-makeCssDeclarationBorderTopStyle    = makeCssDeclarationBorderXStyle CssDeclarationBorderTopStyle
-makeCssDeclarationBorderRightStyle  = makeCssDeclarationBorderXStyle CssDeclarationBorderRightStyle
-makeCssDeclarationBorderBottomStyle = makeCssDeclarationBorderXStyle CssDeclarationBorderBottomStyle
-makeCssDeclarationBorderLeftStyle   = makeCssDeclarationBorderXStyle CssDeclarationBorderLeftStyle
+makeCssPropertyBorderTopStyle    = makeCssPropertyBorderXStyle CssPropertyBorderTopStyle
+makeCssPropertyBorderRightStyle  = makeCssPropertyBorderXStyle CssPropertyBorderRightStyle
+makeCssPropertyBorderBottomStyle = makeCssPropertyBorderXStyle CssPropertyBorderBottomStyle
+makeCssPropertyBorderLeftStyle   = makeCssPropertyBorderXStyle CssPropertyBorderLeftStyle
 
 
 
@@ -935,9 +929,9 @@ cssValueBorderWidthDict = [ ("thin",    CssValueBorderWidthThin)
 
 
 parseTokensAsBorderWidthValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderWidth)
-parseTokensAsBorderWidthValue pat = (pat', declValue)
+parseTokensAsBorderWidthValue pat = (pat', propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
+    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueBorderWidth
@@ -948,18 +942,18 @@ parseTokensAsBorderWidthValue pat = (pat', declValue)
 
 
 
-makeCssDeclarationBorderXWidth :: (CssValueBorderWidth -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationBorderXWidth declCtor pat = (pat', fmap declCtor declValue)
+makeCssPropertyBorderXWidth :: (CssValueBorderWidth -> CssProperty) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyBorderXWidth propCtor pat = (pat', fmap propCtor propValue)
   where
-    (pat', declValue) = parseTokensAsBorderWidthValue pat
+    (pat', propValue) = parseTokensAsBorderWidthValue pat
 
 
 
 
-makeCssDeclarationBorderTopWidth    = makeCssDeclarationBorderXWidth CssDeclarationBorderTopWidth
-makeCssDeclarationBorderRightWidth  = makeCssDeclarationBorderXWidth CssDeclarationBorderRightWidth
-makeCssDeclarationBorderBottomWidth = makeCssDeclarationBorderXWidth CssDeclarationBorderBottomWidth
-makeCssDeclarationBorderLeftWidth   = makeCssDeclarationBorderXWidth CssDeclarationBorderLeftWidth
+makeCssPropertyBorderTopWidth    = makeCssPropertyBorderXWidth CssPropertyBorderTopWidth
+makeCssPropertyBorderRightWidth  = makeCssPropertyBorderXWidth CssPropertyBorderRightWidth
+makeCssPropertyBorderBottomWidth = makeCssPropertyBorderXWidth CssPropertyBorderBottomWidth
+makeCssPropertyBorderLeftWidth   = makeCssPropertyBorderXWidth CssPropertyBorderLeftWidth
 
 
 
@@ -971,10 +965,10 @@ makeCssDeclarationBorderLeftWidth   = makeCssDeclarationBorderXWidth CssDeclarat
 
 
 
-makeCssDeclarationBottom v = CssDeclarationBottom v
-makeCssDeclarationCaptionSide v = CssDeclarationCaptionSide v
-makeCssDeclarationClear v = CssDeclarationClear v
-makeCssDeclarationClip v = CssDeclarationClip v
+makeCssPropertyBottom v = CssPropertyBottom v
+makeCssPropertyCaptionSide v = CssPropertyCaptionSide v
+makeCssPropertyClear v = CssPropertyClear v
+makeCssPropertyClip v = CssPropertyClip v
 
 
 
@@ -1001,10 +995,10 @@ cssValueColorDict = [ ("inherit", CssValueColorInherit)
 
 
 
-makeCssDeclarationColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationColor pat = (pat', fmap CssDeclarationColor declValue)
+makeCssPropertyColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyColor pat = (pat', fmap CssPropertyColor propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh >>? interpretTokensAsColor
+    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsColor
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueColor
@@ -1032,10 +1026,10 @@ data CssValueContent
 
 
 
-makeCssDeclarationContent :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationContent pat = (pat', fmap CssDeclarationContent declValue)
+makeCssPropertyContent :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyContent pat = (pat', fmap CssPropertyContent propValue)
   where
-    (vh', declValue) = interpretTokensAsString vh
+    (vh', propValue) = interpretTokensAsString vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueContent
@@ -1052,8 +1046,8 @@ makeCssDeclarationContent pat = (pat', fmap CssDeclarationContent declValue)
 
 
 
-makeCssDeclarationCounterIncrement v = CssDeclarationCounterIncrement v
-makeCssDeclarationCounterReset v = CssDeclarationCounterReset v
+makeCssPropertyCounterIncrement v = CssPropertyCounterIncrement v
+makeCssPropertyCounterReset v = CssPropertyCounterReset v
 
 
 
@@ -1106,10 +1100,10 @@ cssValueCursorDict = [ ("crosshair", CssValueCursorCrosshair)
 
 
 
-makeCssDeclarationCursor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationCursor pat = (pat', fmap CssDeclarationCursor declValue)
+makeCssPropertyCursor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyCursor pat = (pat', fmap CssPropertyCursor propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueCursor
@@ -1126,7 +1120,7 @@ makeCssDeclarationCursor pat = (pat', fmap CssDeclarationCursor declValue)
 
 
 
-makeCssDeclarationDirection v = CssDeclarationDirection v
+makeCssPropertyDirection v = CssPropertyDirection v
 
 
 
@@ -1172,10 +1166,10 @@ cssValueDisplayDict = [ ("block",              CssValueDisplayBlock)
 
 
 
-makeCssDeclarationDisplay :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationDisplay pat = (pat', fmap CssDeclarationDisplay declValue)
+makeCssPropertyDisplay :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyDisplay pat = (pat', fmap CssPropertyDisplay propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueDisplay
@@ -1192,8 +1186,8 @@ makeCssDeclarationDisplay pat = (pat', fmap CssDeclarationDisplay declValue)
 
 
 
-makeCssDeclarationEmptyCells v = CssDeclarationEmptyCells v
-makeCssDeclarationFloat v = CssDeclarationFloat v
+makeCssPropertyEmptyCells v = CssPropertyEmptyCells v
+makeCssPropertyFloat v = CssPropertyFloat v
 
 
 
@@ -1207,7 +1201,7 @@ makeCssDeclarationFloat v = CssDeclarationFloat v
 
 
 -- TODO: restore parsing of font properties
--- makeCssDeclarationFont          = parseDeclarationMultiple pat pinfos
+-- makeCssPropertyFont          = parseDeclarationMultiple pat pinfos
 
 
 
@@ -1226,10 +1220,10 @@ data CssValueFontFamily
 
 
 
-makeCssDeclarationFontFamily :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationFontFamily pat = (pat', fmap CssDeclarationFontFamily declValue)
+makeCssPropertyFontFamily :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyFontFamily pat = (pat', fmap CssPropertyFontFamily propValue)
   where
-    (vh', declValue) = interpretTokensAsStringList vh
+    (vh', propValue) = interpretTokensAsStringList vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueFontFamily
@@ -1281,10 +1275,10 @@ cssValueFontSizeDict = [ ("xx-small", CssValueFontSizeXXSmall)
 
 
 
-makeCssDeclarationFontSize :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize declValue)
+makeCssPropertyFontSize :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyFontSize pat = (pat', fmap CssPropertyFontSize propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
+    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueFontSize
@@ -1302,8 +1296,8 @@ makeCssDeclarationFontSize pat = (pat', fmap CssDeclarationFontSize declValue)
 
 
 
-makeCssDeclarationFontSizeAdjust v = CssDeclarationFontSizeAdjust v
-makeCssDeclarationFontStretch v = CssDeclarationFontStretch v
+makeCssPropertyFontSizeAdjust v = CssPropertyFontSizeAdjust v
+makeCssPropertyFontStretch v = CssPropertyFontStretch v
 
 
 
@@ -1332,10 +1326,10 @@ cssValueFontStyleDict = [ ("normal",  CssValueFontStyleNormal)
 
 
 
-makeCssDeclarationFontStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationFontStyle pat = (pat', fmap CssDeclarationFontStyle declValue)
+makeCssPropertyFontStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyFontStyle pat = (pat', fmap CssPropertyFontStyle propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueFontStyle
@@ -1367,10 +1361,10 @@ cssValueFontVariantDict = [ ("normal",  CssValueFontVariantNormal)
 
 
 
-makeCssDeclarationFontVariant :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationFontVariant pat = (pat', fmap CssDeclarationFontVariant declValue)
+makeCssPropertyFontVariant :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyFontVariant pat = (pat', fmap CssPropertyFontVariant propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueFontVariant
@@ -1408,10 +1402,10 @@ cssValueFontWeightDict = [ ("normal",  CssValueFontWeightNormal)
 
 
 
-makeCssDeclarationFontWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationFontWeight pat = (pat', fmap CssDeclarationFontWeight declValue)
+makeCssPropertyFontWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyFontWeight pat = (pat', fmap CssPropertyFontWeight propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh >>? interpretTokensAsInteger
+    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsInteger
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueFontWeight
@@ -1439,10 +1433,10 @@ data CssValueHeight
 
 
 -- TODO: CSS2.2 says: "Negative values for 'height' are illegal.". Implement this.
-makeCssDeclarationHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationHeight pat = (pat', fmap CssDeclarationHeight declValue)
+makeCssPropertyHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyHeight pat = (pat', fmap CssPropertyHeight propValue)
   where
-    (vh', declValue) = interpretTokensAsLength vh >>? interpretTokensAsAuto
+    (vh', propValue) = interpretTokensAsLength vh >>? interpretTokensAsAuto
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueHeight
@@ -1459,7 +1453,7 @@ makeCssDeclarationHeight pat = (pat', fmap CssDeclarationHeight declValue)
 
 
 
-makeCssDeclarationLeft v = CssDeclarationLeft v
+makeCssPropertyLeft v = CssPropertyLeft v
 
 
 
@@ -1485,10 +1479,10 @@ cssValueLetterSpacingDict = [ ("normal",    CssValueLetterSpacingNormal)
 
 
 
-makeCssDeclarationLetterSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationLetterSpacing pat = (pat', fmap CssDeclarationLetterSpacing declValue)
+makeCssPropertyLetterSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyLetterSpacing pat = (pat', fmap CssPropertyLetterSpacing propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
+    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueLetterSpacing
@@ -1520,10 +1514,10 @@ cssValueLineHeightDict = [ ("normal",    CssValueLineHeightNormal)
 
 
 
-makeCssDeclarationLineHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationLineHeight pat = (pat', fmap CssDeclarationLineHeight declValue)
+makeCssPropertyLineHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyLineHeight pat = (pat', fmap CssPropertyLineHeight propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength -- declValueAsLengthPercentNumber
+    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueLineHeight
@@ -1549,12 +1543,12 @@ makeCssDeclarationLineHeight pat = (pat', fmap CssDeclarationLineHeight declValu
 
 
 
-makeCssDeclarationListStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationListStyle pat = parseDeclarationMultiple
+makeCssPropertyListStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyListStyle pat = parseDeclarationMultiple
                                   pat
-                                  [ makeCssDeclarationListStyleType
-                                  , makeCssDeclarationListStylePosition
-                                  , makeCssDeclarationListStyleImage ]
+                                  [ makeCssPropertyListStyleType
+                                  , makeCssPropertyListStylePosition
+                                  , makeCssPropertyListStyleImage ]
 
 
 
@@ -1568,8 +1562,8 @@ makeCssDeclarationListStyle pat = parseDeclarationMultiple
 
 
 
-makeCssDeclarationListStyleImage :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationListStyleImage pat = (pat, Nothing) -- CssDeclarationListStyleImage
+makeCssPropertyListStyleImage :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyListStyleImage pat = (pat, Nothing) -- CssPropertyListStyleImage
 
 
 
@@ -1599,10 +1593,10 @@ cssValueListStylePositionDict = [ ("inside",               CssValueListStylePosi
 
 
 
-makeCssDeclarationListStylePosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationListStylePosition pat = (pat', fmap CssDeclarationListStylePosition declValue)
+makeCssPropertyListStylePosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyListStylePosition pat = (pat', fmap CssPropertyListStylePosition propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueListStylePosition
@@ -1675,10 +1669,10 @@ cssValueListStyleTypeDict = [ ("disc",                 CssValueListStyleTypeDisc
 
 
 
-makeCssDeclarationListStyleType :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationListStyleType pat = (pat', fmap CssDeclarationListStyleType declValue)
+makeCssPropertyListStyleType :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyListStyleType pat = (pat', fmap CssPropertyListStyleType propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueListStyleType
@@ -1696,13 +1690,13 @@ makeCssDeclarationListStyleType pat = (pat', fmap CssDeclarationListStyleType de
 
 
 
-makeCssDeclarationMargin :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationMargin pat = parseDeclaration4321trbl
+makeCssPropertyMargin :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyMargin pat = parseDeclaration4321trbl
                                pat
-                               [ CssDeclarationMarginTop
-                               , CssDeclarationMarginRight
-                               , CssDeclarationMarginBottom
-                               , CssDeclarationMarginLeft ]
+                               [ CssPropertyMarginTop
+                               , CssPropertyMarginRight
+                               , CssPropertyMarginBottom
+                               , CssPropertyMarginLeft ]
                                parseTokensAsMarginValue
 
 
@@ -1726,8 +1720,8 @@ data CssValueMargin
 
 
 
-makeCssDeclarationMarginX :: (CssValueMargin -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationMarginX declCtor pat = (pat', fmap declCtor value)
+makeCssPropertyMarginX :: (CssValueMargin -> CssProperty) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyMarginX propCtor pat = (pat', fmap propCtor value)
   where
     (pat', value) = parseTokensAsMarginValue pat
 
@@ -1735,9 +1729,9 @@ makeCssDeclarationMarginX declCtor pat = (pat', fmap declCtor value)
 
 
 parseTokensAsMarginValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueMargin)
-parseTokensAsMarginValue pat = (pat', declValue)
+parseTokensAsMarginValue pat = (pat', propValue)
   where
-    (vh', declValue) = interpretTokensAsLength vh >>? interpretTokensAsAuto
+    (vh', propValue) = interpretTokensAsLength vh >>? interpretTokensAsAuto
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueMargin
@@ -1747,10 +1741,10 @@ parseTokensAsMarginValue pat = (pat', declValue)
 
 
 
-makeCssDeclarationMarginTop    = makeCssDeclarationMarginX CssDeclarationMarginTop
-makeCssDeclarationMarginRight  = makeCssDeclarationMarginX CssDeclarationMarginRight
-makeCssDeclarationMarginBottom = makeCssDeclarationMarginX CssDeclarationMarginBottom
-makeCssDeclarationMarginLeft   = makeCssDeclarationMarginX CssDeclarationMarginLeft
+makeCssPropertyMarginTop    = makeCssPropertyMarginX CssPropertyMarginTop
+makeCssPropertyMarginRight  = makeCssPropertyMarginX CssPropertyMarginRight
+makeCssPropertyMarginBottom = makeCssPropertyMarginX CssPropertyMarginBottom
+makeCssPropertyMarginLeft   = makeCssPropertyMarginX CssPropertyMarginLeft
 
 
 
@@ -1762,16 +1756,16 @@ makeCssDeclarationMarginLeft   = makeCssDeclarationMarginX CssDeclarationMarginL
 
 
 
-makeCssDeclarationMarkerOffset v = CssDeclarationMarkerOffset v
-makeCssDeclarationMarks v = CssDeclarationMarks v
-makeCssDeclarationMaxHeight v = CssDeclarationMaxHeight v
-makeCssDeclarationMaxWidth v = CssDeclarationMaxWidth v
-makeCssDeclarationMinHeight v = CssDeclarationMinHeight v
-makeCssDeclarationMinWidth v = CssDeclarationMinWidth v
-makeCssDeclarationOutlineColor v = CssDeclarationOutlineColor v
-makeCssDeclarationOutlineStyle v = CssDeclarationOutlineStyle v
-makeCssDeclarationOutlineWidth v = CssDeclarationOutlineWidth v
-makeCssDeclarationOverflow v = CssDeclarationOverflow v
+makeCssPropertyMarkerOffset v = CssPropertyMarkerOffset v
+makeCssPropertyMarks v = CssPropertyMarks v
+makeCssPropertyMaxHeight v = CssPropertyMaxHeight v
+makeCssPropertyMaxWidth v = CssPropertyMaxWidth v
+makeCssPropertyMinHeight v = CssPropertyMinHeight v
+makeCssPropertyMinWidth v = CssPropertyMinWidth v
+makeCssPropertyOutlineColor v = CssPropertyOutlineColor v
+makeCssPropertyOutlineStyle v = CssPropertyOutlineStyle v
+makeCssPropertyOutlineWidth v = CssPropertyOutlineWidth v
+makeCssPropertyOverflow v = CssPropertyOverflow v
 
 
 
@@ -1784,13 +1778,13 @@ makeCssDeclarationOverflow v = CssDeclarationOverflow v
 
 
 
-makeCssDeclarationPadding :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-makeCssDeclarationPadding pat = parseDeclaration4321trbl
+makeCssPropertyPadding :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyPadding pat = parseDeclaration4321trbl
                                 pat
-                                [ CssDeclarationPaddingTop
-                                , CssDeclarationPaddingRight
-                                , CssDeclarationPaddingBottom
-                                , CssDeclarationPaddingLeft ]
+                                [ CssPropertyPaddingTop
+                                , CssPropertyPaddingRight
+                                , CssPropertyPaddingBottom
+                                , CssPropertyPaddingLeft ]
                                 parseTokensAsPaddingValue
 
 
@@ -1813,8 +1807,8 @@ data CssValuePadding
 
 
 
-makeCssDeclarationPaddingX :: (CssValuePadding -> CssDeclaration) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationPaddingX declCtor pat = (pat', fmap declCtor value)
+makeCssPropertyPaddingX :: (CssValuePadding -> CssProperty) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyPaddingX propCtor pat = (pat', fmap propCtor value)
   where
     (pat', value) = parseTokensAsPaddingValue pat
 
@@ -1822,9 +1816,9 @@ makeCssDeclarationPaddingX declCtor pat = (pat', fmap declCtor value)
 
 
 parseTokensAsPaddingValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValuePadding)
-parseTokensAsPaddingValue pat = (pat', declValue)
+parseTokensAsPaddingValue pat = (pat', propValue)
   where
-    (vh', declValue) = interpretTokensAsLength vh
+    (vh', propValue) = interpretTokensAsLength vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValuePadding
@@ -1834,10 +1828,10 @@ parseTokensAsPaddingValue pat = (pat', declValue)
 
 
 
-makeCssDeclarationPaddingTop    = makeCssDeclarationPaddingX CssDeclarationPaddingTop
-makeCssDeclarationPaddingRight  = makeCssDeclarationPaddingX CssDeclarationPaddingRight
-makeCssDeclarationPaddingBottom = makeCssDeclarationPaddingX CssDeclarationPaddingBottom
-makeCssDeclarationPaddingLeft   = makeCssDeclarationPaddingX CssDeclarationPaddingLeft
+makeCssPropertyPaddingTop    = makeCssPropertyPaddingX CssPropertyPaddingTop
+makeCssPropertyPaddingRight  = makeCssPropertyPaddingX CssPropertyPaddingRight
+makeCssPropertyPaddingBottom = makeCssPropertyPaddingX CssPropertyPaddingBottom
+makeCssPropertyPaddingLeft   = makeCssPropertyPaddingX CssPropertyPaddingLeft
 
 
 
@@ -1850,9 +1844,9 @@ makeCssDeclarationPaddingLeft   = makeCssDeclarationPaddingX CssDeclarationPaddi
 
 
 
-makeCssDeclarationPosition v = CssDeclarationPosition v
-makeCssDeclarationQuotes v = CssDeclarationQuotes v
-makeCssDeclarationRight v = CssDeclarationRight v
+makeCssPropertyPosition v = CssPropertyPosition v
+makeCssPropertyQuotes v = CssPropertyQuotes v
+makeCssPropertyRight v = CssPropertyRight v
 
 
 
@@ -1886,10 +1880,10 @@ cssValueTextAlignDict = [ ("left",    CssValueTextAlignLeft)
 
 
 
-makeCssDeclarationTextAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationTextAlign pat = (pat', fmap CssDeclarationTextAlign declValue)
+makeCssPropertyTextAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyTextAlign pat = (pat', fmap CssPropertyTextAlign propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueTextAlign
@@ -1928,10 +1922,10 @@ cssValueTextDecorationDict = [ ("underline",     CssValueTextDecorationUnderline
 
 
 
-makeCssDeclarationTextDecoration :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationTextDecoration pat = (pat', fmap CssDeclarationTextDecoration declValue)
+makeCssPropertyTextDecoration :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyTextDecoration pat = (pat', fmap CssPropertyTextDecoration propValue)
   where
-    (vh', declValue) = interpretTokensAsMultiEnum vh
+    (vh', propValue) = interpretTokensAsMultiEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueTextDecoration
@@ -1954,10 +1948,10 @@ data CssValueTextIndent
 
 
 
-makeCssDeclarationTextIndent :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationTextIndent pat =  (pat', fmap CssDeclarationTextIndent declValue)
+makeCssPropertyTextIndent :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyTextIndent pat =  (pat', fmap CssPropertyTextIndent propValue)
   where
-    (vh', declValue) = interpretTokensAsLength vh
+    (vh', propValue) = interpretTokensAsLength vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueTextIndent
@@ -1974,7 +1968,7 @@ makeCssDeclarationTextIndent pat =  (pat', fmap CssDeclarationTextIndent declVal
 
 
 
-makeCssDeclarationTextShadow v = CssDeclarationTextShadow v
+makeCssPropertyTextShadow v = CssPropertyTextShadow v
 
 
 
@@ -2005,10 +1999,10 @@ cssValueTextTransformDict = [ ("none",       CssValueTextTransformNone)
 
 
 
-makeCssDeclarationTextTransform :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationTextTransform pat = (pat', fmap CssDeclarationTextTransform declValue)
+makeCssPropertyTextTransform :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyTextTransform pat = (pat', fmap CssPropertyTextTransform propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueTextTransform
@@ -2025,8 +2019,8 @@ makeCssDeclarationTextTransform pat = (pat', fmap CssDeclarationTextTransform de
 
 
 
-makeCssDeclarationTop v = CssDeclarationTop v
-makeCssDeclarationUnicodeBiDi v = CssDeclarationUnicodeBiDi v
+makeCssPropertyTop v = CssPropertyTop v
+makeCssPropertyUnicodeBiDi v = CssPropertyUnicodeBiDi v
 
 
 
@@ -2067,10 +2061,10 @@ cssValueVerticalAlignDict = [ ("top",         CssValueVerticalAlignTop)
 
 
 
-makeCssDeclarationVerticalAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationVerticalAlign pat = (pat', fmap CssDeclarationVerticalAlign declValue)
+makeCssPropertyVerticalAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyVerticalAlign pat = (pat', fmap CssPropertyVerticalAlign propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueVerticalAlign
@@ -2086,7 +2080,7 @@ makeCssDeclarationVerticalAlign pat = (pat', fmap CssDeclarationVerticalAlign de
 
 
 
-makeCssDeclarationVisibility v = CssDeclarationVisibility v
+makeCssPropertyVisibility v = CssPropertyVisibility v
 
 
 
@@ -2120,10 +2114,10 @@ cssValueWhitespaceDict = [ ("normal",   CssValueWhitespaceNormal)
 
 
 
-makeCssDeclarationWhitespace :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationWhitespace pat = (pat', fmap CssDeclarationWhitespace declValue)
+makeCssPropertyWhitespace :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyWhitespace pat = (pat', fmap CssPropertyWhitespace propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh
+    (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueWhitespace
@@ -2149,10 +2143,10 @@ data CssValueWidth
 
 
 -- TODO: CSS2.2 says: "Negative values for 'width' are illegal.". Implement this.
-makeCssDeclarationWidth :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationWidth pat = (pat', fmap CssDeclarationWidth declValue)
+makeCssPropertyWidth :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyWidth pat = (pat', fmap CssPropertyWidth propValue)
   where
-    (vh', declValue) = interpretTokensAsLength vh >>? interpretTokensAsAuto
+    (vh', propValue) = interpretTokensAsLength vh >>? interpretTokensAsAuto
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueWidth
@@ -2184,10 +2178,10 @@ cssValueWordSpacingDict = [ ("normal",    CssValueWordSpacingNormal)
 
 
 
-makeCssDeclarationWordSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
-makeCssDeclarationWordSpacing pat = (pat', fmap CssDeclarationWordSpacing declValue)
+makeCssPropertyWordSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
+makeCssPropertyWordSpacing pat = (pat', fmap CssPropertyWordSpacing propValue)
   where
-    (vh', declValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
+    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
     pat'             = pt3 vh'
 
     vh :: ValueHelper CssValueWordSpacing
@@ -2205,7 +2199,7 @@ makeCssDeclarationWordSpacing pat = (pat', fmap CssDeclarationWordSpacing declVa
 
 
 
-makeCssDeclarationZIndex v = CssDeclarationZIndex v
+makeCssPropertyZIndex v = CssPropertyZIndex v
 
 
 
@@ -2335,7 +2329,7 @@ data CssValueXTooltip
 
 
 
-makeCssDeclaration_LAST _ = CssDeclaration_LAST
+makeCssProperty_LAST _ = CssProperty_LAST
 
 
 
@@ -2352,10 +2346,10 @@ makeCssDeclaration_LAST _ = CssDeclaration_LAST
 -- The example in CSS2.2 for "background" property suggests that values in
 -- input CSS string may appear in any order. This function should be able to
 -- handle this situation.
-parseDeclarationMultiple :: (CssParser, CssToken) -> [DeclarationCtor] -> ((CssParser, CssToken), [CssDeclaration])
-parseDeclarationMultiple pat declCtors = L.foldl f (pat, []) declCtors
+parseDeclarationMultiple :: (CssParser, CssToken) -> [PropertyCtor] -> ((CssParser, CssToken), [CssProperty])
+parseDeclarationMultiple pat propCtors = L.foldl f (pat, []) propCtors
   where
-    f (pat, acc) declCtor = case declCtor pat of
+    f (pat, acc) propCtor = case propCtor pat of
                               (pat', Nothing)   -> (pat', acc)
                               (pat', Just decl) -> (pat', (acc ++ [decl]))
 
@@ -2364,16 +2358,16 @@ parseDeclarationMultiple pat declCtors = L.foldl f (pat, []) declCtors
 
 -- Parse 4, 3, 2 or 1 tokens, specifying values for top, right, bottom, left,
 -- or for t, r-l, b, or for t-b, r-l, or for all of them at once.
-parseDeclaration4321trbl :: (CssParser, CssToken) -> [b -> CssDeclaration] -> DeclarationValueCtor b -> ((CssParser, CssToken), [CssDeclaration])
-parseDeclaration4321trbl pat (declCtorT:declCtorR:declCtorB:declCtorL:ctors) declValueCtor = (pat', ds)
+parseDeclaration4321trbl :: (CssParser, CssToken) -> [b -> CssProperty] -> PropertyValueCtor b -> ((CssParser, CssToken), [CssProperty])
+parseDeclaration4321trbl pat (propCtorT:propCtorR:propCtorB:propCtorL:ctors) propValueCtor = (pat', ds)
   where
-    ds = case declarationValues of
-           (top:right:bottom:left:[]) -> [ declCtorT top, declCtorR right, declCtorB bottom, declCtorL left ]
-           (top:rl:bottom:[])         -> [ declCtorT top, declCtorR rl,    declCtorB bottom, declCtorL rl   ]
-           (tb:rl:[])                 -> [ declCtorT tb,  declCtorR rl,    declCtorB tb,     declCtorL rl   ]
-           (v:[])                     -> [ declCtorT v,   declCtorR v,     declCtorB v,      declCtorL v    ]
+    ds = case propertyValues of
+           (top:right:bottom:left:[]) -> [ propCtorT top, propCtorR right, propCtorB bottom, propCtorL left ]
+           (top:rl:bottom:[])         -> [ propCtorT top, propCtorR rl,    propCtorB bottom, propCtorL rl   ]
+           (tb:rl:[])                 -> [ propCtorT tb,  propCtorR rl,    propCtorB tb,     propCtorL rl   ]
+           (v:[])                     -> [ propCtorT v,   propCtorR v,     propCtorB v,      propCtorL v    ]
            _                          -> []
-    (pat', declarationValues) = matchOrderedTokens pat declValueCtor []
+    (pat', propertyValues) = matchOrderedTokens pat propValueCtor []
 parseDeclaration4321trbl pat _ _ = (pat, [])
 
 
@@ -2382,11 +2376,11 @@ parseDeclaration4321trbl pat _ _ = (pat, [])
 -- Value tokens must be in proper order. Example: if property is
 -- "border-color", and there are four value tokens, then tokens must
 -- represent colors of "top","right","bottom","left" borders.
-matchOrderedTokens :: (CssParser, CssToken) -> DeclarationValueCtor b -> [b] -> ((CssParser, CssToken), [b])
-matchOrderedTokens (parser, token) declValueCtor declarationValues =
-  case declValueCtor (parser, token) of
-    ((p, t), Just v)  -> matchOrderedTokens (p, t) declValueCtor (declarationValues ++ [v])
-    ((p, t), Nothing) -> ((p, t), declarationValues)
+matchOrderedTokens :: (CssParser, CssToken) -> PropertyValueCtor b -> [b] -> ((CssParser, CssToken), [b])
+matchOrderedTokens (parser, token) propValueCtor propertyValues =
+  case propValueCtor (parser, token) of
+    ((p, t), Just v)  -> matchOrderedTokens (p, t) propValueCtor (propertyValues ++ [v])
+    ((p, t), Nothing) -> ((p, t), propertyValues)
 
 
 

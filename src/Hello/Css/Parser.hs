@@ -102,64 +102,67 @@ import HtmlTag
 
 
 
--- Only some of these properties are supported by this implementation.
+-- Mapping between name of non-shorthand property and a constructor of the
+-- property.
+--
+-- Only a subset of CSS2.2 properties is supported by this implementation.
 cssPropertyCtors = M.fromList [
-     ("background-attachment",  makeCssDeclarationBackgroundAttachment)
-   , ("background-color",       makeCssDeclarationBackgroundColor)
-   , ("background-image",       makeCssDeclarationBackgroundImage)
-   , ("background-position",    makeCssDeclarationBackgroundPosition)
-   , ("background-repeat",      makeCssDeclarationBackgroundRepeat)
+     ("background-attachment",  makeCssPropertyBackgroundAttachment)
+   , ("background-color",       makeCssPropertyBackgroundColor)
+   , ("background-image",       makeCssPropertyBackgroundImage)
+   , ("background-position",    makeCssPropertyBackgroundPosition)
+   , ("background-repeat",      makeCssPropertyBackgroundRepeat)
 
-   , ("border-collapse",        makeCssDeclarationBorderCollapse)
-   , ("border-spacing",         makeCssDeclarationBorderSpacing)
+   , ("border-collapse",        makeCssPropertyBorderCollapse)
+   , ("border-spacing",         makeCssPropertyBorderSpacing)
 
-   , ("border-top-color",       makeCssDeclarationBorderTopColor)
-   , ("border-right-color",     makeCssDeclarationBorderRightColor)
-   , ("border-bottom-color",    makeCssDeclarationBorderBottomColor)
-   , ("border-left-color",      makeCssDeclarationBorderLeftColor)
+   , ("border-top-color",       makeCssPropertyBorderTopColor)
+   , ("border-right-color",     makeCssPropertyBorderRightColor)
+   , ("border-bottom-color",    makeCssPropertyBorderBottomColor)
+   , ("border-left-color",      makeCssPropertyBorderLeftColor)
 
-   , ("border-top-style",       makeCssDeclarationBorderTopStyle)
-   , ("border-right-style",     makeCssDeclarationBorderRightStyle)
-   , ("border-bottom-style",    makeCssDeclarationBorderBottomStyle)
-   , ("border-left-style",      makeCssDeclarationBorderLeftStyle)
+   , ("border-top-style",       makeCssPropertyBorderTopStyle)
+   , ("border-right-style",     makeCssPropertyBorderRightStyle)
+   , ("border-bottom-style",    makeCssPropertyBorderBottomStyle)
+   , ("border-left-style",      makeCssPropertyBorderLeftStyle)
 
-   , ("border-top-width",       makeCssDeclarationBorderTopWidth)
-   , ("border-right-width",     makeCssDeclarationBorderRightWidth)
-   , ("border-bottom-width",    makeCssDeclarationBorderBottomWidth)
-   , ("border-left-width",      makeCssDeclarationBorderLeftWidth)
+   , ("border-top-width",       makeCssPropertyBorderTopWidth)
+   , ("border-right-width",     makeCssPropertyBorderRightWidth)
+   , ("border-bottom-width",    makeCssPropertyBorderBottomWidth)
+   , ("border-left-width",      makeCssPropertyBorderLeftWidth)
 
    --, ("bottom",                 Nothing)
    --, ("caption-side",           Nothing)
    --, ("clear",                  Nothing)
    --, ("clip",                   Nothing)
-   , ("color",                  makeCssDeclarationColor)
-   , ("content",                makeCssDeclarationContent)
+   , ("color",                  makeCssPropertyColor)
+   , ("content",                makeCssPropertyContent)
    --, ("counter-increment",      Nothing)
    --, ("counter-reset",          Nothing)
-   , ("cursor",                 makeCssDeclarationCursor)
+   , ("cursor",                 makeCssPropertyCursor)
    --, ("direction",              Nothing)
-   , ("display",                makeCssDeclarationDisplay)
+   , ("display",                makeCssPropertyDisplay)
    --, ("empty-cells",            Nothing)
    --, ("float",                  Nothing)
-   , ("font-family",            makeCssDeclarationFontFamily)
-   , ("font-size",              makeCssDeclarationFontSize)
+   , ("font-family",            makeCssPropertyFontFamily)
+   , ("font-size",              makeCssPropertyFontSize)
    --, ("font-size-adjust",       Nothing)
    --, ("font-stretch",           Nothing)
-   , ("font-style",             makeCssDeclarationFontStyle)
-   , ("font-variant",           makeCssDeclarationFontVariant)
-   , ("font-weight",            makeCssDeclarationFontWeight)
-   , ("height",                 makeCssDeclarationHeight)
+   , ("font-style",             makeCssPropertyFontStyle)
+   , ("font-variant",           makeCssPropertyFontVariant)
+   , ("font-weight",            makeCssPropertyFontWeight)
+   , ("height",                 makeCssPropertyHeight)
    --, ("left",                   Nothing)
-   , ("letter-spacing",         makeCssDeclarationLetterSpacing)
-   , ("line-height",            makeCssDeclarationLineHeight)
-   , ("list-style-image",       makeCssDeclarationListStyleImage)
-   , ("list-style-position",    makeCssDeclarationListStylePosition)
-   , ("list-style-type",        makeCssDeclarationListStyleType)
+   , ("letter-spacing",         makeCssPropertyLetterSpacing)
+   , ("line-height",            makeCssPropertyLineHeight)
+   , ("list-style-image",       makeCssPropertyListStyleImage)
+   , ("list-style-position",    makeCssPropertyListStylePosition)
+   , ("list-style-type",        makeCssPropertyListStyleType)
 
-   , ("margin-top",             makeCssDeclarationMarginTop)
-   , ("margin-right",           makeCssDeclarationMarginRight)
-   , ("margin-bottom",          makeCssDeclarationMarginBottom)
-   , ("margin-left",            makeCssDeclarationMarginLeft)
+   , ("margin-top",             makeCssPropertyMarginTop)
+   , ("margin-right",           makeCssPropertyMarginRight)
+   , ("margin-bottom",          makeCssPropertyMarginBottom)
+   , ("margin-left",            makeCssPropertyMarginLeft)
 
    --, ("marker-offset",          Nothing)
    --, ("marks",                  Nothing)
@@ -171,84 +174,88 @@ cssPropertyCtors = M.fromList [
    --, ("outline-style",          Nothing)
    --, ("outline-width",          Nothing)
    --, ("overflow",               Nothing)
-   , ("padding-bottom",         makeCssDeclarationPaddingBottom)
-   , ("padding-left",           makeCssDeclarationPaddingLeft)
-   , ("padding-right",          makeCssDeclarationPaddingRight)
-   , ("padding-top",            makeCssDeclarationPaddingTop)
+   , ("padding-bottom",         makeCssPropertyPaddingBottom)
+   , ("padding-left",           makeCssPropertyPaddingLeft)
+   , ("padding-right",          makeCssPropertyPaddingRight)
+   , ("padding-top",            makeCssPropertyPaddingTop)
    --, ("position",               Nothing)
    --, ("quotes",                 Nothing)
    --, ("right",                  Nothing)
-   , ("text-align",             makeCssDeclarationTextAlign)
-   , ("text-decoration",        makeCssDeclarationTextDecoration)
-   , ("text-indent",            makeCssDeclarationTextIndent)
+   , ("text-align",             makeCssPropertyTextAlign)
+   , ("text-decoration",        makeCssPropertyTextDecoration)
+   , ("text-indent",            makeCssPropertyTextIndent)
    --, ("text-shadow",            Nothing)
-   , ("text-transform",         makeCssDeclarationTextTransform)
+   , ("text-transform",         makeCssPropertyTextTransform)
    --, ("top",                    Nothing)
    --, ("unicode-bidi",           Nothing)
-   , ("vertical-align",         makeCssDeclarationVerticalAlign)
+   , ("vertical-align",         makeCssPropertyVerticalAlign)
    --, ("visibility",             Nothing)
-   , ("white-space",            makeCssDeclarationWhitespace)
-   , ("width",                  makeCssDeclarationWidth)
-   , ("word-spacing",           makeCssDeclarationWordSpacing)
+   , ("white-space",            makeCssPropertyWhitespace)
+   , ("width",                  makeCssPropertyWidth)
+   , ("word-spacing",           makeCssPropertyWordSpacing)
    --, ("z-index",                Nothing)
-   ] :: M.Map T.Text DeclarationCtor
+   ] :: M.Map T.Text PropertyCtor
 
 
 
 
--- Mapping between shorthand name of property and a constructor
-cssShorthandInfo :: M.Map T.Text DeclarationShorthandCtor
+-- Mapping between name of shorthand property and a constructor of the
+-- property.
+--
+-- Only a subset of CSS2.2 properties is supported by this implementation.
+cssShorthandInfo :: M.Map T.Text ShorthandPropertyCtor
 cssShorthandInfo = M.fromList [
-    ("background",         makeCssDeclarationBackground)
+    ("background",         makeCssPropertyBackground)
 
     -- Parsing of this property is unit-tested.
-  , ("border",             makeCssDeclarationBorder)
+  , ("border",             makeCssPropertyBorder)
 
     -- Parsing of this property is unit-tested.
-  , ("border-top",         makeCssDeclarationBorderTop)
+  , ("border-top",         makeCssPropertyBorderTop)
     -- Parsing of this property is unit-tested.
-  , ("border-right",       makeCssDeclarationBorderRight)
+  , ("border-right",       makeCssPropertyBorderRight)
     -- Parsing of this property is unit-tested.
-  , ("border-bottom",      makeCssDeclarationBorderBottom)
+  , ("border-bottom",      makeCssPropertyBorderBottom)
     -- Parsing of this property is unit-tested.
-  , ("border-left",        makeCssDeclarationBorderLeft)
+  , ("border-left",        makeCssPropertyBorderLeft)
 
     -- Parsing of this property is unit-tested.
-  , ("border-width",       makeCssDeclarationBorderWidth)
+  , ("border-width",       makeCssPropertyBorderWidth)
     -- Parsing of this property is unit-tested.
-  , ("border-style",       makeCssDeclarationBorderStyle)
+  , ("border-style",       makeCssPropertyBorderStyle)
     -- Parsing of this property is unit-tested.
-  , ("border-color",       makeCssDeclarationBorderColor)
+  , ("border-color",       makeCssPropertyBorderColor)
 
-  --, ("font",           makeCssDeclarationFont)
-
-    -- Parsing of this property is unit-tested (poorly).
-  , ("list-style",         makeCssDeclarationListStyle)
-
-    -- Parsing of this property is unit-tested.
-  , ("margin",             makeCssDeclarationMargin)
+  --, ("font",           makeCssPropertyFont)
 
     -- Parsing of this property is unit-tested (poorly).
-  , ("padding",            makeCssDeclarationPadding)
+  , ("list-style",         makeCssPropertyListStyle)
+
+    -- Parsing of this property is unit-tested.
+  , ("margin",             makeCssPropertyMargin)
+
+    -- Parsing of this property is unit-tested (poorly).
+  , ("padding",            makeCssPropertyPadding)
   ]
 
 
 
 
--- Use property name string to look up constructor of CSS declaration.
+-- Use name of property to look up a constructor used to parse the property
+-- and the property's value.
 --
 -- TODO: case-insensitive search?
-getDeclarationCtorByName :: T.Text -> Maybe DeclarationCtor
-getDeclarationCtorByName propertyName = M.lookup propertyName cssPropertyCtors
+getPropertyCtorByName :: T.Text -> Maybe PropertyCtor
+getPropertyCtorByName propertyName = M.lookup propertyName cssPropertyCtors
 
 
 
 
--- Use name of shorthand property to look up a helper structure used to parse
--- the shorthand property and the property's value.
+-- Use name of shorthand property to look up a constructor used to parse the
+-- shorthand property and the property's value.
 --
 -- TODO: case-insensitive search?
-getShorthandCtorByName :: T.Text -> Maybe DeclarationShorthandCtor
+getShorthandCtorByName :: T.Text -> Maybe ShorthandPropertyCtor
 getShorthandCtorByName shorthandName = M.lookup shorthandName cssShorthandInfo
 
 
@@ -647,7 +654,7 @@ removeSpaceTokens [] acc                             = acc
 -- flag.
 data CssDeclarationSet = CssDeclarationSet
   { isSafe :: Bool
-  , items  :: S.Seq CssDeclWrapper
+  , items  :: S.Seq CssDeclaration
   } deriving (Show, Eq)
 
 
@@ -659,19 +666,19 @@ defaultCssDeclarationSet = CssDeclarationSet
 
 
 
-parseDeclarationNormal :: (CssParser, CssToken) -> DeclarationCtor -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationNormal pat ctor = case ctor pat of
-                                    (pat', Just declaration) -> (pat', [defaultDeclaration{property = declaration}])
-                                    (pat', Nothing)          -> (pat', []) -- TODO: return here "pat'" or "pat"?
+parseDeclarationNormal :: (CssParser, CssToken) -> PropertyCtor -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationNormal pat propCtor = case propCtor pat of
+                                        (pat', Just prop) -> (pat', [defaultDeclaration{property = prop}])
+                                        (pat', Nothing)   -> (pat', []) -- TODO: return here "pat'" or "pat"?
 
 
 
 
-parseDeclarationShorthand :: (CssParser, CssToken) -> DeclarationShorthandCtor -> ((CssParser, CssToken), [CssDeclWrapper])
-parseDeclarationShorthand pat ctor = (pat', wrapped)
+parseDeclarationShorthand :: (CssParser, CssToken) -> ShorthandPropertyCtor -> ((CssParser, CssToken), [CssDeclaration])
+parseDeclarationShorthand pat ctor = (pat', decls)
   where
-    (pat', decls) = ctor pat
-    wrapped = fmap (\x -> defaultDeclaration { property = x }) decls
+    (pat', properties) = ctor pat
+    decls = fmap (\x -> defaultDeclaration { property = x }) properties
 
 
 
@@ -693,9 +700,9 @@ takePropertyNameToken (parser, nameToken) =
 -- declarations. E.g. "border-color: red" shorthand will be translated into a
 -- list of "normal" declarations that will look like this:
 -- ["border-top-color: red"; "border-right-color: red"; "border-bottom-color: red"; "border-left-color: red"]
-parseSingleDeclarationNormalOrShorthand :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+parseSingleDeclarationNormalOrShorthand :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 parseSingleDeclarationNormalOrShorthand pat = case takePropertyNameToken pat of
-                                                (pat', Just (CssTokIdent sym)) -> case getDeclarationCtorByName sym of
+                                                (pat', Just (CssTokIdent sym)) -> case getPropertyCtorByName sym of
                                                                                     Just ctor -> parseDeclarationNormal pat' ctor
                                                                                     Nothing   -> case getShorthandCtorByName sym of
                                                                                                    Just ctor -> parseDeclarationShorthand pat' ctor
@@ -708,7 +715,7 @@ parseSingleDeclarationNormalOrShorthand pat = case takePropertyNameToken pat of
 -- For non-shorthand declaration, this function should produce one-element
 -- list. But a shorthand declaration translates into two or more regular
 -- declarations, hence the return type contains a list of declarations.
-parseSingleDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclWrapper])
+parseSingleDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 parseSingleDeclaration (p1, t1) = ((outParser, outToken), declarationsWithImportant)
   where
     ((p2, t2), declarations) = parseSingleDeclarationNormalOrShorthand (p1, t1)
@@ -729,7 +736,7 @@ parseDeclarationWrapper pat (inSet, inSetImp) = (pat', (outSet, outSetImp))
     (pat', declarations) = parseSingleDeclaration pat
     (outSet, outSetImp)  = appendDeclarations declarations inSet inSetImp
 
-    appendDeclarations :: [CssDeclWrapper] -> CssDeclarationSet -> CssDeclarationSet -> (CssDeclarationSet, CssDeclarationSet)
+    appendDeclarations :: [CssDeclaration] -> CssDeclarationSet -> CssDeclarationSet -> (CssDeclarationSet, CssDeclarationSet)
     appendDeclarations [] set setImp     = (set, setImp)
     appendDeclarations (d:ds) set setImp = if important d
                                            then appendDeclarations ds set (declarationsSetUpdateOrAdd setImp d)
@@ -761,7 +768,7 @@ takeAllTokens (parser,token) = do
 
 
 
-declarationsSetUpdateOrAdd :: CssDeclarationSet -> CssDeclWrapper -> CssDeclarationSet
+declarationsSetUpdateOrAdd :: CssDeclarationSet -> CssDeclaration -> CssDeclarationSet
 declarationsSetUpdateOrAdd declSet decl =
   case S.findIndexL pred seq of
     Just idx -> CssDeclarationSet {items = S.update idx decl seq, isSafe = newSafe declSet decl}
@@ -769,16 +776,16 @@ declarationsSetUpdateOrAdd declSet decl =
   where
     -- Use 'toConstr' to compare constructors, but values without passed to constructors.
     -- https://stackoverflow.com/questions/47861648/a-general-way-of-comparing-constructors-of-two-terms-in-haskell
-    pred :: CssDeclWrapper -> Bool
+    pred :: CssDeclaration -> Bool
     pred x = (toConstr . property $ x) == (toConstr . property $ decl)
 
     seq = items declSet
 
-    newSafe :: CssDeclarationSet -> CssDeclWrapper -> Bool
+    newSafe :: CssDeclarationSet -> CssDeclaration -> Bool
     newSafe declSet decl = (isSafe declSet) && case property decl of
-                                                 CssDeclarationDisplay _         -> False
-                                                 CssDeclarationBackgroundImage _ -> False
-                                                 otherwise                       -> True
+                                                 CssPropertyDisplay _         -> False
+                                                 CssPropertyBackgroundImage _ -> False
+                                                 otherwise                    -> True
 
 
 

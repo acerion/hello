@@ -604,7 +604,7 @@ pokeCssComplexSelector ptrStructCssComplexSelector selector = do
 
 
 
-data FfiCssDeclWrapper = FfiCssDeclWrapper {
+data FfiCssDeclaration = FfiCssDeclaration {
     importantC :: CInt
   , propertyC  :: CInt
   , ptrValueC  :: Ptr FfiCssValue
@@ -625,11 +625,11 @@ typedef struct c_css_declaration_t {
 
 
 
-instance Storable FfiCssDeclWrapper where
+instance Storable FfiCssDeclaration where
   sizeOf    _ = #{size c_css_declaration_t}
   alignment _ = #{alignment c_css_declaration_t}
 
-  poke ptr (FfiCssDeclWrapper argImportant argProperty argPtrStructValue) = do
+  poke ptr (FfiCssDeclaration argImportant argProperty argPtrStructValue) = do
     #{poke c_css_declaration_t, c_important} ptr argImportant
     #{poke c_css_declaration_t, c_property}  ptr argProperty
     #{poke c_css_declaration_t, c_value}     ptr argPtrStructValue
@@ -638,13 +638,13 @@ instance Storable FfiCssDeclWrapper where
     a <- #{peek c_css_declaration_t, c_important} ptr
     b <- #{peek c_css_declaration_t, c_property}  ptr
     c <- #{peek c_css_declaration_t, c_value}     ptr
-    return (FfiCssDeclWrapper a b c)
+    return (FfiCssDeclaration a b c)
 
 
 
 
-peekCssDeclWrapper :: Ptr FfiCssDeclWrapper -> IO CssDeclWrapper
-peekCssDeclWrapper ptr = do
+peekCssDeclaration :: Ptr FfiCssDeclaration -> IO CssDeclaration
+peekCssDeclaration ptr = do
 
   ffiDecl <- peek ptr
 
@@ -661,8 +661,8 @@ peekCssDeclWrapper ptr = do
 
 
 
-allocAndPokeCssDeclWrapper :: CssDeclWrapper -> IO (Ptr FfiCssDeclWrapper)
-allocAndPokeCssDeclWrapper declaration = do
+allocAndPokeCssDeclaration :: CssDeclaration -> IO (Ptr FfiCssDeclaration)
+allocAndPokeCssDeclaration declaration = do
   let textVal = case getDeclValue . property $ declaration of
                   CssValueTypeString t     -> t
                   CssValueTypeStringList (x:xs) -> x -- Unfortunately we drop here the tail of the list
@@ -690,8 +690,8 @@ allocAndPokeCssDeclWrapper declaration = do
 
   let imp :: CInt = if important declaration then 1 else 0
   let prop :: CInt = fromIntegral . findPropertyIndex . property $ declaration
-  ptrStructDeclaration :: Ptr FfiCssDeclWrapper <- callocBytes #{size c_css_declaration_t}
-  poke ptrStructDeclaration $ FfiCssDeclWrapper imp prop ptrStructCssValue
+  ptrStructDeclaration :: Ptr FfiCssDeclaration <- callocBytes #{size c_css_declaration_t}
+  poke ptrStructDeclaration $ FfiCssDeclaration imp prop ptrStructCssValue
 
   return ptrStructDeclaration
 
@@ -754,7 +754,7 @@ instance Storable FfiCssValue where
 
 data FfiCssDeclarationSet = FfiCssDeclarationSet {
     isSafeC           :: CInt
-  , ptrDeclarationsC  :: Ptr (Ptr FfiCssDeclWrapper)
+  , ptrDeclarationsC  :: Ptr (Ptr FfiCssDeclaration)
   , declarationsSizeC :: CInt
   } deriving (Show)
 
@@ -800,8 +800,8 @@ peekCssDeclarationSet ptrStructDeclarationSet = do
   when (ptrDeclarationsC ffiDeclSet == nullPtr) (trace ("Error: null pointer inside of declaration set") putStr (""))
 
   let len = (fromIntegral . declarationsSizeC $ ffiDeclSet)
-  let array :: Ptr (Ptr FfiCssDeclWrapper) = ptrDeclarationsC ffiDeclSet
-  decls <- peekArrayOfPointers array len peekCssDeclWrapper
+  let array :: Ptr (Ptr FfiCssDeclaration) = ptrDeclarationsC ffiDeclSet
+  decls <- peekArrayOfPointers array len peekCssDeclaration
   return CssDeclarationSet{ isSafe = isSafeC ffiDeclSet > 0
                           , items = S.fromList decls
                           }
@@ -818,7 +818,7 @@ pokeCssDeclarationSet ptrStructDeclarationSet newDeclSet = do
   let cCount  :: CInt = fromIntegral . length . items $ newDeclSet
 
   pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_is_safe) cIsSafe
-  pokeArrayOfPointersWithAlloc (Foldable.toList . items $ newDeclSet) allocAndPokeCssDeclWrapper (ptrDeclarationsC ffiDeclSet)
+  pokeArrayOfPointersWithAlloc (Foldable.toList . items $ newDeclSet) allocAndPokeCssDeclaration (ptrDeclarationsC ffiDeclSet)
   pokeByteOff ptrStructDeclarationSet (#offset c_css_declaration_set_t, c_declarations_size) cCount
   --poke ptrStructDeclarationSet $ FfiCssDeclarationSet cIsSafe (ptrDeclarationsC ffiDeclSet) cCount -- TODO: why setting "array of pointers" field doesn't work?
 
@@ -850,13 +850,13 @@ hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken ptrStructCssDec
 
 
 
-hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclWrapper -> IO (Ptr FfiCssDeclarationSet)
+hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO (Ptr FfiCssDeclarationSet)
 hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDeclaration = do
 
   declSet :: CssDeclarationSet <- if ptrStructDeclarationSet == nullPtr
                                   then return defaultCssDeclarationSet
                                   else peekCssDeclarationSet ptrStructDeclarationSet
-  decl    :: CssDeclWrapper    <- peekCssDeclWrapper ptrStructDeclaration
+  decl    :: CssDeclaration    <- peekCssDeclaration ptrStructDeclaration
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
 

@@ -114,7 +114,7 @@ hll_styleEngineSetXImgOfNode cNonCssDeclSetRef cIntVal = do
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
   let intVal     = fromIntegral cIntVal
-  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper (CssDeclarationXImg $ CssValueXImg intVal) False)
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration (CssPropertyXImg $ CssValueXImg intVal) False)
 
   globalDeclarationSetUpdate ref newDeclSet
 
@@ -129,7 +129,7 @@ hll_styleEngineSetXLinkOfNode cNonCssDeclSetRef cIntVal = do
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
   let intVal     = fromIntegral cIntVal
-  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper (CssDeclarationXLink $ CssValueXLink intVal) False)
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration (CssPropertyXLink $ CssValueXLink intVal) False)
 
   globalDeclarationSetUpdate ref newDeclSet
 
@@ -148,26 +148,26 @@ hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cLengthValu
   let property    = fromIntegral cProperty
   let distance    = cssLengthToDistance lengthValue lengthType
 
-  let decl | property ==  7 = CssDeclarationBorderBottomWidth $ CssValueBorderWidthDistance distance
-           | property == 11 = CssDeclarationBorderLeftWidth   $ CssValueBorderWidthDistance distance
-           | property == 14 = CssDeclarationBorderRightWidth  $ CssValueBorderWidthDistance distance
-           | property == 15 = CssDeclarationBorderSpacing     $ CssValueBorderSpacingDistance distance
-           | property == 18 = CssDeclarationBorderTopWidth    $ CssValueBorderWidthDistance distance
-           | property == 39 = CssDeclarationHeight            $ CssValueHeightDistance distance
+  let decl | property ==  7 = CssPropertyBorderBottomWidth $ CssValueBorderWidthDistance distance
+           | property == 11 = CssPropertyBorderLeftWidth   $ CssValueBorderWidthDistance distance
+           | property == 14 = CssPropertyBorderRightWidth  $ CssValueBorderWidthDistance distance
+           | property == 15 = CssPropertyBorderSpacing     $ CssValueBorderSpacingDistance distance
+           | property == 18 = CssPropertyBorderTopWidth    $ CssValueBorderWidthDistance distance
+           | property == 39 = CssPropertyHeight            $ CssValueHeightDistance distance
 
-           | property == 49 = CssDeclarationMarginTop         $ CssValueMarginDistance distance
-           | property == 48 = CssDeclarationMarginRight       $ CssValueMarginDistance distance
-           | property == 46 = CssDeclarationMarginBottom      $ CssValueMarginDistance distance
-           | property == 47 = CssDeclarationMarginLeft        $ CssValueMarginDistance distance
+           | property == 49 = CssPropertyMarginTop         $ CssValueMarginDistance distance
+           | property == 48 = CssPropertyMarginRight       $ CssValueMarginDistance distance
+           | property == 46 = CssPropertyMarginBottom      $ CssValueMarginDistance distance
+           | property == 47 = CssPropertyMarginLeft        $ CssValueMarginDistance distance
 
-           | property == 60 = CssDeclarationPaddingBottom     $ CssValuePadding distance
-           | property == 61 = CssDeclarationPaddingLeft       $ CssValuePadding distance
-           | property == 62 = CssDeclarationPaddingRight      $ CssValuePadding distance
-           | property == 63 = CssDeclarationPaddingTop        $ CssValuePadding distance
-           | property == 77 = CssDeclarationWidth             $ CssValueWidthDistance distance
+           | property == 60 = CssPropertyPaddingBottom     $ CssValuePadding distance
+           | property == 61 = CssPropertyPaddingLeft       $ CssValuePadding distance
+           | property == 62 = CssPropertyPaddingRight      $ CssValuePadding distance
+           | property == 63 = CssPropertyPaddingTop        $ CssValuePadding distance
+           | property == 77 = CssPropertyWidth             $ CssValueWidthDistance distance
            | otherwise      = trace ("[EE] Unhandled length property " ++ (show property)) (undefined)
 
-  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
   globalDeclarationSetUpdate ref newDeclSet
 
@@ -246,18 +246,18 @@ hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
 
   let property = fromIntegral cProperty
   let enumVal   = fromIntegral cEnumVal
-  let decl | property ==  6 = CssDeclarationBorderBottomStyle $ getBorderStyle enumVal
-           | property == 10 = CssDeclarationBorderLeftStyle   $ getBorderStyle enumVal
-           | property == 13 = CssDeclarationBorderRightStyle  $ getBorderStyle enumVal
-           | property == 17 = CssDeclarationBorderTopStyle    $ getBorderStyle enumVal
-           | property == 44 = CssDeclarationListStylePosition $ getListStylePosition enumVal
-           | property == 45 = CssDeclarationListStyleType     $ getListStyleType enumVal
-           | property == 67 = CssDeclarationTextAlign         $ getTextAlign enumVal
-           | property == 74 = CssDeclarationVerticalAlign     $ getVerticalAlign enumVal
-           | property == 76 = CssDeclarationWhitespace        $ getWhitespace enumVal
+  let decl | property ==  6 = CssPropertyBorderBottomStyle $ getBorderStyle enumVal
+           | property == 10 = CssPropertyBorderLeftStyle   $ getBorderStyle enumVal
+           | property == 13 = CssPropertyBorderRightStyle  $ getBorderStyle enumVal
+           | property == 17 = CssPropertyBorderTopStyle    $ getBorderStyle enumVal
+           | property == 44 = CssPropertyListStylePosition $ getListStylePosition enumVal
+           | property == 45 = CssPropertyListStyleType     $ getListStyleType enumVal
+           | property == 67 = CssPropertyTextAlign         $ getTextAlign enumVal
+           | property == 74 = CssPropertyVerticalAlign     $ getVerticalAlign enumVal
+           | property == 76 = CssPropertyWhitespace        $ getWhitespace enumVal
            | otherwise      = trace ("[EE] Unhandled enum property " ++ (show property)) (undefined)
 
-  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
   globalDeclarationSetUpdate ref newDeclSet
 
@@ -273,11 +273,11 @@ hll_styleEngineSetNonCssHintOfNodeColor cNonCssDeclSetRef cProperty cColor  = do
 
   let property = fromIntegral cProperty
   let color    = fromIntegral cColor
-  let decl | property ==  1 = CssDeclarationBackgroundColor $ CssValueBackgroundColorColor color
-           | property == 23 = CssDeclarationColor $ CssValueColor color
+  let decl | property ==  1 = CssPropertyBackgroundColor $ CssValueBackgroundColorColor color
+           | property == 23 = CssPropertyColor $ CssValueColor color
            | otherwise      = trace ("[EE] Unhandled color property " ++ (show property)) (undefined)
 
-  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
   globalDeclarationSetUpdate ref newDeclSet
 
@@ -294,10 +294,10 @@ hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cStringVal 
   textVal     <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
   let property = fromIntegral cProperty
 
-  let decl | property == 32 = CssDeclarationFontFamily $ CssValueFontFamilyList [textVal]
+  let decl | property == 32 = CssPropertyFontFamily $ CssValueFontFamilyList [textVal]
            | otherwise      = trace ("[EE] Unhandled string property " ++ (show property)) (undefined)
 
-  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
   globalDeclarationSetUpdate ref newDeclSet
 
@@ -312,8 +312,8 @@ hll_styleEngineSetXLangOfNode cNonCssDeclSetRef cStringVal = do
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
   textVal <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
-  let decl = CssDeclarationXLang $ CssValueXLang textVal
-  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
+  let decl = CssPropertyXLang $ CssValueXLang textVal
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
   globalDeclarationSetUpdate ref newDeclSet
 
@@ -328,8 +328,8 @@ hll_styleEngineSetXTooltipOfNode cNonCssDeclSetRef cStringVal = do
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
   textVal <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
-  let decl = CssDeclarationXTooltip $ CssValueXTooltip textVal
-  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclWrapper decl False)
+  let decl = CssPropertyXTooltip $ CssValueXTooltip textVal
+  let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
   globalDeclarationSetUpdate ref newDeclSet
 
@@ -642,14 +642,14 @@ hll_styleEngineSetStyle cProperty ptrStructCssValue dpiX dpiY ptrStructStyleAttr
 
 
 {-
-hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssDeclaration)
+hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssProperty)
 hll_makeCssDeclaration cProperty ptrFfiCssValue = do
   let property = fromIntegral cProperty
 
   ffiCssValue :: FfiCssValue <- peek ptrFfiCssValue
   cssValue <- peekCssValue ffiCssValue
 
-  let declaration = CssDeclaration property cssValue False
+  let declaration = CssProperty property cssValue False
 
   allocAndPokeCssDeclaration declaration
 -}
@@ -671,7 +671,7 @@ hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIn
   let lengthType  = fromIntegral cLengthType
 
   let cssValue :: CssValue = makeValue valType intVal textVal lengthValue lengthType
-  let decl :: CssDeclWrapper = CssDeclWrapper (propMaker cssValue) False
+  let decl :: CssDeclaration = CssDeclaration (propMaker cssValue) False
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet decl
 

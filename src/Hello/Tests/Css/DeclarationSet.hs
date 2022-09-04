@@ -54,18 +54,18 @@ declarationsSetAppendData = [
   ( CssDeclarationSet { isSafe = True
                       , items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 11), important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatNoRepeat, important = True  }
+                          CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 11), important = True  }
+                        , CssDeclaration { property = CssPropertyBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }
+                        , CssDeclaration { property = CssPropertyBackgroundRepeat CssValueBackgroundRepeatNoRepeat, important = True  }
                         ]
                       }
   -- incoming:
   , CssDeclarationSet { isSafe = True
                       , items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
-                        , CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate, important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 99), important = False }
+                          CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
+                        , CssDeclaration { property = CssPropertyBorderCollapse CssValueBorderCollapseSeparate, important = True  }
+                        , CssDeclaration { property = CssPropertyBorderLeftColor (CssValueBorderColor 99), important = False }
                         ]
                       }
 
@@ -73,12 +73,12 @@ declarationsSetAppendData = [
   , CssDeclarationSet { isSafe = True
                       , items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 11), important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatNoRepeat, important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
-                        , CssDeclWrapper { property = CssDeclarationBorderCollapse CssValueBorderCollapseSeparate, important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 99), important = False }
+                          CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 11), important = True  }
+                        , CssDeclaration { property = CssPropertyBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }
+                        , CssDeclaration { property = CssPropertyBackgroundRepeat CssValueBackgroundRepeatNoRepeat, important = True  }
+                        , CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
+                        , CssDeclaration { property = CssPropertyBorderCollapse CssValueBorderCollapseSeparate, important = True  }
+                        , CssDeclaration { property = CssPropertyBorderLeftColor (CssValueBorderColor 99), important = False }
                         ]
                       }
   )
@@ -89,29 +89,29 @@ declarationsSetAppendData = [
   ( CssDeclarationSet { isSafe = True
                       , items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 12), important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }   -- <---- this entry will be replaced/updated...
-                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatRepeatX, important = True  }
+                          CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 12), important = True  }
+                        , CssDeclaration { property = CssPropertyBackgroundPosition (CssValueBackgroundPositionXY 0 0), important = False }   -- <---- this entry will be replaced/updated...
+                        , CssDeclaration { property = CssPropertyBackgroundRepeat CssValueBackgroundRepeatRepeatX, important = True  }
                         ]
                       }
   -- incoming:
   , CssDeclarationSet { isSafe = True
                       , items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 11 12), important = True  }   -- <---- ... with this one.
-                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 67), important = False }
+                          CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
+                        , CssDeclaration { property = CssPropertyBackgroundPosition (CssValueBackgroundPositionXY 11 12), important = True  }   -- <---- ... with this one.
+                        , CssDeclaration { property = CssPropertyBorderLeftColor (CssValueBorderColor 67), important = False }
                         ]
                       }
   -- merged:
   , CssDeclarationSet { isSafe = True,
                         items  = myFromList
                         [
-                          CssDeclWrapper { property = CssDeclarationBackgroundColor (CssValueBackgroundColorColor 12), important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBackgroundPosition (CssValueBackgroundPositionXY 11 12), important = True  }   -- <---- And here is the result of updating.
-                        , CssDeclWrapper { property = CssDeclarationBackgroundRepeat CssValueBackgroundRepeatRepeatX, important = True  }
-                        , CssDeclWrapper { property = CssDeclarationBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
-                        , CssDeclWrapper { property = CssDeclarationBorderLeftColor (CssValueBorderColor 67), important = False }
+                          CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 12), important = True  }
+                        , CssDeclaration { property = CssPropertyBackgroundPosition (CssValueBackgroundPositionXY 11 12), important = True  }   -- <---- And here is the result of updating.
+                        , CssDeclaration { property = CssPropertyBackgroundRepeat CssValueBackgroundRepeatRepeatX, important = True  }
+                        , CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 1.0)), important = False }
+                        , CssDeclaration { property = CssPropertyBorderLeftColor (CssValueBorderColor 67), important = False }
                         ]
                       }
   )

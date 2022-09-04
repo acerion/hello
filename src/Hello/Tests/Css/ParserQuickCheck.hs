@@ -119,7 +119,7 @@ parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected
   where
     (pat', outDeclarations) = parseSingleDeclaration pat
     pat                     = nextToken2 defaultParser { remainder = input }
-    (input, expected)       = buildSuccessRow "margin" [CssDeclarationMarginTop, CssDeclarationMarginRight, CssDeclarationMarginBottom, CssDeclarationMarginLeft] CssValueMarginDistance units values
+    (input, expected)       = buildSuccessRow "margin" [CssPropertyMarginTop, CssPropertyMarginRight, CssPropertyMarginBottom, CssPropertyMarginLeft] CssValueMarginDistance units values
 
     -- For debugging only
     traceData       = show valuesWithUnits ++ "  " ++ show outDeclarations

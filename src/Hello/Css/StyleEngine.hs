@@ -301,21 +301,21 @@ styleEngineSetFontVariant declValue fontAttrs = fontAttrs { fontVariant = fromEn
 styleEngineApplyStyleToFont :: CssDeclarationSet -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
 styleEngineApplyStyleToFont declSet prefs display parentFontAttrs fontAttrs = apply (items declSet) prefs display parentFontAttrs fontAttrs
   where
-    apply :: S.Seq CssDeclWrapper -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
+    apply :: S.Seq CssDeclaration -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
     apply decls prefs display parentFontAttrs fontAttrs =
       case S.null decls of
         True -> fontAttrs
         False -> case property x of
-                   CssDeclarationFontFamily value        -> apply xs prefs display parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
-                   CssDeclarationFontSize declValue      -> apply xs prefs display parentFontAttrs $ styleEngineSetFontSize declValue prefs display parentFontAttrs fontAttrs
-                   CssDeclarationFontStyle declValue     -> apply xs prefs display parentFontAttrs $ styleEngineSetFontStyle declValue fontAttrs
-                   CssDeclarationFontVariant declValue   -> apply xs prefs display parentFontAttrs $ styleEngineSetFontVariant declValue fontAttrs
-                   CssDeclarationFontWeight declValue    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight declValue fontAttrs
-                   CssDeclarationLetterSpacing declValue -> apply xs prefs display parentFontAttrs $ styleEngineSetLetterSpacing declValue display parentFontAttrs fontAttrs
-                   otherwise                             -> apply xs prefs display parentFontAttrs $ fontAttrs
+                   CssPropertyFontFamily value        -> apply xs prefs display parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
+                   CssPropertyFontSize declValue      -> apply xs prefs display parentFontAttrs $ styleEngineSetFontSize declValue prefs display parentFontAttrs fontAttrs
+                   CssPropertyFontStyle declValue     -> apply xs prefs display parentFontAttrs $ styleEngineSetFontStyle declValue fontAttrs
+                   CssPropertyFontVariant declValue   -> apply xs prefs display parentFontAttrs $ styleEngineSetFontVariant declValue fontAttrs
+                   CssPropertyFontWeight declValue    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight declValue fontAttrs
+                   CssPropertyLetterSpacing declValue -> apply xs prefs display parentFontAttrs $ styleEngineSetLetterSpacing declValue display parentFontAttrs fontAttrs
+                   otherwise                          -> apply xs prefs display parentFontAttrs $ fontAttrs
           where
-            x  :: CssDeclWrapper       = S.index decls 0
-            xs :: S.Seq CssDeclWrapper = S.drop 1 decls
+            x  :: CssDeclaration       = S.index decls 0
+            xs :: S.Seq CssDeclaration = S.drop 1 decls
 
 
 
@@ -339,19 +339,19 @@ styleEngineApplyStyleToGivenNode declSet prefs display parentStyleAttrs styleAtt
     fontAttrs'  = styleEngineApplyStyleToFont declSet prefs display (styleFontAttrs parentStyleAttrs) (styleFontAttrs styleAttrs)
     styleAttrs' = setRemainingAttrs (items declSet) display styleAttrs { styleFontAttrs = fontAttrs' }
 
-    setRemainingAttrs :: S.Seq CssDeclWrapper -> Display -> StyleAttrs -> StyleAttrs
+    setRemainingAttrs :: S.Seq CssDeclaration -> Display -> StyleAttrs -> StyleAttrs
     setRemainingAttrs decls display styleAttrs =
       case S.null decls of
         True  -> styleAttrs
         False -> setRemainingAttrs xs display $ styleEngineSetStyle (property x) display parentStyleAttrs styleAttrs
           where
-            x  :: CssDeclWrapper       = S.index decls 0
-            xs :: S.Seq CssDeclWrapper = S.drop 1 decls
+            x  :: CssDeclaration       = S.index decls 0
+            xs :: S.Seq CssDeclaration = S.drop 1 decls
 
 
 
 
-styleEngineSetStyle :: CssDeclaration -> Display -> StyleAttrs -> StyleAttrs -> StyleAttrs
+styleEngineSetStyle :: CssProperty -> Display -> StyleAttrs -> StyleAttrs -> StyleAttrs
 styleEngineSetStyle declaration display parentStyleAttrs styleAttrs =
 {-
 TODO: re-implement these missing cases from C++. They were not re-implemented
@@ -386,55 +386,55 @@ yet because a full support for them in dillo seems to be missing or broken.
 
   -- Probably because of code like this someone invented lenses.
   case declaration of
-    CssDeclarationBackgroundColor declValue     -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs declValue }
-    CssDeclarationBorderCollapse declValue      -> styleAttrs { styleBorderCollapse  = getBorderCollapse declValue }
+    CssPropertyBackgroundColor declValue     -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs declValue }
+    CssPropertyBorderCollapse declValue      -> styleAttrs { styleBorderCollapse  = getBorderCollapse declValue }
 
-    CssDeclarationBorderTopStyle value    -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyleTop    parentStyleAttrs value }}
-    CssDeclarationBorderRightStyle value  -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyleRight  parentStyleAttrs value }}
-    CssDeclarationBorderBottomStyle value -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyleBottom parentStyleAttrs value }}
-    CssDeclarationBorderLeftStyle value   -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleLeft   = getBorderStyleLeft   parentStyleAttrs value }}
+    CssPropertyBorderTopStyle value    -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyleTop    parentStyleAttrs value }}
+    CssPropertyBorderRightStyle value  -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyleRight  parentStyleAttrs value }}
+    CssPropertyBorderBottomStyle value -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyleBottom parentStyleAttrs value }}
+    CssPropertyBorderLeftStyle value   -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleLeft   = getBorderStyleLeft   parentStyleAttrs value }}
 
-    CssDeclarationBorderTopWidth value    -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthTop    = getBorderWidthTop    parentStyleAttrs value display fontAttrs }}
-    CssDeclarationBorderRightWidth value  -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidthRight  parentStyleAttrs value display fontAttrs }}
-    CssDeclarationBorderBottomWidth value -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidthBottom parentStyleAttrs value display fontAttrs }}
-    CssDeclarationBorderLeftWidth value   -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidthLeft   parentStyleAttrs value display fontAttrs }}
+    CssPropertyBorderTopWidth value    -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthTop    = getBorderWidthTop    parentStyleAttrs value display fontAttrs }}
+    CssPropertyBorderRightWidth value  -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthRight  = getBorderWidthRight  parentStyleAttrs value display fontAttrs }}
+    CssPropertyBorderBottomWidth value -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthBottom = getBorderWidthBottom parentStyleAttrs value display fontAttrs }}
+    CssPropertyBorderLeftWidth value   -> styleAttrs { styleBorderWidth = (styleBorderWidth styleAttrs) { styleBorderWidthLeft   = getBorderWidthLeft   parentStyleAttrs value display fontAttrs }}
 
-    CssDeclarationBorderTopColor value    -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorTop    = getBorderColorTop    parentStyleAttrs value }}
-    CssDeclarationBorderRightColor value  -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorRight  = getBorderColorRight  parentStyleAttrs value }}
-    CssDeclarationBorderBottomColor value -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColorBottom parentStyleAttrs value }}
-    CssDeclarationBorderLeftColor value   -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColorLeft   parentStyleAttrs value }}
+    CssPropertyBorderTopColor value    -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorTop    = getBorderColorTop    parentStyleAttrs value }}
+    CssPropertyBorderRightColor value  -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorRight  = getBorderColorRight  parentStyleAttrs value }}
+    CssPropertyBorderBottomColor value -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColorBottom parentStyleAttrs value }}
+    CssPropertyBorderLeftColor value   -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColorLeft   parentStyleAttrs value }}
 
-    CssDeclarationMarginTop declValue     -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin declValue fontAttrs display }}
-    CssDeclarationMarginRight declValue   -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin declValue fontAttrs display }}
-    CssDeclarationMarginBottom declValue  -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin declValue fontAttrs display }}
-    CssDeclarationMarginLeft declValue    -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin declValue fontAttrs display }}
+    CssPropertyMarginTop declValue     -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin declValue fontAttrs display }}
+    CssPropertyMarginRight declValue   -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin declValue fontAttrs display }}
+    CssPropertyMarginBottom declValue  -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin declValue fontAttrs display }}
+    CssPropertyMarginLeft declValue    -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin declValue fontAttrs display }}
 
-    CssDeclarationPaddingTop declValue    -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding declValue fontAttrs display }}
-    CssDeclarationPaddingRight declValue  -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding declValue fontAttrs display }}
-    CssDeclarationPaddingBottom declValue -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding declValue fontAttrs display }}
-    CssDeclarationPaddingLeft declValue   -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding declValue fontAttrs display }}
+    CssPropertyPaddingTop declValue    -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding declValue fontAttrs display }}
+    CssPropertyPaddingRight declValue  -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding declValue fontAttrs display }}
+    CssPropertyPaddingBottom declValue -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding declValue fontAttrs display }}
+    CssPropertyPaddingLeft declValue   -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding declValue fontAttrs display }}
 
-    CssDeclarationTextAlign declValue     -> styleAttrs { styleTextAlign      = getTextAlign declValue }
-    CssDeclarationTextDecoration declValue -> styleAttrs { styleTextDecoration = getTextDecoration declValue (styleTextDecoration styleAttrs) }
-    CssDeclarationTextIndent declValue    -> styleAttrs { styleTextIndent     = getTextIndent declValue fontAttrs display }
-    CssDeclarationTextTransform declValue -> styleAttrs { styleTextTransform  = getTextTransform declValue }
-    CssDeclarationVerticalAlign value     -> styleAttrs { styleVerticalAlign  = getVerticalAlign value }
-    CssDeclarationWhitespace value        -> styleAttrs { styleWhiteSpace     = getWhiteSpace value }
-    CssDeclarationWidth declValue         -> styleAttrs { styleWidth          = getWidth declValue fontAttrs display }
-    CssDeclarationHeight declValue        -> styleAttrs { styleHeight         = getHeight declValue fontAttrs display }
-    CssDeclarationListStylePosition value -> styleAttrs { styleListStylePosition    = getListStylePosition value }
-    CssDeclarationListStyleType value     -> styleAttrs { styleListStyleType        = getListStyleType value }
-    CssDeclarationLineHeight declValue    -> styleAttrs { styleLineHeight           = getLineHeight declValue fontAttrs display }
-    CssDeclarationDisplay value           -> styleAttrs { styleDisplay              = getDisplay value }
-    CssDeclarationColor value             -> styleAttrs { styleColor                = getColor parentStyleAttrs value }
-    CssDeclarationCursor value            -> styleAttrs { styleCursor               = getCursor value }
-    CssDeclarationBorderSpacing declValue -> styleAttrs { styleHBorderSpacing = getBorderSpacing declValue fontAttrs display,
+    CssPropertyTextAlign declValue     -> styleAttrs { styleTextAlign      = getTextAlign declValue }
+    CssPropertyTextDecoration declValue -> styleAttrs { styleTextDecoration = getTextDecoration declValue (styleTextDecoration styleAttrs) }
+    CssPropertyTextIndent declValue    -> styleAttrs { styleTextIndent     = getTextIndent declValue fontAttrs display }
+    CssPropertyTextTransform declValue -> styleAttrs { styleTextTransform  = getTextTransform declValue }
+    CssPropertyVerticalAlign value     -> styleAttrs { styleVerticalAlign  = getVerticalAlign value }
+    CssPropertyWhitespace value        -> styleAttrs { styleWhiteSpace     = getWhiteSpace value }
+    CssPropertyWidth declValue         -> styleAttrs { styleWidth          = getWidth declValue fontAttrs display }
+    CssPropertyHeight declValue        -> styleAttrs { styleHeight         = getHeight declValue fontAttrs display }
+    CssPropertyListStylePosition value -> styleAttrs { styleListStylePosition    = getListStylePosition value }
+    CssPropertyListStyleType value     -> styleAttrs { styleListStyleType        = getListStyleType value }
+    CssPropertyLineHeight declValue    -> styleAttrs { styleLineHeight           = getLineHeight declValue fontAttrs display }
+    CssPropertyDisplay value           -> styleAttrs { styleDisplay              = getDisplay value }
+    CssPropertyColor value             -> styleAttrs { styleColor                = getColor parentStyleAttrs value }
+    CssPropertyCursor value            -> styleAttrs { styleCursor               = getCursor value }
+    CssPropertyBorderSpacing declValue -> styleAttrs { styleHBorderSpacing = getBorderSpacing declValue fontAttrs display,
                                                           styleVBorderSpacing = getBorderSpacing declValue fontAttrs display }
-    CssDeclarationWordSpacing declValue   -> styleAttrs { styleWordSpacing    = getWordSpacig declValue fontAttrs display }
-    CssDeclarationXLink declValue         -> styleAttrs { styleXLink          = getXLink declValue }
-    CssDeclarationXLang declValue         -> styleAttrs { styleXLang          = getXLang declValue }
-    CssDeclarationXImg declValue          -> styleAttrs { styleXImg           = getXImg declValue }
-    CssDeclarationXTooltip declValue      -> styleAttrs { styleXTooltip       = getXTooltip declValue }
+    CssPropertyWordSpacing declValue   -> styleAttrs { styleWordSpacing    = getWordSpacig declValue fontAttrs display }
+    CssPropertyXLink declValue         -> styleAttrs { styleXLink          = getXLink declValue }
+    CssPropertyXLang declValue         -> styleAttrs { styleXLang          = getXLang declValue }
+    CssPropertyXImg declValue          -> styleAttrs { styleXImg           = getXImg declValue }
+    CssPropertyXTooltip declValue      -> styleAttrs { styleXTooltip       = getXTooltip declValue }
     otherwise                             -> styleAttrs
     -- TODO: add support for missing cases
 

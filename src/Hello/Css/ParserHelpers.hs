@@ -82,45 +82,45 @@ import Hello.Css.Value
 
 
 
-data ValueHelper declValueT = ValueHelper
+data ValueHelper propValueT = ValueHelper
   {
     pt3                   :: (CssParser, CssToken)
 
-    -- Constructor for creating declaration values that are colors, e.g.
+    -- Constructor for creating property values that are colors, e.g.
     -- "CssValueBackgroundColorColor Int".
-  , colorValueCtor3       :: Maybe (Int -> declValueT)
+  , colorValueCtor3       :: Maybe (Int -> propValueT)
 
-    -- Constructor for creating declaration values that are distances, e.g.
+    -- Constructor for creating property values that are distances, e.g.
     -- "CssValuePadding CssDistance".
-  , distanceValueCtor     :: Maybe (CssDistance -> declValueT)
+  , distanceValueCtor     :: Maybe (CssDistance -> propValueT)
 
-    -- Constructor for creating declaration values that are integers,
+    -- Constructor for creating property values that are integers,
     -- e.g. "CssValueFontWeightInt Int".
-  , integerValueCtor      :: Maybe (Int -> declValueT)
+  , integerValueCtor      :: Maybe (Int -> propValueT)
 
-    -- Constructor for creating declaration values that are background
+    -- Constructor for creating property values that are background
     -- position, e.g. "CssValueBackgroundPositionXY CssDistance".
-  , bgPositionValueCtor   :: Maybe (Int -> Int -> declValueT)
+  , bgPositionValueCtor   :: Maybe (Int -> Int -> propValueT)
 
-    -- Constructor for creating declaration values that are distances, e.g.
+    -- Constructor for creating property values that are distances, e.g.
     -- "CssValueBackgroundImageUri T.Text".
-  , uriValueCtor          :: Maybe (T.Text -> declValueT)
+  , uriValueCtor          :: Maybe (T.Text -> propValueT)
 
-    -- Constructor for creating declaration values that are lists of strings,
+    -- Constructor for creating property values that are lists of strings,
     -- e.g. "CssValueFontFamilyList ["monospace", "serif"]
-  , stringListCtor        :: Maybe ([T.Text] -> declValueT)
+  , stringListCtor        :: Maybe ([T.Text] -> propValueT)
 
-    -- Constructor for creating declaration values that are a string,
+    -- Constructor for creating property values that are a string,
     -- e.g. "CssValueContent "some content"
-  , stringCtor            :: Maybe (T.Text -> declValueT)
+  , stringCtor            :: Maybe (T.Text -> propValueT)
 
-    -- A dictionary for mapping from a text token/value in CSS declaration to
+    -- A dictionary for mapping from a text token/value in CSS property to
     -- Haskell value, e.g. "italic" to CssValueFontStyleItalic or "thin" to
     -- CssValueBorderWidthThin.
-  , dict                  :: [(T.Text, declValueT)]
+  , dict                  :: [(T.Text, propValueT)]
 
     -- Are distance values without unit (e.g. "1.0", as opposed to "1.0px")
-    -- allowed/accepted for this declaration value?
+    -- allowed/accepted for this property value?
   , allowUnitlessDistance :: Bool
 
     -- Lower and upper value (inclusive) of allowed integer values. Used to
@@ -239,10 +239,10 @@ rgbFunctionToColor p1 = let
 -- In case of enum value there is no need to consume more than current token
 -- to recognize the enum, but for consistency with other similar functions
 -- the function is still called "tokenS as".
-interpretTokensAsEnum :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsEnum :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsEnum vh@ValueHelper{ pt3 = (_, token@(CssTokIdent sym)) } =
   case L.lookup sym' (dict vh) of
-    Just declValue -> (vh { pt3 = nextToken1 . fst . pt3 $ vh}, Just declValue)
+    Just propValue -> (vh { pt3 = nextToken1 . fst . pt3 $ vh}, Just propValue)
     Nothing        -> (vh, Nothing)
   where
     sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
@@ -260,7 +260,7 @@ interpretTokensAsEnum vh = (vh, Nothing)
 -- tokens. If current token is e.g. "rgb(" function, then the function should
 -- (TODO) take as many tokens as necessary to build, parse and convert the
 -- function into color value.
-interpretTokensAsColor :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsColor :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, (CssTokHash _ str)) }  = case colorsHexStringToColor str of
                                                                              Just c  -> (vh {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
                                                                              Nothing -> (vh, Nothing)
@@ -275,7 +275,7 @@ interpretTokensAsColor vh                                                = (vh, 
 
 
 
-interpretTokensAsLength :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsLength :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsLength vh@ValueHelper {pt3 = (parser, token) } = ((vh { pt3 = (p', t') }), value)
   where
     ((p', t'), value) = case tokens of
@@ -329,7 +329,7 @@ interpretTokensAsLength vh@ValueHelper {pt3 = (parser, token) } = ((vh { pt3 = (
 -- "CssTokNum CssNumI i" value.
 --
 -- TODO: restrict the integer values only to multiples of hundreds?
-interpretTokensAsInteger :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsInteger :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsInteger vh@ValueHelper {pt3 = (_, (CssTokNum (CssNumI i))) } = if i >= (fst . integersRange $ vh) && i <= (snd . integersRange $ vh)
                                                                                 then (vh {pt3 = nextToken1 . fst . pt3 $ vh}, Just $ (fromJust . integerValueCtor $ vh) i)
                                                                                 else (vh, Nothing)
@@ -410,7 +410,7 @@ lengthValueToDistance fval unitStr | unitStr == "px" = CssDistanceAbsPx fval
 -- TODO: check in spec if the dictionary should always include an implicit
 -- "none" value. Original C++ code indicates that "none" was treated in
 -- special way.
-interpretTokensAsMultiEnum :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe [declValueT])
+interpretTokensAsMultiEnum :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe [propValueT])
 interpretTokensAsMultiEnum vh@ValueHelper { pt3 = (parser, token@(CssTokIdent sym)) } =
   case matchSymbolTokensWithListRigid (parser, token) (dict vh) [] of
     ((_, _), [])    -> (vh, Nothing) -- None of input tokens were matched agains list of enums.
@@ -449,11 +449,11 @@ matchSymbolTokensWithListRigid (p, t) _ acc                      = ((p, t), acc)
 
 
 
-interpretTokensAsBgPosition :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
-interpretTokensAsBgPosition vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, declValue)
+interpretTokensAsBgPosition :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
+interpretTokensAsBgPosition vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, propValue)
   where
     (pat', tokens) = takeBgTokens pat
-    declValue      = Just $ (fromJust . bgPositionValueCtor $ vh) 0 0
+    propValue      = Just $ (fromJust . bgPositionValueCtor $ vh) 0 0
     -- TODO: right now the original dillo doesn't seem to display background
     -- images at all, so I will stop the work on this function for now.
     -- Later, as I get to know dillo better, I will resume work on this
@@ -548,7 +548,7 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
 
 
-interpretTokensAsURI :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsURI :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsURI vh@ValueHelper { pt3 = pat } = case parseUrl pat of
                                                       (pat', Just url) -> (vh { pt3 = pat' }, Just $ (fromJust . uriValueCtor $ vh) url)
                                                       -- TODO: should we assign here pat' or pat?
@@ -585,7 +585,7 @@ consumeFunctionBody p1 acc = case nextToken1 p1 of
 -- TODO: how we should handle list separated by spaces instead of commas? How
 -- should we handle multiple consecutive commas?
 --
--- TODO: all tokens in declaration's value should be
+-- TODO: all tokens in property's value should be
 -- strings/symbols/commas/spaces. There can be no other tokens (e.g. numeric
 -- or hash). Such declaration should be rejected:
 -- 'font-family: "URW Gothic L", "Courier New", monospace, 90mph'
@@ -612,11 +612,11 @@ tokensAsValueStringList pat enums = (pat', L.reverse list)
 
 
 
-interpretTokensAsStringList :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
-interpretTokensAsStringList vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, declValue)
+interpretTokensAsStringList :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
+interpretTokensAsStringList vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, propValue)
   where
     (pat', list) = tokensAsValueStringList pat []
-    declValue = if L.null list
+    propValue = if L.null list
                 then Nothing
                 else Just $ (fromJust . stringListCtor $ vh) list
 
@@ -633,7 +633,7 @@ interpretTokensAsStringList vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, d
 -- CssValueTypeAuto, but this is problematic because "italic" doesn't seem to
 -- be something expected after "auto". Should we reject such input string
 -- here, or in higher layer?
-interpretTokensAsAuto :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsAuto :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsAuto vh@ValueHelper { pt3 = (p, t@(CssTokIdent sym)) } | T.toLower sym == "auto" = (vh {pt3 = (nextToken1 p)}
                                                                                                     , Just . (fromJust . distanceValueCtor $ vh) $ CssDistanceAuto
                                                                                                     )
@@ -649,7 +649,7 @@ interpretTokensAsAuto vh                                                        
 -- In case of "string" value there is no need to consume more than current
 -- token to build the String, but for consistency with other similar
 -- functions the function is still called "tokenS as".
-interpretTokensAsString :: ValueHelper declValueT -> (ValueHelper declValueT, Maybe declValueT)
+interpretTokensAsString :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsString vh@ValueHelper { pt3 = (p, (CssTokStr s)) } = (vh { pt3 = nextToken1 p}, Just $ (fromJust . stringCtor $ vh) s)
 interpretTokensAsString vh                                          = (vh, Nothing)
 
