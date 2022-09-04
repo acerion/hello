@@ -424,11 +424,19 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
 
 
 
-cssParseWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Bool)
-cssParseWeight (parser, CssTokDelim '!') = case nextToken1 parser of
-                                             (newParser, CssTokIdent "important") -> (nextToken1 newParser, True)
-                                             (newParser, tok)                     -> ((newParser, tok), False)
-cssParseWeight (parser, tok)          = ((parser, tok), False)
+-- https://www.w3.org/TR/CSS22/cascade.html#important-rules
+-- https://www.w3.org/TR/css-cascade-5/#importance
+--
+-- https://www.w3.org/TR/css-syntax-3/#consume-declaration: "If the last two
+-- non-<whitespace-token>s in the declaration’s value are a <delim-token>
+-- with the value "!" followed by an <ident-token> with a value that is an
+-- ASCII case-insensitive match for "important", remove them from the
+-- declaration’s value and set the declaration’s important flag to true."
+cssParseImportance :: (CssParser, CssToken) -> ((CssParser, CssToken), Bool)
+cssParseImportance (parser, CssTokDelim '!') = case nextToken1 parser of
+                                                 (newParser, CssTokIdent "important") -> (nextToken1 newParser, True)
+                                                 (newParser, tok)                     -> ((newParser, tok), False)
+cssParseImportance (parser, tok)             = ((parser, tok), False)
 
 
 
@@ -704,7 +712,7 @@ parseSingleDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssD
 parseSingleDeclaration (p1, t1) = ((outParser, outToken), declarationsWithImportant)
   where
     ((p2, t2), declarations) = parseSingleDeclarationNormalOrShorthand (p1, t1)
-    ((p3, t3), important) = cssParseWeight (p2, t2)
+    ((p3, t3), important) = cssParseImportance (p2, t2)
     declarationsWithImportant = if important
                                 then markAsImportant <$> declarations
                                 else declarations
@@ -850,7 +858,5 @@ instance Show CssRule where
 
 -- Get top compound selector
 getTopCompound :: CssRule -> CssCompoundSelector
-getTopCompound rule = getTopCompound' . chain . complexSelector $ rule
-getTopCompound' (Link (Datum c) _ remainder) = c
-getTopCompound' (Datum c)                    = c
+getTopCompound rule = chainGetFirst . chain . complexSelector $ rule
 

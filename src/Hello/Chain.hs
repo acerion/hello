@@ -29,6 +29,7 @@ module Hello.Chain
     Chain (..)
   , chainLength
   , chainAny
+  , chainGetFirst
   )
 where
 
@@ -59,6 +60,12 @@ chainAny :: (a -> Bool) -> (Chain a b) -> Bool
 chainAny pred (Datum compound)                             = pred compound
 chainAny pred (Link (Datum compound) combinator remainder) = (pred compound) || (chainAny pred remainder)
 
+
+
+
+chainGetFirst :: (Chain a b) -> a
+chainGetFirst (Link (Datum d) _ remainder) = d
+chainGetFirst (Datum d)                    = d
 
 
 
