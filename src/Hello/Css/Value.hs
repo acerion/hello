@@ -44,8 +44,6 @@ where
 
 
 
-import Debug.Trace
-
 import Data.Data
 import Data.Text as T
 
@@ -54,33 +52,16 @@ import Hello.Css.Distance
 
 
 
+-- A remnant of 'css value' type from dillo. Propbably in the long run will
+-- be replaced with another type also called 'css value' that correctly
+-- represents the css values from CSS standard.
 
-data CssValue =
-  -- CssValueTypeInt Int             -- This type is only used internally, for x-* properties.
-  -- CssValueTypeEnum Int            -- Value is i, if represented by enum_symbols[i].
-  -- CssValueTypeMultiEnum Int       -- For all enum_symbols[i], 1 << i are combined.
-  CssValueTypeLengthPercent CssDistance   -- <length> or <percentage>. Represented by CssDistance.
-  | CssValueTypeLength CssDistance          -- <length>, represented as CssDistance.
-                                    -- Note: In some cases, CSS_TYPE_LENGTH
-                                    -- is used instead of
-                                    -- CSS_TYPE_LENGTH_PERCENTAGE, only
-                                    -- because Dw cannot handle percentages
-                                    -- in this particular case (e.g.
-                                    -- 'margin-*-width').
-  | CssValueTypeSignedLength CssDistance    -- As CSS_TYPE_LENGTH but may be negative.
-  | CssValueTypeLengthPercentNumber CssDistance -- <length> or <percentage>, or <number>
-  | CssValueTypeAuto CssDistance    -- Represented as CssDistance of type CssDistanceAuto
-  --  | CssValueTypeColor Int           -- Represented as integer.
-  --  | CssValueTypeFontWeight Int      -- This very special and only used by 'font-weight'
-  | CssValueTypeString T.Text       -- <string>
-  --  | CssValueTypeStringList [T.Text] -- List of symbols, which are directly
-                                    -- copied (as opposed to
-                                    -- CSS_PROPERTY_DATA_TYPE_ENUM and
-                                    -- CSS_PROPERTY_DATA_TYPE_MULTI_ENUM).
-                                    -- Used for 'font-family'.
+
+
+
+data CssValue
+  = CssValueTypeString T.Text       -- <string>
   | CssValueTypeURI T.Text          -- <uri>
-  --  | CssValueTypeBgPosition          -- TODO: add values to this constructor
-  --  | CssValueTypeUnused              -- Not yet used. Will itself get unused some day.
   deriving (Show, Eq, Data)
 
 

@@ -623,14 +623,14 @@ interpretTokensAsStringList vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, p
 
 
 
--- Interpret current token as "auto" value (value of type CssValueTypeAuto).
+-- Interpret current token as "auto" value (value of type CssDistanceAuto).
 --
 -- In case of "auto" value there is no need to consume more than current
 -- token to build the Auto, but for consistency with other similar functions
 -- the function is still called "tokenS as".
 --
 -- The tests show that the function will interpret "auto italic" as
--- CssValueTypeAuto, but this is problematic because "italic" doesn't seem to
+-- CssDistanceAuto, but this is problematic because "italic" doesn't seem to
 -- be something expected after "auto". Should we reject such input string
 -- here, or in higher layer?
 interpretTokensAsAuto :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
