@@ -75,8 +75,6 @@ module Hello.Css.Declaration
   , CssValueXLink (..)
   , CssValueXTooltip (..)
 
-  -- , makeCssPropertyFont
-
   , makeCssPropertyBackground
   , makeCssPropertyBackgroundAttachment
   , makeCssPropertyBackgroundColor
@@ -125,6 +123,7 @@ module Hello.Css.Declaration
   , makeCssPropertyDisplay
   , makeCssPropertyEmptyCells
   , makeCssPropertyFloat
+  , makeCssPropertyFont
   , makeCssPropertyFontFamily
   , makeCssPropertyFontSize
   , makeCssPropertyFontSizeAdjust
@@ -196,6 +195,7 @@ import Data.List as L
 import Data.Text as T
 
 import Hello.Css.Distance
+import Hello.Css.Parser.Combinators
 import Hello.Css.ParserHelpers
 import Hello.Css.Tokenizer
 import Hello.Css.Value
@@ -215,6 +215,10 @@ type PropertyCtor = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssPr
 
 
 type PropertyValueCtor a = (CssParser, CssToken) -> ((CssParser, CssToken), Maybe a)
+
+-- TODO: this is too similar to PropertyCtor
+type CssPropertyParser = MyParser (CssParser, CssToken) CssProperty
+
 
 
 
@@ -1195,13 +1199,105 @@ makeCssPropertyFloat v = CssPropertyFloat v
 -- ------------------------------------------------
 -- Font (font)
 -- This is a shorthand property.
+-- https://www.w3.org/TR/CSS22/fonts.html#font-shorthand
+-- https://www.w3.org/TR/css-fonts-3/#font-prop
+
+-- CSS2.2: [ [ <'font-style'> || <'font-variant'> || <'font-weight'> ]? <'font-size'> [ / <'line-height'> ]? <'font-family'> ]
+--         | caption | icon | menu | message-box | small-caption | status-bar | inherit
+--
+-- FIXME: this implementation doesn't follow a standard because it doesn't
+-- first set all properties to their default values. The implementation
+-- returns only those values that are explicitly set in CSS string.
 -- ------------------------------------------------
 
 
 
 
--- TODO: restore parsing of font properties
--- makeCssPropertyFont          = parseDeclarationMultiple pat pinfos
+data CssValueFontEnum
+ = CssValueFontCaption
+ | CssValueFontIcon
+ | CssValueFontMenu
+ | CssValueFontMessageBox
+ | CssValueFontSmallCaption
+ | CssValueFontStatusBar
+ | CssValueFontInherit
+ deriving (Eq, Show, Data, Enum)
+
+
+
+
+cssValueFontDict :: [(T.Text, CssValueFontEnum)]
+cssValueFontDict = [ ("caption",          CssValueFontCaption)
+                   , ("icon",             CssValueFontIcon)
+                   , ("menu",             CssValueFontMenu)
+                   , ("message-box",      CssValueFontMessageBox)
+                   , ("small-caption",    CssValueFontSmallCaption)
+                   , ("status-bar",       CssValueFontStatusBar)
+                   , ("inherit",          CssValueFontInherit)
+                   ]
+
+
+
+makeCssPropertyFont :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
+makeCssPropertyFont pat = case runRecipe pat of
+                            (pat', Just acc) -> (pat', acc)
+                            (pat', Nothing)  -> (pat, [])
+  where
+    -- This recipe is reflecting the grammar (?) from CSS2.2 spec.
+    runRecipe pat = combinatorExactlyOne [ multiplierOnce (combinatorAllInOrder [ multiplierZeroOrMore (combinatorOneOrMoreUnordered [fontStyle2, fontVariant2, fontWeight2])
+                                                                                , multiplierOnce fontSize2
+                                                                                , multiplierZeroOrMore lineHeight2
+                                                                                , multiplierOnce fontFamily2
+                                                                                ])
+                                         , multiplierOnce fontEnum2
+                                         ] pat
+
+
+
+
+wrapper ctor pat = case ctor pat of
+                     (pat', Just prop) -> (pat', Just [prop])
+                     (_,    Nothing)   -> (pat, Nothing)
+
+
+
+
+fontStyle2 :: CssPropertyParser
+fontStyle2 pat = wrapper makeCssPropertyFontStyle pat
+
+fontVariant2 :: CssPropertyParser
+fontVariant2 pat = wrapper makeCssPropertyFontVariant pat
+
+fontWeight2 :: CssPropertyParser
+fontWeight2 pat = wrapper makeCssPropertyFontWeight pat
+
+-- TODO: "line-height" is not processed here.
+fontSize2 :: CssPropertyParser
+fontSize2 pat = wrapper makeCssPropertyFontSize pat
+
+fontFamily2 :: CssPropertyParser
+fontFamily2 pat = wrapper makeCssPropertyFontFamily pat
+
+lineHeight2 :: CssPropertyParser
+lineHeight2 pat = (pat, Just []) -- TODO: define correctly
+
+fontEnum2 :: CssPropertyParser
+fontEnum2 pat = case parseEnum cssValueFontDict pat of
+                  (pat', Just value) -> (pat', Just []) -- TODO correctly handle enum values
+                  (_,    Nothing)    -> (pat, Nothing)
+
+
+
+
+parseEnum :: [(T.Text, b)] -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe b)
+parseEnum dict pat = case propValue of
+                       Just v    -> (pat', Just v)
+                       otherwise -> (pat, Nothing)
+  where
+    (vh', propValue) = interpretTokensAsEnum vh
+    pat'             = pt3 vh'
+
+    vh = (defaultValueHelper pat) { dict = dict }
 
 
 

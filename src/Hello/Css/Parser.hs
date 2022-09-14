@@ -226,7 +226,7 @@ cssShorthandInfo = M.fromList [
     -- Parsing of this property is unit-tested.
   , ("border-color",       makeCssPropertyBorderColor)
 
-  --, ("font",           makeCssPropertyFont)
+  , ("font",               makeCssPropertyFont)
 
     -- Parsing of this property is unit-tested (poorly).
   , ("list-style",         makeCssPropertyListStyle)

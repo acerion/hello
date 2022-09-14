@@ -27,6 +27,7 @@ all:
 		-fwarn-incomplete-patterns \
 		./*.hs \
 		./Css/*.hs \
+		./Css/Parser/*.hs \
 		./Dw/*.hs \
 		./Ffi/*.hs \
 		./Ffi/Css/*.hs \

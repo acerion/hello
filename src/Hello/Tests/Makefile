@@ -7,6 +7,7 @@ all: clean
 	ghc -j4 -g -O0 -o $(TEST_BIN) \
 		../*.hs \
 		../Css/*.hs \
+		../Css/Parser/*.hs \
 		../Dw/*.hs \
 		../Html/*.hs \
 		../Ffi/Css/*.hs \
@@ -14,6 +15,7 @@ all: clean
 		../Ffi/*.hs \
 		./*.hs \
 		./Css/*.hs \
+		./Css/Parser/*.hs \
 		./Html/*.hs \
 		./TestUtils/*.hs
 

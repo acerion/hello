@@ -26,6 +26,7 @@ import Hello.Tests.Gif2
 import Hello.Tests.Css.Css
 import Hello.Tests.Css.DeclarationSet
 import Hello.Tests.Css.Parser
+import Hello.Tests.Css.Parser.Combinators
 import Hello.Tests.Css.Parser.QuickCheck
 import Hello.Tests.Css.PropertyValue
 import Hello.Tests.Css.Rule
@@ -53,6 +54,7 @@ testFunctions = [ testsColors
                 , testsCssComplexSelector
                 , testsCssDeclarationSet
                 , testsCssParser
+                , testsCssParserCombinators
                 , testsCssParserQuickCheck
                 , testsCssPropertyValue
                 , testsCssRule
