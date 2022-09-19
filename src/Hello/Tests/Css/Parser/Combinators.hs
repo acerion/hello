@@ -82,19 +82,25 @@ data CombinatorTestData = CombinatorTestData
 
 
 
+data MultiplierTestData = MultiplierTestData
+  { childItems2       :: TestParser
+  , input2            :: T.Text
+  , expectedOutput2   :: (T.Text, Maybe [Char])
+  }
+
+
+
+
 {- -------------------------------------------------------------------------- -}
 
 
 
 
--- This is "simple" test because we pass to tested function the parsers
--- themselves, not wrapped in any combinators or multipliers.
---
 -- We expect here that tested combinator will return some 'Just' only when a
 -- single (one) parser from CombinatorTestData::parsers succeeds. When zero or
 -- two or three parsers succeed, then the tested combinator should return
 -- Nothing.
-combinatorExactlyOneSimpleTestData =
+combinatorExactlyOneTestData =
   [
     -- Success cases
 
@@ -176,19 +182,15 @@ combinatorExactlyOneTestFunction (x:xs) = if not success
 
 
 {- -------------------------------------------------------------------------- -}
-{- -------------------------------------------------------------------------- -}
 
 
 
 
--- This is "simple" test because we pass to tested function the parsers
--- themselves, not wrapped in any combinators or multipliers.
---
 -- We expect here that tested combinator will return some 'Just' only when a
 -- single (one) parser from CombinatorTestData::parsers succeeds. When zero or
 -- two or three parsers succeed, then the tested combinator should return
 -- Nothing.
-combinatorAllInOrderSimpleTestData =
+combinatorAllInOrderTestData =
   [
     -- Success cases
 
@@ -289,12 +291,93 @@ combinatorAllInOrderTestFunction (x:xs) = if not success
 
 
 
+-- We expect here that tested multiplier will return some 'Just' for zero
+-- succeeses or one success.
+multiplierZeroOrOnceTestData =
+  [
+    -- Success cases.
+
+    -- A parser doesn't have matching data in input (will be able to take
+    -- zero 'a' tokens), so we have a parser that matches zero times. But
+    -- zero matches is ok, and tested multiplier succeeds.
+    MultiplierTestData { childItems2 = takeA,               input2 = "",    expectedOutput2 = ("",    Just []) }
+  , MultiplierTestData { childItems2 = takeA,               input2 = "o",   expectedOutput2 = ("o",   Just []) }
+  , MultiplierTestData { childItems2 = takeA,               input2 = "oh",  expectedOutput2 = ("oh",  Just []) }
+  , MultiplierTestData { childItems2 = takeA,               input2 = "oa",  expectedOutput2 = ("oa",  Just []) }
+
+    -- A parser has single matching data in input (will be able to
+    -- successfully take just one 'a' token), so we have a parser that
+    -- matches once. One match is enough to have multiplier that returns
+    -- success.
+  , MultiplierTestData { childItems2 = takeA,               input2 = "a",   expectedOutput2 = ("",    Just ['a']) }
+  , MultiplierTestData { childItems2 = takeA,               input2 = "ab",  expectedOutput2 = ("b",   Just ['a']) }
+  , MultiplierTestData { childItems2 = takeA,               input2 = "abc", expectedOutput2 = ("bc",  Just ['a']) }
+
+
+    -- A set of parsers (a combinator) succeeds zero times, but this is
+    -- enough for tested multiplier to return success.
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "",    expectedOutput2 = ("",       Just []) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "a",   expectedOutput2 = ("a",      Just []) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "ab",  expectedOutput2 = ("ab",     Just []) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "acb", expectedOutput2 = ("acb",    Just []) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "xyz", expectedOutput2 = ("xyz",    Just []) }
+
+
+    -- A set of parsers (a combinator) succeeds one time, and this is enough
+    -- for tested multiplier to return success.
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abc",   expectedOutput2 = ("",     Just ['a', 'b', 'c']) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcd",  expectedOutput2 = ("d",    Just ['a', 'b', 'c']) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcab", expectedOutput2 = ("ab",   Just ['a', 'b', 'c']) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcxy", expectedOutput2 = ("xy",   Just ['a', 'b', 'c']) }
+
+
+
+
+    -- Failure cases.
+
+    -- A parser has two or more matching pieces of data in input (will be
+    -- able to take two or more 'a' tokens). Two or more matches of a parser
+    -- is too much for the tested multiplier, and the tested multiplier must
+    -- return failure.
+  , MultiplierTestData { childItems2 = takeA,               input2 = "aa",   expectedOutput2 = ("aa",  Nothing) }
+  , MultiplierTestData { childItems2 = takeA,               input2 = "aaa",  expectedOutput2 = ("aaa", Nothing) }
+  , MultiplierTestData { childItems2 = takeA,               input2 = "aab",  expectedOutput2 = ("aab", Nothing) }
+
+    -- A set of parsers (a combinator) succeeds two times, but this is too
+    -- much for tested multiplier.
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabc",   expectedOutput2 = ("abcabc",   Nothing) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabcd",  expectedOutput2 = ("abcabcd",  Nothing) }
+  ]
+
+
+
+
+-- On success return empty string. On failure return string showing
+-- approximately where the problem is.
+multiplierZeroOrOnceTestFunction :: [MultiplierTestData] -> T.Text
+multiplierZeroOrOnceTestFunction []     = ""
+multiplierZeroOrOnceTestFunction (x:xs) = if not success
+                                          then T.pack ("Got: " ++ show output ++ ", Expected: " ++ (show . expectedOutput2 $ x) ++ "; input = " ++ (show . input2 $ x))
+                                          else multiplierZeroOrOnceTestFunction xs
+  where
+    success = output == (expectedOutput2 x)
+    output = multiplierZeroOrOnce (childItems2 x) (input2 x)
+
+
+
+
+{- -------------------------------------------------------------------------- -}
+
+
+
+
 -- If some error is found, test function returns non-empty string which can
 -- help identify a test that failed.
 testCases =
   [
-    TestCase (do assertEqual "manual tests of combinatorExactlyOneTestFunction"              "" (combinatorExactlyOneTestFunction combinatorExactlyOneSimpleTestData))
-  , TestCase (do assertEqual "manual tests of combinatorAllInOrderTestFunction"              "" (combinatorAllInOrderTestFunction combinatorAllInOrderSimpleTestData))
+    TestCase (do assertEqual "manual tests of combinatorExactlyOneTestFunction"              "" (combinatorExactlyOneTestFunction combinatorExactlyOneTestData))
+  , TestCase (do assertEqual "manual tests of combinatorAllInOrderTestFunction"              "" (combinatorAllInOrderTestFunction combinatorAllInOrderTestData))
+  , TestCase (do assertEqual "manual tests of multiplierZeroOrOnceTestFunction"              "" (multiplierZeroOrOnceTestFunction multiplierZeroOrOnceTestData))
   ]
 
 

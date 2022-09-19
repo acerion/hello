@@ -1244,9 +1244,10 @@ makeCssPropertyFont pat = case runRecipe pat of
                             (pat', Nothing)  -> (pat, [])
   where
     -- This recipe is reflecting the grammar (?) from CSS2.2 spec.
-    runRecipe pat = combinatorExactlyOne [ multiplierOnce (combinatorAllInOrder [ multiplierZeroOrMore (combinatorOneOrMoreUnordered [fontStyle2, fontVariant2, fontWeight2])
+    runRecipe pat = combinatorExactlyOne [ multiplierOnce (combinatorAllInOrder [ multiplierZeroOrOnce (combinatorOneOrMoreUnordered [fontStyle2, fontVariant2, fontWeight2])
                                                                                 , multiplierOnce fontSize2
-                                                                                , multiplierZeroOrMore lineHeight2
+                                                                                -- TODO: there should be a parser for "/" token here (a combination of "/" and height).
+                                                                                , multiplierZeroOrOnce lineHeight2
                                                                                 , multiplierOnce fontFamily2
                                                                                 ])
                                          , multiplierOnce fontEnum2
@@ -1279,7 +1280,7 @@ fontFamily2 :: CssPropertyParser
 fontFamily2 pat = wrapper makeCssPropertyFontFamily pat
 
 lineHeight2 :: CssPropertyParser
-lineHeight2 pat = (pat, Just []) -- TODO: define correctly
+lineHeight2 pat = wrapper makeCssPropertyHeight pat -- TODO: define correctly
 
 fontEnum2 :: CssPropertyParser
 fontEnum2 pat = case parseEnum cssValueFontDict pat of

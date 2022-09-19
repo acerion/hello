@@ -26,9 +26,8 @@ module Hello.Css.Parser.Combinators
   , combinatorExactlyOne
   , combinatorAllInOrder
   , combinatorOneOrMoreUnordered
-  , multiplierZeroOrMore
+  , multiplierZeroOrOnce
   , multiplierOnce
-
   )
 where
 
@@ -133,35 +132,99 @@ combinatorOneOrMoreUnordered functions pat = if successes >= 1
 
 
 
--- Multiplier: run given function, see how many successes it returns.
+
+
+-- Multiplier: run given parser (function) multiple times as long as the
+-- parser is able to successfully take a parser-specific expression. See how
+-- many times the parser was executed successfully (how many consecutive
+-- parser-specific expressions were consumed successfully).
 --
--- Return 'Just acc' in property accumulator if count of successes is correct.
+-- An universal multiplier function that can be used by more specialized
+-- multipliers.
 --
--- Since "zero" is also a success, this function always succeeds (always
--- returns some accumulator).
+-- First two arguments specify count of successful calls of parser, as a
+-- range. If given parser function successfully takes N consecutive
+-- expressions, and N is between lower and upper (inclusive), then multiplier
+-- succeeds.
+--
+-- If 'upper' is (-1) then (in theory) there is no upper limit on count of
+-- successes (count of times the parser will be called to get next matching
+-- expression). In practice the count of successful calls will be limited to
+-- some hardcoded value to avoid infinite loop on malformed or malicious
+-- input.
+multiplier :: (Show a, Show p) => Int -> Int -> MyParser p a -> p -> (p, Maybe [a])
+multiplier lower upper function pat | len >= lower && len <= upper = (pat'', Just . L.concat $ result)
+                                    | otherwise                    = (pat, Nothing)
+  where
+    (pat'', result) = callUntilFail function pat [] hardLimit
+    len = L.length result
+    hardLimit | upper >= 0 = upper + 1
+              | otherwise  = 20
+
+    -- Call given function (either a parser or a combinator) multiple times.
+    -- When the function fails to take a parser-specific expression, return
+    -- accumulated result of all of the calls that succeeded.
+    --
+    -- In theory (for an input that contains enough matching expressions)
+    -- this function would run forever. Therefore the function accepts an
+    -- arbitrary limit on successful matches.
+    --
+    -- TODO: see if standard defines some reasonable limit on count of
+    -- matched expressions.
+    --
+    -- TODO: write tests for "one or more" multiplier that would show that
+    -- the hard limit is observed by this function.
+    callUntilFail :: (Show a, Show p) => MyParser p a -> p -> [[a]] -> Int -> (p, [[a]])
+    callUntilFail function pat result limit = case function pat of
+                                                (pat', Just acc') | L.length result > limit -> (pat', result)
+                                                                  | otherwise               -> callUntilFail function pat' (result ++ [acc']) limit
+                                                (_, Nothing)      -> (pat, result)
+
+
+
+
+-- Multiplier: run given parser (function) multiple times as long as the
+-- parser is able to successfully take a parser-specific expression. See how
+-- many times the parser was executed successfully (how many consecutive
+-- parser-specific expressions were consumed successfully).
+--
+-- Return 'Just acc' in property accumulator if count of successes is
+-- correct: is either zero or one. If count of successes is higher than one,
+-- return failure (Nothing).
 --
 -- https://www.w3.org/TR/css-values-3/#component-multipliers
-multiplierZeroOrMore :: (Show a) => MyParser p a -> p -> (p, Maybe [a])
-multiplierZeroOrMore function pat = case function pat of
-                                      (pat', Just acc') ->                                                               (pat', Just acc')
-                                      -- Returning 'Just []' to indicate success, because zero child items have succeeded.
-                                      (pat', Nothing)   -> trace ("multiplierZeroOrMore returning empty acc on Nothing") (pat, Just [])
-
-
-
-
--- Multiplier: run given function, see how many successes it returns.
+-- "A question mark (?) indicates that the preceding type, word, or group is
+-- optional (occurs zero or one times)."
 --
--- Return 'Just acc' in property accumulator if count of successes is correct.
--- Return Nothing in property accumulator if count of successes is incorrect.
+-- Unit tested? Yes.
+multiplierZeroOrOnce :: (Show a, Show p) => MyParser p a -> p -> (p, Maybe [a])
+multiplierZeroOrOnce = multiplier lower upper
+  where
+    -- Range of accepted successes (inclusive).
+    lower = 0
+    upper = 1
+
+
+
+
+-- Multiplier: run given parser (function) multiple times as long as the
+-- parser is able to successfully take a parser-specific expression. See how
+-- many times the parser was executed successfully (how many consecutive
+-- parser-specific expressions were consumed successfully).
 --
--- TODO: write a correct version.
+-- Return 'Just acc' in property accumulator if count of successes (count of
+-- successfuly taken expressions) is correct: is exactly one. If count of
+-- successes is lower or higher than one, return failure (Nothing).
+--
+-- TODO: write tests
 --
 -- https://www.w3.org/TR/css-values-3/#component-multipliers
-multiplierOnce :: (Show a) => MyParser p a -> p -> (p, Maybe [a])
-multiplierOnce function pat = case function pat of
-                                (pat', Just acc') -> trace ("multiplierOnce: acc = " ++ (show acc')) (pat', Just acc')
-                                (pat', Nothing)   ->                                                 (pat, Nothing)
+multiplierOnce :: (Show a, Show p) => MyParser p a -> p -> (p, Maybe [a])
+multiplierOnce = multiplier lower upper
+  where
+    -- Range of accepted successes (inclusive).
+    lower = 1
+    upper = 1
 
 
 
