@@ -152,29 +152,27 @@ combinatorOneOrMoreUnordered functions pat = if successes >= 1
 -- expression). In practice the count of successful calls will be limited to
 -- some hardcoded value to avoid infinite loop on malformed or malicious
 -- input.
-multiplier :: (Show a, Show p) => Int -> Int -> MyParser p a -> p -> (p, Maybe [a])
+multiplier :: Int -> Int -> MyParser p a -> p -> (p, Maybe [a])
 multiplier lower upper function pat | len >= lower && len <= upper = (pat'', Just . L.concat $ result)
                                     | otherwise                    = (pat, Nothing)
   where
     (pat'', result) = callUntilFail function pat [] hardLimit
     len = L.length result
+
+    -- https://www.w3.org/TR/css-values-3/#component-multipliers spec
+    -- indicates that implementation must support "at least 20 repetitions"
+    -- in case of "X or more" multipliers. Therefore the hardcoded upper
+    -- limit is "20".
+    --
+    -- TODO: write tests for "one or more" multiplier that would show that
+    -- the hard limit is observed by this function.
     hardLimit | upper >= 0 = upper + 1
               | otherwise  = 20
 
     -- Call given function (either a parser or a combinator) multiple times.
     -- When the function fails to take a parser-specific expression, return
     -- accumulated result of all of the calls that succeeded.
-    --
-    -- In theory (for an input that contains enough matching expressions)
-    -- this function would run forever. Therefore the function accepts an
-    -- arbitrary limit on successful matches.
-    --
-    -- TODO: see if standard defines some reasonable limit on count of
-    -- matched expressions.
-    --
-    -- TODO: write tests for "one or more" multiplier that would show that
-    -- the hard limit is observed by this function.
-    callUntilFail :: (Show a, Show p) => MyParser p a -> p -> [[a]] -> Int -> (p, [[a]])
+    callUntilFail :: MyParser p a -> p -> [[a]] -> Int -> (p, [[a]])
     callUntilFail function pat result limit = case function pat of
                                                 (pat', Just acc') | L.length result > limit -> (pat', result)
                                                                   | otherwise               -> callUntilFail function pat' (result ++ [acc']) limit
@@ -197,10 +195,10 @@ multiplier lower upper function pat | len >= lower && len <= upper = (pat'', Jus
 -- optional (occurs zero or one times)."
 --
 -- Unit tested? Yes.
-multiplierZeroOrOnce :: (Show a, Show p) => MyParser p a -> p -> (p, Maybe [a])
+multiplierZeroOrOnce :: MyParser p a -> p -> (p, Maybe [a])
 multiplierZeroOrOnce = multiplier lower upper
   where
-    -- Range of accepted successes (inclusive).
+    -- Range of expected successes (inclusive).
     lower = 0
     upper = 1
 
@@ -216,13 +214,17 @@ multiplierZeroOrOnce = multiplier lower upper
 -- successfuly taken expressions) is correct: is exactly one. If count of
 -- successes is lower or higher than one, return failure (Nothing).
 --
--- TODO: write tests
+-- This multiplier is not described in CSS spec
+-- (https://www.w3.org/TR/css-values-3/#component-multipliers), so maybe
+-- after all it's not necessary, but for some reason I thought that it would
+-- be convenient to explicitly indicate that some expressions in input CSS
+-- should appear exactly once. TODO: check if we really need this multiplier.
 --
--- https://www.w3.org/TR/css-values-3/#component-multipliers
-multiplierOnce :: (Show a, Show p) => MyParser p a -> p -> (p, Maybe [a])
+-- Unit tested? Yes.
+multiplierOnce :: MyParser p a -> p -> (p, Maybe [a])
 multiplierOnce = multiplier lower upper
   where
-    -- Range of accepted successes (inclusive).
+    -- Range of expected successes (inclusive).
     lower = 1
     upper = 1
 
