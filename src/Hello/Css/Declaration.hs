@@ -1256,31 +1256,31 @@ makeCssPropertyFont pat = case runRecipe pat of
 
 
 
-wrapper ctor pat = case ctor pat of
-                     (pat', Just prop) -> (pat', Just [prop])
-                     (_,    Nothing)   -> (pat, Nothing)
+shortcutWrapper ctor pat = case ctor pat of
+                             (pat', Just prop) -> (pat', Just [prop])
+                             (_,    Nothing)   -> (pat, Nothing)
 
 
 
 
 fontStyle2 :: CssPropertyParser
-fontStyle2 pat = wrapper makeCssPropertyFontStyle pat
+fontStyle2 pat = shortcutWrapper makeCssPropertyFontStyle pat
 
 fontVariant2 :: CssPropertyParser
-fontVariant2 pat = wrapper makeCssPropertyFontVariant pat
+fontVariant2 pat = shortcutWrapper makeCssPropertyFontVariant pat
 
 fontWeight2 :: CssPropertyParser
-fontWeight2 pat = wrapper makeCssPropertyFontWeight pat
+fontWeight2 pat = shortcutWrapper makeCssPropertyFontWeight pat
 
 -- TODO: "line-height" is not processed here.
 fontSize2 :: CssPropertyParser
-fontSize2 pat = wrapper makeCssPropertyFontSize pat
+fontSize2 pat = shortcutWrapper makeCssPropertyFontSize pat
 
 fontFamily2 :: CssPropertyParser
-fontFamily2 pat = wrapper makeCssPropertyFontFamily pat
+fontFamily2 pat = shortcutWrapper makeCssPropertyFontFamily pat
 
 lineHeight2 :: CssPropertyParser
-lineHeight2 pat = wrapper makeCssPropertyHeight pat -- TODO: define correctly
+lineHeight2 pat = shortcutWrapper makeCssPropertyHeight pat -- TODO: define correctly
 
 fontEnum2 :: CssPropertyParser
 fontEnum2 pat = case parseEnum cssValueFontDict pat of
