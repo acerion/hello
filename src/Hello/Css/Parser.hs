@@ -521,7 +521,7 @@ parseComplexSelectorTokens tokens = case parseCompoundSelector (Just defaultCssC
                                       Nothing                  -> Nothing
                                       Just (compound, tokens2) -> case parsePairs tokens2 [] of
                                                                     Nothing         -> Nothing
-                                                                    Just (_, pairs) -> Just (makeComplexR (Datum compound) pairs)
+                                                                    Just (_, pairs) -> Just (makeComplexR (Last compound) pairs)
 
 
 
@@ -530,7 +530,7 @@ makeComplexR :: CssComplexSelector -> [(CssCombinator, CssCompoundSelector)] -> 
 makeComplexR compound pairs = foldr f compound pairs
   where
     f :: (CssCombinator, CssCompoundSelector) -> CssComplexSelector -> CssComplexSelector
-    f x acc = Link (Datum (snd x)) (fst x) acc
+    f x acc = Chain (snd x) (fst x) acc
 
 
 
@@ -865,5 +865,5 @@ instance Show CssRule where
 
 -- Get top compound selector
 getTopCompound :: CssRule -> CssCompoundSelector
-getTopCompound rule = chainGetFirst . chain . complexSelector $ rule
+getTopCompound rule = chainGetFirstDatum . chain . complexSelector $ rule
 

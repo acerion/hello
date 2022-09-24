@@ -594,7 +594,7 @@ pokeCssComplexSelector :: Ptr FfiCssComplexSelector -> CssCachedComplexSelector 
 pokeCssComplexSelector ptrStructCssComplexSelector selector = do
 
   ffiSel <- peek ptrStructCssComplexSelector
-  let len = chainLength . chain $ selector :: Int
+  let len = chainDatumLength . chain $ selector :: Int
 
   pokeArrayOfPointersWithAlloc (chainToLinks (chain selector) []) allocAndPokeCssComplexSelectorLink (cLinks ffiSel)
   pokeByteOff ptrStructCssComplexSelector (#offset c_css_cached_complex_selector_t, c_links_size) len

@@ -81,8 +81,8 @@ defaultComplexSelectorLink = CssComplexSelectorLink
 
 
 chainToLinks :: CssComplexSelector -> [CssComplexSelectorLink] -> [CssComplexSelectorLink]
-chainToLinks (Link (Datum compo) combi remainder) acc = chainToLinks remainder (defaultComplexSelectorLink { compound = compo, combinator = Just combi } : acc)
-chainToLinks (Datum compo) acc                        = defaultComplexSelectorLink { compound = compo, combinator = Nothing } : acc
+chainToLinks (Chain compo combi remainder) acc = chainToLinks remainder (defaultComplexSelectorLink { compound = compo, combinator = Just combi } : acc)
+chainToLinks (Last compo) acc                  = defaultComplexSelectorLink { compound = compo, combinator = Nothing } : acc
 
 
 
@@ -95,9 +95,9 @@ linksToChain = linksToChain' . reverse
 
 linksToChain' :: [CssComplexSelectorLink] -> CssComplexSelector
 linksToChain' (x:xs) = case combinator x of
-                         Nothing    -> Datum . compound $ x -- no combinator
-                         Just combi -> Link (Datum . compound $ x) combi (linksToChain' xs)
-linksToChain' []     = Datum defaultCssCompoundSelector
+                         Nothing    -> Last . compound $ x -- no combinator
+                         Just combi -> Chain (compound $ x) combi (linksToChain' xs)
+linksToChain' []     = Last defaultCssCompoundSelector
 
 
 

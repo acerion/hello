@@ -241,7 +241,7 @@ defaultCssCompoundSelector = CssCompoundSelector
 
 defaultComplexSelector = CssCachedComplexSelector {
     matchCacheOffset = -1
-  , chain            = Datum defaultCssCompoundSelector
+  , chain            = Last defaultCssCompoundSelector
   }
 
 
@@ -264,8 +264,8 @@ selectorSpecificity :: CssComplexSelector -> Int
 selectorSpecificity complex = selectorSpecificity' complex 0
   where
     selectorSpecificity' :: CssComplexSelector -> Int -> Int
-    selectorSpecificity' (Link (Datum c1) combinator remainder) acc = selectorSpecificity' remainder (acc + (compoundSelectorSpecificity c1))
-    selectorSpecificity' (Datum c1)                             acc =                                 acc + (compoundSelectorSpecificity c1)
+    selectorSpecificity' (Chain c1 combinator remainder) acc = selectorSpecificity' remainder (acc + (compoundSelectorSpecificity c1))
+    selectorSpecificity' (Last c1)                       acc =                                 acc + (compoundSelectorSpecificity c1)
 
 
 

@@ -24,60 +24,87 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
+
+{-
+A "dual-genous" list, i.e. a list of values of two types. Main type of chain
+is D: a type of datum elements. Each two datum values of type D are alwyas
+separated by single link value of type L. The chain may contain single value
+of type D, in this case there are no values of type L in the chain.
+
+The data structure is used to describe CSS selectors:
+selector1 combinatorA selector2 combinatorB selector3 combinatorC selector4
+
+The selectors are the datums, and the combinators are the links.
+
+
+
+Example usages of the data type:
+a = Last "sel1"
+b = Chain "sel1" '+' (Last "sel2")
+c = Chain "sel1" '+' (Chain "sel2" '>' (Last "sel3"))
+-}
+
+
+
+
 module Hello.Chain
   (
     Chain (..)
-  , chainLength
-  , chainAny
-  , chainGetFirst
+
+  , chainDatumLength
+  , chainAnyDatum
+  , chainGetFirstDatum
   )
 where
 
 
 
 
-data Chain a b
-  = Datum a
-  | Link (Chain a b) b (Chain a b)
+-- Chain of datums and links
+data Chain d l
+  = Last d                 -- Last element in the chain. Also used to construct single-datum chain.
+  | Chain d l (Chain d l)  -- Multi-datum chain constructor.
   deriving (Show, Eq)
 
 
 
 
-chainLength :: (Chain a b) -> Int
-chainLength chain = length' chain 0
+-- Get count of datums in chain.
+--
+-- The function DOES NOT count amount of links (items between datums).
+--
+-- Unit tested: yes
+chainDatumLength :: Chain d l -> Int
+chainDatumLength chain = length' chain 0
 
 
 
 
-length' (Link (Datum _) _ remainder) acc = length' remainder (acc + 1)
-length' (Datum _)                    acc =                   (acc + 1)
+length' (Chain datum link remainder) acc = length' remainder (acc + 1)
+length' (Last datum)                 acc =                   (acc + 1)
 
 
 
 
-chainAny :: (a -> Bool) -> (Chain a b) -> Bool
-chainAny pred (Datum compound)                             = pred compound
-chainAny pred (Link (Datum compound) combinator remainder) = (pred compound) || (chainAny pred remainder)
+-- Check if any datum in the given chain satisfies given predicate.
+--
+-- Unit tested: yes
+chainAnyDatum :: (d -> Bool) -> Chain d l -> Bool
+chainAnyDatum pred (Last datum)              = pred datum
+chainAnyDatum pred (Chain datum _ remainder) = (pred datum) || (chainAnyDatum pred remainder)
 
 
 
 
-chainGetFirst :: (Chain a b) -> a
-chainGetFirst (Link (Datum d) _ remainder) = d
-chainGetFirst (Datum d)                    = d
-
-
-
-
-
-{-
-ch41 =                                                                             Datum "one"
-ch42 =                                                     Link (Datum "two") '+' (Datum "one")
-ch43 =                           Link (Datum "three") '-' (Link (Datum "two") '+' (Datum "one"))
-ch44 = Link (Datum "four") '/'  (Link (Datum "three") '-' (Link (Datum "two") '+' (Datum "one")))
--}
-
-
+-- Get first datum in the chain.
+--
+-- Since it is impossible (for now) to create empty chain (a chain without
+-- datums), the function returns "datum" and not "Maybe datum". This may
+-- change in the future.
+--
+-- Unit tested: yes
+chainGetFirstDatum :: Chain d l -> d
+chainGetFirstDatum (Last datum)      = datum
+chainGetFirstDatum (Chain datum _ _) = datum
 
 

@@ -272,7 +272,7 @@ cssRuleIsSafe rule = (not . cssComplexSelectorHasPseudoClass . complexSelector $
 -- of pseudo class simple selectors? Remember that C/C++ code can use only
 -- first pseudo class.
 cssComplexSelectorHasPseudoClass :: CssCachedComplexSelector -> Bool
-cssComplexSelectorHasPseudoClass complex = chainAny (\compound -> not . null . selectorPseudoClass $ compound) (chain complex)
+cssComplexSelectorHasPseudoClass complex = chainAnyDatum (\compound -> not . null . selectorPseudoClass $ compound) (chain complex)
 
 
 
@@ -317,7 +317,7 @@ cssContextAddRule' (context, sheetSelector, rule) = context { sheets       = upd
                                                             }
   where
     updatedSheet = insertRuleToStyleSheet (getSheet context sheetSelector) rule
-    delta        = chainLength . chain . complexSelector $ rule
+    delta        = chainDatumLength . chain . complexSelector $ rule
 
 
 
