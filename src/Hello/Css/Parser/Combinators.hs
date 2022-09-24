@@ -76,10 +76,10 @@ type MyParser p a = p -> (p, Maybe [a])
 -- "A bar (|) separates two or more alternatives: exactly one of them must occur."
 --
 -- Unit tested? Yes.
-combinatorExactlyOne :: (Show a) => [MyParser p a] -> p -> (p, Maybe [a])
+combinatorExactlyOne :: [MyParser p a] -> p -> (p, Maybe [a])
 combinatorExactlyOne fs pat = if countOfNonEmpty == 1
-                              then trace ("combinatorExactlyOne: success, countOfNonEmpty = " ++ (show countOfNonEmpty) ++ ", " ++ (show accumulators)) (outPat, Just $ L.concat accumulators)
-                              else trace ("combinatorExactlyOne: failure, countOfNonEmpty = " ++ (show countOfNonEmpty) ++ ", " ++ (show accumulators)) (pat, Nothing)
+                              then (outPat, Just $ L.concat accumulators)
+                              else (pat, Nothing)
 
   where
     countOfNonEmpty = L.length $ L.filter (\l -> not . L.null $ l) accumulators
@@ -97,13 +97,13 @@ combinatorExactlyOne fs pat = if countOfNonEmpty == 1
 -- "Juxtaposing components means that all of them must occur, in the given order."
 --
 -- Unit tested? Yes.
-combinatorAllInOrder :: (Show a) => [MyParser p a] -> p -> (p, Maybe [a])
+combinatorAllInOrder :: [MyParser p a] -> p -> (p, Maybe [a])
 combinatorAllInOrder functions pat = if countOfNonEmpty == L.length functions
-                                     then trace ("combinatorAllInOrder: success, L.length functions = " ++ (show . L.length $ functions) ++ ", countOfNonEmpty = " ++ (show countOfNonEmpty)) (outPat, Just $ L.concat accumulators)
-                                     else trace ("combinatorAllInOrder: failure, L.length functions = " ++ (show . L.length $ functions) ++ ", countOfNonEmpty = " ++ (show countOfNonEmpty)) (pat, Nothing)
+                                     then (outPat, Just $ L.concat accumulators)
+                                     else (pat, Nothing)
 
   where
-    countOfNonEmpty = trace ("combinatorAllInOrder: accumulators = " ++ (show accumulators)) (L.length accumulators)
+    countOfNonEmpty        = (L.length accumulators)
     (outPat, accumulators) = runFunctions functions (pat, [])
 
 
@@ -120,10 +120,10 @@ combinatorAllInOrder functions pat = if countOfNonEmpty == L.length functions
 --
 -- https://www.w3.org/TR/css-values-3/#component-combinators
 -- "A double bar (||) separates two or more options: one or more of them must occur, in any order."
-combinatorOneOrMoreUnordered :: (Show a) => [MyParser p a] -> p -> (p, Maybe [a])
+combinatorOneOrMoreUnordered :: [MyParser p a] -> p -> (p, Maybe [a])
 combinatorOneOrMoreUnordered functions pat = if successes >= 1
-                                             then trace ("combinatorOneOrMoreUnordered: success, count = " ++ (show $ L.concat accumulators)) (outPat, Just $ L.concat accumulators)
-                                             else trace ("combinatorOneOrMoreUnordered: failure, count = " ++ (show successes))               (pat, Nothing)
+                                             then (outPat, Just $ L.concat accumulators)
+                                             else (pat, Nothing)
 
   where
     successes = L.length accumulators
@@ -166,6 +166,10 @@ multiplier lower upper function pat | len >= lower && len <= upper = (pat'', Jus
     --
     -- TODO: write tests for "one or more" multiplier that would show that
     -- the hard limit is observed by this function.
+    --
+    -- TODO: the function must implement this requirement from the spec: "If
+    -- a property value contains more than the supported number of
+    -- repetitions, the declaration must be ignored as if it were invalid.".
     hardLimit | upper >= 0 = upper + 1
               | otherwise  = 20
 
