@@ -45,7 +45,8 @@ import Hello.Utils
 
 -- Simple parser taking input string and trying to match a character.
 type TestParser = MyParser T.Text Char
-type Multiplier = (MyParser T.Text Char -> T.Text -> (T.Text, Maybe [Char]))
+type Combinator = [MyParser T.Text Char] -> T.Text -> (T.Text, Maybe [Char])
+type Multiplier =  MyParser T.Text Char  -> T.Text -> (T.Text, Maybe [Char])
 
 
 
@@ -88,6 +89,20 @@ data MultiplierTestData = MultiplierTestData
   , input2            :: T.Text
   , expectedOutput2   :: (T.Text, Maybe [Char])
   }
+
+
+
+
+-- On success return empty string. On failure return string showing
+-- approximately where the problem is.
+combinatorTestFunction :: Combinator -> [CombinatorTestData] -> T.Text
+combinatorTestFunction _          []     = ""
+combinatorTestFunction combinator (x:xs) = if not success
+                                           then T.pack ("Got: " ++ show output ++ ", Expected: " ++ (show . expectedOutput $ x) ++ "; input = " ++ (show . input $ x))
+                                           else combinatorTestFunction combinator xs
+  where
+    success = output == (expectedOutput x)
+    output = combinator (parsers x) (input x)
 
 
 
@@ -182,20 +197,6 @@ combinatorExactlyOneTestData =
 
 
 
--- On success return empty string. On failure return string showing
--- approximately where the problem is.
-combinatorExactlyOneTestFunction :: [CombinatorTestData] -> T.Text
-combinatorExactlyOneTestFunction []     = ""
-combinatorExactlyOneTestFunction (x:xs) = if not success
-                                          then T.pack ("Got: " ++ show output ++ ", Expected: " ++ (show . expectedOutput $ x) ++ "; input = " ++ (show . input $ x))
-                                          else combinatorExactlyOneTestFunction xs
-  where
-    success = output == (expectedOutput x)
-    output = combinatorExactlyOne (parsers x) (input x)
-
-
-
-
 {- -------------------------------------------------------------------------- -}
 
 
@@ -286,17 +287,79 @@ combinatorAllInOrderTestData =
 
 
 
+{- -------------------------------------------------------------------------- -}
 
--- On success return empty string. On failure return string showing
--- approximately where the problem is.
-combinatorAllInOrderTestFunction :: [CombinatorTestData] -> T.Text
-combinatorAllInOrderTestFunction []     = ""
-combinatorAllInOrderTestFunction (x:xs) = if not success
-                                          then T.pack ("Got: " ++ show output ++ ", Expected: " ++ (show . expectedOutput $ x) ++ "; input = " ++ (show . input $ x))
-                                          else combinatorAllInOrderTestFunction xs
-  where
-    success = output == (expectedOutput x)
-    output = combinatorAllInOrder (parsers x) (input x)
+
+
+
+-- We expect here that tested combinator will return some 'Just' when one or
+-- more parsers from CombinatorTestData::parsers succeeds. Valid sets of
+-- input tokens may have various orders of the tokens, so the parsers
+-- themselves may be called in various order (in order different from the
+-- order of appearance on the list).
+--
+-- TODO: the "unordered" part of the combinator is not implemented yet. Once
+-- it is, expand the tests to cover the expanded functionality.
+combinatorOneOrMoreUnorderedTestData =
+  [
+    -- Success cases
+
+    -- There is only one parser, and this parser has matching data in input, so we have a success.
+    CombinatorTestData { parsers = [takeA],               input = "a",   expectedOutput = ("", Just ['a']) }
+  , CombinatorTestData { parsers = [takeA],               input = "ab",  expectedOutput = ("b", Just ['a']) }
+
+    -- Two parsers, both of them succeed.
+  , CombinatorTestData { parsers = [takeA, takeB],        input = "ab",  expectedOutput = ("", Just ['a', 'b']) }
+
+    -- Two parsers, both of them succeed.
+  , CombinatorTestData { parsers = [takeA, takeB],        input = "abc", expectedOutput = ("c", Just ['a', 'b']) }
+
+    -- Two parsers, both of them succeed.
+  , CombinatorTestData { parsers = [takeA, takeB],        input = "abe", expectedOutput = ("e", Just ['a', 'b']) }
+
+    -- All three parsers succeed, each of them taking their letter.
+  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "abc", expectedOutput = ("", Just ['a', 'b', 'c']) }
+
+    -- First parser succeed, second and third fails. One out of three successful parsers is enough.
+  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "aVT", expectedOutput = ("VT", Just ['a']) }
+
+    -- First two parsers succeed, third fails. Two out of three successful parsers is enough.
+  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "abT", expectedOutput = ("T", Just ['a', 'b']) }
+
+
+
+
+    -- Failure cases
+
+    -- Two parsers. None of parsers succeed (there is no token in input that
+    -- could be taken by any of the parsers).
+  , CombinatorTestData { parsers = [takeA, takeB],        input = "two", expectedOutput = ("two", Nothing) }
+
+    -- Three parsers. None of parsers succeed (there is no token in input
+    -- that could be taken by any of the parsers).
+  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "ztq", expectedOutput = ("ztq", Nothing) }
+
+    -- There are zero parsers to run. This means that we can't meet the
+    -- requirement of "one or more" successful parses.
+  , CombinatorTestData { parsers = [],                    input = "abc", expectedOutput = ("abc", Nothing) }
+
+    -- There is only one parser, but this parser doesn't have matching data in input, so we have zero matching parsers.
+  , CombinatorTestData { parsers = [takeA],               input = "",    expectedOutput = ("", Nothing)   }
+  , CombinatorTestData { parsers = [takeA],               input = "o",   expectedOutput = ("o", Nothing)  }
+  , CombinatorTestData { parsers = [takeA],               input = "oh",  expectedOutput = ("oh", Nothing) }
+
+    -- Input string is empty, so none of parsers succeed. Zero is not "one or more".
+  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "",    expectedOutput = ("", Nothing) }
+
+  {-
+  , CombinatorTestData { parsers = [takeA],               input = "oa",  expectedOutput = ("oa", Nothing) }
+
+
+    -- First parser fails, but the second and third would succeed. But they will never be called.
+  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "1bc", expectedOutput = ("1bc", Nothing) }
+-}
+  ]
+
 
 
 
@@ -336,12 +399,30 @@ multiplierZeroOrOnceTestData =
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "acb", expectedOutput2 = ("acb",    Just []) }
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "xyz", expectedOutput2 = ("xyz",    Just []) }
 
-    -- A set of parsers (a combinator) succeeds one time, and this is enough
-    -- for tested multiplier to return success.
+    -- A set of parsers (a combinator) is successfully applied once (only
+    -- one/first application of the set was successful). This means that
+    -- multiplier succeeded in applying the set of parsers once. This means
+    -- that multiplier can return success.
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abc",   expectedOutput2 = ("",     Just ['a', 'b', 'c']) }
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcd",  expectedOutput2 = ("d",    Just ['a', 'b', 'c']) }
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcab", expectedOutput2 = ("ab",   Just ['a', 'b', 'c']) }
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcxy", expectedOutput2 = ("xy",   Just ['a', 'b', 'c']) }
+
+    -- A set of parsers (a combinator) is successfully applied once (only
+    -- one/first application of the set was successful). This means that
+    -- multiplier succeeded in applying the set of parsers once. This means
+    -- that multiplier can return success.
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeA, takeB, takeC],   input2 = "aXY",   expectedOutput2 = ("XY",   Just ['a']) }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeA, takeB, takeC],   input2 = "abXY",  expectedOutput2 = ("XY",   Just ['a', 'b']) }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeA, takeB, takeC],   input2 = "abcXY", expectedOutput2 = ("XY",   Just ['a', 'b', 'c']) }
+
+
+    -- A set of parsers (a combinator) is successfully applied zero times
+    -- (zero applications of the set was successful). This means that
+    -- multiplier succeeded in applying the set of parsers zero times. This
+    -- means that this particular multiplier can return success.
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeA, takeB, takeC],   input2 = "XYZ",   expectedOutput2 = ("XYZ",   Just []) }
+
 
 
 
@@ -360,6 +441,15 @@ multiplierZeroOrOnceTestData =
     -- much for tested multiplier.
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabc",   expectedOutput2 = ("abcabc",   Nothing) }
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabcd",  expectedOutput2 = ("abcabcd",  Nothing) }
+
+    -- A set of parsers (a combinator) is successfully applied twice (two
+    -- applications of the set were successful). This means that multiplier
+    -- failed in applying the set of parsers just once. This means that
+    -- multiplier cannot return success.
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeA, takeB, takeC],   input2 = "aaWZ",     expectedOutput2 = ("aaWZ",     Nothing) }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeA, takeB, takeC],   input2 = "ababWZ",   expectedOutput2 = ("ababWZ",   Nothing) }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeA, takeB, takeC],   input2 = "abcabcWZ", expectedOutput2 = ("abcabcWZ", Nothing) }
+
   ]
 
 
@@ -384,8 +474,10 @@ multiplierOnceTestData =
   , MultiplierTestData { childItems2 = takeA,               input2 = "ab",  expectedOutput2 = ("b",   Just ['a']) }
   , MultiplierTestData { childItems2 = takeA,               input2 = "abc", expectedOutput2 = ("bc",  Just ['a']) }
 
-    -- A set of parsers (a combinator) succeeds one time, and this is exactly
-    -- what is needed for tested multiplier to return success.
+    -- A set of parsers (a combinator) is successfully applied once (only
+    -- one/first application of the set was successful). This means that
+    -- multiplier succeeded in applying the set of parsers once. This means
+    -- that multiplier can return success.
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abc",   expectedOutput2 = ("",     Just ['a', 'b', 'c']) }
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcd",  expectedOutput2 = ("d",    Just ['a', 'b', 'c']) }
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcab", expectedOutput2 = ("ab",   Just ['a', 'b', 'c']) }
@@ -424,6 +516,11 @@ multiplierOnceTestData =
     -- much for tested multiplier.
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabc",   expectedOutput2 = ("abcabc",   Nothing) }
   , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabcd",  expectedOutput2 = ("abcabcd",  Nothing) }
+
+    -- A set of parsers (a combinator) is successfully applied zero times
+    -- (none of applications of the set were successful). This means that the
+    -- multipier didn't succeed once and so it cannot return success.
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeA, takeB, takeC],   input2 = "XYZ",   expectedOutput2 = ("XYZ",   Nothing) }
   ]
 
 
@@ -438,8 +535,10 @@ multiplierOnceTestData =
 -- help identify a test that failed.
 testCases =
   [
-    TestCase (do assertEqual "manual tests of combinatorExactlyOne"              "" (combinatorExactlyOneTestFunction combinatorExactlyOneTestData))
-  , TestCase (do assertEqual "manual tests of combinatorAllInOrder"              "" (combinatorAllInOrderTestFunction combinatorAllInOrderTestData))
+    TestCase (do assertEqual "manual tests of combinatorExactlyOne"              "" (combinatorTestFunction combinatorExactlyOne         combinatorExactlyOneTestData))
+  , TestCase (do assertEqual "manual tests of combinatorAllInOrder"              "" (combinatorTestFunction combinatorAllInOrder         combinatorAllInOrderTestData))
+  , TestCase (do assertEqual "manual tests of combinatorOneOrMoreUnordered"      "" (combinatorTestFunction combinatorOneOrMoreUnordered combinatorOneOrMoreUnorderedTestData))
+
   , TestCase (do assertEqual "manual tests of multiplierZeroOrOnce"              "" (multiplierTestFunction multiplierZeroOrOnce multiplierZeroOrOnceTestData))
   , TestCase (do assertEqual "manual tests of multiplierOnce"                    "" (multiplierTestFunction multiplierOnce       multiplierOnceTestData))
   ]
