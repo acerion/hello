@@ -48,31 +48,31 @@ parseComplexSelectorTestManualDataBasic = [
   -- Recognition of most basic case: just "id" selector.
   , ( "#some_id",       "",   Just CssCachedComplexSelector
                               { matchCacheOffset = (-1)
-                              , chain = Datum CssCompoundSelector { selectorPseudoClass = []
-                                                                  , selectorId = "some_id"
-                                                                  , selectorClass = []
-                                                                  , selectorTagName = CssTypeSelectorUniv
-                                                                  }
+                              , chain = Last CssCompoundSelector { selectorPseudoClass = []
+                                                                 , selectorId = "some_id"
+                                                                 , selectorClass = []
+                                                                 , selectorTagName = CssTypeSelectorUniv
+                                                                 }
                               })
 
   -- Recognition of most basic case: just "class" selector.
   , ( ".some_class",    "",   Just CssCachedComplexSelector
                               { matchCacheOffset = (-1)
-                              , chain = Datum CssCompoundSelector { selectorPseudoClass = []
-                                                                  , selectorId = ""
-                                                                  , selectorClass = ["some_class"]
-                                                                  , selectorTagName = CssTypeSelectorUniv
-                                                                  }
+                              , chain = Last CssCompoundSelector { selectorPseudoClass = []
+                                                                 , selectorId = ""
+                                                                 , selectorClass = ["some_class"]
+                                                                 , selectorTagName = CssTypeSelectorUniv
+                                                                 }
                               })
 
   -- Recognition of most basic case: just "pseudo class" selector.
   , ( ":link",          "",   Just CssCachedComplexSelector
                               { matchCacheOffset = (-1)
-                              , chain = Datum CssCompoundSelector { selectorPseudoClass = ["link"]
-                                                                  , selectorId = ""
-                                                                  , selectorClass = []
-                                                                  , selectorTagName = CssTypeSelectorUniv
-                                                                  }
+                              , chain = Last CssCompoundSelector { selectorPseudoClass = ["link"]
+                                                                 , selectorId = ""
+                                                                 , selectorClass = []
+                                                                 , selectorTagName = CssTypeSelectorUniv
+                                                                 }
                               })
   ]
 
