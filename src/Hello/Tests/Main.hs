@@ -17,6 +17,7 @@ where
 
 import System.Exit
 
+import Hello.Tests.Chain
 import Hello.Tests.Colors
 import Hello.Tests.Cookies
 
@@ -45,7 +46,8 @@ import Hello.Tests.Utils
 
 
 
-testFunctions = [ testsColors
+testFunctions = [ testsChain
+                , testsColors
                 , testsCookies
                 , testsGif
                 -- , testsGif2 -- Disabled because of failure described in top-level comment in TestsGif2.hs
