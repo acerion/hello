@@ -67,7 +67,7 @@ parseLengthOrMultiLength attribute =
                        Just (c, _)   -> if D.C.isSpace c
                                         then Just (realToFrac f, cssLengthTypePX)
                                         else Nothing -- Don't accept garbage attached to a number
-    otherwise     -> Nothing
+    Nothing      -> Nothing
 
 
 
@@ -91,7 +91,7 @@ validateNameOrIdValue doctype attrName attrValue =
     HtmlDoctypeHtml v -> if v >= 5.0
                          then for5 attrValue
                          else forOlder attrValue
-    otherwise         -> forOlder attrValue
+    _                 -> forOlder attrValue
 
   where
     for5 attrValue = if T.length attrValue == 0

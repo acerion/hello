@@ -191,7 +191,7 @@ interpretRgbFunctionTokens tokens =
     -- "either three integer values or three percentage values" in https://www.w3.org/TR/css-color-3/
     (CssTokPerc (CssNumI r):CssTokComma:CssTokPerc (CssNumI g):CssTokComma:CssTokPerc (CssNumI b):CssTokParenClose:[]) -> Just (r, g, b, True)
     (CssTokNum (CssNumI r):CssTokComma:CssTokNum (CssNumI g):CssTokComma:CssTokNum (CssNumI b):CssTokParenClose:[])    -> Just (r, g, b, False)
-    otherwise                                                                                                          -> Nothing
+    _                                                                                                                  -> Nothing
 
 
 

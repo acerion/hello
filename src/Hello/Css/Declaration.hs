@@ -1292,8 +1292,8 @@ fontEnum2 pat = case parseEnum cssValueFontDict pat of
 
 parseEnum :: [(T.Text, b)] -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe b)
 parseEnum dict pat = case propValue of
-                       Just v    -> (pat', Just v)
-                       otherwise -> (pat, Nothing)
+                       Just v  -> (pat', Just v)
+                       Nothing -> (pat, Nothing)
   where
     (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'

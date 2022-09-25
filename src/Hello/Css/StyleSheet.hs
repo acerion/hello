@@ -389,7 +389,7 @@ readDeclarations parser token = ((p3, t3), (declSet, declSetImp))
   where
     ((p2, t2), (declSet, declSetImp)) = case token of
                                           CssTokEnd -> ((parser, token), (declSet, declSetImp))
-                                          otherwise -> readDeclarations' ((nextToken1 parser{ inBlock = True }), (defaultCssDeclarationSet, defaultCssDeclarationSet))
+                                          _         -> readDeclarations' ((nextToken1 parser{ inBlock = True }), (defaultCssDeclarationSet, defaultCssDeclarationSet))
     (p3, t3) = case t2 of
                  CssTokBraceCurlyClose -> nextToken1 p2{ inBlock = False }
                  _                     -> (p2{ inBlock = False }, t2)
@@ -402,7 +402,7 @@ readDeclarations' ((parser, token), (declSet, declSetImp)) =
     CssTokBraceCurlyClose -> ((parser, token), (declSet, declSetImp)) -- TODO: this should be (nextToken parser)
                              -- instead of (parser, token): ensure that '}' that is part of "declartions" block
                              -- is handled and consumed, so that the next part of code doesn't have to handle it.
-    otherwise             -> readDeclarations' (parseDeclarationWrapper (parser, token) (declSet, declSetImp))
+    _                     -> readDeclarations' (parseDeclarationWrapper (parser, token) (declSet, declSetImp))
 
 
 
@@ -473,7 +473,7 @@ parseCss ((parser, token), context) =
     CssTokAt "import" -> (ignoreBlock parser, context) -- TODO: reimplement "void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)"
     CssTokAt "media"  -> parseCss . parseMediaRule $ ((parser, token), context)
     CssTokEnd         -> ((parser, token), context)
-    otherwise         -> parseCss . parseRuleset $ ((parser, token), context) -- TODO: set flag "let importsAreAllowed = False"
+    _                 -> parseCss . parseRuleset $ ((parser, token), context) -- TODO: set flag "let importsAreAllowed = False"
 
 
 

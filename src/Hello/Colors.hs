@@ -257,7 +257,7 @@ colorsHexStringToColor text =
         3 -> Just (((parsed .&. 0xf00) `shiftL` 12) .|. ((parsed .&. 0xf00) `shiftL` 8) .|. -- RGB format
                    ((parsed .&. 0x0f0) `shiftL` 8)  .|. ((parsed .&. 0x0f0) `shiftL` 4) .|.
                    ((parsed .&. 0x00f) `shiftL` 4)  .|. ((parsed .&. 0x00f) `shiftL` 0))
-        otherwise -> Nothing
+        _ -> Nothing
 
 
 

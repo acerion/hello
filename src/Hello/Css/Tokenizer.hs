@@ -349,7 +349,7 @@ takeIdentLikeToken' p1 name =
                        else (p2, Just $ CssTokFunc name)
       where
         p2 = p1{ remainder = rem}
-    otherwise       -> (p1, Just $ CssTokIdent name)
+    _               -> (p1, Just $ CssTokIdent name)
 
 
 
@@ -441,7 +441,7 @@ takeHashToken p1 =
                              else (parserMoveByLen p2 len, Just $ CssTokHash CssHashUn name)
           where
             (name, len) = consumeName (remainder p2) "" 0
-    otherwise -> (p1, Nothing)
+    _ -> (p1, Nothing)
 
 
 
@@ -456,7 +456,7 @@ takeAtToken p1 =
           where
             (name, len) = consumeName (remainder p2) "" 0
 
-    otherwise -> (p1, Nothing)
+    _ -> (p1, Nothing)
 
 
 
@@ -588,7 +588,7 @@ tryTakingPercOrDim numParser cssNum | (parser, Just (CssTokDelim '%'))   <- take
 takeNumericToken :: CssParser -> (CssParser, Maybe CssToken)
 takeNumericToken parser = case takeNumber parser of
                             (numParser, Just cssNum) -> (numTokenOrMore numParser cssNum)
-                            otherwise                -> (parser, Nothing)
+                            _                        -> (parser, Nothing)
 
   where
     -- Use given CssNum to either create <number-token>, or (if data in
@@ -641,7 +641,7 @@ expectSign (buf, acc) = case T.uncons buf of
                           Just ('+', rem) -> Just (rem, T.concat [acc, "+"])
                           Just ('-', rem) -> Just (rem, T.concat [acc, "-"])
                           Just (_,   rem) -> Just (buf, T.concat [acc, "+"])
-                          otherwise       -> Nothing
+                          _               -> Nothing
 
 
 
@@ -650,7 +650,7 @@ expectLeadingDigits :: (T.Text, T.Text) -> Maybe (T.Text, T.Text)
 expectLeadingDigits (buf, acc) = case T.uncons buf of
                                    Just ('.', rem) -> Just (buf, T.concat [acc, "0"])
                                    Just (d,   rem) -> tryTakingDigits (buf, acc) d
-                                   otherwise       -> Nothing
+                                   _               -> Nothing
 
 
 
@@ -658,7 +658,7 @@ expectLeadingDigits (buf, acc) = case T.uncons buf of
 expectDot :: (T.Text, T.Text) -> Maybe (T.Text, T.Text)
 expectDot (buf, acc) = case T.uncons buf of
                          Just ('.', rem) -> Just (rem, T.concat [acc, "."])
-                         otherwise       -> Just (buf, acc) -- No dot, but maybe it's an exponential notation.
+                         _               -> Just (buf, acc) -- No dot, but maybe it's an exponential notation.
 
 
 
@@ -666,7 +666,7 @@ expectDot (buf, acc) = case T.uncons buf of
 expectFollowingDigits :: (T.Text, T.Text) -> Maybe (T.Text, T.Text)
 expectFollowingDigits (buf, acc) = case T.uncons buf of
                                      Just (d, rem) -> tryTakingDigits (buf, acc) d
-                                     otherwise     -> Just (buf, acc)
+                                     _             -> Just (buf, acc)
 
 
 
@@ -683,7 +683,7 @@ tryTakingDigits (buf, acc) d = if d >= '0' && d <= '9'
 
 requestFollowingDigits (buf, acc) = case T.uncons buf of
                                       Just (d, rem) -> requestDigits (buf, acc) d
-                                      otherwise     -> Nothing
+                                      Nothing       -> Nothing
 
 
 
@@ -730,8 +730,8 @@ interpretFloatString buf = case T.R.signed T.R.rational buf of
                              -- recognize a string that represents a float in
                              -- exponential notation.
                              Right (f, rem) -> case T.find (\c -> elem c ['.', 'e']) valString of
-                                                 Just c    -> Just $ CssNumF f
-                                                 otherwise -> Nothing
+                                                 Just c  -> Just $ CssNumF f
+                                                 Nothing -> Nothing
                                where
                                  valString = T.take valLen buf
                                  valLen = (T.length buf) - (T.length rem)
@@ -768,7 +768,7 @@ takeSingleCharToken parser = case T.uncons $ remainder parser of
                                Just (')', rem) -> (parser{ remainder = rem }, Just CssTokParenClose)
                                Just ('{', rem) -> (parser{ remainder = rem }, Just CssTokBraceCurlyOpen)
                                Just ('}', rem) -> (parser{ remainder = rem }, Just CssTokBraceCurlyClose)
-                               otherwise       -> (parser, Nothing)
+                               _               -> (parser, Nothing)
 
 
 

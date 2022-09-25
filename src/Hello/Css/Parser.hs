@@ -586,7 +586,7 @@ readSelectorList (parser, token) = parseSelectorWrapper (parser, token) []
       case parseComplexSelector (parser, token) of
         ((parser, token), Just selector) -> case token of
                                               CssTokComma -> parseSelectorWrapper (nextToken1 parser) (acc ++ [selector])
-                                              otherwise   -> ((parser, token), acc ++ [selector])
+                                              _           -> ((parser, token), acc ++ [selector])
         _                                -> ((parser, token), acc)
 
 
@@ -623,7 +623,7 @@ takeComplexSelectorTokens (parser, token) = takeNext (parser, token) []
                                                       then takeNext (nextToken2 parser) tokens
                                                       else takeNext (nextToken2 parser) (tokens ++ [token])
                                         CssTokNone -> takeNext (nextToken2 parser) tokens -- This token can be used to 'kick-start' of parsing
-                                        otherwise  -> takeNext (nextToken2 parser) (tokens ++ [token])
+                                        _          -> takeNext (nextToken2 parser) (tokens ++ [token])
 
 
 
@@ -779,7 +779,7 @@ declarationsSetUpdateOrAdd declSet decl =
     newSafe declSet decl = (isSafe declSet) && case property decl of
                                                  CssPropertyDisplay _         -> False
                                                  CssPropertyBackgroundImage _ -> False
-                                                 otherwise                    -> True
+                                                 _                            -> True
 
 
 

@@ -211,7 +211,7 @@ styleEngineSetFontSize declValue prefs display parentFontAttrs fontAttrs = clipS
     setAbsSize :: CssValueFontSize -> FontAttrs -> FontAttrs
     setAbsSize declValue fontAttrs = case fontSizeToAbs declValue prefs display fontAttrs parentFontAttrs of
                                        Just size -> fontAttrs { fontSize = size }
-                                       otherwise -> fontAttrs
+                                       Nothing   -> fontAttrs
 
     clipSize :: FontAttrs -> FontAttrs
     clipSize a | fontSize a < prefsFontMinSize prefs = a { fontSize = prefsFontMinSize prefs }
@@ -309,7 +309,7 @@ styleEngineApplyStyleToFont declSet prefs display parentFontAttrs fontAttrs = ap
                    CssPropertyFontVariant declValue   -> apply xs prefs display parentFontAttrs $ styleEngineSetFontVariant declValue fontAttrs
                    CssPropertyFontWeight declValue    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight declValue fontAttrs
                    CssPropertyLetterSpacing declValue -> apply xs prefs display parentFontAttrs $ styleEngineSetLetterSpacing declValue display parentFontAttrs fontAttrs
-                   otherwise                          -> apply xs prefs display parentFontAttrs $ fontAttrs
+                   _                                  -> apply xs prefs display parentFontAttrs $ fontAttrs
           where
             x  :: CssDeclaration       = S.index decls 0
             xs :: S.Seq CssDeclaration = S.drop 1 decls
@@ -322,7 +322,7 @@ styleEngineCalculateDwLength distance fontAttrs display =
   case distance of
     CssNumericPercentage v -> Just $ createPercentageDwLength (realToFrac v)
     CssDistanceAuto        -> Just createAutoDwLength
-    otherwise              -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
+    _                      -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
                                 Just val -> Just $ createAbsoluteDwLength (round val) -- TODO: a type of Float -> Int function to be verified here
                                 Nothing  -> Nothing
 
@@ -432,7 +432,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssPropertyXLang declValue         -> styleAttrs { styleXLang          = getXLang declValue }
     CssPropertyXImg declValue          -> styleAttrs { styleXImg           = getXImg declValue }
     CssPropertyXTooltip declValue      -> styleAttrs { styleXTooltip       = getXTooltip declValue }
-    otherwise                             -> styleAttrs
+    _                                  -> styleAttrs
     -- TODO: add support for missing cases
 
   where

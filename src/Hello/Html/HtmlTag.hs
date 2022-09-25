@@ -227,7 +227,7 @@ htmlTagParseWholeTag :: T.Text -> Maybe TagParser
 htmlTagParseWholeTag text =
   case tagName parser of
     Nothing -> Nothing
-    otherwise -> Just (takeAllAttrNamesAndValues parser)
+    _       -> Just (takeAllAttrNamesAndValues parser)
   where parser = takeTagName parserDefault text
 
 
@@ -293,9 +293,9 @@ takeAttrValue parser = parser { currentAttrValue = T.strip . fixWhiteSpaces $ va
   where
     valueBegin = T.stripStart . htmlRemainder $ parser
     delimiter = case T.head valueBegin of
-                  '\''      -> '\''
-                  '"'       -> '"'
-                  otherwise -> ' '
+                  '\'' -> '\''
+                  '"'  -> '"'
+                  _    -> ' '
 
     value = if delimiter == ' '
             then T.takeWhile pred valueBegin -- valueBegin is already stripped at the front, so we will drop until ending space is found

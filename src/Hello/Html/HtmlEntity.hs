@@ -282,4 +282,4 @@ replaceQuotes entityIsoCode = case entityIsoCode of
                                 149 -> 176                 -- 0xb0 ('degrees' sign)
                                 150 -> Data.Char.ord '-'   -- 0x2d
                                 151 -> Data.Char.ord '-'   -- 0x2d
-                                otherwise -> entityIsoCode
+                                _   -> entityIsoCode

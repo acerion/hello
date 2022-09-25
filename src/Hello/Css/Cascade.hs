@@ -123,9 +123,9 @@ minSpecificityForRule rule rulesListIdx state =
 
 applyCssRule :: CssCachedDeclarationSet -> Doctree -> Maybe DoctreeNode -> CssRule -> CssCachedDeclarationSet
 applyCssRule cachedDeclSet doctree mDtn rule =
-  case match of
-    True      -> (targetDeclSet', matchCache2)
-    otherwise -> (fst cachedDeclSet,  matchCache2)
+  if match
+  then (targetDeclSet', matchCache2)
+  else (fst cachedDeclSet,  matchCache2)
 
   where
     targetDeclSet'       = declarationsSetAppend (fst cachedDeclSet) (declarationSet rule)
@@ -239,8 +239,8 @@ buildMatchingRulesGroupForDtn styleSheet dtn = reverse rulesLists
     bySelId lists = if T.null . selId $ dtn
                     then lists
                     else case M.lookup (selId dtn) (rulesById styleSheet) of
-                           Just l    -> l:lists
-                           otherwise -> lists
+                           Just l  -> l:lists
+                           Nothing -> lists
 
 
     {-
@@ -260,8 +260,8 @@ buildMatchingRulesGroupForDtn styleSheet dtn = reverse rulesLists
       where
         getSelectorClassLists []     acc = acc
         getSelectorClassLists (c:cs) acc = case M.lookup c (rulesByClass styleSheet) of
-                                             Just l    -> getSelectorClassLists cs (l:acc)
-                                             otherwise -> getSelectorClassLists cs acc
+                                             Just l  -> getSelectorClassLists cs (l:acc)
+                                             Nothing -> getSelectorClassLists cs acc
 
 
     {-

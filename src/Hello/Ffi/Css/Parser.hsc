@@ -255,7 +255,7 @@ cstr token = case token of
     (CssTokStr s)    -> (newCString . T.unpack $ s)
     (CssTokDelim c)  -> (newCString . T.unpack . T.singleton $ c)
     CssTokWS         -> (newCString " ")
-    otherwise        -> return nullPtr
+    _                -> return nullPtr
 
 
 
@@ -988,14 +988,14 @@ hll_isTokenComma ptrStructCssToken = do
   token <- peekCssToken ptrStructCssToken
   case token of
     CssTokComma -> return 1
-    otherwise   -> return 0
+    _           -> return 0
 
 hll_isTokenSemicolon :: Ptr FfiCssToken -> IO Int
 hll_isTokenSemicolon ptrStructCssToken = do
   token <- peekCssToken ptrStructCssToken
   case token of
     CssTokSemicolon -> return 1
-    otherwise    -> return 0
+    _               -> return 0
 
 
 
