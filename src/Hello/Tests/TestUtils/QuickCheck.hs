@@ -25,5 +25,5 @@ import Test.QuickCheck
 qcResultIsSuccess :: Result -> Bool
 qcResultIsSuccess result =
   case result of
-    Success _ _ _ _ _ _  -> True
-    otherwise            -> False
+    Success _ _ _ _ _ _ -> True
+    Failure _ _ _ _ _ _ _ _ _ _ _ _ _ -> False

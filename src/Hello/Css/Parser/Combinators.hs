@@ -177,10 +177,10 @@ multiplier lower upper function pat | len >= lower && len <= upper = (pat'', Jus
     -- When the function fails to take a parser-specific expression, return
     -- accumulated result of all of the calls that succeeded.
     callUntilFail :: MyParser p a -> p -> [[a]] -> Int -> (p, [[a]])
-    callUntilFail function pat result limit = case function pat of
-                                                (pat', Just acc') | L.length result > limit -> (pat', result)
-                                                                  | otherwise               -> callUntilFail function pat' (result ++ [acc']) limit
-                                                (_, Nothing)      -> (pat, result)
+    callUntilFail fun patArg accs limit = case fun patArg of
+                                            (pat', Just acc') | L.length accs > limit -> (pat', accs)
+                                                              | otherwise             -> callUntilFail fun pat' (accs ++ [acc']) limit
+                                            (_, Nothing)                              -> (patArg, accs)
 
 
 

@@ -214,18 +214,18 @@ hll_cssContextApplyCssContext cRef cDoctreeRef cDtnNum cMainDeclSetRef cImportan
   let dtn  = getDtnUnsafe doctree (fromIntegral cDtnNum)
 
   let mainDeclSetRef = fromIntegral cMainDeclSetRef
-  mainDeclSet :: CssDeclarationSet <- getSomeDeclSet2 mainDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
+  mainDeclSetIn :: CssDeclarationSet <- getSomeDeclSet2 mainDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
 
   let importantDeclSetRef = fromIntegral cImportantDeclSetRef
-  importantDeclSet :: CssDeclarationSet <- getSomeDeclSet2 importantDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
+  importantDeclSetIn :: CssDeclarationSet <- getSomeDeclSet2 importantDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
 
   let nonCssDeclSetRef = fromIntegral cNonCssDeclSetRef
-  nonCssDeclSet :: CssDeclarationSet <- getSomeDeclSet2 nonCssDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
+  nonCssDeclSetIn :: CssDeclarationSet <- getSomeDeclSet2 nonCssDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
 
   let styleNode :: StyleNode = StyleNode
-                               { mainDeclSet      = mainDeclSet
-                               , importantDeclSet = importantDeclSet
-                               , nonCssDeclSet    = nonCssDeclSet
+                               { mainDeclSet      = mainDeclSetIn
+                               , importantDeclSet = importantDeclSetIn
+                               , nonCssDeclSet    = nonCssDeclSetIn
                                }
 
   (mergedDeclSet, matchCache') <- cssContextApplyCssContext context doctree dtn styleNode

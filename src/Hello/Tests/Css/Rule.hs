@@ -99,8 +99,8 @@ ruleTestCases = [
 
 testsCssRule :: IO String
 testsCssRule = do
-  counts <- runTestTT (TestList (ruleTestCases))
-  if (errors counts + failures counts == 0)
+  testCounts <- runTestTT (TestList (ruleTestCases))
+  if (errors testCounts + failures testCounts == 0)
     then return ""
     else return "[EE] testsCssRule failed"
 

@@ -52,9 +52,9 @@ type Multiplier =  MyParser T.Text Char  -> T.Text -> (T.Text, Maybe [Char])
 -- Parser function to be specialized with specific characters.
 takeChar :: Char -> TestParser
 takeChar char text = case T.uncons text of
-                       Just (c, rem) | c == char -> (rem, Just [c])
-                                     | otherwise -> (text, Nothing)
-                       Nothing               -> (text, Nothing)
+                       Just (c, remd) | c == char -> (remd, Just [c])
+                                      | otherwise -> (text, Nothing)
+                       Nothing                    -> (text, Nothing)
 
 
 
@@ -546,8 +546,8 @@ testCases =
 
 testsCssParserCombinators :: IO String
 testsCssParserCombinators = do
-  counts <- runTestTT (TestList (testCases))
-  if (errors counts + failures counts == 0)
+  testCounts <- runTestTT (TestList (testCases))
+  if (errors testCounts + failures testCounts == 0)
     then return ""
     else return "[EE] Hello.Tests.Css.Parser.Combinators failed"
 

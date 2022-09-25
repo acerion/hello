@@ -25,6 +25,8 @@ import qualified Data.Text as T
 
 import HtmlEntity
 
+import Hello.Utils
+
 
 
 
@@ -138,14 +140,14 @@ validEntityTest (x:xs) = if isMatch x (htmlEntityToIsoCode . inName $ x)
                          else (inName x)
   where
     isMatch :: (T.Text, Maybe Int, T.Text) -> Maybe EntityParser -> Bool
-    isMatch x parser = case parser of
-                         Just parser' -> inCode x == entityIsoCode parser'
-                                         && (inRemainder x) == remainder parser'
-                         otherwise    -> False
+    isMatch a parser = case parser of
+                         Just parser' -> inCode a == entityIsoCode parser'
+                                         && (inRemainder a) == remainder parser'
+                         Nothing      -> False
 
-    inName      (x, _, _) = x
-    inCode      (_, y, _) = y
-    inRemainder (_, _, z) = z
+    inName      = triplet1st
+    inCode      = triplet2nd
+    inRemainder = triplet3rd
 
 
 
@@ -162,8 +164,8 @@ testCases = [
 
 testsHtmlEntity :: IO String
 testsHtmlEntity = do
-  counts <- runTestTT (TestList (testCases))
-  if (errors counts + failures counts == 0)
+  testCounts <- runTestTT (TestList (testCases))
+  if (errors testCounts + failures testCounts == 0)
     then return ""
     else return "[EE] testsHtmlEntity failed"
 

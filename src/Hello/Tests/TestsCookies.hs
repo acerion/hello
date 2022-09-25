@@ -140,7 +140,7 @@ matchDomainCases = [
 
 testsCookies :: IO String
 testsCookies = do
-  counts <- runTestTT (TestList (lineToRuleCases ++ sortRulesCases ++ matchDomainCases))
-  if (errors counts + failures counts == 0)
+  testCounts <- runTestTT (TestList (lineToRuleCases ++ sortRulesCases ++ matchDomainCases))
+  if (errors testCounts + failures testCounts == 0)
     then return ""
     else return "[EE] testsCookies failed"

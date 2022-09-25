@@ -213,8 +213,8 @@ htmlAttributeGetValue :: T.Text -> T.Text -> Maybe T.Text
 htmlAttributeGetValue text needle = case htmlTagParseWholeTag text of
                                       Nothing     -> Nothing
                                       Just parser -> case M.lookup needle (attributes parser) of
-                                                       Nothing   -> Nothing
-                                                       Just text -> Just text
+                                                       Nothing  -> Nothing
+                                                       Just txt -> Just txt
 
 
 
@@ -235,8 +235,8 @@ htmlTagParseWholeTag text =
 
 takeAllAttrNamesAndValues :: TagParser -> TagParser
 takeAllAttrNamesAndValues parser = case takeAttrNameAndValue parser of
-                                     Just parser -> takeAllAttrNamesAndValues parser
-                                     Nothing -> parser
+                                     Just parser' -> takeAllAttrNamesAndValues parser'
+                                     Nothing      -> parser
 
 
 
@@ -247,10 +247,10 @@ takeTagName parser text =
   then parser { tagName = Just (fst pair), htmlRemainder = snd pair }
   else parser { tagName = Nothing, htmlRemainder = text }
   where
-    pair = T.span pred (T.stripStart . T.tail $ text)
+    pair = T.span predicate (T.stripStart . T.tail $ text)
     -- TODO: improve the predicate. We should handle different cases like "< an invalid tag =".
-    pred :: Char -> Bool
-    pred c = Data.Char.isDigit c || Data.Char.isAsciiUpper c || Data.Char.isAsciiLower c
+    predicate :: Char -> Bool
+    predicate c = Data.Char.isDigit c || Data.Char.isAsciiUpper c || Data.Char.isAsciiLower c
 
 
 
@@ -298,14 +298,14 @@ takeAttrValue parser = parser { currentAttrValue = T.strip . fixWhiteSpaces $ va
                   _    -> ' '
 
     value = if delimiter == ' '
-            then T.takeWhile pred valueBegin -- valueBegin is already stripped at the front, so we will drop until ending space is found
-            else T.takeWhile pred (T.drop 1 valueBegin)
+            then T.takeWhile predicate valueBegin -- valueBegin is already stripped at the front, so we will drop until ending space is found
+            else T.takeWhile predicate (T.drop 1 valueBegin)
 
     restOfText = if delimiter == ' '
                  then T.drop (T.length value) valueBegin
                  else T.drop ((T.length value) + 1) valueBegin
 
-    pred = (\c -> c /= delimiter && c /= '>') -- '>' indicates end of tag. TODO: Notice that "/>" is not recognized correctly here as end of tag.
+    predicate = (\c -> c /= delimiter && c /= '>') -- '>' indicates end of tag. TODO: Notice that "/>" is not recognized correctly here as end of tag.
 
 
 

@@ -271,14 +271,14 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 
 
 declValueAsString :: Int -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
-declValueAsString id (parser, token) = case ((retParser, retToken), value) of
-                                         ((p, t), Just (CssValueTypeString s)) -> ((p, t), Just s)
-                                         ((p, t), Just (CssValueTypeURI s))    -> ((p, t), Just s)
-                                         ((p, t), Nothing)                     -> ((p, t), Nothing)
+declValueAsString propId (parser, token) = case ((retParser, retToken), value) of
+                                             ((p, t), Just (CssValueTypeString s)) -> ((p, t), Just s)
+                                             ((p, t), Just (CssValueTypeURI s))    -> ((p, t), Just s)
+                                             ((p, t), Nothing)                     -> ((p, t), Nothing)
   where
-    ((retParser, retToken), value) | id == 10  = tokensAsValueString (parser, token) [] -- TODO: magic value
-                                   | id == 12  = declValueAsURI (parser, token) []      -- TODO: magic value
-                                   | otherwise = ((parser, token), Nothing)
+    ((retParser, retToken), value) | propId == 10  = tokensAsValueString (parser, token) [] -- TODO: magic value
+                                   | propId == 12  = declValueAsURI (parser, token) []      -- TODO: magic value
+                                   | otherwise     = ((parser, token), Nothing)
 
 
 
@@ -358,12 +358,12 @@ tokenMatchesProperty token propInfo = tokenMatchesProperty' token acceptedValueT
 ignoreBlock :: CssParser -> (CssParser, CssToken)
 ignoreBlock parser = ignoreBlock' (parser, CssTokNone) 0
   where
-    ignoreBlock' (parser, tok@CssTokEnd) depth    = (parser, tok)
-    ignoreBlock' (parser, CssTokBraceCurlyOpen) depth  = ignoreBlock' (nextToken1 parser) (depth + 1)
-    ignoreBlock' (parser, CssTokBraceCurlyClose) depth = if depth == 1
-                                                         then nextToken1 parser
-                                                         else ignoreBlock' (nextToken1 parser) (depth - 1)
-    ignoreBlock' (parser, tok) depth              = ignoreBlock' (nextToken1 parser) depth
+    ignoreBlock' (par, tok@CssTokEnd) depth         = (par, tok)
+    ignoreBlock' (par, CssTokBraceCurlyOpen) depth  = ignoreBlock' (nextToken1 par) (depth + 1)
+    ignoreBlock' (par, CssTokBraceCurlyClose) depth = if depth == 1
+                                                      then nextToken1 par
+                                                      else ignoreBlock' (nextToken1 par) (depth - 1)
+    ignoreBlock' (par, tok) depth                   = ignoreBlock' (nextToken1 parser) depth
 {-
    while (tokenizer->type != CSS_TOKEN_TYPE_END) {
       if (tokenizer->type == CSS_TOKEN_TYPE_CHAR) {
@@ -387,7 +387,7 @@ ignoreBlock parser = ignoreBlock' (parser, CssTokNone) 0
 -- TODO: this function can recognize only blocks enclosed by curly braces.
 -- Make the function recognize all types of Css braces.
 consumeBlock :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
-consumeBlock (parser, token) = consumeBlock' (parser, token) [] []
+consumeBlock pat = consumeBlock' pat [] []
   where
     -- Last argument (braces) is used to keep track of opened/closed braces
     -- to know what is the current nesting level of blocks.
@@ -403,10 +403,10 @@ consumeBlock (parser, token) = consumeBlock' (parser, token) [] []
 ignoreStatement :: CssParser -> (CssParser, CssToken)
 ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
   where
-    ignoreStatement' (parser, tok@CssTokEnd)    = (parser, tok)
-    ignoreStatement' (parser, CssTokSemicolon)      = nextToken1 parser
-    ignoreStatement' (parser, CssTokBraceCurlyOpen) = ignoreBlock parser
-    ignoreStatement' (parser, tok)              = ignoreStatement' (nextToken1 parser)
+    ignoreStatement' (par, tok@CssTokEnd)        = (par, tok)
+    ignoreStatement' (par, CssTokSemicolon)      = nextToken1 par
+    ignoreStatement' (par, CssTokBraceCurlyOpen) = ignoreBlock par
+    ignoreStatement' (par, tok)                  = ignoreStatement' (nextToken1 par)
 {-
    while (tokenizer->type != CSS_TOKEN_TYPE_END) {
       if (tokenizer->type == CSS_TOKEN_TYPE_CHAR) {
@@ -580,14 +580,14 @@ setSelectorTagName compound t = compound { selectorTagName = t }
 -- TODO: dump whole ruleset in case of parse error as required by CSS 2.1
 -- however make sure we don't dump it if only dillo fails to parse valid CSS.
 readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssCachedComplexSelector])
-readSelectorList (parser, token) = parseSelectorWrapper (parser, token) []
+readSelectorList pat = parseSelectorWrapper pat []
   where
-    parseSelectorWrapper (parser, token) acc =
-      case parseComplexSelector (parser, token) of
+    parseSelectorWrapper pat' acc =
+      case parseComplexSelector pat' of
         ((parser, token), Just selector) -> case token of
                                               CssTokComma -> parseSelectorWrapper (nextToken1 parser) (acc ++ [selector])
                                               _           -> ((parser, token), acc ++ [selector])
-        _                                -> ((parser, token), acc)
+        _                                -> (pat', acc)
 
 
 
@@ -607,7 +607,7 @@ consumeRestOfSelector (parser, _)                         = consumeRestOfSelecto
 -- stream starts with whitespace, discard the whitespace (don't return token
 -- for it) - leading whitespace is certainly meaningless.
 takeComplexSelectorTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
-takeComplexSelectorTokens (parser, token) = takeNext (parser, token) []
+takeComplexSelectorTokens pat = takeNext pat []
   where
     takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
     takeNext (parser, token) tokens = case token of
@@ -713,8 +713,8 @@ parseSingleDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssD
 parseSingleDeclaration (p1, t1) = ((outParser, outToken), declarationsWithImportant)
   where
     ((p2, t2), declarations) = parseSingleDeclarationNormalOrShorthand (p1, t1)
-    ((p3, t3), important) = cssParseImportance (p2, t2)
-    declarationsWithImportant = if important
+    ((p3, t3), isImportant) = cssParseImportance (p2, t2)
+    declarationsWithImportant = if isImportant
                                 then markAsImportant <$> declarations
                                 else declarations
     (outParser, outToken) = consumeRestOfDeclaration (p3, t3)
@@ -764,22 +764,22 @@ takeAllTokens (parser,token) = do
 
 declarationsSetUpdateOrAdd :: CssDeclarationSet -> CssDeclaration -> CssDeclarationSet
 declarationsSetUpdateOrAdd declSet decl =
-  case S.findIndexL pred seq of
-    Just idx -> CssDeclarationSet {items = S.update idx decl seq, isSafe = newSafe declSet decl}
-    Nothing  -> CssDeclarationSet {items = seq S.|> decl,         isSafe = newSafe declSet decl}
+  case S.findIndexL predicate ix of
+    Just idx -> CssDeclarationSet {items = S.update idx decl ix, isSafe = newSafe declSet decl}
+    Nothing  -> CssDeclarationSet {items = ix S.|> decl,         isSafe = newSafe declSet decl}
   where
     -- Use 'toConstr' to compare constructors, but values without passed to constructors.
     -- https://stackoverflow.com/questions/47861648/a-general-way-of-comparing-constructors-of-two-terms-in-haskell
-    pred :: CssDeclaration -> Bool
-    pred x = (toConstr . property $ x) == (toConstr . property $ decl)
+    predicate :: CssDeclaration -> Bool
+    predicate x = (toConstr . property $ x) == (toConstr . property $ decl)
 
-    seq = items declSet
+    ix = items declSet
 
     newSafe :: CssDeclarationSet -> CssDeclaration -> Bool
-    newSafe declSet decl = (isSafe declSet) && case property decl of
-                                                 CssPropertyDisplay _         -> False
-                                                 CssPropertyBackgroundImage _ -> False
-                                                 _                            -> True
+    newSafe declSet' decl' = (isSafe declSet') && case property decl' of
+                                                    CssPropertyDisplay _         -> False
+                                                    CssPropertyBackgroundImage _ -> False
+                                                    _                            -> True
 
 
 

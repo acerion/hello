@@ -250,9 +250,9 @@ colorsHexStringToColor text =
     Right pair -> parseByHexFormat (fst pair) (snd pair) text
     Left pair  -> Nothing
   where
-    -- TODO: what happens with 'rem' text? Shouldn't we pass it as a token to next parser?
-    parseByHexFormat parsed rem text =
-      case (T.length text) - (T.length rem) of
+    -- TODO: what happens with 'remainder' text? Shouldn't we pass it as a token to next parser?
+    parseByHexFormat parsed remainder txt =
+      case (T.length txt) - (T.length remainder) of
         6 -> Just parsed  -- RRGGBB format
         3 -> Just (((parsed .&. 0xf00) `shiftL` 12) .|. ((parsed .&. 0xf00) `shiftL` 8) .|. -- RGB format
                    ((parsed .&. 0x0f0) `shiftL` 8)  .|. ((parsed .&. 0x0f0) `shiftL` 4) .|.
@@ -264,15 +264,15 @@ colorsHexStringToColor text =
 
 -- Naive re-implementation of binary search in C code.
 colorsTableSearchName :: V.Vector (T.Text, Int) -> T.Text -> Maybe Int
-colorsTableSearchName vec name = binarySearch vec (T.toLower name) 0 ((V.length vec) - 1)
+colorsTableSearchName vector name = binarySearch vector (T.toLower name) 0 ((V.length vector) - 1)
   where
     binarySearch :: V.Vector (T.Text, Int) -> T.Text -> Int -> Int -> Maybe Int
-    binarySearch vec name low high =
+    binarySearch vec n low high =
       if low > high
       then Nothing
-      else case compare (fst (vec V.! mid)) name of
-             GT -> binarySearch vec name low (mid - 1)
-             LT -> binarySearch vec name (mid + 1) high
+      else case compare (fst (vec V.! mid)) n of
+             GT -> binarySearch vec n low (mid - 1)
+             LT -> binarySearch vec n (mid + 1) high
              EQ -> Just (snd (vec V.! mid))
       where
         mid = (low + high) `div` 2
@@ -333,13 +333,13 @@ colorsDistance3 c1 c2 = foldl count 0 abses
 --
 -- Tuned with: slashdot.org, paulgraham.com, newsforge.com, linuxjournal.com.
 colorsVisitedColor :: Int -> Int -> Int -> Int -> Int
-colorsVisitedColor candidate txt lnk bg =
+colorsVisitedColor candidate text link background =
                            -- purple    darkcyan  darkmagenta olive     darkred   coral     black
   let shortList = [candidate, 0x800080, 0x008b8b, 0x8b008b,   0x808000, 0x8b0000, 0xff7f50, 0x000000 ]
       bestScore = 0
       bestColor = candidate
   in
-    keepSearching shortList (bestScore, bestColor) txt lnk bg
+    keepSearching shortList (bestScore, bestColor) text link background
 --    if score >= 7
 --    then thisColor
 --    else keepSearching

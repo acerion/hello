@@ -79,8 +79,8 @@ cssTestCases = [
 
 testsCssCss :: IO String
 testsCssCss = do
-  counts <- runTestTT (TestList (cssTestCases))
-  if (errors counts + failures counts == 0)
+  testCounts <- runTestTT (TestList (cssTestCases))
+  if (errors testCounts + failures testCounts == 0)
     then return ""
     else return "[EE] testsCssCss failed"
 

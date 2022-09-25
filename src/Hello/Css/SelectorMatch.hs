@@ -75,11 +75,11 @@ complexSelectorMatches cachedComplexSelector doctree mDtn matchCache = (isMatch,
 
 
 complexSelectorMatches' :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
-complexSelectorMatches' _                               Nothing    _       mc _           = (False, mc)
-complexSelectorMatches' (Last compound)                 (Just dtn) doctree mc cacheOffset = (compoundSelectorMatches compound dtn, mc)
-complexSelectorMatches' (Chain compound combinator rem) (Just dtn) doctree mc cacheOffset =
+complexSelectorMatches' _                                     Nothing    _       mc _           = (False, mc)
+complexSelectorMatches' (Last compound)                       (Just dtn) doctree mc cacheOffset = (compoundSelectorMatches compound dtn, mc)
+complexSelectorMatches' (Chain compound combinator remainder) (Just dtn) doctree mc cacheOffset =
   if compoundSelectorMatches compound dtn
-  then matchCombinatorAndRemainder combinator rem dtn doctree mc cacheOffset
+  then matchCombinatorAndRemainder combinator remainder dtn doctree mc cacheOffset
   else (False, mc)
 
 
@@ -163,11 +163,11 @@ data CssCompoundSelectorMatch
 
 
 compoundSelectorMatches' :: CssCompoundSelector -> DoctreeNode -> CssCompoundSelectorMatch
-compoundSelectorMatches' compound dtn | mismatchOnElement compound dtn     = CssCompoundSelectorMismatchElement
-                                      | mismatchOnPseudoClass compound dtn = CssCompoundSelectorMismatchPseudoClass
-                                      | mismatchOnId compound dtn          = CssCompoundSelectorMismatchId
-                                      | mismatchOnClass compound dtn       = CssCompoundSelectorMismatchClass
-                                      | otherwise                          = CssCompoundSelectorMatch
+compoundSelectorMatches' compound dtnArg | mismatchOnElement compound dtnArg     = CssCompoundSelectorMismatchElement
+                                         | mismatchOnPseudoClass compound dtnArg = CssCompoundSelectorMismatchPseudoClass
+                                         | mismatchOnId compound dtnArg          = CssCompoundSelectorMismatchId
+                                         | mismatchOnClass compound dtnArg       = CssCompoundSelectorMismatchClass
+                                         | otherwise                             = CssCompoundSelectorMatch
   where
     mismatchOnElement :: CssCompoundSelector -> DoctreeNode -> Bool
     mismatchOnElement csel dtn = (compoundTagName csel) /= CssTypeSelectorUniv && (unCssTypeSelector . compoundTagName $ csel) /= (htmlElementIdx dtn)

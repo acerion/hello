@@ -180,12 +180,12 @@ parseExtension gif buf
   where
     introducer = BS.index buf 0
     label = BS.index buf 1
-    dispatchSubBlocks gif buf label
-      | label == extensionTypeGraphicControl = parseSubBlocks gif buf handleExtensionSubBlockGraphicControl
-      | label == extensionTypeComment        = parseSubBlocks gif buf handleExtensionSubBlockComment
-      | label == extensionTypePlainText      = Nothing -- TODO: add code that consumes bytes in this extension
-      | label == extensionTypeApplication    = Nothing -- TODO: add code that consumes bytes in this extension
-      | otherwise                            = Nothing -- Invalid extension label
+    dispatchSubBlocks gif' buf' label'
+      | label' == extensionTypeGraphicControl = parseSubBlocks gif' buf' handleExtensionSubBlockGraphicControl
+      | label' == extensionTypeComment        = parseSubBlocks gif' buf' handleExtensionSubBlockComment
+      | label' == extensionTypePlainText      = Nothing -- TODO: add code that consumes bytes in this extension
+      | label' == extensionTypeApplication    = Nothing -- TODO: add code that consumes bytes in this extension
+      | otherwise                             = Nothing -- Invalid extension label
 
 
 

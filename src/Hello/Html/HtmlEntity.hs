@@ -191,13 +191,13 @@ htmlEntityToIsoCode :: T.Text -> Maybe EntityParser
 htmlEntityToIsoCode text =
   case takeAmpersand parserDefault text of
     Nothing -> Nothing
-    Just parser ->
-      case takeBody parser (remainder parser) of
+    Just p1 ->
+      case takeBody p1 (remainder p1) of
         Nothing -> Nothing
-        Just parser ->
-          case takeSemicolon parser (remainder parser) of
+        Just p2 ->
+          case takeSemicolon p2 (remainder p2) of
             Nothing -> Nothing
-            Just parser -> Just parser
+            Just p3 -> Just p3
 
 
 
@@ -234,14 +234,14 @@ takeSemicolon parser text = if T.isPrefixOf ";" text
 -- TODO: original code returned error if iso code was >= 0xFFFF. Verify if
 -- this needs to be introduced into this code.
 htmlEntityNumberToIsoCode :: EntityParser -> T.Text -> EntityParser
-htmlEntityNumberToIsoCode parser text =
+htmlEntityNumberToIsoCode parserArg textArg =
   if T.isPrefixOf "x" text'
   then if (T.isPrefixOf "x0x" text')  -- T.R.hexadecimal supports leading 0x, but leading 0x is not valid in numeric entity.
-       then parser { entityIsoCode = Nothing, remainder = T.drop 3 text }
-       else numReader T.R.hexadecimal parser (T.tail text)
-  else numReader T.R.decimal parser text
+       then parserArg { entityIsoCode = Nothing, remainder = T.drop 3 textArg }
+       else numReader T.R.hexadecimal parserArg (T.tail textArg)
+  else numReader T.R.decimal parserArg textArg
   where
-    text' = T.toLower text
+    text' = T.toLower textArg
     numReader :: T.R.Reader Int -> EntityParser -> T.Text -> EntityParser
     numReader reader parser text =
       case reader text of
@@ -262,9 +262,9 @@ htmlEntityNumberToIsoCode parser text =
 htmlEntityNameToIsoCode :: EntityParser -> T.Text -> EntityParser
 htmlEntityNameToIsoCode parser name = parser { entityIsoCode = (M.lookup name' gEntities),
                                                remainder = T.drop (T.length name') name }
-  where name' = T.takeWhile pred name
-        pred :: Char -> Bool
-        pred c = Data.Char.isDigit c || Data.Char.isAsciiUpper c || Data.Char.isAsciiLower c
+  where name' = T.takeWhile predicate name
+        predicate :: Char -> Bool
+        predicate c = Data.Char.isDigit c || Data.Char.isAsciiUpper c || Data.Char.isAsciiLower c
 
 
 
@@ -274,12 +274,12 @@ htmlEntityNameToIsoCode parser name = parser { entityIsoCode = (M.lookup name' g
 -- SGML for HTML4.01 defines c >= 128 and c <= 159 as UNUSED.
 -- TODO: Probably I should remove this hack, and add a HTML warning. --Jcid
 replaceQuotes :: Int -> Int
-replaceQuotes entityIsoCode = case entityIsoCode of
-                                145 -> Data.Char.ord '\''  -- 0x27
-                                146 -> Data.Char.ord '\''  -- 0x27
-                                147 -> Data.Char.ord '"'   -- 0x22
-                                148 -> Data.Char.ord '"'   -- 0x22
-                                149 -> 176                 -- 0xb0 ('degrees' sign)
-                                150 -> Data.Char.ord '-'   -- 0x2d
-                                151 -> Data.Char.ord '-'   -- 0x2d
-                                _   -> entityIsoCode
+replaceQuotes isoCode = case isoCode of
+                          145 -> Data.Char.ord '\''  -- 0x27
+                          146 -> Data.Char.ord '\''  -- 0x27
+                          147 -> Data.Char.ord '"'   -- 0x22
+                          148 -> Data.Char.ord '"'   -- 0x22
+                          149 -> 176                 -- 0xb0 ('degrees' sign)
+                          150 -> Data.Char.ord '-'   -- 0x2d
+                          151 -> Data.Char.ord '-'   -- 0x2d
+                          _   -> isoCode

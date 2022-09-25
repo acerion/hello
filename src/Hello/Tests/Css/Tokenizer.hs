@@ -332,7 +332,7 @@ tokenizerTestRunner inB (x:xs) = if expectedToken /= t2 || expectedRemainder /= 
     expectedRemainder = tripletThrd x
     (p2, t2)          = nextToken1 defaultParser{remainder = initialRemainder, inBlock = inB }
 
-    showFailedCase x =    "Initial remainder = "  ++ (show initialRemainder) ++ "; "
+    showFailedCase c =    "Initial remainder = "  ++ (show initialRemainder) ++ "; "
                        ++ "Expected remainder = " ++ (show expectedRemainder) ++ "; "
                        ++ "Expected token = "     ++ (show expectedToken) ++ "; "
                        ++ "Output remainder = "   ++ (show . remainder $ p2) ++ "; "
@@ -385,8 +385,8 @@ tokenizerTestCases = [
 
 testsCssTokenizer :: IO String
 testsCssTokenizer = do
-  counts <- runTestTT (TestList (tokenizerTestCases))
-  if (errors counts + failures counts == 0)
+  testCounts <- runTestTT (TestList (tokenizerTestCases))
+  if (errors testCounts + failures testCounts == 0)
     then return ""
     else return "[EE] testsCssTokenizer failed"
 

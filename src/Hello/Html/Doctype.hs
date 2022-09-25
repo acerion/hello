@@ -147,11 +147,11 @@ sanitizeDoctypeString' = T.mapAccumL f SanState { quote = ' ', accText = "" }
               | otherwise              = (state { accText = T.cons c (accText state)}, c)
 
       where
-        insideQuote state = ' ' /= quote state
-        collapseSpaces state c = case T.uncons $ accText state of
-                                   Just (' ', rem) -> state
-                                   _               -> appendChar state c
-        appendChar state c = state {accText = T.cons c (accText state)}
+        insideQuote sanState = ' ' /= quote sanState
+        collapseSpaces sanState char = case T.uncons $ accText sanState of
+                                         Just (' ', _) -> sanState
+                                         _             -> appendChar sanState char
+        appendChar sanState char = sanState {accText = T.cons char (accText sanState)}
 
 
 
@@ -180,13 +180,13 @@ This is not a full DOCTYPE parser, just enough for what Dillo uses.
 "
 -}
 getDoctypeFromBuffer :: T.Text -> HtmlDoctype -> HtmlDoctype
-getDoctypeFromBuffer buffer doctype = setFallbackType . get . warnOnMultiple $ (buffer, doctype)
+getDoctypeFromBuffer buffer htmlDoctype = setFallbackType . get . warnOnMultiple $ (buffer, htmlDoctype)
   where
-    warnOnMultiple (buffer, doctype) = if doctype /= HtmlDoctypeNone
-                                       then (buffer, doctype) -- TODO: print warning about the fact that the function was probably called for a second time with this arg ("Multiple DOCTYPE declarations.")
-                                       else (buffer, doctype)
+    warnOnMultiple (buf, doctype) = if doctype /= HtmlDoctypeNone
+                                    then (buf, doctype) -- TODO: print warning about the fact that the function was probably called for a second time with this arg ("Multiple DOCTYPE declarations.")
+                                    else (buf, doctype)
 
-    get (buffer, doc) = getDoctypeFromSanitizedBuffer (sanitizeDoctypeString buffer) doc
+    get (buf, doc) = getDoctypeFromSanitizedBuffer (sanitizeDoctypeString buf) doc
 
     setFallbackType doctype = if doctype == HtmlDoctypeNone
                               then HtmlDoctypeUnrecognized -- TODO: print warning about unrecognized document type

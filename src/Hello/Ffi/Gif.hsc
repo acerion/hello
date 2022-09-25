@@ -92,9 +92,9 @@ hll_parseExtension hll_gif cBuf size = do
       return (consumed gif)
     Nothing  -> return (-1)
     where
-      manipulatePtrGC hll_gif gif =
+      manipulatePtrGC hllGif gif =
         -- Set Graphic Control Extension fields in pointer passed from C code.
-        poke hll_gif $ HelloGifGC (transparentColorIndex gif) (delayTime gif) (userInputFlag gif) (disposalMethod gif)
+        poke hllGif $ HelloGifGC (transparentColorIndex gif) (delayTime gif) (userInputFlag gif) (disposalMethod gif)
 
 
 

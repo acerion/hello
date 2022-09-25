@@ -967,9 +967,9 @@ parseDeclarationTest (x:xs) = if expectedDeclarations /= declarations
                               then T.pack ("Got: " ++ show declarations ++ ", Expected: " ++ show expectedDeclarations)
                               else parseDeclarationTest xs
   where
-    rem                  = fst x
+    remd                 = fst x
     expectedDeclarations = snd x
-    ((parser', token'), declarations) = parseSingleDeclaration (nextToken2 defaultParser { remainder = rem })
+    ((parser', token'), declarations) = parseSingleDeclaration (nextToken2 defaultParser { remainder = remd })
 
 
 
@@ -994,8 +994,8 @@ testCases =
 
 testsCssParser :: IO String
 testsCssParser = do
-  counts <- runTestTT (TestList (testCases))
-  if (errors counts + failures counts == 0)
+  testCounts <- runTestTT (TestList (testCases))
+  if (errors testCounts + failures testCounts == 0)
     then return ""
     else return "[EE] Tests.Css.Parser failed"
 

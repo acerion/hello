@@ -148,8 +148,8 @@ insertRuleToStyleSheet sheet rule
 
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
 
-    thisElementRules sheet (Just t) = (rulesByType sheet) !! t
-    thisElementRules sheet Nothing  = []
+    thisElementRules sheetArg (Just t) = (rulesByType sheetArg) !! t
+    thisElementRules sheetArg Nothing  = []
 
 
 
@@ -165,9 +165,9 @@ of the rules having given id/class in topmost compound selector of a complex
 selector.
 -}
 updateMapOfLists :: CssRulesMap -> T.Text -> CssRule -> CssRulesMap
-updateMapOfLists map key rule = case M.lookup key map of
-                                  Just list -> M.insert key (insertRuleInListOfRules list rule) map
-                                  Nothing   -> M.insert key (insertRuleInListOfRules []   rule) map
+updateMapOfLists rulesMap key rule = case M.lookup key rulesMap of
+                                       Just list -> M.insert key (insertRuleInListOfRules list rule) rulesMap
+                                       Nothing   -> M.insert key (insertRuleInListOfRules []   rule) rulesMap
 
 
 
@@ -250,12 +250,12 @@ data CssSheetSelector =
 
 -- Update one of sheets in a container of sheets.
 updateSheet :: CssStyleSheets -> CssSheetSelector -> CssStyleSheet -> CssStyleSheets
-updateSheet sheets selector sheet = case selector of
-                                      CssPrimaryUserAgent       -> sheets { sheetUserAgent       = sheet }
-                                      CssPrimaryUser            -> sheets { sheetUser            = sheet }
-                                      CssPrimaryAuthor          -> sheets { sheetAuthor          = sheet }
-                                      CssPrimaryAuthorImportant -> sheets { sheetAuthorImportant = sheet }
-                                      CssPrimaryUserImportant   -> sheets { sheetUserImportant   = sheet }
+updateSheet sheetsArg selector sheet = case selector of
+                                         CssPrimaryUserAgent       -> sheetsArg { sheetUserAgent       = sheet }
+                                         CssPrimaryUser            -> sheetsArg { sheetUser            = sheet }
+                                         CssPrimaryAuthor          -> sheetsArg { sheetAuthor          = sheet }
+                                         CssPrimaryAuthorImportant -> sheetsArg { sheetAuthorImportant = sheet }
+                                         CssPrimaryUserImportant   -> sheetsArg { sheetUserImportant   = sheet }
 
 
 

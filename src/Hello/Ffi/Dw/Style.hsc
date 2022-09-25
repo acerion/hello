@@ -294,8 +294,8 @@ instance Storable FfiStyleMargin where
 
 
 peekStyleMargin :: Ptr FfiStyleMargin -> IO StyleMargin
-peekStyleMargin ptrStructStyleMargin = do
-  ffiMargin <- peek ptrStructStyleMargin
+peekStyleMargin ptrStructStyleMarginArg = do
+  ffiMargin <- peek ptrStructStyleMarginArg
   return StyleMargin
     {
       styleMarginTop    = fromIntegral . cStyleMarginTop    $ ffiMargin
@@ -308,13 +308,13 @@ peekStyleMargin ptrStructStyleMargin = do
 
 
 pokeStyleMargin :: StyleMargin -> Ptr FfiStyleMargin -> IO ()
-pokeStyleMargin style ptrStructStyleMargin = do
+pokeStyleMargin style ptrStructStyleMarginArg = do
   let top    = fromIntegral . styleMarginTop    $ style
   let right  = fromIntegral . styleMarginRight  $ style
   let bottom = fromIntegral . styleMarginBottom $ style
   let left   = fromIntegral . styleMarginLeft   $ style
 
-  poke ptrStructStyleMargin $ FfiStyleMargin top right bottom left
+  poke ptrStructStyleMarginArg $ FfiStyleMargin top right bottom left
 
 
 
@@ -357,8 +357,8 @@ instance Storable FfiStylePadding where
 
 
 peekStylePadding :: Ptr FfiStylePadding -> IO StylePadding
-peekStylePadding ptrStructStylePadding = do
-  ffiPadding <- peek ptrStructStylePadding
+peekStylePadding ptrStructStylePaddingArg = do
+  ffiPadding <- peek ptrStructStylePaddingArg
   return StylePadding
     {
       stylePaddingTop    = fromIntegral . cStylePaddingTop    $ ffiPadding
@@ -371,13 +371,13 @@ peekStylePadding ptrStructStylePadding = do
 
 
 pokeStylePadding :: StylePadding -> Ptr FfiStylePadding -> IO ()
-pokeStylePadding style ptrStructStylePadding = do
+pokeStylePadding style ptrStructStylePaddingArg = do
   let top    = fromIntegral . stylePaddingTop    $ style
   let right  = fromIntegral . stylePaddingRight  $ style
   let bottom = fromIntegral . stylePaddingBottom $ style
   let left   = fromIntegral . stylePaddingLeft   $ style
 
-  poke ptrStructStylePadding $ FfiStylePadding top right bottom left
+  poke ptrStructStylePaddingArg $ FfiStylePadding top right bottom left
 
 
 

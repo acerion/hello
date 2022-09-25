@@ -49,8 +49,8 @@ import Hello.Html.Doctype
 
 
 takeValue text = case T.R.double text of
-                   Right (f, rem) -> Just (f, rem)
-                   Left _         -> Nothing
+                   Right (f, remainder) -> Just (f, remainder)
+                   Left _               -> Nothing
 
 
 
@@ -59,14 +59,14 @@ takeValue text = case T.R.double text of
 parseLengthOrMultiLength :: T.Text -> Maybe (Float, Int)
 parseLengthOrMultiLength attribute =
   case takeValue attribute of
-    Just (f, rem) -> case T.uncons rem of
-                       -- The "px" suffix seems not allowed by HTML4.01 SPEC.
-                       Nothing       -> Just (realToFrac f, cssLengthTypePX) -- empty remainder: attribute string is just a number
-                       Just ('%', _) -> Just (realToFrac (f / 100), cssLengthTypePercentage) -- not sure why we divide by 100, but the dillo c++ code did this for percentage
-                       Just ('*', _) -> Just (0.0, cssLengthTypeAuto)
-                       Just (c, _)   -> if D.C.isSpace c
-                                        then Just (realToFrac f, cssLengthTypePX)
-                                        else Nothing -- Don't accept garbage attached to a number
+    Just (f, remainder) -> case T.uncons remainder of
+                             -- The "px" suffix seems not allowed by HTML4.01 SPEC.
+                             Nothing       -> Just (realToFrac f, cssLengthTypePX) -- empty remainder: attribute string is just a number
+                             Just ('%', _) -> Just (realToFrac (f / 100), cssLengthTypePercentage) -- not sure why we divide by 100, but the dillo c++ code did this for percentage
+                             Just ('*', _) -> Just (0.0, cssLengthTypeAuto)
+                             Just (c, _)   -> if D.C.isSpace c
+                                              then Just (realToFrac f, cssLengthTypePX)
+                                              else Nothing -- Don't accept garbage attached to a number
     Nothing      -> Nothing
 
 
@@ -86,12 +86,12 @@ Return value: true if OK, false otherwise.
 TODO: this function is written in terrible style
 -}
 validateNameOrIdValue :: HtmlDoctype -> T.Text -> T.Text -> Bool
-validateNameOrIdValue doctype attrName attrValue =
+validateNameOrIdValue doctype attrNameArg attrValueArg =
   case doctype of
     HtmlDoctypeHtml v -> if v >= 5.0
-                         then for5 attrValue
-                         else forOlder attrValue
-    _                 -> forOlder attrValue
+                         then for5 attrValueArg
+                         else forOlder attrValueArg
+    _                 -> forOlder attrValueArg
 
   where
     for5 attrValue = if T.length attrValue == 0
@@ -103,10 +103,10 @@ validateNameOrIdValue doctype attrName attrValue =
 
     forOlder attrValue = case T.uncons attrValue of
                            Nothing       -> False -- TODO: log error that value of attribute attrName must not be empty
-                           Just (c, rem) -> if not (D.C.isLatin1 c && D.C.isLetter c)
-                                            then False -- TODO: log error that first char is out of range
-                                            else
-                                              if not $ T.all (\c -> ((D.C.isLatin1 c) && (D.C.isLetter c)) || (D.C.isDigit c) ||  elem c [':', '_', ',', '-']) rem
-                                              then False -- TODO: log error that some char is out of range
-                                              else True
+                           Just (char, remainder) -> if not (D.C.isLatin1 char && D.C.isLetter char)
+                                                     then False -- TODO: log error that first char is out of range
+                                                     else
+                                                       if not $ T.all (\c -> ((D.C.isLatin1 c) && (D.C.isLetter c)) || (D.C.isDigit c) ||  elem c [':', '_', ',', '-']) remainder
+                                                       then False -- TODO: log error that some char is out of range
+                                                       else True
 

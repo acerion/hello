@@ -107,10 +107,10 @@ peekDwLength ptrStructDwLength = do
 
 
 pokeDwLength :: DwLength -> Ptr FfiDwLength -> IO ()
-pokeDwLength length ptrStructDwLength = do
-  let v = coerce . dwLengthValue $ length
-  let t = fromIntegral . dwLengthType  $ length
-  let h = fromIntegral . dwLengthHash  $ length
+pokeDwLength len ptrStructDwLength = do
+  let v = coerce . dwLengthValue $ len
+  let t = fromIntegral . dwLengthType  $ len
+  let h = fromIntegral . dwLengthHash  $ len
 
   poke ptrStructDwLength $ FfiDwLength v t h
 
@@ -119,9 +119,9 @@ pokeDwLength length ptrStructDwLength = do
 
 hll_createPercentageDwLength :: Ptr FfiDwLength -> CDouble -> IO ()
 hll_createPercentageDwLength ptrStructDwLength cValue = do
-  let value  = coerce cValue
-  let length = createPercentageDwLength value
-  pokeDwLength length ptrStructDwLength
+  let value = coerce cValue
+  let len   = createPercentageDwLength value
+  pokeDwLength len ptrStructDwLength
   return ()
 
 
@@ -129,9 +129,9 @@ hll_createPercentageDwLength ptrStructDwLength cValue = do
 
 hll_createAbsoluteDwLength :: Ptr FfiDwLength -> CInt -> IO ()
 hll_createAbsoluteDwLength ptrStructDwLength cValue = do
-  let value  = fromIntegral cValue
-  let length = createAbsoluteDwLength value
-  pokeDwLength length ptrStructDwLength
+  let value = fromIntegral cValue
+  let len   = createAbsoluteDwLength value
+  pokeDwLength len ptrStructDwLength
   return ()
 
 
@@ -139,8 +139,8 @@ hll_createAbsoluteDwLength ptrStructDwLength cValue = do
 
 hll_createAutoDwLength :: Ptr FfiDwLength -> IO ()
 hll_createAutoDwLength ptrStructDwLength = do
-  let length = createAutoDwLength
-  pokeDwLength length ptrStructDwLength
+  let len = createAutoDwLength
+  pokeDwLength len ptrStructDwLength
   return ()
 
 

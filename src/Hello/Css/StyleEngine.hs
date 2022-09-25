@@ -123,7 +123,7 @@ styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display 
 -- https://developer.mozilla.org/pl/docs/Web/CSS/font-family
 -- https://www.w3.org/TR/CSS22/fonts.html#font-family-prop
 styleEngineSetFontFamily :: CssValueFontFamily -> Preferences -> FontAttrs -> FontAttrs
-styleEngineSetFontFamily (CssValueFontFamilyList l) prefs fontAttrs = setName l prefs fontAttrs
+styleEngineSetFontFamily (CssValueFontFamilyList l) preferences fontAttrsArg = setName l preferences fontAttrsArg
   where
     setName (x:xs) prefs fontAttrs | x == "serif"      = fontAttrs { fontName = prefsFontSerif prefs }
                                    | x == "sans-serif" = fontAttrs { fontName = prefsFontSansSerif prefs }
@@ -132,7 +132,7 @@ styleEngineSetFontFamily (CssValueFontFamilyList l) prefs fontAttrs = setName l 
                                    | x == "monospace"  = fontAttrs { fontName = prefsFontMonospace prefs }
                                    | fontExists x      = fontAttrs { fontName = x }
                                    | otherwise         = setName xs prefs fontAttrs
-    setName [] _ _                                     = fontAttrs
+    setName [] _ fontAttrs                             = fontAttrs
 
     -- TODO: implement lookup of font name in Operating System. In dillo this
     -- has been done through Font::exists(layout, c_value->c_text_val).
@@ -145,7 +145,7 @@ styleEngineSetFontFamily (CssValueFontFamilyList l) prefs fontAttrs = setName l 
 
 
 styleEngineSetFontWeight :: CssValueFontWeight -> FontAttrs -> FontAttrs
-styleEngineSetFontWeight declValue attrs = clipWeight $ setWeight declValue attrs
+styleEngineSetFontWeight declValue fontAttrs = clipWeight $ setWeight declValue fontAttrs
   where
     setWeight CssValueFontWeightNormal  attrs = attrs { fontWeight = 400 }
     setWeight CssValueFontWeightBold    attrs = attrs { fontWeight = 700 }
@@ -206,7 +206,7 @@ styleEngineSetFontSize' declValue prefs display parentFontAttrs fontAttrs = styl
 -- https://developer.mozilla.org/pl/docs/Web/CSS/font-size
 -- https://www.w3schools.com/cssref/pr_font_font-size.asp
 styleEngineSetFontSize :: CssValueFontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
-styleEngineSetFontSize declValue prefs display parentFontAttrs fontAttrs = clipSize (setAbsSize declValue fontAttrs)
+styleEngineSetFontSize declValueArg prefs display parentFontAttrs fontAttrsArg = clipSize (setAbsSize declValueArg fontAttrsArg)
   where
     setAbsSize :: CssValueFontSize -> FontAttrs -> FontAttrs
     setAbsSize declValue fontAttrs = case fontSizeToAbs declValue prefs display fontAttrs parentFontAttrs of
@@ -258,7 +258,7 @@ styleEngineSetFontStyle declValue fontAttrs = fontAttrs { fontStyle = fromEnum d
 
 
 styleEngineSetLetterSpacing :: CssValueLetterSpacing -> Display -> FontAttrs -> FontAttrs -> FontAttrs
-styleEngineSetLetterSpacing declValue display parentFontAttrs fontAttrs = clipSpacing $ setSpacing declValue fontAttrs
+styleEngineSetLetterSpacing declValue display parentFontAttrs fontAttrsArg = clipSpacing $ setSpacing declValue fontAttrsArg
   where
     setSpacing :: CssValueLetterSpacing -> FontAttrs -> FontAttrs
     setSpacing CssValueLetterSpacingNormal              fontAttrs = fontAttrs { fontLetterSpacing = 0 }
@@ -296,7 +296,7 @@ styleEngineSetFontVariant declValue fontAttrs = fontAttrs { fontVariant = fromEn
 
 
 styleEngineApplyStyleToFont :: CssDeclarationSet -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
-styleEngineApplyStyleToFont declSet prefs display parentFontAttrs fontAttrs = apply (items declSet) prefs display parentFontAttrs fontAttrs
+styleEngineApplyStyleToFont declSet preferences displayArg parentFontAttrsArg fontAttrsArg = apply (items declSet) preferences displayArg parentFontAttrsArg fontAttrsArg
   where
     apply :: S.Seq CssDeclaration -> Preferences -> Display -> FontAttrs -> FontAttrs -> FontAttrs
     apply decls prefs display parentFontAttrs fontAttrs =
@@ -337,10 +337,10 @@ styleEngineApplyStyleToGivenNode declSet prefs display parentStyleAttrs styleAtt
     styleAttrs' = setRemainingAttrs (items declSet) display styleAttrs { styleFontAttrs = fontAttrs' }
 
     setRemainingAttrs :: S.Seq CssDeclaration -> Display -> StyleAttrs -> StyleAttrs
-    setRemainingAttrs decls display styleAttrs =
+    setRemainingAttrs decls disp styleAttrsArg =
       case S.null decls of
-        True  -> styleAttrs
-        False -> setRemainingAttrs xs display $ styleEngineSetStyle (property x) display parentStyleAttrs styleAttrs
+        True  -> styleAttrsArg
+        False -> setRemainingAttrs xs disp $ styleEngineSetStyle (property x) display parentStyleAttrs styleAttrsArg
           where
             x  :: CssDeclaration       = S.index decls 0
             xs :: S.Seq CssDeclaration = S.drop 1 decls
@@ -553,8 +553,8 @@ getTextDecoration (x:xs) decoration = decoration .|. (getBit x) .|. (getTextDeco
 getTextIndent :: CssValueTextIndent -> FontAttrs -> Display -> DwLength
 getTextIndent (CssValueTextIndentDistance distance) fontAttrs display =
   case styleEngineCalculateDwLength distance fontAttrs display of
-    Just length -> length
-    Nothing     -> createAbsoluteDwLength 0 -- "0" seems to be a sane default
+    Just len -> len
+    Nothing  -> createAbsoluteDwLength 0 -- "0" seems to be a sane default
 
 
 
@@ -619,8 +619,8 @@ getWhiteSpace declValue = fromEnum declValue
 getHeight :: CssValueHeight -> FontAttrs -> Display -> DwLength
 getHeight (CssValueHeightDistance distance) fontAttrs display =
   case styleEngineCalculateDwLength distance fontAttrs display of
-    Just length -> length
-    Nothing     -> createPercentageDwLength 100 -- "100%" seems to be a sane default; TODO: is it really?
+    Just len -> len
+    Nothing  -> createPercentageDwLength 100 -- "100%" seems to be a sane default; TODO: is it really?
 
 
 
@@ -628,8 +628,8 @@ getHeight (CssValueHeightDistance distance) fontAttrs display =
 getWidth :: CssValueWidth -> FontAttrs -> Display -> DwLength
 getWidth (CssValueWidthDistance distance) fontAttrs display =
   case styleEngineCalculateDwLength distance fontAttrs display of
-    Just length -> length
-    Nothing     -> createPercentageDwLength 100 -- "100%" seems to be a sane default; TODO: is it really?
+    Just len -> len
+    Nothing  -> createPercentageDwLength 100 -- "100%" seems to be a sane default; TODO: is it really?
 
 
 
@@ -745,12 +745,12 @@ getBorderSpacing (CssValueBorderSpacingDistance distance) fontAttrs display =
 -- indicate that zero is default spacing, and a value specified in
 -- declaration is added to the zero?
 getWordSpacig :: CssValueWordSpacing -> FontAttrs -> Display -> Int
-getWordSpacig declValue fontAttrs display = clipSpacing (getSpacing declValue fontAttrs display)
+getWordSpacig declValue fontAttrsArg display = clipSpacing (getSpacing declValue fontAttrsArg display)
   where
     getSpacing :: CssValueWordSpacing -> FontAttrs -> Display -> Int
-    getSpacing CssValueWordSpacingNormal              fontAttrs display = 0
-    getSpacing (CssValueWordSpacingDistance distance) fontAttrs display =
-      case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
+    getSpacing CssValueWordSpacingNormal              fontAttrs disp = 0
+    getSpacing (CssValueWordSpacingDistance distance) fontAttrs disp =
+      case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 disp of
         Just val -> round val -- TODO: a type of Float -> Int function to be verified here
         Nothing  -> 0         -- TODO: is it a good default?
 

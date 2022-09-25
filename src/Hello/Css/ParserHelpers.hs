@@ -162,9 +162,10 @@ defaultValueHelper2 = ValueHelper { pt3                   = (defaultParser, CssT
 -- If `limit` is non-zero, take up to `limit` tokens (excluding closing
 -- paren). This is a safety feature to avoid problems with malformed input.
 consumeFunctionTokens :: Int -> CssParser -> ((CssParser, CssToken), [CssToken])
-consumeFunctionTokens limit p1 = ((p2, t2), L.reverse list)
+consumeFunctionTokens limit parser = (pat', L.reverse tokens)
   where
-    ((p2, t2), list) = takeNext (nextToken1 p1) []
+    (pat', tokens) = takeNext (nextToken1 parser) []
+
     takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
     takeNext (p2, t2@(CssTokParenClose)) list = (nextToken1 p2, t2:list) -- Add closing paren to result, it will be used to check if function body is valid.
     takeNext (p2, CssTokEnd) list             = ((p2, CssTokEnd), list) -- https://www.w3.org/TR/css-syntax-3/#consume-function: "This is a parse error".
@@ -436,9 +437,9 @@ interpretTokensAsMultiEnum vh = (vh, Nothing)
 -- "fmap snd (L.filter (\x -> L.elem (fst x)) dict))". But that
 -- implementation would not catch keys from outside of allowed set of keys.
 matchSymbolTokensWithListRigid :: (CssParser, CssToken) -> [(T.Text, b)] -> [b] -> ((CssParser, CssToken), [b])
-matchSymbolTokensWithListRigid (p, t@(CssTokIdent key)) dict acc =
-  case L.lookup key dict of -- TODO: should we use toLower when putting string in token or can we use it here?
-    Just value -> matchSymbolTokensWithListRigid (nextToken1 p) dict (acc ++ [value])
+matchSymbolTokensWithListRigid (p, t@(CssTokIdent key)) dictionary acc =
+  case L.lookup key dictionary of -- TODO: should we use toLower when putting string in token or can we use it here?
+    Just value -> matchSymbolTokensWithListRigid (nextToken1 p) dictionary (acc ++ [value])
     Nothing    -> ((p, t), []) -- Given token does not match a set of allowed
                                -- strings. Since this function is "rigid", we
                                -- must return empty result.
@@ -473,10 +474,10 @@ takeBgTokens (parser, token) = ((outParser, outToken), outTokens)
     -- Make sure that list of tokens always contains two tokens that are
     -- properly ordered: [horiz, vert].
     reorderTokens :: [CssToken] -> [CssToken]
-    reorderTokens tokens@[CssTokIdent "top", _]    = L.reverse tokens -- First token should be horiz, second should be vert.
-    reorderTokens tokens@[CssTokIdent "bottom", _] = L.reverse tokens -- First token should be horiz, second should be vert.
-    reorderTokens tokens@[CssTokIdent "initial"]   = tokens -- Handle single-element "initial" first, before other single-element lists.
-    reorderTokens tokens@[CssTokIdent "inherit"]   = tokens -- Handle single-element "inherit" first, before other single-element lists.
+    reorderTokens ts@[CssTokIdent "top", _]    = L.reverse ts -- First token should be horiz, second should be vert.
+    reorderTokens ts@[CssTokIdent "bottom", _] = L.reverse ts -- First token should be horiz, second should be vert.
+    reorderTokens ts@[CssTokIdent "initial"]   = ts -- Handle single-element "initial" first, before other single-element lists.
+    reorderTokens ts@[CssTokIdent "inherit"]   = ts -- Handle single-element "inherit" first, before other single-element lists.
     -- After "initial" and "inherit" are handled, you can now add 50% as
     -- missing second element. Also call reorderTokens recursively to handle
     -- this input string correctly: "top;".
@@ -485,9 +486,9 @@ takeBgTokens (parser, token) = ((outParser, outToken), outTokens)
     --    is default "50%"), therefore we add "50%" token
     -- 2. horiz/vert tokens are in proper order (horiz first, vert second),
     --    therefore we do recursive call to reorderTokens.
-    reorderTokens [tok1]                            = reorderTokens [tok1, CssTokPerc $ CssNumI 50]
-    reorderTokens tokens@[tok1, tok2]               = tokens
-    reorderTokens _                                 = [] -- TODO: Perhas this is not needed and we should trust that caller will pass non-empty list?
+    reorderTokens [tok1]                       = reorderTokens [tok1, CssTokPerc $ CssNumI 50]
+    reorderTokens ts@[tok1, tok2]              = ts
+    reorderTokens _                            = [] -- TODO: Perhas this is not needed and we should trust that caller will pass non-empty list?
 
 
     -- Change CssTokIdent tokens for top/left/center etc. into <percentage-token>s.
@@ -522,7 +523,7 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
 
 
-    doContinue tokens token = L.length tokens < 2 && tokValid token
+    doContinue ts t = L.length ts < 2 && tokValid t
 
     tokValid (CssTokNone)             = True -- used to kick-start parsing of stream
     tokValid (CssTokIdent ident)      = elem ident horizVals || elem ident vertVals || elem ident otherVals || ident == "center" -- TODO: or $ map (elem ident) [horizVals, vertVals, otherVals, ["center"]]

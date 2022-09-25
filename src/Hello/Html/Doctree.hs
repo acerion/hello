@@ -119,11 +119,11 @@ doctreePushNode doctree elementIdx = insertNode (updateParent doctree (uniqueNum
     rootParent = root doctree
     someParent = (nodes doctree) M.! parentNum
 
-    makeNewDtn parent elementIdx num = defaultDoctreeNode { uniqueNum      = num
-                                                          , htmlElementIdx = elementIdx
-                                                          , dtnParentNum   = uniqueNum parent
-                                                          , dtnSiblingNum  = dtnLastChildNum parent
-                                                          }
+    makeNewDtn parent elemIdx num = defaultDoctreeNode { uniqueNum      = num
+                                                       , htmlElementIdx = elemIdx
+                                                       , dtnParentNum   = uniqueNum parent
+                                                       , dtnSiblingNum  = dtnLastChildNum parent
+                                                       }
 
 
 

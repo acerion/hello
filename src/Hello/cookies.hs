@@ -67,13 +67,12 @@ foreign export ccall "hll_lookupActionForDomain" hll_lookupActionForDomain :: CS
 
 hll_lookupActionForDomain :: CString -> IO Int
 hll_lookupActionForDomain dom = do
-  domainString <- peekCString dom
-  let domain = T.pack domainString
+  domainString <- T.pack <$> peekCString dom
   cookiesConfig <- getCookiesConfig
   -- putStr ("hello: cookies: " ++ (show cookiesConfig) ++ "\n") -- For debug only.
-  let action = lookupActionForDomain domain (rules cookiesConfig) (defaultAction cookiesConfig)
-  T.IO.putStr (T.concat ["hello: cookies: ", domain, " = ", T.pack (show action), "\n"])
-  case action of
+  let actionForDomain = lookupActionForDomain domainString (rules cookiesConfig) (defaultAction cookiesConfig)
+  T.IO.putStr (T.concat ["hello: cookies: ", domainString, " = ", T.pack (show actionForDomain), "\n"])
+  case actionForDomain of
     -- Convert to values of CookieAction enum in C file.
     CookieActionAccept        -> return 0
     CookieActionAcceptSession -> return 1
@@ -153,7 +152,7 @@ lineToRule line
         domainString = T.toLower (tokens !! 0)
         actionString = T.toLower (tokens !! 1)
         actionStringIsValid :: T.Text -> Bool
-        actionStringIsValid str = any (\action -> str == action) [ "accept", "accept_session", "deny" ]
+        actionStringIsValid str = any (\act -> str == act) [ "accept", "accept_session", "deny" ]
 
 
 
@@ -191,7 +190,7 @@ TODO: consider replacing sorting of the list with inserting new rule at
 specific place (at place that ensures being sorted by domain length).
 -}
 sortRules :: [CookieRule] -> [CookieRule]
-sortRules rules = sortBy domainLengths rules
+sortRules cookieRules = sortBy domainLengths cookieRules
   where domainLengths a b = compare (T.length (domain b)) (T.length (domain a))
 
 
@@ -229,11 +228,11 @@ TODO: original code used dStrAsciiCasecmp() function that was commented with
 locales.". Test behaviour of the code for this case.
 -}
 lookupActionForDomain :: T.Text -> [CookieRule] -> CookieAction -> CookieAction
-lookupActionForDomain inDomain rules def = lookupCS (T.toLower inDomain) rules def
-  where lookupCS _ [] defaultAction            = defaultAction
-        lookupCS domainLC (x:xs) defaultAction = if domainMatchesRule domainLC (domain x)
-                                                 then (action x)
-                                                 else lookupCS domainLC xs defaultAction
+lookupActionForDomain inDomain cookieRules def = lookupCS (T.toLower inDomain) cookieRules def
+  where lookupCS _        []     dfltAction = dfltAction
+        lookupCS domainLC (x:xs) dfltAction = if domainMatchesRule domainLC (domain x)
+                                              then (action x)
+                                              else lookupCS domainLC xs dfltAction
 
 
 {-
@@ -262,14 +261,14 @@ Top level function for opening config file, getting contents, looking up
 action and printing debugs.
 -}
 lookupActionTop :: T.Text -> IO ()
-lookupActionTop domain = do
+lookupActionTop inDomain = do
    -- The config file may be empty, which will produce config with only
    -- default rule and default action.
   cookiesConfig <- getCookiesConfig
   putStr ("hello: cookies: " ++ (show cookiesConfig) ++ "\n") -- For debug only.
 
-  let action = lookupActionForDomain domain (rules cookiesConfig) (defaultAction cookiesConfig)
-  T.IO.putStr (T.concat [domain, " = ", T.pack (show action), "\n"])
+  let actionForDomain = lookupActionForDomain inDomain (rules cookiesConfig) (defaultAction cookiesConfig)
+  T.IO.putStr (T.concat [inDomain, " = ", T.pack (show actionForDomain), "\n"])
 
 
 
@@ -287,8 +286,8 @@ getCookiesConfig = do
 
   where
     getFileContents progName = do
-      let fileName = "cookiesrc"
-      (configDir, fileName) <- getConfigLocation progName fileName
+      let inFileName = "cookiesrc"
+      (configDir, fileName) <- getConfigLocation progName inFileName
       exists2 <- doesDirectoryExist configDir
       case exists2 of
         False -> return "" -- empty contents of config file

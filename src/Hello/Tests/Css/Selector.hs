@@ -203,8 +203,8 @@ selectorTestCases = [
 
 testsCssComplexSelector :: IO String
 testsCssComplexSelector = do
-  counts <- runTestTT (TestList (selectorTestCases))
-  if (errors counts + failures counts == 0)
+  testCounts <- runTestTT (TestList (selectorTestCases))
+  if (errors testCounts + failures testCounts == 0)
     then return ""
     else return "[EE] testsCssComplexSelector failed"
 

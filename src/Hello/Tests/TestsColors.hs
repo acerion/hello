@@ -499,8 +499,8 @@ colorsTestCases = [
 
 testsColors :: IO String
 testsColors = do
-  counts <- runTestTT (TestList (colorsTestCases))
-  if (errors counts + failures counts == 0)
+  testCounts <- runTestTT (TestList (colorsTestCases))
+  if (errors testCounts + failures testCounts == 0)
     then return ""
     else return "[EE] testsColors failed"
 

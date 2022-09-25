@@ -270,7 +270,7 @@ selectorSpecificity complex = selectorSpecificity' complex 0
 compoundSelectorSpecificity :: CssCompoundSelector -> Int
 compoundSelectorSpecificity compound = (fromId compound) + (fromClass compound) + (fromPseudoClass compound) + (fromElement compound)
   where
-    fromId compound          = if (not . T.null . selectorId $ compound) then (1 `shiftL` 20) else 0
-    fromClass compound       = (length . selectorClass $ compound) `shiftL` 10
-    fromPseudoClass compound = if (not . null . selectorPseudoClass $ compound) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
-    fromElement compound     = if compoundHasUniversalType compound then 0 else 1
+    fromId cpd          = if (not . T.null . selectorId $ cpd) then (1 `shiftL` 20) else 0
+    fromClass cpd       = (length . selectorClass $ cpd) `shiftL` 10
+    fromPseudoClass cpd = if (not . null . selectorPseudoClass $ cpd) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
+    fromElement cpd     = if compoundHasUniversalType cpd then 0 else 1

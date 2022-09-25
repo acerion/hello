@@ -143,27 +143,27 @@ hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cLengthValu
 
   let lengthValue = cLengthValue
   let lengthType  = fromIntegral cLengthType
-  let property    = fromIntegral cProperty
+  let propertyArg = fromIntegral cProperty
   let distance    = cssLengthToDistance lengthValue lengthType
 
-  let decl | property ==  7 = CssPropertyBorderBottomWidth $ CssValueBorderWidthDistance distance
-           | property == 11 = CssPropertyBorderLeftWidth   $ CssValueBorderWidthDistance distance
-           | property == 14 = CssPropertyBorderRightWidth  $ CssValueBorderWidthDistance distance
-           | property == 15 = CssPropertyBorderSpacing     $ CssValueBorderSpacingDistance distance
-           | property == 18 = CssPropertyBorderTopWidth    $ CssValueBorderWidthDistance distance
-           | property == 39 = CssPropertyHeight            $ CssValueHeightDistance distance
+  let decl | propertyArg ==  7 = CssPropertyBorderBottomWidth $ CssValueBorderWidthDistance distance
+           | propertyArg == 11 = CssPropertyBorderLeftWidth   $ CssValueBorderWidthDistance distance
+           | propertyArg == 14 = CssPropertyBorderRightWidth  $ CssValueBorderWidthDistance distance
+           | propertyArg == 15 = CssPropertyBorderSpacing     $ CssValueBorderSpacingDistance distance
+           | propertyArg == 18 = CssPropertyBorderTopWidth    $ CssValueBorderWidthDistance distance
+           | propertyArg == 39 = CssPropertyHeight            $ CssValueHeightDistance distance
 
-           | property == 49 = CssPropertyMarginTop         $ CssValueMarginDistance distance
-           | property == 48 = CssPropertyMarginRight       $ CssValueMarginDistance distance
-           | property == 46 = CssPropertyMarginBottom      $ CssValueMarginDistance distance
-           | property == 47 = CssPropertyMarginLeft        $ CssValueMarginDistance distance
+           | propertyArg == 49 = CssPropertyMarginTop         $ CssValueMarginDistance distance
+           | propertyArg == 48 = CssPropertyMarginRight       $ CssValueMarginDistance distance
+           | propertyArg == 46 = CssPropertyMarginBottom      $ CssValueMarginDistance distance
+           | propertyArg == 47 = CssPropertyMarginLeft        $ CssValueMarginDistance distance
 
-           | property == 60 = CssPropertyPaddingBottom     $ CssValuePadding distance
-           | property == 61 = CssPropertyPaddingLeft       $ CssValuePadding distance
-           | property == 62 = CssPropertyPaddingRight      $ CssValuePadding distance
-           | property == 63 = CssPropertyPaddingTop        $ CssValuePadding distance
-           | property == 77 = CssPropertyWidth             $ CssValueWidthDistance distance
-           | otherwise      = trace ("[EE] Unhandled length property " ++ (show property)) (undefined)
+           | propertyArg == 60 = CssPropertyPaddingBottom     $ CssValuePadding distance
+           | propertyArg == 61 = CssPropertyPaddingLeft       $ CssValuePadding distance
+           | propertyArg == 62 = CssPropertyPaddingRight      $ CssValuePadding distance
+           | propertyArg == 63 = CssPropertyPaddingTop        $ CssValuePadding distance
+           | propertyArg == 77 = CssPropertyWidth             $ CssValueWidthDistance distance
+           | otherwise         = trace ("[EE] Unhandled length propertyArg " ++ (show propertyArg)) (undefined)
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
@@ -242,18 +242,18 @@ hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
-  let property = fromIntegral cProperty
+  let propertyArg = fromIntegral cProperty
   let enumVal   = fromIntegral cEnumVal
-  let decl | property ==  6 = CssPropertyBorderBottomStyle $ getBorderStyle enumVal
-           | property == 10 = CssPropertyBorderLeftStyle   $ getBorderStyle enumVal
-           | property == 13 = CssPropertyBorderRightStyle  $ getBorderStyle enumVal
-           | property == 17 = CssPropertyBorderTopStyle    $ getBorderStyle enumVal
-           | property == 44 = CssPropertyListStylePosition $ getListStylePosition enumVal
-           | property == 45 = CssPropertyListStyleType     $ getListStyleType enumVal
-           | property == 67 = CssPropertyTextAlign         $ getTextAlign enumVal
-           | property == 74 = CssPropertyVerticalAlign     $ getVerticalAlign enumVal
-           | property == 76 = CssPropertyWhitespace        $ getWhitespace enumVal
-           | otherwise      = trace ("[EE] Unhandled enum property " ++ (show property)) (undefined)
+  let decl | propertyArg ==  6 = CssPropertyBorderBottomStyle $ getBorderStyle enumVal
+           | propertyArg == 10 = CssPropertyBorderLeftStyle   $ getBorderStyle enumVal
+           | propertyArg == 13 = CssPropertyBorderRightStyle  $ getBorderStyle enumVal
+           | propertyArg == 17 = CssPropertyBorderTopStyle    $ getBorderStyle enumVal
+           | propertyArg == 44 = CssPropertyListStylePosition $ getListStylePosition enumVal
+           | propertyArg == 45 = CssPropertyListStyleType     $ getListStyleType enumVal
+           | propertyArg == 67 = CssPropertyTextAlign         $ getTextAlign enumVal
+           | propertyArg == 74 = CssPropertyVerticalAlign     $ getVerticalAlign enumVal
+           | propertyArg == 76 = CssPropertyWhitespace        $ getWhitespace enumVal
+           | otherwise         = trace ("[EE] Unhandled enum propertyArg " ++ (show propertyArg)) (undefined)
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
@@ -269,11 +269,11 @@ hll_styleEngineSetNonCssHintOfNodeColor cNonCssDeclSetRef cProperty cColor  = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
-  let property = fromIntegral cProperty
+  let propertyArg = fromIntegral cProperty
   let color    = fromIntegral cColor
-  let decl | property ==  1 = CssPropertyBackgroundColor $ CssValueBackgroundColorColor color
-           | property == 23 = CssPropertyColor $ CssValueColor color
-           | otherwise      = trace ("[EE] Unhandled color property " ++ (show property)) (undefined)
+  let decl | propertyArg ==  1 = CssPropertyBackgroundColor $ CssValueBackgroundColorColor color
+           | propertyArg == 23 = CssPropertyColor $ CssValueColor color
+           | otherwise          = trace ("[EE] Unhandled color propertyArg " ++ (show propertyArg)) (undefined)
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
@@ -290,10 +290,10 @@ hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cStringVal 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
   textVal     <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
-  let property = fromIntegral cProperty
+  let propertyArg = fromIntegral cProperty
 
-  let decl | property == 32 = CssPropertyFontFamily $ CssValueFontFamilyList [textVal]
-           | otherwise      = trace ("[EE] Unhandled string property " ++ (show property)) (undefined)
+  let decl | propertyArg == 32 = CssPropertyFontFamily $ CssValueFontFamilyList [textVal]
+           | otherwise         = trace ("[EE] Unhandled string propertyArg " ++ (show propertyArg)) (undefined)
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
@@ -337,11 +337,11 @@ hll_styleEngineSetXTooltipOfNode cNonCssDeclSetRef cStringVal = do
 
 
 hll_styleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiStyleAttrs -> Ptr FfiStyleAttrs -> IO ()
-hll_styleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiX dpiY ptrStructParentStyleAttrs ptrStructStyleAttrs = do
+hll_styleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiXArg dpiYArg ptrStructParentStyleAttrs ptrStructStyleAttrs = do
   prefs                        <- peekPreferences ptrStructPrefs
   styleAttrs :: StyleAttrs     <- peekStyleAttrs ptrStructStyleAttrs
   parentStyleAttrs :: StyleAttrs  <- peekStyleAttrs ptrStructParentStyleAttrs
-  let display :: Display = defaultDisplay { dpiX = dpiX, dpiY = dpiY }
+  let display :: Display = defaultDisplay { dpiX = dpiXArg, dpiY = dpiYArg }
 
   let mergedDeclSetRef = fromIntegral cMergedDeclSetRef
 

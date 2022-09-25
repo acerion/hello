@@ -84,10 +84,10 @@ anyDatumTestFunction (x:xs) = if not success
                               else anyDatumTestFunction xs
   where
     success = output == expectedOutput
-    output  = chainAnyDatum pred input
+    output  = chainAnyDatum predicate input
 
     input          = triplet1st x
-    pred           = triplet2nd x
+    predicate      = triplet2nd x
     expectedOutput = triplet3rd x
 
 
@@ -170,8 +170,8 @@ testCases =
 
 testsChain :: IO String
 testsChain = do
-  counts <- runTestTT (TestList (testCases))
-  if (errors counts + failures counts == 0)
+  testCounts <- runTestTT (TestList (testCases))
+  if (errors testCounts + failures testCounts == 0)
     then return ""
     else return "[EE] Hello.Tests.Chain failed"
 

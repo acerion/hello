@@ -62,9 +62,9 @@ data ValuesAndUnitsNN = ValuesAndUnitsNN
 
 instance QC.Arbitrary ValuesAndUnitsNN where
   arbitrary = do
-    v <- QC.vectorOf 4 getValueNN
-    u <- QC.vectorOf 4 getUnit
-    return $ ValuesAndUnitsNN v u
+    vs <- QC.vectorOf 4 getValueNN
+    us <- QC.vectorOf 4 getUnit
+    return $ ValuesAndUnitsNN vs us
 
 
 
@@ -72,8 +72,8 @@ instance QC.Arbitrary ValuesAndUnitsNN where
 getValueNN :: QC.Gen Float
 getValueNN = do
   value <- QC.choose (0, 20000) :: QC.Gen Int
-  let v = (fromIntegral value) / 50 :: Float
-  return v
+  let x = (fromIntegral value) / 50 :: Float
+  return x
 
 
 
@@ -96,8 +96,8 @@ getUnit :: QC.Gen String
 getUnit = do
   let units :: [String] = ["mm", "px", "em", "ex"]
   idx <- QC.choose (0, (L.length units) - 1) :: QC.Gen Int
-  let u = units !! idx
-  return u
+  let unit = units !! idx
+  return unit
 
 
 
@@ -115,7 +115,7 @@ parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected
 
     -- For debugging only
     traceData       = show valuesWithUnits ++ "  " ++ show outDeclarations
-    valuesWithUnits = zipWith (\v u -> (show v) ++ u) values units
+    valuesWithUnits = zipWith (\value unit -> (show value) ++ unit) values units
 
 
 

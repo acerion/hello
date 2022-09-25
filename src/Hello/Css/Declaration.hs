@@ -554,7 +554,7 @@ makeCssPropertyBackgroundRepeat pat = (pat', fmap CssPropertyBackgroundRepeat pr
 -- they appear in the same order as 'property' integers. The function should
 -- be able to handle the tokens in any order.
 makeCssPropertyBorder :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyBorder pt0 = (pt3, declarations)
+makeCssPropertyBorder pat0 = (pat3, declarations)
   where
     declarations = catMaybes [ fmap CssPropertyBorderTopWidth    propValueWidth,
                                fmap CssPropertyBorderRightWidth  propValueWidth,
@@ -573,9 +573,9 @@ makeCssPropertyBorder pt0 = (pt3, declarations)
                              ]
 
     -- TODO: this piece of code has zero error checking.
-    (pt1, propValueWidth) :: ((CssParser, CssToken), Maybe CssValueBorderWidth) = parseTokensAsBorderWidthValue pt0
-    (pt2, propValueStyle) :: ((CssParser, CssToken), Maybe CssValueBorderStyle) = parseTokensAsBorderStyleValue pt1
-    (pt3, propValueColor) :: ((CssParser, CssToken), Maybe CssValueBorderColor) = parseTokensAsBorderColorValue pt2
+    (pat1, propValueWidth) :: ((CssParser, CssToken), Maybe CssValueBorderWidth) = parseTokensAsBorderWidthValue pat0
+    (pat2, propValueStyle) :: ((CssParser, CssToken), Maybe CssValueBorderStyle) = parseTokensAsBorderStyleValue pat1
+    (pat3, propValueColor) :: ((CssParser, CssToken), Maybe CssValueBorderColor) = parseTokensAsBorderColorValue pat2
 
 
 
@@ -1239,9 +1239,9 @@ cssValueFontDict = [ ("caption",          CssValueFontCaption)
 
 
 makeCssPropertyFont :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyFont pat = case runRecipe pat of
-                            (pat', Just acc) -> (pat', acc)
-                            (pat', Nothing)  -> (pat, [])
+makeCssPropertyFont patArg = case runRecipe patArg of
+                               (pat', Just acc) -> (pat', acc)
+                               (pat', Nothing)  -> (patArg, [])
   where
     -- This recipe is reflecting the grammar (?) from CSS2.2 spec.
     runRecipe pat = combinatorExactlyOne [ multiplierOnce (combinatorAllInOrder [ multiplierZeroOrOnce (combinatorOneOrMoreUnordered [fontStyle2, fontVariant2, fontWeight2])
@@ -1291,14 +1291,14 @@ fontEnum2 pat = case parseEnum cssValueFontDict pat of
 
 
 parseEnum :: [(T.Text, b)] -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe b)
-parseEnum dict pat = case propValue of
-                       Just v  -> (pat', Just v)
-                       Nothing -> (pat, Nothing)
+parseEnum dictionary pat = case propValue of
+                             Just v  -> (pat', Just v)
+                             Nothing -> (pat, Nothing)
   where
     (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
 
-    vh = (defaultValueHelper pat) { dict = dict }
+    vh = (defaultValueHelper pat) { dict = dictionary }
 
 
 
@@ -2444,7 +2444,7 @@ makeCssProperty_LAST _ = CssProperty_LAST
 -- input CSS string may appear in any order. This function should be able to
 -- handle this situation.
 parseDeclarationMultiple :: (CssParser, CssToken) -> [PropertyCtor] -> ((CssParser, CssToken), [CssProperty])
-parseDeclarationMultiple pat propCtors = L.foldl f (pat, []) propCtors
+parseDeclarationMultiple patArg propCtors = L.foldl f (patArg, []) propCtors
   where
     f (pat, acc) propCtor = case propCtor pat of
                               (pat', Nothing)   -> (pat', acc)
