@@ -279,8 +279,9 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 
 declValueAsString :: Int -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
 declValueAsString id (parser, token) = case ((retParser, retToken), value) of
-                                         ((p, t), Just (CssValueTypeString s))  -> ((p, t), Just s)
-                                         ((p, t), Nothing) -> ((p, t), Nothing)
+                                         ((p, t), Just (CssValueTypeString s)) -> ((p, t), Just s)
+                                         ((p, t), Just (CssValueTypeURI s))    -> ((p, t), Just s)
+                                         ((p, t), Nothing)                     -> ((p, t), Nothing)
   where
     ((retParser, retToken), value) | id == 10  = tokensAsValueString (parser, token) [] -- TODO: magic value
                                    | id == 12  = declValueAsURI (parser, token) []      -- TODO: magic value

@@ -980,6 +980,7 @@ getCssOrigin o = case o of
                    0 -> CssOriginUserAgent
                    1 -> CssOriginUser
                    2 -> CssOriginAuthor
+                   _ -> CssOriginAuthor
 
 
 

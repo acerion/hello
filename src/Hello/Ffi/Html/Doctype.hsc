@@ -126,6 +126,7 @@ intToDoctype i v = case i of
                      1 -> HtmlDoctypeUnrecognized
                      2 -> HtmlDoctypeHtml v
                      3 -> HtmlDoctypeXhtml v
+                     _ -> HtmlDoctypeNone
 
 
 

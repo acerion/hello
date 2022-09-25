@@ -505,6 +505,7 @@ takeBgTokens (parser, token) = ((outParser, outToken), outTokens)
                                 , ("center", CssTokPerc $ CssNumI 50) ]
     remapToken tok@(CssTokPerc cssNum)      = tok
     remapToken tok@(CssTokDim cssNum ident) = tok
+    remapToken tok                          = tok -- TODO: This pattern is added to catch other token types, but is it really valid?
 
 
 
