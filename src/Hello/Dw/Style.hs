@@ -45,7 +45,7 @@ module Hello.Dw.Style
 
 
 import Data.Text as T
-import Debug.Trace
+--import Debug.Trace
 
 import Hello.Dw.DwLength
 import Hello.Dw.FontAttrs

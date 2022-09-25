@@ -40,7 +40,7 @@ module Hello.Html.DoctreeNode
 
 
 import qualified Data.Text as T
-import Debug.Trace
+--import Debug.Trace
 
 
 

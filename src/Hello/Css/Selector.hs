@@ -72,12 +72,8 @@ module Hello.Css.Selector
 
 import Data.Maybe
 import qualified Data.Text as T
-import qualified Data.Vector as V
-import qualified Data.List as L
-import qualified Data.Map as M
-import qualified Data.Sequence as S
 import Data.Bits
-import Debug.Trace
+--import Debug.Trace
 
 import Hello.Chain
 

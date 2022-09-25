@@ -39,9 +39,9 @@ import Prelude
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
-import qualified Data.Text as T
-import qualified Data.Map as M
-import Debug.Trace
+--import qualified Data.Text as T
+--import qualified Data.Map as M
+--import Debug.Trace
 
 import Hello.Html.DoctreeNode
 

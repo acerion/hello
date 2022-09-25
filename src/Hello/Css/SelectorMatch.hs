@@ -54,14 +54,13 @@ module Hello.Css.SelectorMatch
 
 
 import qualified Data.Text as T
-import Debug.Trace
+--import Debug.Trace
 
 import Hello.Chain
 import Hello.Css.MatchCache
 import Hello.Css.Selector
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
-import Hello.Utils
 
 
 

@@ -37,10 +37,7 @@ where
 import Prelude
 import Foreign
 import Foreign.C.Types
-import Debug.Trace
-
-import Hello.Css.Distance
-import Hello.Css.Parser
+--import Debug.Trace
 
 
 

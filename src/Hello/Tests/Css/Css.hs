@@ -24,12 +24,9 @@ where
 import qualified Data.Text as T
 import Test.HUnit
 
-import Hello.Css.Cascade
-import Hello.Css.Parser
 import Hello.Css.Selector
 import Hello.Css.SelectorMatch
 import Hello.Html.DoctreeNode
-import Hello.Utils
 
 import Hello.Tests.Css.Data
 import Hello.Tests.Css.Match.Data

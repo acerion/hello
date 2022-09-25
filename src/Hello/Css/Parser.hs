@@ -79,24 +79,17 @@ module Hello.Css.Parser
 
 
 import Data.Data (toConstr)
-import Data.Maybe
 import qualified Data.Text as T
-import qualified Data.Vector as V
-import qualified Data.List as L
 import qualified Data.Map as M
 import qualified Data.Sequence as S
-import Data.Bits
-import Debug.Trace
+--import Debug.Trace
 
 import Hello.Chain
-import Hello.Utils
 import Hello.Css.Declaration
-import Hello.Css.Distance
 import Hello.Css.ParserHelpers
 import Hello.Css.Tokenizer
 import Hello.Css.Selector
 import Hello.Css.Value
-import Colors
 import HtmlTag
 
 

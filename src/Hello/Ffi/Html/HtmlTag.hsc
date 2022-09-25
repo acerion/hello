@@ -42,7 +42,6 @@ where
 import Prelude
 import Foreign
 import Foreign.C
-import Foreign.C.String
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString.Unsafe as BSU

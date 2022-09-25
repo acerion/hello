@@ -86,12 +86,10 @@ module Hello.Css.Tokenizer( CssParser (..)
 
 
 
-import Data.Maybe
 import qualified Data.Char as D.C
 import qualified Data.Text as T
 import qualified Data.Text.Read as T.R
-import Data.Bits
-import Debug.Trace
+--import Debug.Trace
 
 import qualified Hello.Utils as HU
 import Hello.Utils

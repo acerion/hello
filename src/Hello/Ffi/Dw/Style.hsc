@@ -54,14 +54,9 @@ where
 
 import Prelude
 import Foreign
-import Foreign.C.String
 import Foreign.C.Types
-import Debug.Trace
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T.E
+--import Debug.Trace
 
-import Hello.Dw.DwLength
-import Hello.Dw.FontAttrs
 import Hello.Dw.Style
 
 import Hello.Ffi.Dw.DwLength

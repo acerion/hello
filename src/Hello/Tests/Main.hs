@@ -22,7 +22,6 @@ import Hello.Tests.Colors
 import Hello.Tests.Cookies
 
 import Hello.Tests.Gif
-import Hello.Tests.Gif2
 
 import Hello.Tests.Css.Css
 import Hello.Tests.Css.DeclarationSet

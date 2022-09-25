@@ -43,11 +43,9 @@ where
 
 
 import Prelude
-import Data.List
-import Debug.Trace
+--import Debug.Trace
 
 import Data.IORef
-import System.IO.Unsafe
 
 import Hello.Utils
 

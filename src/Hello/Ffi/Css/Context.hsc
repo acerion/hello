@@ -37,21 +37,18 @@ import Prelude
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
-import qualified Data.Map as M
-import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
-import qualified Data.ByteString.Char8 as Char8
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 
 import System.IO
 
 
-import Debug.Trace
+--import Debug.Trace
 
 import Hello.Html.Doctree
-import Hello.Html.DoctreeNode
-import Hello.Utils
+--import Hello.Html.DoctreeNode
+--import Hello.Utils
 
 import Hello.Css.Cascade
 import Hello.Css.ContextGlobal
@@ -63,10 +60,10 @@ import Hello.Css.StyleSheet
 import Hello.Css.UserAgentStyle
 
 import Hello.Ffi.Css.Doctree
-import Hello.Ffi.Css.MatchCache
+--import Hello.Ffi.Css.MatchCache
 import Hello.Ffi.Css.Parser
-import Hello.Ffi.Css.StyleSheet
-import Hello.Ffi.Utils
+--import Hello.Ffi.Css.StyleSheet
+--import Hello.Ffi.Utils
 
 
 

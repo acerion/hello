@@ -39,13 +39,8 @@ module Hello.Ffi.Gif( hll_parseExtension
 import Prelude
 import Foreign.C.String
 import Foreign
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T.E
-import qualified Data.Text.Encoding.Error as T.E.E
-import qualified Data.Text.IO as T.IO
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
-import Control.Applicative
 import Control.Monad -- when
 import Gif
 

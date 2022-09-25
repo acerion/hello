@@ -25,13 +25,11 @@ import qualified Data.Text as T
 import qualified Data.Sequence as S
 
 import Test.HUnit
-import Debug.Trace
+--import Debug.Trace
 
 import Hello.Css.Declaration
 import Hello.Css.Distance
-import Hello.Css.Tokenizer
 import Hello.Css.Parser
-import Hello.Css.Value
 
 import Hello.Utils
 

@@ -51,19 +51,16 @@ module Hello.Css.Cascade
 
 
 import Data.Bits
-import Data.Maybe
 import qualified Data.List as L
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Vector as V
-import Debug.Trace
+--import Debug.Trace
 
-import Hello.Chain
 import Hello.Css.MatchCache
 import Hello.Css.Parser
 import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
-import Hello.Css.Selector
 import Hello.Css.SelectorMatch
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode

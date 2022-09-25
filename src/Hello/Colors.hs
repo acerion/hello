@@ -43,10 +43,8 @@ module Colors( colorsStringToColor
 
 
 import Prelude
-import Foreign.C.String
 import Foreign
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T.E
 import qualified Data.Text.Read as T.R
 import qualified Data.Vector as V
 

@@ -21,8 +21,6 @@ where
 
 
 
-import qualified Data.Text as T
-
 import Hello.Chain
 import Hello.Css.Parser
 import Hello.Css.Selector

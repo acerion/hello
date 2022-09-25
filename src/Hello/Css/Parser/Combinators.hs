@@ -34,7 +34,7 @@ where
 
 
 
-import Debug.Trace
+--import Debug.Trace
 
 import Data.List as L
 

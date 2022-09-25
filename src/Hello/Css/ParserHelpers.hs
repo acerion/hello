@@ -67,7 +67,6 @@ where
 
 
 import Data.Bits
-import Data.Data
 import Data.List as L
 import Data.Map as M
 import Data.Maybe
@@ -77,7 +76,6 @@ import Colors
 
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
-import Hello.Css.Value
 
 
 

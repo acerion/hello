@@ -36,7 +36,6 @@ module ColorsFFI where
 
 import Prelude
 import Foreign.C.String
-import Foreign
 import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString.Unsafe as BSU
 import Colors

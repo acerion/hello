@@ -21,7 +21,7 @@ where
 
 
 import Test.QuickCheck
-import Test.QuickCheck.Instances.Text
+import Test.QuickCheck.Instances.Text()
 
 import Gif
 import Hello.Tests.Utils.Gifted

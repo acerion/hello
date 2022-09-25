@@ -70,14 +70,11 @@ where
 
 
 import Prelude
-import Data.List
-import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.List as L
 import qualified Data.Sequence as S
 import Debug.Trace
-import Control.Monad -- when
 
 import Hello.Chain
 import Hello.Css.Tokenizer

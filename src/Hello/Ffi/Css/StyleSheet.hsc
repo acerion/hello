@@ -29,24 +29,17 @@ where
 
 
 
-import Prelude
-import Foreign
-import Foreign.C.String
-import Foreign.C.Types
-import Foreign.Marshal.Array
-import Data.List
-import Data.Bits
-import Data.Maybe
-import qualified Data.Map as M
-import qualified Data.Text as T
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Unsafe as BSU
-import qualified Data.Vector as V
-import qualified Data.List as L
-import Control.Monad -- when
-import Debug.Trace
+--import Prelude
+--import Foreign
+--import Foreign.C.String
+--import Foreign.C.Types
+--import Foreign.Marshal.Array
+--import Data.List
+--import Data.Bits
+--import Data.Maybe
+--import Debug.Trace
 
-import Hello.Css.MatchCache
+{-
 import Hello.Css.MediaQuery
 import Hello.Css.Parser
 import Hello.Css.StyleSheet
@@ -64,7 +57,7 @@ import Hello.Ffi.Css.Parser
 import Hello.Ffi.Css.MatchCache
 import Hello.Ffi.Css.Misc
 import Hello.Ffi.Utils
-
+-}
 
 
 

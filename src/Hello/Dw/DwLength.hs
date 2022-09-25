@@ -43,7 +43,6 @@ module Hello.Dw.DwLength
 
 
 import Data.Bits
-import Data.Coerce (coerce)
 
 import Hello.Utils
 

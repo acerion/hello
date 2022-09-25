@@ -28,8 +28,7 @@ where
 
 
 
-
-import Prelude
+{-
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
@@ -64,7 +63,7 @@ import Hello.Ffi.Css.Doctree
 import Hello.Ffi.Css.Parser
 --import Hello.Ffi.Css.StyleSheet
 import Hello.Ffi.Utils
-
+-}
 
 
 

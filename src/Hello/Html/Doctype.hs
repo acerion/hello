@@ -43,11 +43,7 @@ where
 import Prelude
 import qualified Data.Char as D.C
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T.E
-import qualified Data.Text.Read as T.R
-import qualified Data.ByteString.Unsafe as BSU
-import qualified Data.Map as M
-import Debug.Trace
+--import Debug.Trace
 
 -- import Hello.Css.Parser
 

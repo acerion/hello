@@ -37,7 +37,7 @@ where
 
 
 import Prelude
-import Debug.Trace
+--import Debug.Trace
 import qualified Data.Text as T
 
 import Foreign

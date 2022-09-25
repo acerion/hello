@@ -42,22 +42,14 @@ where
 
 import Prelude
 import Foreign
-import Foreign.C.String
 import Foreign.C.Types
-import Debug.Trace
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T.E
-
-import Data.Bits
+--import Debug.Trace
 
 -- https://ro-che.info/articles/2019-05-14-convert-cdouble-to-double
 -- I bet I'm doing this wrong.
 import Data.Coerce (coerce)
 
 import Hello.Dw.DwLength
-import Hello.Ffi.Utils
-
-import Hello.Utils
 
 
 

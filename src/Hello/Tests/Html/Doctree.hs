@@ -20,9 +20,8 @@ where
 
 
 
-import Debug.Trace
+--import Debug.Trace
 import Test.HUnit
-import qualified Data.Text as T
 
 import Data.Map
 

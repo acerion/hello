@@ -49,7 +49,7 @@ import Data.Char
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.Vector as V
-import Debug.Trace
+--import Debug.Trace
 
 
 

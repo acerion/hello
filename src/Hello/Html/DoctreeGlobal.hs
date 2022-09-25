@@ -33,7 +33,7 @@ where
 
 import Prelude
 
-import Debug.Trace
+--import Debug.Trace
 
 import Data.IORef
 import System.IO.Unsafe

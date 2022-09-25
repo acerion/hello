@@ -36,7 +36,6 @@ module Cookies(lookupActionForDomain
 
 import Prelude
 import Foreign.C.String
-import Foreign
 import System.Directory
 import System.IO
 import Control.Monad -- when

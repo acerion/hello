@@ -34,39 +34,10 @@ where
 
 import Prelude
 import Foreign
-import Foreign.C.String
 import Foreign.C.Types
-import Foreign.Marshal.Array
-import Data.List
-import Data.Bits
-import Data.Maybe
-import qualified Data.Map as M
-import qualified Data.Text as T
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Unsafe as BSU
-import qualified Data.Vector as V
-import qualified Data.List as L
-import Control.Monad -- when
-import Debug.Trace
+--import Debug.Trace
 
 import Hello.Css.MatchCache
-import Hello.Css.MediaQuery
-import Hello.Css.Parser
-import Hello.Css.StyleSheet
-import Hello.Css.Selector
-import Hello.Css.Tokenizer
-import Hello.Css.UserAgentStyle
-import Hello.Html.Doctree
-import Hello.Html.DoctreeNode
-
-import Hello.Utils
-
---import Hello.Ffi.Css.Context
-import Hello.Ffi.Css.DoctreeNode
-import Hello.Ffi.Css.Doctree
-import Hello.Ffi.Css.Parser
---import Hello.Ffi.Css.StyleSheet
-import Hello.Ffi.Utils
 
 
 

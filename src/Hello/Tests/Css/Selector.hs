@@ -23,7 +23,7 @@ where
 
 import qualified Data.Text as T
 import Test.HUnit
-import Debug.Trace
+--import Debug.Trace
 
 import Hello.Chain
 import Hello.Css.Tokenizer

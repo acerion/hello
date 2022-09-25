@@ -187,7 +187,7 @@ where
 
 
 
-import Debug.Trace
+--import Debug.Trace
 
 import Data.Data
 import Data.Maybe

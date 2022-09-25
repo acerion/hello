@@ -22,22 +22,14 @@ where
 
 
 import qualified Data.List as L
-import qualified Data.Text as T
-import qualified Data.Sequence as S
-import Data.String (fromString)
 
 import qualified Test.QuickCheck as QC
 
-import Test.HUnit
-import Debug.Trace
+--import Debug.Trace
 
 import Hello.Css.Declaration
-import Hello.Css.Distance
 import Hello.Css.Parser
 import Hello.Css.Tokenizer
---import Hello.Css.Value
-
-import Hello.Utils
 
 import Hello.Tests.Css.Parser.Utils
 import Hello.Tests.Utils.QuickCheck

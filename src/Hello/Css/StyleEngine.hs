@@ -59,16 +59,13 @@ where
 
 import Prelude
 import Data.Bits
-import Data.List
-import Data.Maybe
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Debug.Trace
+--import Debug.Trace
 
 import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Parser
-import Hello.Css.Value
 
 import Hello.Display
 

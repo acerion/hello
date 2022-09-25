@@ -45,7 +45,7 @@ where
 
 
 import Foreign
-import Foreign.Ptr
+--import Foreign.Ptr
 import Foreign.C.String
 import Foreign.C.Types
 import qualified Data.Text as T

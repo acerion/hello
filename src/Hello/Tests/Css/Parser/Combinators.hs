@@ -25,13 +25,11 @@ where
 
 import qualified Data.Text as T
 
-import Debug.Trace
+--import Debug.Trace
 
 import Test.HUnit
 
 import Hello.Css.Parser.Combinators
-
-import Hello.Utils
 
 
 

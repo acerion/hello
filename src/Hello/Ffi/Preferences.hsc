@@ -37,10 +37,8 @@ where
 
 import Prelude
 import Foreign
-import Foreign.C.String
 import Foreign.C.Types
-import qualified Data.Text as T
-import Debug.Trace
+--import Debug.Trace
 
 import Hello.Ffi.Utils
 

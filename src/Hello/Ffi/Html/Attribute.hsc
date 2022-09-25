@@ -43,18 +43,14 @@ where
 import Prelude
 import Foreign
 import Foreign.C
-import Foreign.C.String
-import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString.Unsafe as BSU
 
 import Hello.Css.Distance
-import Hello.Css.Parser
 
 import Hello.Html.Attribute
 
 import Hello.Ffi.Css.Distance
-import Hello.Ffi.Css.Parser
 import Hello.Ffi.Html.Document
 
 

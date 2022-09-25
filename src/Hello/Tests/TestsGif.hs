@@ -20,12 +20,10 @@ where
 
 
 
-import Foreign
 import Test.HUnit
 import Test.QuickCheck
 -- import Test.QuickCheck.Instances.Text -- We will write our own instance
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString as BS
 import Data.String (fromString)
 
