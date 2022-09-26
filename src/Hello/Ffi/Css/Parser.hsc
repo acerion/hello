@@ -265,7 +265,7 @@ hll_declarationValueAsString ptrStructCssParser ptrStructCssToken valueType = do
   parser <- peekCssParser ptrStructCssParser
   token  <- peekCssToken ptrStructCssToken
 
-  let pair@((newParser, newToken), textVal) = declValueAsString valueType (parser, token)
+  let ((newParser, newToken), textVal) = declValueAsString valueType (parser, token)
 
   pokeCssParser ptrStructCssParser newParser
   pokeCssToken ptrStructCssToken newToken

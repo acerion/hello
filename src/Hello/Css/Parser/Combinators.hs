@@ -22,7 +22,7 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 module Hello.Css.Parser.Combinators
   (
-    MyParser (..)
+    MyParser
   , combinatorExactlyOne
   , combinatorAllInOrder
   , combinatorOneOrMoreUnordered
@@ -235,6 +235,7 @@ multiplierOnce = multiplier lower upper
 
 
 
+{-
 concatAccs :: Maybe [a] -> [[a]] -> [a]
 concatAccs mAcc accumulators = case mAcc of
                                  Just acc -> acc ++ L.concat accumulators
@@ -247,7 +248,7 @@ concatAcc :: Maybe [a] -> [a] -> [a]
 concatAcc mAcc acc = case mAcc of
                        Just acc' -> acc' ++ acc
                        Nothing   -> []   ++ acc
-
+-}
 
 
 

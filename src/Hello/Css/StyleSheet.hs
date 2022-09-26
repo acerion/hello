@@ -45,7 +45,7 @@ module Hello.Css.StyleSheet
 
   , CssStyleSheets
 
-  , CssRulesMap (..)
+  , CssRulesMap
 
   , CssMatchCache
 
@@ -367,7 +367,7 @@ makeRulePairs (x:xs) declSet declSetImp origin acc =
 
 
 
-
+{-
 -- Given list of selectors, and given declaration sets (regular and
 -- important), for each of the selectors create one rule and add it to
 -- context.
@@ -381,7 +381,7 @@ constructAndAddRules context selectorList declSet declSetImp origin = updatedCon
   where
     updatedContext = cssContextAddRules context rulePairs
     rulePairs = makeRulePairs selectorList declSet declSetImp origin []
-
+-}
 
 
 
@@ -480,10 +480,10 @@ parseCss ((parser, token), context) =
 parseMediaRule :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
 parseMediaRule ((parser, token), context) = ((p3, t3), c3)
   where
-    ((p2, t2), media) = parseMediaQuery (parser, token)
-    (syntaxOk, mediaMatch) = case media of
-                               Just m  -> (True, mediaMatchesParser parser m)
-                               Nothing -> (False, False)
+    ((p2, _t2), media) = parseMediaQuery (parser, token)
+    (_syntaxOk, mediaMatch) = case media of
+                                Just m  -> (True, mediaMatchesParser parser m)
+                                Nothing -> (False, False)
 
     ((p3, t3), c3) = if mediaMatch
                      then parseMediaBlock ((nextToken1 p2), context) -- nextToken skips opening brace of a block

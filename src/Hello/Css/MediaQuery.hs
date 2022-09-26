@@ -81,7 +81,7 @@ parseMediaQuery (parser, token) = ((p2, t2), Just media)
   where
     ((p2, t2), tokens) = consumeMediaQueryTokens (parser, token) []
     media = splitAtCommaToken tokens []
-    syntaxValid = True -- TODO: implement syntax validation
+    -- syntaxValid = True -- TODO: implement syntax validation
 
 
 

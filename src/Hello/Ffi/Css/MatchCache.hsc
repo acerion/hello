@@ -100,7 +100,7 @@ pokeCssMatchCache ptrStructMatchCache cache = do
 
 
 
-
+{-
 -- TODO: This function seems to just allocate a new vector of (-1) elements.
 -- So far I haven't seen this function update a vector of some non-(-1)
 -- elements by adding (-1)s at the end.
@@ -112,7 +112,7 @@ hll_matchCacheSetSize ptrStructMatchCache cNewSize = do
   pokeCssMatchCache ptrStructMatchCache newMatchCache
 
   return ()
-
+-}
 
 
 

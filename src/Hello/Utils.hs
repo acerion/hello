@@ -70,7 +70,7 @@ takeEnclosed text opening closing omitDelimiters = if T.isPrefixOf opening text
                                                    else (Nothing, text)
   where len = T.length opening + T.length (fst pair) + if T.isPrefixOf closing (snd pair) then T.length closing else 0
         pair = T.breakOn closing (T.drop (T.length opening) text)
-        enclosed = snd pair
+        --enclosed = snd pair
         taken = if omitDelimiters
                 then (T.splitOn closing ((T.splitOn opening text) !! 1) !! 0)
                 else T.take len text

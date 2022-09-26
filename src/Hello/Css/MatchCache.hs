@@ -40,7 +40,7 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 module Hello.Css.MatchCache
   (
     CssMatchCacheWrapper
-  , CssMatchCache (..)
+  , CssMatchCache
 
   , matchCacheSize
   , matchCacheIncreaseTo

@@ -813,7 +813,7 @@ parseElementStyleAttribute "" cssStyleAttribute (declSet, declSetImp)
 parseElementStyleAttribute :: T.Text -> T.Text -> (CssDeclarationSet, CssDeclarationSet) -> (CssDeclarationSet, CssDeclarationSet)
 parseElementStyleAttribute _baseUrl cssStyleAttribute (declSet, declSetImp) = (outDeclSet, outDeclSetImp)
   where
-    ((p2, t2), (outDeclSet, outDeclSetImp)) = parseAllDeclarations ((p1, t1), (declSet, declSetImp))
+    ((_p2, _t2), (outDeclSet, outDeclSetImp)) = parseAllDeclarations ((p1, t1), (declSet, declSetImp))
     (p1, t1) = nextToken1 parser -- Kick-off the parsing
 
     {-

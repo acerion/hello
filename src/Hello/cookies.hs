@@ -296,7 +296,7 @@ getCookiesConfig = do
           -- let fullPath = "/home/kamil/dummy_test_nonexistent"
           handle    <- getFileHandle fullPath
           contents  <- T.IO.hGetContents handle
-          evaluate (T.length contents) -- ensure that all contents is read before closing handle
+          _ <- evaluate (T.length contents) -- ensure that all contents is read before closing handle
           hClose handle
           return contents
 

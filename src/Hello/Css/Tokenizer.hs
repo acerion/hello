@@ -554,13 +554,13 @@ isWhitespace c = elem c ['\n', '\r', '\f', '\t', ' ']
 
 
 
-
+{-
 -- Move parser's remainder by length of given string. Call this function when
 -- givne string has been consumed to token and now you want to remove it from
 -- front of parser's remainder.
 parserMoveByString :: CssParser -> T.Text -> CssParser
 parserMoveByString parser tok = parser { remainder = T.drop (T.length tok) (remainder parser) }
-
+-}
 
 
 

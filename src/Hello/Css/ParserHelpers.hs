@@ -451,8 +451,8 @@ matchSymbolTokensWithListRigid (p, t) _ acc                      = ((p, t), acc)
 interpretTokensAsBgPosition :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsBgPosition vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, propValue)
   where
-    (pat', tokens) = takeBgTokens pat
-    propValue      = Just $ (fromJust . bgPositionValueCtor $ vh) 0 0
+    (pat', _) = takeBgTokens pat
+    propValue = Just $ (fromJust . bgPositionValueCtor $ vh) 0 0
     -- TODO: right now the original dillo doesn't seem to display background
     -- images at all, so I will stop the work on this function for now.
     -- Later, as I get to know dillo better, I will resume work on this

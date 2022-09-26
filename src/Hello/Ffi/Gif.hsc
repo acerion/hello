@@ -98,7 +98,7 @@ hll_parseExtension hll_gif cBuf size = do
 
 
 
-
+{-
 -- TODO: make use of this function
 hll_dataSubBlockGetAvailableBytes :: CString -> Int -> IO Int
 hll_dataSubBlockGetAvailableBytes cBuf size = do
@@ -113,3 +113,4 @@ hll_dataSubBlockGetAvailableBytes cBuf size = do
       if subBlockSize < size
       then return subBlockSize
       else return (-1)
+-}

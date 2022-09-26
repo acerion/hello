@@ -93,7 +93,7 @@ handleExtensionSubBlockComment gif buf
     -- sequences. GIF spec only "recommends" using ASCII character set.
     commentText = T.E.decodeUtf8With T.E.E.lenientDecode commentBytes
     subBlockSize = fromIntegral (BS.index buf 0)
-    oldConsumed = consumed gif
+    -- oldConsumed = consumed gif
 
 
 

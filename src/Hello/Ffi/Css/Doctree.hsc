@@ -189,14 +189,14 @@ hll_doctreePopNode cRef = do
 
 
 
-
+{-
 hll_doctreeGetTopNodeHtmlElementIdx :: CInt -> IO CInt
 hll_doctreeGetTopNodeHtmlElementIdx cRef = do
   mDtn <- doctreeGetTopNode . fromIntegral $ cRef
   case mDtn of
     Just dtn -> return . fromIntegral . htmlElementIdx $ dtn
     Nothing  -> return 0
-
+-}
 
 
 
