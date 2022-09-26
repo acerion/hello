@@ -463,7 +463,7 @@ instance Storable FfiStyleAttrs where
 
 
 
-  poke ptr (FfiStyleAttrs cFontAttrs cBorderCollapse cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cLineHeight cListStylePosition cListStyleType cDisplay cColor cBackgroundColor cCursor cHBorderSpacing cVBorderSpacing cWordSpacing cXLink cXLang cXImg cXTooltip) = do
+  poke ptr (FfiStyleAttrs cFontAttrs cBorderCollapse cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextAlign cTextDecoration cTextIndent cTextTransform cVerticalAlign cWhiteSpace cWidth cHeight cLineHeight cListStylePosition cListStyleType cDisplay cColor cBackgroundColor cCursor cHBorderSpacing cVBorderSpacing cWordSpacing cXLink _cXLang cXImg cXTooltip) = do
 
     #{poke c_style_attrs_t, c_font_attrs}      ptr cFontAttrs
     #{poke c_style_attrs_t, c_border_collapse} ptr cBorderCollapse

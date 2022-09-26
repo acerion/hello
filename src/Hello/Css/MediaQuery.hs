@@ -87,4 +87,4 @@ parseMediaQuery (parser, token) = ((p2, t2), Just media)
 
 
 mediaMatchesParser :: CssParser -> CssMediaQuery -> Bool
-mediaMatchesParser parser media = elem [(CssTokIdent "all")] media || elem [(CssTokIdent "screen")] media
+mediaMatchesParser _ media = elem [(CssTokIdent "all")] media || elem [(CssTokIdent "screen")] media

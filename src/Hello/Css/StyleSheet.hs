@@ -149,7 +149,7 @@ insertRuleToStyleSheet sheet rule
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
 
     thisElementRules sheetArg (Just t) = (rulesByType sheetArg) !! t
-    thisElementRules sheetArg Nothing  = []
+    thisElementRules _        Nothing  = []
 
 
 
@@ -376,7 +376,7 @@ makeRulePairs (x:xs) declSet declSetImp origin acc =
 -- "for each selector create a rule with given selector and some
 -- declarations, and put it in appropriate style sheet in the context".
 constructAndAddRules :: CssContext -> [CssCachedComplexSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> CssContext
-constructAndAddRules context []           declSet declSetImp _      = context
+constructAndAddRules context []           _       _          _      = context
 constructAndAddRules context selectorList declSet declSetImp origin = updatedContext
   where
     updatedContext = cssContextAddRules context rulePairs

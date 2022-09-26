@@ -80,8 +80,8 @@ chainDatumLength chain = length' chain 0
 
 
 
-length' (Chain datum link remainder) acc = length' remainder (acc + 1)
-length' (Last datum)                 acc =                   (acc + 1)
+length' (Chain _ _ remainder) acc = length' remainder (acc + 1)
+length' (Last _)              acc =                   (acc + 1)
 
 
 

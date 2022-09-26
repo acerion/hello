@@ -86,7 +86,7 @@ Return value: true if OK, false otherwise.
 TODO: this function is written in terrible style
 -}
 validateNameOrIdValue :: HtmlDoctype -> T.Text -> T.Text -> Bool
-validateNameOrIdValue doctype attrNameArg attrValueArg =
+validateNameOrIdValue doctype _attrNameArg attrValueArg =
   case doctype of
     HtmlDoctypeHtml v -> if v >= 5.0
                          then for5 attrValueArg

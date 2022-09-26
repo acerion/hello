@@ -65,7 +65,6 @@ foreign export ccall "hll_htmlValidateNameOrIdValue" hll_htmlValidateNameOrIdVal
 hll_htmlParseAttributeWidthOrHeight :: CString -> Ptr FfiCssLength -> IO ()
 hll_htmlParseAttributeWidthOrHeight cAttrValue ptrStructCssLength = do
   attrValue <- BSU.unsafePackCString cAttrValue
-  ffiCssLength :: FfiCssLength <- peek ptrStructCssLength
 
   let (v', t') = case parseLengthOrMultiLength (T.E.decodeUtf8 attrValue) of
                    Just (l, t) -> (l, t)

@@ -239,7 +239,7 @@ rgbFunctionToColor p1 = let
 -- to recognize the enum, but for consistency with other similar functions
 -- the function is still called "tokenS as".
 interpretTokensAsEnum :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsEnum vh@ValueHelper{ pt3 = (_, token@(CssTokIdent sym)) } =
+interpretTokensAsEnum vh@ValueHelper{ pt3 = (_, CssTokIdent sym) } =
   case L.lookup sym' (dict vh) of
     Just propValue -> (vh { pt3 = nextToken1 . fst . pt3 $ vh}, Just propValue)
     Nothing        -> (vh, Nothing)
@@ -264,8 +264,8 @@ interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, (CssTokHash _ str)) }  = case 
                                                                              Just c  -> (vh {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
                                                                              Nothing -> (vh, Nothing)
 interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, (CssTokFunc "rgb")) }  = case rgbFunctionToColor p1 of
-                                                                             ((p2, t2), Just c)  -> (vh {pt3 = (p2, t2)}, Just $ (fromJust . colorValueCtor3 $ vh) c)
-                                                                             ((p2, t2), Nothing) -> (vh, Nothing)
+                                                                             (pat', Just c) -> (vh {pt3 = pat'}, Just $ (fromJust . colorValueCtor3 $ vh) c)
+                                                                             (_, Nothing)   -> (vh, Nothing)
 interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, (CssTokIdent ident)) } = case colorsStringToColor ident of
                                                                              Just c  -> (vh {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
                                                                              Nothing -> (vh, Nothing)
@@ -410,7 +410,7 @@ lengthValueToDistance fval unitStr | unitStr == "px" = CssDistanceAbsPx fval
 -- "none" value. Original C++ code indicates that "none" was treated in
 -- special way.
 interpretTokensAsMultiEnum :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe [propValueT])
-interpretTokensAsMultiEnum vh@ValueHelper { pt3 = (parser, token@(CssTokIdent sym)) } =
+interpretTokensAsMultiEnum vh@ValueHelper { pt3 = (parser, token@(CssTokIdent _)) } =
   case matchSymbolTokensWithListRigid (parser, token) (dict vh) [] of
     ((_, _), [])    -> (vh, Nothing) -- None of input tokens were matched agains list of enums.
     ((p2, t2), val) -> (vh { pt3 = (p2, t2) }, Just val)
@@ -487,7 +487,7 @@ takeBgTokens (parser, token) = ((outParser, outToken), outTokens)
     -- 2. horiz/vert tokens are in proper order (horiz first, vert second),
     --    therefore we do recursive call to reorderTokens.
     reorderTokens [tok1]                       = reorderTokens [tok1, CssTokPerc $ CssNumI 50]
-    reorderTokens ts@[tok1, tok2]              = ts
+    reorderTokens ts@[_, _]                    = ts
     reorderTokens _                            = [] -- TODO: Perhas this is not needed and we should trust that caller will pass non-empty list?
 
 
@@ -502,9 +502,9 @@ takeBgTokens (parser, token) = ((outParser, outToken), outTokens)
                                 , ("top",    CssTokPerc $ CssNumI 0)
                                 , ("bottom", CssTokPerc $ CssNumI 100)
                                 , ("center", CssTokPerc $ CssNumI 50) ]
-    remapToken tok@(CssTokPerc cssNum)      = tok
-    remapToken tok@(CssTokDim cssNum ident) = tok
-    remapToken tok                          = tok -- TODO: This pattern is added to catch other token types, but is it really valid?
+    remapToken tok@(CssTokPerc _)    = tok
+    remapToken tok@(CssTokDim _ _)   = tok
+    remapToken tok                   = tok -- TODO: This pattern is added to catch other token types, but is it really valid?
 
 
 
@@ -525,12 +525,12 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
     doContinue ts t = L.length ts < 2 && tokValid t
 
-    tokValid (CssTokNone)             = True -- used to kick-start parsing of stream
-    tokValid (CssTokIdent ident)      = elem ident horizVals || elem ident vertVals || elem ident otherVals || ident == "center" -- TODO: or $ map (elem ident) [horizVals, vertVals, otherVals, ["center"]]
-    tokValid (CssTokNum cssNum)       = True
-    tokValid (CssTokDim cssNum ident) = True
-    tokValid (CssTokPerc cssNum)      = True
-    tokValid _                        = False
+    tokValid (CssTokNone)        = True -- used to kick-start parsing of stream
+    tokValid (CssTokIdent ident) = elem ident horizVals || elem ident vertVals || elem ident otherVals || ident == "center" -- TODO: or $ map (elem ident) [horizVals, vertVals, otherVals, ["center"]]
+    tokValid (CssTokNum _)       = True
+    tokValid (CssTokDim _ _)     = True
+    tokValid (CssTokPerc _)      = True
+    tokValid _                   = False
 
     horizVals = ["left", "right"]
     vertVals  = ["top", "bottom"]
@@ -541,8 +541,8 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
         cond1 = not (elem sym1 otherVals && elem sym2 otherVals) -- "initial" or "inherit" isn't used twice.
         cond2 = not (elem sym1 horizVals && elem sym2 horizVals) -- Both symbols aren't from the same list of horizontal tokens.
         cond3 = not (elem sym1 vertVals  && elem sym2 vertVals)  -- Both symbols aren't from the same list of vertical tokens.
-    tokensValid [tok1, tok2] = True
-    tokensValid [tok1]       = True -- Single-token list is valid: token's value will be used as X, and Y will be set to 50%.
+    tokensValid [_, _]       = True
+    tokensValid [_]          = True -- Single-token list is valid: token's value will be used as X, and Y will be set to 50%.
     tokensValid _            = False
 
 
@@ -571,7 +571,7 @@ parseUrl (p1, token)            = ((p1, token), Nothing)
 
 consumeFunctionBody p1 acc = case nextToken1 p1 of
                                (p2, t2@CssTokParenClose) -> (nextToken1 p2, L.reverse (t2:acc))
-                               (p2, t2@CssTokEnd)        -> (nextToken1 p2, L.reverse acc) -- TODO: this is a parse error, handle the error
+                               (p2, CssTokEnd)           -> (nextToken1 p2, L.reverse acc) -- TODO: this is a parse error, handle the error
                                (p2, t2)                  -> consumeFunctionBody p2 (t2:acc)
 
 
@@ -595,8 +595,8 @@ consumeFunctionBody p1 acc = case nextToken1 p1 of
 -- be strings with spaces, therefore the function consumes both CssTokIdent and
 -- CssTokStr tokens. TODO: test the code for list of symbols separated by
 -- space or comma.
-tokensAsValueStringList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), [T.Text])
-tokensAsValueStringList pat enums = (pat', L.reverse list)
+tokensAsValueStringList :: (CssParser, CssToken) -> ((CssParser, CssToken), [T.Text])
+tokensAsValueStringList pat = (pat', L.reverse list)
   where
     (pat', list) = asList pat []
 
@@ -607,7 +607,7 @@ tokensAsValueStringList pat enums = (pat', L.reverse list)
     asList (p, t@(CssTokSemicolon)) acc       = ((p, t), acc)
     asList (p, t@(CssTokBraceCurlyClose)) acc = ((p, t), acc)
     asList (p, t@(CssTokEnd)) acc             = ((p, t), acc)
-    asList (p, t) acc                         = (pat, []) -- TODO: this implmentation does not allow for final "!important" token.
+    asList (_, _) _                           = (pat, []) -- TODO: this implmentation does not allow for final "!important" token.
 
 
 
@@ -615,7 +615,7 @@ tokensAsValueStringList pat enums = (pat', L.reverse list)
 interpretTokensAsStringList :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsStringList vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, propValue)
   where
-    (pat', list) = tokensAsValueStringList pat []
+    (pat', list) = tokensAsValueStringList pat
     propValue = if L.null list
                 then Nothing
                 else Just $ (fromJust . stringListCtor $ vh) list
@@ -634,11 +634,11 @@ interpretTokensAsStringList vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, p
 -- be something expected after "auto". Should we reject such input string
 -- here, or in higher layer?
 interpretTokensAsAuto :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsAuto vh@ValueHelper { pt3 = (p, t@(CssTokIdent sym)) } | T.toLower sym == "auto" = (vh {pt3 = (nextToken1 p)}
-                                                                                                    , Just . (fromJust . distanceValueCtor $ vh) $ CssDistanceAuto
-                                                                                                    )
-                                                                        | otherwise               = (vh, Nothing)
-interpretTokensAsAuto vh                                                                          = (vh, Nothing)
+interpretTokensAsAuto vh@ValueHelper { pt3 = (p, CssTokIdent sym) } | T.toLower sym == "auto" = (vh {pt3 = (nextToken1 p)}
+                                                                                                , Just . (fromJust . distanceValueCtor $ vh) $ CssDistanceAuto
+                                                                                                )
+                                                                    | otherwise               = (vh, Nothing)
+interpretTokensAsAuto vh                                                                      = (vh, Nothing)
 
 
 

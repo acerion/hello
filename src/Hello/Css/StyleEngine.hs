@@ -658,8 +658,8 @@ getListStyleType declValue = fromEnum declValue
 
 
 
-getLineHeight CssValueLineHeightNormal                        fontAttrs display = createAutoDwLength
-getLineHeight (CssValueLineHeightDistance (CssNumericNone f)) fontAttrs display = createPercentageDwLength . realToFrac $ f
+getLineHeight CssValueLineHeightNormal                        _         _       = createAutoDwLength
+getLineHeight (CssValueLineHeightDistance (CssNumericNone f)) _         _       = createPercentageDwLength . realToFrac $ f
 getLineHeight (CssValueLineHeightDistance distance)           fontAttrs display =
   case styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display of
     Just len -> createAbsoluteDwLength . roundInt $ len
@@ -748,7 +748,7 @@ getWordSpacig :: CssValueWordSpacing -> FontAttrs -> Display -> Int
 getWordSpacig declValue fontAttrsArg display = clipSpacing (getSpacing declValue fontAttrsArg display)
   where
     getSpacing :: CssValueWordSpacing -> FontAttrs -> Display -> Int
-    getSpacing CssValueWordSpacingNormal              fontAttrs disp = 0
+    getSpacing CssValueWordSpacingNormal              _         _    = 0
     getSpacing (CssValueWordSpacingDistance distance) fontAttrs disp =
       case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 disp of
         Just val -> round val -- TODO: a type of Float -> Int function to be verified here

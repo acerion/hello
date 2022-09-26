@@ -354,7 +354,7 @@ visitedColorTestData =
 -- expectedIndex index of column in which 'expected' value for given distFun is
 -- cs test data
 distanceXTest :: (Int -> Int -> Int) -> Int -> [[Int]] -> String
-distanceXTest distFun _ []                 = ""
+distanceXTest _       _ []                 = ""
 distanceXTest distFun expectedIndex (c:cs) = if expected /= (distFun c1 c2)
                                              then c1Str
                                              else distanceXTest distFun expectedIndex cs

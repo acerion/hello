@@ -245,11 +245,11 @@ htmlEntityNumberToIsoCode parserArg textArg =
     numReader :: T.R.Reader Int -> EntityParser -> T.Text -> EntityParser
     numReader reader parser text =
       case reader text of
-        Right pair -> parser { entityIsoCode = Just (if code >= 145 && code <= 151 then replaceQuotes code else code),
-                               remainder = snd pair }
+        Right pair -> parser { entityIsoCode = Just (if code >= 145 && code <= 151 then replaceQuotes code else code)
+                             , remainder = snd pair }
           where code = fst pair
-        Left pair  -> parser { entityIsoCode = Nothing,
-                               remainder = text }
+        Left _     -> parser { entityIsoCode = Nothing
+                             , remainder = text }
 
 
 

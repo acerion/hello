@@ -255,7 +255,7 @@ runFunctions :: [MyParser p a] -> (p, [[a]]) -> (p, [[a]])
 runFunctions (f:fs) (pat, accumulators) = runFunctions fs (pat', acc')
   where (pat', acc') = case f pat of
                          (pat'', Just acc'') -> (pat'', accumulators ++ [acc''])
-                         (pat'', Nothing)    -> (pat,   accumulators)
+                         (_, Nothing)        -> (pat,   accumulators)
 runFunctions []     (pat, accumulators) = (pat, accumulators)
 
 

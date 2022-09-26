@@ -74,7 +74,7 @@ void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token
 
    if (token->c_type == CSS_TOKEN_TYPE_IDENT &&
        dStrAsciiCasecmp(token->c_value, "url") == 0)
-      urlStr = hll_declarationValueAsString(parser, token, 0, 0);
+      urlStr = hll_declarationValueAsString(parser, token, 0);
    else if (token->c_type == CSS_TOKEN_TYPE_STRING)
       urlStr = dStrdup (token->c_value);
 

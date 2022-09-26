@@ -1241,7 +1241,7 @@ cssValueFontDict = [ ("caption",          CssValueFontCaption)
 makeCssPropertyFont :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
 makeCssPropertyFont patArg = case runRecipe patArg of
                                (pat', Just acc) -> (pat', acc)
-                               (pat', Nothing)  -> (patArg, [])
+                               (_, Nothing)     -> (patArg, [])
   where
     -- This recipe is reflecting the grammar (?) from CSS2.2 spec.
     runRecipe pat = combinatorExactlyOne [ multiplierOnce (combinatorAllInOrder [ multiplierZeroOrOnce (combinatorOneOrMoreUnordered [fontStyle2, fontVariant2, fontWeight2])
@@ -1284,8 +1284,8 @@ lineHeight2 pat = shortcutWrapper makeCssPropertyHeight pat -- TODO: define corr
 
 fontEnum2 :: CssPropertyParser
 fontEnum2 pat = case parseEnum cssValueFontDict pat of
-                  (pat', Just value) -> (pat', Just []) -- TODO correctly handle enum values
-                  (_,    Nothing)    -> (pat, Nothing)
+                  (pat', Just _)  -> (pat', Just []) -- TODO correctly handle enum values
+                  (_,    Nothing) -> (pat, Nothing)
 
 
 
@@ -2456,7 +2456,7 @@ parseDeclarationMultiple patArg propCtors = L.foldl f (patArg, []) propCtors
 -- Parse 4, 3, 2 or 1 tokens, specifying values for top, right, bottom, left,
 -- or for t, r-l, b, or for t-b, r-l, or for all of them at once.
 parseDeclaration4321trbl :: (CssParser, CssToken) -> [b -> CssProperty] -> PropertyValueCtor b -> ((CssParser, CssToken), [CssProperty])
-parseDeclaration4321trbl pat (propCtorT:propCtorR:propCtorB:propCtorL:ctors) propValueCtor = (pat', ds)
+parseDeclaration4321trbl pat (propCtorT:propCtorR:propCtorB:propCtorL:_) propValueCtor = (pat', ds)
   where
     ds = case propertyValues of
            (top:right:bottom:left:[]) -> [ propCtorT top, propCtorR right, propCtorB bottom, propCtorL left ]

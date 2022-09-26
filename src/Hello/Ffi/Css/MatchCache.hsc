@@ -64,7 +64,7 @@ instance Storable FfiCssMatchCache where
     b <- #{peek c_css_match_cache_t, c_cache_items_size} ptr
     return (FfiCssMatchCache a b)
 
-  poke ptr (FfiCssMatchCache a b) = do
+  poke ptr (FfiCssMatchCache _a b) = do
     -- #{poke c_css_match_cache_t, c_cache_items}      ptr a
     #{poke c_css_match_cache_t, c_cache_items_size} ptr b
 

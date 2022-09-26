@@ -7,6 +7,7 @@ all: clean
 	ghc -j4 -g -O0 -o $(TEST_BIN) \
 		-Wname-shadowing \
 		-Wunused-imports \
+		-Wunused-matches \
 		-Wno-missing-signatures \
 		../*.hs \
 		../Css/*.hs \

@@ -65,7 +65,7 @@ import Hello.Ffi.Utils
 
 
 foreign export ccall "hll_nextToken" hll_nextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO CString
-foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> Int -> IO CString
+foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> IO CString
 foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 
@@ -109,7 +109,7 @@ instance Storable FfiCssParser where
     f <- #{peek c_css_parser_t, c_origin}          ptr
     return (FfiCssParser a b c d e f)
 
-  poke ptr (FfiCssParser argSpaceSeparated argBufOffset argInBlock argBuf argBuflen argOrigin) = do
+  poke ptr (FfiCssParser argSpaceSeparated argBufOffset argInBlock _argBuf _argBuflen argOrigin) = do
     #{poke c_css_parser_t, c_space_separated} ptr argSpaceSeparated
     #{poke c_css_parser_t, c_buf_offset}      ptr argBufOffset
     #{poke c_css_parser_t, c_in_block}        ptr argInBlock
@@ -260,8 +260,8 @@ cstr token = case token of
 
 
 
-hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> Int -> IO CString
-hll_declarationValueAsString ptrStructCssParser ptrStructCssToken valueType property = do
+hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> IO CString
+hll_declarationValueAsString ptrStructCssParser ptrStructCssToken valueType = do
   parser <- peekCssParser ptrStructCssParser
   token  <- peekCssToken ptrStructCssToken
 
@@ -909,7 +909,7 @@ peekCssValue ffiCssValue = do
 
 
 hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> CInt -> CInt -> IO ()
-hll_cssParseElementStyleAttribute ptrBaseUrl ptrStringCssStyleAttribute buflen cMainDeclSetRef cImportantDeclSetRef = do
+hll_cssParseElementStyleAttribute _ptrBaseUrl ptrStringCssStyleAttribute buflen cMainDeclSetRef cImportantDeclSetRef = do
 
   cssStyleAttribute <- BSU.unsafePackCStringLen (ptrStringCssStyleAttribute, fromIntegral buflen)
 

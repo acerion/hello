@@ -88,7 +88,7 @@ peekArrayOfPointers array nElems fun = if nullPtr == array
                                        else peekArrayOfPointers' array nElems fun []
   where
     peekArrayOfPointers' :: (Storable a) => Ptr (Ptr a) -> Int -> (Ptr a -> IO b) -> [b] -> IO [b]
-    peekArrayOfPointers' array' 0 f acc = return acc -- The function iterates array from end, so we don't have to reverse the list.
+    peekArrayOfPointers' _      0 _ acc = return acc -- The function iterates array from end, so we don't have to reverse the list.
     peekArrayOfPointers' array' n f acc = do
       ptr :: Ptr a <- peekElemOff array' (n - 1)
       x <- f ptr
@@ -113,7 +113,7 @@ pokeArrayOfPointersWithAlloc :: (Storable b) => [a] -> (a -> IO (Ptr b)) -> Ptr 
 pokeArrayOfPointersWithAlloc items constructor array = pokeArrayOfPointers' items constructor array 0
   where
     pokeArrayOfPointers' :: (Storable b) => [a] -> (a -> IO (Ptr b)) -> Ptr (Ptr b) -> Int -> IO ()
-    pokeArrayOfPointers' [] ctor array' _ = do
+    pokeArrayOfPointers' [] _ _ _ = do
       return ()
     pokeArrayOfPointers' (x:xs) ctor array' idx = do
       ptr :: Ptr b <- ctor x
@@ -133,7 +133,7 @@ pokeArrayOfPreallocedPointers :: (Storable b) => [a] -> (Ptr b -> a -> IO ()) ->
 pokeArrayOfPreallocedPointers items setter' array' = pokeArrayOfPointers' items setter' array' 0
   where
     pokeArrayOfPointers' :: (Storable b) => [a] -> (Ptr b -> a -> IO ()) -> Ptr (Ptr b) -> Int -> IO ()
-    pokeArrayOfPointers' [] setter array _ = do
+    pokeArrayOfPointers' [] _ _ _ = do
       return ()
     pokeArrayOfPointers' (x:xs) setter array idx = do
       ptr :: Ptr b <- peekElemOff array idx

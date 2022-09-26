@@ -76,7 +76,7 @@ complexSelectorMatches cachedComplexSelector doctree mDtn matchCache = (isMatch,
 
 complexSelectorMatches' :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
 complexSelectorMatches' _                                     Nothing    _       mc _           = (False, mc)
-complexSelectorMatches' (Last compound)                       (Just dtn) doctree mc cacheOffset = (compoundSelectorMatches compound dtn, mc)
+complexSelectorMatches' (Last compound)                       (Just dtn) _       mc _           = (compoundSelectorMatches compound dtn, mc)
 complexSelectorMatches' (Chain compound combinator remainder) (Just dtn) doctree mc cacheOffset =
   if compoundSelectorMatches compound dtn
   then matchCombinatorAndRemainder combinator remainder dtn doctree mc cacheOffset

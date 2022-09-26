@@ -248,7 +248,7 @@ colorsHexStringToColor :: T.Text -> Maybe Int
 colorsHexStringToColor text =
   case T.R.hexadecimal text of
     Right pair -> parseByHexFormat (fst pair) (snd pair) text
-    Left pair  -> Nothing
+    Left _     -> Nothing
   where
     -- TODO: what happens with 'remainder' text? Shouldn't we pass it as a token to next parser?
     parseByHexFormat parsed remainder txt =

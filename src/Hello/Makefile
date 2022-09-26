@@ -27,6 +27,7 @@ all:
 		-fwarn-incomplete-patterns \
 		-Wname-shadowing \
 		-Wunused-imports \
+		-Wunused-matches \
 		-Wno-missing-signatures \
 		./*.hs \
 		./Css/*.hs \

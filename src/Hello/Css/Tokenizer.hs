@@ -282,7 +282,7 @@ isValidStartOfIdentifier buffer | null points             = False
                                 | c1 == '\\'              = length points >= 2 && isValidEscape c1 c2
                                 | otherwise               = False
   where
-    points = peekUpToNCodePoints buffer 3 (\c -> True)
+    points = peekUpToNCodePoints buffer 3 (\_ -> True)
 
     tryStartingWithHyphen pts | length pts >= 2 && (isNameStartCodePoint c2 || c2 == '-') = True
                               | length pts >= 3 && isValidEscape c2 c3                    = True
@@ -299,7 +299,7 @@ peekUpToNCodePoints :: T.Text -> Int -> (Char -> Bool) -> [Char]
 peekUpToNCodePoints buffer nPoints p = peekUpToNCodePoints' buffer [] nPoints
   where
     peekUpToNCodePoints' :: T.Text -> [Char] -> Int -> [Char]
-    peekUpToNCodePoints' buf acc 0 = acc
+    peekUpToNCodePoints' _   acc 0 = acc
     peekUpToNCodePoints' buf acc n = case T.uncons buf of
                                        Just (c, remd) -> if p c
                                                          then peekUpToNCodePoints' remd (acc ++ [c]) (n - 1)
@@ -370,7 +370,7 @@ tryConsumingUrlToken p1 name | length points >= 1 && (c0 == '\'' || c0 == '\"') 
                              | otherwise = consumeUrlToken p2
   where
     p2 = removeDoubleWhitespaces p1
-    points = peekUpToNCodePoints (remainder p2) 2 (\c -> True)
+    points = peekUpToNCodePoints (remainder p2) 2 (\_ -> True)
     c0 = points !! 0
     c1 = points !! 1
 
@@ -418,7 +418,7 @@ takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
     parseString :: CssParser -> T.Text -> T.Text -> (CssParser, Maybe CssToken)
     parseString par string remd = (par{ remainder = remd }, Just $ CssTokStr (escapedString string))
     escapedString str = case T.findIndex (== '\\') str of
-                          Just i -> ""
+                          Just _  -> ""
                           Nothing -> str
 
 
@@ -432,7 +432,7 @@ takeHashToken p1 =
                      | length points >= 2 && isValidEscape c0 c1 -> createHashToken p1{ remainder = remd }
                      | otherwise                                 -> (p1{ remainder = remd }, Just $ CssTokDelim '#')
       where
-        points = peekUpToNCodePoints remd 2 (\c -> True)
+        points = peekUpToNCodePoints remd 2 (\_ -> True)
         c0 = points !! 0
         c1 = points !! 1
 
@@ -451,7 +451,7 @@ takeAtToken p1 =
     Just ('@', remd) | length points == 3 && isValidStartOfIdentifier (T.pack points) -> createAtToken p1{remainder = remd }
                      | otherwise                                                      -> (p1{ remainder = remd }, Just $ CssTokDelim '@')
       where
-        points           = peekUpToNCodePoints remd 3 (\c -> True)
+        points           = peekUpToNCodePoints remd 3 (\_ -> True)
         createAtToken p2 = (parserMoveByLen p2 len, Just $ CssTokAt name)
           where
             (name, len) = consumeName (remainder p2) "" 0
@@ -595,9 +595,9 @@ takeNumericToken parser = case takeNumber parser of
     -- parser allows it) to create <percentage-token> or <dimension-token>.
     numTokenOrMore :: CssParser -> CssNum -> (CssParser, Maybe CssToken)
     numTokenOrMore numParser cssNum = case tryTakingPercOrDim numParser cssNum of
-                                        pair@(_, Just token) -> pair
+                                        pair@(_, Just _) -> pair
                                         -- Data in parser didn't allow creating other token, so just return <number-token>.
-                                        (_, Nothing)         -> (numParser, Just $ CssTokNum cssNum)
+                                        (_, Nothing)     -> (numParser, Just $ CssTokNum cssNum)
 
 
 
@@ -640,7 +640,12 @@ expectSign :: (T.Text, T.Text) -> Maybe (T.Text, T.Text)
 expectSign (buf, acc) = case T.uncons buf of
                           Just ('+', remd) -> Just (remd, T.concat [acc, "+"])
                           Just ('-', remd) -> Just (remd, T.concat [acc, "-"])
-                          Just (_,   remd) -> Just (buf, T.concat [acc, "+"])
+
+                          -- Assume positive on other chars. TODO: we expect
+                          -- sign here, but we are ok with non-sign, is this
+                          -- ok. Also do we need to append the explicit '+'
+                          -- in this case?
+                          Just (_,   _)    -> Just (buf, T.concat [acc, "+"])
                           _                -> Nothing
 
 
@@ -730,7 +735,7 @@ interpretFloatString buf = case T.R.signed T.R.rational buf of
                              -- recognize a string that represents a float in
                              -- exponential notation.
                              Right (f, remd) -> case T.find (\c -> elem c ['.', 'e']) valString of
-                                                  Just c  -> Just $ CssNumF f
+                                                  Just _  -> Just $ CssNumF f
                                                   Nothing -> Nothing
                                where
                                  valString = T.take valLen buf

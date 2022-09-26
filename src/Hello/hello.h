@@ -400,7 +400,7 @@ char * hll_nextToken(c_css_parser_t * hll_parser, c_css_token_t * token);
 /* Function returns color through return statement. */
 //int hll_parseRgbFunction(c_css_parser_t * hll_parser, const char * remainder);
 
-char * hll_declarationValueAsString(c_css_parser_t * hll_parser, c_css_token_t * token, int valueType, int property);
+char * hll_declarationValueAsString(c_css_parser_t * hll_parser, c_css_token_t * token, int valueType);
 int hll_ignoreBlock(c_css_parser_t * hll_parser, c_css_token_t * token);
 int hll_ignoreStatement(c_css_parser_t * hll_parser, c_css_token_t * token);
 

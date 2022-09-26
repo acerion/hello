@@ -277,7 +277,7 @@ declValueAsString propId (parser, token) = case ((retParser, retToken), value) o
                                              ((p, t), Nothing)                     -> ((p, t), Nothing)
   where
     ((retParser, retToken), value) | propId == 10  = tokensAsValueString (parser, token) [] -- TODO: magic value
-                                   | propId == 12  = declValueAsURI (parser, token) []      -- TODO: magic value
+                                   | propId == 12  = declValueAsURI (parser, token)      -- TODO: magic value
                                    | otherwise     = ((parser, token), Nothing)
 
 
@@ -295,10 +295,10 @@ tokensAsValueString (p, t) _             = ((p, t), Nothing)
 
 
 
-declValueAsURI :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-declValueAsURI (parser, token) enums = case parseUrl (parser, token) of
-                                         ((newParser, newToken), Just url) -> ((newParser, newToken), Just (CssValueTypeURI url))
-                                         ((newParser, newToken), Nothing)  -> ((newParser, newToken), Nothing)
+declValueAsURI :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValue)
+declValueAsURI (parser, token) = case parseUrl (parser, token) of
+                                   ((newParser, newToken), Just url) -> ((newParser, newToken), Just (CssValueTypeURI url))
+                                   ((newParser, newToken), Nothing)  -> ((newParser, newToken), Nothing)
 
 
 
@@ -358,12 +358,12 @@ tokenMatchesProperty token propInfo = tokenMatchesProperty' token acceptedValueT
 ignoreBlock :: CssParser -> (CssParser, CssToken)
 ignoreBlock parser = ignoreBlock' (parser, CssTokNone) 0
   where
-    ignoreBlock' (par, tok@CssTokEnd) depth         = (par, tok)
+    ignoreBlock' (par, tok@CssTokEnd) _             = (par, tok)
     ignoreBlock' (par, CssTokBraceCurlyOpen) depth  = ignoreBlock' (nextToken1 par) (depth + 1)
     ignoreBlock' (par, CssTokBraceCurlyClose) depth = if depth == 1
                                                       then nextToken1 par
                                                       else ignoreBlock' (nextToken1 par) (depth - 1)
-    ignoreBlock' (par, tok) depth                   = ignoreBlock' (nextToken1 parser) depth
+    ignoreBlock' (_par, _tok) depth                 = ignoreBlock' (nextToken1 parser) depth
 {-
    while (tokenizer->type != CSS_TOKEN_TYPE_END) {
       if (tokenizer->type == CSS_TOKEN_TYPE_CHAR) {
@@ -391,7 +391,7 @@ consumeBlock pat = consumeBlock' pat [] []
   where
     -- Last argument (braces) is used to keep track of opened/closed braces
     -- to know what is the current nesting level of blocks.
-    consumeBlock' (parser, tok@CssTokEnd) tokens braces                              = ((parser, tok), reverse tokens)
+    consumeBlock' (parser, tok@CssTokEnd) tokens _                                   = ((parser, tok), reverse tokens)
     consumeBlock' (parser, CssTokBraceCurlyOpen) tokens braces                       = consumeBlock' (nextToken1 parser) (CssTokBraceCurlyOpen : tokens) (CssTokBraceCurlyOpen : braces)
     consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : []) = ((nextToken1 parser), reverse tokens)
     consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : xs) = consumeBlock' (nextToken1 parser) (CssTokBraceCurlyClose : tokens) xs
@@ -406,7 +406,7 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
     ignoreStatement' (par, tok@CssTokEnd)        = (par, tok)
     ignoreStatement' (par, CssTokSemicolon)      = nextToken1 par
     ignoreStatement' (par, CssTokBraceCurlyOpen) = ignoreBlock par
-    ignoreStatement' (par, tok)                  = ignoreStatement' (nextToken1 par)
+    ignoreStatement' (par, _)                    = ignoreStatement' (nextToken1 par)
 {-
    while (tokenizer->type != CSS_TOKEN_TYPE_END) {
       if (tokenizer->type == CSS_TOKEN_TYPE_CHAR) {
@@ -553,12 +553,11 @@ parseCompoundSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) compound = 
                                                                                 tokens (appendSubclassSelector compound (CssClassSelector sym))
 parseCompoundSelectorTokens (CssTokColon:CssTokIdent sym:tokens) compound     = parseCompoundSelectorTokens
                                                                                 tokens (appendSubclassSelector compound (CssPseudoClassSelector sym))
-parseCompoundSelectorTokens t@(CssTokDelim '>':tokens) compound = Just (t, compound)
-parseCompoundSelectorTokens t@(CssTokDelim '+':tokens) compound = Just (t, compound)
-parseCompoundSelectorTokens t@(CssTokWS:tokens)        compound = Just (t, compound)
-
+parseCompoundSelectorTokens t@(CssTokDelim '>':_ts) compound = Just (t, compound)
+parseCompoundSelectorTokens t@(CssTokDelim '+':_ts) compound = Just (t, compound)
+parseCompoundSelectorTokens t@(CssTokWS:_ts)        compound = Just (t, compound)
 parseCompoundSelectorTokens [] compound = Just ([], compound)
-parseCompoundSelectorTokens _  compound = Nothing
+parseCompoundSelectorTokens _  _        = Nothing
 
 
 
@@ -594,10 +593,10 @@ readSelectorList pat = parseSelectorWrapper pat []
 
 -- Find end of current selector (probably needed only if something goes wrong
 -- during parsign of current selector).
-consumeRestOfSelector pair@(parser, CssTokEnd)            = pair
-consumeRestOfSelector pair@(parser, CssTokBraceCurlyOpen) = pair
-consumeRestOfSelector pair@(parser, CssTokComma)          = pair
-consumeRestOfSelector (parser, _)                         = consumeRestOfSelector . nextToken1 $ parser
+consumeRestOfSelector pair@(_, CssTokEnd)            = pair
+consumeRestOfSelector pair@(_, CssTokBraceCurlyOpen) = pair
+consumeRestOfSelector pair@(_, CssTokComma)          = pair
+consumeRestOfSelector (parser, _)                    = consumeRestOfSelector . nextToken1 $ parser
 
 
 
@@ -741,10 +740,10 @@ parseDeclarationWrapper pat (inSet, inSetImp) = (pat', (outSet, outSetImp))
 
 -- Find end of current declaration (probably needed only if something goes
 -- wrong during parsign of current declaration).
-consumeRestOfDeclaration pair@(parser, CssTokEnd)             = pair
-consumeRestOfDeclaration pair@(parser, CssTokBraceCurlyClose) = pair -- '}' is not a part of declaration, so don't go past it. Return '}' as current token.
-consumeRestOfDeclaration (parser, CssTokSemicolon)            = nextToken1 parser
-consumeRestOfDeclaration (parser, _)                          = consumeRestOfDeclaration . nextToken1 $ parser
+consumeRestOfDeclaration pair@(_, CssTokEnd)             = pair
+consumeRestOfDeclaration pair@(_, CssTokBraceCurlyClose) = pair -- '}' is not a part of declaration, so don't go past it. Return '}' as current token.
+consumeRestOfDeclaration (parser, CssTokSemicolon)       = nextToken1 parser
+consumeRestOfDeclaration (parser, _)                     = consumeRestOfDeclaration . nextToken1 $ parser
 
 
 
@@ -812,7 +811,7 @@ let cssStyleAttribute = "color: red !important; font-weight: bold"
 parseElementStyleAttribute "" cssStyleAttribute (declSet, declSetImp)
 -}
 parseElementStyleAttribute :: T.Text -> T.Text -> (CssDeclarationSet, CssDeclarationSet) -> (CssDeclarationSet, CssDeclarationSet)
-parseElementStyleAttribute baseUrl cssStyleAttribute (declSet, declSetImp) = (outDeclSet, outDeclSetImp)
+parseElementStyleAttribute _baseUrl cssStyleAttribute (declSet, declSetImp) = (outDeclSet, outDeclSetImp)
   where
     ((p2, t2), (outDeclSet, outDeclSetImp)) = parseAllDeclarations ((p1, t1), (declSet, declSetImp))
     (p1, t1) = nextToken1 parser -- Kick-off the parsing
