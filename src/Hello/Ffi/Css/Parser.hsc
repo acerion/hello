@@ -128,11 +128,13 @@ peekCssParser ptrStructCssParser = do
   let offset        = fromIntegral . bufOffsetC $ ffiParser
   let bufWithOffset = plusPtr buf offset
   remd <- ptrCCharToText bufWithOffset
+  let inBlockInt :: Int = fromIntegral . inBlockC $ ffiParser
+  let spaceSeparatedInt :: Int = fromIntegral . spaceSeparatedC $ ffiParser
 
   let parser = defaultParser{ remainder      = remd
-                            , inBlock        = (fromIntegral . inBlockC $ ffiParser) /= 0
+                            , inBlock        = inBlockInt /= 0
                             , bufOffset      = offset
-                            , spaceSeparated = (fromIntegral . spaceSeparatedC $ ffiParser) /= 0
+                            , spaceSeparated = spaceSeparatedInt /= 0
                             , cssOrigin      = getCssOrigin . fromIntegral . cCssOrigin $ ffiParser
                             }
   return parser

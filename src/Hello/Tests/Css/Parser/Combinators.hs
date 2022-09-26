@@ -63,12 +63,6 @@ takeChar char text = case T.uncons text of
 takeA = takeChar 'a'
 takeB = takeChar 'b'
 takeC = takeChar 'c'
-takeD = takeChar 'd'
-takeE = takeChar 'e'
-takeF = takeChar 'f'
-takeG = takeChar 'g'
-takeH = takeChar 'h'
-takeI = takeChar 'i'
 
 
 

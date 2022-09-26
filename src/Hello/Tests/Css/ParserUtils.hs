@@ -7,6 +7,7 @@ may be different than a license for whole "Hello" package.
 
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 
 

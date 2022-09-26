@@ -143,7 +143,7 @@ hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cLengthValu
 
   let lengthValue = cLengthValue
   let lengthType  = fromIntegral cLengthType
-  let propertyArg = fromIntegral cProperty
+  let propertyArg :: Int = fromIntegral cProperty
   let distance    = cssLengthToDistance lengthValue lengthType
 
   let decl | propertyArg ==  7 = CssPropertyBorderBottomWidth $ CssValueBorderWidthDistance distance
@@ -242,7 +242,7 @@ hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
 hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
-  let propertyArg = fromIntegral cProperty
+  let propertyArg :: Int = fromIntegral cProperty
   let enumVal   = fromIntegral cEnumVal
   let decl | propertyArg ==  6 = CssPropertyBorderBottomStyle $ getBorderStyle enumVal
            | propertyArg == 10 = CssPropertyBorderLeftStyle   $ getBorderStyle enumVal
@@ -269,7 +269,7 @@ hll_styleEngineSetNonCssHintOfNodeColor cNonCssDeclSetRef cProperty cColor  = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
-  let propertyArg = fromIntegral cProperty
+  let propertyArg :: Int = fromIntegral cProperty
   let color    = fromIntegral cColor
   let decl | propertyArg ==  1 = CssPropertyBackgroundColor $ CssValueBackgroundColorColor color
            | propertyArg == 23 = CssPropertyColor $ CssValueColor color
@@ -290,7 +290,7 @@ hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cStringVal 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
   textVal     <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
-  let propertyArg = fromIntegral cProperty
+  let propertyArg :: Int = fromIntegral cProperty
 
   let decl | propertyArg == 32 = CssPropertyFontFamily $ CssValueFontFamilyList [textVal]
            | otherwise         = trace ("[EE] Unhandled string propertyArg " ++ (show propertyArg)) (undefined)

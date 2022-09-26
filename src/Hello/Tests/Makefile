@@ -5,9 +5,7 @@ TEST_BIN=tests
 
 all: clean
 	ghc -j4 -g -O0 -o $(TEST_BIN) \
-		-Wname-shadowing \
-		-Wunused-imports \
-		-Wunused-matches \
+		-Wall \
 		-Wno-missing-signatures \
 		../*.hs \
 		../Css/*.hs \

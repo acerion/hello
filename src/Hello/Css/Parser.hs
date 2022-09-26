@@ -358,6 +358,7 @@ tokenMatchesProperty token propInfo = tokenMatchesProperty' token acceptedValueT
 ignoreBlock :: CssParser -> (CssParser, CssToken)
 ignoreBlock parser = ignoreBlock' (parser, CssTokNone) 0
   where
+    ignoreBlock' :: (CssParser, CssToken) -> Int -> (CssParser, CssToken)
     ignoreBlock' (par, tok@CssTokEnd) _             = (par, tok)
     ignoreBlock' (par, CssTokBraceCurlyOpen) depth  = ignoreBlock' (nextToken1 par) (depth + 1)
     ignoreBlock' (par, CssTokBraceCurlyClose) depth = if depth == 1

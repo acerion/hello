@@ -109,12 +109,12 @@ parse4321trblMarginSuccess :: ValuesAndUnitsNN -> Bool
 parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected == outDeclarations
 --parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = trace (traceData) (expected == outDeclarations)
   where
-    (pat', outDeclarations) = parseSingleDeclaration pat
+    (_pat', outDeclarations) = parseSingleDeclaration pat
     pat                     = nextToken2 defaultParser { remainder = input }
     (input, expected)       = buildSuccessRow "margin" [CssPropertyMarginTop, CssPropertyMarginRight, CssPropertyMarginBottom, CssPropertyMarginLeft] CssValueMarginDistance units values
 
     -- For debugging only
-    traceData       = show valuesWithUnits ++ "  " ++ show outDeclarations
+    _traceData       = show valuesWithUnits ++ "  " ++ show outDeclarations
     valuesWithUnits = zipWith (\value unit -> (show value) ++ unit) values units
 
 
@@ -135,7 +135,7 @@ testsCssParserQuickCheck = do
   result <- QC.quickCheckWithResult testArgs parse4321trblMarginSuccess
   --result <- QC.verboseCheckWithResult testArgs parse4321trblMarginSuccess
   let failures1 = if qcResultIsSuccess result
-                  then ""
+                  then ("" :: String)
                   else "[EE] Hello.Css.Parser.QuickCheck for 'margin' has failed "
 
   return failures1

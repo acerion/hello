@@ -81,6 +81,6 @@ main = do
   if length failures > 0
     then
     do
-      sequence $ map putStrLn failures
+      _ <- sequence $ map putStrLn failures
       exitFailure
     else exitSuccess
