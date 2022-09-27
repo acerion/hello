@@ -46,7 +46,7 @@ where
 
 
 import Prelude
-import Foreign
+import Data.Bits
 import qualified Data.Text as T
 import qualified Data.Text.Read as T.R
 import qualified Data.Vector as V

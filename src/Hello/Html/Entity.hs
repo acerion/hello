@@ -25,7 +25,9 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
+
+
+
 
 module Hello.Html.Entity
   (
@@ -39,13 +41,9 @@ where
 
 
 import Prelude
-import Foreign.C.String
-import Foreign
 import Data.Char
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T.E
 import qualified Data.Text.Read as T.R
-import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Map as M
 
 
@@ -138,40 +136,6 @@ gEntities = M.fromList [
   ("weierp",  0o20430),   ("xi",       0o1676),    ("yacute",  0o375),     ("yen",     0o245),
   ("yuml",    0o377),     ("zeta",     0o1666),    ("zwj",     0o20015),   ("zwnj",    0o20014)
   ]
-
-
-
-
-foreign export ccall "hll_htmlEntityToIsoCode" hll_htmlEntityToIsoCode :: CString -> Int -> IO Int64
-
-
-
-
--- Caller has a big buffer with remainder of html document (which can be
--- huge), and also has a length of sub-area/prefix in this big buffer (the
--- sub-area is at the beginning of the buffer), from which a html entity
--- should be parsed.
---
--- Pass the pointer to the big buffer, and a size of this prefix to this
--- function.
---
--- This function encodes iso code value, length of entity and (in future)
--- error code in one single returned integer. In original code the length and
--- error code were returned by function arugments (pointers). I don't want to
--- put too much work in doing this in similar way in FFI code, because sooner
--- or later the FFI code will be removed (replaced with "pure" Haskell code).
-hll_htmlEntityToIsoCode :: CString -> Int -> IO Int64
-hll_htmlEntityToIsoCode cBuf len = do
-  buf <- if len > 0
-         then BSU.unsafePackCStringLen (cBuf, len)
-         else BSU.unsafePackCString cBuf
-  case htmlEntityToIsoCode . T.E.decodeUtf8 $ buf of
-    Just parser ->
-      case entityIsoCode parser of
-        Just code -> return (fromIntegral ((consumed `shiftL` 32) .|. code))
-          where consumed = (T.length . T.E.decodeUtf8 $ buf) - T.length (remainder parser)
-        Nothing -> return (-1)
-    Nothing     -> return (-1)
 
 
 

@@ -26,7 +26,7 @@ Technical reference documents:
 
 
 
-import Foreign (Word8)
+import Data.Word (Word8)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString as BS

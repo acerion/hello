@@ -20,8 +20,9 @@ This file is derived from dillo-3.0.5/src/cookies.c
 -}
 
 
+
+
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
 
 
 
@@ -30,6 +31,8 @@ module Hello.Cookies
   (
     lookupActionForDomain
   , lookupActionTop
+  , CookiesConfig (..)
+  , getCookiesConfig
 
     --these are for tests.
   , CookieRule (..)
@@ -44,7 +47,6 @@ where
 
 
 import Prelude
-import Foreign.C.String
 import System.Directory
 import System.IO
 import Control.Monad -- when
@@ -68,24 +70,6 @@ TODO: Ensure that case of action strings and domains is handled properly,
 i.e. that toLower is called at proper places.
 -}
 
-
-
-
-foreign export ccall "hll_lookupActionForDomain" hll_lookupActionForDomain :: CString -> IO Int
-
-
-hll_lookupActionForDomain :: CString -> IO Int
-hll_lookupActionForDomain dom = do
-  domainString <- T.pack <$> peekCString dom
-  cookiesConfig <- getCookiesConfig
-  -- putStr ("hello: cookies: " ++ (show cookiesConfig) ++ "\n") -- For debug only.
-  let actionForDomain = lookupActionForDomain domainString (rules cookiesConfig) (defaultAction cookiesConfig)
-  T.IO.putStr (T.concat ["hello: cookies: ", domainString, " = ", T.pack (show actionForDomain), "\n"])
-  case actionForDomain of
-    -- Convert to values of CookieAction enum in C file.
-    CookieActionAccept        -> return 0
-    CookieActionAcceptSession -> return 1
-    CookieActionDeny          -> return 2
 
 
 

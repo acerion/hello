@@ -48,11 +48,12 @@ where
 
 
 import Prelude
-import Foreign
+import Data.Bits
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 import qualified Data.Text.Encoding.Error as T.E.E
 import qualified Data.ByteString as BS
+import Data.Word
 
 
 

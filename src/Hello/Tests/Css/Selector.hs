@@ -30,7 +30,7 @@ import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Css.Selector
 import Hello.Utils
-import Hello.Ffi.Css.SelectorLink -- CssComplexSelectorLink
+import Hello.Ffi.Css.SelectorLink -- CssComplexSelectorLink; TODO: the FFI code should not be imported in tests, at least not in this test.
 
 
 
