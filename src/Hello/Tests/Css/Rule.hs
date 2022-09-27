@@ -28,7 +28,7 @@ import Test.HUnit
 import Hello.Css.Tokenizer
 import Hello.Css.Parser
 import Hello.Css.Selector
-import HtmlTag
+import Hello.Html.Tag
 
 
 

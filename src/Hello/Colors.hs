@@ -29,15 +29,18 @@ Copyright (C) 2000-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 
 
-module Colors( colorsStringToColor
-             , colorsStringToColorWithDefault
-             , colorsHexStringToColor
+module Hello.Colors
+  (
+    colorsStringToColor
+  , colorsStringToColorWithDefault
+  , colorsHexStringToColor
 
-               -- Only for tests
-             , colorsVisitedColor
-             , colorsDistance2
-             , colorsDistance3
-             ) where
+    -- Only for tests
+  , colorsVisitedColor
+  , colorsDistance2
+  , colorsDistance3
+  )
+where
 
 
 

@@ -23,7 +23,7 @@ where
 import Test.HUnit
 import qualified Data.Text as T
 
-import HtmlTag
+import Hello.Html.Tag
 
 
 
@@ -162,5 +162,5 @@ testsHtmlTag = do
   testCounts <- runTestTT (TestList (testCases))
   if (errors testCounts + failures testCounts == 0)
     then return ""
-    else return "[EE] testsHtmlTag failed"
+    else return "[EE] Tests.Html.Tag failed"
 

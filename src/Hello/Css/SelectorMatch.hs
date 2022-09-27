@@ -48,7 +48,7 @@ module Hello.Css.SelectorMatch
   , compoundSelectorMatches'
   , CssCompoundSelectorMatch (..)
   )
-  where
+where
 
 
 

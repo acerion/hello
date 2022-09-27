@@ -31,12 +31,21 @@ References:
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Gif( parseExtension
-          , gifDefault
-          , gifForward
-          , Gif (..)
-          , extensionTypeGraphicControl
-          ) where
+
+
+
+module Hello.Gif
+  (
+    parseExtension
+  , gifDefault
+  , gifForward
+  , Gif (..)
+  , extensionTypeGraphicControl
+  )
+where
+
+
+
 
 import Prelude
 import Foreign

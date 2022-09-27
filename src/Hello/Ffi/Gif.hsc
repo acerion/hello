@@ -32,9 +32,17 @@ References:
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module Hello.Ffi.Gif( hll_parseExtension
-                    )
-  where
+
+
+
+module Hello.Ffi.Gif
+  (
+    hll_parseExtension
+  )
+where
+
+
+
 
 import Prelude
 import Foreign.C.String
@@ -42,7 +50,7 @@ import Foreign
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
 import Control.Monad -- when
-import Gif
+import Hello.Gif
 
 
 

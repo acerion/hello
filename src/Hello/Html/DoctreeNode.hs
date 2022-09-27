@@ -34,7 +34,7 @@ module Hello.Html.DoctreeNode
     DoctreeNode (..)
   , defaultDoctreeNode
   )
-  where
+where
 
 
 

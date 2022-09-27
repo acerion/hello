@@ -28,7 +28,7 @@ import qualified Data.Text as T
 import qualified Data.ByteString as BS
 import Data.String (fromString)
 
-import Gif
+import Hello.Gif
 import Hello.Tests.Utils.Gifted
 import Hello.Tests.Utils.QuickCheck
 

@@ -29,7 +29,10 @@ Copyright (C) 2000-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 
 
-module ColorsFFI where
+module Hello.Ffi.Colors
+  (
+  )
+where
 
 
 
@@ -38,7 +41,7 @@ import Prelude
 import Foreign.C.String
 import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString.Unsafe as BSU
-import Colors
+import Hello.Colors
 
 
 

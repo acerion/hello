@@ -25,10 +25,13 @@ Copyright (C) 2001-2009 Jorge Arellano Cid <jcid@dillo.org>
 
 
 -- Exporting function names for tests in ghci.
-module Hello.Url (hostIsIP
-                 , hostIsIPv4
-                 , hostIsIPv6
-                 ) where
+module Hello.Url
+  (
+    hostIsIP
+  , hostIsIPv4
+  , hostIsIPv6
+  )
+where
 
 
 

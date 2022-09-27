@@ -37,7 +37,7 @@ module Hello.Dw.DwLength
   , createAbsoluteDwLength
   , createAutoDwLength
   )
-  where
+where
 
 
 

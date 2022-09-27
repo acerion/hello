@@ -72,8 +72,7 @@ import Data.Map as M
 import Data.Maybe
 import Data.Text as T
 
-import Colors
-
+import Hello.Colors
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
 

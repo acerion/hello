@@ -23,8 +23,7 @@ where
 import Test.HUnit
 import qualified Data.Text as T
 
-import HtmlEntity
-
+import Hello.Html.Entity
 import Hello.Utils
 
 
@@ -167,5 +166,5 @@ testsHtmlEntity = do
   testCounts <- runTestTT (TestList (testCases))
   if (errors testCounts + failures testCounts == 0)
     then return ""
-    else return "[EE] testsHtmlEntity failed"
+    else return "[EE] Tests.Html.Entity failed"
 

@@ -23,7 +23,7 @@ where
 import Test.HUnit
 import Numeric (showHex)
 
-import Colors
+import Hello.Colors
 
 
 

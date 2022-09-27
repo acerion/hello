@@ -26,10 +26,14 @@ Misc Unicode stuff.
 
 
 
-module Hello.Unicode( replacementCharacter
-                    , maximumAllowedCodePoint
-                    , isSurrogate
-                    ) where
+
+module Hello.Unicode
+  (
+    replacementCharacter
+  , maximumAllowedCodePoint
+  , isSurrogate
+  )
+where
 
 
 

@@ -27,11 +27,13 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module HtmlEntity(
+module Hello.Html.Entity
+  (
   -- Only for tests
     htmlEntityToIsoCode
   , EntityParser (..)
-  ) where
+  )
+where
 
 
 

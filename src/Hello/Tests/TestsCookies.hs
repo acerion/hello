@@ -22,7 +22,7 @@ where
 
 import Test.HUnit
 
-import Cookies
+import Hello.Cookies as Cookies
 
 
 
@@ -143,4 +143,4 @@ testsCookies = do
   testCounts <- runTestTT (TestList (lineToRuleCases ++ sortRulesCases ++ matchDomainCases))
   if (errors testCounts + failures testCounts == 0)
     then return ""
-    else return "[EE] testsCookies failed"
+    else return "[EE] Tests.Cookies failed"

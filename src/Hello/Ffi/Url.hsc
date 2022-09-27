@@ -20,7 +20,10 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
-module Hello.Ffi.Url() where
+module Hello.Ffi.Url
+  (
+  )
+where
 
 
 

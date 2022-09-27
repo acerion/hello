@@ -39,7 +39,7 @@ module Hello.Dw.Style
   , StyleMargin (..)
   , StylePadding (..)
   )
-  where
+where
 
 
 

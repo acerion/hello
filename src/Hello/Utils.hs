@@ -25,7 +25,8 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
-module Hello.Utils (
+module Hello.Utils
+  (
     tripletFst
   , tripletSnd
   , tripletThrd
@@ -43,7 +44,8 @@ module Hello.Utils (
 
   , (>>?)
   , (>>!)
-  ) where
+  )
+where
 
 
 

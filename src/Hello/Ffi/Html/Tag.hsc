@@ -45,7 +45,8 @@ import Foreign.C
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString.Unsafe as BSU
-import HtmlTag
+
+import Hello.Html.Tag
 
 
 

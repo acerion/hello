@@ -51,37 +51,39 @@ TODO: think about performance of using isPrefixOf to get just one character.
 
 
 
-module Hello.Css.Tokenizer( CssParser (..)
-                          , defaultParser
-                          , nextToken1
-                          , nextToken2
-                          , takeIdentToken
+module Hello.Css.Tokenizer
+  (
+    CssParser (..)
+  , defaultParser
+  , nextToken1
+  , nextToken2
+  , takeIdentToken
 
-                          , CssToken (..)
-                          , CssHashType (..)
+  , CssToken (..)
+  , CssHashType (..)
 
-                          , CssNum (..)
-                          , cssNumToFloat
+  , CssNum (..)
+  , cssNumToFloat
 
-                          , CssOrigin (..)
+  , CssOrigin (..)
 
-                          , takeFloatString
-                          , expectSign
-                          , expectLeadingDigits
-                          , expectDot
-                          , expectFollowingDigits
-                          , expectExponent
-                          , peekUpToNCodePoints
-                          , isValidStartOfIdentifier
-                          , consumeEscapedCodePoint
-                          , consumeEscapedCodePointString
-                          , consumeName
-                          , removeDoubleWhitespaces
-                          , isWhitespace
+  , takeFloatString
+  , expectSign
+  , expectLeadingDigits
+  , expectDot
+  , expectFollowingDigits
+  , expectExponent
+  , peekUpToNCodePoints
+  , isValidStartOfIdentifier
+  , consumeEscapedCodePoint
+  , consumeEscapedCodePointString
+  , consumeName
+  , removeDoubleWhitespaces
+  , isWhitespace
 
-                          , splitAtCommaToken
-                          )
-  where
+  , splitAtCommaToken
+  )
+where
 
 
 

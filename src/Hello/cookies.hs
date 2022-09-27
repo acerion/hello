@@ -23,16 +23,25 @@ This file is derived from dillo-3.0.5/src/cookies.c
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module Cookies(lookupActionForDomain
-              , lookupActionTop
 
-              --these are for tests.
-              , CookieRule (..)
-              , CookieAction (..)
-              , lineToRule
-              , sortRules
-              , domainMatchesRule
-              ) where
+
+
+module Hello.Cookies
+  (
+    lookupActionForDomain
+  , lookupActionTop
+
+    --these are for tests.
+  , CookieRule (..)
+  , CookieAction (..)
+  , lineToRule
+  , sortRules
+  , domainMatchesRule
+  )
+where
+
+
+
 
 import Prelude
 import Foreign.C.String

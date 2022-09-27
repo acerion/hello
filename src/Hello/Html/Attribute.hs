@@ -27,11 +27,13 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module Hello.Html.Attribute(
+module Hello.Html.Attribute
+  (
   -- Only for tests
     parseLengthOrMultiLength
   , validateNameOrIdValue
-  ) where
+  )
+where
 
 
 
