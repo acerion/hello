@@ -285,7 +285,7 @@ if test "x$enable_ssl" = "xyes"; then
 
   if test "x$ssl_ok" = "xyes"; then
     old_libs="$LIBS"
-    AC_CHECK_LIB(ssl, SSL_library_init, ssl_ok=yes, ssl_ok=no, -lcrypto)
+    AC_CHECK_LIB(ssl, SSL_new, ssl_ok=yes, ssl_ok=no, -lcrypto)
     LIBS="$old_libs"
   fi
 

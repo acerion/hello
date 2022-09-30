@@ -476,7 +476,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
       case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
          /*Either self signed and untrusted*/
          /*Extract CN from certificate name information*/
-         if ((cn = strstr(remote_cert->name, "/CN=")) == NULL) {
+         if ((cn = strstr(X509_get_subject_name((X509 *) remote_cert), "/CN=")) == NULL) {
             strcpy(buf, "(no CN given)");
          } else {
             char *cn_end;
