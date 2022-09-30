@@ -1,4 +1,5 @@
 # Calls to ghc: https://www.vex.net/~trebla/haskell/so.xhtml
+.PHONY: all clean distclean install
 
 
 all:
@@ -69,3 +70,7 @@ clean:
 	rm -f ./Ffi/Preferences.hs
 	rm -f ./Ffi/Url.hs
 
+
+install:
+	mkdir -p ${prefix}/lib
+	cp ./libhello.so ${prefix}/lib
