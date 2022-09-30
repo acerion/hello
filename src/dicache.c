@@ -358,7 +358,7 @@ void a_Dicache_close(DilloUrl *url, int version, CacheClient_t *Client)
  * Parameters:
  *   Type: MIME type
  *   Ptr:  points to a Web structure
- *   Call: Dillo calls this with more data/eod
+ *   Call: Browser calls this with more data/eod
  *   Data: Decoding data structure
  */
 static void *Dicache_image(int ImgType, const char *MimeType, void *Ptr,

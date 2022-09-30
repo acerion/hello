@@ -1,6 +1,6 @@
 dnl Process this file with aclocal, autoconf and automake.
 
-AC_INIT([dillo], [3.0.5])
+AC_INIT([hello], [0.2.0])
 
 dnl Detect the canonical target build environment
 AC_CANONICAL_TARGET
@@ -441,6 +441,14 @@ fi
 if test "x$enable_rtfl" = "xyes" ; then
   CXXFLAGS="$CXXFLAGS -DDBG_RTFL"
 fi
+
+
+
+dnl Sub-directory in user's home dir, where dillo files are stored.
+CFLAGS="$CFLAGS -DPROGRAM_LOCAL_DIR=\\\".config/hello\\\""
+CXXFLAGS="$CXXFLAGS -DPROGRAM_LOCAL_DIR=\\\".config/hello\\\""
+
+
 
 dnl -----------------------
 dnl Checks for header files

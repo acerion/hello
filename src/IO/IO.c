@@ -10,7 +10,7 @@
  */
 
 /*
- * Dillo's event driven IO engine
+ * Browser's event driven IO engine
  */
 
 #include <errno.h>

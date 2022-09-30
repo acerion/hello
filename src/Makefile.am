@@ -8,9 +8,9 @@ AM_CXXFLAGS = @LIBPNG_CFLAGS@ @LIBFLTK_CXXFLAGS@
 
 SUBDIRS = IO Hello
 
-bin_PROGRAMS = dillo
+bin_PROGRAMS = hello
 
-dillo_LDADD = \
+hello_LDADD = \
 	$(top_builddir)/dlib/libDlib.a \
 	$(top_builddir)/dpip/libDpip.a \
 	IO/libDiof.a \
@@ -22,7 +22,7 @@ dillo_LDADD = \
 	@LIBJPEG_LIBS@ @LIBPNG_LIBS@ @LIBFLTK_LIBS@ @LIBZ_LIBS@ \
 	@LIBICONV_LIBS@ @LIBPTHREAD_LIBS@ @LIBX11_LIBS@
 
-dillo_SOURCES = \
+hello_SOURCES = \
 	dillo.cc \
 	paths.cc \
 	paths.hh \

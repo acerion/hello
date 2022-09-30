@@ -45,7 +45,7 @@ if (-e $makefile) {
    }
 }
 
-$targetdir = "$prefix/lib/dillo/hyphenation";
+$targetdir = "$prefix/lib/hello/hyphenation";
 
 if (!GetOptions ("host=s" => \$host,
                  "basesourcedir=s" => \$basesourcedir,
@@ -74,7 +74,7 @@ Options:
                               /language/hyph-utf8/tex/generic/hyph-utf8...
                               .../patterns/txt is added (default: /ctan/)
    -t, --targetdir=DIR        where to install the hyphenation patterns
-                              (default: where they are read by dillo)
+                              (default: where they are read by the browser)
 EOT
 } else {
    if ($sourcedir eq "") {

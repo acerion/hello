@@ -42,7 +42,7 @@ volatile sig_atomic_t caught_sigchld = 0;
 char *SharedKey = NULL;
 
 /*! Remove dpid_comm_keys file.
- * This avoids that dillo instances connect to a stale port after dpid
+ * This avoids that the browser instances connect to a stale port after dpid
  * has exited (e.g. after a reboot).
  */
 void cleanup()
@@ -183,8 +183,8 @@ char *get_dpi_dir(char *dpidrc)
 
    if (!rcline) {
       ERRMSG("dpi_dir", "Failed to find a dpi_dir entry in dpidrc", 0);
-      MSG_ERR("Put your dillo plugins path in %s\n", dpidrc);
-      MSG_ERR("e.g. dpi_dir=/usr/local/lib/dillo/dpi\n");
+      MSG_ERR("Put your browser plugins path in %s\n", dpidrc);
+      MSG_ERR("e.g. dpi_dir=/usr/local/lib/hello/dpi\n");
       MSG_ERR("with no leading spaces.\n");
       value = NULL;
    } else {
@@ -269,7 +269,7 @@ int get_dpi_attr(char *dpi_dir, char *service, struct dp *dpi_attr)
 
 /*! Register a service
  * Retrieves attributes for "service" and stores them
- * in dpi_attr. It looks for "service" in ~/.dillo/dpi
+ * in dpi_attr. It looks for "service" in ~/PROGRAM_LOCAL_DIR/dpi
  * first, and then in the system wide dpi directory.
  * Caller must allocate memory for dpi_attr.
  * \Return
@@ -369,7 +369,7 @@ int register_all(struct dp **attlist)
       exit(1);
    }
 
-   /* Get list of services in user's .dillo/dpi directory */
+   /* Get list of services in user's PROGRAM_LOCAL_DIR/dpi directory */
    snum = 0;
    if (user_dpidir && (user_dir_stream = opendir(user_dpidir)) != NULL) {
       while ((user_dirent = readdir(user_dir_stream)) != NULL) {
@@ -576,7 +576,7 @@ int bind_socket_fd(int base_port, int *p_port)
    return ok ? sock_fd : -1;
 }
 
-/*! Save the current port and a shared secret in a file so dillo can find it.
+/*! Save the current port and a shared secret in a file so the browser can find it.
  * \Return:
  * \li -1 on failure
  */

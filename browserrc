@@ -1,5 +1,5 @@
-# dillorc
-# Sample dillo initialization file.
+# browserrc
+# Sample browser initialization file.
 #
 # Lines that start with a '#' are comments.
 # "#option=..." shows the built-in default.
@@ -163,8 +163,8 @@ search_url="Free Dictionary http://www.thefreedictionary.com/%s"
 search_url="Startpage (https) https://www.startpage.com/do/search?query=%s"
 search_url="Google http://www.google.com/search?ie=UTF-8&oe=UTF-8&q=%s"
 
-# If set, dillo will ask web servers to send pages in this language.
-# This setting does NOT change dillo's user interface.
+# If set, the browser will ask web servers to send pages in this language.
+# This setting does NOT change browser's user interface.
 # Format explained: www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
 # Language-REGION values: www.iana.org/assignments/language-subtag-registry
 # (by default, no Accept-Language header is sent)
@@ -184,7 +184,7 @@ search_url="Google http://www.google.com/search?ie=UTF-8&oe=UTF-8&q=%s"
 #(by default, no proxy is used)
 
 # If you need to provide a  user/password pair for the proxy,
-# set the proxy user name here and Dillo will ask for the password later.
+# set the proxy user name here and the browser will ask for the password later.
 # http_proxyuser="joe"
 #(by default, no proxy is used)
 
@@ -203,7 +203,7 @@ search_url="Google http://www.google.com/search?ie=UTF-8&oe=UTF-8&q=%s"
 
 # Set the HTTP User-Agent header.
 # This can be useful for privacy and for working around servers who think
-# Dillo is less capable than it really is. However, if you pretend to use a
+# this browser is less capable than it really is. However, if you pretend to use a
 # different browser, servers may send you pages that work with the features
 # and bugs of that other browser -- or even disallow access in cases like
 # wget or googlebot. Remember this before submitting bug reports.
@@ -212,7 +212,7 @@ search_url="Google http://www.google.com/search?ie=UTF-8&oe=UTF-8&q=%s"
 #
 # http_user_agent="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:28.0) Gecko/20100101 Firefox/28.0"
 # http_user_agent="Wget/1.13.4 (linux-gnu)"
-#The default is "Dillo/"+current_version_number
+#The default is "Hello/"+current_version_number
 
 #-------------------------------------------------------------------------
 #                            COLORS SECTION
@@ -314,7 +314,7 @@ ui_tab_bg_color=#b7beb7
 #ui_tab_bg_color=#cac682
 
 
-# Size of dillo panel
+# Size of browser panel
 # tiny   : buttons, location, and progress boxes in one row
 # small  : location in one row, buttons + progress boxes in another
 # medium : adds text labels to buttons and boxes
@@ -324,7 +324,7 @@ ui_tab_bg_color=#b7beb7
 
 #small_icons=NO
 
-# Here you can choose to hide some widgets of the dillo panel...
+# Here you can choose to hide some widgets of the browser panel...
 #show_back=YES
 #show_forw=YES
 #show_home=YES
@@ -343,7 +343,7 @@ ui_tab_bg_color=#b7beb7
 # Show tooltip popups for the UI
 #show_ui_tooltip=YES
 
-# Start dillo with the panels hidden?
+# Start browser with the panels hidden?
 #fullwindow_start=NO
 
 # When filling out forms, our default behaviour is to submit on enterpress,
@@ -369,7 +369,7 @@ ui_tab_bg_color=#b7beb7
 # You can hold SHIFT to temporarily revert this behaviour.
 #focus_new_tab=YES
 
-# Ask before quitting Dillo with more than one window or tab open.
+# Ask before quitting the browser with more than one window or tab open.
 #show_quit_dialog=YES
 
 #-------------------------------------------------------------------------
@@ -393,4 +393,4 @@ ui_tab_bg_color=#b7beb7
 
 
 # -----------------------------------------------------------------------
-# dillorc ends here.
+# browserrc ends here.

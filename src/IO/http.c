@@ -118,7 +118,7 @@ int a_Http_init(void)
       HTTP_Proxy = a_Url_dup(prefs.http_proxy);
 
 /*  This allows for storing the proxy password in "user:passwd" format
- * in dillorc, but as this constitutes a security problem, it was disabled.
+ * in browserrc, but as this constitutes a security problem, it was disabled.
  *
    if (HTTP_Proxy && prefs.http_proxyuser && strchr(prefs.http_proxyuser, ':'))
       HTTP_Proxy_Auth_base64 = a_Misc_encode_base64(prefs.http_proxyuser);
@@ -269,7 +269,7 @@ Dstr *a_Http_make_query_str(const DilloUrl *url, const DilloUrl *requester,
         *request_uri = dStr_new(""),
         *proxy_auth = dStr_new("");
 
-   /* BUG: dillo doesn't actually understand application/xml yet */
+   /* BUG: the program doesn't actually understand application/xml yet */
    const char *accept_hdr_value =
       web_flags & WEB_Image ? "image/png,image/*;q=0.8,*/*;q=0.5" :
       web_flags & WEB_Stylesheet ? "text/css,*/*;q=0.1" :

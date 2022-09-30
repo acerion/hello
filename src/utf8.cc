@@ -70,7 +70,7 @@ int a_Utf8_test(const char* src, unsigned int srclen)
  * Does s point to a UTF-8-encoded ideographic character?
  *
  * This is based on http://unicode.org/reports/tr14/#ID plus some guesses
- * for what might make the most sense for Dillo. Surprisingly, they include
+ * for what might make the most sense for the browser. Surprisingly, they include
  * Hangul Compatibility Jamo, but they're the experts, so I'll follow along.
  */
 bool_t a_Utf8_ideographic(const char *s, const char *end, int *len)

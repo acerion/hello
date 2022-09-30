@@ -13,7 +13,7 @@
  */
 
 /* TODO: this server is not assembling the received packets.
- * This means it currently expects dillo to send full dpi tags
+ * This means it currently expects the browser to send full dpi tags
  * within the socket; if that fails, everything stops.
  * This is not hard to fix, mainly is a matter of expecting the
  * final '>' of a tag.
@@ -458,7 +458,7 @@ static void Unencode_str(char *e_str)
 }
 
 /*
- * Send a short message to dillo's status bar.
+ * Send a short message to browser's status bar.
  */
 static int Bmsrv_dpi_send_status_msg(Dsh *sh, char *str)
 {
@@ -691,7 +691,7 @@ static void Bms_check_import(void)
 
 
    if (access(BmFile, F_OK) != 0) {
-      OldBmFile = dStrconcat(dGethomedir(), "/.dillo/bookmarks.html", NULL);
+      OldBmFile = dStrconcat(dGethomedir(), "/" PROGRAM_LOCAL_DIR "/bookmarks.html", NULL);
       if (access(OldBmFile, F_OK) == 0) {
          dStr_sprintf(dstr, cmd1, BmFile);
          rc = system(dstr->str);
@@ -1162,7 +1162,7 @@ static int Bmsrv_modify_delete(char *url)
       }
    }
 
-/* -- This doesn't work because dillo erases the message upon the
+/* -- This doesn't work because browser erases the message upon the
  *    receipt of the first data stream.
  *
    sprintf(msg, "Deleted %d bookmark%s!>", n, (n > 1) ? "s" : "");
@@ -1714,7 +1714,7 @@ int main(void) {
    /* Initialize local data */
    B_bms = dList_new(512);
    B_secs = dList_new(32);
-   BmFile = dStrconcat(dGethomedir(), "/.dillo/bm.txt", NULL);
+   BmFile = dStrconcat(dGethomedir(), "/" PROGRAM_LOCAL_DIR "/bm.txt", NULL);
    /* some OSes may need this... */
    address_size = sizeof(struct sockaddr_un);
 

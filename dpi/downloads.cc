@@ -10,7 +10,7 @@
  */
 
 /*
- * A FLTK-based GUI for the downloads dpi (dillo plugin).
+ * A FLTK-based GUI for the downloads dpi (browser plugin).
  */
 
 #include <stdio.h>
@@ -325,7 +325,7 @@ DLItem::DLItem(const char *full_filename, const char *url)
       init_bytesize = (int)ss.st_size;
    dl_argv[i++] = (char*)"-c";
    dl_argv[i++] = (char*)"--load-cookies";
-   dl_argv[i++] = dStrconcat(dGethomedir(), "/.dillo/cookies.txt", NULL);
+   dl_argv[i++] = dStrconcat(dGethomedir(), "/" PROGRAM_LOCAL_DIR "/cookies.txt", NULL);
    dl_argv[i++] = (char*)"-O";
    dl_argv[i++] = fullname;
    dl_argv[i++] = esc_url;
@@ -910,7 +910,7 @@ static void dlwin_esc_cb(Fl_Widget *, void *)
                      "ABORT them and EXIT anyway?";
 
    if (dl_win && dl_win->num_running() > 0) {
-      fl_message_title("Dillo Downloads: Abort downloads?");
+      fl_message_title("Hello Downloads: Abort downloads?");
       int ch = fl_choice("%s", "Cancel", "*No", "Yes", msg);
       if (ch == 0 || ch == 1)
          return;
@@ -1038,7 +1038,7 @@ DLWin::DLWin(int ww, int wh) {
    mDList = new DLItemList();
 
    // Create the empty main window
-   mWin = new Fl_Window(ww, wh, "Dillo Downloads");
+   mWin = new Fl_Window(ww, wh, "Hello Downloads");
    mWin->begin();
    mScroll = new DlScroll(0,0,ww,wh);
    mScroll->begin();
@@ -1057,7 +1057,7 @@ DLWin::DLWin(int ww, int wh) {
    sigaddset(&mask_sigchld, SIGCHLD);
    est_sigchld();
 
-   fl_message_title_default("Dillo Downloads: Message");
+   fl_message_title_default("Hello Downloads: Message");
 
    // Set the cleanup timeout
    Fl::add_timeout(1.0, cleanup_cb, mDList);

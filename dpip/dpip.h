@@ -1,5 +1,5 @@
 /*
- * Library for dealing with dpip tags (dillo plugin protocol tags).
+ * Library for dealing with dpip tags (browser plugin protocol tags).
  */
 
 #ifndef __DPIP_H__

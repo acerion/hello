@@ -1,6 +1,6 @@
-# domainrc - Dillo cross-domain request rules file.
+# domainrc - Browser cross-domain request rules file.
 #
-# Here you can tell Dillo what to do when one site wants to retrieve resources
+# Here you can tell browser what to do when one site wants to retrieve resources
 # (e.g., images, style sheets, redirection) from a different site.
 #
 # Lines that begin with a '#' are comments.

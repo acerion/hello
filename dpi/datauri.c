@@ -158,7 +158,7 @@ char *a_Url_decode_hex_str(const char *str, size_t *p_sz)
 /* end ----------------------------------------------------------------------*/
 
 /*
- * Send decoded data to dillo in an HTTP envelope.
+ * Send decoded data to the browser in an HTTP envelope.
  */
 static void send_decoded_data(const char *url, const char *mime_type,
                               unsigned char *data, size_t data_sz)

@@ -1,7 +1,7 @@
 #ifndef __UI_HH__
 #define __UI_HH__
 
-// UI for dillo --------------------------------------------------------------
+// UI for the browser --------------------------------------------------------------
 
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Widget.H>

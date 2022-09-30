@@ -196,7 +196,7 @@ int main(void)
    dFree(dpip_tag);
 
    /* Read the dpi command from STDIN
-    * Now we're past the authentication phase, let's see what's dillo
+    * Now we're past the authentication phase, let's see what's the browser
     * asking from us. a_Dpip_dsh_read_token() will block and return
     * a full dpip token or null on error (it's commented in dpip.c) */
    dpip_tag = a_Dpip_dsh_read_token(sh, 1);
@@ -224,7 +224,7 @@ int main(void)
          //send_numbered_text(sh, data_size);
          send_html_text(sh, url, data_size);
       } else if (strcmp(cmd2, "DpiError") == 0) {
-         /* Dillo detected an error (other failures just close the socket) */
+         /* Browser detected an error (other failures just close the socket) */
          a_Dpip_dsh_write_str(sh, 0, "Content-type: text/plain\n\n");
          a_Dpip_dsh_write_str(sh, 1, "[vsource dpi]: "
                                      "ERROR: Page not cached.\n");

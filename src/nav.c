@@ -383,7 +383,7 @@ static void Nav_repush_callback(void *data)
 /*
  * Repush current URL: not an end-to-end reload but from cache.
  * - Currently used to switch to a charset decoder given by the META element.
- * - Delayed to let dillo finish the call flow into a known state.
+ * - Delayed to let the browser finish the call flow into a known state.
  *
  * There's no need to stop the parser before calling this function:
  * When the timeout activates, a_Bw_stop_clients will stop the data feed.
@@ -485,7 +485,7 @@ static void Nav_reload_callback(void *data)
          confirmed = 1;
       } else if (URL_FLAGS(h_url) & URL_Post) {
          /* Attempt to repost data, let's confirm... */
-         choice = a_Dialog_choice("Dillo: Repost form?",
+         choice = a_Dialog_choice("Hello: Repost form?",
                                   "Repost form data?",
                                   "No", "Yes", "Cancel", NULL);
          confirmed = (choice == 2);  /* "Yes" */

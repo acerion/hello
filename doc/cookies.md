@@ -25,7 +25,7 @@ exit with the command "dpidc stop".
  Controlling cookies
 =====================
 
-Out of the box, hello rejects all cookies.
+Out of the box, the browser rejects all cookies.
 
 If you want to accept certain cookies, you can specify rules for different
 domains in the file ~/.config/.hello/cookiesrc. The syntax looks like:

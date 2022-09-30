@@ -264,7 +264,7 @@ static void Menu_bugmeter_validate_wdg_cb(Fl_Widget*, void*)
  */
 static void Menu_bugmeter_about_cb(Fl_Widget*, void*)
 {
-   a_UIcmd_open_urlstr(popup_bw, "http://www.dillo.org/help/bug_meter.html");
+   a_UIcmd_open_urlstr(popup_bw, "https://github.com/acerion/hello");
 }
 
 /*
@@ -551,7 +551,7 @@ void a_Menu_file_popup(BrowserWindow *bw, void *v_wid)
        (void*)"ou",0,0,0,0,0},
       {"Close", Keys::getShortcut(KEYS_CLOSE_TAB), filemenu_cb,
        (void*)"cw", FL_MENU_DIVIDER,0,0,0,0},
-      {"Exit Dillo", Keys::getShortcut(KEYS_CLOSE_ALL), filemenu_cb,
+      {"Exit Hello", Keys::getShortcut(KEYS_CLOSE_ALL), filemenu_cb,
        (void*)"ed",0,0,0,0,0},
       {0,0,0,0,0,0,0,0,0}
    };

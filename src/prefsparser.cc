@@ -137,7 +137,7 @@ static int parseOption(char *name, char *value,
 }
 
 /*
- * Parses the dillorc and sets the values in the prefs structure.
+ * Parses the browserrc and sets the values in the prefs structure.
  */
 void PrefsParser::parse(FILE *fp)
 {
@@ -242,7 +242,7 @@ void PrefsParser::parse(FILE *fp)
          _MSG("prefsparser: name=%s, value=%s\n", name, value);
          parseOption(name, value, symbols, sizeof(symbols) / sizeof(symbols[0]));
       } else if (st < 0) {
-         MSG_ERR("prefsparser: Syntax error in dillorc:"
+         MSG_ERR("prefsparser: Syntax error in browserrc:"
                  " name=\"%s\" value=\"%s\"\n", name, value);
       }
 

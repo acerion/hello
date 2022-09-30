@@ -1,6 +1,6 @@
 /*! \file
- * Access functions for  ~/.dillo/dpi_socket_dir.
- * The most useful function for dillo is a_Dpi_srs, it returns
+ * Access functions for  ~/PROGRAM_LOCAL_DIR/dpi_socket_dir.
+ * The most useful function for the web browser is a_Dpi_srs, it returns
  * the full path to the dpid service request socket.
  */
 
@@ -18,7 +18,7 @@
 /* This one is tricky, some sources state it should include the byte
  * for the terminating NULL, and others say it shouldn't.
  * The other way is to only use this one when a native SUN_LEN is not present,
- * but as dillo has used this for a long time successfully, here it goes.
+ * but as the browser has used this for a long time successfully, here it goes.
  */
 # define D_SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path) \
                         + strlen ((ptr)->sun_path))

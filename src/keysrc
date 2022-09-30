@@ -1,9 +1,9 @@
 # keysrc
-# Sample dillo key bindings file.
+# Sample browser key bindings file.
 #
 # The format is: "key = action" or "<modifier>key = action".
 # Lines that begin with a '#' are comments.
-# The commented-out bindings below show the defaults built into Dillo.
+# The commented-out bindings below show the defaults built into browser.
 #
 # Modifiers recognized: "Shift", "Ctrl", "Alt", "Meta".
 # (OS X: Use "Meta" for Command)
@@ -16,7 +16,7 @@
 # "MediaNext", "MediaPlay", "MediaPrev", "MediaStop", "Refresh", "Search",
 # "Sleep", "Stop", "VolumeDown", "VolumeMute", VolumeUp".
 #
-# If Dillo is running under X11, keys whose names are not recognized can
+# If the browser is running under X11, keys whose names are not recognized can
 # be specified using their keysym value in hexadecimal. Use xev to get
 # the keysym. Example rule: "0x1008ff27 = forward".
 #
@@ -53,7 +53,7 @@
 # "reload" the current page.
 #<ctrl>r = reload
 
-# "home" goes to the homepage that you set in your dillorc.
+# "home" goes to the homepage that you set in your browserrc.
 #<ctrl>h = home
 
 # "find" lets you search for a text string on the current page.
@@ -63,7 +63,7 @@
 #esc = hide-panels
 
 # "websearch" lets you send a text string to the search engine that you
-# set in your dillorc.
+# set in your browserrc.
 #<ctrl>s = websearch
 
 # go to your "bookmarks".

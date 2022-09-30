@@ -1,9 +1,9 @@
 /*
- * File : url.h - Dillo
+ * File : url.h
  *
  * Copyright (C) 2001 Jorge Arellano Cid <jcid@dillo.org>
  *
- * Parse and normalize all URL's inside Dillo.
+ * Parse and normalize all URL's inside the browser.
  */
 
 #ifndef __URL_H__

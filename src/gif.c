@@ -11,7 +11,7 @@
  */
 
 /*
- * The GIF decoder for dillo. It is responsible for decoding GIF data
+ * The GIF decoder for the browser. It is responsible for decoding GIF data
  * and transferring it to the dicache.
  * https://www.w3.org/Graphics/GIF/spec-gif89a.txt
  */

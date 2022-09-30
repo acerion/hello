@@ -83,7 +83,7 @@ namespace core {
  *      links. The rule to distinguish between link activation and
  *      selection is that the selection starts as soon as the user leaves
  *      the link. (This is, IMO, a useful feature. Even after drag and
- *      drop has been implemented in dillo, this should be somehow
+ *      drop has been implemented in this program, this should be somehow
  *      preserved.)
  *
  * <li> The selection should stay as long as possible, i.e., the old

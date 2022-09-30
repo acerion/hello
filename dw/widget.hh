@@ -16,7 +16,7 @@ namespace dw {
 namespace core {
 
 /**
- * \brief The base class of all dillo widgets.
+ * \brief The base class of all browser widgets.
  *
  * \sa\ref dw-overview, \ref dw-layout-widgets
  */

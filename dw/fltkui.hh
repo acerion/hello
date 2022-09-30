@@ -290,7 +290,7 @@ public:
 
 /**
  * \bug Maximal length not supported yet.
- * \todo Text values are not synchronized (not needed in dillo).
+ * \todo Text values are not synchronized (not needed in this program).
  */
 class FltkEntryResource:
    public FltkSpecificResource <dw::core::ui::EntryResource>

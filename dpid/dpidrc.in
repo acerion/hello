@@ -1,4 +1,4 @@
-dpi_dir=@libdir@/dillo/dpi
+dpi_dir=@libdir@/hello/dpi
 
 proto.file=file/file.dpi
 proto.ftp=ftp/ftp.filter.dpi

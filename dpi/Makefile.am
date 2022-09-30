@@ -1,15 +1,16 @@
 AM_CPPFLAGS = \
 	-I$(top_srcdir)
 
-bookmarksdir = $(libdir)/dillo/dpi/bookmarks
-downloadsdir = $(libdir)/dillo/dpi/downloads
-ftpdir = $(libdir)/dillo/dpi/ftp
-httpsdir = $(libdir)/dillo/dpi/https
-hellodir = $(libdir)/dillo/dpi/hello
-vsourcedir = $(libdir)/dillo/dpi/vsource
-filedir = $(libdir)/dillo/dpi/file
-cookiesdir = $(libdir)/dillo/dpi/cookies
-datauridir = $(libdir)/dillo/dpi/datauri
+browser_name = hello
+bookmarksdir = $(libdir)/$(browser_name)/dpi/bookmarks
+downloadsdir = $(libdir)/$(browser_name)/dpi/downloads
+ftpdir = $(libdir)/$(browser_name)/dpi/ftp
+httpsdir = $(libdir)/$(browser_name)/dpi/https
+hellodir = $(libdir)/$(browser_name)/dpi/hello
+vsourcedir = $(libdir)/$(browser_name)/dpi/vsource
+filedir = $(libdir)/$(browser_name)/dpi/file
+cookiesdir = $(libdir)/$(browser_name)/dpi/cookies
+datauridir = $(libdir)/$(browser_name)/dpi/datauri
 bookmarks_PROGRAMS = bookmarks.dpi
 downloads_PROGRAMS = downloads.dpi
 ftp_PROGRAMS = ftp.filter.dpi

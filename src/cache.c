@@ -10,7 +10,7 @@
  */
 
 /*
- * Dillo's cache module
+ * Browser's cache module
  */
 
 #include <sys/types.h>

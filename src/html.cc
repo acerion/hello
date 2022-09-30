@@ -10,7 +10,7 @@
  */
 
 /*
- * Dillo HTML parsing routines
+ * Browser HTML parsing routines
  */
 
 /*-----------------------------------------------------------------------------
@@ -1215,7 +1215,7 @@ static void Html_tag_cleanup_at_close(DilloHtml *html, int new_idx)
  * Avoid nesting and inter-nesting of BUTTON, SELECT and TEXTAREA,
  * by closing them before opening another.
  * This is not an HTML SPEC restriction , but it avoids lots of trouble
- * inside dillo (concurrent inputs), and makes almost no sense to have.
+ * inside browser (concurrent inputs), and makes almost no sense to have.
  */
 static void Html_tag_cleanup_nested_inputs(DilloHtml *html, int new_idx)
 {
@@ -1732,7 +1732,7 @@ static void Html_tag_open_abbr(DilloHtml *html, const char *tag, int tagsize)
 
 /*
  * Read image-associated tag attributes and create new image.
- * FIXME: if "src" attribute is missing, dillo doesn't display value of "alt" nor it shows a tooltip (through x-tooltip pseudo-property).
+ * FIXME: if "src" attribute is missing, the program doesn't display value of "alt" nor it shows a tooltip (through x-tooltip pseudo-property).
  */
 void a_Html_common_image_attrs(DilloHtml *html, const char *tag, int tagsize)
 {
@@ -1836,7 +1836,7 @@ DilloImage *a_Html_image_new(DilloHtml *html, const char *tag, int tagsize)
               (a_Capi_get_flags_with_redirection(url) & CAPI_IsCached);
 
    if (load_now && Html_load_image(html->bw, url, html->page_url, image)) {
-      // hi->image is NULL if dillo tries to load the image immediately
+      // hi->image is NULL if the program tries to load the image immediately
       hi->image = NULL;
    } else {
       // otherwise a reference is kept in html->images
@@ -2927,7 +2927,7 @@ void a_Html_load_stylesheet(DilloHtml *html, DilloUrl *url)
  *  cache functions)
  *
  * TODO: How will we know when to use "handheld"? Ask the html->bw->ui for
- * screen dimensions, or a dillorc preference.
+ * screen dimensions, or a browserrc preference.
  */
 static void Html_tag_open_link(DilloHtml *html, const char *tag, int tagsize)
 {

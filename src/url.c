@@ -10,7 +10,7 @@
  */
 
 /*
- * Parse and normalize all URL's inside Dillo.
+ * Parse and normalize all URL's inside the browser.
  *  - <scheme> <authority> <path> <query> and <fragment> point to 'buffer'.
  *  - 'url_string' is built upon demand (transparent to the caller).
  *  - 'hostname' and 'port' are also being handled on demand.

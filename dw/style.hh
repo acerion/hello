@@ -66,7 +66,7 @@ namespace core {
  * <h3>Naming</h3>
  *
  * dw::core::style::Style will become important for CSS, each CSS
- * attribute, which is supported by dillo, will refer to an attribute in
+ * attribute, which is supported by this browser, will refer to an attribute in
  * dw::core::style::Style. For this reason, the attributes in
  * dw::core::style::Style get the names from the CSS attributes, with
  * "camelCase" instead of hyphens (e.g. "background-color" becomes

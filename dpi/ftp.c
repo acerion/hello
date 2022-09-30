@@ -3,7 +3,7 @@
  *
  * This server checks the ftp-URL to be a directory (requires wget).
  * If true, it sends back an html representation of it, and if not
- * a dpip message (which is caught by dillo who redirects the ftp URL
+ * a dpip message (which is caught by the browser who redirects the ftp URL
  * to the downloads server).
  *
  * Feel free to polish!
@@ -81,7 +81,7 @@ static const ContentType_t MimeTypes[] = {
  * Detects 'Content-Type' from a data stream sample.
  *
  * It uses the magic(5) logic from file(1). Currently, it
- * only checks the few mime types that Dillo supports.
+ * only checks the few mime types that the browser supports.
  *
  * 'Data' is a pointer to the first bytes of the raw data.
  *
@@ -242,7 +242,7 @@ static int try_ftp_transfer(char *url)
             /* abort transfer */
             kill(ch_pid, SIGTERM);
             /* The "application/octet-stream" MIME type will be sent and
-             * Dillo will offer a download dialog */
+             * the browser will offer a download dialog */
             offer_download = 1;
             aborted = 1;
          }
@@ -327,7 +327,7 @@ int main(int argc, char **argv)
    }
 
    if (st == -1) {
-      /* The transfer failed, let dillo know... */
+      /* The transfer failed, let the browser know... */
       d_cmd = a_Dpip_build_cmd("cmd=%s url=%s", "start_send_page", url);
       a_Dpip_dsh_write_str(sh, 0, d_cmd);
       dFree(d_cmd);

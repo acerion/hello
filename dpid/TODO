@@ -12,7 +12,7 @@ Todo List
  with a dpi to the design.
 
  Global SRS_NAME
- Should read this from dillorc
+ Should read this from browserrc
 
  File dpid_common.h
  The dpid error codes will be used in the next patch
@@ -27,6 +27,6 @@ Use a singly linked list for dpi_attr_list
 
 Allow dpis to be registered one at a time
 
-Only run dpis listed in users dillorc
+Only run dpis listed in users browserrc
 
 MAYBE Have dpid accept all connections to dpis (fixes inf loop if dpi crashes before accept)

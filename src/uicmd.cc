@@ -270,7 +270,7 @@ UI *CustTabs::add_new_tab(UI *old_ui, int focus)
    /* The UI is constructed in a comfortable fitting size, and then resized
     * so FLTK doesn't get confused later with even smaller dimensions! */
    current(0);
-   UI *new_ui = new UI(0,0,UI_MIN_W,UI_MIN_H,"Dillo:",old_ui);
+   UI *new_ui = new UI(0,0,UI_MIN_W,UI_MIN_H,"Hello:",old_ui);
    new_ui->resize(0,ctab_h,Wizard->w(),Wizard->h());
    new_ui->tabs(this);
    Wizard->add(new_ui);
@@ -501,7 +501,7 @@ static void win_cb (Fl_Widget *w, void *cb_data) {
    }
 
    if (prefs.show_quit_dialog && ntabs > 1)
-      choice = a_Dialog_choice("Dillo: Close window?",
+      choice = a_Dialog_choice("Hello: Close window?",
                                "Window contains more than one tab.",
                                "Close", "Cancel", NULL);
    if (choice == 1)
@@ -537,7 +537,7 @@ BrowserWindow *a_UIcmd_browser_window_new(int ww, int wh,
    Fl_Window *win;
 
    if (ww <= 0 || wh <= 0) {
-      // Set default geometry from dillorc.
+      // Set default geometry from browserrc.
       ww = prefs.width;
       wh = prefs.height;
    }
@@ -657,7 +657,7 @@ void a_UIcmd_close_all_bw(void *)
    int choice = 1;
 
    if (prefs.show_quit_dialog && a_Bw_num() > 1)
-      choice = a_Dialog_choice("Dillo: Quit?",
+      choice = a_Dialog_choice("Hello: Quit?",
                                "More than one open tab or window.",
                                "Quit", "Cancel", NULL);
    if (choice == 1)
@@ -935,7 +935,7 @@ static int UIcmd_save_file_check(const char *name)
       dStr_sprintf(ds,
                   "The file:\n  %s (%d Bytes)\nalready exists. What do we do?",
                    name, (int)ss.st_size);
-      ch = a_Dialog_choice("Dillo Save: File exists!", ds->str,
+      ch = a_Dialog_choice("Hello Save: File exists!", ds->str,
                            "Abort", "Continue", "Rename", NULL);
       dStr_free(ds, 1);
       return ch;
@@ -997,7 +997,7 @@ void a_UIcmd_save(void *vbw)
  */
 const char *a_UIcmd_select_file()
 {
-   return a_Dialog_select_file("Dillo: Select a File", NULL, NULL);
+   return a_Dialog_select_file("Hello: Select a File", NULL, NULL);
 }
 
 /*
@@ -1030,7 +1030,7 @@ void a_UIcmd_open_file(void *vbw)
    char *name;
    DilloUrl *url;
 
-   name = a_Dialog_open_file("Dillo: Open File", NULL, "");
+   name = a_Dialog_open_file("Hello: Open File", NULL, "");
 
    if (name) {
       url = a_Url_new(name, "file:");
@@ -1084,7 +1084,7 @@ void a_UIcmd_search_dialog(void *vbw)
 {
    const char *query;
 
-   if ((query = a_Dialog_input("Dillo: Search", "Search the Web:"))) {
+   if ((query = a_Dialog_input("Hello: Search", "Search the Web:"))) {
       char *url_str = UIcmd_make_search_str(query);
       a_UIcmd_open_urlstr(vbw, url_str);
       dFree(url_str);
@@ -1097,7 +1097,7 @@ void a_UIcmd_search_dialog(void *vbw)
 const char *a_UIcmd_get_passwd(const char *user)
 {
    const char *passwd;
-   const char *title = "Dillo: Password";
+   const char *title = "Hello: Password";
    char *msg = dStrconcat("Password for user \"", user, "\"", NULL);
    passwd = a_Dialog_passwd(title, msg);
    dFree(msg);
@@ -1109,7 +1109,7 @@ const char *a_UIcmd_get_passwd(const char *user)
  */
 void a_UIcmd_save_link(BrowserWindow *bw, const DilloUrl *url)
 {
-   UIcmd_save(bw, url, "Dillo: Save Link as File");
+   UIcmd_save(bw, url, "Hello: Save Link as File");
 }
 
 /*
@@ -1227,9 +1227,9 @@ void a_UIcmd_view_page_bugs(void *vbw)
    BrowserWindow *bw = (BrowserWindow*)vbw;
 
    if (bw->num_page_bugs > 0) {
-      a_Dialog_text_window("Dillo: Detected HTML errors", bw->page_bugs->str);
+      a_Dialog_text_window("Hello: Detected HTML errors", bw->page_bugs->str);
    } else {
-      a_Dialog_msg("Dillo: Valid HTML!", "Zero detected HTML errors!");
+      a_Dialog_msg("Hello: Valid HTML!", "Zero detected HTML errors!");
    }
 }
 
@@ -1417,7 +1417,7 @@ void a_UIcmd_set_page_title(BrowserWindow *bw, const char *label)
    const int size = 128;
    char title[size];
 
-   if (snprintf(title, size, "Dillo: %s", label ? label : "") >= size) {
+   if (snprintf(title, size, "Hello: %s", label ? label : "") >= size) {
       uint_t i = MIN(size - 4, 1 + a_Utf8_end_of_char(title, size - 8));
       snprintf(title + i, 4, "...");
    }
@@ -1431,7 +1431,7 @@ void a_UIcmd_set_page_title(BrowserWindow *bw, const char *label)
 }
 
 /*
- * Set a printf-like status string on the bottom of the dillo window.
+ * Set a printf-like status string on the bottom of the browser window.
  * Beware: The safe way to set an arbitrary string is
  *         a_UIcmd_set_msg(bw, "%s", str)
  */

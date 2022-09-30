@@ -356,7 +356,7 @@ static void Html_tag_open_table_cell(DilloHtml *html,
       return;
 
    case DILLO_HTML_TABLE_MODE_TOP:
-      /* a_Dw_table_add_cell takes care that dillo does not crash. */
+      /* a_Dw_table_add_cell takes care that the browser does not crash. */
       /* continues */
    case DILLO_HTML_TABLE_MODE_TR:
    case DILLO_HTML_TABLE_MODE_TD:
@@ -422,7 +422,7 @@ static void Html_tag_content_table_cell(DilloHtml *html,
    case DILLO_HTML_TABLE_MODE_TOP:
       BUG_MSG("<t%c> outside <tr>.",
               (tagsize >=3 && (D_ASCII_TOLOWER(tag[2]) == 'd')) ? 'd' : 'h');
-      /* a_Dw_table_add_cell takes care that dillo does not crash. */
+      /* a_Dw_table_add_cell takes care that the browser does not crash. */
       /* continues */
    case DILLO_HTML_TABLE_MODE_TR:
    case DILLO_HTML_TABLE_MODE_TD:

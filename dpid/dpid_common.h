@@ -21,9 +21,9 @@
 #define _MSG_ERR(...)
 #define MSG_ERR(...)  fprintf(stderr, "[dpid]: " __VA_ARGS__)
 
-#define dotDILLO_DPI ".dillo/dpi"
-#define dotDILLO_DPIDRC ".dillo/dpidrc"
-#define dotDILLO_DPID_COMM_KEYS ".dillo/dpid_comm_keys"
+#define dotDILLO_DPI PROGRAM_LOCAL_DIR "/dpi"
+#define dotDILLO_DPIDRC PROGRAM_LOCAL_DIR "/dpidrc"
+#define dotDILLO_DPID_COMM_KEYS PROGRAM_LOCAL_DIR "/dpid_comm_keys"
 
 #define ERRMSG(CALLER, CALLED, ERR)\
  errmsg(CALLER, CALLED, ERR, __FILE__, __LINE__)
@@ -37,7 +37,7 @@
 #define CKD_CLOSE(fd)      ckd_close(fd, __FILE__, __LINE__)
 
 
-/*! Intended for identifying dillo plugins
+/*! Intended for identifying the browser's plugins
  * and related files
  */
 enum file_type {

@@ -122,7 +122,7 @@ static void File_close(int fd)
 /*
  * Detects 'Content-Type' when the server does not supply one.
  * It uses the magic(5) logic from file(1). Currently, it
- * only checks the few mime types that Dillo supports.
+ * only checks the few mime types that the browser supports.
  *
  * 'Data' is a pointer to the first bytes of the raw data.
  * (this is based on a_Misc_get_content_type_from_data())
@@ -734,7 +734,7 @@ static int File_send_file(ClientInfo *client)
       if (!gzipped || strcmp(ct, unknown_type)) {
          a_Dpip_dsh_printf(client->sh, 0, "Content-Type: %s\r\n", ct);
       } else {
-         /* If we don't know type for gzipped data, let dillo figure it out. */
+         /* If we don't know type for gzipped data, let the browser figure it out. */
       }
       a_Dpip_dsh_printf(client->sh, 1,
                         "Content-Length: %ld\r\n"

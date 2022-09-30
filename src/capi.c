@@ -313,7 +313,7 @@ static char *Capi_dpi_build_cmd(DilloWeb *web, char *server)
        *  This avoids the dialog bombing that stems from loading multiple
        * https images/resources in a single page. A proper fix would take
        * either to implement the https-dpi as a server (with state),
-       * or to move back https handling into dillo. */
+       * or to move back https handling into the browser. */
       if (proxy_connect) {
          const char *proxy_urlstr = a_Http_get_proxy_urlstr();
          cmd = a_Dpip_build_cmd("cmd=%s proxy_url=%s proxy_connect=%s "

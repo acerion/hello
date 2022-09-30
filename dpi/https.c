@@ -22,7 +22,7 @@
  * (at your option) any later version.
  *
  * As a special exception permission is granted to link the code of
- * the https dillo plugin with the OpenSSL project's OpenSSL library
+ * the https browser plugin with the OpenSSL project's OpenSSL library
  * (or a modified version of that library), and distribute the linked
  * executables, without including the source code for the SSL library
  * in the source distribution. You must obey the GNU General Public
@@ -176,7 +176,7 @@ static void yes_ssl_support(void)
    }
 
    if (exit_error == 0){
-      snprintf(buf, 4095, "%s/.dillo/certs/", dGethomedir());
+      snprintf(buf, 4095, "%s/" PROGRAM_LOCAL_DIR "/certs/", dGethomedir());
       if (SSL_CTX_load_verify_locations(ssl_context, NULL, buf )==0){
          MSG("Error opening user x509 certificate location\n");
          exit_error = 1;
@@ -214,7 +214,7 @@ static void yes_ssl_support(void)
       url = a_Dpip_get_attr(dpip_tag, "url");
       http_query = a_Dpip_get_attr(dpip_tag, "query");
       if (!(check_cert = a_Dpip_get_attr(dpip_tag, "check_cert"))) {
-         /* allow older dillo versions use this dpi */
+         /* allow older browser versions use this dpi */
          check_cert = dStrdup("true");
       }
 
@@ -269,7 +269,7 @@ static void yes_ssl_support(void)
                      /* e.g. "HTTP/1.1 200 Connection established[...]" */
                      MSG("CONNECT through proxy succeeded.\n");
                   } else {
-                     /* TODO: send reply body to dillo */
+                     /* TODO: send reply body to the browser */
                      exit_error = 1;
                      MSG("CONNECT through proxy failed.\n");
                   }
@@ -427,7 +427,7 @@ static int get_network_connection(char * url)
 /* This function is run only when the certificate cannot
  * be completely trusted.  This will notify the user and
  * allow the user to decide what to do.  It may save the
- * certificate to the user's .dillo directory if it is
+ * certificate to the user's PROGRAM_LOCAL_DIR directory if it is
  * trusted.
  *
  * TODO: Rearrange this to get rid of redundancy.
@@ -450,7 +450,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
       d_cmd = a_Dpip_build_cmd(
          "cmd=%s title=%s msg=%s alt1=%s alt2=%s",
          "dialog",
-         "Dillo HTTPS: No certificate!",
+         "Hello HTTPS: No certificate!",
          "The remote system is NOT presenting a certificate.\n"
          "This site CAN NOT be trusted. Sending data is NOT SAFE.\n"
          "What do I do?",
@@ -494,7 +494,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
          d_cmd = a_Dpip_build_cmd(
             "cmd=%s title=%s msg=%s alt1=%s alt2=%s alt3=%s",
             "dialog",
-            "Dillo HTTPS: Untrusted certificate!", msg,
+            "Hello HTTPS: Untrusted certificate!", msg,
             "Continue", "Cancel", "Save Certificate");
          a_Dpip_dsh_write_str(sh, 1, d_cmd);
          dFree(d_cmd);
@@ -523,7 +523,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
          d_cmd = a_Dpip_build_cmd(
             "cmd=%s title=%s msg=%s alt1=%s alt2=%s",
             "dialog",
-            "Dillo HTTPS: Missing certificate issuer!",
+            "Hello HTTPS: Missing certificate issuer!",
             "The issuer for the remote certificate cannot be found\n"
             "The authenticity of the remote certificate cannot be trusted",
             "Continue", "Cancel");
@@ -543,7 +543,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
          d_cmd = a_Dpip_build_cmd(
             "cmd=%s title=%s msg=%s alt1=%s alt2=%s",
             "dialog",
-            "Dillo HTTPS: Invalid certificate!",
+            "Hello HTTPS: Invalid certificate!",
             "The remote certificate signature could not be read\n"
             "or is invalid and should not be trusted",
             "Continue", "Cancel");
@@ -560,7 +560,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
          d_cmd = a_Dpip_build_cmd(
             "cmd=%s title=%s msg=%s alt1=%s alt2=%s",
             "dialog",
-            "Dillo HTTPS: Certificate not yet valid!",
+            "Hello HTTPS: Certificate not yet valid!",
             "Part of the remote certificate is not yet valid\n"
             "Certificates usually have a range of dates over which\n"
             "they are to be considered valid, and the certificate\n"
@@ -580,7 +580,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
          d_cmd = a_Dpip_build_cmd(
             "cmd=%s title=%s msg=%s alt1=%s alt2=%s",
             "dialog",
-            "Dillo HTTPS: Expired certificate!",
+            "Hello HTTPS: Expired certificate!",
             "The remote certificate has expired.  The certificate\n"
             "wasn't designed to last this long. You should avoid \n"
             "this site.",
@@ -599,7 +599,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
          d_cmd = a_Dpip_build_cmd(
             "cmd=%s title=%s msg=%s alt1=%s alt2=%s",
             "dialog",
-            "Dillo HTTPS: Certificate error!",
+            "Hello HTTPS: Certificate error!",
             "There was an error in the certificate presented.\n"
             "Some of the certificate data was improperly formatted\n"
             "making it impossible to determine if the certificate\n"
@@ -620,7 +620,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
          d_cmd = a_Dpip_build_cmd(
             "cmd=%s title=%s msg=%s alt1=%s alt2=%s",
             "dialog",
-            "Dillo HTTPS: Certificate chain error!",
+            "Hello HTTPS: Certificate chain error!",
             "One of the certificates in the chain is being used\n"
             "incorrectly (possibly due to configuration problems\n"
             "with the remote system.  The connection should not\n"
@@ -639,7 +639,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
          d_cmd = a_Dpip_build_cmd(
             "cmd=%s title=%s msg=%s alt1=%s alt2=%s",
             "dialog",
-            "Dillo HTTPS: Certificate mismatch!",
+            "Hello HTTPS: Certificate mismatch!",
             "Some of the information presented by the remote system\n"
             "does not match other information presented\n"
             "This may be an attempt to eavesdrop on communications",
@@ -655,7 +655,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
          d_cmd = a_Dpip_build_cmd(
             "cmd=%s title=%s msg=%s alt1=%s alt2=%s",
             "dialog",
-            "Dillo HTTPS: Self signed certificate!",
+            "Hello HTTPS: Self signed certificate!",
             "Self signed certificate in certificate chain. The certificate "
             "chain could be built up using the untrusted certificates but the "
             "root could not be found locally.",
@@ -671,7 +671,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
          d_cmd = a_Dpip_build_cmd(
             "cmd=%s title=%s msg=%s alt1=%s alt2=%s",
             "dialog",
-            "Dillo HTTPS: Missing issuer certificate!",
+            "Hello HTTPS: Missing issuer certificate!",
             "Unable to get local issuer certificate. The issuer certificate "
             "of an untrusted certificate cannot be found.",
             "Continue", "Cancel");
@@ -688,7 +688,7 @@ static int handle_certificate_problem(SSL * ssl_connection)
          d_cmd = a_Dpip_build_cmd(
             "cmd=%s title=%s msg=%s alt1=%s alt2=%s",
             "dialog",
-            "Dillo HTTPS: Unverifiable certificate!", buf,
+            "Hello HTTPS: Unverifiable certificate!", buf,
             "Continue", "Cancel");
          a_Dpip_dsh_write_str(sh, 1, d_cmd);
          dFree(d_cmd);
@@ -717,14 +717,14 @@ static int save_certificate_home(X509 * cert)
    uint_t i = 0;
    int ret = 1;
 
-   /*Attempt to create .dillo/certs blindly - check later*/
-   snprintf(buf,4096,"%s/.dillo/", dGethomedir());
+   /*Attempt to create .PROGRAM_LOCAL_DIR/certs blindly - check later*/
+   snprintf(buf,4096,"%s/" PROGRAM_LOCAL_DIR "/", dGethomedir());
    mkdir(buf, 01777);
-   snprintf(buf,4096,"%s/.dillo/certs/", dGethomedir());
+   snprintf(buf,4096,"%s/" PROGRAM_LOCAL_DIR "/certs/", dGethomedir());
    mkdir(buf, 01777);
 
    do {
-      snprintf(buf, 4096, "%s/.dillo/certs/%lx.%u",
+      snprintf(buf, 4096, "%s/" PROGRAM_LOCAL_DIR "/certs/%lx.%u",
                dGethomedir(), X509_subject_name_hash(cert), i);
 
       fp=fopen(buf, "r");
@@ -798,7 +798,7 @@ static void no_ssl_support(void)
       "  The https dpi was unable to send\n"
       "  the following HTTP query:\n"
       "  <blockquote><pre>%s</pre></blockquote>\n"
-      "  because Dillo's prototype plugin for https support"
+      "  because browser's prototype plugin for https support"
       "  is disabled.\n\n"
       "<p>\n"
       "  If you want to test this <b>alpha</b> support code,\n"

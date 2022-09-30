@@ -23,7 +23,7 @@
 #define MSGLEN 50
 #define DPID_BASE_PORT (IPPORT_USERRESERVED + 20)
 
-/*! \TODO: Should read this from dillorc */
+/*! \TODO: Should read this from browserrc */
 #define SRS_NAME "dpid.srs"
 extern char *srs_name;
 

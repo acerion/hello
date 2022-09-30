@@ -127,7 +127,7 @@ typedef enum {
  * Detects 'Content-Type' from a data stream sample.
  *
  * It uses the magic(5) logic from file(1). Currently, it
- * only checks the few mime types that Dillo supports.
+ * only checks the few mime types that the browser supports.
  *
  * 'Data' is a pointer to the first bytes of the raw data.
  *
@@ -309,7 +309,7 @@ int a_Misc_content_type_cmp(const char *ct1, const char *ct2)
  *  0,  if they match
  *  -1, if a mismatch is detected
  *
- * There are many MIME types Dillo doesn't know, they're handled
+ * There are many MIME types the browser doesn't know, they're handled
  * as "application/octet-stream" (as the SPEC says).
  *
  * A mismatch happens when receiving a binary stream as
@@ -385,7 +385,7 @@ int a_Misc_parse_geometry(char *str, int *x, int *y, int *w, int *h)
 }
 
 /*
- * Parse dillorc's search_url string ("[<label> ]<url>")
+ * Parse browserrc's search_url string ("[<label> ]<url>")
  * Return value: -1 on error, 0 on success (and label and urlstr pointers)
  */
 int a_Misc_parse_search_url(char *source, char **label, char **urlstr)

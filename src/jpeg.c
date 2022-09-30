@@ -10,7 +10,7 @@
  */
 
 /*
- * The jpeg decoder for dillo. It is responsible for decoding JPEG data
+ * The jpeg decoder. It is responsible for decoding JPEG data
  * and transferring it to the dicache. It uses libjpeg to do the actual
  * decoding.
  */

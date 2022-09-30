@@ -90,7 +90,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-bin_PROGRAMS = dillo$(EXEEXT)
+bin_PROGRAMS = hello$(EXEEXT)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -104,7 +104,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(sysconfdir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_dillo_OBJECTS = dillo.$(OBJEXT) paths.$(OBJEXT) tipwin.$(OBJEXT) \
+am_hello_OBJECTS = dillo.$(OBJEXT) paths.$(OBJEXT) tipwin.$(OBJEXT) \
 	ui.$(OBJEXT) uicmd.$(OBJEXT) bw.$(OBJEXT) cookies.$(OBJEXT) \
 	auth.$(OBJEXT) md5.$(OBJEXT) digest.$(OBJEXT) misc.$(OBJEXT) \
 	history.$(OBJEXT) prefs.$(OBJEXT) prefsparser.$(OBJEXT) \
@@ -118,8 +118,8 @@ am_dillo_OBJECTS = dillo.$(OBJEXT) paths.$(OBJEXT) tipwin.$(OBJEXT) \
 	bookmark.$(OBJEXT) dns.$(OBJEXT) gif.$(OBJEXT) jpeg.$(OBJEXT) \
 	png.$(OBJEXT) imgbuf.$(OBJEXT) image.$(OBJEXT) menu.$(OBJEXT) \
 	dpiapi.$(OBJEXT) findbar.$(OBJEXT) xembed.$(OBJEXT)
-dillo_OBJECTS = $(am_dillo_OBJECTS)
-dillo_DEPENDENCIES = $(top_builddir)/dlib/libDlib.a \
+hello_OBJECTS = $(am_hello_OBJECTS)
+hello_DEPENDENCIES = $(top_builddir)/dlib/libDlib.a \
 	$(top_builddir)/dpip/libDpip.a IO/libDiof.a \
 	$(top_builddir)/dw/libDw-widgets.a \
 	$(top_builddir)/dw/libDw-fltk.a \
@@ -185,8 +185,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(dillo_SOURCES)
-DIST_SOURCES = $(dillo_SOURCES)
+SOURCES = $(hello_SOURCES)
+DIST_SOURCES = $(hello_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -412,7 +412,7 @@ AM_CPPFLAGS = \
 AM_CFLAGS = @LIBPNG_CFLAGS@
 AM_CXXFLAGS = @LIBPNG_CFLAGS@ @LIBFLTK_CXXFLAGS@
 SUBDIRS = IO Hello
-dillo_LDADD = \
+hello_LDADD = \
 	$(top_builddir)/dlib/libDlib.a \
 	$(top_builddir)/dpip/libDpip.a \
 	IO/libDiof.a \
@@ -424,7 +424,7 @@ dillo_LDADD = \
 	@LIBJPEG_LIBS@ @LIBPNG_LIBS@ @LIBFLTK_LIBS@ @LIBZ_LIBS@ \
 	@LIBICONV_LIBS@ @LIBPTHREAD_LIBS@ @LIBX11_LIBS@
 
-dillo_SOURCES = \
+hello_SOURCES = \
 	dillo.cc \
 	paths.cc \
 	paths.hh \
@@ -605,9 +605,9 @@ uninstall-binPROGRAMS:
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
-dillo$(EXEEXT): $(dillo_OBJECTS) $(dillo_DEPENDENCIES) $(EXTRA_dillo_DEPENDENCIES) 
-	@rm -f dillo$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(dillo_OBJECTS) $(dillo_LDADD) $(LIBS)
+hello$(EXEEXT): $(hello_OBJECTS) $(hello_DEPENDENCIES) $(EXTRA_hello_DEPENDENCIES) 
+	@rm -f hello$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(hello_OBJECTS) $(hello_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)

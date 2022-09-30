@@ -16,8 +16,8 @@
  */
 
 /*! \file
- * Access functions for  ~/.dillo/dpi_socket_dir.
- * The most useful function for dillo is a_Dpi_srs, it returns
+ * Access functions for  ~/PROGRAM_LOCAL_DIR/dpi_socket_dir.
+ * The most useful function for the web browser is a_Dpi_srs, it returns
  * the full path to the dpid service request socket.
  */
 
@@ -33,17 +33,17 @@
  */
 char *a_Dpi_sockdir_file(void)
 {
-   char *dpi_socket_dir, *dirfile_path = "/.dillo/dpi_socket_dir";
+   char *dpi_socket_dir, *dirfile_path = "/" PROGRAM_LOCAL_DIR "/dpi_socket_dir";
 
    dpi_socket_dir = dStrconcat(dGethomedir(), dirfile_path, NULL);
    return dpi_socket_dir;
 }
 
-/*! Read socket directory path from ~/.dillo/dpi_socket_dir
+/*! Read socket directory path from ~/PROGRAM_LOCAL_DIR/dpi_socket_dir
  * \Return
  * socket directory path or NULL if the dpi_socket_dir file does not exist.
  * \Note
- * This function exits if ~/.dillo does not exist or
+ * This function exits if ~/PROGRAM_LOCAL_DIR does not exist or
  * if the dpi_socket_dir file cannot be opened for a
  * reason other than it does not exist.
  */
@@ -53,9 +53,9 @@ char *a_Dpi_rd_dpi_socket_dir(char *dirname)
    FILE *dir;
    char *sockdir = NULL, *rcpath;
 
-   rcpath = dStrconcat(dGethomedir(), "/.dillo", NULL);
+   rcpath = dStrconcat(dGethomedir(), "/" PROGRAM_LOCAL_DIR, NULL);
 
-   /* If .dillo does not exist it is an unrecoverable error */
+   /* If PROGRAM_LOCAL_DIR does not exist it is an unrecoverable error */
    if (access(rcpath, F_OK) == -1) {
       ERRMSG("a_Dpi_rd_dpi_socket_dir", "access", errno);
       MSG_ERR(" - %s\n", rcpath);

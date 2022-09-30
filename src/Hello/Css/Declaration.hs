@@ -1016,8 +1016,8 @@ makeCssPropertyColor pat = (pat', fmap CssPropertyColor propValue)
 -- ------------------------------------------------
 -- Content (content)
 --
--- Not really supported by dillo, and not supported by this implementation
--- either (beyond simple creation of declaration).
+-- Not really supported by the program, and not supported by this
+-- implementation either (beyond simple creation of declaration).
 -- ------------------------------------------------
 
 
@@ -2304,7 +2304,7 @@ makeCssPropertyZIndex v = CssPropertyZIndex v
 -- ------------------------------------------------
 -- x-link pseudo-property
 --
--- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- Pseudo-property used internally by the browser. It is not parsed by CSS
 -- parser, but set from HTML parser.
 
 -- Without this property following a/href links won't work.
@@ -2329,7 +2329,7 @@ data CssValueXLink
 -- x-colspan pseudo-property
 -- Currently unused.
 --
--- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- Pseudo-property used internally by the browser. It is not parsed by CSS
 -- parser, but set from HTML parser.
 --
 -- There is no parser/constructor function because the value never appears in
@@ -2344,7 +2344,7 @@ data CssValueXLink
 -- x-rowspan pseudo-property
 -- Currently unused.
 --
--- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- Pseudo-property used internally by the browser. It is not parsed by CSS
 -- parser, but set from HTML parser.
 --
 -- There is no parser/constructor function because the value never appears in
@@ -2360,7 +2360,7 @@ data CssValueXLink
 --
 -- Pseudo-property for "lang" or "xml:lang" attribute of html element.
 --
--- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- Pseudo-property used internally by the browser. It is not parsed by CSS
 -- parser, but set from HTML parser.
 --
 -- There is no parser/constructor function because the value never appears in
@@ -2382,7 +2382,7 @@ data CssValueXLang
 --
 -- Pseudo-property used (probably) to index images in a html document.
 --
--- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- Pseudo-property used internally by the browser. It is not parsed by CSS
 -- parser, but set from HTML parser.
 --
 -- There is no parser/constructor function because the value never appears in
@@ -2402,7 +2402,7 @@ data CssValueXImg
 -- ------------------------------------------------
 -- x-tooltip pseudo-property
 --
--- Pseudo-property used internally by dillo/hello. It is not parsed by CSS
+-- Pseudo-property used internally by the browser. It is not parsed by CSS
 -- parser, but set from HTML parser.
 --
 -- There is no parser/constructor function because the value never appears in

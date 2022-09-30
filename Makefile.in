@@ -359,8 +359,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = lout dw dlib dpip src doc dpid dpi test
 dist_bin_SCRIPTS = dillo-install-hyphenation
-EXTRA_DIST = Doxyfile dillorc install-dpi-local d_size.h
-sysconf_DATA = dillorc
+EXTRA_DIST = Doxyfile browserrc install-dpi-local d_size.h
+sysconf_DATA = browserrc
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

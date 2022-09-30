@@ -821,7 +821,7 @@ void *dList_find_sorted (Dlist *lp, const void *data, dCompareFunc func)
  */
 
 /*
- * Take a dillo rc line and return 'name' and 'value' pointers to it.
+ * Take a browserrc line and return 'name' and 'value' pointers to it.
  * Notes:
  *    - line is modified!
  *    - it skips blank lines and lines starting with '#'

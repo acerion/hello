@@ -70,7 +70,7 @@ int main(void)
    dFree(dpip_tag);
 
    /* Read the dpi command from STDIN
-    * Now we're past the authentication phase, let's see what's dillo
+    * Now we're past the authentication phase, let's see what's the browser
     * asking from us. a_Dpip_dsh_read_token() will block and return
     * a full dpip token or null on error (it's commented in dpip.c) */
    dpip_tag = a_Dpip_dsh_read_token(sh, 1);
@@ -92,7 +92,7 @@ int main(void)
    /* NOTE: you can send less alternatives (e.g. only alt1 and alt2) */
    d_cmd = a_Dpip_build_cmd(
               "cmd=%s title=%s msg=%s alt1=%s alt2=%s alt3=%s alt4=%s alt5=%s",
-              "dialog", "Dillo: Hello", "Do you want to see the hello page?",
+              "dialog", "Hello", "Do you want to see the hello page?",
               choice[1], choice[2], choice[3], choice[4], choice[5]);
    a_Dpip_dsh_write_str(sh, 1, d_cmd);
    dFree(d_cmd);

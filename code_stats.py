@@ -6,7 +6,7 @@ import datetime as dt
 
 
 
-# Stats about line counts in hello project, without sh and perl, for almost
+# Stats about line counts in the project, without sh and perl, for almost
 # entire project (src, dpid, dpic dirs etc.)
 
 # Haskell numbers don't include code in these dirs:
@@ -100,7 +100,7 @@ plt.gcf().autofmt_xdate()
 
 plt.xlabel("Date")
 plt.ylabel("LOC")
-plt.title("hello's LOC over time")
+plt.title("project's LOC over time")
 plt.legend()
 
 # Major ticks every 20, minor ticks every 5

@@ -9,7 +9,7 @@
  * (at your option) any later version.
  */
 
-/* Support for dpi/dpip from Dillo's side */
+/* Support for dpi/dpip from browser's side */
 
 #include "msg.h"
 #include "bw.h"

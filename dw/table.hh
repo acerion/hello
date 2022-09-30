@@ -15,7 +15,7 @@ namespace dw {
  * The dw::Table widget is used to render HTML tables.
  *
  * Each cell is itself a separate widget. Any widget may be used, however, in
- * dillo, only instances of dw::Textblock and dw::TableCell are used as
+ * this program, only instances of dw::Textblock and dw::TableCell are used as
  * children of dw::Table.
  *
  *

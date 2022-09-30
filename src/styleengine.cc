@@ -734,7 +734,7 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
 void StyleEngine::buildUserStyle(int context_ref)
 {
    Dstr *style;
-   char *filename = dStrconcat(dGethomedir(), "/.dillo/style.css", NULL);
+   char *filename = dStrconcat(dGethomedir(), "/" PROGRAM_LOCAL_DIR "/style.css", NULL);
 
    if ((style = a_Misc_file2dstr(filename))) {
       {

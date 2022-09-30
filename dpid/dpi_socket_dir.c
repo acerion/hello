@@ -26,7 +26,7 @@
 #include "misc_new.h"
 #include "dpi_socket_dir.h" /* for function prototypes */
 
-/*! Save socket directory name in ~/.dillo/dpi_socket_dir
+/*! Save socket directory name in ~/PROGRAM_LOCAL_DIR/dpi_socket_dir
  * \Return
  * \li 1 on success
  * \li -1 on failure
@@ -78,7 +78,7 @@ char *mk_sockdir(void)
 {
    char *template, *logname;
 
-   logname = getenv("LOGNAME") ? getenv("LOGNAME") : "dillo";
+   logname = getenv("LOGNAME") ? getenv("LOGNAME") : "hello";
    template = dStrconcat("/tmp/", logname, "-", "XXXXXX", NULL);
    if (a_Misc_mkdtemp(template) == NULL) {
       ERRMSG("mk_sockdir", "a_Misc_mkdtemp", 0);
@@ -90,7 +90,7 @@ char *mk_sockdir(void)
 }
 
 /*! Create socket directory if it does not exist and save its name in
- * ~/.dillo/dpi_socket_dir.
+ * ~/PROGRAM_LOCAL_DIR/dpi_socket_dir.
  * \Return
  * \li Socket directory name on success
  * \li NULL on failure.

@@ -1,5 +1,5 @@
 /*
- * The png decoder for Dillo. It is responsible for decoding PNG data
+ * The png decoder. It is responsible for decoding PNG data
  * and transferring it to the dicache.
  *
  * Geoff Lane nov 1999 zzassgl@twirl.mcc.ac.uk
@@ -201,7 +201,7 @@ Png_datainfo_callback(png_structp png_ptr, png_infop info_ptr)
    png->bytes_per_row = png_get_rowbytes(png_ptr, info_ptr);
    png->channels = png_get_channels(png_ptr, info_ptr);
 
-   /* init Dillo specifics */
+   /* init browser specifics */
    _MSG("Png_datainfo_callback: bytes per row = %d\n"
         "Png_datainfo_callback: width         = %lu\n"
         "Png_datainfo_callback: height        = %lu\n",

@@ -97,7 +97,7 @@ static const CLI_options Options[] = {
    {"-v", "--version",    0, DILLO_CLI_VERSION,
     "  -v, --version          Display version info and exit."},
    {"-x", "--xid",        1, DILLO_CLI_XID,
-    "  -x, --xid XID          Open first Dillo window in an existing\n"
+    "  -x, --xid XID          Open first Hello window in an existing\n"
     "                         window whose window ID is XID."},
    {NULL, NULL, 0, DILLO_CLI_NONE, NULL}
 };
@@ -403,7 +403,7 @@ int main(int argc, char **argv)
 
    srand((uint_t)(time(0) ^ getpid()));
 
-   // Some OSes exit dillo without this (not GNU/Linux).
+   // Some OSes exit the browser without this (not GNU/Linux).
    signal(SIGPIPE, SIG_IGN);
    // Establish our custom SIGCHLD handler
    est_sigchld();
@@ -434,7 +434,7 @@ int main(int argc, char **argv)
          }
          break;
       case DILLO_CLI_VERSION:
-         puts("Dillo version " VERSION);
+         puts("Hello version " VERSION);
          return 0;
       case DILLO_CLI_HELP:
          printHelp(argv[0], Options);
@@ -449,13 +449,13 @@ int main(int argc, char **argv)
    // set the default values for the preferences
    a_Prefs_init();
 
-   // create ~/.dillo if not present
+   // create ~/PROGRAM_LOCAL_DIR if not present
    Paths::init();
 
    // initialize default key bindings
    Keys::init();
 
-   // parse dillorc
+   // parse browserrc
    if ((fp = Paths::getPrefsFP(PATHS_RC_PREFS))) {
       PrefsParser::parse(fp);
    }
@@ -501,7 +501,7 @@ int main(int argc, char **argv)
    }
 
    // Sets WM_CLASS hint on X11
-   Fl_Window::default_xclass("dillo");
+   Fl_Window::default_xclass("hello");
 
    Fl::scheme(prefs.theme);
 
@@ -528,13 +528,13 @@ int main(int argc, char **argv)
                                             // only way to set the
                                             // default font in fltk1.3
 
-   fl_message_title_default("Dillo: Message");
+   fl_message_title_default("Hello: Message");
 
    // Create a new UI/bw pair
    BrowserWindow *bw = a_UIcmd_browser_window_new(0, 0, xid, NULL);
 
    /* We need this so that fl_text_extents() in dw/fltkplatform.cc can
-    * work when FLTK is configured without XFT and Dillo is opening
+    * work when FLTK is configured without XFT and browser is opening
     * immediately-available URLs from the cmdline (e.g. about:splash).
     */
    ((Fl_Widget *)bw->ui)->window()->make_current();
@@ -603,7 +603,7 @@ int main(int argc, char **argv)
    /* TODO: auth, css */
 
    //a_Dpi_dillo_exit();
-   MSG("Dillo: normal exit!\n");
+   MSG("Hello: normal exit!\n");
    return 0;
 }
 

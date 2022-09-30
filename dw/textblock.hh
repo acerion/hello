@@ -88,9 +88,9 @@ namespace dw {
  * and the space calculated according to the rules for collapsing margins.
  *
  * (This is an intermediate hybrid state, collapsing spaces are used in
- * the current version of dillo, while I implemented collapsing margins
+ * the current version of this browser, while I implemented collapsing margins
  * for the CSS prototype and integrated it already into the main trunk. For
- * a pure CSS-based dillo, collapsing spaces will not be needed anymore, and
+ * a pure CSS-based browser, collapsing spaces will not be needed anymore, and
  * may be removed for simplicity.)
  *
  *

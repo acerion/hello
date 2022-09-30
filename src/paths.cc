@@ -21,11 +21,11 @@
  * Local data
  */
 
-// Dillo works from an unmounted directory (/tmp)
+// Browser works from an unmounted directory (/tmp)
 static char* oldWorkingDir = NULL;
 
 /*
- * Changes current working directory to /tmp and creates ~/.dillo
+ * Changes current working directory to /tmp and creates ~/PROGRAM_LOCAL_DIR
  * if not exists.
  */
 void Paths::init(void)
@@ -42,7 +42,7 @@ void Paths::init(void)
           dStrerror(errno));
    }
 
-   path = dStrconcat(dGethomedir(), "/.dillo", NULL);
+   path = dStrconcat(dGethomedir(), "/" PROGRAM_LOCAL_DIR, NULL);
    if (stat(path, &st) == -1) {
       if (errno == ENOENT) {
          MSG("paths: Creating directory '%s/'\n", path);
@@ -51,7 +51,7 @@ void Paths::init(void)
                 path, dStrerror(errno));
          }
       } else {
-         MSG("Dillo: error reading %s: %s\n", path, dStrerror(errno));
+         MSG("Hello: error reading %s: %s\n", path, dStrerror(errno));
       }
    }
 
@@ -80,7 +80,7 @@ void Paths::free(void)
 FILE *Paths::getPrefsFP(const char *rcFile)
 {
    FILE *fp;
-   char *path = dStrconcat(dGethomedir(), "/.dillo/", rcFile, NULL);
+   char *path = dStrconcat(dGethomedir(), "/" PROGRAM_LOCAL_DIR "/", rcFile, NULL);
 
    if (!(fp = fopen(path, "r"))) {
       MSG("paths: Cannot open file '%s': %s\n", path, dStrerror(errno));
