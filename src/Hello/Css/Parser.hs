@@ -364,7 +364,7 @@ ignoreBlock parser = ignoreBlock' (parser, CssTokNone) 0
     ignoreBlock' (par, CssTokBraceCurlyClose) depth = if depth == 1
                                                       then nextToken1 par
                                                       else ignoreBlock' (nextToken1 par) (depth - 1)
-    ignoreBlock' (_par, _tok) depth                 = ignoreBlock' (nextToken1 parser) depth
+    ignoreBlock' (par, _tok) depth                  = ignoreBlock' (nextToken1 par) depth
 {-
    while (tokenizer->type != CSS_TOKEN_TYPE_END) {
       if (tokenizer->type == CSS_TOKEN_TYPE_CHAR) {
