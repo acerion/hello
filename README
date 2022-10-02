@@ -21,3 +21,23 @@ features). Examples of X and Y are stack/cabal or a parsing library.
 Currently (August 2022) the project is hosted on GitHub:
 https://github.com/acerion/hello.
 
+
+
+
+Compile-time dependencies include:
+libssl-dev
+libpng-dev
+libjpeg-dev
+libfltk1.3-dev
+ghc version 8.8.4
+
+
+
+
+Compile, install and run with these commands:
+export hello_rootdir=pseudoroot
+./configure --prefix=$HOME/$hello_rootdir --enable-ssl
+make
+make install prefix=$HOME/$hello_rootdir
+LD_LIBRARY_PATH=$HOME/$hello_rootdir/lib ~/$hello_rootdir/bin/hello
+

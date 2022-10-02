@@ -10,6 +10,32 @@ High-level information about changes and progress of the project.
 
 
 
+2022.xx.yy
+
+ - New public release: hello-0.2.0.
+
+ - Name of the project has been changed in many (but not all yet) places from
+   dillo to hello. This includes the name of main binary and the name in HTTP
+   User Agent.
+
+ - Contents of default page displayed by the browser has been updated.
+
+ - Clear compilation and installation instructions are added to README.
+
+ - The program no longer depends on dillo or its instance of dpid.
+
+ - Refactoring of Haskell code.
+
+ - Partial support for "font" CSS property has been re-introduced.
+
+ - Haskell code is now being compiled with -Wall -Wno-missing-signatures, and
+   causes of all warnings are fixed.
+
+ - Applying Debian's fix-OpenSSL-1.1-detection.patch patch.
+
+
+
+
 2022.08.18
 
  - First public release: hello-0.1.0.
