@@ -141,7 +141,7 @@ hll_getDoctype4 ptrHtmlDoctype cBuf = do
 
   pokeHtmlDoctype ptrHtmlDoctype newHtmlDoctype
 
-  putStrLn $ show newHtmlDoctype
+  --putStrLn $ show newHtmlDoctype
 
   return ()
 
@@ -159,7 +159,7 @@ hll_getDoctypeFromBuffer ptrHtmlDoctype cBuf cBufLen = do
 
   pokeHtmlDoctype ptrHtmlDoctype newHtmlDoctype
 
-  putStrLn $ show newHtmlDoctype
+  --putStrLn $ show newHtmlDoctype
 
   return ()
 
