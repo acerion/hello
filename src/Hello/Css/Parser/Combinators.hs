@@ -82,7 +82,7 @@ combinatorExactlyOne fs pat = if countOfNonEmpty == 1
                               else (pat, Nothing)
 
   where
-    countOfNonEmpty = L.length $ L.filter (\l -> not . L.null $ l) accumulators
+    countOfNonEmpty = L.length $ L.filter (not . L.null) accumulators
     (outPat, accumulators) = runFunctions fs (pat, [])
 
 
@@ -103,7 +103,7 @@ combinatorAllInOrder functions pat = if countOfNonEmpty == L.length functions
                                      else (pat, Nothing)
 
   where
-    countOfNonEmpty        = (L.length accumulators)
+    countOfNonEmpty        = L.length accumulators
     (outPat, accumulators) = runFunctions functions (pat, [])
 
 

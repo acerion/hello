@@ -103,10 +103,10 @@ data CssStyleSheet = CssStyleSheet {
 
 instance Show CssStyleSheet where
   show (CssStyleSheet i c t a) = "CssStyleSheet {\n" ++
-                                 "rulesById { "     ++ (show i) ++ " }\n\n" ++
-                                 "rulesByClass { "  ++ (show c) ++ " }\n\n" ++
-                                 "rulesByType  { "  ++ (show t) ++ " }\n\n" ++
-                                 "rulesByAny { "    ++ (show a) ++ " }\n" ++
+                                 "rulesById { "     ++ show i ++ " }\n\n" ++
+                                 "rulesByClass { "  ++ show c ++ " }\n\n" ++
+                                 "rulesByType  { "  ++ show t ++ " }\n\n" ++
+                                 "rulesByAny { "    ++ show a ++ " }\n" ++
                                  "}\n\n\n"
 
 
@@ -134,7 +134,7 @@ insertRuleToStyleSheet sheet rule
   | compoundHasClass compound          = sheet { rulesByClass      = updatedRulesByClass }
   | compoundHasSpecificType compound   = sheet { rulesByType       = updatedRulesByType }
   | compoundHasUniversalType compound  = sheet { rulesByAnyElement = updatedRulesByAnyElement }
-  | compoundHasUnexpectedType compound = trace ("[NN] insert rule to stylesheet: unexpected element: " ++ (show . selectorTagName $ compound)) (sheet)
+  | compoundHasUnexpectedType compound = trace ("[NN] insert rule to stylesheet: unexpected element: " ++ (show . selectorTagName $ compound)) sheet
   | otherwise                          = sheet
 
   where
@@ -148,7 +148,7 @@ insertRuleToStyleSheet sheet rule
 
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
 
-    thisElementRules sheetArg (Just t) = (rulesByType sheetArg) !! t
+    thisElementRules sheetArg (Just t) = rulesByType sheetArg !! t
     thisElementRules _        Nothing  = []
 
 
@@ -192,7 +192,7 @@ span + concat.
 insertRuleInListOfRules :: [CssRule] -> CssRule -> [CssRule]
 insertRuleInListOfRules list rule = L.concat [smallerOrEqual, [rule], larger]
   where
-    (smallerOrEqual, larger) = L.span (\r -> (specificity rule) >= (specificity r)) list
+    (smallerOrEqual, larger) = L.span (\r -> specificity rule >= specificity r) list
 
 
 
@@ -269,7 +269,7 @@ cssRuleIsSafe rule = (not . cssComplexSelectorHasPseudoClass . complexSelector $
 -- of pseudo class simple selectors? Remember that C/C++ code can use only
 -- first pseudo class.
 cssComplexSelectorHasPseudoClass :: CssCachedComplexSelector -> Bool
-cssComplexSelectorHasPseudoClass complex = chainAnyDatum (\compound -> not . null . selectorPseudoClass $ compound) (chain complex)
+cssComplexSelectorHasPseudoClass complex = chainAnyDatum (not . null . selectorPseudoClass) (chain complex)
 
 
 
@@ -287,7 +287,7 @@ cssContextAddRule context sheetSelector rule  =
   -- TODO: should we increment rulePosition in a context, to which a rule
   -- is not being added (in "then" branch)?
   if (sheetSelector == CssPrimaryAuthor || sheetSelector == CssPrimaryAuthorImportant) && (not . cssRuleIsSafe $ rule)
-  then trace ("[WW] Ignoring unsafe author style that might reveal browsing history") (context{rulePosition = (rulePosition context) + 1})
+  then trace ("[WW] Ignoring unsafe author style that might reveal browsing history") (context{rulePosition = rulePosition context + 1})
   else cssContextAddRule' . ruleSetOffsetAndPosition $ (context, sheetSelector, rule)
 
 
@@ -310,7 +310,7 @@ ruleSetOffsetAndPosition (context, ss, rule) = ( context
 cssContextAddRule' :: (CssContext, CssSheetSelector, CssRule) -> CssContext
 cssContextAddRule' (context, sheetSelector, rule) = context { sheets       = updateSheet (sheets context) sheetSelector updatedSheet
                                                             , matchCache   = matchCacheIncreaseBy (matchCache context) delta
-                                                            , rulePosition = (rulePosition context) + 1
+                                                            , rulePosition = rulePosition context + 1
                                                             }
   where
     updatedSheet = insertRuleToStyleSheet (getSheet context sheetSelector) rule
@@ -389,7 +389,7 @@ readDeclarations parser token = ((p3, t3), (declSet, declSetImp))
   where
     ((p2, t2), (declSet, declSetImp)) = case token of
                                           CssTokEnd -> ((parser, token), (declSet, declSetImp))
-                                          _         -> readDeclarations' ((nextToken1 parser{ inBlock = True }), (defaultCssDeclarationSet, defaultCssDeclarationSet))
+                                          _         -> readDeclarations' (nextToken1 parser{ inBlock = True }, (defaultCssDeclarationSet, defaultCssDeclarationSet))
     (p3, t3) = case t2 of
                  CssTokBraceCurlyClose -> nextToken1 p2{ inBlock = False }
                  _                     -> (p2{ inBlock = False }, t2)
@@ -486,7 +486,7 @@ parseMediaRule ((parser, token), context) = ((p3, t3), c3)
                                 Nothing -> (False, False)
 
     ((p3, t3), c3) = if mediaMatch
-                     then parseMediaBlock ((nextToken1 p2), context) -- nextToken skips opening brace of a block
+                     then parseMediaBlock (nextToken1 p2, context) -- nextToken skips opening brace of a block
                      else (ignoreBlock p2, context)
 
 
@@ -494,7 +494,7 @@ parseMediaRule ((parser, token), context) = ((p3, t3), c3)
 
 parseMediaBlock ((parser, token), context) = case parseRuleset ((parser, token), context) of
                                                ((p2, CssTokEnd), c2)             -> ((p2, CssTokEnd), c2)
-                                               ((p2, CssTokBraceCurlyClose), c2) -> ((nextToken1 p2), c2) -- Consume closing brace of media block
+                                               ((p2, CssTokBraceCurlyClose), c2) -> (nextToken1 p2, c2) -- Consume closing brace of media block
                                                ((p2, t2), c2)                    -> parseRuleset ((p2, t2), c2)
 
 

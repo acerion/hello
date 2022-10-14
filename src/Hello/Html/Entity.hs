@@ -187,7 +187,7 @@ takeBody parser text = if T.isPrefixOf "#" text
 takeSemicolon :: EntityParser -> T.Text -> Maybe EntityParser
 takeSemicolon parser text = if T.isPrefixOf ";" text
                             then Just (parser { remainder = T.tail text })
-                            else Just (parser)
+                            else Just parser
 
 
 
@@ -202,7 +202,7 @@ takeSemicolon parser text = if T.isPrefixOf ";" text
 htmlEntityNumberToIsoCode :: EntityParser -> T.Text -> EntityParser
 htmlEntityNumberToIsoCode parserArg textArg =
   if T.isPrefixOf "x" text'
-  then if (T.isPrefixOf "x0x" text')  -- T.R.hexadecimal supports leading 0x, but leading 0x is not valid in numeric entity.
+  then if T.isPrefixOf "x0x" text'  -- T.R.hexadecimal supports leading 0x, but leading 0x is not valid in numeric entity.
        then parserArg { entityIsoCode = Nothing, remainder = T.drop 3 textArg }
        else numReader T.R.hexadecimal parserArg (T.tail textArg)
   else numReader T.R.decimal parserArg textArg
@@ -226,7 +226,7 @@ htmlEntityNumberToIsoCode parserArg textArg =
 --       while (*++s && (isalnum(*s) || strchr(":_.-", *s))) ;
 -- The pred function should take this into consideration.
 htmlEntityNameToIsoCode :: EntityParser -> T.Text -> EntityParser
-htmlEntityNameToIsoCode parser name = parser { entityIsoCode = (M.lookup name' gEntities),
+htmlEntityNameToIsoCode parser name = parser { entityIsoCode = M.lookup name' gEntities,
                                                remainder = T.drop (T.length name') name }
   where name' = T.takeWhile predicate name
         predicate :: Char -> Bool

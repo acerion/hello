@@ -58,7 +58,7 @@ globalContainerPut globalContainer item = do
   old <- readIORef globalContainer
   let new = old ++ [ item ]
   writeIORef globalContainer new
-  return ((length new) - 1)
+  return (length new - 1)
 
 
 
@@ -70,7 +70,7 @@ globalContainerCtor globalContainer defaultMaker = do
   old <- readIORef globalContainer
   let new = old ++ [ defaultMaker ]
   writeIORef globalContainer new
-  return ((length new) - 1)
+  return (length new - 1)
 
 
 

@@ -175,7 +175,7 @@ module Hello.Css.Declaration
   , makeCssPropertyWidth
   , makeCssPropertyWordSpacing
   , makeCssPropertyZIndex
-  , makeCssProperty_LAST
+  , makeCssPropertyInvalid
 
   , defaultDeclaration
 
@@ -237,7 +237,7 @@ data CssDeclaration = CssDeclaration
 
 
 defaultDeclaration = CssDeclaration
-  { property  = CssProperty_LAST -- TODO: make it "CssPropertyInvalid'; TODO: somewhere there is a code that does not set property2 field.
+  { property  = CssPropertyInvalid -- TODO: somewhere there is a code that does not set property2 field.
   , important = False
   }
 
@@ -336,7 +336,7 @@ data CssProperty
   | CssPropertyXImg CssValueXImg                     -- 84               parsing is NOT unit-tested because there is no CSS parsing of this property
   | CssPropertyXTooltip CssValueXTooltip             -- 85               parsing is NOT unit-tested because there is no CSS parsing of this property
 
-  | CssProperty_LAST                                 -- 86
+  | CssPropertyInvalid                               -- 86
   deriving (Eq, Show, Data)
 
 
@@ -875,7 +875,7 @@ cssValueBorderStyleDict = [ ("none",     CssValueBorderStyleNone)
 
 
 parseTokensAsBorderStyleValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderStyle)
-parseTokensAsBorderStyleValue pat = ((pat'), propValue)
+parseTokensAsBorderStyleValue pat = (pat', propValue)
   where
     (vh', propValue) = interpretTokensAsEnum vh
     pat'             = pt3 vh'
@@ -2426,7 +2426,7 @@ data CssValueXTooltip
 
 
 
-makeCssProperty_LAST _ = CssProperty_LAST
+makeCssPropertyInvalid _ = CssPropertyInvalid
 
 
 
@@ -2448,7 +2448,7 @@ parseDeclarationMultiple patArg propCtors = L.foldl f (patArg, []) propCtors
   where
     f (pat, acc) propCtor = case propCtor pat of
                               (pat', Nothing)   -> (pat', acc)
-                              (pat', Just decl) -> (pat', (acc ++ [decl]))
+                              (pat', Just decl) -> (pat', acc ++ [decl])
 
 
 
@@ -2459,10 +2459,10 @@ parseDeclaration4321trbl :: (CssParser, CssToken) -> [b -> CssProperty] -> Prope
 parseDeclaration4321trbl pat (propCtorT:propCtorR:propCtorB:propCtorL:_) propValueCtor = (pat', ds)
   where
     ds = case propertyValues of
-           (top:right:bottom:left:[]) -> [ propCtorT top, propCtorR right, propCtorB bottom, propCtorL left ]
-           (top:rl:bottom:[])         -> [ propCtorT top, propCtorR rl,    propCtorB bottom, propCtorL rl   ]
-           (tb:rl:[])                 -> [ propCtorT tb,  propCtorR rl,    propCtorB tb,     propCtorL rl   ]
-           (v:[])                     -> [ propCtorT v,   propCtorR v,     propCtorB v,      propCtorL v    ]
+           [top, right, bottom, left] -> [ propCtorT top, propCtorR right, propCtorB bottom, propCtorL left ]
+           [top, rl, bottom]          -> [ propCtorT top, propCtorR rl,    propCtorB bottom, propCtorL rl   ]
+           [tb, rl]                   -> [ propCtorT tb,  propCtorR rl,    propCtorB tb,     propCtorL rl   ]
+           [v]                        -> [ propCtorT v,   propCtorR v,     propCtorB v,      propCtorL v    ]
            _                          -> []
     (pat', propertyValues) = matchOrderedTokens pat propValueCtor []
 parseDeclaration4321trbl pat _ _ = (pat, [])

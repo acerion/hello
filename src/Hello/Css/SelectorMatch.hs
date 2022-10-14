@@ -129,7 +129,7 @@ matchDescendant complex mDtn doctree mc cacheOffset =
                       Nothing  -> (False, mc2)
                       Just dtn -> (False, matchCacheSetItem mc2 (uniqueNum dtn) compoundOffset)
   where
-    compoundIdx       = (chainDatumLength complex) - 1
+    compoundIdx       = chainDatumLength complex - 1
     compoundOffset    = cacheOffset + compoundIdx
     dtnNumForCompound = matchCacheGetItem mc compoundOffset
 
@@ -146,7 +146,7 @@ TODO: in C++ code the string comparisons were case-insensitive.
 -}
 
 compoundSelectorMatches :: CssCompoundSelector -> DoctreeNode -> Bool
-compoundSelectorMatches compound dtn = ((compoundSelectorMatches' compound dtn) == CssCompoundSelectorMatch)
+compoundSelectorMatches compound dtn = compoundSelectorMatches' compound dtn == CssCompoundSelectorMatch
 
 
 
@@ -170,7 +170,7 @@ compoundSelectorMatches' compound dtnArg | mismatchOnElement compound dtnArg    
                                          | otherwise                             = CssCompoundSelectorMatch
   where
     mismatchOnElement :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnElement csel dtn = (compoundTagName csel) /= CssTypeSelectorUniv && (unCssTypeSelector . compoundTagName $ csel) /= (htmlElementIdx dtn)
+    mismatchOnElement csel dtn = compoundTagName csel /= CssTypeSelectorUniv && (unCssTypeSelector . compoundTagName $ csel) /= htmlElementIdx dtn
     -- if (selector->c_selector_element != CssSimpleSelectorElementAny && selector->c_selector_element != dtn->c_html_element_idx)
     --     return false;
 
@@ -183,7 +183,7 @@ compoundSelectorMatches' compound dtnArg | mismatchOnElement compound dtnArg    
     --     return false;
 
     mismatchOnId :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnId csel dtn = (not . null . compoundId $ csel) && ((T.null . selId $ dtn) || ((compoundId $ csel) /= [CssIdSelector . selId $ dtn]))
+    mismatchOnId csel dtn = (not . null . compoundId $ csel) && ((T.null . selId $ dtn) || (compoundId csel /= [CssIdSelector . selId $ dtn]))
     -- if (selector->c_selector_id != NULL && (dtn->c_element_selector_id == NULL || dStrAsciiCasecmp (selector->c_selector_id, dtn->c_element_selector_id) != 0))
     --     return false;
 
@@ -191,8 +191,8 @@ compoundSelectorMatches' compound dtnArg | mismatchOnElement compound dtnArg    
     mismatchOnClass :: CssCompoundSelector -> DoctreeNode -> Bool
     mismatchOnClass csel dtn = not allCompoundClassInNodeClass
       where
-        allCompoundClassInNodeClass = and $ map (\x -> elem x classes) (compoundClass $ csel)
-        classes = map CssClassSelector (selClass $ dtn)
+        allCompoundClassInNodeClass = all (\x -> x `elem` classes) (compoundClass csel)
+        classes = map CssClassSelector (selClass dtn)
     -- for (int i = 0; i < selector->c_selector_class_size; i++) {
     -- bool found = false;
     -- for (size_t j = 0; j < dtn->c_element_selector_class_size; j++) {

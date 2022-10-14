@@ -105,7 +105,7 @@ styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display 
                               --
                               -- TODO this line should be uncommented
                               -- assert ((int) cpp_cssLengthValue(value) == 0);
-    CssNumericPercentage d -> Just (fromIntegral (roundInt (d * (fromIntegral referenceValue))))
+    CssNumericPercentage d -> Just (fromIntegral (roundInt (d * fromIntegral referenceValue)))
     CssNumericRelative _   -> Nothing
     CssDistanceAuto        -> Nothing
 
@@ -114,7 +114,7 @@ styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display 
     --
     -- TODO: is this assumption always correct? Data in
     -- src/Hello/Tests/Css/StyleEngine.hs shows that it's not correct.
-    dpmm = (dpiX display) / 25.4
+    dpmm = dpiX display / 25.4
 
 
 
@@ -149,8 +149,8 @@ styleEngineSetFontWeight declValue fontAttrs = clipWeight $ setWeight declValue 
   where
     setWeight CssValueFontWeightNormal  attrs = attrs { fontWeight = 400 }
     setWeight CssValueFontWeightBold    attrs = attrs { fontWeight = 700 }
-    setWeight CssValueFontWeightBolder  attrs = attrs { fontWeight = (fontWeight attrs) + 300 }
-    setWeight CssValueFontWeightLighter attrs = attrs { fontWeight = (fontWeight attrs) - 300 }
+    setWeight CssValueFontWeightBolder  attrs = attrs { fontWeight = fontWeight attrs + 300 }
+    setWeight CssValueFontWeightLighter attrs = attrs { fontWeight = fontWeight attrs - 300 }
     setWeight (CssValueFontWeightInt i) attrs = attrs { fontWeight = i }
 
     -- TODO: the limit may be 1000, not 900.
@@ -223,13 +223,13 @@ styleEngineSetFontSize declValueArg prefs display parentFontAttrs fontAttrsArg =
 
 fontSizeToAbs :: CssValueFontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> Maybe Int
 fontSizeToAbs declValue prefs display fontAttrs parentFontAttrs = case declValue of
-                                                                    CssValueFontSizeXXSmall   -> Just $ roundInt ( 8.1  * (prefsFontFactor prefs))
-                                                                    CssValueFontSizeXSmall    -> Just $ roundInt ( 9.7  * (prefsFontFactor prefs))
-                                                                    CssValueFontSizeSmall     -> Just $ roundInt (11.7  * (prefsFontFactor prefs))
-                                                                    CssValueFontSizeMedium    -> Just $ roundInt (14.0  * (prefsFontFactor prefs))
-                                                                    CssValueFontSizeLarge     -> Just $ roundInt (16.8  * (prefsFontFactor prefs))
-                                                                    CssValueFontSizeXLarge    -> Just $ roundInt (20.2  * (prefsFontFactor prefs))
-                                                                    CssValueFontSizeXXLarge   -> Just $ roundInt (24.2  * (prefsFontFactor prefs))
+                                                                    CssValueFontSizeXXSmall   -> Just $ roundInt ( 8.1  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeXSmall    -> Just $ roundInt ( 9.7  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeSmall     -> Just $ roundInt (11.7  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeMedium    -> Just $ roundInt (14.0  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeLarge     -> Just $ roundInt (16.8  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeXLarge    -> Just $ roundInt (20.2  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeXXLarge   -> Just $ roundInt (24.2  * prefsFontFactor prefs)
                                                                     CssValueFontSizeLarger    -> Just $ roundInt ( 1.2  * (fromIntegral . fontSize $ fontAttrs))
                                                                     CssValueFontSizeSmaller   -> Just $ roundInt ( 0.83 * (fromIntegral . fontSize $ fontAttrs))
                                                                     CssValueFontSizeDistance distance -> case size of
@@ -309,7 +309,7 @@ styleEngineApplyStyleToFont declSet preferences displayArg parentFontAttrsArg fo
                    CssPropertyFontVariant declValue   -> apply xs prefs display parentFontAttrs $ styleEngineSetFontVariant declValue fontAttrs
                    CssPropertyFontWeight declValue    -> apply xs prefs display parentFontAttrs $ styleEngineSetFontWeight declValue fontAttrs
                    CssPropertyLetterSpacing declValue -> apply xs prefs display parentFontAttrs $ styleEngineSetLetterSpacing declValue display parentFontAttrs fontAttrs
-                   _                                  -> apply xs prefs display parentFontAttrs $ fontAttrs
+                   _                                  -> apply xs prefs display parentFontAttrs fontAttrs
           where
             x  :: CssDeclaration       = S.index decls 0
             xs :: S.Seq CssDeclaration = S.drop 1 decls
@@ -502,7 +502,7 @@ getBorderWidth field parentStyleAttrs declValue display fontAttrs = case declVal
 -- most probably should be Int, not Float. Then the Float->int conversion
 -- won't be necessary.
 styleEngineComputeBorderWidth :: CssDistance -> Display -> FontAttrs -> Maybe Int
-styleEngineComputeBorderWidth distance display fontAttrs = fmap roundInt $ styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display
+styleEngineComputeBorderWidth distance display fontAttrs = roundInt <$> styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display
 
 
 
@@ -539,7 +539,7 @@ getTextAlign declValue = fromEnum declValue
 -- TODO: this function could probably be rewritten as a fold.
 getTextDecoration :: [CssValueTextDecoration] -> Int -> Int
 getTextDecoration []     decoration = decoration
-getTextDecoration (x:xs) decoration = decoration .|. (getBit x) .|. (getTextDecoration xs decoration)
+getTextDecoration (x:xs) decoration = decoration .|. getBit x .|. getTextDecoration xs decoration
   where
     getBit declValue = case declValue of
                          CssValueTextDecorationUnderline   -> 0x01

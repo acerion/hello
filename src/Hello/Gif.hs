@@ -118,7 +118,7 @@ handleExtensionSubBlockGraphicControl :: Gif -> BS.ByteString -> Maybe Gif
 handleExtensionSubBlockGraphicControl gif buf =
   -- Default value of transparentColorIndex field, set in Dillo's a_Gif_new(), was -1.
   Just gif {   consumed              = gifIncreasedConsumed gif (1 + subBlockSize)
-             , transparentColorIndex = if tcf then (fromIntegral (BS.index buf 4)) else -1 -- Transparent color index, may not be valid (unless flag is set).
+             , transparentColorIndex = if tcf then fromIntegral (BS.index buf 4) else -1 -- Transparent color index, may not be valid (unless flag is set).
              , delayTime             = pairToUint (BS.index buf 2) (BS.index buf 3)
              , userInputFlag         = fromIntegral ((flags `shiftR` 1) .&. 0x01)
              , disposalMethod        = fromIntegral ((flags `shiftR` 2) .&. 0x07)
@@ -185,7 +185,7 @@ parseExtension gif buf
   | introducer /= extensionIntroducer = Nothing
   | otherwise                         =
     case dispatchSubBlocks gif (BS.drop 2 buf) label of -- 2: Drop Extension Introducer and Extension Label
-      Just gifUpdated -> Just (if (gifParseSuccess gif gifUpdated) then (gifForward gifUpdated 2) else gif)
+      Just gifUpdated -> Just (if gifParseSuccess gif gifUpdated then gifForward gifUpdated 2 else gif)
       Nothing -> Nothing
   where
     introducer = BS.index buf 0
@@ -200,7 +200,7 @@ parseExtension gif buf
 
 
 gifForward :: Gif -> Int -> Gif
-gifForward gif n = gif { consumed = (consumed gif) + n }
+gifForward gif n = gif { consumed = consumed gif + n }
 
 
 
@@ -209,7 +209,7 @@ gifForward gif n = gif { consumed = (consumed gif) + n }
 -- As the parser is successfully parsing more and more of byte stream, the
 -- count of consumed bytes must be increased.
 gifIncreasedConsumed :: Gif -> Int -> Int
-gifIncreasedConsumed gif n = (consumed gif) + n
+gifIncreasedConsumed gif n = consumed gif + n
 
 
 

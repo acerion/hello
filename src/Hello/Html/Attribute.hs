@@ -98,19 +98,13 @@ validateNameOrIdValue doctype _attrNameArg attrValueArg =
     _                 -> forOlder attrValueArg
 
   where
-    for5 attrValue = if T.length attrValue == 0
-                     then False  -- TODO: log error that value of attribute attrName must not be empty
-                     else
-                       if T.any (\c -> c == ' ') attrValue
-                       then False -- TODO: log error that value of attribute attrName must not contain spaces
-                       else True
+    for5 attrValue | T.length attrValue == 0          = False -- TODO: log error that value of attribute attrName must not be empty
+                   | T.any (\c -> c == ' ') attrValue = False -- TODO: log error that value of attribute attrName must not contain spaces
+                   | otherwise                        = True
 
     forOlder attrValue = case T.uncons attrValue of
                            Nothing       -> False -- TODO: log error that value of attribute attrName must not be empty
-                           Just (char, remainder) -> if not (D.C.isLatin1 char && D.C.isLetter char)
-                                                     then False -- TODO: log error that first char is out of range
-                                                     else
-                                                       if not $ T.all (\c -> ((D.C.isLatin1 c) && (D.C.isLetter c)) || (D.C.isDigit c) ||  elem c [':', '_', ',', '-']) remainder
-                                                       then False -- TODO: log error that some char is out of range
-                                                       else True
+                           Just (char, remainder) | not (D.C.isLatin1 char && D.C.isLetter char) -> False -- TODO: log error that first char is out of range
+                                                  | not $ T.all (\c -> (D.C.isLatin1 c && D.C.isLetter c) || D.C.isDigit c || c `elem` [':', '_', ',', '-']) remainder -> False -- TODO: log error that some char is out of range
+                                                  | otherwise -> True
 

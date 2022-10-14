@@ -30,7 +30,6 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveDataTypeable #-} -- For 'Data'. https://stackoverflow.com/questions/47861648/a-general-way-of-comparing-constructors-of-two-terms-in-haskell
 
 
 
@@ -166,11 +165,11 @@ consumeFunctionTokens limit parser = (pat', L.reverse tokens)
     (pat', tokens) = takeNext (nextToken1 parser) []
 
     takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
-    takeNext (p2, t2@(CssTokParenClose)) list = (nextToken1 p2, t2:list) -- Add closing paren to result, it will be used to check if function body is valid.
-    takeNext (p2, CssTokEnd) list             = ((p2, CssTokEnd), list) -- https://www.w3.org/TR/css-syntax-3/#consume-function: "This is a parse error".
-    takeNext (p2, t2) list                    = if (limit > 0 && L.length list >= limit)
-                                                then ((p2, t2), list)
-                                                else takeNext (nextToken1 p2) (t2:list)
+    takeNext (p2, t2@CssTokParenClose) list = (nextToken1 p2, t2:list) -- Add closing paren to result, it will be used to check if function body is valid.
+    takeNext (p2, CssTokEnd) list           = ((p2, CssTokEnd), list) -- https://www.w3.org/TR/css-syntax-3/#consume-function: "This is a parse error".
+    takeNext (p2, t2) list                  = if limit > 0 && L.length list >= limit
+                                              then ((p2, t2), list)
+                                              else takeNext (nextToken1 p2) (t2:list)
 
 
 
@@ -189,9 +188,9 @@ interpretRgbFunctionTokens :: [CssToken] -> Maybe (Int, Int, Int, Bool)
 interpretRgbFunctionTokens tokens =
   case tokens of
     -- "either three integer values or three percentage values" in https://www.w3.org/TR/css-color-3/
-    (CssTokPerc (CssNumI r):CssTokComma:CssTokPerc (CssNumI g):CssTokComma:CssTokPerc (CssNumI b):CssTokParenClose:[]) -> Just (r, g, b, True)
-    (CssTokNum (CssNumI r):CssTokComma:CssTokNum (CssNumI g):CssTokComma:CssTokNum (CssNumI b):CssTokParenClose:[])    -> Just (r, g, b, False)
-    _                                                                                                                  -> Nothing
+    [CssTokPerc (CssNumI r), CssTokComma, CssTokPerc (CssNumI g), CssTokComma, CssTokPerc (CssNumI b), CssTokParenClose] -> Just (r, g, b, True)
+    [CssTokNum (CssNumI r),  CssTokComma, CssTokNum (CssNumI g),  CssTokComma, CssTokNum (CssNumI b),  CssTokParenClose] -> Just (r, g, b, False)
+    _                                                                                                                    -> Nothing
 
 
 
@@ -215,7 +214,7 @@ rgbFunctionToColor p1 = let
           -- Convert given float (which may or may not be a percentage) into
           -- an integer in range 0x00-0xFF.
           toColorComponent :: Bool -> Float -> Int
-          toColorComponent True  = clipFF . round . (\x -> ((x * 255.0) / 100.0))
+          toColorComponent True  = clipFF . round . (\x -> (x * 255.0) / 100.0)
           toColorComponent False = clipFF . round
 
           -- Ensure that given integer is in range 0x00-0xFF. Clip values that
@@ -259,16 +258,16 @@ interpretTokensAsEnum vh = (vh, Nothing)
 -- (TODO) take as many tokens as necessary to build, parse and convert the
 -- function into color value.
 interpretTokensAsColor :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, (CssTokHash _ str)) }  = case colorsHexStringToColor str of
-                                                                             Just c  -> (vh {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
-                                                                             Nothing -> (vh, Nothing)
-interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, (CssTokFunc "rgb")) }  = case rgbFunctionToColor p1 of
-                                                                             (pat', Just c) -> (vh {pt3 = pat'}, Just $ (fromJust . colorValueCtor3 $ vh) c)
-                                                                             (_, Nothing)   -> (vh, Nothing)
-interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, (CssTokIdent ident)) } = case colorsStringToColor ident of
-                                                                             Just c  -> (vh {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
-                                                                             Nothing -> (vh, Nothing)
-interpretTokensAsColor vh                                                = (vh, Nothing)
+interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, CssTokHash _ str) }  = case colorsHexStringToColor str of
+                                                                           Just c  -> (vh {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
+                                                                           Nothing -> (vh, Nothing)
+interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, CssTokFunc "rgb") }  = case rgbFunctionToColor p1 of
+                                                                           (pat', Just c) -> (vh {pt3 = pat'}, Just $ (fromJust . colorValueCtor3 $ vh) c)
+                                                                           (_, Nothing)   -> (vh, Nothing)
+interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, CssTokIdent ident) } = case colorsStringToColor ident of
+                                                                           Just c  -> (vh {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
+                                                                           Nothing -> (vh, Nothing)
+interpretTokensAsColor vh                                              = (vh, Nothing)
 
 
 
@@ -328,10 +327,10 @@ interpretTokensAsLength vh@ValueHelper {pt3 = (parser, token) } = ((vh { pt3 = (
 --
 -- TODO: restrict the integer values only to multiples of hundreds?
 interpretTokensAsInteger :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsInteger vh@ValueHelper {pt3 = (_, (CssTokNum (CssNumI i))) } = if i >= (fst . integersRange $ vh) && i <= (snd . integersRange $ vh)
-                                                                                then (vh {pt3 = nextToken1 . fst . pt3 $ vh}, Just $ (fromJust . integerValueCtor $ vh) i)
-                                                                                else (vh, Nothing)
-interpretTokensAsInteger vh                                                   = (vh, Nothing)
+interpretTokensAsInteger vh@ValueHelper {pt3 = (_, CssTokNum (CssNumI i)) } = if i >= (fst . integersRange $ vh) && i <= (snd . integersRange $ vh)
+                                                                              then (vh {pt3 = nextToken1 . fst . pt3 $ vh}, Just $ (fromJust . integerValueCtor $ vh) i)
+                                                                              else (vh, Nothing)
+interpretTokensAsInteger vh                                                 = (vh, Nothing)
 
 
 
@@ -468,7 +467,7 @@ takeBgTokens (parser, token) = ((outParser, outToken), outTokens)
 
   where
     ((outParser, outToken), tokens) = takeBgTokens' (parser, token) []
-    outTokens = remapToken <$> (reorderTokens tokens)
+    outTokens = remapToken <$> reorderTokens tokens
 
     -- Make sure that list of tokens always contains two tokens that are
     -- properly ordered: [horiz, vert].
@@ -524,7 +523,7 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
     doContinue ts t = L.length ts < 2 && tokValid t
 
-    tokValid (CssTokNone)        = True -- used to kick-start parsing of stream
+    tokValid CssTokNone          = True -- used to kick-start parsing of stream
     tokValid (CssTokIdent ident) = elem ident horizVals || elem ident vertVals || elem ident otherVals || ident == "center" -- TODO: or $ map (elem ident) [horizVals, vertVals, otherVals, ["center"]]
     tokValid (CssTokNum _)       = True
     tokValid (CssTokDim _ _)     = True
@@ -600,13 +599,13 @@ tokensAsValueStringList pat = (pat', L.reverse list)
     (pat', list) = asList pat []
 
     asList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), [T.Text])
-    asList (p, (CssTokIdent sym)) acc         = asList (nextToken1 p) (sym:acc)
-    asList (p, (CssTokStr str)) acc           = asList (nextToken1 p) (str:acc)
-    asList (p, (CssTokComma)) acc             = asList (nextToken1 p) acc
-    asList (p, t@(CssTokSemicolon)) acc       = ((p, t), acc)
-    asList (p, t@(CssTokBraceCurlyClose)) acc = ((p, t), acc)
-    asList (p, t@(CssTokEnd)) acc             = ((p, t), acc)
-    asList (_, _) _                           = (pat, []) -- TODO: this implmentation does not allow for final "!important" token.
+    asList (p, CssTokIdent sym) acc         = asList (nextToken1 p) (sym:acc)
+    asList (p, CssTokStr str) acc           = asList (nextToken1 p) (str:acc)
+    asList (p, CssTokComma) acc             = asList (nextToken1 p) acc
+    asList (p, t@CssTokSemicolon) acc       = ((p, t), acc)
+    asList (p, t@CssTokBraceCurlyClose) acc = ((p, t), acc)
+    asList (p, t@CssTokEnd) acc             = ((p, t), acc)
+    asList (_, _) _                         = (pat, []) -- TODO: this implmentation does not allow for final "!important" token.
 
 
 
@@ -633,7 +632,7 @@ interpretTokensAsStringList vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, p
 -- be something expected after "auto". Should we reject such input string
 -- here, or in higher layer?
 interpretTokensAsAuto :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsAuto vh@ValueHelper { pt3 = (p, CssTokIdent sym) } | T.toLower sym == "auto" = (vh {pt3 = (nextToken1 p)}
+interpretTokensAsAuto vh@ValueHelper { pt3 = (p, CssTokIdent sym) } | T.toLower sym == "auto" = (vh {pt3 = nextToken1 p}
                                                                                                 , Just . (fromJust . distanceValueCtor $ vh) $ CssDistanceAuto
                                                                                                 )
                                                                     | otherwise               = (vh, Nothing)
@@ -649,8 +648,8 @@ interpretTokensAsAuto vh                                                        
 -- token to build the String, but for consistency with other similar
 -- functions the function is still called "tokenS as".
 interpretTokensAsString :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsString vh@ValueHelper { pt3 = (p, (CssTokStr s)) } = (vh { pt3 = nextToken1 p}, Just $ (fromJust . stringCtor $ vh) s)
-interpretTokensAsString vh                                          = (vh, Nothing)
+interpretTokensAsString vh@ValueHelper { pt3 = (p, CssTokStr s) } = (vh { pt3 = nextToken1 p}, Just $ (fromJust . stringCtor $ vh) s)
+interpretTokensAsString vh                                        = (vh, Nothing)
 
 
 

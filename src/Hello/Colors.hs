@@ -255,7 +255,7 @@ colorsHexStringToColor text =
   where
     -- TODO: what happens with 'remainder' text? Shouldn't we pass it as a token to next parser?
     parseByHexFormat parsed remainder txt =
-      case (T.length txt) - (T.length remainder) of
+      case T.length txt - T.length remainder of
         6 -> Just parsed  -- RRGGBB format
         3 -> Just (((parsed .&. 0xf00) `shiftL` 12) .|. ((parsed .&. 0xf00) `shiftL` 8) .|. -- RGB format
                    ((parsed .&. 0x0f0) `shiftL` 8)  .|. ((parsed .&. 0x0f0) `shiftL` 4) .|.
@@ -267,7 +267,7 @@ colorsHexStringToColor text =
 
 -- Naive re-implementation of binary search in C code.
 colorsTableSearchName :: V.Vector (T.Text, Int) -> T.Text -> Maybe Int
-colorsTableSearchName vector name = binarySearch vector (T.toLower name) 0 ((V.length vector) - 1)
+colorsTableSearchName vector name = binarySearch vector (T.toLower name) 0 (V.length vector - 1)
   where
     binarySearch :: V.Vector (T.Text, Int) -> T.Text -> Int -> Int -> Maybe Int
     binarySearch vec n low high =
@@ -308,9 +308,9 @@ colorsStringToColor text
 -- Return: [0-3]
 colorsDistance2 :: Int -> Int -> Int
 colorsDistance2 c1 c2 = foldl count 0 abses
-  where abses = [(abs((c1 .&. 0x0000ff) - (c2 .&. 0x0000ff)) >= 0x000060),
-                 (abs((c1 .&. 0x00ff00) - (c2 .&. 0x00ff00)) >= 0x006000),
-                 (abs((c1 .&. 0xff0000) - (c2 .&. 0xff0000)) >= 0x600000)]
+  where abses = [abs((c1 .&. 0x0000ff) - (c2 .&. 0x0000ff)) >= 0x000060,
+                 abs((c1 .&. 0x00ff00) - (c2 .&. 0x00ff00)) >= 0x006000,
+                 abs((c1 .&. 0xff0000) - (c2 .&. 0xff0000)) >= 0x600000]
         count acc p = if p then acc + 1 else acc
 
 
@@ -318,9 +318,9 @@ colorsDistance2 c1 c2 = foldl count 0 abses
 -- Return: [0-3] (requires less contrast than colorsDistance2)
 colorsDistance3 :: Int -> Int -> Int
 colorsDistance3 c1 c2 = foldl count 0 abses
-  where abses = [(abs((c1 .&. 0x0000ff) - (c2 .&. 0x0000ff)) >= 0x000040),
-                 (abs((c1 .&. 0x00ff00) - (c2 .&. 0x00ff00)) >= 0x004000),
-                 (abs((c1 .&. 0xff0000) - (c2 .&. 0xff0000)) >= 0x400000)]
+  where abses = [abs((c1 .&. 0x0000ff) - (c2 .&. 0x0000ff)) >= 0x000040,
+                 abs((c1 .&. 0x00ff00) - (c2 .&. 0x00ff00)) >= 0x004000,
+                 abs((c1 .&. 0xff0000) - (c2 .&. 0xff0000)) >= 0x400000]
         count acc p = if p then acc + 1 else acc
 
 

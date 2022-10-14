@@ -289,8 +289,8 @@ declValueAsString propId (parser, token) = case ((retParser, retToken), value) o
 -- token to build the String, but for consistency with other similar
 -- functions the function is still called "tokensAs...".
 tokensAsValueString :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueString (p, (CssTokStr s)) _ = (nextToken1 p, Just (CssValueTypeString s))
-tokensAsValueString (p, t) _             = ((p, t), Nothing)
+tokensAsValueString (p, CssTokStr s) _ = (nextToken1 p, Just (CssValueTypeString s))
+tokensAsValueString (p, t) _           = ((p, t), Nothing)
 
 
 
@@ -394,7 +394,7 @@ consumeBlock pat = consumeBlock' pat [] []
     -- to know what is the current nesting level of blocks.
     consumeBlock' (parser, tok@CssTokEnd) tokens _                                   = ((parser, tok), reverse tokens)
     consumeBlock' (parser, CssTokBraceCurlyOpen) tokens braces                       = consumeBlock' (nextToken1 parser) (CssTokBraceCurlyOpen : tokens) (CssTokBraceCurlyOpen : braces)
-    consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : []) = ((nextToken1 parser), reverse tokens)
+    consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : []) = (nextToken1 parser, reverse tokens)
     consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : xs) = consumeBlock' (nextToken1 parser) (CssTokBraceCurlyClose : tokens) xs
     consumeBlock' (parser, tok) tokens braces                                        = consumeBlock' (nextToken1 parser) (tok : tokens) braces
 
@@ -447,10 +447,10 @@ cssParseImportance (parser, tok)             = ((parser, tok), False)
 appendSubclassSelector :: CssCompoundSelector -> CssSubclassSelector -> CssCompoundSelector
 appendSubclassSelector compound subSel =
   case subSel of
-    CssClassSelector ident       -> compound {selectorClass = (selectorClass compound) ++ [ident]}
+    CssClassSelector ident       -> compound {selectorClass = selectorClass compound ++ [ident]}
     CssPseudoClassSelector ident -> if T.null ident
                                     then compound
-                                    else compound {selectorPseudoClass = (selectorPseudoClass compound) ++ [ident]}
+                                    else compound {selectorPseudoClass = selectorPseudoClass compound ++ [ident]}
     CssIdSelector ident          -> if selectorId compound == ""
                                     then compound {selectorId = ident}
                                     else compound  -- TODO: is this valid that we ignore new value of the field without any warning?
@@ -489,20 +489,20 @@ parseCombinator _                        = Nothing
 
 
 parseCompoundSelector :: (Maybe CssCompoundSelector, [CssToken]) -> Maybe (CssCompoundSelector, [CssToken])
-parseCompoundSelector (Just compound, (CssTokDelim '*':tokens)) = parseCompoundSelector (Just compound, tokens)
-parseCompoundSelector (Just compound, (CssTokIdent sym:tokens)) = case htmlTagIndex2 sym of
+parseCompoundSelector (Just compound, CssTokDelim '*':tokens) = parseCompoundSelector (Just compound, tokens)
+parseCompoundSelector (Just compound, CssTokIdent sym:tokens) = case htmlTagIndex2 sym of
                                                                     Just idx -> parseCompoundSelector (Just (setSelectorTagName compound (CssTypeSelector idx)), tokens)
-                                                                    Nothing  -> parseCompoundSelector (Just (setSelectorTagName compound (CssTypeSelectorUnknown)), tokens)
+                                                                    Nothing  -> parseCompoundSelector (Just (setSelectorTagName compound CssTypeSelectorUnknown), tokens)
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
-parseCompoundSelector (Just compound, (CssTokHash CssHashId ident:tokens))      = parseCompoundSelector
-                                                                                  (Just (appendSubclassSelector compound (CssIdSelector ident)), tokens)
-parseCompoundSelector (Just compound, (CssTokDelim '.':CssTokIdent sym:tokens)) = parseCompoundSelector
-                                                                                  (Just (appendSubclassSelector compound (CssClassSelector sym)), tokens)
-parseCompoundSelector (Just compound, (CssTokColon:CssTokIdent sym:tokens))     = parseCompoundSelector
-                                                                                  (Just (appendSubclassSelector compound (CssPseudoClassSelector sym)), tokens)
-parseCompoundSelector (Just compound, tokens)                                   = Just (compound, tokens)
-parseCompoundSelector (Nothing, _)                                              = Nothing
+parseCompoundSelector (Just compound, CssTokHash CssHashId ident:tokens)      = parseCompoundSelector
+                                                                                (Just (appendSubclassSelector compound (CssIdSelector ident)), tokens)
+parseCompoundSelector (Just compound, CssTokDelim '.':CssTokIdent sym:tokens) = parseCompoundSelector
+                                                                                (Just (appendSubclassSelector compound (CssClassSelector sym)), tokens)
+parseCompoundSelector (Just compound, CssTokColon:CssTokIdent sym:tokens)     = parseCompoundSelector
+                                                                                (Just (appendSubclassSelector compound (CssPseudoClassSelector sym)), tokens)
+parseCompoundSelector (Just compound, tokens)                                 = Just (compound, tokens)
+parseCompoundSelector (Nothing, _)                                            = Nothing
 
 
 
@@ -545,7 +545,7 @@ parseCompoundSelectorTokens :: [CssToken] -> CssCompoundSelector -> Maybe ([CssT
 parseCompoundSelectorTokens (CssTokDelim '*':tokens) compound = parseCompoundSelectorTokens tokens (setSelectorTagName compound CssTypeSelectorUniv)
 parseCompoundSelectorTokens (CssTokIdent sym:tokens) compound = case htmlTagIndex2 sym of
                                                                   Just idx -> parseCompoundSelectorTokens tokens (setSelectorTagName compound (CssTypeSelector idx))
-                                                                  Nothing  -> parseCompoundSelectorTokens tokens (setSelectorTagName compound (CssTypeSelectorUnknown))
+                                                                  Nothing  -> parseCompoundSelectorTokens tokens (setSelectorTagName compound CssTypeSelectorUnknown)
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
 parseCompoundSelectorTokens (CssTokHash CssHashId ident:tokens) compound      = parseCompoundSelectorTokens
@@ -619,7 +619,7 @@ takeComplexSelectorTokens pat = takeNext pat []
                                         -- could filter it out later with
                                         -- removeSpaceTokens, but it's easier
                                         -- to not to add it at all.
-                                        CssTokWS   -> if length tokens == 0
+                                        CssTokWS   -> if null tokens
                                                       then takeNext (nextToken2 parser) tokens
                                                       else takeNext (nextToken2 parser) (tokens ++ [token])
                                         CssTokNone -> takeNext (nextToken2 parser) tokens -- This token can be used to 'kick-start' of parsing
@@ -632,13 +632,13 @@ takeComplexSelectorTokens pat = takeNext pat []
 -- In such situations the spaces aren't combinators themselves but are just
 -- separators.
 removeSpaceTokens :: [CssToken] -> [CssToken] -> [CssToken]
-removeSpaceTokens ((CssTokWS):(CssTokDelim '+'):xs) acc = removeSpaceTokens ((CssTokDelim '+'):xs) acc
-removeSpaceTokens ((CssTokDelim '+'):(CssTokWS):xs) acc = removeSpaceTokens ((CssTokDelim '+'):xs) acc
-removeSpaceTokens ((CssTokWS):(CssTokDelim '>'):xs) acc = removeSpaceTokens ((CssTokDelim '>'):xs) acc
-removeSpaceTokens ((CssTokDelim '>'):(CssTokWS):xs) acc = removeSpaceTokens ((CssTokDelim '>'):xs) acc
-removeSpaceTokens (x:(CssTokWS):[]) acc              = acc ++ [x] -- Don't forget to remove ending whitespace too.
-removeSpaceTokens (x:xs) acc                         = removeSpaceTokens xs (acc ++ [x])
-removeSpaceTokens [] acc                             = acc
+removeSpaceTokens (CssTokWS:(CssTokDelim '+'):xs) acc = removeSpaceTokens (CssTokDelim '+':xs) acc
+removeSpaceTokens ((CssTokDelim '+'):CssTokWS:xs) acc = removeSpaceTokens (CssTokDelim '+':xs) acc
+removeSpaceTokens (CssTokWS:(CssTokDelim '>'):xs) acc = removeSpaceTokens (CssTokDelim '>':xs) acc
+removeSpaceTokens ((CssTokDelim '>'):CssTokWS:xs) acc = removeSpaceTokens (CssTokDelim '>':xs) acc
+removeSpaceTokens [x, CssTokWS] acc                   = acc ++ [x] -- Don't forget to remove ending whitespace too.
+removeSpaceTokens (x:xs) acc                          = removeSpaceTokens xs (acc ++ [x])
+removeSpaceTokens [] acc                              = acc
 
 
 
@@ -776,10 +776,10 @@ declarationsSetUpdateOrAdd declSet decl =
     ix = items declSet
 
     newSafe :: CssDeclarationSet -> CssDeclaration -> Bool
-    newSafe declSet' decl' = (isSafe declSet') && case property decl' of
-                                                    CssPropertyDisplay _         -> False
-                                                    CssPropertyBackgroundImage _ -> False
-                                                    _                            -> True
+    newSafe declSet' decl' = isSafe declSet' && case property decl' of
+                                                  CssPropertyDisplay _         -> False
+                                                  CssPropertyBackgroundImage _ -> False
+                                                  _                            -> True
 
 
 
@@ -851,10 +851,10 @@ data CssRule = CssRule {
 
 
 instance Show CssRule where
-  show (CssRule cs ds s p) = "Rule {" ++  (show cs) ++ "\n" ++
-                                          (show ds) ++ "\n" ++
-                             "spec = " ++ (show s)  ++ "\n" ++
-                             "pos = "  ++ (show p)  ++ "}\n"
+  show (CssRule cs ds s p) = "Rule {" ++  show cs ++ "\n" ++
+                                          show ds ++ "\n" ++
+                             "spec = " ++ show s  ++ "\n" ++
+                             "pos = "  ++ show p  ++ "}\n"
 
 
 -- Get top compound selector

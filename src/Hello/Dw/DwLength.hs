@@ -64,13 +64,13 @@ createPercentageDwLength :: Double -> DwLength
 createPercentageDwLength value = DwLength {
     dwLengthValue = value
   , dwLengthType  = 2
-  , dwLengthHash  = (iValue .&. (complement 3)) .|. 2
+  , dwLengthHash  = (iValue .&. complement 3) .|. 2
   }
   where
     -- TODO: this is a strange code made to properly encode a double value
     -- into integer hash. Be careful with it.
     shifted    :: Int    = 1 `shiftL` 18
-    multiplied :: Double = value * (realToFrac shifted)
+    multiplied :: Double = value * realToFrac shifted
     iValue     :: Int    = roundInt . realToFrac $ multiplied
 
 

@@ -24,8 +24,6 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 
 
-{-# LANGUAGE OverloadedStrings #-}
-
 module Hello.Html.Document
   (
   )

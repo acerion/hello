@@ -24,7 +24,7 @@ Copyright assignments from the file:
 
 
 
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 
 

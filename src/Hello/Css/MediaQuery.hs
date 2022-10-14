@@ -64,14 +64,14 @@ type CssMediaQuery = [[CssToken]]
 
 
 consumeMediaQueryTokens :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
-consumeMediaQueryTokens (parser, tok@(CssTokBraceCurlyOpen)) xs = ((parser, tok), reverse xs)
-consumeMediaQueryTokens (parser, tok@CssTokEnd)              xs = ((parser, tok), reverse xs)
+consumeMediaQueryTokens (parser, tok@CssTokBraceCurlyOpen) xs = ((parser, tok), reverse xs)
+consumeMediaQueryTokens (parser, tok@CssTokEnd)            xs = ((parser, tok), reverse xs)
 -- Whitespaces are probably not significant in media query string
-consumeMediaQueryTokens (parser, CssTokWS)                   xs = consumeMediaQueryTokens (nextToken2 parser) (xs)
+consumeMediaQueryTokens (parser, CssTokWS)                 xs = consumeMediaQueryTokens (nextToken2 parser) xs
  -- The function may be called from ghci with initial None token, so this
  -- function must be prepared to handle this situation.
-consumeMediaQueryTokens (parser, CssTokNone)                 xs = consumeMediaQueryTokens (nextToken2 parser) (xs)
-consumeMediaQueryTokens (parser, tok)                        xs = consumeMediaQueryTokens (nextToken2 parser) (tok:xs)
+consumeMediaQueryTokens (parser, CssTokNone)               xs = consumeMediaQueryTokens (nextToken2 parser) xs
+consumeMediaQueryTokens (parser, tok)                      xs = consumeMediaQueryTokens (nextToken2 parser) (tok:xs)
 
 
 
@@ -87,4 +87,4 @@ parseMediaQuery (parser, token) = ((p2, t2), Just media)
 
 
 mediaMatchesParser :: CssParser -> CssMediaQuery -> Bool
-mediaMatchesParser _ media = elem [(CssTokIdent "all")] media || elem [(CssTokIdent "screen")] media
+mediaMatchesParser _ media = elem [CssTokIdent "all"] media || elem [CssTokIdent "screen"] media

@@ -201,7 +201,7 @@ nextToken1 parserArg = (updatedParser{bufOffset = increasedBufOffset parserArg},
     (updatedParser, token) = case nextToken1' parserArg{ spaceSeparated = False } of
                                (p, Just t)  -> (p, t)
                                (p, Nothing) -> (p, CssTokNone)
-    increasedBufOffset parser = (bufOffset parser) + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
+    increasedBufOffset parser = bufOffset parser + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
 
 
 
@@ -211,7 +211,7 @@ nextToken2 parserArg = (updatedParser{bufOffset = increasedBufOffset parserArg},
     (updatedParser, token) = case nextToken2' parserArg{spaceSeparated = False} of
                                (p, Just t)  -> (p, t)
                                (p, Nothing) -> (p, CssTokNone)
-    increasedBufOffset parser = (bufOffset parser) + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
+    increasedBufOffset parser = bufOffset parser + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
 
 
 
@@ -357,12 +357,14 @@ takeIdentLikeToken' p1 name =
 
 
 -- Remove a leading whitespace from parser's remainder as long as the
--- remainder stars with two whitespaces.
+-- remainder starts with two whitespaces.
+-- 
+-- TODO: this is not very effective. Just peek all whitespaces and them move parser by all-1.
 removeDoubleWhitespaces p1 = if length points == 2
                              then removeDoubleWhitespaces $ parserMoveByLen p1 1
                              else p1
   where
-    points = peekUpToNCodePoints (remainder p1) 2 (\c -> isWhitespace c)
+    points = peekUpToNCodePoints (remainder p1) 2 isWhitespace
 
 
 
@@ -381,7 +383,7 @@ tryConsumingUrlToken p1 name | length points >= 1 && (c0 == '\'' || c0 == '\"') 
 
 consumeUrlToken p1 = if T.length text > 0 && T.last text == ')' -- TODO: shouldn't the ')' char be CssTokParenClose?
                      then (p2, Just $ CssTokUrl $ T.take (n - 1) text) -- Don't include closing paren.
-                     else (p2, Just $ CssTokBadUrl)
+                     else (p2, Just CssTokBadUrl)
   where
     p2 = p1 {remainder = T.drop n $ remainder p1}
     text = T.pack . reverse $ f (remainder p1) []
@@ -389,7 +391,7 @@ consumeUrlToken p1 = if T.length text > 0 && T.last text == ')' -- TODO: shouldn
 
     f :: T.Text -> [Char] -> String
     f buffer acc = case T.uncons buffer of
-                 Just (c, remd) | c == ')'  -> (c:acc) -- Include the paren here to recognize valid URL. TODO: Shouldn't the ')' char be CssParenClose?
+                 Just (c, remd) | c == ')'  -> c:acc -- Include the paren here to recognize valid URL. TODO: Shouldn't the ')' char be CssParenClose?
                                 | otherwise -> f remd (c:acc)
                                -- TODO: these conditions for taking chars should be improved.
                  Nothing -> acc
@@ -486,7 +488,7 @@ consumeEscapedCodePoint buf = case T.uncons buf of
                                 Just (c, _) | D.C.isHexDigit c -> consumeEscapedCodePointString buf
                                             -- EOF case from CSS spec is handled by "Nothing" below.
                                             | otherwise        -> (c, 1)
-                                Nothing -> (D.C.chr $ H.U.replacementCharacter, 0)  -- "This is a parse error. Return U+FFFD REPLACEMENT CHARACTER (�)."
+                                Nothing -> (D.C.chr H.U.replacementCharacter, 0)  -- "This is a parse error. Return U+FFFD REPLACEMENT CHARACTER (�)."
 
 
 
@@ -498,7 +500,7 @@ consumeEscapedCodePointString :: T.Text -> (Char, Int)
 consumeEscapedCodePointString buf = (char, len)
   where
     len = length digits
-    digits = peekUpToNCodePoints buf 6 (\c -> D.C.isHexDigit c)
+    digits = peekUpToNCodePoints buf 6 D.C.isHexDigit
     char = D.C.chr $ case T.R.hexadecimal . T.pack $ digits of
                        Right (d, _) | d == 0                           -> H.U.replacementCharacter
                                     | d >= H.U.maximumAllowedCodePoint -> H.U.replacementCharacter
@@ -552,7 +554,7 @@ takeLeadingWhite2 parser
 -- TODO: CARRIAGE RETURN and FORM FEED should be converted to LINE FEED
 -- during preprocessing of input stream.
 isWhitespace :: Char -> Bool
-isWhitespace c = elem c ['\n', '\r', '\f', '\t', ' ']
+isWhitespace c = c `elem` ['\n', '\r', '\f', '\t', ' ']
 
 
 
@@ -589,7 +591,7 @@ tryTakingPercOrDim numParser cssNum | (parser, Just (CssTokDelim '%'))   <- take
 --
 takeNumericToken :: CssParser -> (CssParser, Maybe CssToken)
 takeNumericToken parser = case takeNumber parser of
-                            (numParser, Just cssNum) -> (numTokenOrMore numParser cssNum)
+                            (numParser, Just cssNum) -> numTokenOrMore numParser cssNum
                             _                        -> (parser, Nothing)
 
   where
@@ -678,7 +680,7 @@ expectFollowingDigits (buf, acc) = case T.uncons buf of
 
 
 
-tryTakingDigits (buf, acc) d = if d >= '0' && d <= '9'
+tryTakingDigits (buf, acc) d = if D.C.isDigit d
                                then Just (T.drop len buf, T.concat [acc, digits])
                                else Just (buf, acc)
   where
@@ -694,7 +696,7 @@ requestFollowingDigits (buf, acc) = case T.uncons buf of
 
 
 
-requestDigits (buf, acc) d = if d >= '0' && d <= '9'
+requestDigits (buf, acc) d = if D.C.isDigit d
                              then Just (T.drop len buf, T.concat [acc, digits])
                              else Nothing
   where
@@ -736,12 +738,12 @@ interpretFloatString buf = case T.R.signed T.R.rational buf of
                              -- sub-string :( Similarly we search for 'e' to
                              -- recognize a string that represents a float in
                              -- exponential notation.
-                             Right (f, remd) -> case T.find (\c -> elem c ['.', 'e']) valString of
+                             Right (f, remd) -> case T.find (\c -> c `elem` ['.', 'e']) valString of
                                                   Just _  -> Just $ CssNumF f
                                                   Nothing -> Nothing
                                where
                                  valString = T.take valLen buf
-                                 valLen = (T.length buf) - (T.length remd)
+                                 valLen = T.length buf - T.length remd
                              Left _         -> Nothing
 
 
@@ -784,5 +786,5 @@ splitAtCommaToken :: [CssToken] -> [[CssToken]] -> [[CssToken]]
 splitAtCommaToken [] acc               = reverse acc
 splitAtCommaToken (CssTokComma:xs) acc = splitAtCommaToken xs ([]:acc)
 splitAtCommaToken (x:xs)       (a:acc) = splitAtCommaToken xs ((a ++ [x]):acc)
-splitAtCommaToken (x:xs)       ([])    = splitAtCommaToken xs [[x]]
+splitAtCommaToken (x:xs)       []      = splitAtCommaToken xs [[x]]
 

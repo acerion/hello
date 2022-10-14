@@ -53,8 +53,8 @@ hostIsIP host = hostIsIPv4 host || hostIsIPv6 host
 -- chars. TODO: provide better implementations.
 
 hostIsIPv4 :: T.Text -> Bool
-hostIsIPv4 host = T.all (\c -> elem c ("0123456789." :: [Char])) host
+hostIsIPv4 host = T.all (\c -> c `elem` ("0123456789." :: [Char])) host
 
 hostIsIPv6 :: T.Text -> Bool
-hostIsIPv6 host = T.all (\c -> elem c ("0123456789abcdefABCDEF:." :: [Char])) host
+hostIsIPv6 host = T.all (\c -> c `elem` ("0123456789abcdefABCDEF:." :: [Char])) host
 -- The precise format is shown in section 3.2.2 of rfc 3986

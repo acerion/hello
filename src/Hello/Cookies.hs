@@ -124,9 +124,9 @@ TEST: parseLines (lines "en.wikipedia.org ACCEPT\npolandl.wikipedia.org DENY\ndi
 parseLines :: [T.Text] -> [CookieRule]
 parseLines []     = []
 parseLines (x:xs) =
-  case (lineToRule x) of
-    Just rule -> rule : (parseLines xs)
-    Nothing   -> (parseLines xs)
+  case lineToRule x of
+    Just rule -> rule : parseLines xs
+    Nothing   -> parseLines xs
 
 
 
@@ -136,12 +136,12 @@ Convert single line from config line into single rule.
 lineToRule :: T.Text -> Maybe CookieRule
 lineToRule line
   | T.null line                  = Nothing
-  | ((T.head line) == '#')       = Nothing
+  | T.head line == '#'           = Nothing
   | Data.List.length tokens /= 2 = Nothing
   | not (actionStringIsValid actionString) = Nothing
   | otherwise                    = Just CookieRule { domain = domainString,
                                                      action = stringToAction actionString }
-  where tokens = (T.words line)
+  where tokens = T.words line
         domainString = T.toLower (tokens !! 0)
         actionString = T.toLower (tokens !! 1)
         actionStringIsValid :: T.Text -> Bool
@@ -195,7 +195,7 @@ found, return program's hardcoded global default action.
 findDefaultAction :: [CookieRule] -> CookieAction
 findDefaultAction []     = CookieActionDeny -- hardcoded default action
 findDefaultAction (x:xs) = if isDefaultRule x
-                           then (action x)
+                           then action x
                            else findDefaultAction xs
 
 
@@ -224,7 +224,7 @@ lookupActionForDomain :: T.Text -> [CookieRule] -> CookieAction -> CookieAction
 lookupActionForDomain inDomain cookieRules def = lookupCS (T.toLower inDomain) cookieRules def
   where lookupCS _        []     dfltAction = dfltAction
         lookupCS domainLC (x:xs) dfltAction = if domainMatchesRule domainLC (domain x)
-                                              then (action x)
+                                              then action x
                                               else lookupCS domainLC xs dfltAction
 
 
@@ -244,7 +244,7 @@ string is shorter than input domain string, so make sure to pass args to
 isSuffixOf in proper order.
 -}
 domainMatchesRule :: T.Text -> T.Text -> Bool
-domainMatchesRule inDomain ruleDomain = if (T.head ruleDomain == '.')
+domainMatchesRule inDomain ruleDomain = if T.head ruleDomain == '.'
                                         then T.length inDomain > T.length ruleDomain && T.isSuffixOf ruleDomain inDomain -- "dot rule"
                                         else inDomain == ruleDomain
 
@@ -258,7 +258,7 @@ lookupActionTop inDomain = do
    -- The config file may be empty, which will produce config with only
    -- default rule and default action.
   cookiesConfig <- getCookiesConfig
-  putStr ("hello: cookies: " ++ (show cookiesConfig) ++ "\n") -- For debug only.
+  putStr ("hello: cookies: " ++ show cookiesConfig ++ "\n") -- For debug only.
 
   let actionForDomain = lookupActionForDomain inDomain (rules cookiesConfig) (defaultAction cookiesConfig)
   T.IO.putStr (T.concat [inDomain, " = ", T.pack (show actionForDomain), "\n"])
@@ -300,7 +300,7 @@ Return tuple: dir with cookies rc file + the cookies file name
 -}
 getConfigLocation :: String -> String -> IO (String, String)
 getConfigLocation progName fileName = do
-  configDir <- (getXdgDirectory XdgConfig progName)
+  configDir <- getXdgDirectory XdgConfig progName
   createDirectoryIfMissing True configDir
   return (configDir, fileName)
 

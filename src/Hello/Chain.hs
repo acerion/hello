@@ -81,7 +81,7 @@ chainDatumLength chain = length' chain 0
 
 
 length' (Chain _ _ remainder) acc = length' remainder (acc + 1)
-length' (Last _)              acc =                   (acc + 1)
+length' (Last _)              acc =                    acc + 1
 
 
 
@@ -91,7 +91,7 @@ length' (Last _)              acc =                   (acc + 1)
 -- Unit tested: yes
 chainAnyDatum :: (d -> Bool) -> Chain d l -> Bool
 chainAnyDatum predicate (Last datum)              = predicate datum
-chainAnyDatum predicate (Chain datum _ remainder) = (predicate datum) || (chainAnyDatum predicate remainder)
+chainAnyDatum predicate (Chain datum _ remainder) = predicate datum || chainAnyDatum predicate remainder
 
 
 

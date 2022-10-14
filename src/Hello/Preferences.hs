@@ -20,11 +20,6 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
-{-# LANGUAGE OverloadedStrings #-}
-
-
-
-
 module Hello.Preferences
   (
     Preferences (..)

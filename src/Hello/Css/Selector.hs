@@ -157,34 +157,34 @@ compoundTagName = selectorTagName
 
 
 compoundPseudoClass :: CssCompoundSelector -> [CssSubclassSelector]
-compoundPseudoClass compound = map (\x -> CssPseudoClassSelector x) (selectorPseudoClass compound)
+compoundPseudoClass compound = map CssPseudoClassSelector (selectorPseudoClass compound)
 
 
 
 
 compoundClass :: CssCompoundSelector -> [CssSubclassSelector]
-compoundClass compound = map (\x -> CssClassSelector x) (selectorClass compound)
+compoundClass compound = map CssClassSelector (selectorClass compound)
 
 
 
 
 compoundId :: CssCompoundSelector -> [CssSubclassSelector]
-compoundId (CssCompoundSelector{selectorId = ""}) = []
-compoundId (CssCompoundSelector{selectorId = i})  = [CssIdSelector i]
+compoundId CssCompoundSelector{selectorId = ""} = []
+compoundId CssCompoundSelector{selectorId = i}  = [CssIdSelector i]
 
 
 
 
 -- Is a compound selector an 'Any' HTML tag?
-compoundHasUniversalType (CssCompoundSelector{selectorTagName = CssTypeSelectorUniv}) = True
-compoundHasUniversalType _                                                            = False
+compoundHasUniversalType CssCompoundSelector{selectorTagName = CssTypeSelectorUniv} = True
+compoundHasUniversalType _                                                          = False
 
 
 
 
 compoundHasUnexpectedType :: CssCompoundSelector -> Bool
-compoundHasUnexpectedType (CssCompoundSelector{selectorTagName = CssTypeSelectorUnknown}) = True
-compoundHasUnexpectedType _                                                               = False
+compoundHasUnexpectedType CssCompoundSelector{selectorTagName = CssTypeSelectorUnknown} = True
+compoundHasUnexpectedType _                                                             = False
 
 
 
@@ -198,8 +198,8 @@ compoundHasSpecificType = isJust . compoundSpecificType
 -- What is the element in compound selector? Either some specific HTML tag
 -- (then 'Maybe t') or Any or None (then 'Nothing').
 compoundSpecificType :: CssCompoundSelector -> Maybe Int
-compoundSpecificType (CssCompoundSelector{selectorTagName = CssTypeSelector t}) = Just t
-compoundSpecificType _                                                          = Nothing
+compoundSpecificType CssCompoundSelector{selectorTagName = CssTypeSelector t} = Just t
+compoundSpecificType _                                                        = Nothing
 
 
 
@@ -268,9 +268,9 @@ selectorSpecificity complex = selectorSpecificity' complex 0
 
 -- Return the specificity of compound selector
 compoundSelectorSpecificity :: CssCompoundSelector -> Int
-compoundSelectorSpecificity compound = (fromId compound) + (fromClass compound) + (fromPseudoClass compound) + (fromElement compound)
+compoundSelectorSpecificity compound = fromId compound + fromClass compound + fromPseudoClass compound + fromElement compound
   where
-    fromId cpd          = if (not . T.null . selectorId $ cpd) then (1 `shiftL` 20) else 0
+    fromId cpd          = if not . T.null . selectorId $ cpd then 1 `shiftL` 20 else 0
     fromClass cpd       = (length . selectorClass $ cpd) `shiftL` 10
-    fromPseudoClass cpd = if (not . null . selectorPseudoClass $ cpd) then (1 `shiftL` 10) else 0 -- Remember that C/C++ code can use only first pseudo code.
+    fromPseudoClass cpd = if not . null . selectorPseudoClass $ cpd then 1 `shiftL` 10 else 0 -- Remember that C/C++ code can use only first pseudo code.
     fromElement cpd     = if compoundHasUniversalType cpd then 0 else 1

@@ -74,7 +74,7 @@ takeEnclosed text opening closing omitDelimiters = if T.isPrefixOf opening text
         pair = T.breakOn closing (T.drop (T.length opening) text)
         --enclosed = snd pair
         taken = if omitDelimiters
-                then (T.splitOn closing ((T.splitOn opening text) !! 1) !! 0)
+                then T.splitOn closing (T.splitOn opening text !! 1) !! 0
                 else T.take len text
 
 
@@ -120,9 +120,9 @@ roundInt f = if f > 0
 
 
 
-(>>!) :: (Maybe a) -> (a -> Maybe b) -> (Maybe b)
-(Nothing) >>! _ = Nothing
-(Just b)  >>! f  = f b
+(>>!) :: Maybe a -> (a -> Maybe b) -> Maybe b
+Nothing  >>! _ = Nothing
+(Just b) >>! f  = f b
 
 
 

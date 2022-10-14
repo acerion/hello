@@ -197,7 +197,7 @@ getDoctypeFromBuffer buffer htmlDoctype = setFallbackType . get . warnOnMultiple
 
 getDoctypeFromSanitizedBuffer :: T.Text -> HtmlDoctype -> HtmlDoctype
 getDoctypeFromSanitizedBuffer buffer doctype = if T.isPrefixOf (T.toLower htmlPublicSig) (T.toLower buffer)
-                                               then getDoctype4 (T.drop ((T.length htmlPublicSig)) (T.toLower buffer)) doctype
+                                               then getDoctype4 (T.drop (T.length htmlPublicSig) (T.toLower buffer)) doctype
                                                else getDoctype5 (T.toLower buffer) doctype
   where
     htmlPublicSig = "<!DOCTYPE HTML PUBLIC "

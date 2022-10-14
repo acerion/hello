@@ -24,7 +24,6 @@ Copyright 2005-2007 Sebastian Geerken <sgeerken@dillo.org>
 
 
 
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 

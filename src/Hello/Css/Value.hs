@@ -28,7 +28,6 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 
 
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveDataTypeable #-} -- For 'Data'.
 

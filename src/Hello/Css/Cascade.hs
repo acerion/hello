@@ -104,7 +104,7 @@ minSpecificityForRulesList :: [CssRule] -> Int -> Int -> CssSpecificityState -> 
 minSpecificityForRulesList rulesList ruleIdx rulesListIdx state =
   if length rulesList <= ruleIdx
   then state
-  else (minSpecificityForRule rule rulesListIdx state)
+  else minSpecificityForRule rule rulesListIdx state
   where
     rule = rulesList !! ruleIdx
 
@@ -113,7 +113,7 @@ minSpecificityForRulesList rulesList ruleIdx rulesListIdx state =
 
 minSpecificityForRule :: CssRule -> Int -> CssSpecificityState -> CssSpecificityState
 minSpecificityForRule rule rulesListIdx state =
-  if ((specificity rule < minSpec) || (specificity rule == minSpec && position rule < minPos))
+  if (specificity rule < minSpec) || (specificity rule == minSpec && position rule < minPos)
   then (specificity rule, position rule, rulesListIdx) -- update state with index of rules with lowest specificity
   else (minSpec, minPos, minSpecIndex)
   where (minSpec, minPos, minSpecIndex) = state
@@ -149,8 +149,8 @@ cssGetMinSpecState matchingRules = minSpecificityForRulesLists (rules matchingRu
 
 getSomeRule matchingRules minSpecIndex = rulesList !! idx
   where
-    rulesList = (rules matchingRules) !! minSpecIndex
-    idx       = (indices matchingRules) !! minSpecIndex
+    rulesList = rules matchingRules !! minSpecIndex
+    idx       = indices matchingRules !! minSpecIndex
 
 
 
@@ -179,7 +179,7 @@ applyMatchingRules matchingRules doctree mDtn cachedDeclSet = do
 
       let matchingRules' = matchingRules { indices = updateMatchingRulesIndices (indices matchingRules) minSpecIndex }
 
-      putStrLn . show $ (fst cachedDeclSet')
+      putStrLn . show $ fst cachedDeclSet'
       putStrLn . show $ V.fromList . indices $ matchingRules'
 
       applyMatchingRules matchingRules' doctree mDtn cachedDeclSet'
@@ -201,7 +201,7 @@ cssStyleSheetApplyStyleSheet styleSheet cachedDeclSet doctree dtn = do
 
           -- 'indices' is a list of indices for sub-listss in 'rules'. It
           -- should have the same length as 'rules' list.
-        , indices = take (L.length . rules $ matchingRules) $ repeat 0
+        , indices = replicate (L.length . rules $ matchingRules) 0
         }
 
   cachedDeclSet' <- applyMatchingRules matchingRules doctree (Just dtn) cachedDeclSet

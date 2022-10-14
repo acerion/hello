@@ -95,7 +95,7 @@ matchCacheIncreaseTo cache newSize = newCache
   where
     oldList  = getCache cache
     oldSize  = length oldList
-    newCache = CssMatchCacheWrapper (oldList ++ (replicate (newSize - oldSize) (-1)))
+    newCache = CssMatchCacheWrapper (oldList ++ replicate (newSize - oldSize) (-1))
 
 
 
