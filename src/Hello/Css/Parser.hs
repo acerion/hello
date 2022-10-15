@@ -52,7 +52,6 @@ module Hello.Css.Parser
   , readSelectorList
   , removeSpaceTokens
 
-  , declValueAsString
   , declValueAsURI
 
   , CssCombinator (..)
@@ -269,14 +268,14 @@ takeLeadingMinus parser = case T.uncons (remainder parser) of
 
 
 
-
+{-
 declValueAsString :: Int -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
 declValueAsString propId (parser, token) = case ((retParser, retToken), value) of
                                              ((p, t), Just (CssValueTypeString s)) -> ((p, t), Just s)
                                              ((p, t), Just (CssValueTypeURI s))    -> ((p, t), Just s)
                                              ((p, t), Nothing)                     -> ((p, t), Nothing)
   where
-    ((retParser, retToken), value) | propId == 10  = tokensAsValueString (parser, token) [] -- TODO: magic value
+    ((retParser, retToken), value) | propId == 10  = tokensAsValueString (parser, token) -- TODO: magic value
                                    | propId == 12  = declValueAsURI (parser, token)      -- TODO: magic value
                                    | otherwise     = ((parser, token), Nothing)
 
@@ -288,10 +287,10 @@ declValueAsString propId (parser, token) = case ((retParser, retToken), value) o
 -- In case of "string" value there is no need to consume more than current
 -- token to build the String, but for consistency with other similar
 -- functions the function is still called "tokensAs...".
-tokensAsValueString :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueString (p, CssTokStr s) _ = (nextToken1 p, Just (CssValueTypeString s))
-tokensAsValueString (p, t) _           = ((p, t), Nothing)
-
+tokensAsValueString :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValue)
+tokensAsValueString (p, CssTokStr s) = (nextToken1 p, Just (CssValueTypeString s))
+tokensAsValueString (p, t)           = ((p, t), Nothing)
+-}
 
 
 

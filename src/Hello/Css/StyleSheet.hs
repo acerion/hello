@@ -470,10 +470,20 @@ parseCss ((parser, token), context) =
   case token of
     -- TODO: check whether string comparison of "import" or "media" should be
     -- case-sensitive or not.
-    CssTokAt "import" -> (ignoreBlock parser, context) -- TODO: reimplement "void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)"
-    CssTokAt "media"  -> parseCss . parseMediaRule $ ((parser, token), context)
-    CssTokEnd         -> ((parser, token), context)
-    _                 -> parseCss . parseRuleset $ ((parser, token), context) -- TODO: set flag "let importsAreAllowed = False"
+    -- TODO: handle CssTokAtKeyword tokens with values other than "media"/"import".
+    CssTokAtKeyword "import" -> parseCss . parseImportRule $ ((parser, token), context)
+    CssTokAtKeyword "media"  -> parseCss . parseMediaRule $ ((parser, token), context)
+    CssTokNone               -> parseCss (nextToken2 parser, context) -- Kick-start parsing of tokens stream.
+    CssTokEnd                -> ((parser, token), context)
+    _                        -> parseCss . parseRuleset $ ((parser, token), context) -- TODO: set flag "let importsAreAllowed = False"
+
+
+
+
+-- TODO: reimplement "void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)"
+parseImportRule :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
+parseImportRule ((parser, token), context) = trace ("[DD] @import detected") (ignoreStatement parser, context)
+
 
 
 

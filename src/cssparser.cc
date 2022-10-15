@@ -63,6 +63,7 @@ void nextToken(c_css_parser_t * hll_parser, c_css_token_t * token)
    char * tokenValue = hll_nextToken(hll_parser, token);
 }
 
+#if 0
 void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)
 {
    char *urlStr = NULL;
@@ -104,7 +105,7 @@ void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token
       dFree (urlStr);
    }
 }
-
+#endif
 #if 0
 void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context)
 {

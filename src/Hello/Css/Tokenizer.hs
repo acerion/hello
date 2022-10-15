@@ -153,7 +153,7 @@ data CssToken =
   | CssTokDelim Char            -- <delim-token>
   | CssTokWS                    -- Whitespace
 
-  | CssTokAt T.Text             -- <at-keyword-token>
+  | CssTokAtKeyword T.Text      -- <at-keyword-token>
 
   | CssTokEnd                   -- End of input. No new tokens will appear in input.
   | CssTokNone                  -- No token was taken, proceed with parsing input data to try to take some token.
@@ -456,7 +456,7 @@ takeAtToken p1 =
                      | otherwise                                                      -> (p1{ remainder = remd }, Just $ CssTokDelim '@')
       where
         points           = peekUpToNCodePoints remd 3 (\_ -> True)
-        createAtToken p2 = (parserMoveByLen p2 len, Just $ CssTokAt name)
+        createAtToken p2 = (parserMoveByLen p2 len, Just $ CssTokAtKeyword name)
           where
             (name, len) = consumeName (remainder p2) "" 0
 

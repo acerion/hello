@@ -16,7 +16,8 @@ typedef enum {
               CSS_TOKEN_TYPE_BRACE_SQUARE_OPEN = 6,
               CSS_TOKEN_TYPE_BRACE_SQUARE_CLOSE = 7,
               CSS_TOKEN_TYPE_HASH_UN = 8,
-              CSS_TOKEN_TYPE_HASH_ID = 9
+              CSS_TOKEN_TYPE_HASH_ID = 9,
+              CSS_TOKEN_TYPE_AT_KEYWORD = 10
 } CssTokenType;
 
 

@@ -65,7 +65,7 @@ import Hello.Ffi.Utils
 
 
 foreign export ccall "hll_nextToken" hll_nextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO CString
-foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> IO CString
+--foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> IO CString
 foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 
@@ -204,6 +204,7 @@ pokeCssToken ptrStructCssToken token = do
 
 
 
+-- This function corresponds with cssparser.hh::CssTokenType
 getTokenType (CssTokIdent  _) = 0
 getTokenType (CssTokStr  _)   = 1
 getTokenType (CssTokDelim _)  = 2
@@ -214,22 +215,24 @@ getTokenType (CssTokBraceSquareOpen)  = 6
 getTokenType (CssTokBraceSquareClose) = 7
 getTokenType (CssTokHash CssHashUn _) = 8
 getTokenType (CssTokHash CssHashId _) = 9
-getTokenType _                = 10
+getTokenType (CssTokAtKeyword _)      = 10
+getTokenType _                        = 11
 
 
 
 
-getTokenADT tokType tokValue | tokType == 0 = CssTokIdent tokValue
-                             | tokType == 1 = CssTokStr tokValue
-                             | tokType == 2 = CssTokDelim  (T.head tokValue)
-                             | tokType == 3 = CssTokEnd
-                             | tokType == 4 = CssTokBraceCurlyClose
-                             | tokType == 5 = CssTokColon
-                             | tokType == 6 = CssTokBraceSquareOpen
-                             | tokType == 7 = CssTokBraceSquareClose
-                             | tokType == 8 = CssTokHash CssHashUn tokValue
-                             | tokType == 9 = CssTokHash CssHashId tokValue
-                             | otherwise = trace ("tok type ============= = " ++ (show tokType)) (CssTokEnd)
+getTokenADT tokType tokValue | tokType ==  0 = CssTokIdent tokValue
+                             | tokType ==  1 = CssTokStr tokValue
+                             | tokType ==  2 = CssTokDelim  (T.head tokValue)
+                             | tokType ==  3 = CssTokEnd
+                             | tokType ==  4 = CssTokBraceCurlyClose
+                             | tokType ==  5 = CssTokColon
+                             | tokType ==  6 = CssTokBraceSquareOpen
+                             | tokType ==  7 = CssTokBraceSquareClose
+                             | tokType ==  8 = CssTokHash CssHashUn tokValue
+                             | tokType ==  9 = CssTokHash CssHashId tokValue
+                             | tokType == 10 = CssTokAtKeyword tokValue
+                             | otherwise     = trace ("[EE] Unhandled token type " ++ (show tokType)) (CssTokNone)
 
 
 
@@ -250,18 +253,19 @@ hll_nextToken ptrStructCssParser ptrStructCssToken = do
 
 cstr :: CssToken -> IO CString
 cstr token = case token of
-    (CssTokNum (CssNumI i)) -> (newCString . show $ i)
-    (CssTokNum (CssNumF f)) -> (newCString . show $ f)
-    (CssTokHash _ s) -> (newCString . T.unpack $ s)
-    (CssTokIdent s)  -> (newCString . T.unpack $ s)
-    (CssTokStr s)    -> (newCString . T.unpack $ s)
-    (CssTokDelim c)  -> (newCString . T.unpack . T.singleton $ c)
-    CssTokWS         -> (newCString " ")
-    _                -> return nullPtr
+               CssTokNum (CssNumI i) -> newCString . show $ i
+               CssTokNum (CssNumF f) -> newCString . show $ f
+               CssTokHash _ s        -> newCString . T.unpack $ s
+               CssTokIdent s         -> newCString . T.unpack $ s
+               CssTokStr s           -> newCString . T.unpack $ s
+               CssTokDelim c         -> newCString . T.unpack . T.singleton $ c
+               CssTokWS              -> newCString " "
+               CssTokAtKeyword s     -> newCString . T.unpack $ s
+               _                     -> return nullPtr
 
 
 
-
+{-
 hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> IO CString
 hll_declarationValueAsString ptrStructCssParser ptrStructCssToken valueType = do
   parser <- peekCssParser ptrStructCssParser
@@ -275,7 +279,7 @@ hll_declarationValueAsString ptrStructCssParser ptrStructCssToken valueType = do
   case textVal of
     Just t -> newCString . T.unpack $ t
     _      -> return nullPtr
-
+-}
 
 
 
