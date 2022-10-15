@@ -406,7 +406,9 @@ readDeclarations' ((parser, token), (declSet, declSetImp)) =
 
 
 
-
+-- https://www.w3.org/TR/css-syntax-3/#style-rules
+-- https://www.w3.org/TR/css-syntax-3/#qualified-rule
+-- https://www.w3.org/TR/CSS22/syndata.html#rule-sets
 rulesetToRulesWithOrigin parser token = ((p3, t3), rulesWithOrigin)
   where
     ((p2, t2), selectorList) = readSelectorList (parser, token)
