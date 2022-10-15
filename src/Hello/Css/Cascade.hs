@@ -168,7 +168,7 @@ updateMatchingRulesIndices matchingRulesIndices minSpecIndex = listReplaceElem m
 applyMatchingRules :: MatchingRules -> Doctree -> Maybe DoctreeNode -> CssCachedDeclarationSet -> IO CssCachedDeclarationSet
 applyMatchingRules matchingRules doctree mDtn cachedDeclSet = do
   let state = cssGetMinSpecState matchingRules
-  -- putStrLn ("minSpec = " ++ (show . triplet1st $ state) ++ ", minPos = " ++ (show . triplet2nd $ state) ++ ", minSpecIndex = " ++ (show . triplet3rd $ state))
+  putStrLn ("minSpec = " ++ (show . triplet1st $ state) ++ ", minPos = " ++ (show . triplet2nd $ state) ++ ", minSpecIndex = " ++ (show . triplet3rd $ state))
   let minSpecIndex = triplet3rd state
   if minSpecIndex >= 0
     then
@@ -179,8 +179,8 @@ applyMatchingRules matchingRules doctree mDtn cachedDeclSet = do
 
       let matchingRules' = matchingRules { indices = updateMatchingRulesIndices (indices matchingRules) minSpecIndex }
 
-      --putStrLn . show $ fst cachedDeclSet'
-      --putStrLn . show $ V.fromList . indices $ matchingRules'
+      putStrLn . show $ fst cachedDeclSet'
+      putStrLn . show $ V.fromList . indices $ matchingRules'
 
       applyMatchingRules matchingRules' doctree mDtn cachedDeclSet'
     else return cachedDeclSet
