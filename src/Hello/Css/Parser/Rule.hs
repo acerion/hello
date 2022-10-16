@@ -661,12 +661,14 @@ getTopCompound rule = chainGetFirstDatum . chain . complexSelector $ rule
 -- https://www.w3.org/TR/CSS22/syndata.html#rule-sets
 --
 -- Parse a style rule. On success get the ingredients of the rule:
---   a list of complex selectors from prelude of the rule (a <selector-list>
---   a list of property declarations (actually two lists: regular and important ones)
+--   a list of complex selectors from prelude of the rule (a <selector-list>)
+--   a list of property declarations (actually two lists: normal declarations and important declarations)
 --
 -- https://www.w3.org/TR/css-syntax-3/#style-rules says that invalid selector
 -- list invalidates entire style rule. But a single invalid property doesn't
 -- invalidate the entire rule.
+--
+-- Unit-tested: yes
 parseStyleRule :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe ([CssCachedComplexSelector], CssDeclarationSet, CssDeclarationSet))
 parseStyleRule pat = case readSelectorList pat of
                        (pat', Nothing)           -> (pat', Nothing)
