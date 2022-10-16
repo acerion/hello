@@ -274,10 +274,9 @@ cssComplexSelectorHasPseudoClass complex = chainAnyDatum (not . null . selectorP
 
 
 
-cssContextAddRules :: CssContext -> [(Maybe CssRule, CssSheetSelector)] -> CssContext
-cssContextAddRules context []                              = context
-cssContextAddRules context ((Just rule, sheetSelector):xs) = cssContextAddRules (cssContextAddRule context sheetSelector rule) xs
-cssContextAddRules context ((Nothing, _):xs)               = cssContextAddRules context xs
+cssContextAddRules :: CssContext -> [(CssRule, CssSheetSelector)] -> CssContext
+cssContextAddRules context []                         = context
+cssContextAddRules context ((rule, sheetSelector):xs) = cssContextAddRules (cssContextAddRule context sheetSelector rule) xs
 
 
 
@@ -348,22 +347,34 @@ increaseMatchCacheSize size context = context { matchCache = matchCacheIncreaseT
 
 
 
-makeRulePairs :: [CssCachedComplexSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> [(Maybe CssRule, CssSheetSelector)] -> [(Maybe CssRule, CssSheetSelector)]
+makeRulePairs :: [CssCachedComplexSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> [(CssRule, CssSheetSelector)] -> [(CssRule, CssSheetSelector)]
 makeRulePairs []     _       _          _      acc = reverse acc
 makeRulePairs (x:xs) declSet declSetImp origin acc =
+  -- The case expression is now very complicated, but at least I'm avoiding
+  -- the bizarre (Maybe CssRule, CssSheetSelector) type in accumulator and
+  -- result.
   case origin of
-    CssOriginUserAgent -> makeRulePairs xs declSet declSetImp origin ((rule,    CssPrimaryUserAgent) : acc)
-    CssOriginUser      -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryUserImportant) : (rule, CssPrimaryUser) : acc)
-    CssOriginAuthor    -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryAuthorImportant) : (rule, CssPrimaryAuthor) : acc)
+    CssOriginUserAgent | addRegular   -> makeRulePairs xs declSet declSetImp origin ((rule, CssPrimaryUserAgent) : acc)
+                       | otherwise    -> makeRulePairs xs declSet declSetImp origin acc
+    CssOriginUser      | addBoth      -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryUserImportant) : (rule, CssPrimaryUser) : acc)
+                       | addRegular   -> makeRulePairs xs declSet declSetImp origin ((rule, CssPrimaryUser) : acc)
+                       | addImportant -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryUserImportant) : acc)
+                       | otherwise    -> makeRulePairs xs declSet declSetImp origin acc
+    CssOriginAuthor    | addBoth      -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryAuthorImportant) : (rule, CssPrimaryAuthor) : acc)
+                       | addRegular   -> makeRulePairs xs declSet declSetImp origin ((rule, CssPrimaryAuthor) : acc)
+                       | addImportant -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryAuthorImportant) : acc)
+                       | otherwise    -> makeRulePairs xs declSet declSetImp origin acc
 
   where rule    = ruleCtor x declSet
         ruleImp = ruleCtor x declSetImp
-        ruleCtor cplxSel decls = if not . S.null . items $ decls
-                                 then Just CssRule { complexSelector = cplxSel
-                                                   , declarationSet = decls
-                                                   , specificity = selectorSpecificity . chain $ cplxSel
-                                                   , position = 0 } -- Position of a rule will be set at the moment of inserting the rule to CSS context
-                                 else Nothing -- Rule with zero declarations would be useless rule.
+        ruleCtor cplxSel decls = CssRule { complexSelector = cplxSel
+                                         , declarationSet  = decls
+                                         , specificity     = selectorSpecificity . chain $ cplxSel
+                                         , position        = 0 -- Position of a rule will be set at the moment of inserting the rule to CSS context
+                                         }
+        addRegular   = not . S.null . items $ declSet     -- Should add a regular rule to accumulator?
+        addImportant = not . S.null . items $ declSetImp  -- Should add an important rule to accumulator?
+        addBoth      = addRegular && addImportant         -- Should add both regular and imporant rules to accumulator?
 
 
 
@@ -384,8 +395,8 @@ constructAndAddRules context selectorList declSet declSetImp origin = updatedCon
 -}
 
 
-
-readDeclarations parser token = ((p3, t3), (declSet, declSetImp))
+readDeclarations :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe (CssDeclarationSet, CssDeclarationSet))
+readDeclarations (parser, token) = ((p3, t3), Just (declSet, declSetImp))
   where
     ((p2, t2), (declSet, declSetImp)) = case token of
                                           CssTokEnd -> ((parser, token), (declSet, declSetImp))
@@ -406,22 +417,41 @@ readDeclarations' ((parser, token), (declSet, declSetImp)) =
 
 
 
+rulesetToRulesWithOrigin :: (CssParser, CssToken) -> ((CssParser, CssToken), [(CssRule, CssSheetSelector)])
+rulesetToRulesWithOrigin (parser, token) = case parseStyleRule (parser, token) of
+                                             (pat', Nothing)                                  -> (pat', [])
+                                             (pat', Just (selectorList, declSet, declSetImp)) -> (pat', rulesWithOrigin)
+                                               where
+                                                 rulesWithOrigin = makeRulePairs selectorList declSet declSetImp (cssOrigin parser) []
+
+
+
+
 -- https://www.w3.org/TR/css-syntax-3/#style-rules
 -- https://www.w3.org/TR/css-syntax-3/#qualified-rule
 -- https://www.w3.org/TR/CSS22/syndata.html#rule-sets
-rulesetToRulesWithOrigin parser token = ((p3, t3), rulesWithOrigin)
-  where
-    ((p2, t2), selectorList) = readSelectorList (parser, token)
-    ((p3, t3), (declSet, declSetImp)) = readDeclarations p2 t2
-    rulesWithOrigin = makeRulePairs selectorList declSet declSetImp (cssOrigin parser) []
+--
+-- Parse a style rule. On success get the ingredients of the rule:
+--   a list of complex selectors from prelude of the rule (a <selector-list>
+--   a list of property declarations (actually two lists: regular and important ones)
+--
+-- https://www.w3.org/TR/css-syntax-3/#style-rules says that invalid selector
+-- list invalidates entire style rule. But a single invalid property doesn't
+-- invalidate the entire rule.
+parseStyleRule :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe ([CssCachedComplexSelector], CssDeclarationSet, CssDeclarationSet))
+parseStyleRule pat = case readSelectorList pat of
+                       (pat', Nothing)           -> (pat', Nothing)
+                       (pat', Just selectorList) -> case readDeclarations pat' of
+                                                      (pat'', Just (declSet, declSetImp)) -> (pat'', Just (selectorList, declSet, declSetImp))
+                                                      (pat'', Nothing)                    -> (pat'', Nothing)
 
 
 
 
-parseRuleset ((parser, token), context) = ((p2, t2), updatedContext)
+parseRuleset (pat, context) = ((p2, t2), updatedContext)
   where
     updatedContext = cssContextAddRules context rulesWithOrigin
-    ((p2, t2), rulesWithOrigin) = rulesetToRulesWithOrigin parser token
+    ((p2, t2), rulesWithOrigin) = rulesetToRulesWithOrigin pat
 
 
 

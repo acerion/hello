@@ -578,15 +578,15 @@ setSelectorTagName compound t = compound { selectorTagName = t }
 --
 -- TODO: dump whole ruleset in case of parse error as required by CSS 2.1
 -- however make sure we don't dump it if only dillo fails to parse valid CSS.
-readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssCachedComplexSelector])
+readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe [CssCachedComplexSelector])
 readSelectorList pat = parseSelectorWrapper pat []
   where
     parseSelectorWrapper pat' acc =
       case parseComplexSelector pat' of
         ((parser, token), Just selector) -> case token of
                                               CssTokComma -> parseSelectorWrapper (nextToken1 parser) (acc ++ [selector])
-                                              _           -> ((parser, token), acc ++ [selector])
-        _                                -> (pat', acc)
+                                              _           -> ((parser, token), Just $ acc ++ [selector])
+        _                                -> (pat', Just acc)
 
 
 
