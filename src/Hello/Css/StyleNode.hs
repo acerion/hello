@@ -40,7 +40,7 @@ where
 
 
 
-import Hello.Css.Parser
+import Hello.Css.Parser.Rule
 
 
 

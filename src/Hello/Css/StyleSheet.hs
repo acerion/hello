@@ -78,7 +78,7 @@ import Debug.Trace
 
 import Hello.Chain
 import Hello.Css.Tokenizer
-import Hello.Css.Parser
+import Hello.Css.Parser.Rule
 import Hello.Css.Selector
 import Hello.Css.MatchCache
 import Hello.Css.MediaQuery
@@ -378,42 +378,7 @@ makeRulePairs (x:xs) declSet declSetImp origin acc =
 
 
 
-{-
--- Given list of selectors, and given declaration sets (regular and
--- important), for each of the selectors create one rule and add it to
--- context.
---
--- Each rule can have only one selector, so this function works like this:
--- "for each selector create a rule with given selector and some
--- declarations, and put it in appropriate style sheet in the context".
-constructAndAddRules :: CssContext -> [CssCachedComplexSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> CssContext
-constructAndAddRules context []           _       _          _      = context
-constructAndAddRules context selectorList declSet declSetImp origin = updatedContext
-  where
-    updatedContext = cssContextAddRules context rulePairs
-    rulePairs = makeRulePairs selectorList declSet declSetImp origin []
--}
 
-
-readDeclarations :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe (CssDeclarationSet, CssDeclarationSet))
-readDeclarations (parser, token) = ((p3, t3), Just (declSet, declSetImp))
-  where
-    ((p2, t2), (declSet, declSetImp)) = case token of
-                                          CssTokEnd -> ((parser, token), (declSet, declSetImp))
-                                          _         -> readDeclarations' (nextToken1 parser{ inBlock = True }, (defaultCssDeclarationSet, defaultCssDeclarationSet))
-    (p3, t3) = case t2 of
-                 CssTokBraceCurlyClose -> nextToken1 p2{ inBlock = False }
-                 _                     -> (p2{ inBlock = False }, t2)
-
-
-
-readDeclarations' ((parser, token), (declSet, declSetImp)) =
-  case token of
-    CssTokEnd             -> ((parser, token), (declSet, declSetImp))
-    CssTokBraceCurlyClose -> ((parser, token), (declSet, declSetImp)) -- TODO: this should be (nextToken parser)
-                             -- instead of (parser, token): ensure that '}' that is part of "declartions" block
-                             -- is handled and consumed, so that the next part of code doesn't have to handle it.
-    _                     -> readDeclarations' (parseDeclarationWrapper (parser, token) (declSet, declSetImp))
 
 
 
@@ -426,24 +391,6 @@ rulesetToRulesWithOrigin (parser, token) = case parseStyleRule (parser, token) o
 
 
 
-
--- https://www.w3.org/TR/css-syntax-3/#style-rules
--- https://www.w3.org/TR/css-syntax-3/#qualified-rule
--- https://www.w3.org/TR/CSS22/syndata.html#rule-sets
---
--- Parse a style rule. On success get the ingredients of the rule:
---   a list of complex selectors from prelude of the rule (a <selector-list>
---   a list of property declarations (actually two lists: regular and important ones)
---
--- https://www.w3.org/TR/css-syntax-3/#style-rules says that invalid selector
--- list invalidates entire style rule. But a single invalid property doesn't
--- invalidate the entire rule.
-parseStyleRule :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe ([CssCachedComplexSelector], CssDeclarationSet, CssDeclarationSet))
-parseStyleRule pat = case readSelectorList pat of
-                       (pat', Nothing)           -> (pat', Nothing)
-                       (pat', Just selectorList) -> case readDeclarations pat' of
-                                                      (pat'', Just (declSet, declSetImp)) -> (pat'', Just (selectorList, declSet, declSetImp))
-                                                      (pat'', Nothing)                    -> (pat'', Nothing)
 
 
 

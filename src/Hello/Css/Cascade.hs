@@ -58,7 +58,7 @@ import qualified Data.Vector as V
 --import Debug.Trace
 
 import Hello.Css.MatchCache
-import Hello.Css.Parser
+import Hello.Css.Parser.Rule
 import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
 import Hello.Css.SelectorMatch

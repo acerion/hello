@@ -54,7 +54,7 @@ import Hello.Css.Cascade
 import Hello.Css.ContextGlobal
 import Hello.Css.DeclarationSetsGlobal
 import Hello.Css.MatchCache
-import Hello.Css.Parser
+import Hello.Css.Parser.Rule
 import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
 import Hello.Css.UserAgentStyle

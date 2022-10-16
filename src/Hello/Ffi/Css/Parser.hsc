@@ -56,7 +56,7 @@ import qualified Data.ByteString.Unsafe as BSU
 import Debug.Trace
 
 import Hello.Css.DeclarationSetsGlobal
-import Hello.Css.Parser
+import Hello.Css.Parser.Rule
 import Hello.Css.Tokenizer
 
 import Hello.Ffi.Utils

@@ -28,7 +28,7 @@ import qualified Test.QuickCheck as QC
 --import Debug.Trace
 
 import Hello.Css.Declaration
-import Hello.Css.Parser
+import Hello.Css.Parser.Rule
 import Hello.Css.Tokenizer
 
 import Hello.Tests.Css.Parser.Utils

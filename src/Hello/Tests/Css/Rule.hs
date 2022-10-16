@@ -26,7 +26,7 @@ import Test.HUnit
 --import Debug.Trace
 
 import Hello.Css.Tokenizer
-import Hello.Css.Parser
+import Hello.Css.Parser.Rule
 import Hello.Css.Selector
 import Hello.Html.Tag
 
@@ -78,11 +78,14 @@ getTopCompoundTest (x:xs) = if expectedCompound /= cpd
     remainderIn  = fst x
     expectedCompound = snd x
 
-    -- Both cases should work the same. If current token is None, tested
-    -- function should get some non-None input token.
-    ((_p1, _t1), selectorList) = readSelectorList (defaultParser{remainder = remainderIn}, CssTokNone)
-    rule = CssRule { complexSelector = head selectorList, declarationSet = defaultCssDeclarationSet, specificity = 0, position = 0 }
-    cpd = getTopCompound rule
+    (_, selectorList) = readSelectorList (defaultParser{remainder = remainderIn}, CssTokNone)
+    cpd = case selectorList of
+            Just l  -> getTopCompound CssRule { complexSelector = head l
+                                              , declarationSet  = defaultCssDeclarationSet
+                                              , specificity     = 0
+                                              , position        = 0
+                                              }
+            Nothing -> defaultCssCompoundSelector
 
 
 
