@@ -461,7 +461,7 @@ parseCss ((parser, token), context) =
 
 -- TODO: reimplement "void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)"
 parseImportRule :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
-parseImportRule ((parser, token), context) = trace ("[DD] @import detected") (ignoreStatement parser, context)
+parseImportRule ((parser, _token), context) = trace ("[DD] @import detected") (ignoreStatement parser, context)
 
 
 
