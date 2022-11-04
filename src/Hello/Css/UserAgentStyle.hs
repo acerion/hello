@@ -126,10 +126,8 @@ userAgentStyleString = T.unlines
 styleEngineBuildUserAgentStyle :: CssContext
 styleEngineBuildUserAgentStyle = context
   where
-    ((_, _), context) = parseCss ((parser, CssTokNone), defaultCssContext)
-    parser = defaultParser { remainder = userAgentStyleString
-                           , cssOrigin = CssOriginUserAgent
-                           }
+    ((_, _), context) = parseCss ((parser { cssOrigin = CssOriginUserAgent }, CssTokNone), defaultCssContext)
+    parser = defaultParser userAgentStyleString
 
 
 

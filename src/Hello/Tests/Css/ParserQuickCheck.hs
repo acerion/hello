@@ -112,13 +112,10 @@ parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected
     (_pat', outDeclarations) = parseSingleDeclaration pat
 
     pat    = nextToken parser
-    parser = defaultParser { remainder = input
-                             -- 'Margin' property is inside of {} block, so
-                             -- set 'inBlock' to True. This will simulate a
-                             -- parser that parsed its way into {} block.
-                           , inBlock = True
-                           }
 
+    -- 'Margin' property is inside of {} block, so use 'in block' constructor.
+    -- This will simulate a parser that parsed its way into {} block.
+    parser = defaultParserInBlock input
     (input, expected) = buildSuccessRow "margin" [CssPropertyMarginTop, CssPropertyMarginRight, CssPropertyMarginBottom, CssPropertyMarginLeft] CssValueMarginDistance units values
 
     -- For debugging only

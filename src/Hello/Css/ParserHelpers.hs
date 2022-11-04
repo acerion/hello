@@ -134,7 +134,7 @@ defaultValueHelper pat = defaultValueHelper2 { pt3 = pat }
 
 
 defaultValueHelper2 :: ValueHelper a
-defaultValueHelper2 = ValueHelper { pt3                   = (defaultParser, CssTokNone)
+defaultValueHelper2 = ValueHelper { pt3                   = (defaultParserEmpty, CssTokNone)
                                   , colorValueCtor3       = Nothing
                                   , distanceValueCtor     = Nothing
                                   , integerValueCtor      = Nothing

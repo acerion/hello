@@ -126,7 +126,7 @@ parseStyleRuleTestFunction (x:xs) = if rulePartsExpected x /= ruleParts || token
                                     else parseStyleRuleTestFunction xs
   where
 
-    parser = defaultParser{remainder = remainderIn x}
+    parser = defaultParser . remainderIn $ x
     token  = CssTokNone
     ((parser', token'), ruleParts) = parseStyleRule (parser, token)
 

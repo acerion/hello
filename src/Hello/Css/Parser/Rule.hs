@@ -245,8 +245,8 @@ getShorthandCtorByName shorthandName = M.lookup shorthandName cssShorthandInfo
 {-
 -- TODO: move getting leading minus to takeNumber. Have a clearer distinction
 -- between minus being a part of a number and minus being a part of other
--- type of token. Make sure that this call: "nextToken
--- defaultParser{remainder="/* hello */ -"}" returns token type == TokenChar.
+-- type of token. Make sure that this call: "nextToken . defaultParser $ "/* hello */ -"}"
+-- returns token type == TokenChar.
 -- Or should it be treated as invalid?
 takeLeadingMinus :: CssParser -> (CssParser, CssToken)
 takeLeadingMinus parser = case T.uncons (remainder parser) of

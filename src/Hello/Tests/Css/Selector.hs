@@ -94,8 +94,8 @@ parseComplexSelectorTest (x:xs) = if expectedSelector /= cplxSel || remainderAft
 
     -- Both cases should work the same. If current token is None, tested
     -- function should get some non-None input token.
-    ((p1, _t1), cplxSel) = parseComplexSelector (defaultParser{remainder = remainderBefore}, CssTokNone)
-    --((p1, t1), cplxSel) = parseComplexSelector $ nextToken defaultParser{remainder = remainderBefore}
+    ((p1, _t1), cplxSel) = parseComplexSelector (defaultParser remainderBefore, CssTokNone)
+    --((p1, t1), cplxSel) = parseComplexSelector $ nextToken (defaultParser remainderBefore)
 
 
 

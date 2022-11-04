@@ -55,6 +55,8 @@ module Hello.Css.Tokenizer
   (
     CssParser (..)
   , defaultParser
+  , defaultParserInBlock
+  , defaultParserEmpty
   , nextToken
   , takeIdentToken
 
@@ -173,13 +175,35 @@ data CssParser = CssParser {
 
 
 
-defaultParser = CssParser {
-    remainder = ""
-  , inBlock   = False
+-- Create a CSS parser with all fields set to empty values.
+defaultParserEmpty = CssParser {
+    remainder      = ""
+  , inBlock        = False
   , spaceSeparated = False
-  , bufOffset = 0
-  , cssOrigin = CssOriginUserAgent
+  , bufOffset      = 0
+  , cssOrigin      = CssOriginUserAgent
   }
+
+
+
+
+-- A basic onstructor for a CSS parser. It creates an almost-empty (initial)
+-- parser and sets its remainder with value passed to the constructor.
+defaultParser :: T.Text -> CssParser
+defaultParser remd = defaultParserEmpty { remainder = remd }
+
+
+
+
+-- Constructor for a CSS parser that knows that it is inside of {} block.
+--
+-- The constructor is useful for tests that test parsing e.g. CSS properties
+-- strings, which are found inside of {} block.
+--
+-- Can be also used outside fo tests, where we need to have a new parser, and
+-- the parser must know that we are now inside of {} block.
+defaultParserInBlock :: T.Text -> CssParser
+defaultParserInBlock remd = defaultParserEmpty { remainder = remd, inBlock = True }
 
 
 

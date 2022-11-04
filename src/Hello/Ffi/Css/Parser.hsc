@@ -131,12 +131,12 @@ peekCssParser ptrStructCssParser = do
   let inBlockInt :: Int = fromIntegral . inBlockC $ ffiParser
   let spaceSeparatedInt :: Int = fromIntegral . spaceSeparatedC $ ffiParser
 
-  let parser = defaultParser{ remainder      = remd
-                            , inBlock        = inBlockInt /= 0
-                            , bufOffset      = offset
-                            , spaceSeparated = spaceSeparatedInt /= 0
-                            , cssOrigin      = getCssOrigin . fromIntegral . cCssOrigin $ ffiParser
-                            }
+  let parser = defaultParserEmpty { remainder      = remd
+                                  , inBlock        = inBlockInt /= 0
+                                  , bufOffset      = offset
+                                  , spaceSeparated = spaceSeparatedInt /= 0
+                                  , cssOrigin      = getCssOrigin . fromIntegral . cCssOrigin $ ffiParser
+                                  }
   return parser
 
 

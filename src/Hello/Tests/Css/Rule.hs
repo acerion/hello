@@ -84,7 +84,7 @@ getTopCompoundTest (x:xs) = if expectedCompound /= cpd
     remainderIn  = fst x
     expectedCompound = snd x
 
-    (_, selectorList) = readSelectorList (defaultParser{remainder = remainderIn}, CssTokNone)
+    (_, selectorList) = readSelectorList (defaultParser remainderIn, CssTokNone)
     cpd = case selectorList of
             Just l  -> getTopCompound CssRule { complexSelector = head l
                                               , declarationSet  = defaultCssDeclarationSet

@@ -86,7 +86,7 @@ testFunction (x:xs) = if not success
   where
     expectedPropertyValue = expectedValue x
 
-    pat = (defaultParser{remainder = initialRem x, inBlock = True}, initialToken x)
+    pat = (defaultParserInBlock . initialRem $ x, initialToken x)
     vh  = (valueState x) { pt3  = pat
                          , dict = dictionary x
                          }
@@ -394,7 +394,7 @@ multiEnumTestFunction (x:xs) = if not success
 
     (vh', propertyValue) = interpretTokensAsMultiEnum vh
 
-    pat = (defaultParser{remainder = initialRem2 x, inBlock = True}, initialToken2 x)
+    pat = (defaultParserInBlock . initialRem2 $ x, initialToken2 x)
     (parser', token') = pt3 vh'
 
     success = and [ expectedPropertyValue == propertyValue
