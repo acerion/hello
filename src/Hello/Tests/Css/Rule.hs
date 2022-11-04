@@ -58,6 +58,11 @@ getTopCompoundTestManualDataBasic = [
   , ( ".pure-menu-horizontal .pure-menu-has-children .pure-menu-link:after{content:\"x\"}"
     , defaultCssCompoundSelector{ selectorClass = ["pure-menu-link"], selectorPseudoClass = ["after"]} )
 
+    -- This is a modification of the previous test case. Here we have only
+    -- one compound selector, and it consists of 3 class selectors.
+  , ( ".pure-menu-horizontal.pure-menu-has-children.pure-menu-link{content:\"x\"}"
+    , defaultCssCompoundSelector{ selectorClass = ["pure-menu-horizontal", "pure-menu-has-children", "pure-menu-link"]} )
+
   , ( "H3.SummaryHL + #id { margin: 0px; }"
     , defaultCssCompoundSelector{ selectorId = "id"} )
 
@@ -73,7 +78,7 @@ getTopCompoundTestManualDataBasic = [
 getTopCompoundTest :: [(T.Text, CssCompoundSelector)] -> T.Text
 getTopCompoundTest []     = ""
 getTopCompoundTest (x:xs) = if expectedCompound /= cpd
-                            then remainderIn
+                            then T.pack $ show remainderIn ++ ", expected " ++ show expectedCompound ++ ", got " ++ show cpd
                             else getTopCompoundTest xs
   where
     remainderIn  = fst x
