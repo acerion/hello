@@ -197,7 +197,7 @@ readSelectorList pat = parseSelectorWrapper pat []
     parseSelectorWrapper pat' acc =
       case parseComplexSelector pat' of
         ((parser, token), Just selector) -> case token of
-                                              CssTokComma -> parseSelectorWrapper (nextToken1 parser) (acc ++ [selector])
+                                              CssTokComma -> parseSelectorWrapper (nextToken parser) (acc ++ [selector])
                                               _           -> ((parser, token), Just $ acc ++ [selector])
         _                                -> (pat', Just acc)
 
@@ -210,7 +210,7 @@ consumeRestOfSelector :: (CssParser, CssToken) -> (CssParser, CssToken)
 consumeRestOfSelector pair@(_, CssTokEnd)            = pair
 consumeRestOfSelector pair@(_, CssTokBraceCurlyOpen) = pair
 consumeRestOfSelector pair@(_, CssTokComma)          = pair
-consumeRestOfSelector (parser, _)                    = consumeRestOfSelector . nextToken1 $ parser
+consumeRestOfSelector (parser, _)                    = consumeRestOfSelector . nextToken $ parser
 
 
 
@@ -233,10 +233,10 @@ takeComplexSelectorTokens pat = takeNext pat []
                                         -- removeSpaceTokens, but it's easier
                                         -- to not to add it at all.
                                         CssTokWS   -> if null tokens
-                                                      then takeNext (nextToken2 parser) tokens
-                                                      else takeNext (nextToken2 parser) (tokens ++ [token])
-                                        CssTokNone -> takeNext (nextToken2 parser) tokens -- This token can be used to 'kick-start' of parsing
-                                        _          -> takeNext (nextToken2 parser) (tokens ++ [token])
+                                                      then takeNext (nextToken parser) tokens
+                                                      else takeNext (nextToken parser) (tokens ++ [token])
+                                        CssTokNone -> takeNext (nextToken parser) tokens -- This token can be used to 'kick-start' of parsing
+                                        _          -> takeNext (nextToken parser) (tokens ++ [token])
 
 
 

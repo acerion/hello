@@ -277,7 +277,7 @@ declValueAsString propId (parser, token) = case ((retParser, retToken), value) o
 -- token to build the String, but for consistency with other similar
 -- functions the function is still called "tokensAs...".
 tokensAsValueString :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValue)
-tokensAsValueString (p, CssTokStr s) = (nextToken1 p, Just (CssValueTypeString s))
+tokensAsValueString (p, CssTokStr s) = (nextToken p, Just (CssValueTypeString s))
 tokensAsValueString (p, t)           = ((p, t), Nothing)
 -}
 
@@ -348,11 +348,11 @@ ignoreBlock parser = ignoreBlock' (parser, CssTokNone) 0
   where
     ignoreBlock' :: (CssParser, CssToken) -> Int -> (CssParser, CssToken)
     ignoreBlock' (par, tok@CssTokEnd) _             = (par, tok)
-    ignoreBlock' (par, CssTokBraceCurlyOpen) depth  = ignoreBlock' (nextToken1 par) (depth + 1)
+    ignoreBlock' (par, CssTokBraceCurlyOpen) depth  = ignoreBlock' (nextToken par) (depth + 1)
     ignoreBlock' (par, CssTokBraceCurlyClose) depth = if depth == 1
-                                                      then nextToken1 par
-                                                      else ignoreBlock' (nextToken1 par) (depth - 1)
-    ignoreBlock' (par, _tok) depth                  = ignoreBlock' (nextToken1 par) depth
+                                                      then nextToken par
+                                                      else ignoreBlock' (nextToken par) (depth - 1)
+    ignoreBlock' (par, _tok) depth                  = ignoreBlock' (nextToken par) depth
 {-
    while (tokenizer->type != CSS_TOKEN_TYPE_END) {
       if (tokenizer->type == CSS_TOKEN_TYPE_CHAR) {
@@ -381,10 +381,10 @@ consumeBlock pat = consumeBlock' pat [] []
     -- Last argument (braces) is used to keep track of opened/closed braces
     -- to know what is the current nesting level of blocks.
     consumeBlock' (parser, tok@CssTokEnd) tokens _                                   = ((parser, tok), reverse tokens)
-    consumeBlock' (parser, CssTokBraceCurlyOpen) tokens braces                       = consumeBlock' (nextToken1 parser) (CssTokBraceCurlyOpen : tokens) (CssTokBraceCurlyOpen : braces)
-    consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : []) = (nextToken1 parser, reverse tokens)
-    consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : xs) = consumeBlock' (nextToken1 parser) (CssTokBraceCurlyClose : tokens) xs
-    consumeBlock' (parser, tok) tokens braces                                        = consumeBlock' (nextToken1 parser) (tok : tokens) braces
+    consumeBlock' (parser, CssTokBraceCurlyOpen) tokens braces                       = consumeBlock' (nextToken parser) (CssTokBraceCurlyOpen : tokens) (CssTokBraceCurlyOpen : braces)
+    consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : []) = (nextToken parser, reverse tokens)
+    consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : xs) = consumeBlock' (nextToken parser) (CssTokBraceCurlyClose : tokens) xs
+    consumeBlock' (parser, tok) tokens braces                                        = consumeBlock' (nextToken parser) (tok : tokens) braces
 
 
 
@@ -393,9 +393,9 @@ ignoreStatement :: CssParser -> (CssParser, CssToken)
 ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
   where
     ignoreStatement' (par, tok@CssTokEnd)        = (par, tok)
-    ignoreStatement' (par, CssTokSemicolon)      = nextToken1 par
+    ignoreStatement' (par, CssTokSemicolon)      = nextToken par
     ignoreStatement' (par, CssTokBraceCurlyOpen) = ignoreBlock par
-    ignoreStatement' (par, _)                    = ignoreStatement' (nextToken1 par)
+    ignoreStatement' (par, _)                    = ignoreStatement' (nextToken par)
 {-
    while (tokenizer->type != CSS_TOKEN_TYPE_END) {
       if (tokenizer->type == CSS_TOKEN_TYPE_CHAR) {
@@ -423,8 +423,8 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
 -- ASCII case-insensitive match for "important", remove them from the
 -- declaration’s value and set the declaration’s important flag to true."
 cssParseImportance :: (CssParser, CssToken) -> ((CssParser, CssToken), Bool)
-cssParseImportance (parser, CssTokDelim '!') = case nextToken1 parser of
-                                                 (newParser, CssTokIdent "important") -> (nextToken1 newParser, True)
+cssParseImportance (parser, CssTokDelim '!') = case nextToken parser of
+                                                 (newParser, CssTokIdent "important") -> (nextToken newParser, True)
                                                  (newParser, tok)                     -> ((newParser, tok), False)
 cssParseImportance (parser, tok)             = ((parser, tok), False)
 
@@ -471,8 +471,8 @@ parseDeclarationShorthand pat ctor = (pat', decls)
 
 takePropertyNameToken :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssToken)
 takePropertyNameToken (parser, nameToken) =
-  let (colonParser, colonToken) = nextToken1 parser
-      (retParser, retToken) = nextToken1 colonParser
+  let (colonParser, colonToken) = nextToken parser
+      (retParser, retToken) = nextToken colonParser
   in
     case (nameToken, colonToken) of
       (CssTokIdent _, CssTokColon) -> ((retParser, retToken), Just nameToken) -- Don't return ':' token. Only 'property name' token is significant to caller.
@@ -535,8 +535,8 @@ parseDeclarationWrapper pat (inSet, inSetImp) = (pat', (outSet, outSetImp))
 -- wrong during parsign of current declaration).
 consumeRestOfDeclaration pair@(_, CssTokEnd)             = pair
 consumeRestOfDeclaration pair@(_, CssTokBraceCurlyClose) = pair -- '}' is not a part of declaration, so don't go past it. Return '}' as current token.
-consumeRestOfDeclaration (parser, CssTokSemicolon)       = nextToken1 parser
-consumeRestOfDeclaration (parser, _)                     = consumeRestOfDeclaration . nextToken1 $ parser
+consumeRestOfDeclaration (parser, CssTokSemicolon)       = nextToken parser
+consumeRestOfDeclaration (parser, _)                     = consumeRestOfDeclaration . nextToken $ parser
 
 
 
@@ -607,7 +607,7 @@ parseElementStyleAttribute :: T.Text -> T.Text -> (CssDeclarationSet, CssDeclara
 parseElementStyleAttribute _baseUrl cssStyleAttribute (declSet, declSetImp) = (outDeclSet, outDeclSetImp)
   where
     ((_p2, _t2), (outDeclSet, outDeclSetImp)) = parseAllDeclarations ((p1, t1), (declSet, declSetImp))
-    (p1, t1) = nextToken1 parser -- Kick-off the parsing
+    (p1, t1) = nextToken parser -- Kick-off the parsing
 
     {-
       TODO: in original C++ code the parser was initialized like this:
@@ -701,9 +701,9 @@ readDeclarations (parser, token) = ((p3, t3), Just (declSet, declSetImp))
   where
     ((p2, t2), (declSet, declSetImp)) = case token of
                                           CssTokEnd -> ((parser, token), (declSet, declSetImp))
-                                          _         -> readDeclarations' (nextToken1 parser{ inBlock = True }, (defaultCssDeclarationSet, defaultCssDeclarationSet))
+                                          _         -> readDeclarations' (nextToken parser{ inBlock = True }, (defaultCssDeclarationSet, defaultCssDeclarationSet))
     (p3, t3) = case t2 of
-                 CssTokBraceCurlyClose -> nextToken1 p2{ inBlock = False }
+                 CssTokBraceCurlyClose -> nextToken p2{ inBlock = False }
                  _                     -> (p2{ inBlock = False }, t2)
 
 

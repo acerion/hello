@@ -162,14 +162,14 @@ defaultValueHelper2 = ValueHelper { pt3                   = (defaultParser, CssT
 consumeFunctionTokens :: Int -> CssParser -> ((CssParser, CssToken), [CssToken])
 consumeFunctionTokens limit parser = (pat', L.reverse tokens)
   where
-    (pat', tokens) = takeNext (nextToken1 parser) []
+    (pat', tokens) = takeNext (nextToken parser) []
 
     takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
-    takeNext (p2, t2@CssTokParenClose) list = (nextToken1 p2, t2:list) -- Add closing paren to result, it will be used to check if function body is valid.
+    takeNext (p2, t2@CssTokParenClose) list = (nextToken p2, t2:list) -- Add closing paren to result, it will be used to check if function body is valid.
     takeNext (p2, CssTokEnd) list           = ((p2, CssTokEnd), list) -- https://www.w3.org/TR/css-syntax-3/#consume-function: "This is a parse error".
     takeNext (p2, t2) list                  = if limit > 0 && L.length list >= limit
                                               then ((p2, t2), list)
-                                              else takeNext (nextToken1 p2) (t2:list)
+                                              else takeNext (nextToken p2) (t2:list)
 
 
 
@@ -239,7 +239,7 @@ rgbFunctionToColor p1 = let
 interpretTokensAsEnum :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsEnum vh@ValueHelper{ pt3 = (_, CssTokIdent sym) } =
   case L.lookup sym' (dict vh) of
-    Just propValue -> (vh { pt3 = nextToken1 . fst . pt3 $ vh}, Just propValue)
+    Just propValue -> (vh { pt3 = nextToken . fst . pt3 $ vh}, Just propValue)
     Nothing        -> (vh, Nothing)
   where
     sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
@@ -259,13 +259,13 @@ interpretTokensAsEnum vh = (vh, Nothing)
 -- function into color value.
 interpretTokensAsColor :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, CssTokHash _ str) }  = case colorsHexStringToColor str of
-                                                                           Just c  -> (vh {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
+                                                                           Just c  -> (vh {pt3 = nextToken p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
                                                                            Nothing -> (vh, Nothing)
 interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, CssTokFunc "rgb") }  = case rgbFunctionToColor p1 of
                                                                            (pat', Just c) -> (vh {pt3 = pat'}, Just $ (fromJust . colorValueCtor3 $ vh) c)
                                                                            (_, Nothing)   -> (vh, Nothing)
 interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, CssTokIdent ident) } = case colorsStringToColor ident of
-                                                                           Just c  -> (vh {pt3 = nextToken1 p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
+                                                                           Just c  -> (vh {pt3 = nextToken p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
                                                                            Nothing -> (vh, Nothing)
 interpretTokensAsColor vh                                              = (vh, Nothing)
 
@@ -328,7 +328,7 @@ interpretTokensAsLength vh@ValueHelper {pt3 = (parser, token) } = ((vh { pt3 = (
 -- TODO: restrict the integer values only to multiples of hundreds?
 interpretTokensAsInteger :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
 interpretTokensAsInteger vh@ValueHelper {pt3 = (_, CssTokNum (CssNumI i)) } = if i >= (fst . integersRange $ vh) && i <= (snd . integersRange $ vh)
-                                                                              then (vh {pt3 = nextToken1 . fst . pt3 $ vh}, Just $ (fromJust . integerValueCtor $ vh) i)
+                                                                              then (vh {pt3 = nextToken . fst . pt3 $ vh}, Just $ (fromJust . integerValueCtor $ vh) i)
                                                                               else (vh, Nothing)
 interpretTokensAsInteger vh                                                 = (vh, Nothing)
 
@@ -340,9 +340,9 @@ interpretTokensAsInteger vh                                                 = (v
 -- "th{border-width:0 0 1px;".
 takeLengthTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
 takeLengthTokens (parser, token) = case token of
-                                     CssTokNum  _   -> (nextToken1 parser, [token])
-                                     CssTokPerc  _  -> (nextToken1 parser, [token])
-                                     CssTokDim  _ _ -> (nextToken1 parser, [token])
+                                     CssTokNum  _   -> (nextToken parser, [token])
+                                     CssTokPerc  _  -> (nextToken parser, [token])
+                                     CssTokDim  _ _ -> (nextToken parser, [token])
                                      CssTokSemicolon       -> ((parser, token), [])
                                      CssTokBraceCurlyClose -> ((parser, token), [])
                                      CssTokEnd      -> ((parser, token), [])
@@ -437,7 +437,7 @@ interpretTokensAsMultiEnum vh = (vh, Nothing)
 matchSymbolTokensWithListRigid :: (CssParser, CssToken) -> [(T.Text, b)] -> [b] -> ((CssParser, CssToken), [b])
 matchSymbolTokensWithListRigid (p, t@(CssTokIdent key)) dictionary acc =
   case L.lookup key dictionary of -- TODO: should we use toLower when putting string in token or can we use it here?
-    Just value -> matchSymbolTokensWithListRigid (nextToken1 p) dictionary (acc ++ [value])
+    Just value -> matchSymbolTokensWithListRigid (nextToken p) dictionary (acc ++ [value])
     Nothing    -> ((p, t), []) -- Given token does not match a set of allowed
                                -- strings. Since this function is "rigid", we
                                -- must return empty result.
@@ -513,8 +513,8 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
   where
     ((outParser, outToken), outTokens) = if doContinue tokens token
                                          then case token of
-                                                CssTokNone -> takeBgTokens' (nextToken1 parser) tokens -- Take the token, but don't append it to result
-                                                _          -> takeBgTokens' (nextToken1 parser) (tokens ++ [token])
+                                                CssTokNone -> takeBgTokens' (nextToken parser) tokens -- Take the token, but don't append it to result
+                                                _          -> takeBgTokens' (nextToken parser) (tokens ++ [token])
                                          else if tokensValid tokens
                                               then ((parser, token), tokens)
                                               else ((parser, token), [])
@@ -558,7 +558,7 @@ interpretTokensAsURI vh@ValueHelper { pt3 = pat } = case parseUrl pat of
 
 
 parseUrl :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
-parseUrl (p1, CssTokUrl url)    = (nextToken1 p1, Just url)
+parseUrl (p1, CssTokUrl url)    = (nextToken p1, Just url)
 parseUrl (p1, CssTokFunc "url") = ((p2, t2), Just $ T.pack (show body))
   where
     ((p2, t2), body) = consumeFunctionBody p1 []
@@ -567,9 +567,9 @@ parseUrl (p1, token)            = ((p1, token), Nothing)
 
 
 
-consumeFunctionBody p1 acc = case nextToken1 p1 of
-                               (p2, t2@CssTokParenClose) -> (nextToken1 p2, L.reverse (t2:acc))
-                               (p2, CssTokEnd)           -> (nextToken1 p2, L.reverse acc) -- TODO: this is a parse error, handle the error
+consumeFunctionBody p1 acc = case nextToken p1 of
+                               (p2, t2@CssTokParenClose) -> (nextToken p2, L.reverse (t2:acc))
+                               (p2, CssTokEnd)           -> (nextToken p2, L.reverse acc) -- TODO: this is a parse error, handle the error
                                (p2, t2)                  -> consumeFunctionBody p2 (t2:acc)
 
 
@@ -599,9 +599,9 @@ tokensAsValueStringList pat = (pat', L.reverse list)
     (pat', list) = asList pat []
 
     asList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), [T.Text])
-    asList (p, CssTokIdent sym) acc         = asList (nextToken1 p) (sym:acc)
-    asList (p, CssTokStr str) acc           = asList (nextToken1 p) (str:acc)
-    asList (p, CssTokComma) acc             = asList (nextToken1 p) acc
+    asList (p, CssTokIdent sym) acc         = asList (nextToken p) (sym:acc)
+    asList (p, CssTokStr str) acc           = asList (nextToken p) (str:acc)
+    asList (p, CssTokComma) acc             = asList (nextToken p) acc
     asList (p, t@CssTokSemicolon) acc       = ((p, t), acc)
     asList (p, t@CssTokBraceCurlyClose) acc = ((p, t), acc)
     asList (p, t@CssTokEnd) acc             = ((p, t), acc)
@@ -632,7 +632,7 @@ interpretTokensAsStringList vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, p
 -- be something expected after "auto". Should we reject such input string
 -- here, or in higher layer?
 interpretTokensAsAuto :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsAuto vh@ValueHelper { pt3 = (p, CssTokIdent sym) } | T.toLower sym == "auto" = (vh {pt3 = nextToken1 p}
+interpretTokensAsAuto vh@ValueHelper { pt3 = (p, CssTokIdent sym) } | T.toLower sym == "auto" = (vh {pt3 = nextToken p}
                                                                                                 , Just . (fromJust . distanceValueCtor $ vh) $ CssDistanceAuto
                                                                                                 )
                                                                     | otherwise               = (vh, Nothing)
@@ -648,7 +648,7 @@ interpretTokensAsAuto vh                                                        
 -- token to build the String, but for consistency with other similar
 -- functions the function is still called "tokenS as".
 interpretTokensAsString :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsString vh@ValueHelper { pt3 = (p, CssTokStr s) } = (vh { pt3 = nextToken1 p}, Just $ (fromJust . stringCtor $ vh) s)
+interpretTokensAsString vh@ValueHelper { pt3 = (p, CssTokStr s) } = (vh { pt3 = nextToken p}, Just $ (fromJust . stringCtor $ vh) s)
 interpretTokensAsString vh                                        = (vh, Nothing)
 
 

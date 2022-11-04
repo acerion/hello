@@ -110,8 +110,16 @@ parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected
 --parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = trace (traceData) (expected == outDeclarations)
   where
     (_pat', outDeclarations) = parseSingleDeclaration pat
-    pat                     = nextToken2 defaultParser { remainder = input }
-    (input, expected)       = buildSuccessRow "margin" [CssPropertyMarginTop, CssPropertyMarginRight, CssPropertyMarginBottom, CssPropertyMarginLeft] CssValueMarginDistance units values
+
+    pat    = nextToken parser
+    parser = defaultParser { remainder = input
+                             -- 'Margin' property is inside of {} block, so
+                             -- set 'inBlock' to True. This will simulate a
+                             -- parser that parsed its way into {} block.
+                           , inBlock = True
+                           }
+
+    (input, expected) = buildSuccessRow "margin" [CssPropertyMarginTop, CssPropertyMarginRight, CssPropertyMarginBottom, CssPropertyMarginLeft] CssValueMarginDistance units values
 
     -- For debugging only
     _traceData       = show valuesWithUnits ++ "  " ++ show outDeclarations

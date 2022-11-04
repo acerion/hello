@@ -452,7 +452,7 @@ parseCss ((parser, token), context) =
     -- TODO: handle CssTokAtKeyword tokens with values other than "media"/"import".
     CssTokAtKeyword "import" -> parseCss . parseImportRule $ ((parser, token), context)
     CssTokAtKeyword "media"  -> parseCss . parseMediaRule $ ((parser, token), context)
-    CssTokNone               -> parseCss (nextToken2 parser, context) -- Kick-start parsing of tokens stream.
+    CssTokNone               -> parseCss (nextToken parser, context) -- Kick-start parsing of tokens stream.
     CssTokEnd                -> ((parser, token), context)
     _                        -> parseCss . parseRuleset $ ((parser, token), context) -- TODO: set flag "let importsAreAllowed = False"
 
@@ -475,7 +475,7 @@ parseMediaRule ((parser, token), context) = ((p3, t3), c3)
                                 Nothing -> (False, False)
 
     ((p3, t3), c3) = if mediaMatch
-                     then parseMediaBlock (nextToken1 p2, context) -- nextToken skips opening brace of a block
+                     then parseMediaBlock (nextToken p2, context) -- nextToken skips opening brace of a block
                      else (ignoreBlock p2, context)
 
 
@@ -483,7 +483,7 @@ parseMediaRule ((parser, token), context) = ((p3, t3), c3)
 
 parseMediaBlock ((parser, token), context) = case parseRuleset ((parser, token), context) of
                                                ((p2, CssTokEnd), c2)             -> ((p2, CssTokEnd), c2)
-                                               ((p2, CssTokBraceCurlyClose), c2) -> (nextToken1 p2, c2) -- Consume closing brace of media block
+                                               ((p2, CssTokBraceCurlyClose), c2) -> (nextToken p2, c2) -- Consume closing brace of media block
                                                ((p2, t2), c2)                    -> parseRuleset ((p2, t2), c2)
 
 

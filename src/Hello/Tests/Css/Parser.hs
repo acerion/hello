@@ -969,7 +969,14 @@ parseDeclarationTest (x:xs) = if expectedDeclarations /= declarations
   where
     remd                 = fst x
     expectedDeclarations = snd x
-    ((_parser', _token'), declarations) = parseSingleDeclaration (nextToken2 defaultParser { remainder = remd })
+    ((_parser', _token'), declarations) = parseSingleDeclaration parser
+
+    -- This tests parses a declaration. Declaration is inside of {} block.
+    -- Therefore use a parser that has recognized that it is inside a block:
+    -- set inBlock flag to True.
+    parser = nextToken defaultParser { remainder = remd
+                                     , inBlock   = True
+                                     }
 
 
 

@@ -330,7 +330,7 @@ tokenizerTestRunner inB (x:xs) = if expectedToken /= t2 || expectedRemainder /= 
     initialRemainder  = tripletFst x
     expectedToken     = tripletSnd x
     expectedRemainder = tripletThrd x
-    (p2, t2)          = nextToken1 defaultParser{remainder = initialRemainder, inBlock = inB }
+    (p2, t2)          = nextToken defaultParser{remainder = initialRemainder, inBlock = inB }
 
     showFailedCase _ =    "Initial remainder = "  ++ (show initialRemainder) ++ "; "
                        ++ "Expected remainder = " ++ (show expectedRemainder) ++ "; "

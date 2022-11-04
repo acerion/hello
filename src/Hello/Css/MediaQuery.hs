@@ -67,11 +67,11 @@ consumeMediaQueryTokens :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, C
 consumeMediaQueryTokens (parser, tok@CssTokBraceCurlyOpen) xs = ((parser, tok), reverse xs)
 consumeMediaQueryTokens (parser, tok@CssTokEnd)            xs = ((parser, tok), reverse xs)
 -- Whitespaces are probably not significant in media query string
-consumeMediaQueryTokens (parser, CssTokWS)                 xs = consumeMediaQueryTokens (nextToken2 parser) xs
+consumeMediaQueryTokens (parser, CssTokWS)                 xs = consumeMediaQueryTokens (nextToken parser) xs
  -- The function may be called from ghci with initial None token, so this
  -- function must be prepared to handle this situation.
-consumeMediaQueryTokens (parser, CssTokNone)               xs = consumeMediaQueryTokens (nextToken2 parser) xs
-consumeMediaQueryTokens (parser, tok)                      xs = consumeMediaQueryTokens (nextToken2 parser) (tok:xs)
+consumeMediaQueryTokens (parser, CssTokNone)               xs = consumeMediaQueryTokens (nextToken parser) xs
+consumeMediaQueryTokens (parser, tok)                      xs = consumeMediaQueryTokens (nextToken parser) (tok:xs)
 
 
 

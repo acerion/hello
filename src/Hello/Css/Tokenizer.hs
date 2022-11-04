@@ -55,8 +55,7 @@ module Hello.Css.Tokenizer
   (
     CssParser (..)
   , defaultParser
-  , nextToken1
-  , nextToken2
+  , nextToken
   , takeIdentToken
 
   , CssToken (..)
@@ -195,20 +194,10 @@ data CssOrigin =
 
 
 
-nextToken1 :: CssParser -> (CssParser, CssToken)
-nextToken1 parserArg = (updatedParser{bufOffset = increasedBufOffset parserArg}, token)
+nextToken :: CssParser -> (CssParser, CssToken)
+nextToken parserArg = (updatedParser{bufOffset = increasedBufOffset parserArg}, token)
   where
-    (updatedParser, token) = case nextToken1' parserArg{ spaceSeparated = False } of
-                               (p, Just t)  -> (p, t)
-                               (p, Nothing) -> (p, CssTokNone)
-    increasedBufOffset parser = bufOffset parser + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
-
-
-
-nextToken2 :: CssParser -> (CssParser, CssToken)
-nextToken2 parserArg = (updatedParser{bufOffset = increasedBufOffset parserArg}, token)
-  where
-    (updatedParser, token) = case nextToken2' parserArg{spaceSeparated = False} of
+    (updatedParser, token) = case tokenAlternative parserArg{ spaceSeparated = False } of
                                (p, Just t)  -> (p, t)
                                (p, Nothing) -> (p, CssTokNone)
     increasedBufOffset parser = bufOffset parser + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
@@ -216,28 +205,16 @@ nextToken2 parserArg = (updatedParser{bufOffset = increasedBufOffset parserArg},
 
 
 
-nextToken1' :: CssParser -> (CssParser, Maybe CssToken)
-nextToken1' parser = takeLeadingWhite parser >>?
-                     takeNumericToken        >>?
-                     takeSingleCharToken     >>?
-                     takeIdentLikeToken      >>?
-                     takeString              >>?
-                     takeHashToken           >>?
-                     takeAtToken             >>?
-                     takeDelimToken
+tokenAlternative :: CssParser -> (CssParser, Maybe CssToken)
+tokenAlternative parser = takeLeadingWhite parser >>?
+                          takeNumericToken        >>?
+                          takeSingleCharToken     >>?
+                          takeIdentLikeToken      >>?
+                          takeString              >>?
+                          takeHashToken           >>?
+                          takeAtToken             >>?
+                          takeDelimToken
 
-
-
-
-nextToken2' :: CssParser -> (CssParser, Maybe CssToken)
-nextToken2' parser = takeLeadingWhite2 parser >>?
-                     takeNumericToken         >>?
-                     takeSingleCharToken      >>?
-                     takeIdentLikeToken       >>?
-                     takeString               >>?
-                     takeHashToken            >>?
-                     takeAtToken              >>?
-                     takeDelimToken
 
 
 
@@ -519,28 +496,14 @@ takeDelimToken parser = case T.uncons . remainder $ parser of
 
 
 
--- This function does not return a token. Discarding meaningless data from
--- beginning of text would not create a valid token.
+-- This function may complete without returning a valid token. Discarding
+-- meaningless data from beginning of text would not create a valid token.
 takeLeadingWhite :: CssParser -> (CssParser, Maybe CssToken)
 takeLeadingWhite parser
   | T.null remd                 = (parser, Just CssTokEnd)
   | D.C.isSpace . T.head $ remd = takeLeadingWhite parser { remainder = T.tail remd, spaceSeparated = True }
   | T.isPrefixOf "/*" remd      = takeLeadingWhite parser { remainder = HU.skipEnclosed remd "/*" "*/" }
   | T.isPrefixOf "<!--" remd    = takeLeadingWhite parser { remainder = HU.skipEnclosed remd "<!--" "-->" }
-  | otherwise                   = (parser, Nothing)
-  where remd = remainder parser
-
-
-
-
--- This function may complete withouth returning a valid token. Discarding
--- meaningless data from beginning of text would not create a valid token.
-takeLeadingWhite2 :: CssParser -> (CssParser, Maybe CssToken)
-takeLeadingWhite2 parser
-  | T.null remd                 = (parser, Just CssTokEnd)
-  | D.C.isSpace . T.head $ remd = takeLeadingWhite2 parser { remainder = T.tail remd, spaceSeparated = True }
-  | T.isPrefixOf "/*" remd      = takeLeadingWhite2 parser { remainder = HU.skipEnclosed remd "/*" "*/" }
-  | T.isPrefixOf "<!--" remd    = takeLeadingWhite2 parser { remainder = HU.skipEnclosed remd "<!--" "-->" }
   | otherwise                   = if (not . inBlock $ parser) && spaceSeparated parser
                                   then (parser, Just CssTokWS)
                                   else (parser, Nothing)
