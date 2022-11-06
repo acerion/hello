@@ -573,18 +573,17 @@ instance Applicative (CssParser2 state) where
 
 
 -- The function returns a list of declarations because a line in CSS with a
--- shorthand declaration will be translated in N corresponding "normal"
+-- shorthand declaration will be translated to N corresponding "normal"
 -- declarations. E.g. "border-color: red" shorthand will be translated into a
 -- list of "normal" declarations that will look like this:
 -- ["border-top-color: red"; "border-right-color: red"; "border-bottom-color: red"; "border-left-color: red"]
 parseSingleDeclarationNormalOrShorthand :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 parseSingleDeclarationNormalOrShorthand pat = case takePropertyNameToken pat of
-                                                (pat', Just (CssTokIdent sym)) -> case getPropertyCtorByName sym of
-                                                                                    Just ctor -> parseDeclarationNormal pat' ctor
-                                                                                    Nothing   -> case getShorthandCtorByName sym of
-                                                                                                   Just ctor -> parseDeclarationShorthand pat' ctor
-                                                                                                   Nothing   -> (pat', [])
-                                                (pat', _)                 -> (pat', [])
+                                                -- HASKELL FEATURE: pattern guards
+                                                Just (pat', (CssTokIdent sym)) | Just ctor <- getPropertyCtorByName sym  -> parseDeclarationNormal pat' ctor
+                                                                               | Just ctor <- getShorthandCtorByName sym -> parseDeclarationShorthand pat' ctor
+                                                                               | otherwise                               -> (pat', [])
+                                                _ -> (pat, [])
 
 
 
