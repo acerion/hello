@@ -469,14 +469,105 @@ parseDeclarationShorthand pat ctor = (pat', decls)
 
 
 
-takePropertyNameToken :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssToken)
-takePropertyNameToken (parser, nameToken) =
-  let (colonParser, colonToken) = nextToken parser
-      (retParser, retToken) = nextToken colonParser
-  in
-    case (nameToken, colonToken) of
-      (CssTokIdent _, CssTokColon) -> ((retParser, retToken), Just nameToken) -- Don't return ':' token. Only 'property name' token is significant to caller.
-      _                            -> ((parser, nameToken), Nothing)
+-- The input to the function is (parser { rem = ": value" }, TokIdent
+-- "name"). The function confirms that current token is an ident, that it is
+-- followed by colon name, and returns updated parser + token with CSS
+-- property's name. Colon token is discarded.
+--
+-- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Tokenizer
+-- takePropertyNameToken (defaultParserInBlock ": value", CssTokIdent "name")
+takePropertyNameToken :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssToken)
+takePropertyNameToken state = runParser (getIdentToken <* getColonToken) state
+
+
+
+
+-- The function's return value has type "Maybe (state, value)", which is
+-- different from usual "(state, Maybe value)" type found in code written
+-- thus far. The new style is more in line with usual type of Haskell-based
+-- parsers.
+newtype CssParser2 state result = CssParser2 { runParser :: state -> Maybe (state, result) }
+
+
+
+
+getIdentToken :: CssParser2 (CssParser, CssToken) CssToken
+getIdentToken = CssParser2 $ \ (parser, token) -> case token of
+                                                    CssTokIdent _ -> Just ((nextToken parser), token)
+                                                    _             -> Nothing
+
+
+
+
+getColonToken :: CssParser2 (CssParser, CssToken) CssToken
+getColonToken = CssParser2 $ \ (parser, token) -> case token of
+                                                    CssTokColon -> Just ((nextToken parser), token)
+                                                    _           -> Nothing
+
+
+
+
+instance Functor (CssParser2 state) where
+  -- 'fun' function is applied to parser's result, so we have to run the
+  -- parser first in order to have some result to which 'fun' will be
+  -- applied.
+  fmap fun parser = CssParser2 parserFn
+    where
+      parserFn state = case runParser parser state of
+                         Just (state', result') -> Just (state', fun result')
+                         _                      -> Nothing
+
+
+
+
+instance Applicative (CssParser2 state) where
+
+  -- pure :: a -> f a
+  -- pure :: result -> CssParser2 (state, result)
+  -- 'pure' can wrap data, but also functions.
+  pure x = CssParser2 $ \state -> Just (state, x)
+
+  -- f (a -> b) -> f a -> f b
+  -- CssParser2 (a -> b) -> CssParser2 a -> CssParser2 b
+
+{-
+  (CssParser2 runParser1) <*> (CssParser2 runParser2) =
+    CssParser2 $ \state ->
+                   do
+                     -- As you can see in definition of 'pure', 'pure' called
+                     -- on some function 'fun' will wrap the function in
+                     -- CssParser2. We can get this function back by running
+                     -- the parser containing the function.
+                     (state', fun)    <- runParser1 state
+
+                     -- First parser gave us function 'fun'. Second parser
+                     -- will give us a data, on which we can run 'fun'.
+                     (state'', value) <- runParser2 state'
+
+                     -- Now call the function 'fun' obtained by running a
+                     -- first parser on data obtained by running a second
+                     -- parser.
+                     Just (state'', fun value)
+-}
+
+  -- In this implementation of <*> the first step is the same as in above
+  -- implementation of <*>: run first parser to get a function out of it
+  -- (this is done by first call to runParser).
+  --
+  -- The second step here is similar to second step above in that it runs a
+  -- second parser with updated "state'". However the second parser is not a
+  -- verbatim second parser: it is modified by "fmap fun". Since a parser is
+  -- a functor, we can call fmap over it, and we do so here.
+  --
+  -- What is the result of "fmap fun parser2"? Per definition of fmap for
+  -- CssParser2, the result is another parser (a parser with modifed parsing
+  -- function). When executing the modified parsing function through
+  -- runParser, the modified parsing function will produce new (state,
+  -- result) pair, and then apply given 'fun' to the result.
+  parser1 <*> parser2 = CssParser2 $ \state -> case runParser parser1 state of
+                                                 Just (state', fun) -> runParser (fmap fun parser2) state'
+                                                 Nothing            -> Nothing
 
 
 
