@@ -969,12 +969,12 @@ parseDeclarationTest (x:xs) = if expectedDeclarations /= declarations
   where
     remd                 = fst x
     expectedDeclarations = snd x
-    ((_parser', _token'), declarations) = parseSingleDeclaration parser
+    ((_parser', _token'), declarations) = parseSingleDeclaration pat
 
     -- This tests parses a declaration. Declaration is inside of {} block.
     -- Therefore construct a parser that has recognized that it is inside a
     -- block.
-    parser = nextToken . defaultParserInBlock $ remd
+    pat = nextToken . defaultParserInBlock $ remd
 
 
 
