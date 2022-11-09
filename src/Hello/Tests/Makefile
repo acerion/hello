@@ -15,6 +15,7 @@ all: clean
 		../Ffi/Css/*.hs \
 		../Ffi/Dw/*.hs \
 		../Ffi/*.hs \
+		../Utils/*.hs \
 		./*.hs \
 		./Css/*.hs \
 		./Css/Parser/*.hs \

@@ -36,6 +36,7 @@ all:
 		./Ffi/Dw/*.hs \
 		./Ffi/Html/*.hs \
 		./Html/*.hs \
+		./Utils/*.hs \
 		./wrapper.o -lHSrts-ghc8.8.4
 
 distclean: clean
