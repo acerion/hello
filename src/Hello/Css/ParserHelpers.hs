@@ -68,7 +68,6 @@ where
 import Data.Bits
 import Data.List as L
 import Data.Map as M
-import Data.Maybe
 import Data.Text as T
 
 import Hello.Colors
@@ -81,47 +80,6 @@ import Hello.Css.Tokenizer
 data ValueHelper propValueT = ValueHelper
   {
     pt3                   :: (CssParser, CssToken)
-
-    -- Constructor for creating property values that are colors, e.g.
-    -- "CssValueBackgroundColorColor Int".
-  , colorValueCtor3       :: Maybe (Int -> propValueT)
-
-    -- Constructor for creating property values that are distances, e.g.
-    -- "CssValuePadding CssDistance".
-  , distanceValueCtor     :: Maybe (CssDistance -> propValueT)
-
-    -- Constructor for creating property values that are integers,
-    -- e.g. "CssValueFontWeightInt Int".
-  , integerValueCtor      :: Maybe (Int -> propValueT)
-
-    -- Constructor for creating property values that are background
-    -- position, e.g. "CssValueBackgroundPositionXY CssDistance".
-  , bgPositionValueCtor   :: Maybe (Int -> Int -> propValueT)
-
-    -- Constructor for creating property values that are distances, e.g.
-    -- "CssValueBackgroundImageUri T.Text".
-  , uriValueCtor          :: Maybe (T.Text -> propValueT)
-
-    -- Constructor for creating property values that are lists of strings,
-    -- e.g. "CssValueFontFamilyList ["monospace", "serif"]
-  , stringListCtor        :: Maybe ([T.Text] -> propValueT)
-
-    -- Constructor for creating property values that are a string,
-    -- e.g. "CssValueContent "some content"
-  , stringCtor            :: Maybe (T.Text -> propValueT)
-
-    -- A dictionary for mapping from a text token/value in CSS property to
-    -- Haskell value, e.g. "italic" to CssValueFontStyleItalic or "thin" to
-    -- CssValueBorderWidthThin.
-  , dict                  :: [(T.Text, propValueT)]
-
-    -- Are distance values without unit (e.g. "1.0", as opposed to "1.0px")
-    -- allowed/accepted for this property value?
-  , allowUnitlessDistance :: Bool
-
-    -- Lower and upper value (inclusive) of allowed integer values. Used to
-    -- parse e.g. font weight.
-  , integersRange         :: (Int, Int)
   }
 
 
@@ -135,16 +93,6 @@ defaultValueHelper pat = defaultValueHelper2 { pt3 = pat }
 
 defaultValueHelper2 :: ValueHelper a
 defaultValueHelper2 = ValueHelper { pt3                   = (defaultParserEmpty, CssTokNone)
-                                  , colorValueCtor3       = Nothing
-                                  , distanceValueCtor     = Nothing
-                                  , integerValueCtor      = Nothing
-                                  , bgPositionValueCtor   = Nothing
-                                  , uriValueCtor          = Nothing
-                                  , stringListCtor        = Nothing
-                                  , stringCtor            = Nothing
-                                  , dict                  = []
-                                  , allowUnitlessDistance = False
-                                  , integersRange         = (0, 0)
                                   }
 
 
@@ -236,16 +184,16 @@ rgbFunctionToColor p1 = let
 -- In case of enum value there is no need to consume more than current token
 -- to recognize the enum, but for consistency with other similar functions
 -- the function is still called "tokenS as".
-interpretTokensAsEnum :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsEnum vh@ValueHelper{ pt3 = (_, CssTokIdent sym) } =
-  case L.lookup sym' (dict vh) of
-    Just propValue -> (vh { pt3 = nextToken . fst . pt3 $ vh}, Just propValue)
-    Nothing        -> (vh, Nothing)
+interpretTokensAsEnum :: [(T.Text, a)] -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe a)
+interpretTokensAsEnum dict (parser, CssTokIdent sym) =
+  case L.lookup sym' dict of
+    Just propValue -> ((nextToken parser), Just propValue)
+    Nothing        -> ((parser, CssTokIdent sym), Nothing)
   where
     sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
-interpretTokensAsEnum vh = (vh, Nothing)
-                           -- TODO: is this the right place to reject everything else other than CssTokIdent?
-                           -- Shouldn't we do it somewhere else?
+interpretTokensAsEnum _ pat = (pat, Nothing)
+                                   -- TODO: is this the right place to reject everything else other than CssTokIdent?
+                                   -- Shouldn't we do it somewhere else?
 
 
 
@@ -257,29 +205,31 @@ interpretTokensAsEnum vh = (vh, Nothing)
 -- tokens. If current token is e.g. "rgb(" function, then the function should
 -- (TODO) take as many tokens as necessary to build, parse and convert the
 -- function into color value.
-interpretTokensAsColor :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, CssTokHash _ str) }  = case colorsHexStringToColor str of
-                                                                           Just c  -> (vh {pt3 = nextToken p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
-                                                                           Nothing -> (vh, Nothing)
-interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, CssTokFunc "rgb") }  = case rgbFunctionToColor p1 of
-                                                                           (pat', Just c) -> (vh {pt3 = pat'}, Just $ (fromJust . colorValueCtor3 $ vh) c)
-                                                                           (_, Nothing)   -> (vh, Nothing)
-interpretTokensAsColor vh@ValueHelper{ pt3 = (p1, CssTokIdent ident) } = case colorsStringToColor ident of
-                                                                           Just c  -> (vh {pt3 = nextToken p1}, Just $ (fromJust . colorValueCtor3 $ vh) c)
-                                                                           Nothing -> (vh, Nothing)
-interpretTokensAsColor vh                                              = (vh, Nothing)
+--interpretTokensAsColor :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
+interpretTokensAsColor colorValueCtor3 pat@(p1, CssTokHash _ str)  = case colorsHexStringToColor str of
+                                                                       Just c  -> (nextToken p1, Just $ colorValueCtor3 c)
+                                                                       Nothing -> (pat, Nothing)
+interpretTokensAsColor colorValueCtor3 pat@(p1, CssTokFunc "rgb")  = case rgbFunctionToColor p1 of
+                                                                       (pat', Just c) -> (pat', Just $ colorValueCtor3 c)
+                                                                       (_, Nothing)   -> (pat, Nothing)
+interpretTokensAsColor colorValueCtor3 pat@(p1, CssTokIdent ident) = case colorsStringToColor ident of
+                                                                       Just c  -> (nextToken p1, Just $ colorValueCtor3 c)
+                                                                       Nothing -> (pat, Nothing)
+interpretTokensAsColor _ pat                                       = (pat, Nothing)
 
 
 
 
-interpretTokensAsLength :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsLength vh@ValueHelper {pt3 = (parser, token) } = ((vh { pt3 = (p', t') }), value)
+-- allowUnitlessDistance: are distance values without unit (e.g. "1.0", as
+-- opposed to "1.0px") allowed/accepted for this property value?
+interpretTokensAsLength :: Bool -> (CssDistance -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
+interpretTokensAsLength allowUnitlessDistance distanceValueCtor (parser, token) = ((p', t'), value)
   where
     ((p', t'), value) = case tokens of
-                          [CssTokDim cssNum ident] -> ((newParser, newToken), Just $ (fromJust . distanceValueCtor $ vh) (unitValue cssNum ident))
-                          [CssTokPerc cssNum]      -> ((newParser, newToken), Just $ (fromJust . distanceValueCtor $ vh) (percentValue cssNum))
+                          [CssTokDim cssNum ident] -> ((newParser, newToken), Just $ distanceValueCtor (unitValue cssNum ident))
+                          [CssTokPerc cssNum]      -> ((newParser, newToken), Just $ distanceValueCtor (percentValue cssNum))
                           [CssTokNum cssNum]       -> case ((newParser, newToken), unitlessValue cssNum) of
-                                                        ((p2, t2), Just i)  -> ((p2, t2), Just $ (fromJust . distanceValueCtor $ vh) i)
+                                                        ((p2, t2), Just i)  -> ((p2, t2), Just $ distanceValueCtor i)
                                                         ((p2, t2), Nothing) -> ((p2, t2), Nothing)
                           _                        -> ((parser, token), Nothing)
 
@@ -305,7 +255,7 @@ interpretTokensAsLength vh@ValueHelper {pt3 = (parser, token) } = ((vh { pt3 = (
     -- TODO: original code allowed a value to be unitless if value type was
     -- CssValueTypeLengthPercentNumber or value was 0.0. Do we need to
     -- restore the condition on value type, or can we use the boolean flag?
-    unitlessValue cssNum = if allowUnitlessDistance vh || fval == 0.0
+    unitlessValue cssNum = if allowUnitlessDistance || fval == 0.0
                            then Just distance
                            else Nothing
       where
@@ -326,11 +276,14 @@ interpretTokensAsLength vh@ValueHelper {pt3 = (parser, token) } = ((vh { pt3 = (
 -- "CssTokNum CssNumI i" value.
 --
 -- TODO: restrict the integer values only to multiples of hundreds?
-interpretTokensAsInteger :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsInteger vh@ValueHelper {pt3 = (_, CssTokNum (CssNumI i)) } = if i >= (fst . integersRange $ vh) && i <= (snd . integersRange $ vh)
-                                                                              then (vh {pt3 = nextToken . fst . pt3 $ vh}, Just $ (fromJust . integerValueCtor $ vh) i)
-                                                                              else (vh, Nothing)
-interpretTokensAsInteger vh                                                 = (vh, Nothing)
+--
+-- (Int, Int): Lower and upper value (inclusive) of allowed integer values.
+-- Used to parse e.g. font weight.
+interpretTokensAsInteger :: (Int -> a) -> (Int, Int) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe a)
+interpretTokensAsInteger integerValueCtor integersRange pat@(parser, CssTokNum (CssNumI i)) = if i >= fst integersRange && i <= snd integersRange
+                                                                                              then (nextToken parser, Just $ integerValueCtor i)
+                                                                                              else (pat, Nothing)
+interpretTokensAsInteger _ _ pat                                                            = (pat, Nothing)
 
 
 
@@ -407,12 +360,12 @@ lengthValueToDistance fval unitStr | unitStr == "px" = CssDistanceAbsPx fval
 -- TODO: check in spec if the dictionary should always include an implicit
 -- "none" value. Original C++ code indicates that "none" was treated in
 -- special way.
-interpretTokensAsMultiEnum :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe [propValueT])
-interpretTokensAsMultiEnum vh@ValueHelper { pt3 = (parser, token@(CssTokIdent _)) } =
-  case matchSymbolTokensWithListRigid (parser, token) (dict vh) [] of
-    ((_, _), [])    -> (vh, Nothing) -- None of input tokens were matched agains list of enums.
-    ((p2, t2), val) -> (vh { pt3 = (p2, t2) }, Just val)
-interpretTokensAsMultiEnum vh = (vh, Nothing)
+interpretTokensAsMultiEnum :: [(T.Text, value)] -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe [value])
+interpretTokensAsMultiEnum dict (parser, token@(CssTokIdent _)) =
+  case matchSymbolTokensWithListRigid (parser, token) dict [] of
+    (_, [])     -> ((parser, token), Nothing) -- None of input tokens were matched agains list of enums.
+    (pat', val) -> (pat', Just val)
+interpretTokensAsMultiEnum _ pat = (pat, Nothing)
 
 
 
@@ -446,11 +399,11 @@ matchSymbolTokensWithListRigid (p, t) _ acc                      = ((p, t), acc)
 
 
 
-interpretTokensAsBgPosition :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsBgPosition vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, propValue)
+interpretTokensAsBgPosition :: (Int -> Int -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
+interpretTokensAsBgPosition bgPositionValueCtor pat = (pat', propValue)
   where
     (pat', _) = takeBgTokens pat
-    propValue = Just $ (fromJust . bgPositionValueCtor $ vh) 0 0
+    propValue = Just $ bgPositionValueCtor 0 0
     -- TODO: right now the original dillo doesn't seem to display background
     -- images at all, so I will stop the work on this function for now.
     -- Later, as I get to know dillo better, I will resume work on this
@@ -546,13 +499,13 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
 
 
-interpretTokensAsURI :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsURI vh@ValueHelper { pt3 = pat } = case parseUrl pat of
-                                                      (pat', Just url) -> (vh { pt3 = pat' }, Just $ (fromJust . uriValueCtor $ vh) url)
-                                                      -- TODO: should we assign here pat' or pat?
-                                                      -- A token that is not an URI should be
-                                                      -- re-parsed by another function, not skipped.
-                                                      (pat', Nothing)  -> (vh { pt3 = pat' }, Nothing)
+interpretTokensAsURI :: (Text -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
+interpretTokensAsURI uriValueCtor pat = case parseUrl pat of
+                                          (pat', Just url) -> (pat', Just $ uriValueCtor url)
+                                          -- TODO: should we assign here pat' or pat?
+                                          -- A token that is not an URI should be
+                                          -- re-parsed by another function, not skipped.
+                                          (pat', Nothing)  -> (pat', Nothing)
 
 
 
@@ -610,13 +563,13 @@ tokensAsValueStringList pat = (pat', L.reverse list)
 
 
 
-interpretTokensAsStringList :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsStringList vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, propValue)
+interpretTokensAsStringList :: ([T.Text] -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
+interpretTokensAsStringList stringListCtor pat = (pat', propValue)
   where
     (pat', list) = tokensAsValueStringList pat
     propValue = if L.null list
                 then Nothing
-                else Just $ (fromJust . stringListCtor $ vh) list
+                else Just $ stringListCtor list
 
 
 
@@ -631,12 +584,12 @@ interpretTokensAsStringList vh@ValueHelper { pt3 = pat } = (vh { pt3 = pat' }, p
 -- CssDistanceAuto, but this is problematic because "italic" doesn't seem to
 -- be something expected after "auto". Should we reject such input string
 -- here, or in higher layer?
-interpretTokensAsAuto :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsAuto vh@ValueHelper { pt3 = (p, CssTokIdent sym) } | T.toLower sym == "auto" = (vh {pt3 = nextToken p}
-                                                                                                , Just . (fromJust . distanceValueCtor $ vh) $ CssDistanceAuto
-                                                                                                )
-                                                                    | otherwise               = (vh, Nothing)
-interpretTokensAsAuto vh                                                                      = (vh, Nothing)
+--interpretTokensAsAuto :: (CssDistance -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
+interpretTokensAsAuto distanceValueCtor pat@(parser, CssTokIdent sym) | T.toLower sym == "auto" = (nextToken parser
+                                                                                                  , Just $ distanceValueCtor CssDistanceAuto
+                                                                                                  )
+                                                                      | otherwise               = (pat, Nothing)
+interpretTokensAsAuto _ pat                                                                     = (pat, Nothing)
 
 
 
@@ -647,9 +600,9 @@ interpretTokensAsAuto vh                                                        
 -- In case of "string" value there is no need to consume more than current
 -- token to build the String, but for consistency with other similar
 -- functions the function is still called "tokenS as".
-interpretTokensAsString :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-interpretTokensAsString vh@ValueHelper { pt3 = (p, CssTokStr s) } = (vh { pt3 = nextToken p}, Just $ (fromJust . stringCtor $ vh) s)
-interpretTokensAsString vh                                        = (vh, Nothing)
+interpretTokensAsString :: (T.Text -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
+interpretTokensAsString stringCtor (p, CssTokStr s) = (nextToken p, Just $ stringCtor s)
+interpretTokensAsString _ pat                       = (pat, Nothing)
 
 
 

@@ -400,12 +400,7 @@ cssValueBackgroundAttachmentDict = [ ("scroll",  CssValueBackgroundAttachmentScr
 makeCssPropertyBackgroundAttachment :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyBackgroundAttachment pat = (pat', fmap CssPropertyBackgroundAttachment propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueBackgroundAttachment
-    vh = (defaultValueHelper pat) { dict = cssValueBackgroundAttachmentDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueBackgroundAttachmentDict pat
 
 
 
@@ -434,13 +429,8 @@ cssValueBackgroundColorDict = [ ("inherit",    CssValueBackgroundColorInherit)
 makeCssPropertyBackgroundColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyBackgroundColor pat = (pat', fmap CssPropertyBackgroundColor propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsColor
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueBackgroundColor
-    vh = (defaultValueHelper pat) { colorValueCtor3 = Just CssValueBackgroundColorColor
-                                  , dict            = cssValueBackgroundColorDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueBackgroundColorDict pat
+                        >>? interpretTokensAsColor CssValueBackgroundColorColor
 
 
 
@@ -462,12 +452,7 @@ data CssValueBackgroundImage
 makeCssPropertyBackgroundImage :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyBackgroundImage pat = (pat', fmap CssPropertyBackgroundImage propValue)
   where
-    (vh', propValue) = interpretTokensAsURI vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueBackgroundImage
-    vh = (defaultValueHelper pat) { uriValueCtor = Just CssValueBackgroundImageUri
-                                  }
+    (pat', propValue) = interpretTokensAsURI CssValueBackgroundImageUri pat
 
 
 
@@ -489,12 +474,7 @@ data CssValueBackgroundPosition
 makeCssPropertyBackgroundPosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyBackgroundPosition pat = (pat', fmap CssPropertyBackgroundPosition propValue)
   where
-    (vh', propValue) = interpretTokensAsBgPosition vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueBackgroundPosition
-    vh = (defaultValueHelper pat) { bgPositionValueCtor = Just CssValueBackgroundPositionXY
-                                  }
+    (pat', propValue) = interpretTokensAsBgPosition CssValueBackgroundPositionXY pat
 
 
 
@@ -528,12 +508,8 @@ cssValueBackgroundRepeatDict = [ ("repeat",     CssValueBackgroundRepeatRepeat)
 makeCssPropertyBackgroundRepeat :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyBackgroundRepeat pat = (pat', fmap CssPropertyBackgroundRepeat propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
+    (pat', propValue) = interpretTokensAsEnum cssValueBackgroundRepeatDict pat
 
-    vh :: ValueHelper CssValueBackgroundRepeat
-    vh = (defaultValueHelper pat) { dict = cssValueBackgroundRepeatDict
-                                  }
 
 
 
@@ -737,12 +713,7 @@ cssValueBorderCollapseDict = [ ("separate",   CssValueBorderCollapseSeparate)
 makeCssPropertyBorderCollapse :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyBorderCollapse pat = (pat', fmap CssPropertyBorderCollapse propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueBorderCollapse
-    vh = (defaultValueHelper pat) { dict = cssValueBorderCollapseDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueBorderCollapseDict pat
 
 
 
@@ -764,12 +735,7 @@ data CssValueBorderSpacing
 makeCssPropertyBorderSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyBorderSpacing pat =  (pat', fmap CssPropertyBorderSpacing propValue)
   where
-    (vh', propValue) = interpretTokensAsLength vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueBorderSpacing
-    vh = (defaultValueHelper pat) { distanceValueCtor = Just CssValueBorderSpacingDistance
-                                  }
+    (pat', propValue) = interpretTokensAsLength False CssValueBorderSpacingDistance pat
 
 
 
@@ -804,13 +770,8 @@ cssValueBorderColorDict = [ ("transparent", CssValueBorderColorTransparent)
 parseTokensAsBorderColorValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderColor)
 parseTokensAsBorderColorValue pat = (pat', propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsColor
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueBorderColor
-    vh = (defaultValueHelper pat) { colorValueCtor3 = Just CssValueBorderColor
-                                  , dict            = cssValueBorderColorDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueBorderColorDict pat
+                        >>? interpretTokensAsColor CssValueBorderColor
 
 
 
@@ -877,12 +838,7 @@ cssValueBorderStyleDict = [ ("none",     CssValueBorderStyleNone)
 parseTokensAsBorderStyleValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderStyle)
 parseTokensAsBorderStyleValue pat = (pat', propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueBorderStyle
-    vh = (defaultValueHelper pat) { dict = cssValueBorderStyleDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueBorderStyleDict pat
 
 
 
@@ -935,13 +891,8 @@ cssValueBorderWidthDict = [ ("thin",    CssValueBorderWidthThin)
 parseTokensAsBorderWidthValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueBorderWidth)
 parseTokensAsBorderWidthValue pat = (pat', propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueBorderWidth
-    vh = (defaultValueHelper pat) { distanceValueCtor = Just CssValueBorderWidthDistance
-                                  , dict              = cssValueBorderWidthDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueBorderWidthDict pat
+                        >>? interpretTokensAsLength False CssValueBorderWidthDistance
 
 
 
@@ -1002,13 +953,8 @@ cssValueColorDict = [ ("inherit", CssValueColorInherit)
 makeCssPropertyColor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyColor pat = (pat', fmap CssPropertyColor propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsColor
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueColor
-    vh = (defaultValueHelper pat) { colorValueCtor3 = Just CssValueColor
-                                  , dict            = cssValueColorDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueColorDict pat
+                        >>? interpretTokensAsColor CssValueColor
 
 
 
@@ -1033,12 +979,7 @@ data CssValueContent
 makeCssPropertyContent :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyContent pat = (pat', fmap CssPropertyContent propValue)
   where
-    (vh', propValue) = interpretTokensAsString vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueContent
-    vh = (defaultValueHelper pat) { stringCtor = Just CssValueContent
-                                  }
+    (pat', propValue) = interpretTokensAsString CssValueContent pat
 
 
 
@@ -1107,12 +1048,8 @@ cssValueCursorDict = [ ("crosshair", CssValueCursorCrosshair)
 makeCssPropertyCursor :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyCursor pat = (pat', fmap CssPropertyCursor propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
+    (pat', propValue) = interpretTokensAsEnum cssValueCursorDict pat
 
-    vh :: ValueHelper CssValueCursor
-    vh = (defaultValueHelper pat) { dict = cssValueCursorDict
-                                  }
 
 
 
@@ -1173,12 +1110,7 @@ cssValueDisplayDict = [ ("block",              CssValueDisplayBlock)
 makeCssPropertyDisplay :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyDisplay pat = (pat', fmap CssPropertyDisplay propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueDisplay
-    vh = (defaultValueHelper pat) { dict = cssValueDisplayDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueDisplayDict pat
 
 
 
@@ -1295,10 +1227,7 @@ parseEnum dictionary pat = case propValue of
                              Just v  -> (pat', Just v)
                              Nothing -> (pat, Nothing)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh = (defaultValueHelper pat) { dict = dictionary }
+    (pat', propValue) = interpretTokensAsEnum dictionary pat
 
 
 
@@ -1320,12 +1249,7 @@ data CssValueFontFamily
 makeCssPropertyFontFamily :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyFontFamily pat = (pat', fmap CssPropertyFontFamily propValue)
   where
-    (vh', propValue) = interpretTokensAsStringList vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueFontFamily
-    vh = (defaultValueHelper pat) { stringListCtor = Just CssValueFontFamilyList
-                                  }
+    (pat', propValue) = interpretTokensAsStringList CssValueFontFamilyList pat
 
 
 
@@ -1375,13 +1299,9 @@ cssValueFontSizeDict = [ ("xx-small", CssValueFontSizeXXSmall)
 makeCssPropertyFontSize :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyFontSize pat = (pat', fmap CssPropertyFontSize propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueFontSize
-    vh = (defaultValueHelper pat) { distanceValueCtor = Just CssValueFontSizeDistance
-                                  , dict              = cssValueFontSizeDict
-                                  } -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of font size?
+    (pat', propValue) = interpretTokensAsEnum cssValueFontSizeDict pat
+                        -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of font size?
+                        >>? interpretTokensAsLength False CssValueFontSizeDistance
 
 
 
@@ -1426,12 +1346,7 @@ cssValueFontStyleDict = [ ("normal",  CssValueFontStyleNormal)
 makeCssPropertyFontStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyFontStyle pat = (pat', fmap CssPropertyFontStyle propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueFontStyle
-    vh = (defaultValueHelper pat) { dict = cssValueFontStyleDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueFontStyleDict pat
 
 
 
@@ -1461,12 +1376,7 @@ cssValueFontVariantDict = [ ("normal",  CssValueFontVariantNormal)
 makeCssPropertyFontVariant :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyFontVariant pat = (pat', fmap CssPropertyFontVariant propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueFontVariant
-    vh = (defaultValueHelper pat) { dict = cssValueFontVariantDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueFontVariantDict pat
 
 
 
@@ -1502,14 +1412,8 @@ cssValueFontWeightDict = [ ("normal",  CssValueFontWeightNormal)
 makeCssPropertyFontWeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyFontWeight pat = (pat', fmap CssPropertyFontWeight propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsInteger
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueFontWeight
-    vh = (defaultValueHelper pat) { integerValueCtor = Just CssValueFontWeightInt
-                                  , dict             = cssValueFontWeightDict
-                                  , integersRange    = (100, 900)
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueFontWeightDict pat
+                        >>? interpretTokensAsInteger CssValueFontWeightInt (100, 900)
 
 
 
@@ -1533,12 +1437,8 @@ data CssValueHeight
 makeCssPropertyHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyHeight pat = (pat', fmap CssPropertyHeight propValue)
   where
-    (vh', propValue) = interpretTokensAsLength vh >>? interpretTokensAsAuto
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueHeight
-    vh = (defaultValueHelper pat) { distanceValueCtor = Just CssValueHeightDistance
-                                  }
+    (pat', propValue) = interpretTokensAsLength False CssValueHeightDistance pat
+                        >>? interpretTokensAsAuto CssValueHeightDistance
 
 
 
@@ -1579,13 +1479,8 @@ cssValueLetterSpacingDict = [ ("normal",    CssValueLetterSpacingNormal)
 makeCssPropertyLetterSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyLetterSpacing pat = (pat', fmap CssPropertyLetterSpacing propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueLetterSpacing
-    vh = (defaultValueHelper pat) { distanceValueCtor = Just CssValueLetterSpacingDistance
-                                  , dict              = cssValueLetterSpacingDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueLetterSpacingDict pat
+                        >>? interpretTokensAsLength False CssValueLetterSpacingDistance
 
 
 
@@ -1614,20 +1509,11 @@ cssValueLineHeightDict = [ ("normal",    CssValueLineHeightNormal)
 makeCssPropertyLineHeight :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyLineHeight pat = (pat', fmap CssPropertyLineHeight propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueLineHeight
-    vh = (defaultValueHelper pat) { distanceValueCtor = Just CssValueLineHeightDistance
-                                  , dict              = cssValueLineHeightDict
-                                  -- Original dillo code allowed unitless
-                                  -- numeric values for zero and for values
-                                  -- of type "length/percent/number". Line
-                                  -- height was one of the properties that
-                                  -- had this type.
-                                  , allowUnitlessDistance = True
-                                  }
-
+    (pat', propValue) = interpretTokensAsEnum cssValueLineHeightDict pat
+                        -- True: Original dillo code allowed unitless numeric values for zero and
+                        -- for values of type "length/percent/number". Line height was one of the
+                        -- properties that had this type.
+                        >>? interpretTokensAsLength True CssValueLineHeightDistance
 
 
 
@@ -1693,12 +1579,7 @@ cssValueListStylePositionDict = [ ("inside",               CssValueListStylePosi
 makeCssPropertyListStylePosition :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyListStylePosition pat = (pat', fmap CssPropertyListStylePosition propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueListStylePosition
-    vh = (defaultValueHelper pat) { dict = cssValueListStylePositionDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueListStylePositionDict pat
 
 
 
@@ -1769,12 +1650,7 @@ cssValueListStyleTypeDict = [ ("disc",                 CssValueListStyleTypeDisc
 makeCssPropertyListStyleType :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyListStyleType pat = (pat', fmap CssPropertyListStyleType propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueListStyleType
-    vh = (defaultValueHelper pat) { dict = cssValueListStyleTypeDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueListStyleTypeDict pat
 
 
 
@@ -1828,12 +1704,8 @@ makeCssPropertyMarginX propCtor pat = (pat', fmap propCtor value)
 parseTokensAsMarginValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValueMargin)
 parseTokensAsMarginValue pat = (pat', propValue)
   where
-    (vh', propValue) = interpretTokensAsLength vh >>? interpretTokensAsAuto
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueMargin
-    vh = (defaultValueHelper pat) { distanceValueCtor = Just CssValueMarginDistance
-                                  }
+    (pat', propValue) = interpretTokensAsLength False CssValueMarginDistance pat
+                        >>? interpretTokensAsAuto CssValueMarginDistance
 
 
 
@@ -1915,12 +1787,8 @@ makeCssPropertyPaddingX propCtor pat = (pat', fmap propCtor value)
 parseTokensAsPaddingValue :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssValuePadding)
 parseTokensAsPaddingValue pat = (pat', propValue)
   where
-    (vh', propValue) = interpretTokensAsLength vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValuePadding
-    vh = (defaultValueHelper pat) { distanceValueCtor = Just CssValuePadding
-                                  } -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
+    -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
+    (pat', propValue) = interpretTokensAsLength False CssValuePadding pat
 
 
 
@@ -1980,12 +1848,7 @@ cssValueTextAlignDict = [ ("left",    CssValueTextAlignLeft)
 makeCssPropertyTextAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyTextAlign pat = (pat', fmap CssPropertyTextAlign propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueTextAlign
-    vh = (defaultValueHelper pat) { dict = cssValueTextAlignDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueTextAlignDict pat
 
 
 
@@ -2022,12 +1885,8 @@ cssValueTextDecorationDict = [ ("underline",     CssValueTextDecorationUnderline
 makeCssPropertyTextDecoration :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyTextDecoration pat = (pat', fmap CssPropertyTextDecoration propValue)
   where
-    (vh', propValue) = interpretTokensAsMultiEnum vh
-    pat'             = pt3 vh'
+    (pat', propValue) = interpretTokensAsMultiEnum cssValueTextDecorationDict pat
 
-    vh :: ValueHelper CssValueTextDecoration
-    vh = (defaultValueHelper pat) { dict = cssValueTextDecorationDict
-                                  }
 
 
 
@@ -2048,12 +1907,7 @@ data CssValueTextIndent
 makeCssPropertyTextIndent :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyTextIndent pat =  (pat', fmap CssPropertyTextIndent propValue)
   where
-    (vh', propValue) = interpretTokensAsLength vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueTextIndent
-    vh = (defaultValueHelper pat) { distanceValueCtor = Just CssValueTextIndentDistance
-                                  }
+    (pat', propValue) = interpretTokensAsLength False CssValueTextIndentDistance pat
 
 
 
@@ -2099,12 +1953,7 @@ cssValueTextTransformDict = [ ("none",       CssValueTextTransformNone)
 makeCssPropertyTextTransform :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyTextTransform pat = (pat', fmap CssPropertyTextTransform propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueTextTransform
-    vh = (defaultValueHelper pat) { dict = cssValueTextTransformDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueTextTransformDict pat
 
 
 
@@ -2161,12 +2010,7 @@ cssValueVerticalAlignDict = [ ("top",         CssValueVerticalAlignTop)
 makeCssPropertyVerticalAlign :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyVerticalAlign pat = (pat', fmap CssPropertyVerticalAlign propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueVerticalAlign
-    vh = (defaultValueHelper pat) { dict = cssValueVerticalAlignDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueVerticalAlignDict pat
 
 
 
@@ -2214,12 +2058,7 @@ cssValueWhitespaceDict = [ ("normal",   CssValueWhitespaceNormal)
 makeCssPropertyWhitespace :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyWhitespace pat = (pat', fmap CssPropertyWhitespace propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueWhitespace
-    vh = (defaultValueHelper pat) { dict = cssValueWhitespaceDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueWhitespaceDict pat
 
 
 
@@ -2243,12 +2082,8 @@ data CssValueWidth
 makeCssPropertyWidth :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyWidth pat = (pat', fmap CssPropertyWidth propValue)
   where
-    (vh', propValue) = interpretTokensAsLength vh >>? interpretTokensAsAuto
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueWidth
-    vh = (defaultValueHelper pat) { distanceValueCtor = Just CssValueWidthDistance
-                                  }
+    (pat', propValue) = interpretTokensAsLength False CssValueWidthDistance pat
+                        >>? interpretTokensAsAuto CssValueWidthDistance
 
 
 
@@ -2278,13 +2113,8 @@ cssValueWordSpacingDict = [ ("normal",    CssValueWordSpacingNormal)
 makeCssPropertyWordSpacing :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssProperty)
 makeCssPropertyWordSpacing pat = (pat', fmap CssPropertyWordSpacing propValue)
   where
-    (vh', propValue) = interpretTokensAsEnum vh >>? interpretTokensAsLength
-    pat'             = pt3 vh'
-
-    vh :: ValueHelper CssValueWordSpacing
-    vh = (defaultValueHelper pat) { distanceValueCtor = Just CssValueWordSpacingDistance
-                                  , dict              = cssValueWordSpacingDict
-                                  }
+    (pat', propValue) = interpretTokensAsEnum cssValueWordSpacingDict pat
+                        >>? interpretTokensAsLength False CssValueWordSpacingDistance
 
 
 

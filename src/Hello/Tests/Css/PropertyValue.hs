@@ -42,11 +42,6 @@ import Hello.Css.Tokenizer
 
 
 
-type ValueCtor propValueT = ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
-
-
-
-
 data TestData propValueT = TestData
   { initialRem      :: T.Text                    -- Initial remainder of CSS parser.
   , initialToken    :: CssToken                  -- Initial current token.
@@ -55,22 +50,21 @@ data TestData propValueT = TestData
   , finalToken      :: CssToken                  -- Final (after a single test) token.
   , expectedValue   :: Maybe propValueT          -- Expected value parsed from (parser+token) pair.
   , valueState      :: ValueHelper propValueT
-  , testedFunction  :: ValueCtor propValueT
+  , testedFunction  :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe propValueT)
   }
 
 
 
 
-defaultTestData :: ValueCtor propValueT -> ValueHelper propValueT -> TestData propValueT
-defaultTestData f vh = TestData { initialRem     = ""
-                                , initialToken   = CssTokNone
-                                , dictionary     = []
-                                , finalRem       = ""
-                                , finalToken     = CssTokNone
-                                , expectedValue  = Nothing
-                                , valueState     = vh
-                                , testedFunction = f
-                                }
+defaultTestData :: ValueHelper propValueT -> TestData propValueT
+defaultTestData vh = TestData { initialRem     = ""
+                              , initialToken   = CssTokNone
+                              , dictionary     = []
+                              , finalRem       = ""
+                              , finalToken     = CssTokNone
+                              , expectedValue  = Nothing
+                              , valueState     = vh
+                              }
 
 
 
@@ -87,12 +81,8 @@ testFunction (x:xs) = if not success
     expectedPropertyValue = expectedValue x
 
     pat = (defaultParserInBlock . initialRem $ x, initialToken x)
-    vh  = (valueState x) { pt3  = pat
-                         , dict = dictionary x
-                         }
 
-    (vh', propertyValue) = (testedFunction x) vh
-    (parser', token') = pt3 vh'
+    ((parser', token'), propertyValue) = (testedFunction x) pat
 
     success = and [ expectedPropertyValue == propertyValue
                   , token' == finalToken x
@@ -145,7 +135,7 @@ enumTestData =
              , finalRem   = "important;",   finalToken   = CssTokDelim '!'
              , expectedValue  = Just EnumTestDataFirst
              , valueState     = defaultValueHelper2
-             , testedFunction = interpretTokensAsEnum
+             , testedFunction = interpretTokensAsEnum enumTestDict
              }
 
     -- Success case. Middle element on the list matches.
@@ -154,7 +144,7 @@ enumTestData =
              , finalRem   = "important;",   finalToken   = CssTokDelim '!'
              , expectedValue  = Just EnumTestDataThird
              , valueState     = defaultValueHelper2
-             , testedFunction = interpretTokensAsEnum
+             , testedFunction = interpretTokensAsEnum enumTestDict
              }
 
     -- Success case. Last element on the list matches.
@@ -163,7 +153,7 @@ enumTestData =
              , finalRem   = "important;",   finalToken   = CssTokDelim '!'
              , expectedValue  = Just EnumTestDataFifth
              , valueState     = defaultValueHelper2
-             , testedFunction = interpretTokensAsEnum
+             , testedFunction = interpretTokensAsEnum enumTestDict
              }
 
     -- Failure case: token not matching a dict. This may happen if input
@@ -174,7 +164,7 @@ enumTestData =
              , finalRem   = "!important;",  finalToken   = CssTokIdent "eight"
              , expectedValue  = Nothing
              , valueState     = defaultValueHelper2
-             , testedFunction = interpretTokensAsEnum
+             , testedFunction = interpretTokensAsEnum enumTestDict
              }
 
     -- Failure case: empty dict. Not going to happen in practice because that
@@ -187,7 +177,7 @@ enumTestData =
              , finalRem   = "!important;",  finalToken   = CssTokIdent "first"
              , expectedValue  = Nothing
              , valueState     = defaultValueHelper2
-             , testedFunction = interpretTokensAsEnum
+             , testedFunction = interpretTokensAsEnum []
              }
 
     -- Atypical data: empty string in token.
@@ -196,7 +186,7 @@ enumTestData =
              , finalRem   = "!important;",  finalToken   = CssTokIdent ""
              , expectedValue  = Nothing
              , valueState     = defaultValueHelper2
-             , testedFunction = interpretTokensAsEnum
+             , testedFunction = interpretTokensAsEnum []
              }
   ]
 
@@ -389,13 +379,10 @@ multiEnumTestFunction (x:xs) = if not success
   where
     expectedPropertyValue = expectedValue2 x
 
-    vh :: ValueHelper MultiEnumTestDataMultiEnum
-    vh = (defaultValueHelper pat) { dict = dictionary2 x }
-
-    (vh', propertyValue) = interpretTokensAsMultiEnum vh
+    (pat', propertyValue) = interpretTokensAsMultiEnum (dictionary2 x) pat
 
     pat = (defaultParserInBlock . initialRem2 $ x, initialToken2 x)
-    (parser', token') = pt3 vh'
+    (parser', token') = pat'
 
     success = and [ expectedPropertyValue == propertyValue
                   , token' == finalToken2 x
@@ -437,8 +424,8 @@ autoTestData =
              , initialRem = "something; other", initialToken = CssTokIdent "auto"
              , finalRem   = "; other",          finalToken   = CssTokIdent "something"
              , expectedValue  = Just . AutoTestValueCtor $ CssDistanceAuto
-             , valueState     = defaultValueHelper2 { distanceValueCtor = Just AutoTestValueCtor }
-             , testedFunction = interpretTokensAsAuto
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsAuto AutoTestValueCtor
              }
 
     -- Failure case. Current token is not "auto".
@@ -446,8 +433,8 @@ autoTestData =
              , initialRem = "something; other", initialToken = CssTokIdent "italic"
              , finalRem   = "something; other", finalToken   = CssTokIdent "italic"
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { distanceValueCtor = Just AutoTestValueCtor }
-             , testedFunction = interpretTokensAsAuto
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsAuto AutoTestValueCtor
              }
 
     -- Failure case. Current token is definitely not "auto".
@@ -455,8 +442,8 @@ autoTestData =
              , initialRem = "something; other", initialToken = CssTokBraceCurlyClose
              , finalRem   = "something; other", finalToken   = CssTokBraceCurlyClose
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { distanceValueCtor = Just AutoTestValueCtor }
-             , testedFunction = interpretTokensAsAuto
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsAuto AutoTestValueCtor
              }
 
     -- Failure case. Current token is definitely not "auto".
@@ -464,8 +451,8 @@ autoTestData =
              , initialRem = "something; other", initialToken = CssTokDelim '@'
              , finalRem   = "something; other", finalToken   = CssTokDelim '@'
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { distanceValueCtor = Just AutoTestValueCtor }
-             , testedFunction = interpretTokensAsAuto
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsAuto AutoTestValueCtor
              }
   ]
 
@@ -494,8 +481,8 @@ colorTestData1 =
              , initialRem = "something; other1", initialToken = CssTokHash CssHashId "fb5"  -- fb5 interpreted as rgb should be expanded to rrggbb in form of ffbb55
              , finalRem   = "; other1",          finalToken   = CssTokIdent "something"
              , expectedValue  = Just . ColorTestValueCtor $ 0xffbb55
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Success case. Color as hex.
@@ -503,8 +490,8 @@ colorTestData1 =
              , initialRem = "something; other2", initialToken = CssTokHash CssHashId "12de56"
              , finalRem   = "; other2",          finalToken   = CssTokIdent "something"
              , expectedValue  = Just . ColorTestValueCtor $ 0x12de56
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Success case. Color as hex. Capital letters in hex string.
@@ -512,8 +499,8 @@ colorTestData1 =
              , initialRem = "something; other3", initialToken = CssTokHash CssHashId "12DE5A"
              , finalRem   = "; other3",          finalToken   = CssTokIdent "something"
              , expectedValue  = Just . ColorTestValueCtor $ 0x12de5A
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Success case. Color as name.
@@ -521,8 +508,8 @@ colorTestData1 =
              , initialRem = "something; other4", initialToken = CssTokIdent "red"
              , finalRem   = "; other4",          finalToken   = CssTokIdent "something"
              , expectedValue  = Just . ColorTestValueCtor $ 0xff0000
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Success case. Color as less frequently used name.
@@ -530,8 +517,8 @@ colorTestData1 =
              , initialRem = "something; other5", initialToken = CssTokIdent "antiquewhite"
              , finalRem   = "; other5",          finalToken   = CssTokIdent "something"
              , expectedValue  = Just . ColorTestValueCtor $ 0xfaebd7
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Failure case. Name is not a proper color name.
@@ -539,8 +526,8 @@ colorTestData1 =
              , initialRem = "something; other6", initialToken = CssTokIdent "czerwony"
              , finalRem   = "something; other6", finalToken   = CssTokIdent "czerwony"
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Failure, hash is not a hex-digit string.
@@ -548,8 +535,8 @@ colorTestData1 =
              , initialRem = "something; other7", initialToken = CssTokHash CssHashId "ident"
              , finalRem   = "something; other7", finalToken   = CssTokHash CssHashId "ident"
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Failure, hash has incorrect count of digits (should be either 3 or 6).
@@ -557,8 +544,8 @@ colorTestData1 =
              , initialRem = "something; other8", initialToken = CssTokHash CssHashId "a"
              , finalRem   = "something; other8", finalToken   = CssTokHash CssHashId "a"
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Failure, hash has incorrect count of digits (should be either 3 or 6).
@@ -566,8 +553,8 @@ colorTestData1 =
              , initialRem = "something; other9", initialToken = CssTokHash CssHashId "ab"
              , finalRem   = "something; other9", finalToken   = CssTokHash CssHashId "ab"
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Success, just a sanity check.
@@ -575,8 +562,8 @@ colorTestData1 =
              , initialRem = "something; other10", initialToken = CssTokHash CssHashId "abc"
              , finalRem   = "; other10",          finalToken   = CssTokIdent "something"
              , expectedValue  = Just . ColorTestValueCtor $ 0xaabbcc
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Failure, hash has incorrect count of digits (should be either 3 or 6).
@@ -584,8 +571,8 @@ colorTestData1 =
              , initialRem = "something; other11", initialToken = CssTokHash CssHashId "abcd"
              , finalRem   = "something; other11", finalToken   = CssTokHash CssHashId "abcd"
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Failure, hash has incorrect count of digits (should be either 3 or 6).
@@ -593,8 +580,8 @@ colorTestData1 =
              , initialRem = "something; other12", initialToken = CssTokHash CssHashId "abcde"
              , finalRem   = "something; other12", finalToken   = CssTokHash CssHashId "abcde"
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Success, just a sanity check.
@@ -602,8 +589,8 @@ colorTestData1 =
              , initialRem = "something; other13", initialToken = CssTokHash CssHashId "abcdef"
              , finalRem   = "; other13",          finalToken   = CssTokIdent "something"
              , expectedValue  = Just . ColorTestValueCtor $ 0xabcdef
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Failure, empty hash string.
@@ -611,8 +598,8 @@ colorTestData1 =
              , initialRem = "something; other14", initialToken = CssTokHash CssHashId ""
              , finalRem   = "something; other14", finalToken   = CssTokHash CssHashId ""
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Failure. Empty ident string.
@@ -620,8 +607,8 @@ colorTestData1 =
              , initialRem = "something; other15", initialToken = CssTokIdent ""
              , finalRem   = "something; other15", finalToken   = CssTokIdent ""
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Failure. Unexpected current token type.
@@ -629,8 +616,8 @@ colorTestData1 =
              , initialRem = "something; other16", initialToken = CssTokDelim '@'
              , finalRem   = "something; other16", finalToken   = CssTokDelim '@'
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
   -- Failure. Unexpected current token type.
@@ -638,8 +625,8 @@ colorTestData1 =
              , initialRem = "something; other17", initialToken = CssTokPerc . CssNumF $ 50.0
              , finalRem   = "something; other17", finalToken   = CssTokPerc . CssNumF $ 50.0
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
   ]
 
@@ -655,8 +642,8 @@ colorTestData2 =
              , initialRem = "15,50,200); next-property1", initialToken = CssTokFunc "rgb"
              , finalRem   = " next-property1",            finalToken   = CssTokSemicolon
              , expectedValue  = Just . ColorTestValueCtor $ 0x0f32c8
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Success case. Color as rgb function, with percentages.
@@ -664,8 +651,8 @@ colorTestData2 =
              , initialRem = "90%,20%,0%); next-property2", initialToken = CssTokFunc "rgb"
              , finalRem   = " next-property2",             finalToken   = CssTokSemicolon
              , expectedValue  = Just . ColorTestValueCtor $ 0xe63300
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Success case. Color as rgb function, with percentages.
@@ -676,8 +663,8 @@ colorTestData2 =
              , initialRem = "120%,-20%,15%); next-property3", initialToken = CssTokFunc "rgb"
              , finalRem   = " next-property3",                finalToken   = CssTokSemicolon
              , expectedValue  = Just . ColorTestValueCtor $ 0xff0026
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
 
     -- Failure. Mix of dimensionless values and percentages should be rejected.
@@ -685,8 +672,8 @@ colorTestData2 =
              , initialRem = "90%,20,0%); next-property4", initialToken = CssTokFunc "rgb"
              , finalRem   = "90%,20,0%); next-property4", finalToken   = CssTokFunc "rgb"
              , expectedValue  = Nothing
-             , valueState     = defaultValueHelper2 { colorValueCtor3 = Just ColorTestValueCtor }
-             , testedFunction = interpretTokensAsColor
+             , valueState     = defaultValueHelper2
+             , testedFunction = interpretTokensAsColor ColorTestValueCtor
              }
   ]
 
@@ -708,7 +695,7 @@ data StringListTestType = StringListTestCtor [T.Text]
 
 
 -- 'test data' item for 'string list' function.
-tdsl = defaultTestData interpretTokensAsStringList defaultValueHelper2 { stringListCtor = Just StringListTestCtor }
+tdsl = defaultTestData defaultValueHelper2
 
 
 
@@ -721,12 +708,14 @@ stringListTestData =
     tdsl { initialRem    = ",tuesday, wednesday , thursday; next-property", initialToken = CssTokIdent "monday"
          , finalRem      = " next-property",                                finalToken   = CssTokSemicolon
          , expectedValue = Just . StringListTestCtor $ ["monday", "tuesday", "wednesday", "thursday"]
+         , testedFunction = interpretTokensAsStringList StringListTestCtor
          }
 
     -- Success case.
   , tdsl { initialRem    = "; next-property",  initialToken = CssTokIdent "monday"
          , finalRem      = " next-property",   finalToken   = CssTokSemicolon
          , expectedValue = Just . StringListTestCtor $ ["monday"]
+         , testedFunction = interpretTokensAsStringList StringListTestCtor
          }
 
     -- Failure case.
@@ -736,6 +725,7 @@ stringListTestData =
   , tdsl { initialRem     = "tuesday; next-property",  initialToken = CssTokHash CssHashId "monday"
          , finalRem       = "tuesday; next-property",  finalToken   = CssTokHash CssHashId "monday"
          , expectedValue  = Nothing
+         , testedFunction = interpretTokensAsStringList StringListTestCtor
          }
 
     -- Failure case.
@@ -744,6 +734,7 @@ stringListTestData =
   , tdsl { initialRem     = "tuesday, 99redbaloons, wednesday; next-property",  initialToken = CssTokIdent "monday"
          , finalRem       = "tuesday, 99redbaloons, wednesday; next-property",  finalToken   = CssTokIdent "monday"
          , expectedValue  = Nothing
+         , testedFunction = interpretTokensAsStringList StringListTestCtor
          }
   ]
 
@@ -765,7 +756,7 @@ data IntegerTestType = IntegerTestCtor Int
 
 
 -- 'test data' item for 'integer' function.
-tdi = defaultTestData interpretTokensAsInteger defaultValueHelper2 { integerValueCtor = Just IntegerTestCtor }
+tdi = defaultTestData defaultValueHelper2
 
 
 
@@ -776,14 +767,16 @@ integerTestData =
     -- Success case. Numeric token with value within range.
     tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ 9
         , finalRem      = "important",   finalToken   = CssTokDelim '!'
-        , valueState    = (valueState tdi) { integersRange    = (0, 900) }
+        , valueState    = valueState tdi
+        , testedFunction = interpretTokensAsInteger IntegerTestCtor (0, 900)
         , expectedValue = Just . IntegerTestCtor $ 9
         }
 
     -- Success case. Numeric token with value within range.
   , tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ -150
         , finalRem      = "important",   finalToken   = CssTokDelim '!'
-        , valueState    = (valueState tdi) { integersRange    = (-200, 900) }
+        , valueState    = valueState tdi
+        , testedFunction = interpretTokensAsInteger IntegerTestCtor (-200, 900)
         , expectedValue = Just . IntegerTestCtor $ (-150)
         }
 
@@ -791,7 +784,8 @@ integerTestData =
     -- range.
   , tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ 0
         , finalRem      = "important",   finalToken   = CssTokDelim '!'
-        , valueState    = (valueState tdi) { integersRange    = (0, 900) }
+        , valueState    = valueState tdi
+        , testedFunction = interpretTokensAsInteger IntegerTestCtor (0, 900)
         , expectedValue = Just . IntegerTestCtor $ 0
         }
 
@@ -799,7 +793,8 @@ integerTestData =
     -- range.
   , tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ 900
         , finalRem      = "important",   finalToken   = CssTokDelim '!'
-        , valueState    = (valueState tdi) { integersRange    = (0, 900) }
+        , valueState    = valueState tdi
+        , testedFunction = interpretTokensAsInteger IntegerTestCtor (0, 900)
         , expectedValue = Just . IntegerTestCtor $ 900
         }
 
@@ -807,7 +802,8 @@ integerTestData =
     -- range.
   , tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ 99
         , finalRem      = "!important",  finalToken   = CssTokNum . CssNumI $ 99
-        , valueState    = (valueState tdi) { integersRange    = (100, 900) }
+        , valueState    = valueState tdi
+        , testedFunction = interpretTokensAsInteger IntegerTestCtor (100, 900)
         , expectedValue = Nothing
         }
 
@@ -815,7 +811,8 @@ integerTestData =
     -- range.
   , tdi { initialRem    = "!important",  initialToken = CssTokNum . CssNumI $ 901
         , finalRem      = "!important",  finalToken   = CssTokNum . CssNumI $ 901
-        , valueState    = (valueState tdi) { integersRange    = (100, 900) }
+        , valueState    = valueState tdi
+        , testedFunction = interpretTokensAsInteger IntegerTestCtor (100, 900)
         , expectedValue = Nothing
         }
   ]
