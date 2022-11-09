@@ -606,13 +606,13 @@ parseSingleDeclaration (p1, t1) = ((outParser, outToken), declarationsWithImport
 
 
 
-parseDeclarationWrapper :: (CssParser, CssToken) -> (CssDeclarationSet, CssDeclarationSet) -> ((CssParser, CssToken), (CssDeclarationSet, CssDeclarationSet))
+parseDeclarationWrapper :: (CssParser, CssToken) -> CssDeclarationSets -> ((CssParser, CssToken), CssDeclarationSets)
 parseDeclarationWrapper pat (inSet, inSetImp) = (pat', (outSet, outSetImp))
   where
     (pat', declarations) = parseSingleDeclaration pat
     (outSet, outSetImp)  = appendDeclarations declarations inSet inSetImp
 
-    appendDeclarations :: [CssDeclaration] -> CssDeclarationSet -> CssDeclarationSet -> (CssDeclarationSet, CssDeclarationSet)
+    appendDeclarations :: [CssDeclaration] -> CssDeclarationSet -> CssDeclarationSet -> CssDeclarationSets
     appendDeclarations [] set setImp     = (set, setImp)
     appendDeclarations (d:ds) set setImp = if important d
                                            then appendDeclarations ds set (declarationsSetUpdateOrAdd setImp d)
@@ -693,10 +693,10 @@ let declSetImp = CssDeclarationSet {isSafe = True, items = S.fromList []}
 let cssStyleAttribute = "color: red !important; font-weight: bold"
 parseElementStyleAttribute "" cssStyleAttribute (declSet, declSetImp)
 -}
-parseElementStyleAttribute :: T.Text -> T.Text -> (CssDeclarationSet, CssDeclarationSet) -> (CssDeclarationSet, CssDeclarationSet)
-parseElementStyleAttribute _baseUrl cssStyleAttribute (declSet, declSetImp) = (outDeclSet, outDeclSetImp)
+parseElementStyleAttribute :: T.Text -> T.Text -> CssDeclarationSets -> CssDeclarationSets
+parseElementStyleAttribute _baseUrl cssStyleAttribute declSets = declSets'
   where
-    ((_p2, _t2), (outDeclSet, outDeclSetImp)) = parseAllDeclarations ((p1, t1), (declSet, declSetImp))
+    ((_p2, _t2), declSets') = parseAllDeclarations ((p1, t1), declSets)
     (p1, t1) = nextToken parser -- Kick-off the parsing
 
     {-
@@ -714,12 +714,14 @@ parseElementStyleAttribute _baseUrl cssStyleAttribute (declSet, declSetImp) = (o
                       }
 
 
+type CssDeclarationSets = (CssDeclarationSet, CssDeclarationSet)
 
 
-parseAllDeclarations :: ((CssParser, CssToken), (CssDeclarationSet, CssDeclarationSet)) -> ((CssParser, CssToken), (CssDeclarationSet, CssDeclarationSet))
-parseAllDeclarations ((p1, t1), (declSet, declSetImp)) | t1 == CssTokEnd             = ((p1, t1), (declSet, declSetImp))
-                                                       | t1 == CssTokBraceCurlyClose = ((p1, t1), (declSet, declSetImp))
-                                                       | otherwise = parseAllDeclarations (parseDeclarationWrapper (p1, t1) (declSet, declSetImp))
+
+parseAllDeclarations :: ((CssParser, CssToken), CssDeclarationSets) -> ((CssParser, CssToken), CssDeclarationSets)
+parseAllDeclarations ((p1, t1), declSets) | t1 == CssTokEnd             = ((p1, t1), declSets)
+                                          | t1 == CssTokBraceCurlyClose = ((p1, t1), declSets)
+                                          | otherwise = parseAllDeclarations (parseDeclarationWrapper (p1, t1) declSets)
 
 
 
@@ -786,12 +788,12 @@ constructAndAddRules context selectorList declSet declSetImp origin = updatedCon
 -}
 
 
-readDeclarations :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe (CssDeclarationSet, CssDeclarationSet))
-readDeclarations (parser, token) = ((p3, t3), Just (declSet, declSetImp))
+readDeclarations :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclarationSets)
+readDeclarations (parser, token) = ((p3, t3), Just declSets)
   where
-    ((p2, t2), (declSet, declSetImp)) = case token of
-                                          CssTokEnd -> ((parser, token), (declSet, declSetImp))
-                                          _         -> readDeclarations' (nextToken parser{ inBlock = True }, (defaultCssDeclarationSet, defaultCssDeclarationSet))
+    ((p2, t2), declSets) = case token of
+                             CssTokEnd -> ((parser, token), declSets)
+                             _         -> readDeclarations' (nextToken parser{ inBlock = True }, (defaultCssDeclarationSet, defaultCssDeclarationSet))
     (p3, t3) = case t2 of
                  CssTokBraceCurlyClose -> nextToken p2{ inBlock = False }
                  _                     -> (p2{ inBlock = False }, t2)
@@ -799,10 +801,10 @@ readDeclarations (parser, token) = ((p3, t3), Just (declSet, declSetImp))
 
 
 
-readDeclarations' ((parser, token), (declSet, declSetImp)) =
+readDeclarations' ((parser, token), declSets) =
   case token of
-    CssTokEnd             -> ((parser, token), (declSet, declSetImp))
-    CssTokBraceCurlyClose -> ((parser, token), (declSet, declSetImp)) -- TODO: this should be (nextToken parser)
+    CssTokEnd             -> ((parser, token), declSets)
+    CssTokBraceCurlyClose -> ((parser, token), declSets) -- TODO: this should be (nextToken parser)
                              -- instead of (parser, token): ensure that '}' that is part of "declartions" block
                              -- is handled and consumed, so that the next part of code doesn't have to handle it.
-    _                     -> readDeclarations' (parseDeclarationWrapper (parser, token) (declSet, declSetImp))
+    _                     -> readDeclarations' (parseDeclarationWrapper (parser, token) declSets)
