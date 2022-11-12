@@ -45,10 +45,6 @@ module Hello.Css.ParserHelpers
   , takeLengthTokens
   , lengthValueToDistance
 
-  , ValueHelper (..)
-  , defaultValueHelper
-  , defaultValueHelper2
-
   , interpretTokensAsEnum
   , interpretTokensAsMultiEnum
   , interpretTokensAsLength
@@ -73,27 +69,6 @@ import Data.Text as T
 import Hello.Colors
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
-
-
-
-
-data ValueHelper propValueT = ValueHelper
-  {
-    pt3                   :: (CssParser, CssToken)
-  }
-
-
-
-
-defaultValueHelper :: (CssParser, CssToken) -> ValueHelper a
-defaultValueHelper pat = defaultValueHelper2 { pt3 = pat }
-
-
-
-
-defaultValueHelper2 :: ValueHelper a
-defaultValueHelper2 = ValueHelper { pt3                   = (defaultParserEmpty, CssTokNone)
-                                  }
 
 
 
@@ -179,12 +154,12 @@ rgbFunctionToColor p1 = let
 -- corresponding Haskell enum value.
 --
 -- The mapping between string identifiers and Haskell enums is specified by
--- 'dict' member of 'vh'
+-- 'dict'.
 --
 -- In case of enum value there is no need to consume more than current token
 -- to recognize the enum, but for consistency with other similar functions
 -- the function is still called "tokenS as".
-interpretTokensAsEnum :: [(T.Text, a)] -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe a)
+interpretTokensAsEnum :: [(T.Text, value)] -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
 interpretTokensAsEnum dict (parser, CssTokIdent sym) =
   case L.lookup sym' dict of
     Just propValue -> ((nextToken parser), Just propValue)
@@ -205,7 +180,7 @@ interpretTokensAsEnum _ pat = (pat, Nothing)
 -- tokens. If current token is e.g. "rgb(" function, then the function should
 -- (TODO) take as many tokens as necessary to build, parse and convert the
 -- function into color value.
---interpretTokensAsColor :: ValueHelper propValueT -> (ValueHelper propValueT, Maybe propValueT)
+interpretTokensAsColor :: (Int -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
 interpretTokensAsColor colorValueCtor3 pat@(p1, CssTokHash _ str)  = case colorsHexStringToColor str of
                                                                        Just c  -> (nextToken p1, Just $ colorValueCtor3 c)
                                                                        Nothing -> (pat, Nothing)
@@ -267,8 +242,7 @@ interpretTokensAsLength allowUnitlessDistance distanceValueCtor (parser, token) 
 
 -- Parse current token as integer
 --
--- Value of integer that is outside of ValueHelper::integersRange is
--- rejected.
+-- Value of integer that is outside of integersRange is rejected.
 --
 -- Notice that thanks to matching on "CssTokNum CssNumI i" value, the
 -- function can reject property values that start as a number, e.g. "100px".
