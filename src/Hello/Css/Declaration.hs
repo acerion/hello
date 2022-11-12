@@ -192,7 +192,6 @@ where
 import Control.Applicative (Alternative(..))
 
 import Data.Data
-import Data.Maybe
 import Data.List as L
 import Data.Text as T
 
@@ -202,7 +201,6 @@ import Hello.Css.ParserHelpers
 import Hello.Css.Tokenizer
 import Hello.Css.Value
 
-import Hello.Utils
 import Hello.Utils.Parser
 
 
@@ -532,33 +530,41 @@ makeCssPropertyBackgroundRepeat pat = fmapSnd CssPropertyBackgroundRepeat (parse
 -- declarations.
 --
 -- TODO: this implementation can correctly parse all value tokens only when
--- they appear in the same order as 'property' integers. The function should
--- be able to handle the tokens in any order.
+-- they appear in one specific order: first widht, then style, then color.
+-- The function should be able to handle the tokens in any order.
 makeCssPropertyBorder :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyBorder pat0 = (pat0, [])
-{-
+makeCssPropertyBorder pat0 = run constructors pat0 []
   where
-    declarations = catMaybes [ fmapSnd CssPropertyBorderTopWidth    propValueWidth,
-                               fmapSnd CssPropertyBorderRightWidth  propValueWidth,
-                               fmapSnd CssPropertyBorderBottomWidth propValueWidth,
-                               fmapSnd CssPropertyBorderLeftWidth   propValueWidth
+    run :: [(CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)] -- constructors
+        -> (CssParser, CssToken)  -- pat
+        -> [CssProperty]          -- acc
+        -> ((CssParser, CssToken), [CssProperty])
+    run _  pat@(_, CssTokEnd) acc = (pat, acc)
+    run (ctor:ctors) pat acc = case ctor pat of
+                                 Just (_, prop) -> run ctors pat (acc ++ [prop])
+                                 Nothing        -> case ctor (nextToken . fst $ pat) of
+                                                     -- The 'case' above checks for possible method of recovery from Nothing.
+                                                     Just _  -> (run (ctor:ctors) (nextToken . fst $ pat) acc) -- Recover by re-running current ctor with next pat.
+                                                     Nothing -> (run ctors pat acc) -- Recover by passing current pat with next ctor.
 
-                             , fmapSnd CssPropertyBorderTopStyle    propValueStyle,
-                               fmapSnd CssPropertyBorderRightStyle  propValueStyle,
-                               fmapSnd CssPropertyBorderBottomStyle propValueStyle,
-                               fmapSnd CssPropertyBorderLeftStyle   propValueStyle
+    run []           pat acc = (pat, acc)
 
-                             , fmapSnd CssPropertyBorderTopColor    propValueColor,
-                               fmapSnd CssPropertyBorderRightColor  propValueColor,
-                               fmapSnd CssPropertyBorderBottomColor propValueColor,
-                               fmapSnd CssPropertyBorderLeftColor   propValueColor
-                             ]
+    constructors = [ makeCssPropertyBorderTopWidth
+                   , makeCssPropertyBorderRightWidth
+                   , makeCssPropertyBorderBottomWidth
+                   , makeCssPropertyBorderLeftWidth
 
-    -- TODO: this piece of code has zero error checking.
-    (pat1, propValueWidth) :: Maybe ((CssParser, CssToken), CssValueBorderWidth) = parseTokensAsBorderWidthValue pat0
-    (pat2, propValueStyle) :: Maybe ((CssParser, CssToken), CssValueBorderStyle) = parseTokensAsBorderStyleValue pat1
-    (pat3, propValueColor) :: Maybe ((CssParser, CssToken), CssValueBorderColor) = parseTokensAsBorderColorValue pat2
--}
+                   , makeCssPropertyBorderTopStyle
+                   , makeCssPropertyBorderRightStyle
+                   , makeCssPropertyBorderBottomStyle
+                   , makeCssPropertyBorderLeftStyle
+
+                   , makeCssPropertyBorderTopColor
+                   , makeCssPropertyBorderRightColor
+                   , makeCssPropertyBorderBottomColor
+                   , makeCssPropertyBorderLeftColor
+                   ]
+
 
 
 

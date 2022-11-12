@@ -869,6 +869,17 @@ parseDeclarationShorthandTestData =
                                               , CssDeclaration { property = CssPropertyBorderLeftColor   $ CssValueBorderColor 0x00fff1 , important = False }
                                               ])
 
+  , ( "border: 10px red",                     [ CssDeclaration { property = CssPropertyBorderTopWidth    (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
+                                              , CssDeclaration { property = CssPropertyBorderRightWidth  (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
+                                              , CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
+                                              , CssDeclaration { property = CssPropertyBorderLeftWidth   (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
+
+                                              , CssDeclaration { property = CssPropertyBorderTopColor    $ CssValueBorderColor 0xff0000 , important = False }
+                                              , CssDeclaration { property = CssPropertyBorderRightColor  $ CssValueBorderColor 0xff0000 , important = False }
+                                              , CssDeclaration { property = CssPropertyBorderBottomColor $ CssValueBorderColor 0xff0000 , important = False }
+                                              , CssDeclaration { property = CssPropertyBorderLeftColor   $ CssValueBorderColor 0xff0000 , important = False }
+                                              ])
+
   , ( "border-top: 5mm solid red",            [ CssDeclaration { property = CssPropertyBorderTopWidth (CssValueBorderWidthDistance (CssDistanceAbsMm 5)), important = False }
                                               , CssDeclaration { property = CssPropertyBorderTopStyle CssValueBorderStyleSolid,                           important = False }
                                               , CssDeclaration { property = CssPropertyBorderTopColor $ CssValueBorderColor 0xff0000,                     important = False }
