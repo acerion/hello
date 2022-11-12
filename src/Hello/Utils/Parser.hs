@@ -29,6 +29,11 @@ where
 
 
 
+import Control.Applicative (Alternative(..))
+
+
+
+
 -- The function's return value has type "Maybe (state, value)", which is
 -- different from usual "(state, Maybe value)" type found in code written
 -- thus far. The new style is more in line with usual type of Haskell-based
@@ -100,6 +105,24 @@ instance Applicative (Parser state) where
                                              Just (state', fun) -> runParser (fmap fun parser2) state'
                                              Nothing            -> Nothing
 
+
+
+
+instance Alternative (Parser state) where
+  empty = Parser $ \_ -> Nothing
+
+  -- Run first (left) parser, see if it succeeds. If it does succeed, then we
+  -- don't have to run the second parser because one of parsers already
+  -- succeeded.
+  --
+  -- If the first parser doesn't succeed, run the second one and return the
+  -- result of running it - it will be either success or failure, but we
+  -- can't do anything much about it.
+  parser1 <|> parser2 = Parser $ \state -> case runParser parser1 state of
+                                             Just (state1, value1) -> Just (state1, value1)
+                                             Nothing -> case runParser parser2 state of
+                                                          Just (state2, value2) -> Just (state2, value2)
+                                                          Nothing               -> Nothing
 
 
 
