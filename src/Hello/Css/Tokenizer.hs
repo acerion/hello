@@ -170,7 +170,7 @@ data CssParser = CssParser {
   , inBlock        :: Bool
   , bufOffset      :: Int
   , cssOrigin      :: CssOrigin -- TODO: rethink wheter origin should be a member of parser or not.
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 
 
@@ -213,7 +213,7 @@ data CssOrigin =
     CssOriginUserAgent -- = 0  -- Rule comes from User Agent. It is defined in program's source code.
   | CssOriginUser      -- = 1
   | CssOriginAuthor    -- = 2
-  deriving (Show)
+  deriving (Show, Eq)
 
 
 
