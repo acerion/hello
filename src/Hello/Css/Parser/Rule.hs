@@ -455,8 +455,8 @@ defaultCssDeclarationSet = CssDeclarationSet
 
 parseDeclarationNormal :: (CssParser, CssToken) -> PropertyCtor -> ((CssParser, CssToken), [CssDeclaration])
 parseDeclarationNormal pat propCtor = case propCtor pat of
-                                        (pat', Just prop) -> (pat', [defaultDeclaration{property = prop}])
-                                        (pat', Nothing)   -> (pat', []) -- TODO: return here "pat'" or "pat"?
+                                        Just (pat', prop) -> (pat', [defaultDeclaration{property = prop}])
+                                        Nothing           -> (pat, [])
 
 
 

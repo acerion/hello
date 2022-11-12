@@ -159,14 +159,14 @@ rgbFunctionToColor p1 = let
 -- In case of enum value there is no need to consume more than current token
 -- to recognize the enum, but for consistency with other similar functions
 -- the function is still called "tokenS as".
-interpretTokensAsEnum :: [(T.Text, value)] -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
+interpretTokensAsEnum :: [(T.Text, value)] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
 interpretTokensAsEnum dict (parser, CssTokIdent sym) =
   case L.lookup sym' dict of
-    Just propValue -> ((nextToken parser), Just propValue)
-    Nothing        -> ((parser, CssTokIdent sym), Nothing)
+    Just propValue -> Just ((nextToken parser), propValue)
+    Nothing        -> Nothing
   where
     sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
-interpretTokensAsEnum _ pat = (pat, Nothing)
+interpretTokensAsEnum _ _ = Nothing
                                    -- TODO: is this the right place to reject everything else other than CssTokIdent?
                                    -- Shouldn't we do it somewhere else?
 
@@ -180,35 +180,34 @@ interpretTokensAsEnum _ pat = (pat, Nothing)
 -- tokens. If current token is e.g. "rgb(" function, then the function should
 -- (TODO) take as many tokens as necessary to build, parse and convert the
 -- function into color value.
-interpretTokensAsColor :: (Int -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
-interpretTokensAsColor colorValueCtor3 pat@(p1, CssTokHash _ str)  = case colorsHexStringToColor str of
-                                                                       Just c  -> (nextToken p1, Just $ colorValueCtor3 c)
-                                                                       Nothing -> (pat, Nothing)
-interpretTokensAsColor colorValueCtor3 pat@(p1, CssTokFunc "rgb")  = case rgbFunctionToColor p1 of
-                                                                       (pat', Just c) -> (pat', Just $ colorValueCtor3 c)
-                                                                       (_, Nothing)   -> (pat, Nothing)
-interpretTokensAsColor colorValueCtor3 pat@(p1, CssTokIdent ident) = case colorsStringToColor ident of
-                                                                       Just c  -> (nextToken p1, Just $ colorValueCtor3 c)
-                                                                       Nothing -> (pat, Nothing)
-interpretTokensAsColor _ pat                                       = (pat, Nothing)
+interpretTokensAsColor :: (Int -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
+interpretTokensAsColor colorValueCtor3 (p1, CssTokHash _ str)  = case colorsHexStringToColor str of
+                                                                   Just c  -> Just (nextToken p1, colorValueCtor3 c)
+                                                                   Nothing -> Nothing
+interpretTokensAsColor colorValueCtor3 (p1, CssTokFunc "rgb")  = case rgbFunctionToColor p1 of
+                                                                    (pat', Just c) -> Just (pat', colorValueCtor3 c)
+                                                                    (_, Nothing)   -> Nothing
+interpretTokensAsColor colorValueCtor3 (p1, CssTokIdent ident) = case colorsStringToColor ident of
+                                                                   Just c  -> Just (nextToken p1, colorValueCtor3 c)
+                                                                   Nothing -> Nothing
+interpretTokensAsColor _ _                                     = Nothing
 
 
 
 
 -- allowUnitlessDistance: are distance values without unit (e.g. "1.0", as
 -- opposed to "1.0px") allowed/accepted for this property value?
-interpretTokensAsLength :: Bool -> (CssDistance -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
-interpretTokensAsLength allowUnitlessDistance distanceValueCtor (parser, token) = ((p', t'), value)
+interpretTokensAsLength :: Bool -> (CssDistance -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
+interpretTokensAsLength allowUnitlessDistance distanceValueCtor (parser, token) =
+  case tokens of
+    [CssTokDim cssNum ident] -> Just ((newParser, newToken), distanceValueCtor (unitValue cssNum ident))
+    [CssTokPerc cssNum]      -> Just ((newParser, newToken), distanceValueCtor (percentValue cssNum))
+    [CssTokNum cssNum]       -> case ((newParser, newToken), unitlessValue cssNum) of
+                                  ((p2, t2), Just i) -> Just ((p2, t2), distanceValueCtor i)
+                                  (_,       Nothing) -> Nothing
+    _                        -> Nothing
+
   where
-    ((p', t'), value) = case tokens of
-                          [CssTokDim cssNum ident] -> ((newParser, newToken), Just $ distanceValueCtor (unitValue cssNum ident))
-                          [CssTokPerc cssNum]      -> ((newParser, newToken), Just $ distanceValueCtor (percentValue cssNum))
-                          [CssTokNum cssNum]       -> case ((newParser, newToken), unitlessValue cssNum) of
-                                                        ((p2, t2), Just i)  -> ((p2, t2), Just $ distanceValueCtor i)
-                                                        ((p2, t2), Nothing) -> ((p2, t2), Nothing)
-                          _                        -> ((parser, token), Nothing)
-
-
     ((newParser, newToken), tokens) = takeLengthTokens (parser, token)
 
     percentValue :: CssNum -> CssDistance
@@ -253,11 +252,11 @@ interpretTokensAsLength allowUnitlessDistance distanceValueCtor (parser, token) 
 --
 -- (Int, Int): Lower and upper value (inclusive) of allowed integer values.
 -- Used to parse e.g. font weight.
-interpretTokensAsInteger :: (Int -> a) -> (Int, Int) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe a)
-interpretTokensAsInteger integerValueCtor integersRange pat@(parser, CssTokNum (CssNumI i)) = if i >= fst integersRange && i <= snd integersRange
-                                                                                              then (nextToken parser, Just $ integerValueCtor i)
-                                                                                              else (pat, Nothing)
-interpretTokensAsInteger _ _ pat                                                            = (pat, Nothing)
+interpretTokensAsInteger :: (Int -> a) -> (Int, Int) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), a)
+interpretTokensAsInteger integerValueCtor integersRange (parser, CssTokNum (CssNumI i)) = if i >= fst integersRange && i <= snd integersRange
+                                                                                          then Just (nextToken parser, integerValueCtor i)
+                                                                                          else Nothing
+interpretTokensAsInteger _ _ _                                                          = Nothing
 
 
 
@@ -334,12 +333,12 @@ lengthValueToDistance fval unitStr | unitStr == "px" = CssDistanceAbsPx fval
 -- TODO: check in spec if the dictionary should always include an implicit
 -- "none" value. Original C++ code indicates that "none" was treated in
 -- special way.
-interpretTokensAsMultiEnum :: [(T.Text, value)] -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe [value])
+interpretTokensAsMultiEnum :: [(T.Text, value)] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), [value])
 interpretTokensAsMultiEnum dict (parser, token@(CssTokIdent _)) =
   case matchSymbolTokensWithListRigid (parser, token) dict [] of
-    (_, [])     -> ((parser, token), Nothing) -- None of input tokens were matched agains list of enums.
-    (pat', val) -> (pat', Just val)
-interpretTokensAsMultiEnum _ pat = (pat, Nothing)
+    (_, [])     -> Nothing -- None of input tokens were matched agains list of enums.
+    (pat', val) -> Just (pat', val)
+interpretTokensAsMultiEnum _ _ = Nothing
 
 
 
@@ -373,11 +372,11 @@ matchSymbolTokensWithListRigid (p, t) _ acc                      = ((p, t), acc)
 
 
 
-interpretTokensAsBgPosition :: (Int -> Int -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
-interpretTokensAsBgPosition bgPositionValueCtor pat = (pat', propValue)
+interpretTokensAsBgPosition :: (Int -> Int -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
+interpretTokensAsBgPosition bgPositionValueCtor pat = Just (pat', propValue)
   where
     (pat', _) = takeBgTokens pat
-    propValue = Just $ bgPositionValueCtor 0 0
+    propValue = bgPositionValueCtor 0 0
     -- TODO: right now the original dillo doesn't seem to display background
     -- images at all, so I will stop the work on this function for now.
     -- Later, as I get to know dillo better, I will resume work on this
@@ -473,13 +472,13 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
 
 
-interpretTokensAsURI :: (Text -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
+interpretTokensAsURI :: (Text -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
 interpretTokensAsURI uriValueCtor pat = case parseUrl pat of
-                                          (pat', Just url) -> (pat', Just $ uriValueCtor url)
+                                          (pat', Just url) -> Just (pat', uriValueCtor url)
                                           -- TODO: should we assign here pat' or pat?
                                           -- A token that is not an URI should be
                                           -- re-parsed by another function, not skipped.
-                                          (pat', Nothing)  -> (pat', Nothing)
+                                          (_, Nothing)     -> Nothing
 
 
 
@@ -537,13 +536,12 @@ tokensAsValueStringList pat = (pat', L.reverse list)
 
 
 
-interpretTokensAsStringList :: ([T.Text] -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
-interpretTokensAsStringList stringListCtor pat = (pat', propValue)
+interpretTokensAsStringList :: ([T.Text] -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
+interpretTokensAsStringList stringListCtor pat = if L.null list
+                                                 then Nothing
+                                                 else Just (pat', stringListCtor list)
   where
     (pat', list) = tokensAsValueStringList pat
-    propValue = if L.null list
-                then Nothing
-                else Just $ stringListCtor list
 
 
 
@@ -558,12 +556,12 @@ interpretTokensAsStringList stringListCtor pat = (pat', propValue)
 -- CssDistanceAuto, but this is problematic because "italic" doesn't seem to
 -- be something expected after "auto". Should we reject such input string
 -- here, or in higher layer?
---interpretTokensAsAuto :: (CssDistance -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
-interpretTokensAsAuto distanceValueCtor pat@(parser, CssTokIdent sym) | T.toLower sym == "auto" = (nextToken parser
-                                                                                                  , Just $ distanceValueCtor CssDistanceAuto
-                                                                                                  )
-                                                                      | otherwise               = (pat, Nothing)
-interpretTokensAsAuto _ pat                                                                     = (pat, Nothing)
+interpretTokensAsAuto :: (CssDistance -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
+interpretTokensAsAuto distanceValueCtor (parser, CssTokIdent sym) | T.toLower sym == "auto" = Just (nextToken parser
+                                                                                                   , distanceValueCtor CssDistanceAuto
+                                                                                                   )
+                                                                      | otherwise           = Nothing
+interpretTokensAsAuto _ _                                                                   = Nothing
 
 
 
@@ -574,9 +572,9 @@ interpretTokensAsAuto _ pat                                                     
 -- In case of "string" value there is no need to consume more than current
 -- token to build the String, but for consistency with other similar
 -- functions the function is still called "tokenS as".
-interpretTokensAsString :: (T.Text -> value) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe value)
-interpretTokensAsString stringCtor (p, CssTokStr s) = (nextToken p, Just $ stringCtor s)
-interpretTokensAsString _ pat                       = (pat, Nothing)
+interpretTokensAsString :: (T.Text -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
+interpretTokensAsString stringCtor (p, CssTokStr s) = Just (nextToken p,stringCtor s)
+interpretTokensAsString _ _                         = Nothing
 
 
 
