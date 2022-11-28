@@ -153,10 +153,10 @@ hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cLengthValu
            | propertyArg == 18 = CssPropertyBorderTopWidth    $ CssValueBorderWidthDistance distance
            | propertyArg == 39 = CssPropertyHeight            $ CssValueHeightDistance distance
 
-           | propertyArg == 49 = CssPropertyMarginTop         $ CssValueMarginDistance distance
-           | propertyArg == 48 = CssPropertyMarginRight       $ CssValueMarginDistance distance
-           | propertyArg == 46 = CssPropertyMarginBottom      $ CssValueMarginDistance distance
-           | propertyArg == 47 = CssPropertyMarginLeft        $ CssValueMarginDistance distance
+           | propertyArg == 49 = CssPropertyMarginTop         $ CssValueMarginXDistance distance
+           | propertyArg == 48 = CssPropertyMarginRight       $ CssValueMarginXDistance distance
+           | propertyArg == 46 = CssPropertyMarginBottom      $ CssValueMarginXDistance distance
+           | propertyArg == 47 = CssPropertyMarginLeft        $ CssValueMarginXDistance distance
 
            | propertyArg == 60 = CssPropertyPaddingBottom     $ CssValuePadding distance
            | propertyArg == 61 = CssPropertyPaddingLeft       $ CssValuePadding distance

@@ -141,6 +141,7 @@ cssPropertyCtors = M.fromList [
    , ("list-style-position",    makeCssPropertyListStylePosition)
    , ("list-style-type",        makeCssPropertyListStyleType)
 
+   , ("margin",                 makeCssPropertyMargin)
    , ("margin-top",             makeCssPropertyMarginTop)
    , ("margin-right",           makeCssPropertyMarginRight)
    , ("margin-bottom",          makeCssPropertyMarginBottom)
@@ -212,9 +213,6 @@ cssShorthandInfo = M.fromList [
 
     -- Parsing of this property is unit-tested (poorly).
   , ("list-style",         makeCssPropertyListStyle)
-
-    -- Parsing of this property is unit-tested.
-  , ("margin",             makeCssPropertyMargin)
 
     -- Parsing of this property is unit-tested (poorly).
   , ("padding",            makeCssPropertyPadding)

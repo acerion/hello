@@ -401,6 +401,7 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssPropertyBorderBottomColor value -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorBottom = getBorderColorBottom parentStyleAttrs value }}
     CssPropertyBorderLeftColor value   -> styleAttrs { styleBorderColor = (styleBorderColor styleAttrs) { styleBorderColorLeft   = getBorderColorLeft   parentStyleAttrs value }}
 
+    CssPropertyMargin declValue        -> styleAttrs { styleMargin  = updateStyleMargin declValue (styleMargin styleAttrs) fontAttrs display }
     CssPropertyMarginTop declValue     -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginTop    = getMargin declValue fontAttrs display }}
     CssPropertyMarginRight declValue   -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginRight  = getMargin declValue fontAttrs display }}
     CssPropertyMarginBottom declValue  -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin declValue fontAttrs display }}
@@ -570,8 +571,30 @@ getTextTransform declValue = fromEnum declValue
 
 
 
-getMargin :: CssValueMargin -> FontAttrs -> Display -> Int
-getMargin (CssValueMarginDistance distance) fontAttrs display = clip . calculate $ distance
+-- Update all four margins in given StyleMargin variable. Update them using
+-- four values from CssValueMargin.
+updateStyleMargin :: CssValueMargin -> StyleMargin -> FontAttrs -> Display -> StyleMargin
+updateStyleMargin (CssValueMargin t r b l) style fontAttrs display =
+  style { styleMarginTop    = clip . calculate $ t
+        , styleMarginRight  = clip . calculate $ r
+        , styleMarginBottom = clip . calculate $ b
+        , styleMarginLeft   = clip . calculate $ l
+        }
+  where
+    -- TODO: the calculate function is duplicated in getMargin. Remove duplication.
+    calculate (CssValueMarginXDistance dist) =
+      case styleEngineComputeAbsoluteLengthValue dist fontAttrs 0 display of
+        -- TODO: another place where Maybe returned by Compute function
+        -- causes unnecessary trouble.
+        Just x  -> roundInt x
+        Nothing -> 0
+    clip x = if x > 0 then x else 0   -- TODO: fix negative margins in dw/*
+
+
+
+
+getMargin :: CssValueMarginX -> FontAttrs -> Display -> Int
+getMargin (CssValueMarginXDistance distance) fontAttrs display = clip . calculate $ distance
   where
     calculate dist = case styleEngineComputeAbsoluteLengthValue dist fontAttrs 0 display of
                        -- TODO: another place where Maybe returned by Compute function

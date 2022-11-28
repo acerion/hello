@@ -61,6 +61,7 @@ module Hello.Css.Declaration
   , CssValueListStylePosition (..)
   , CssValueListStyleType (..)
   , CssValueMargin (..)
+  , CssValueMarginX (..)
   , CssValuePadding (..)
   , CssValueTextAlign (..)
   , CssValueTextDecoration (..)
@@ -189,7 +190,7 @@ where
 
 --import Debug.Trace
 
-import Control.Applicative (Alternative(..))
+import Control.Applicative (Alternative(..), many)
 
 import Data.Data
 import Data.List as L
@@ -294,10 +295,11 @@ data CssProperty
   | CssPropertyListStylePosition CssValueListStylePosition  -- 44        parsing is unit-tested
   | CssPropertyListStyleType CssValueListStyleType   -- 45               parsing is unit-tested
 
-  | CssPropertyMarginTop CssValueMargin              -- 49               parsing is unit-tested
-  | CssPropertyMarginRight CssValueMargin            -- 48               parsing is unit-tested
-  | CssPropertyMarginBottom CssValueMargin           -- 46               parsing is unit-tested
-  | CssPropertyMarginLeft CssValueMargin             -- 47               parsing is unit-tested
+  | CssPropertyMargin CssValueMargin
+  | CssPropertyMarginTop CssValueMarginX             -- 49               parsing is unit-tested
+  | CssPropertyMarginRight CssValueMarginX           -- 48               parsing is unit-tested
+  | CssPropertyMarginBottom CssValueMarginX          -- 46               parsing is unit-tested
+  | CssPropertyMarginLeft CssValueMarginX            -- 47               parsing is unit-tested
 
   | CssPropertyMarkerOffset CssValue                 -- 50
   | CssPropertyMarks CssValue                        -- 51
@@ -1666,21 +1668,47 @@ makeCssPropertyListStyleType pat = fmapSnd CssPropertyListStyleType (parser pat)
 
 
 -- ------------------------------------------------
--- Margin (margin)
+-- Margin ("margin")
 -- This is a shorthand property.
+-- Parsing is unit-tested.
+-- https://www.w3.org/TR/css-box-3/#margin-shorthand
 -- ------------------------------------------------
 
 
 
 
-makeCssPropertyMargin :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyMargin pat = parseDeclaration4321trbl
-                               pat
-                               [ CssPropertyMarginTop
-                               , CssPropertyMarginRight
-                               , CssPropertyMarginBottom
-                               , CssPropertyMarginLeft ]
-                               parseTokensAsMarginValue
+data CssValueMargin = CssValueMargin
+  { marginTop    :: CssValueMarginX
+  , marginRight  :: CssValueMarginX
+  , marginBottom :: CssValueMarginX
+  , marginLeft   :: CssValueMarginX
+  } deriving (Data, Eq, Show)
+
+
+
+
+makeCssPropertyMargin :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyMargin pat =
+  case runParser parser pat of
+    Just (x, [top, right, bottom, left]) -> Just (x, CssPropertyMargin $ CssValueMargin top right bottom left)
+    Just (x, [top, rl, bottom])          -> Just (x, CssPropertyMargin $ CssValueMargin top rl    bottom rl)
+    Just (x, [tb, rl])                   -> Just (x, CssPropertyMargin $ CssValueMargin tb  rl    tb     rl)
+    Just (x, [v])                        -> Just (x, CssPropertyMargin $ CssValueMargin v   v     v      v)
+    _                                    -> Nothing
+  where
+    -- TODO: check if we should use 'many' or 'some' for space parsers.
+    parser :: Parser (CssParser, CssToken) [CssValueMarginX]
+    parser = some (many ignoreSpace *> marginValueParser <* many ignoreSpace)
+
+    ignoreSpace :: Parser (CssParser, CssToken) CssValueMarginX
+    ignoreSpace = Parser $ \ (p, t) -> case (p, t) of
+                                         -- The fact that I'm using CssValueMarginXDistance in
+                                         -- returned value doesn't really matter since it will
+                                         -- be ignored anyway.
+                                         (p', CssTokWS) -> Just ((nextToken p'), CssValueMarginXDistance CssDistanceAuto)
+                                         _             -> Nothing
+
+
 
 
 
@@ -1696,26 +1724,31 @@ makeCssPropertyMargin pat = parseDeclaration4321trbl
 -- TODO: Here is a tricky question: should I make separate types for margin
 -- of Bottom/Top/Left/Right, or can I get away with common type for all four
 -- properties?
-data CssValueMargin
-  = CssValueMarginDistance CssDistance
+--
+-- 'X' stands for Top/Right/Bottom/Left.
+data CssValueMarginX
+  = CssValueMarginXDistance CssDistance
   deriving (Data, Eq, Show)
 
 
 
 
-makeCssPropertyMarginX :: (CssValueMargin -> CssProperty) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyMarginX :: (CssValueMarginX -> CssProperty) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyMarginX propCtor pat = fmapSnd propCtor (parser pat)
   where
     parser = parseTokensAsMarginValue
 
 
 
+marginValueParser :: Parser (CssParser, CssToken) CssValueMarginX
+marginValueParser = (Parser $ interpretTokensAsLength False CssValueMarginXDistance)
+                    <|> (Parser $ interpretTokensAsAuto CssValueMarginXDistance)
 
-parseTokensAsMarginValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueMargin)
-parseTokensAsMarginValue pat = runParser parser pat
-  where
-    parser = (Parser $ interpretTokensAsLength False CssValueMarginDistance)
-             <|> (Parser $ interpretTokensAsAuto CssValueMarginDistance)
+
+
+
+parseTokensAsMarginValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueMarginX)
+parseTokensAsMarginValue pat = runParser marginValueParser pat
 
 
 
