@@ -27,7 +27,6 @@ import qualified Test.QuickCheck as QC
 
 --import Debug.Trace
 
-import Hello.Css.Declaration
 import Hello.Css.Parser.Rule
 import Hello.Css.Tokenizer
 
@@ -107,7 +106,7 @@ getUnit = do
 -- top/right/bottom/left margin.
 parse4321trblMarginSuccess :: ValuesAndUnitsNN -> Bool
 parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected == outDeclarations
---parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = trace (traceData) (expected == outDeclarations)
+--parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = trace (_traceData) (expected == outDeclarations)
   where
     (_pat', outDeclarations) = parseSingleDeclaration pat
 
@@ -116,10 +115,10 @@ parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected
     -- 'Margin' property is inside of {} block, so use 'in block' constructor.
     -- This will simulate a parser that parsed its way into {} block.
     parser = defaultParserInBlock input
-    (input, expected) = buildSuccessRow "margin" [CssPropertyMarginTop, CssPropertyMarginRight, CssPropertyMarginBottom, CssPropertyMarginLeft] CssValueMarginDistance units values
+    (input, expected) = buildSuccessRow "margin" units values
 
     -- For debugging only
-    _traceData       = show valuesWithUnits ++ "  " ++ show outDeclarations
+    _traceData       = "generated values = " ++ show valuesWithUnits ++ ", expected declarations = " ++ show expected ++ ", parsed declarations = " ++ show outDeclarations
     valuesWithUnits = zipWith (\value unit -> (show value) ++ unit) values units
 
 
@@ -133,6 +132,7 @@ parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected
 --
 -- Verify if exponent values are allowed by CSS (they probably are, but
 -- perhaps in slightly different form).testsCssParserQuickCheck :: IO String
+testsCssParserQuickCheck :: IO String
 testsCssParserQuickCheck = do
   -- All I had to do to find stdArgs and xWith is to read documentation :)
   -- http://hackage.haskell.org/package/QuickCheck-2.8/docs/Test-QuickCheck.html

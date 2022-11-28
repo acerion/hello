@@ -54,33 +54,44 @@ buildValidInput propName values units = T.pack $ propName ++ ": " ++ (L.intercal
 --
 -- | Can be used for shortcut properties such as "margin", where 4, 3, 2 or one property value can be provided.
 --   Output of the function is always four declarations (for top, right, bottom, left properties).
-buildSuccessOut :: [declValue -> CssProperty]    -- ^ Constructors of declarations, e.g. CssPropertyMarginTop.
-                -> (a -> declValue)              -- ^ Constructor of declarations' value, common for all declarations.
-                                                 --   E.g. CssValueMargin.
-                -> [v -> a]                      -- ^ Converter between raw value and type accepted by
+{-
+buildSuccessOut :: [v -> a]                      -- ^ Converter between raw value and type accepted by
                                                  --   declaration value constructor. E.g. CssDistanceRelPx constructor.
                 -> [v]                           -- ^ Raw value of property, e.g. 11.5.
                 -> [CssDeclaration]
-buildSuccessOut declCtors declValueCtor (ct:cl:cb:cr:[]) (vt:vl:vb:vr:[]) = [ CssDeclaration { property = (declCtors !! 0) . declValueCtor . ct $ vt, important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 1) . declValueCtor . cl $ vl, important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 2) . declValueCtor . cb $ vb, important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 3) . declValueCtor . cr $ vr, important = False }
+-}
+buildSuccessOut (ct:cr:cb:cl:[]) (vt:vr:vb:vl:[]) = [ CssDeclaration { property = CssPropertyMargin (CssValueMargin
+                                                                                                      (CssValueMarginXDistance . ct $ vt)
+                                                                                                      (CssValueMarginXDistance . cr $ vr)
+                                                                                                      (CssValueMarginXDistance . cb $ vb)
+                                                                                                      (CssValueMarginXDistance . cl $ vl)
+                                                                                                    )
+                                                                     , important = False }
                                                                             ]
-buildSuccessOut declCtors declValueCtor (ct:clr:cb:[])   (vt:vlr:vb:[])   = [ CssDeclaration { property = (declCtors !! 0) . declValueCtor . ct $ vt,   important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 1) . declValueCtor . clr $ vlr, important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 2) . declValueCtor . cb $ vb,   important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 3) . declValueCtor . clr $ vlr, important = False }
+buildSuccessOut (ct:clr:cb:[])   (vt:vlr:vb:[])   = [ CssDeclaration { property = CssPropertyMargin (CssValueMargin
+                                                                                                      (CssValueMarginXDistance . ct  $ vt)
+                                                                                                      (CssValueMarginXDistance . clr $ vlr)
+                                                                                                      (CssValueMarginXDistance . cb  $ vb)
+                                                                                                      (CssValueMarginXDistance . clr $ vlr)
+                                                                                                    )
+                                                                     , important = False }
                                                                             ]
-buildSuccessOut declCtors declValueCtor (ctb:clr:[])     (vtb:vlr:[])     = [ CssDeclaration { property = (declCtors !! 0) . declValueCtor . ctb $ vtb, important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 1) . declValueCtor . clr $ vlr, important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 2) . declValueCtor . ctb $ vtb, important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 3) . declValueCtor . clr $ vlr, important = False }
+buildSuccessOut (ctb:clr:[])     (vtb:vlr:[])     = [ CssDeclaration { property = CssPropertyMargin (CssValueMargin
+                                                                                                      (CssValueMarginXDistance . ctb $ vtb)
+                                                                                                      (CssValueMarginXDistance . clr $ vlr)
+                                                                                                      (CssValueMarginXDistance . ctb $ vtb)
+                                                                                                      (CssValueMarginXDistance . clr $ vlr)
+                                                                                                    )
+                                                                     , important = False }
                                                                             ]
-buildSuccessOut declCtors declValueCtor (ctlbr:[])       (vtlbr:[])       = [ CssDeclaration { property = (declCtors !! 0) . declValueCtor . ctlbr $ vtlbr, important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 1) . declValueCtor . ctlbr $ vtlbr, important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 2) . declValueCtor . ctlbr $ vtlbr, important = False }
-                                                                            , CssDeclaration { property = (declCtors !! 3) . declValueCtor . ctlbr $ vtlbr, important = False }
-                                                                            ]
+buildSuccessOut (ctrlb:[])       (vtrbl:[])       = [ CssDeclaration { property = CssPropertyMargin (CssValueMargin
+                                                                                                      (CssValueMarginXDistance . ctrlb $ vtrbl)
+                                                                                                      (CssValueMarginXDistance . ctrlb $ vtrbl)
+                                                                                                      (CssValueMarginXDistance . ctrlb $ vtrbl)
+                                                                                                      (CssValueMarginXDistance . ctrlb $ vtrbl)
+                                                                                                    )
+                                                                     , important = False }
+                                                    ]
 
 
 
@@ -93,11 +104,13 @@ buildSuccessOut declCtors declValueCtor (ctlbr:[])       (vtlbr:[])       = [ Cs
 --
 -- If CSS parser works correctly, then there will be a match between its
 -- result and a second element of tuple returned by this function.
-buildSuccessRow :: String ->  [(declValue -> CssProperty)] -> (CssDistance -> declValue) -> [String] -> [Float] ->  (T.Text, [CssDeclaration])
-buildSuccessRow name declCtors declValueCtor units values = ( buildValidInput name values units
-                                                            , buildSuccessOut declCtors declValueCtor distanceCtors values)
+buildSuccessRow :: String ->  [String] -> [Float] ->  (T.Text, [CssDeclaration])
+-- buildSuccessRow name  units values = trace ("generated input string = " ++ show input ++ ", generated output = " ++ show output) (input, output)
+buildSuccessRow name units values = (input, output)
     where
       distanceCtors = makeDistanceCtorsList units
+      input  = buildValidInput name values units
+      output = buildSuccessOut distanceCtors values
 
 
 

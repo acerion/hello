@@ -234,10 +234,10 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
                                                                , CssDeclaration {property = CssPropertyFontWeight CssValueFontWeightBold, important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
@@ -259,10 +259,10 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
                                                                , CssDeclaration {property = CssPropertyFontVariant CssValueFontVariantSmallCaps, important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
@@ -284,10 +284,10 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
                                                                , CssDeclaration {property = CssPropertyFontFamily (CssValueFontFamilyList ["serif"]), important = False}]} -- font family
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
@@ -309,10 +309,10 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
                                                                , CssDeclaration {property = CssPropertyFontSize CssValueFontSizeXXSmall, important = False}]} -- xx-small == 8.1 * prefs.prefsFontFactor
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
@@ -334,10 +334,10 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
                                                                , CssDeclaration {property = CssPropertyFontSize CssValueFontSizeXXSmall, important = False}]} -- xx-small == 8.1 * prefs.prefsFontFactor
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
@@ -359,10 +359,10 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
                                                                , CssDeclaration {property = CssPropertyFontSize CssValueFontSizeXXSmall, important = False}]} -- xx-small == 8.1 * prefs.prefsFontFactor
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
@@ -384,10 +384,10 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
                                                                , CssDeclaration {property = CssPropertyFontSize CssValueFontSizeXXLarge, important = False}]} -- xx-large = 24.2 * prefs.prefsFontFactor
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
@@ -414,10 +414,10 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
                                                                , CssDeclaration {property = CssPropertyLetterSpacing (CssValueLetterSpacingDistance (CssDistanceAbsPx 5.0)), important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
@@ -441,10 +441,10 @@ styleEngineApplyStyleToFontTestData =
                                                                [
                                                                  CssDeclaration {property = CssPropertyLetterSpacing (CssValueLetterSpacingDistance (CssDistanceAbsPx 2.0)), important = False}
                                                                , CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}]}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -468,10 +468,10 @@ styleEngineApplyStyleToFontTestData =
       testDeclSet = CssDeclarationSet {isSafe = False, items = S.fromList
                                                                [
                                                                  CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 0.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginRight  (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEm 0.5)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginLeft   (CssValueMarginXDistance (CssNumericNone 0.0)),   important = False}
                                                                , CssDeclaration {property = CssPropertyFontStyle CssValueFontStyleOblique, important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
@@ -523,8 +523,8 @@ styleEngineApplyStyleToFontTestData =
                                                                  CssDeclaration {property = CssPropertyFontWeight CssValueFontWeightBolder, important = False}
                                                                , CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclaration {property = CssPropertyFontSize (CssValueFontSizeDistance (CssDistanceRelEm 2.0)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.67)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssNumericNone 0.0)),    important = False}]}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.67)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssNumericNone 0.0)),    important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -549,8 +549,8 @@ styleEngineApplyStyleToFontTestData =
                                                                  CssDeclaration {property = CssPropertyFontWeight CssValueFontWeightBolder, important = False} -- font weight, bolder
                                                                , CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclaration {property = CssPropertyFontSize (CssValueFontSizeDistance (CssDistanceRelEm 1.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.75)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssNumericNone 0.0)),    important = False}]}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.75)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssNumericNone 0.0)),    important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -617,8 +617,8 @@ styleEngineApplyStyleToFontTestData =
                                                                  CssDeclaration {property = CssPropertyFontWeight CssValueFontWeightBolder, important = False}
                                                                , CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclaration {property = CssPropertyFontSize (CssValueFontSizeDistance (CssDistanceRelEm 1.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.75)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssNumericNone 0.0)),    important = False}]}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.75)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssNumericNone 0.0)),    important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"
@@ -643,8 +643,8 @@ styleEngineApplyStyleToFontTestData =
                                                                  CssDeclaration {property = CssPropertyFontWeight (CssValueFontWeightInt 600), important = False} -- font weight, specific value
                                                                , CssDeclaration {property = CssPropertyDisplay CssValueDisplayBlock, important = False}
                                                                , CssDeclaration {property = CssPropertyFontSize (CssValueFontSizeDistance (CssDistanceRelEm 1.5)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 0.75)), important = False}
-                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginDistance (CssNumericNone 0.0)),    important = False}]}
+                                                               , CssDeclaration {property = CssPropertyMarginTop    (CssValueMarginXDistance (CssDistanceRelEm 0.75)), important = False}
+                                                               , CssDeclaration {property = CssPropertyMarginBottom (CssValueMarginXDistance (CssNumericNone 0.0)),    important = False}]}
     , testPrefs = Preferences { prefsFontSerif = "DejaVu Serif"
                               , prefsFontSansSerif = "DejaVu Sans"
                               , prefsFontCursive = "URW Chancery L"

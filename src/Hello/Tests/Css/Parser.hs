@@ -558,66 +558,122 @@ parseDeclarationTestData =
 
 
 
-  , ( "margin-top: auto",                      [CssDeclaration { property = CssPropertyMarginTop . CssValueMarginDistance $ CssDistanceAuto,              important = False } ])
-  , ( "margin-top: auto !important",           [CssDeclaration { property = CssPropertyMarginTop . CssValueMarginDistance $ CssDistanceAuto,              important = True  } ])
-  , ( "margin-top:  1px",                      [CssDeclaration { property = CssPropertyMarginTop (CssValueMarginDistance (CssDistanceAbsPx  1.0)),        important = False } ])
-  , ( "margin-top:  2.2mm !important",         [CssDeclaration { property = CssPropertyMarginTop (CssValueMarginDistance (CssDistanceAbsMm  2.2)),        important = True  } ])
-  , ( "margin-top:  3.0em",                    [CssDeclaration { property = CssPropertyMarginTop (CssValueMarginDistance (CssDistanceRelEm  3.0)),        important = False } ])
-  , ( "margin-top: 93.0ex",                    [CssDeclaration { property = CssPropertyMarginTop (CssValueMarginDistance (CssDistanceRelEx 93.0)),        important = False } ])
+    -- All four values provided: top, right, bottom, left.
+  , ("margin: 10.1px 20.2mm 30.3em 40.4ex",  [ CssDeclaration { property = CssPropertyMargin CssValueMargin
+                                                                { marginTop    = CssValueMarginXDistance (CssDistanceAbsPx 10.1)
+                                                                , marginRight  = CssValueMarginXDistance (CssDistanceAbsMm 20.2)
+                                                                , marginBottom = CssValueMarginXDistance (CssDistanceRelEm 30.3)
+                                                                , marginLeft   = CssValueMarginXDistance (CssDistanceRelEx 40.4)
+                                                                }
+                                                              , important = False }
+                                             ])
+    -- All four values provided: top, right, bottom, left, but with varying
+    -- spaces between values.
+  , ("margin:  10.1px   20.2mm  \t 30.3em \t\n 40.4ex",  [ CssDeclaration { property = CssPropertyMargin CssValueMargin
+                                                                            { marginTop    = CssValueMarginXDistance (CssDistanceAbsPx 10.1)
+                                                                            , marginRight  = CssValueMarginXDistance (CssDistanceAbsMm 20.2)
+                                                                            , marginBottom = CssValueMarginXDistance (CssDistanceRelEm 30.3)
+                                                                            , marginLeft   = CssValueMarginXDistance (CssDistanceRelEx 40.4)
+                                                                            }
+                                                                          , important = False }
+                                                         ])
+    -- Three values are provided: top, right-left, bottom.
+  , ("margin: 11px 22mm 33.3em",             [ CssDeclaration { property = CssPropertyMargin CssValueMargin
+                                                                { marginTop    = CssValueMarginXDistance (CssDistanceAbsPx 11.0)
+                                                                , marginRight  = CssValueMarginXDistance (CssDistanceAbsMm 22.0)
+                                                                , marginBottom = CssValueMarginXDistance (CssDistanceRelEm 33.3)
+                                                                , marginLeft   = CssValueMarginXDistance (CssDistanceAbsMm 22.0)
+                                                                }
+                                                              , important = False }
+                                             ])
+    -- Two values are provided: top-bottom, right-left.
+  , ("margin: 100px 200mm",                  [ CssDeclaration { property = CssPropertyMargin CssValueMargin
+                                                                { marginTop    = CssValueMarginXDistance (CssDistanceAbsPx 100.0)
+                                                                , marginRight  = CssValueMarginXDistance (CssDistanceAbsMm 200.0)
+                                                                , marginBottom = CssValueMarginXDistance (CssDistanceAbsPx 100.0)
+                                                                , marginLeft   = CssValueMarginXDistance (CssDistanceAbsMm 200.0)
+                                                                }
+                                                              , important = False }
+                                             ])
+    -- One value is provided: top-right-bottom-left.
+  , ("margin: 38.01em",                      [ CssDeclaration { property = CssPropertyMargin CssValueMargin
+                                                                { marginTop    = CssValueMarginXDistance (CssDistanceRelEm 38.01)
+                                                                , marginRight  = CssValueMarginXDistance (CssDistanceRelEm 38.01)
+                                                                , marginBottom = CssValueMarginXDistance (CssDistanceRelEm 38.01)
+                                                                , marginLeft   = CssValueMarginXDistance (CssDistanceRelEm 38.01)
+                                                                }
+                                                              ,  important = False }
+                                             ])
+  -- Failure case: five values provided (while at most 4 expected).
+  , ("margin: 10.1px 20.2mm 30.3em 40.4ex 50.5mm",  [])
+  -- Failure cases: zero values provided (while at least 1 expected).
+  , ("margin: ",   [])
+  , ("margin: ;",  [])
+  , ("margin: }",  [])
+
+
+
+
+  , ( "margin-top: auto",                      [CssDeclaration { property = CssPropertyMarginTop . CssValueMarginXDistance $ CssDistanceAuto,              important = False } ])
+  , ( "margin-top: auto !important",           [CssDeclaration { property = CssPropertyMarginTop . CssValueMarginXDistance $ CssDistanceAuto,              important = True  } ])
+  , ( "margin-top:  1px",                      [CssDeclaration { property = CssPropertyMarginTop (CssValueMarginXDistance (CssDistanceAbsPx  1.0)),        important = False } ])
+  , ( "margin-top:  2.2mm !important",         [CssDeclaration { property = CssPropertyMarginTop (CssValueMarginXDistance (CssDistanceAbsMm  2.2)),        important = True  } ])
+  , ( "margin-top:  3.0em",                    [CssDeclaration { property = CssPropertyMarginTop (CssValueMarginXDistance (CssDistanceRelEm  3.0)),        important = False } ])
+  , ( "margin-top: 93.0ex",                    [CssDeclaration { property = CssPropertyMarginTop (CssValueMarginXDistance (CssDistanceRelEx 93.0)),        important = False } ])
     -- Testing for parsing of bad css: invalid property name.
   , ( "margin-to: 11.0px",                     [])
     -- Testing for parsing of bad css: invalid value.
   , ( "margin-top: red",                       [])
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "margin-top: 26.6px !inportant",         [CssDeclaration { property = CssPropertyMarginTop (CssValueMarginDistance (CssDistanceAbsPx 26.6)),        important = False  } ])
+  , ( "margin-top: 26.6px !inportant",         [CssDeclaration { property = CssPropertyMarginTop (CssValueMarginXDistance (CssDistanceAbsPx 26.6)),        important = False  } ])
 
 
 
 
-  , ( "margin-right: auto",                    [CssDeclaration { property = CssPropertyMarginRight . CssValueMarginDistance $ CssDistanceAuto,            important = False } ])
-  , ( "margin-right: auto !important",         [CssDeclaration { property = CssPropertyMarginRight . CssValueMarginDistance $ CssDistanceAuto,            important = True  } ])
-  , ( "margin-right: 111px",                   [CssDeclaration { property = CssPropertyMarginRight (CssValueMarginDistance (CssDistanceAbsPx 111.0)),     important = False } ])
-  , ( "margin-right: 222mm !important",        [CssDeclaration { property = CssPropertyMarginRight (CssValueMarginDistance (CssDistanceAbsMm 222.0)),     important = True  } ])
-  , ( "margin-right: 333.0em",                 [CssDeclaration { property = CssPropertyMarginRight (CssValueMarginDistance (CssDistanceRelEm 333.0)),     important = False } ])
-  , ( "margin-right: 444.0ex !important",      [CssDeclaration { property = CssPropertyMarginRight (CssValueMarginDistance (CssDistanceRelEx 444.0)),     important = True  } ])
+  , ( "margin-right: auto",                    [CssDeclaration { property = CssPropertyMarginRight . CssValueMarginXDistance $ CssDistanceAuto,            important = False } ])
+  , ( "margin-right: auto !important",         [CssDeclaration { property = CssPropertyMarginRight . CssValueMarginXDistance $ CssDistanceAuto,            important = True  } ])
+  , ( "margin-right: 111px",                   [CssDeclaration { property = CssPropertyMarginRight (CssValueMarginXDistance (CssDistanceAbsPx 111.0)),     important = False } ])
+  , ( "margin-right: 222mm !important",        [CssDeclaration { property = CssPropertyMarginRight (CssValueMarginXDistance (CssDistanceAbsMm 222.0)),     important = True  } ])
+  , ( "margin-right: 333.0em",                 [CssDeclaration { property = CssPropertyMarginRight (CssValueMarginXDistance (CssDistanceRelEm 333.0)),     important = False } ])
+  , ( "margin-right: 444.0ex !important",      [CssDeclaration { property = CssPropertyMarginRight (CssValueMarginXDistance (CssDistanceRelEx 444.0)),     important = True  } ])
     -- Testing for parsing of bad css: invalid property name.
   , ( "margin-rigth: 11.0px",                  [])
     -- Testing for parsing of bad css: invalid value.
   , ( "margin-right: italic",                  [])
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "margin-right: 33.6px !inportant",       [CssDeclaration { property = CssPropertyMarginRight (CssValueMarginDistance (CssDistanceAbsPx 33.6)),      important = False  } ])
+  , ( "margin-right: 33.6px !inportant",       [CssDeclaration { property = CssPropertyMarginRight (CssValueMarginXDistance (CssDistanceAbsPx 33.6)),      important = False  } ])
 
 
 
 
-  , ( "margin-bottom: auto",                   [CssDeclaration { property = CssPropertyMarginBottom . CssValueMarginDistance $ CssDistanceAuto,           important = False } ])
-  , ( "margin-bottom: auto !important",        [CssDeclaration { property = CssPropertyMarginBottom . CssValueMarginDistance $ CssDistanceAuto,           important = True  } ])
-  , ( "margin-bottom: 1.110px",                [CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceAbsPx 1.11)),     important = False } ])
-  , ( "margin-bottom: 2.220mm !important",     [CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceAbsMm 2.22)),     important = True  } ])
-  , ( "margin-bottom: 3.330em",                [CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 3.33)),     important = False } ])
-  , ( "margin-bottom: 4.440ex !important",     [CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEx 4.44)),     important = True  } ])
+  , ( "margin-bottom: auto",                   [CssDeclaration { property = CssPropertyMarginBottom . CssValueMarginXDistance $ CssDistanceAuto,           important = False } ])
+  , ( "margin-bottom: auto !important",        [CssDeclaration { property = CssPropertyMarginBottom . CssValueMarginXDistance $ CssDistanceAuto,           important = True  } ])
+  , ( "margin-bottom: 1.110px",                [CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceAbsPx 1.11)),     important = False } ])
+  , ( "margin-bottom: 2.220mm !important",     [CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceAbsMm 2.22)),     important = True  } ])
+  , ( "margin-bottom: 3.330em",                [CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEm 3.33)),     important = False } ])
+  , ( "margin-bottom: 4.440ex !important",     [CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceRelEx 4.44)),     important = True  } ])
     -- Testing for parsing of bad css: invalid property name.
   , ( "margin-botom: 11.0px",                  [])
     -- Testing for parsing of bad css: invalid value.
   , ( "margin-bottom: none",                   [])
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "margin-bottom: 33.6px !inportant",      [CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceAbsPx 33.6)),     important = False  } ])
+  , ( "margin-bottom: 33.6px !inportant",      [CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceAbsPx 33.6)),     important = False  } ])
 
 
 
 
-  , ( "margin-left: auto",                     [CssDeclaration { property = CssPropertyMarginLeft . CssValueMarginDistance $ CssDistanceAuto,             important = False } ])
-  , ( "margin-left: auto !important",          [CssDeclaration { property = CssPropertyMarginLeft . CssValueMarginDistance $ CssDistanceAuto,             important = True  } ])
-  , ( "margin-left: 1.110px !important",       [CssDeclaration { property = CssPropertyMarginLeft (CssValueMarginDistance (CssDistanceAbsPx 1.11)),       important = True  } ])
-  , ( "margin-left: 2.220mm",                  [CssDeclaration { property = CssPropertyMarginLeft (CssValueMarginDistance (CssDistanceAbsMm 2.22)),       important = False } ])
-  , ( "margin-left: 3.330em !important",       [CssDeclaration { property = CssPropertyMarginLeft (CssValueMarginDistance (CssDistanceRelEm 3.33)),       important = True  } ])
-  , ( "margin-left: 4.440ex",                  [CssDeclaration { property = CssPropertyMarginLeft (CssValueMarginDistance (CssDistanceRelEx 4.44)),       important = False } ])
+  , ( "margin-left: auto",                     [CssDeclaration { property = CssPropertyMarginLeft . CssValueMarginXDistance $ CssDistanceAuto,             important = False } ])
+  , ( "margin-left: auto !important",          [CssDeclaration { property = CssPropertyMarginLeft . CssValueMarginXDistance $ CssDistanceAuto,             important = True  } ])
+  , ( "margin-left: 1.110px !important",       [CssDeclaration { property = CssPropertyMarginLeft (CssValueMarginXDistance (CssDistanceAbsPx 1.11)),       important = True  } ])
+  , ( "margin-left: 2.220mm",                  [CssDeclaration { property = CssPropertyMarginLeft (CssValueMarginXDistance (CssDistanceAbsMm 2.22)),       important = False } ])
+  , ( "margin-left: 3.330em !important",       [CssDeclaration { property = CssPropertyMarginLeft (CssValueMarginXDistance (CssDistanceRelEm 3.33)),       important = True  } ])
+  , ( "margin-left: 4.440ex",                  [CssDeclaration { property = CssPropertyMarginLeft (CssValueMarginXDistance (CssDistanceRelEx 4.44)),       important = False } ])
     -- Testing for parsing of bad css: invalid property name.
   , ( "margin_left: 11.0px",                   [])
     -- Testing for parsing of bad css: invalid value.
   , ( "margin-left: latin",                    [])
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "margin-left: 33.6px !inportant",        [CssDeclaration { property = CssPropertyMarginLeft (CssValueMarginDistance (CssDistanceAbsPx 33.6)),       important = False  } ])
+  , ( "margin-left: 33.6px !inportant",        [CssDeclaration { property = CssPropertyMarginLeft (CssValueMarginXDistance (CssDistanceAbsPx 33.6)),       important = False  } ])
 
 
 
@@ -926,30 +982,6 @@ parseDeclarationShorthandTestData =
 
 
 
-    -- All four values provided: top, right, bottom, left.
-  , ("margin: 10.1px 20.2mm 30.3em 40.4ex",  [ CssDeclaration { property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceAbsPx 10.1)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginRight  (CssValueMarginDistance (CssDistanceAbsMm 20.2)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 30.3)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginLeft   (CssValueMarginDistance (CssDistanceRelEx 40.4)),  important = False }
-                                             ])
-    -- Three values are provided: top, right-left, bottom.
-  , ("margin: 11px 22mm 33.3em",             [ CssDeclaration { property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceAbsPx 11.0)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginRight  (CssValueMarginDistance (CssDistanceAbsMm 22.0)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 33.3)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginLeft   (CssValueMarginDistance (CssDistanceAbsMm 22.0)),  important = False }
-                                             ])
-    -- Two values are provided: top-bottom, right-left.
-  , ("margin: 100px 200mm",                  [ CssDeclaration { property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceAbsPx 100.0)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginRight  (CssValueMarginDistance (CssDistanceAbsMm 200.0)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceAbsPx 100.0)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginLeft   (CssValueMarginDistance (CssDistanceAbsMm 200.0)),  important = False }
-                                             ])
-    -- One value is provided: top-right-bottom-left.
-  , ("margin: 38.01em",                      [ CssDeclaration { property = CssPropertyMarginTop    (CssValueMarginDistance (CssDistanceRelEm 38.01)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginRight  (CssValueMarginDistance (CssDistanceRelEm 38.01)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginDistance (CssDistanceRelEm 38.01)),  important = False },
-                                               CssDeclaration { property = CssPropertyMarginLeft   (CssValueMarginDistance (CssDistanceRelEm 38.01)),  important = False }
-                                             ])
 
 
 
