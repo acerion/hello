@@ -26,6 +26,7 @@ module Hello.Css.Parser.Combinators
   , combinatorExactlyOne
   , combinatorAllInOrder
   , combinatorOneOrMoreUnordered
+  , combinatorOneOrMoreUnordered2
   , multiplierZeroOrOnce
   , multiplierOnce
   )
@@ -258,6 +259,50 @@ runFunctions (f:fs) (pat, accumulators) = runFunctions fs (pat', acc')
                          (pat'', Just acc'') -> (pat'', accumulators ++ [acc''])
                          (_, Nothing)        -> (pat,   accumulators)
 runFunctions []     (pat, accumulators) = (pat, accumulators)
+
+
+
+
+-- Apply given parser functions to given state unil none of them matches.
+-- Parsers save result in given input acc.
+--
+-- Succeed if one or more of the parser functions succeeded and has taken
+-- some input from front of state.
+-- Fail if none of parser functions succeeded in taking any input from front of state.
+--
+-- Each parser is discarded after successful application. Function tries
+-- until all parsers are discarded after their succeses, or until first
+-- parser fails. Parser is discarded because it has been already successfully
+-- used once, and can't be used for a second time.
+--
+-- Return Just (new state, modified acc) on success.
+-- Return Nothing on failure.
+combinatorOneOrMoreUnordered2 :: acc -> [state -> acc -> Maybe (state, acc)] -> state -> Maybe (state, acc)
+combinatorOneOrMoreUnordered2 acc fs state | i > 0     = Just stateAndAcc
+                                           | otherwise = Nothing
+  where
+    (stateAndAcc, i) = tryParsersUnordered state fs [] acc 0
+
+
+
+
+-- This function is using Int argument: a counter of successes. This is to
+-- know if 'one or more' parsers have succeeded.
+--
+-- Without it I would have compare the input and output accumulator to see if
+-- any parser has modified it, and not all accumulator types will implement
+-- Eq class.
+--
+-- Also the Int type allows me to see how many parsers exactly have succeeded
+-- and create different functions, e.g. "zero or more".
+tryParsersUnordered :: state -> [state -> acc -> Maybe (state, acc)] -> [state -> acc -> Maybe (state, acc)] -> acc -> Int -> ((state, acc), Int)
+tryParsersUnordered state (f:fs) stash acc i =
+  case f state acc of
+    -- On sucessful parse discard current parser, and re-generate list of parsers to be used in next cycle.
+    -- On failed parse move current parser to 'for later' list, and retry with shortened list of current parsers.
+    Just (state', acc') -> tryParsersUnordered state' (fs ++ stash) []        acc' (i + 1)
+    Nothing             -> tryParsersUnordered state  fs            (f:stash) acc  i
+tryParsersUnordered state []        _  acc i = ((state, acc), i)
 
 
 
