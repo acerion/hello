@@ -386,6 +386,11 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssPropertyBackgroundColor declValue     -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs declValue }
     CssPropertyBorderCollapse declValue      -> styleAttrs { styleBorderCollapse  = getBorderCollapse declValue }
 
+    CssPropertyBorderTop value         -> foldr f styleAttrs [ CssPropertyBorderTopWidth . borderTRBLWidth $ value,    CssPropertyBorderTopStyle . borderTRBLStyle $ value,    CssPropertyBorderTopColor . borderTRBLColor $ value]
+    CssPropertyBorderRight value       -> foldr f styleAttrs [ CssPropertyBorderRightWidth . borderTRBLWidth $ value,  CssPropertyBorderRightStyle . borderTRBLStyle $ value,  CssPropertyBorderRightColor . borderTRBLColor $ value]
+    CssPropertyBorderBottom value      -> foldr f styleAttrs [ CssPropertyBorderBottomWidth . borderTRBLWidth $ value, CssPropertyBorderBottomStyle . borderTRBLStyle $ value, CssPropertyBorderBottomColor . borderTRBLColor $ value]
+    CssPropertyBorderLeft value        -> foldr f styleAttrs [ CssPropertyBorderLeftWidth . borderTRBLWidth $ value,   CssPropertyBorderLeftStyle . borderTRBLStyle $ value,   CssPropertyBorderLeftColor . borderTRBLColor $ value]
+
     CssPropertyBorderTopStyle value    -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyleTop    parentStyleAttrs value }}
     CssPropertyBorderRightStyle value  -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyleRight  parentStyleAttrs value }}
     CssPropertyBorderBottomStyle value -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyleBottom parentStyleAttrs value }}
@@ -438,6 +443,9 @@ yet because a full support for them in dillo seems to be missing or broken.
 
   where
     fontAttrs = styleFontAttrs styleAttrs
+
+    f :: CssProperty -> StyleAttrs -> StyleAttrs
+    f property' styleAttrs' = styleEngineSetStyle property' display parentStyleAttrs styleAttrs'
 
 
 

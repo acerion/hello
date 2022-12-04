@@ -155,6 +155,64 @@ parseDeclarationTestData =
 
 
 
+  , ( "border-top: 5mm solid red",            [ CssDeclaration { property = CssPropertyBorderTop CssValueBorderTRBL
+                                                                 { borderTRBLWidth = CssValueBorderWidthDistance (CssDistanceAbsMm 5)
+                                                                 , borderTRBLStyle = CssValueBorderStyleSolid
+                                                                 , borderTRBLColor = CssValueBorderColor 0xff0000
+                                                                 }
+                                                               , important = False
+                                                               }
+                                              ])
+    -- This time with changed order of values (they can be unordered).
+  , ( "border-top: solid red 5mm",            [ CssDeclaration { property = CssPropertyBorderTop CssValueBorderTRBL
+                                                                 { borderTRBLWidth = CssValueBorderWidthDistance (CssDistanceAbsMm 5)
+                                                                 , borderTRBLStyle = CssValueBorderStyleSolid
+                                                                 , borderTRBLColor = CssValueBorderColor 0xff0000
+                                                                 }
+                                                               , important = False
+                                                               }
+                                              ])
+    -- This time with one of values omitted (default value should be used).
+  , ( "border-top: solid red",                  [ CssDeclaration { property = CssPropertyBorderTop CssValueBorderTRBL
+                                                                 { borderTRBLWidth = defaultBorderTRBLWidth
+                                                                 , borderTRBLStyle = CssValueBorderStyleSolid
+                                                                 , borderTRBLColor = CssValueBorderColor 0xff0000
+                                                                 }
+                                                               , important = False
+                                                               }
+                                              ])
+
+  , ( "border-right: 2mm dotted orange",      [ CssDeclaration { property = CssPropertyBorderRight CssValueBorderTRBL
+                                                                 { borderTRBLWidth = CssValueBorderWidthDistance (CssDistanceAbsMm 2)
+                                                                 , borderTRBLStyle = CssValueBorderStyleDotted
+                                                                 , borderTRBLColor = CssValueBorderColor 0xffa500
+                                                                 }
+                                                               , important = False
+                                                               }
+                                              ])
+
+  , ( "border-bottom: 17px inherit rgb(255, 0, 255)",    [ CssDeclaration { property = CssPropertyBorderBottom CssValueBorderTRBL
+                                                                            { borderTRBLWidth = CssValueBorderWidthDistance (CssDistanceAbsPx 17)
+                                                                            , borderTRBLStyle = CssValueBorderStyleInherit
+                                                                            , borderTRBLColor = CssValueBorderColor 0xff00ff
+                                                                            }
+                                                                          , important = False
+                                                                          }
+                                                         ])
+
+  , ( "border-left: 20em none inherit",      [ CssDeclaration { property = CssPropertyBorderLeft CssValueBorderTRBL
+                                                                { borderTRBLWidth = CssValueBorderWidthDistance (CssDistanceRelEm 20)
+                                                                , borderTRBLStyle = CssValueBorderStyleNone
+                                                                , borderTRBLColor = CssValueBorderColorInherit
+                                                                }
+                                                              , important = False }
+                                             ])
+
+  -- Invalid value; TODO: this test fails
+  -- , ( "border-top: 5mm computer dashed",      [])
+
+
+
 
   , ( "border-top-color: inherit",                        [CssDeclaration { property = CssPropertyBorderTopColor   CssValueBorderColorInherit,       important = False } ])
   , ( "border-top-color: transparent",                    [CssDeclaration { property = CssPropertyBorderTopColor   CssValueBorderColorTransparent,   important = False } ])
@@ -936,25 +994,6 @@ parseDeclarationShorthandTestData =
                                               , CssDeclaration { property = CssPropertyBorderLeftColor   $ CssValueBorderColor 0xff0000 , important = False }
                                               ])
 
-  , ( "border-top: 5mm solid red",            [ CssDeclaration { property = CssPropertyBorderTopWidth (CssValueBorderWidthDistance (CssDistanceAbsMm 5)), important = False }
-                                              , CssDeclaration { property = CssPropertyBorderTopStyle CssValueBorderStyleSolid,                           important = False }
-                                              , CssDeclaration { property = CssPropertyBorderTopColor $ CssValueBorderColor 0xff0000,                     important = False }
-                                              ])
-
-  , ( "border-right: 2mm dotted orange",      [ CssDeclaration { property = CssPropertyBorderRightWidth (CssValueBorderWidthDistance (CssDistanceAbsMm 2)), important = False }
-                                              , CssDeclaration { property = CssPropertyBorderRightStyle CssValueBorderStyleDotted,                          important = False }
-                                              , CssDeclaration { property = CssPropertyBorderRightColor $ CssValueBorderColor 0xffa500,                     important = False }
-                                              ])
-
-  , ( "border-bottom: 17px inherit rgb(255, 0, 255)",    [ CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 17)), important = False }
-                                                         , CssDeclaration { property = CssPropertyBorderBottomStyle CssValueBorderStyleInherit,                          important = False }
-                                                         , CssDeclaration { property = CssPropertyBorderBottomColor $ CssValueBorderColor 0xff00ff,                      important = False }
-                                                         ])
-
-  , ( "border-left: 20em none inherit",      [ CssDeclaration { property = CssPropertyBorderLeftWidth (CssValueBorderWidthDistance (CssDistanceRelEm 20)), important = False }
-                                             , CssDeclaration { property = CssPropertyBorderLeftStyle CssValueBorderStyleNone,                             important = False }
-                                             , CssDeclaration { property = CssPropertyBorderLeftColor $ CssValueBorderColorInherit,                        important = False }
-                                             ])
 
   , ( "border-width: 99px",                  [ CssDeclaration { property = CssPropertyBorderTopWidth    (CssValueBorderWidthDistance (CssDistanceAbsPx 99)), important = False }
                                              , CssDeclaration { property = CssPropertyBorderRightWidth  (CssValueBorderWidthDistance (CssDistanceAbsPx 99)), important = False }

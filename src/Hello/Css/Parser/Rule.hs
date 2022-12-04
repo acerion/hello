@@ -98,6 +98,11 @@ cssPropertyCtors = M.fromList [
    , ("border-collapse",        makeCssPropertyBorderCollapse)
    , ("border-spacing",         makeCssPropertyBorderSpacing)
 
+   , ("border-top",             makeCssPropertyBorderTop)
+   , ("border-right",           makeCssPropertyBorderRight)
+   , ("border-bottom",          makeCssPropertyBorderBottom)
+   , ("border-left",            makeCssPropertyBorderLeft)
+
    , ("border-top-color",       makeCssPropertyBorderTopColor)
    , ("border-right-color",     makeCssPropertyBorderRightColor)
    , ("border-bottom-color",    makeCssPropertyBorderBottomColor)
@@ -192,15 +197,6 @@ cssShorthandInfo = M.fromList [
 
     -- Parsing of this property is unit-tested.
   , ("border",             makeCssPropertyBorder)
-
-    -- Parsing of this property is unit-tested.
-  , ("border-top",         makeCssPropertyBorderTop)
-    -- Parsing of this property is unit-tested.
-  , ("border-right",       makeCssPropertyBorderRight)
-    -- Parsing of this property is unit-tested.
-  , ("border-bottom",      makeCssPropertyBorderBottom)
-    -- Parsing of this property is unit-tested.
-  , ("border-left",        makeCssPropertyBorderLeft)
 
     -- Parsing of this property is unit-tested.
   , ("border-width",       makeCssPropertyBorderWidth)

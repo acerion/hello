@@ -41,6 +41,7 @@ module Hello.Css.Declaration
   , CssValueBackgroundImage (..)
   , CssValueBackgroundPosition (..)
   , CssValueBackgroundRepeat (..)
+  , CssValueBorderTRBL (..)
   , CssValueBorderCollapse (..)
   , CssValueBorderColor (..)
   , CssValueBorderSpacing (..)
@@ -179,6 +180,9 @@ module Hello.Css.Declaration
   , makeCssPropertyInvalid
 
   , defaultDeclaration
+  , defaultBorderTRBLWidth
+  , defaultBorderTRBLStyle
+  , defaultBorderTRBLColor
 
   , ShorthandPropertyCtor
   , PropertyCtor
@@ -246,6 +250,14 @@ defaultDeclaration = CssDeclaration
 
 
 
+-- https://www.w3.org/TR/css-color-4/#valdef-color-currentcolor
+-- TODO: implement proper support for current color
+cssValueCurrentColor :: CssValueBorderColor
+cssValueCurrentColor = CssValueBorderColor 0x000000
+
+
+
+
 -- A property name + property value.
 data CssProperty
   = CssPropertyBackgroundAttachment CssValueBackgroundAttachment      -- 0    parsing is unit-tested
@@ -253,6 +265,10 @@ data CssProperty
   | CssPropertyBackgroundImage CssValueBackgroundImage                -- 2    This property is barely unit-tested because some decisions need to be made first.
   | CssPropertyBackgroundPosition CssValueBackgroundPosition          -- 3    There are some unit tests, but they don't really test much.
   | CssPropertyBackgroundRepeat CssValueBackgroundRepeat              -- 4
+  | CssPropertyBorderTop CssValueBorderTRBL
+  | CssPropertyBorderRight CssValueBorderTRBL
+  | CssPropertyBorderBottom CssValueBorderTRBL
+  | CssPropertyBorderLeft CssValueBorderTRBL
   | CssPropertyBorderBottomColor CssValueBorderColor -- 5                parsing is tested
   | CssPropertyBorderBottomStyle CssValueBorderStyle -- 6                parsing is tested
   | CssPropertyBorderBottomWidth CssValueBorderWidth -- 7                parsing is tested
@@ -631,19 +647,53 @@ makeCssPropertyBorderStyle pat = parseDeclaration4321trbl
 
 
 -- ------------------------------------------------
--- Border top (border-top)
+-- Border top ("border-top")
 -- This is a shorthand property.
+-- https://www.w3.org/TR/css-backgrounds-3/#propdef-border-top
+-- Unit-tested: yes
 -- ------------------------------------------------
 
 
 
 
-makeCssPropertyBorderTop :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyBorderTop pat = parseDeclarationMultiple
-                                  pat
-                                  [ makeCssPropertyBorderTopWidth
-                                  , makeCssPropertyBorderTopStyle
-                                  , makeCssPropertyBorderTopColor ]
+-- Common type for border-{top|right|bottom|left}
+data CssValueBorderTRBL = CssValueBorderTRBL
+  { borderTRBLWidth :: CssValueBorderWidth
+  , borderTRBLStyle :: CssValueBorderStyle
+  , borderTRBLColor :: CssValueBorderColor
+  } deriving (Data, Eq, Show)
+
+
+
+
+-- Ctor of default value of CssValueBorderTRBL type.
+defaultValueBorderTRBL :: CssValueBorderTRBL
+defaultValueBorderTRBL = CssValueBorderTRBL defaultBorderTRBLWidth defaultBorderTRBLStyle defaultBorderTRBLColor
+
+
+
+
+-- Default values taken from
+-- https://www.w3.org/TR/css-backgrounds-3/#property-index
+defaultBorderTRBLWidth = CssValueBorderWidthMedium
+defaultBorderTRBLStyle = CssValueBorderStyleNone
+defaultBorderTRBLColor = cssValueCurrentColor
+
+
+
+
+-- Parser of "border-top" property.
+makeCssPropertyBorderTop :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderTop pat = fmapSnd CssPropertyBorderTop (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
+  where
+    fs = [ wrapper1
+         , wrapper2
+         , wrapper3
+         ]
+
+wrapper1 pat acc = fmapSnd (\ x -> acc { borderTRBLWidth = x }) $ parseTokensAsBorderWidthValue pat
+wrapper2 pat acc = fmapSnd (\ x -> acc { borderTRBLStyle = x }) $ parseTokensAsBorderStyleValue pat
+wrapper3 pat acc = fmapSnd (\ x -> acc { borderTRBLColor = x }) $ parseTokensAsBorderColorValue pat
 
 
 
@@ -651,17 +701,21 @@ makeCssPropertyBorderTop pat = parseDeclarationMultiple
 -- ------------------------------------------------
 -- Border right (border-right)
 -- This is a shorthand property.
+-- https://www.w3.org/TR/css-backgrounds-3/#propdef-border-right
+-- Unit-tested: yes
 -- ------------------------------------------------
 
 
 
 
-makeCssPropertyBorderRight :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyBorderRight pat = parseDeclarationMultiple
-                                    pat
-                                    [ makeCssPropertyBorderRightWidth
-                                    , makeCssPropertyBorderRightStyle
-                                    , makeCssPropertyBorderRightColor ]
+-- Parser of "border-right" property.
+makeCssPropertyBorderRight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderRight pat = fmapSnd CssPropertyBorderRight (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
+  where
+    fs = [ wrapper1
+         , wrapper2
+         , wrapper3
+         ]
 
 
 
@@ -669,17 +723,21 @@ makeCssPropertyBorderRight pat = parseDeclarationMultiple
 -- ------------------------------------------------
 -- Border bottom (border-bottom)
 -- This is a shorthand property.
+-- https://www.w3.org/TR/css-backgrounds-3/#propdef-border-bottom
+-- Unit-tested: yes
 -- ------------------------------------------------
 
 
 
 
-makeCssPropertyBorderBottom :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyBorderBottom pat  = parseDeclarationMultiple
-                                      pat
-                                      [ makeCssPropertyBorderBottomWidth
-                                      , makeCssPropertyBorderBottomStyle
-                                      , makeCssPropertyBorderBottomColor ]
+-- Parser of "border-bottom" property.
+makeCssPropertyBorderBottom :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderBottom pat = fmapSnd CssPropertyBorderBottom (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
+  where
+    fs = [ wrapper1
+         , wrapper2
+         , wrapper3
+         ]
 
 
 
@@ -687,17 +745,21 @@ makeCssPropertyBorderBottom pat  = parseDeclarationMultiple
 -- ------------------------------------------------
 -- Border left (border-left)
 -- This is a shorthand property.
+-- https://www.w3.org/TR/css-backgrounds-3/#propdef-border-left
+-- Unit-tested: yes
 -- ------------------------------------------------
 
 
 
 
-makeCssPropertyBorderLeft :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyBorderLeft pat = parseDeclarationMultiple
-                                   pat
-                                   [ makeCssPropertyBorderLeftWidth
-                                   , makeCssPropertyBorderLeftStyle
-                                   , makeCssPropertyBorderLeftColor ]
+-- Parser of "border-left" property.
+makeCssPropertyBorderLeft :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderLeft pat = fmapSnd CssPropertyBorderLeft (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
+  where
+    fs = [ wrapper1
+         , wrapper2
+         , wrapper3
+         ]
 
 
 
@@ -919,10 +981,17 @@ makeCssPropertyBorderXWidth propCtor pat = fmapSnd propCtor (parser pat)
 
 
 
-makeCssPropertyBorderTopWidth    = makeCssPropertyBorderXWidth CssPropertyBorderTopWidth
-makeCssPropertyBorderRightWidth  = makeCssPropertyBorderXWidth CssPropertyBorderRightWidth
+makeCssPropertyBorderTopWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderTopWidth = makeCssPropertyBorderXWidth CssPropertyBorderTopWidth
+
+makeCssPropertyBorderRightWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderRightWidth = makeCssPropertyBorderXWidth CssPropertyBorderRightWidth
+
+makeCssPropertyBorderBottomWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyBorderBottomWidth = makeCssPropertyBorderXWidth CssPropertyBorderBottomWidth
-makeCssPropertyBorderLeftWidth   = makeCssPropertyBorderXWidth CssPropertyBorderLeftWidth
+
+makeCssPropertyBorderLeftWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderLeftWidth = makeCssPropertyBorderXWidth CssPropertyBorderLeftWidth
 
 
 
