@@ -158,10 +158,10 @@ hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cLengthValu
            | propertyArg == 46 = CssPropertyMarginBottom      $ CssValueMarginXDistance distance
            | propertyArg == 47 = CssPropertyMarginLeft        $ CssValueMarginXDistance distance
 
-           | propertyArg == 60 = CssPropertyPaddingBottom     $ CssValuePadding distance
-           | propertyArg == 61 = CssPropertyPaddingLeft       $ CssValuePadding distance
-           | propertyArg == 62 = CssPropertyPaddingRight      $ CssValuePadding distance
-           | propertyArg == 63 = CssPropertyPaddingTop        $ CssValuePadding distance
+           | propertyArg == 60 = CssPropertyPaddingBottom     $ CssValuePaddingX distance
+           | propertyArg == 61 = CssPropertyPaddingLeft       $ CssValuePaddingX distance
+           | propertyArg == 62 = CssPropertyPaddingRight      $ CssValuePaddingX distance
+           | propertyArg == 63 = CssPropertyPaddingTop        $ CssValuePaddingX distance
            | propertyArg == 77 = CssPropertyWidth             $ CssValueWidthDistance distance
            | otherwise         = trace ("[EE] Unhandled length propertyArg " ++ (show propertyArg)) (undefined)
 

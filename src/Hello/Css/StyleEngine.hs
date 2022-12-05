@@ -614,8 +614,8 @@ getMargin (CssValueMarginXDistance distance) fontAttrs display = clip . calculat
 
 
 
-getPadding :: CssValuePadding -> FontAttrs -> Display -> Int
-getPadding (CssValuePadding distance) fontAttrs display =
+getPadding :: CssValuePaddingX -> FontAttrs -> Display -> Int
+getPadding (CssValuePaddingX distance) fontAttrs display =
   case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
     -- TODO: another place where Maybe returned by Compute function
     -- causes unnecessary trouble.

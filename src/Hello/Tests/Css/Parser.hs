@@ -736,54 +736,54 @@ parseDeclarationTestData =
 
 
 
-  , ( "padding-top: 1.0px",                   [CssDeclaration { property = CssPropertyPaddingTop (CssValuePadding (CssDistanceAbsPx 1.0)),       important = False } ])
-  , ( "padding-top: 2.3mm !important",        [CssDeclaration { property = CssPropertyPaddingTop (CssValuePadding (CssDistanceAbsMm 2.3)),       important = True  } ])
-  , ( "padding-top: 4.5em",                   [CssDeclaration { property = CssPropertyPaddingTop (CssValuePadding (CssDistanceRelEm 4.5)),       important = False } ])
+  , ( "padding-top: 1.0px",                   [CssDeclaration { property = CssPropertyPaddingTop (CssValuePaddingX (CssDistanceAbsPx 1.0)),       important = False } ])
+  , ( "padding-top: 2.3mm !important",        [CssDeclaration { property = CssPropertyPaddingTop (CssValuePaddingX (CssDistanceAbsMm 2.3)),       important = True  } ])
+  , ( "padding-top: 4.5em",                   [CssDeclaration { property = CssPropertyPaddingTop (CssValuePaddingX (CssDistanceRelEm 4.5)),       important = False } ])
   -- Testing for parsing of bad css: invalid property name.
   , ( "padding-to: 1.0px",                    [])
   -- Testing for parsing of bad css: invalid value.
   , ( "padding-top: red",                     [])
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "padding-top: 6.6px !inportant",        [CssDeclaration { property = CssPropertyPaddingTop (CssValuePadding (CssDistanceAbsPx 6.6)),       important = False  } ])
+  , ( "padding-top: 6.6px !inportant",        [CssDeclaration { property = CssPropertyPaddingTop (CssValuePaddingX (CssDistanceAbsPx 6.6)),       important = False  } ])
 
 
 
 
-  , ( "padding-right: 1.0px",                 [CssDeclaration { property = CssPropertyPaddingRight (CssValuePadding (CssDistanceAbsPx 1.0)),     important = False } ])
-  , ( "padding-right: 2.3mm !important",      [CssDeclaration { property = CssPropertyPaddingRight (CssValuePadding (CssDistanceAbsMm 2.3)),     important = True  } ])
-  , ( "padding-right: 4.5em",                 [CssDeclaration { property = CssPropertyPaddingRight (CssValuePadding (CssDistanceRelEm 4.5)),     important = False } ])
+  , ( "padding-right: 1.0px",                 [CssDeclaration { property = CssPropertyPaddingRight (CssValuePaddingX (CssDistanceAbsPx 1.0)),     important = False } ])
+  , ( "padding-right: 2.3mm !important",      [CssDeclaration { property = CssPropertyPaddingRight (CssValuePaddingX (CssDistanceAbsMm 2.3)),     important = True  } ])
+  , ( "padding-right: 4.5em",                 [CssDeclaration { property = CssPropertyPaddingRight (CssValuePaddingX (CssDistanceRelEm 4.5)),     important = False } ])
   -- Testing for parsing of bad css: invalid property name.
   , ( "padding-rig: 1.0px",                   [])
   -- Testing for parsing of bad css: invalid value.
   , ( "padding-right: red",                   [])
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "padding-right: 6.6px !inportant",      [CssDeclaration { property = CssPropertyPaddingRight (CssValuePadding (CssDistanceAbsPx 6.6)),     important = False  } ])
+  , ( "padding-right: 6.6px !inportant",      [CssDeclaration { property = CssPropertyPaddingRight (CssValuePaddingX (CssDistanceAbsPx 6.6)),     important = False  } ])
 
 
 
 
-  , ( "padding-bottom: 1.0px",                [CssDeclaration { property = CssPropertyPaddingBottom (CssValuePadding (CssDistanceAbsPx 1.0)),    important = False } ])
-  , ( "padding-bottom: 2.3mm !important",     [CssDeclaration { property = CssPropertyPaddingBottom (CssValuePadding (CssDistanceAbsMm 2.3)),    important = True  } ])
-  , ( "padding-bottom: 4.5em",                [CssDeclaration { property = CssPropertyPaddingBottom (CssValuePadding (CssDistanceRelEm 4.5)),    important = False } ])
+  , ( "padding-bottom: 1.0px",                [CssDeclaration { property = CssPropertyPaddingBottom (CssValuePaddingX (CssDistanceAbsPx 1.0)),    important = False } ])
+  , ( "padding-bottom: 2.3mm !important",     [CssDeclaration { property = CssPropertyPaddingBottom (CssValuePaddingX (CssDistanceAbsMm 2.3)),    important = True  } ])
+  , ( "padding-bottom: 4.5em",                [CssDeclaration { property = CssPropertyPaddingBottom (CssValuePaddingX (CssDistanceRelEm 4.5)),    important = False } ])
   -- Testing for parsing of bad css: invalid property name.
   , ( "padding-rig: 1.0px",                   [])
   -- Testing for parsing of bad css: invalid value.
   , ( "padding-bottom: red",                  [])
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "padding-bottom: 6.6px !inportant",     [CssDeclaration { property = CssPropertyPaddingBottom (CssValuePadding (CssDistanceAbsPx 6.6)),    important = False  } ])
+  , ( "padding-bottom: 6.6px !inportant",     [CssDeclaration { property = CssPropertyPaddingBottom (CssValuePaddingX (CssDistanceAbsPx 6.6)),    important = False  } ])
 
 
 
 
-  , ( "padding-left: 1.0px",                  [CssDeclaration { property = CssPropertyPaddingLeft (CssValuePadding (CssDistanceAbsPx 1.0)),      important = False } ])
-  , ( "padding-left: 2.3mm !important",       [CssDeclaration { property = CssPropertyPaddingLeft (CssValuePadding (CssDistanceAbsMm 2.3)),      important = True  } ])
-  , ( "padding-left: 4.5em",                  [CssDeclaration { property = CssPropertyPaddingLeft (CssValuePadding (CssDistanceRelEm 4.5)),      important = False } ])
+  , ( "padding-left: 1.0px",                  [CssDeclaration { property = CssPropertyPaddingLeft (CssValuePaddingX (CssDistanceAbsPx 1.0)),      important = False } ])
+  , ( "padding-left: 2.3mm !important",       [CssDeclaration { property = CssPropertyPaddingLeft (CssValuePaddingX (CssDistanceAbsMm 2.3)),      important = True  } ])
+  , ( "padding-left: 4.5em",                  [CssDeclaration { property = CssPropertyPaddingLeft (CssValuePaddingX (CssDistanceRelEm 4.5)),      important = False } ])
   -- Testing for parsing of bad css: invalid property name.
   , ( "padding-rig: 1.0px",                   [])
   -- Testing for parsing of bad css: invalid value.
   , ( "padding-left: red",                    [])
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "padding-left: 6.6px !inportant",       [CssDeclaration { property = CssPropertyPaddingLeft (CssValuePadding (CssDistanceAbsPx 6.6)),      important = False  } ])
+  , ( "padding-left: 6.6px !inportant",       [CssDeclaration { property = CssPropertyPaddingLeft (CssValuePaddingX (CssDistanceAbsPx 6.6)),      important = False  } ])
 
 
 
@@ -1013,10 +1013,10 @@ parseDeclarationShorthandTestData =
                                              , CssDeclaration { property = CssPropertyBorderLeftColor   $ CssValueBorderColor 0x0000ff,  important = False }
                                              ])
 
-  , ( "padding: 1.0px 2.5mm 33.1em 21.9ex",  [ CssDeclaration { property = CssPropertyPaddingTop    (CssValuePadding (CssDistanceAbsPx  1.0)),       important = False }
-                                             , CssDeclaration { property = CssPropertyPaddingRight  (CssValuePadding (CssDistanceAbsMm  2.5)),       important = False }
-                                             , CssDeclaration { property = CssPropertyPaddingBottom (CssValuePadding (CssDistanceRelEm 33.1)),       important = False }
-                                             , CssDeclaration { property = CssPropertyPaddingLeft   (CssValuePadding (CssDistanceRelEx 21.9)),       important = False }
+  , ( "padding: 1.0px 2.5mm 33.1em 21.9ex",  [ CssDeclaration { property = CssPropertyPaddingTop    (CssValuePaddingX (CssDistanceAbsPx  1.0)),       important = False }
+                                             , CssDeclaration { property = CssPropertyPaddingRight  (CssValuePaddingX (CssDistanceAbsMm  2.5)),       important = False }
+                                             , CssDeclaration { property = CssPropertyPaddingBottom (CssValuePaddingX (CssDistanceRelEm 33.1)),       important = False }
+                                             , CssDeclaration { property = CssPropertyPaddingLeft   (CssValuePaddingX (CssDistanceRelEx 21.9)),       important = False }
                                              ])
 
 

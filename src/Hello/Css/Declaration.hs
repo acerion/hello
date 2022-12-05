@@ -63,7 +63,7 @@ module Hello.Css.Declaration
   , CssValueListStyleType (..)
   , CssValueMargin (..)
   , CssValueMarginX (..)
-  , CssValuePadding (..)
+  , CssValuePaddingX (..)
   , CssValueTextAlign (..)
   , CssValueTextDecoration (..)
   , CssValueTextIndent (..)
@@ -327,10 +327,10 @@ data CssProperty
   | CssPropertyOutlineStyle CssValue                 -- 57
   | CssPropertyOutlineWidth CssValue                 -- 58
   | CssPropertyOverflow CssValue                     -- 59
-  | CssPropertyPaddingTop CssValuePadding            -- 63               parsing is unit-tested
-  | CssPropertyPaddingRight CssValuePadding          -- 62               parsing is unit-tested
-  | CssPropertyPaddingBottom CssValuePadding         -- 60               parsing is unit-tested
-  | CssPropertyPaddingLeft CssValuePadding           -- 61               parsing is unit-tested
+  | CssPropertyPaddingTop CssValuePaddingX           -- 63               parsing is unit-tested
+  | CssPropertyPaddingRight CssValuePaddingX         -- 62               parsing is unit-tested
+  | CssPropertyPaddingBottom CssValuePaddingX        -- 60               parsing is unit-tested
+  | CssPropertyPaddingLeft CssValuePaddingX          -- 61               parsing is unit-tested
   | CssPropertyPosition CssValue                     -- 64
   | CssPropertyQuotes CssValue                       -- 65
   | CssPropertyRight CssValue                        -- 66
@@ -1881,14 +1881,14 @@ makeCssPropertyPadding pat = parseDeclaration4321trbl
 -- TODO: Here is a tricky question: should I make separate types for padding
 -- of Bottom/Top/Left/Right, or can I get away with common type for all four
 -- properties?
-data CssValuePadding
-  = CssValuePadding CssDistance
+data CssValuePaddingX
+  = CssValuePaddingX CssDistance
   deriving (Eq, Show, Data)
 
 
 
 
-makeCssPropertyPaddingX :: (CssValuePadding -> CssProperty) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyPaddingX :: (CssValuePaddingX -> CssProperty) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyPaddingX propCtor pat = fmapSnd propCtor (parser pat)
   where
     parser = parseTokensAsPaddingValue
@@ -1896,11 +1896,11 @@ makeCssPropertyPaddingX propCtor pat = fmapSnd propCtor (parser pat)
 
 
 
-parseTokensAsPaddingValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValuePadding)
+parseTokensAsPaddingValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValuePaddingX)
 parseTokensAsPaddingValue pat = parser pat
   where
     -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
-    parser = interpretTokensAsLength False CssValuePadding
+    parser = interpretTokensAsLength False CssValuePaddingX
 
 
 
