@@ -162,6 +162,7 @@ cssPropertyCtors = M.fromList [
    --, ("outline-style",          Nothing)
    --, ("outline-width",          Nothing)
    --, ("overflow",               Nothing)
+   , ("padding",                makeCssPropertyPadding)
    , ("padding-bottom",         makeCssPropertyPaddingBottom)
    , ("padding-left",           makeCssPropertyPaddingLeft)
    , ("padding-right",          makeCssPropertyPaddingRight)
@@ -209,9 +210,6 @@ cssShorthandInfo = M.fromList [
 
     -- Parsing of this property is unit-tested (poorly).
   , ("list-style",         makeCssPropertyListStyle)
-
-    -- Parsing of this property is unit-tested (poorly).
-  , ("padding",            makeCssPropertyPadding)
   ]
 
 

@@ -412,6 +412,10 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssPropertyMarginBottom declValue  -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginBottom = getMargin declValue fontAttrs display }}
     CssPropertyMarginLeft declValue    -> styleAttrs { styleMargin  = (styleMargin styleAttrs) { styleMarginLeft   = getMargin declValue fontAttrs display }}
 
+    CssPropertyPadding declValue       -> foldr f styleAttrs [ CssPropertyPaddingTop . paddingTop $ declValue
+                                                             , CssPropertyPaddingRight . paddingRight $ declValue
+                                                             , CssPropertyPaddingBottom . paddingBottom $ declValue
+                                                             , CssPropertyPaddingLeft . paddingLeft $ declValue]
     CssPropertyPaddingTop declValue    -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingTop    = getPadding declValue fontAttrs display }}
     CssPropertyPaddingRight declValue  -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingRight  = getPadding declValue fontAttrs display }}
     CssPropertyPaddingBottom declValue -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingBottom = getPadding declValue fontAttrs display }}

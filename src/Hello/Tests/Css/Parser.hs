@@ -736,6 +736,71 @@ parseDeclarationTestData =
 
 
 
+
+
+      -- All four values provided: top, right, bottom, left.
+  , ("padding: 10.1px 20.2mm 30.3em 40.4ex",  [ CssDeclaration { property = CssPropertyPadding CssValuePadding
+                                                                { paddingTop    = CssValuePaddingX (CssDistanceAbsPx 10.1)
+                                                                , paddingRight  = CssValuePaddingX (CssDistanceAbsMm 20.2)
+                                                                , paddingBottom = CssValuePaddingX (CssDistanceRelEm 30.3)
+                                                                , paddingLeft   = CssValuePaddingX (CssDistanceRelEx 40.4)
+                                                                }
+                                                              , important = False
+                                                              }
+                                             ])
+    -- All four values provided: top, right, bottom, left, but with varying
+    -- spaces between values.
+  , ("padding:  10.1px   20.2mm  \t 30.3em \t\n 40.4ex",  [ CssDeclaration { property = CssPropertyPadding CssValuePadding
+                                                                            { paddingTop    = CssValuePaddingX (CssDistanceAbsPx 10.1)
+                                                                            , paddingRight  = CssValuePaddingX (CssDistanceAbsMm 20.2)
+                                                                            , paddingBottom = CssValuePaddingX (CssDistanceRelEm 30.3)
+                                                                            , paddingLeft   = CssValuePaddingX (CssDistanceRelEx 40.4)
+                                                                            }
+                                                                          , important = False
+                                                                          }
+                                                         ])
+    -- Three values are provided: top, right-left, bottom.
+  , ("padding: 11px 22mm 33.3em",             [ CssDeclaration { property = CssPropertyPadding CssValuePadding
+                                                                { paddingTop    = CssValuePaddingX (CssDistanceAbsPx 11.0)
+                                                                , paddingRight  = CssValuePaddingX (CssDistanceAbsMm 22.0)
+                                                                , paddingBottom = CssValuePaddingX (CssDistanceRelEm 33.3)
+                                                                , paddingLeft   = CssValuePaddingX (CssDistanceAbsMm 22.0)
+                                                                }
+                                                              , important = False
+                                                              }
+                                             ])
+    -- Two values are provided: top-bottom, right-left.
+  , ("padding: 100px 200mm",                  [ CssDeclaration { property = CssPropertyPadding CssValuePadding
+                                                                { paddingTop    = CssValuePaddingX (CssDistanceAbsPx 100.0)
+                                                                , paddingRight  = CssValuePaddingX (CssDistanceAbsMm 200.0)
+                                                                , paddingBottom = CssValuePaddingX (CssDistanceAbsPx 100.0)
+                                                                , paddingLeft   = CssValuePaddingX (CssDistanceAbsMm 200.0)
+                                                                }
+                                                              , important = False
+                                                              }
+                                             ])
+    -- One value is provided: top-right-bottom-left.
+  , ("padding: 38.01em",                      [ CssDeclaration { property = CssPropertyPadding CssValuePadding
+                                                                { paddingTop    = CssValuePaddingX (CssDistanceRelEm 38.01)
+                                                                , paddingRight  = CssValuePaddingX (CssDistanceRelEm 38.01)
+                                                                , paddingBottom = CssValuePaddingX (CssDistanceRelEm 38.01)
+                                                                , paddingLeft   = CssValuePaddingX (CssDistanceRelEm 38.01)
+                                                                }
+                                                              , important = False
+                                                              }
+                                             ])
+  -- Failure case: five values provided (while at most 4 expected).
+  , ("padding: 10.1px 20.2mm 30.3em 40.4ex 50.5mm",  [])
+  -- Failure cases: zero values provided (while at least 1 expected).
+  , ("padding: ",   [])
+  , ("padding: ;",  [])
+  , ("padding: }",  [])
+
+
+
+
+
+
   , ( "padding-top: 1.0px",                   [CssDeclaration { property = CssPropertyPaddingTop (CssValuePaddingX (CssDistanceAbsPx 1.0)),       important = False } ])
   , ( "padding-top: 2.3mm !important",        [CssDeclaration { property = CssPropertyPaddingTop (CssValuePaddingX (CssDistanceAbsMm 2.3)),       important = True  } ])
   , ( "padding-top: 4.5em",                   [CssDeclaration { property = CssPropertyPaddingTop (CssValuePaddingX (CssDistanceRelEm 4.5)),       important = False } ])
@@ -1012,14 +1077,6 @@ parseDeclarationShorthandTestData =
                                              , CssDeclaration { property = CssPropertyBorderBottomColor $ CssValueBorderColor 0x0000ff,  important = False }
                                              , CssDeclaration { property = CssPropertyBorderLeftColor   $ CssValueBorderColor 0x0000ff,  important = False }
                                              ])
-
-  , ( "padding: 1.0px 2.5mm 33.1em 21.9ex",  [ CssDeclaration { property = CssPropertyPaddingTop    (CssValuePaddingX (CssDistanceAbsPx  1.0)),       important = False }
-                                             , CssDeclaration { property = CssPropertyPaddingRight  (CssValuePaddingX (CssDistanceAbsMm  2.5)),       important = False }
-                                             , CssDeclaration { property = CssPropertyPaddingBottom (CssValuePaddingX (CssDistanceRelEm 33.1)),       important = False }
-                                             , CssDeclaration { property = CssPropertyPaddingLeft   (CssValuePaddingX (CssDistanceRelEx 21.9)),       important = False }
-                                             ])
-
-
 
 
 

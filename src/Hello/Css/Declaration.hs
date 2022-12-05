@@ -63,6 +63,7 @@ module Hello.Css.Declaration
   , CssValueListStyleType (..)
   , CssValueMargin (..)
   , CssValueMarginX (..)
+  , CssValuePadding (..)
   , CssValuePaddingX (..)
   , CssValueTextAlign (..)
   , CssValueTextDecoration (..)
@@ -327,6 +328,7 @@ data CssProperty
   | CssPropertyOutlineStyle CssValue                 -- 57
   | CssPropertyOutlineWidth CssValue                 -- 58
   | CssPropertyOverflow CssValue                     -- 59
+  | CssPropertyPadding CssValuePadding
   | CssPropertyPaddingTop CssValuePaddingX           -- 63               parsing is unit-tested
   | CssPropertyPaddingRight CssValuePaddingX         -- 62               parsing is unit-tested
   | CssPropertyPaddingBottom CssValuePaddingX        -- 60               parsing is unit-tested
@@ -1769,6 +1771,7 @@ makeCssPropertyMargin pat =
     parser :: Parser (CssParser, CssToken) [CssValueMarginX]
     parser = some (many ignoreSpace *> marginValueParser <* many ignoreSpace)
 
+    -- TODO: use ignoreSpace'
     ignoreSpace :: Parser (CssParser, CssToken) CssValueMarginX
     ignoreSpace = Parser $ \ (p, t) -> case (p, t) of
                                          -- The fact that I'm using CssValueMarginXDistance in
@@ -1852,27 +1855,58 @@ makeCssPropertyOverflow v = CssPropertyOverflow v
 
 
 -- ------------------------------------------------
--- Padding (padding)
+-- Padding ("padding")
 -- This is a shorthand property.
+-- https://drafts.csswg.org/css2/#propdef-padding
+--
+-- Unit tested: yes
 -- ------------------------------------------------
 
 
 
 
-makeCssPropertyPadding :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyPadding pat = parseDeclaration4321trbl
-                                pat
-                                [ CssPropertyPaddingTop
-                                , CssPropertyPaddingRight
-                                , CssPropertyPaddingBottom
-                                , CssPropertyPaddingLeft ]
-                                parseTokensAsPaddingValue
+data CssValuePadding = CssValuePadding
+  { paddingTop    :: CssValuePaddingX
+  , paddingRight  :: CssValuePaddingX
+  , paddingBottom :: CssValuePaddingX
+  , paddingLeft   :: CssValuePaddingX
+  } deriving (Data, Eq, Show)
+
+
+
+
+makeCssPropertyPadding :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyPadding pat =
+  case runParser parser pat of
+    Just (x, [top, right, bottom, left]) -> Just (x, CssPropertyPadding $ CssValuePadding top right bottom left)
+    Just (x, [top, rl, bottom])          -> Just (x, CssPropertyPadding $ CssValuePadding top rl    bottom rl)
+    Just (x, [tb, rl])                   -> Just (x, CssPropertyPadding $ CssValuePadding tb  rl    tb     rl)
+    Just (x, [v])                        -> Just (x, CssPropertyPadding $ CssValuePadding v   v     v      v)
+    _                                    -> Nothing
+  where
+    -- TODO: check if we should use 'many' or 'some' for space parsers.
+    parser :: Parser (CssParser, CssToken) [CssValuePaddingX]
+    parser = some (many ignoreSpace *> paddingValueParser <* many ignoreSpace)
+
+    ignoreSpace = ignoreSpace' (CssValuePaddingX CssDistanceAuto)
+
+
+
+
+ignoreSpace' :: a -> Parser (CssParser, CssToken) a
+ignoreSpace' dummy = Parser $ \ (p, t) -> case (p, t) of
+                                            -- The fact that I'm using dummy in
+                                            -- returned value doesn't really matter since it will
+                                            -- be ignored anyway.
+                                            (p', CssTokWS) -> Just ((nextToken p'), dummy)
+                                            _              -> Nothing
 
 
 
 
 -- ------------------------------------------------
--- Padding-X (padding-X)
+-- Padding-{top|right|bottom|left} (padding-X)
+-- https://drafts.csswg.org/css2/#propdef-padding-top
 -- ------------------------------------------------
 
 
@@ -1897,10 +1931,14 @@ makeCssPropertyPaddingX propCtor pat = fmapSnd propCtor (parser pat)
 
 
 parseTokensAsPaddingValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValuePaddingX)
-parseTokensAsPaddingValue pat = parser pat
-  where
-    -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
-    parser = interpretTokensAsLength False CssValuePaddingX
+parseTokensAsPaddingValue pat = runParser paddingValueParser pat
+
+
+
+
+ -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
+paddingValueParser :: Parser (CssParser, CssToken) CssValuePaddingX
+paddingValueParser = Parser $ interpretTokensAsLength False CssValuePaddingX
 
 
 
