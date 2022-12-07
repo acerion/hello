@@ -59,8 +59,10 @@ module Hello.Css.Declaration
   , CssValueHeight (..)
   , CssValueLetterSpacing (..)
   , CssValueLineHeight (..)
-  , CssValueListStylePosition (..)
+  , CssValueListStyle (..)
   , CssValueListStyleType (..)
+  , CssValueListStylePosition (..)
+  , CssValueListStyleImage (..)
   , CssValueMargin (..)
   , CssValueMarginX (..)
   , CssValuePadding (..)
@@ -138,10 +140,10 @@ module Hello.Css.Declaration
   , makeCssPropertyLeft
   , makeCssPropertyLetterSpacing
   , makeCssPropertyLineHeight
-  , makeCssPropertyListStyle
-  , makeCssPropertyListStyleImage
-  , makeCssPropertyListStylePosition
-  , makeCssPropertyListStyleType
+  , ctorCssPropertyListStyle
+  , ctorCssPropertyListStyleImage
+  , ctorCssPropertyListStylePosition
+  , ctorCssPropertyListStyleType
   , makeCssPropertyMargin
   , makeCssPropertyMarginBottom
   , makeCssPropertyMarginLeft
@@ -184,6 +186,10 @@ module Hello.Css.Declaration
   , defaultBorderTRBLWidth
   , defaultBorderTRBLStyle
   , defaultBorderTRBLColor
+
+  , initialValueListStyleType
+  , initialValueListStylePosition
+  , initialValueListStyleImage
 
   , ShorthandPropertyCtor
   , PropertyCtor
@@ -308,7 +314,9 @@ data CssProperty
   | CssPropertyLeft CssValue                         -- 40
   | CssPropertyLetterSpacing CssValueLetterSpacing   -- 41               parsing is unit-tested
   | CssPropertyLineHeight CssValueLineHeight         -- 42               parsing is unit-tested
-  | CssPropertyListStyleImage CssValue               -- 43               not supported by hello
+
+  | CssPropertyListStyle CssValueListStyle
+  | CssPropertyListStyleImage CssValueListStyleImage -- 43               not supported by hello
   | CssPropertyListStylePosition CssValueListStylePosition  -- 44        parsing is unit-tested
   | CssPropertyListStyleType CssValueListStyleType   -- 45               parsing is unit-tested
 
@@ -1602,19 +1610,45 @@ makeCssPropertyLineHeight pat = fmapSnd CssPropertyLineHeight (runParser parser 
 
 
 -- ------------------------------------------------
--- List Style (list-style)
+-- List Style ("list-style")
 -- This is a shorthand property.
+-- https://drafts.csswg.org/css2/#propdef-list-style
+--
+-- Unit-tested: yes (poorly)
 -- ------------------------------------------------
 
 
+-- TODO: this is very imperfect implementation. It doesn't support handling
+-- of single "none" keyword: "A value of none within the list-style property
+-- sets whichever of list-style-type and list-style-image are not otherwise
+-- specified to none. "
+--
+-- In general this property is weird.
 
 
-makeCssPropertyListStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyListStyle pat = parseDeclarationMultiple
-                                  pat
-                                  [ makeCssPropertyListStyleType
-                                  , makeCssPropertyListStylePosition
-                                  , makeCssPropertyListStyleImage ]
+
+
+data CssValueListStyle = CssValueListStyle
+  { listStyleType     :: CssValueListStyleType
+  , listStylePosition :: CssValueListStylePosition
+  , listStyleImage    :: CssValueListStyleImage
+  } deriving (Data, Eq, Show)
+
+initialValueListStyle = CssValueListStyle initialValueListStyleType initialValueListStylePosition initialValueListStyleImage
+
+
+
+
+-- Parser of "list-style" property.
+ctorCssPropertyListStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+ctorCssPropertyListStyle pat = fmapSnd CssPropertyListStyle (combinatorOneOrMoreUnordered2 initialValueListStyle fs pat)
+  where
+    fs = [fnType, fnPosition, fnImage]
+
+    fnType :: (CssParser, CssToken) -> CssValueListStyle -> Maybe ((CssParser, CssToken), CssValueListStyle)
+    fnType pat' acc     = fmapSnd (\ x -> acc { listStyleType = x }) $ ctorValueListStyleType pat'
+    fnPosition pat' acc = fmapSnd (\ x -> acc { listStylePosition = x }) $ ctorValueListStylePosition pat'
+    fnImage pat' acc    = fmapSnd (\ x -> acc { listStyleImage = x }) $ ctorValueListStyleImage pat'
 
 
 
@@ -1623,19 +1657,44 @@ makeCssPropertyListStyle pat = parseDeclarationMultiple
 -- List Style Image
 --
 -- This property is not supported.
+-- https://drafts.csswg.org/css2/#propdef-list-style-image
 -- ------------------------------------------------
 
 
 
 
-makeCssPropertyListStyleImage :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyListStyleImage _ = Nothing -- CssPropertyListStyleImage
+data CssValueListStyleImage
+ = CssValueListStyleImageURL T.Text
+ | CssValueListStyleImageNone
+ | CssValueListStyleImageInherit
+ deriving (Eq, Show, Data)
+
+initialValueListStyleImage = CssValueListStyleImageNone
+
+
+
+
+ctorCssPropertyListStyleImage :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+ctorCssPropertyListStyleImage pat = fmapSnd CssPropertyListStyleImage (ctorValueListStyleImage pat)
+
+
+
+
+ctorValueListStyleImage :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueListStyleImage)
+ctorValueListStyleImage pat = runParser parserValueListStyleImage pat
+
+
+
+
+parserValueListStyleImage :: Parser (CssParser, CssToken) CssValueListStyleImage
+parserValueListStyleImage = Parser $ (\ _ -> Nothing) -- TODO: implement parsing of the value
 
 
 
 
 -- ------------------------------------------------
 -- List Style Position
+-- https://drafts.csswg.org/css2/#propdef-list-style-position
 -- ------------------------------------------------
 
 
@@ -1648,6 +1707,8 @@ data CssValueListStylePosition
  | CssValueListStylePositionOutside
   deriving (Eq, Show, Data, Enum, Bounded)
 
+initialValueListStylePosition = CssValueListStylePositionOutside
+
 
 
 
@@ -1659,10 +1720,19 @@ cssValueListStylePositionDict = [ ("inside",               CssValueListStylePosi
 
 
 
-makeCssPropertyListStylePosition :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyListStylePosition pat = fmapSnd CssPropertyListStylePosition (parser pat)
-  where
-    parser = interpretTokensAsEnum cssValueListStylePositionDict
+ctorCssPropertyListStylePosition :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+ctorCssPropertyListStylePosition pat = fmapSnd CssPropertyListStylePosition (ctorValueListStylePosition pat)
+
+
+
+
+ctorValueListStylePosition pat = runParser parserValueListStylePosition pat
+
+
+
+
+parserValueListStylePosition :: Parser (CssParser, CssToken) CssValueListStylePosition
+parserValueListStylePosition = Parser $ interpretTokensAsEnum cssValueListStylePositionDict
 
 
 
@@ -1700,6 +1770,8 @@ data CssValueListStyleType
   | CssValueListStyleTypeNone
   deriving (Eq, Show, Data, Enum, Bounded)
 
+initialValueListStyleType = CssValueListStyleTypeDisc
+
 
 
 
@@ -1730,10 +1802,19 @@ cssValueListStyleTypeDict = [ ("disc",                 CssValueListStyleTypeDisc
 
 
 
-makeCssPropertyListStyleType :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyListStyleType pat = fmapSnd CssPropertyListStyleType (parser pat)
-  where
-    parser = interpretTokensAsEnum cssValueListStyleTypeDict
+ctorCssPropertyListStyleType :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+ctorCssPropertyListStyleType pat = fmapSnd CssPropertyListStyleType (ctorValueListStyleType pat)
+
+
+
+
+ctorValueListStyleType pat = runParser parserValueListStyleType pat
+
+
+
+
+parserValueListStyleType :: Parser (CssParser, CssToken) CssValueListStyleType
+parserValueListStyleType = Parser $ interpretTokensAsEnum cssValueListStyleTypeDict
 
 
 

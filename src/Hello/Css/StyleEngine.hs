@@ -429,8 +429,13 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssPropertyWhitespace value        -> styleAttrs { styleWhiteSpace     = getWhiteSpace value }
     CssPropertyWidth declValue         -> styleAttrs { styleWidth          = getWidth declValue fontAttrs display }
     CssPropertyHeight declValue        -> styleAttrs { styleHeight         = getHeight declValue fontAttrs display }
+
+    CssPropertyListStyle declValue     -> foldr f styleAttrs [ CssPropertyListStyleType . listStyleType $ declValue
+                                                             , CssPropertyListStylePosition . listStylePosition $ declValue
+                                                             , CssPropertyListStyleImage .  listStyleImage $ declValue ]
     CssPropertyListStylePosition value -> styleAttrs { styleListStylePosition    = getListStylePosition value }
     CssPropertyListStyleType value     -> styleAttrs { styleListStyleType        = getListStyleType value }
+
     CssPropertyLineHeight declValue    -> styleAttrs { styleLineHeight           = getLineHeight declValue fontAttrs display }
     CssPropertyDisplay value           -> styleAttrs { styleDisplay              = getDisplay value }
     CssPropertyColor value             -> styleAttrs { styleColor                = getColor parentStyleAttrs value }

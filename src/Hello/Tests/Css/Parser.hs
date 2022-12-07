@@ -575,6 +575,54 @@ parseDeclarationTestData =
 
 
 
+    -- Notice that list-style-image is not supported by the parser and is not tested here.
+
+{- -- This test item is disabled until a proper support for single "none" value is implemented.
+  , ( "list-style: none",                    [ CssDeclaration { property = CssPropertyListStyle $ CssValueListStyle
+                                                                { listStyleType     = initialValueListStyleType
+                                                                , listStylePosition = initialValueListStylePosition
+                                                                , listStyleImage    = initialValueListStyleImage
+                                                                }
+                                                              , important = False
+                                                              }
+                                             ])
+-}
+  , ( "list-style: disc inside",             [ CssDeclaration { property = CssPropertyListStyle $ CssValueListStyle
+                                                                { listStyleType     = CssValueListStyleTypeDisc
+                                                                , listStylePosition = CssValueListStylePositionInside
+                                                                , listStyleImage    = initialValueListStyleImage
+                                                                }
+                                                              , important = False
+                                                              }
+                                             ])
+  , ( "list-style: outside",                 [ CssDeclaration { property = CssPropertyListStyle $ CssValueListStyle
+                                                                { listStyleType     = initialValueListStyleType
+                                                                , listStylePosition = CssValueListStylePositionOutside
+                                                                , listStyleImage    = initialValueListStyleImage
+                                                                }
+                                                              , important = False
+                                                              }
+                                             ])
+  , ( "list-style: upper-roman outside",     [ CssDeclaration { property = CssPropertyListStyle $ CssValueListStyle
+                                                                { listStyleType     = CssValueListStyleTypeUpperRoman
+                                                                , listStylePosition = CssValueListStylePositionOutside
+                                                                , listStyleImage    = initialValueListStyleImage
+                                                                }
+                                                              , important = False
+                                                              }
+                                             ])
+    -- Same as above, but with flipped css value tokens.
+  , ( "list-style: outside upper-roman",     [ CssDeclaration { property = CssPropertyListStyle $ CssValueListStyle
+                                                                { listStyleType     = CssValueListStyleTypeUpperRoman
+                                                                , listStylePosition = CssValueListStylePositionOutside
+                                                                , listStyleImage    = initialValueListStyleImage
+                                                                }
+                                                              , important = False
+                                                              }
+                                             ])
+
+
+
   , ( "list-style-position: inside",                    [CssDeclaration { property = CssPropertyListStylePosition CssValueListStylePositionInside,   important = False } ])
   , ( "list-style-position: inside !important",         [CssDeclaration { property = CssPropertyListStylePosition CssValueListStylePositionInside,   important = True } ])
   , ( "list-style-position: outside",                   [CssDeclaration { property = CssPropertyListStylePosition CssValueListStylePositionOutside,  important = False } ])
@@ -1076,22 +1124,6 @@ parseDeclarationShorthandTestData =
                                              , CssDeclaration { property = CssPropertyBorderRightColor  $ CssValueBorderColor 0x0000ff,  important = False }
                                              , CssDeclaration { property = CssPropertyBorderBottomColor $ CssValueBorderColor 0x0000ff,  important = False }
                                              , CssDeclaration { property = CssPropertyBorderLeftColor   $ CssValueBorderColor 0x0000ff,  important = False }
-                                             ])
-
-
-
-
-
-  -- Notice that list-style-image is not supported by the parser and is not tested here.
-  , ( "list-style: none",                    [ CssDeclaration { property = CssPropertyListStyleType CssValueListStyleTypeNone,             important = False }
-                                             ])
-  , ( "list-style: disc inside",             [ CssDeclaration { property = CssPropertyListStyleType CssValueListStyleTypeDisc,             important = False }
-                                             , CssDeclaration { property = CssPropertyListStylePosition CssValueListStylePositionInside,   important = False }
-                                             ])
-  , ( "list-style: outside",                 [ CssDeclaration { property = CssPropertyListStylePosition CssValueListStylePositionOutside,  important = False }
-                                             ])
-  , ( "list-style: upper-roman outside",     [ CssDeclaration { property = CssPropertyListStyleType CssValueListStyleTypeUpperRoman,       important = False }
-                                             , CssDeclaration { property = CssPropertyListStylePosition CssValueListStylePositionOutside,  important = False }
                                              ])
   ]
 

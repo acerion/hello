@@ -142,9 +142,11 @@ cssPropertyCtors = M.fromList [
    --, ("left",                   Nothing)
    , ("letter-spacing",         makeCssPropertyLetterSpacing)
    , ("line-height",            makeCssPropertyLineHeight)
-   , ("list-style-image",       makeCssPropertyListStyleImage)
-   , ("list-style-position",    makeCssPropertyListStylePosition)
-   , ("list-style-type",        makeCssPropertyListStyleType)
+
+   , ("list-style",             ctorCssPropertyListStyle)
+   , ("list-style-image",       ctorCssPropertyListStyleImage)
+   , ("list-style-position",    ctorCssPropertyListStylePosition)
+   , ("list-style-type",        ctorCssPropertyListStyleType)
 
    , ("margin",                 makeCssPropertyMargin)
    , ("margin-top",             makeCssPropertyMarginTop)
@@ -207,9 +209,6 @@ cssShorthandInfo = M.fromList [
   , ("border-color",       makeCssPropertyBorderColor)
 
   , ("font",               makeCssPropertyFont)
-
-    -- Parsing of this property is unit-tested (poorly).
-  , ("list-style",         makeCssPropertyListStyle)
   ]
 
 
