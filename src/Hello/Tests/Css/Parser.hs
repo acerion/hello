@@ -214,6 +214,147 @@ parseDeclarationTestData =
 
 
 
+
+
+    -- Single value of border-color is provided: top-righ-bottom-left.
+  , ( "border-color: rgb(0, 0, 15)",
+      [ CssDeclaration { property = CssPropertyBorderColor $ CssValueBorderColor'
+                                    { borderColorTop    = CssValueBorderColor 0x00000f
+                                    , borderColorRight  = CssValueBorderColor 0x00000f
+                                    , borderColorBottom = CssValueBorderColor 0x00000f
+                                    , borderColorLeft   = CssValueBorderColor 0x00000f
+                                    }
+                       , important = False }
+      ])
+  -- Two values of border-color are provided: top-bottom / right-left.
+  , ( "border-color: rgb(0, 15, 0) #ff0000",
+      [ CssDeclaration { property = CssPropertyBorderColor $ CssValueBorderColor'
+                                    { borderColorTop    = CssValueBorderColor 0x000f00
+                                    , borderColorRight  = CssValueBorderColor 0xff0000
+                                    , borderColorBottom = CssValueBorderColor 0x000f00
+                                    , borderColorLeft   = CssValueBorderColor 0xff0000
+                                    }
+                       , important = False }
+      ])
+  -- Three values of border-color are provided:  top / right-left / bottom..
+  , ( "border-color: rgb(0, 15, 0) #ff0000 blue",
+      [ CssDeclaration { property = CssPropertyBorderColor $ CssValueBorderColor'
+                                    { borderColorTop    = CssValueBorderColor 0x000f00
+                                    , borderColorRight  = CssValueBorderColor 0xff0000
+                                    , borderColorBottom = CssValueBorderColor 0x0000ff
+                                    , borderColorLeft   = CssValueBorderColor 0xff0000
+                                    }
+                       , important = False }
+      ])
+    -- Four values of border-width are provided: top / right / bottom / left
+  , ( "border-color: rgb(0, 15, 0) rgb(1, 15, 0) #012345 burlywood",
+      [ CssDeclaration { property = CssPropertyBorderColor $ CssValueBorderColor'
+                                    { borderColorTop    = CssValueBorderColor 0x000f00
+                                    , borderColorRight  = CssValueBorderColor 0x010f00
+                                    , borderColorBottom = CssValueBorderColor 0x012345
+                                    , borderColorLeft   = CssValueBorderColor 0xdeb887
+                                    }
+                       , important = False }
+      ])
+  -- TODO: add tests of failure cases for border-color.
+
+
+
+
+  -- Single value of border-width is provided: top-righ-bottom-left.
+  , ( "border-style: double",
+      [ CssDeclaration { property = CssPropertyBorderStyle $ CssValueBorderStyle'
+                                    { borderStyleTop    = CssValueBorderStyleDouble
+                                    , borderStyleRight  = CssValueBorderStyleDouble
+                                    , borderStyleBottom = CssValueBorderStyleDouble
+                                    , borderStyleLeft   = CssValueBorderStyleDouble
+                                    }
+                       , important = False }
+      ])
+  -- Two values of border-width are provided: top-bottom / right-left.
+  , ( "border-style: none hidden",
+      [ CssDeclaration { property = CssPropertyBorderStyle $ CssValueBorderStyle'
+                                    { borderStyleTop    = CssValueBorderStyleNone
+                                    , borderStyleRight  = CssValueBorderStyleHidden
+                                    , borderStyleBottom = CssValueBorderStyleNone
+                                    , borderStyleLeft   = CssValueBorderStyleHidden
+                                    }
+                       , important = False }
+      ])
+  -- Three values of border-width are provided: top / right-left / bottom.
+  , ( "border-style: none inherit groove",
+      [ CssDeclaration { property = CssPropertyBorderStyle $ CssValueBorderStyle'
+                                    { borderStyleTop    = CssValueBorderStyleNone
+                                    , borderStyleRight  = CssValueBorderStyleInherit
+                                    , borderStyleBottom = CssValueBorderStyleGroove
+                                    , borderStyleLeft   = CssValueBorderStyleInherit
+                                    }
+                       , important = False }
+      ])
+  -- Four values of border-width are provided: top / right / bottom / left
+  , ( "border-style: outset inherit hidden none",
+      [ CssDeclaration { property = CssPropertyBorderStyle $ CssValueBorderStyle'
+                                    { borderStyleTop    = CssValueBorderStyleOutset
+                                    , borderStyleRight  = CssValueBorderStyleInherit
+                                    , borderStyleBottom = CssValueBorderStyleHidden
+                                    , borderStyleLeft   = CssValueBorderStyleNone
+                                    }
+                       , important = False }
+      ])
+  -- TODO: add tests of failure cases for border-style.
+
+
+
+
+  -- Single value of border-width is provided: top-righ-bottom-left.
+  , ( "border-width: 99px",
+      [ CssDeclaration { property = CssPropertyBorderWidth $ CssValueBorderWidth'
+                                    { borderWidthTop    = CssValueBorderWidthDistance (CssDistanceAbsPx 99)
+                                    , borderWidthRight  = CssValueBorderWidthDistance (CssDistanceAbsPx 99)
+                                    , borderWidthBottom = CssValueBorderWidthDistance (CssDistanceAbsPx 99)
+                                    , borderWidthLeft   = CssValueBorderWidthDistance (CssDistanceAbsPx 99)
+                                    }
+                       , important = False }
+      ])
+  -- Two values of border-width are provided: top-bottom / right-left.
+  , ( "border-width: 88px 77mm",
+      [ CssDeclaration { property = CssPropertyBorderWidth $ CssValueBorderWidth'
+                                    { borderWidthTop    = CssValueBorderWidthDistance (CssDistanceAbsPx 88)
+                                    , borderWidthRight  = CssValueBorderWidthDistance (CssDistanceAbsMm 77)
+                                    , borderWidthBottom = CssValueBorderWidthDistance (CssDistanceAbsPx 88)
+                                    , borderWidthLeft   = CssValueBorderWidthDistance (CssDistanceAbsMm 77)
+                                    }
+                       , important = False }
+      ])
+  -- Three values of border-width are provided: top / right-left / bottom.
+  , ( "border-width: 66px 55em 44px",
+      [ CssDeclaration { property = CssPropertyBorderWidth $ CssValueBorderWidth'
+                                    { borderWidthTop    = CssValueBorderWidthDistance (CssDistanceAbsPx 66)
+                                    , borderWidthRight  = CssValueBorderWidthDistance (CssDistanceRelEm 55)
+                                    , borderWidthBottom = CssValueBorderWidthDistance (CssDistanceAbsPx 44)
+                                    , borderWidthLeft   = CssValueBorderWidthDistance (CssDistanceRelEm 55)
+                                    }
+                       , important = False }
+      ])
+  -- Four values of border-width are provided: top / right / bottom / left
+  --
+  -- TODO: the parser doesn't handle a value of property that includes
+  -- "auto". Replace "thin" with "auto" and see what happens: the parser will
+  -- tell you that it sees only three values of distance.
+  , ( "border-width: 21px 32em 43ex thin",
+      [ CssDeclaration { property = CssPropertyBorderWidth $ CssValueBorderWidth'
+                                    { borderWidthTop    = CssValueBorderWidthDistance (CssDistanceAbsPx 21)
+                                    , borderWidthRight  = CssValueBorderWidthDistance (CssDistanceRelEm 32)
+                                    , borderWidthBottom = CssValueBorderWidthDistance (CssDistanceRelEx 43)
+                                    , borderWidthLeft   = CssValueBorderWidthThin -- CssValueBorderWidthDistance CssDistanceAuto)
+                                    }
+                       , important = False }
+      ])
+  -- TODO: add tests of failure cases for border-width.
+
+
+
+
   , ( "border-top-color: inherit",                        [CssDeclaration { property = CssPropertyBorderTopColor   CssValueBorderColorInherit,       important = False } ])
   , ( "border-top-color: transparent",                    [CssDeclaration { property = CssPropertyBorderTopColor   CssValueBorderColorTransparent,   important = False } ])
   , ( "border-top-color: red",                            [CssDeclaration { property = CssPropertyBorderTopColor   $ CssValueBorderColor 0xff0000,   important = False } ])
@@ -1107,24 +1248,6 @@ parseDeclarationShorthandTestData =
                                               , CssDeclaration { property = CssPropertyBorderLeftColor   $ CssValueBorderColor 0xff0000 , important = False }
                                               ])
 
-
-  , ( "border-width: 99px",                  [ CssDeclaration { property = CssPropertyBorderTopWidth    (CssValueBorderWidthDistance (CssDistanceAbsPx 99)), important = False }
-                                             , CssDeclaration { property = CssPropertyBorderRightWidth  (CssValueBorderWidthDistance (CssDistanceAbsPx 99)), important = False }
-                                             , CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 99)), important = False }
-                                             , CssDeclaration { property = CssPropertyBorderLeftWidth   (CssValueBorderWidthDistance (CssDistanceAbsPx 99)), important = False }
-                                             ])
-
-  , ( "border-style: double",               [ CssDeclaration { property = CssPropertyBorderTopStyle    CssValueBorderStyleDouble,  important = False }
-                                            , CssDeclaration { property = CssPropertyBorderRightStyle  CssValueBorderStyleDouble,  important = False }
-                                            , CssDeclaration { property = CssPropertyBorderBottomStyle CssValueBorderStyleDouble,  important = False }
-                                            , CssDeclaration { property = CssPropertyBorderLeftStyle   CssValueBorderStyleDouble,  important = False }
-                                            ])
-
-  , ( "border-color: rgb(0, 0, 255)",        [ CssDeclaration { property = CssPropertyBorderTopColor    $ CssValueBorderColor 0x0000ff,  important = False }
-                                             , CssDeclaration { property = CssPropertyBorderRightColor  $ CssValueBorderColor 0x0000ff,  important = False }
-                                             , CssDeclaration { property = CssPropertyBorderBottomColor $ CssValueBorderColor 0x0000ff,  important = False }
-                                             , CssDeclaration { property = CssPropertyBorderLeftColor   $ CssValueBorderColor 0x0000ff,  important = False }
-                                             ])
   ]
 
 

@@ -391,6 +391,22 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssPropertyBorderBottom value      -> foldr f styleAttrs [ CssPropertyBorderBottomWidth . borderTRBLWidth $ value, CssPropertyBorderBottomStyle . borderTRBLStyle $ value, CssPropertyBorderBottomColor . borderTRBLColor $ value]
     CssPropertyBorderLeft value        -> foldr f styleAttrs [ CssPropertyBorderLeftWidth . borderTRBLWidth $ value,   CssPropertyBorderLeftStyle . borderTRBLStyle $ value,   CssPropertyBorderLeftColor . borderTRBLColor $ value]
 
+    CssPropertyBorderColor declValue   -> foldr f styleAttrs [ CssPropertyBorderTopColor . borderColorTop $ declValue
+                                                             , CssPropertyBorderRightColor . borderColorRight $ declValue
+                                                             , CssPropertyBorderBottomColor . borderColorBottom $ declValue
+                                                             , CssPropertyBorderLeftColor . borderColorLeft $ declValue
+                                                             ]
+    CssPropertyBorderStyle declValue   -> foldr f styleAttrs [ CssPropertyBorderTopStyle . borderStyleTop $ declValue
+                                                             , CssPropertyBorderRightStyle . borderStyleRight $ declValue
+                                                             , CssPropertyBorderBottomStyle . borderStyleBottom $ declValue
+                                                             , CssPropertyBorderLeftStyle . borderStyleLeft $ declValue
+                                                             ]
+    CssPropertyBorderWidth declValue   -> foldr f styleAttrs [ CssPropertyBorderTopWidth . borderWidthTop $ declValue
+                                                             , CssPropertyBorderRightWidth . borderWidthRight $ declValue
+                                                             , CssPropertyBorderBottomWidth . borderWidthBottom $ declValue
+                                                             , CssPropertyBorderLeftWidth . borderWidthLeft $ declValue
+                                                             ]
+
     CssPropertyBorderTopStyle value    -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleTop    = getBorderStyleTop    parentStyleAttrs value }}
     CssPropertyBorderRightStyle value  -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleRight  = getBorderStyleRight  parentStyleAttrs value }}
     CssPropertyBorderBottomStyle value -> styleAttrs { styleBorderStyle = (styleBorderStyle styleAttrs) { styleBorderStyleBottom = getBorderStyleBottom parentStyleAttrs value }}
@@ -455,6 +471,8 @@ yet because a full support for them in dillo seems to be missing or broken.
 
     f :: CssProperty -> StyleAttrs -> StyleAttrs
     f property' styleAttrs' = styleEngineSetStyle property' display parentStyleAttrs styleAttrs'
+
+
 
 
 

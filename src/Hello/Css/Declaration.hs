@@ -44,9 +44,12 @@ module Hello.Css.Declaration
   , CssValueBorderTRBL (..)
   , CssValueBorderCollapse (..)
   , CssValueBorderColor (..)
+  , CssValueBorderColor' (..)
   , CssValueBorderSpacing (..)
   , CssValueBorderStyle (..)
+  , CssValueBorderStyle' (..)
   , CssValueBorderWidth (..)
+  , CssValueBorderWidth' (..)
   , CssValueColor (..)
   , CssValueContent (..)
   , CssValueDisplay (..)
@@ -88,9 +91,9 @@ module Hello.Css.Declaration
   , makeCssPropertyBackgroundRepeat
 
   , makeCssPropertyBorder
-  , makeCssPropertyBorderWidth
-  , makeCssPropertyBorderColor
-  , makeCssPropertyBorderStyle
+  , ctorCssPropertyBorderColor
+  , ctorCssPropertyBorderWidth
+  , ctorCssPropertyBorderStyle
 
   , makeCssPropertyBorderTop
   , makeCssPropertyBorderRight
@@ -227,8 +230,6 @@ type ShorthandPropertyCtor = (CssParser, CssToken) -> ((CssParser, CssToken), [C
 type PropertyCtor = (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 
 
-type PropertyValueCtor a = (CssParser, CssToken) -> Maybe ((CssParser, CssToken), a)
-
 -- TODO: this is too similar to PropertyCtor
 type CssPropertyParser = MyParser (CssParser, CssToken) CssProperty
 
@@ -272,10 +273,16 @@ data CssProperty
   | CssPropertyBackgroundImage CssValueBackgroundImage                -- 2    This property is barely unit-tested because some decisions need to be made first.
   | CssPropertyBackgroundPosition CssValueBackgroundPosition          -- 3    There are some unit tests, but they don't really test much.
   | CssPropertyBackgroundRepeat CssValueBackgroundRepeat              -- 4
+
   | CssPropertyBorderTop CssValueBorderTRBL
   | CssPropertyBorderRight CssValueBorderTRBL
   | CssPropertyBorderBottom CssValueBorderTRBL
   | CssPropertyBorderLeft CssValueBorderTRBL
+
+  | CssPropertyBorderColor CssValueBorderColor'
+  | CssPropertyBorderStyle CssValueBorderStyle'
+  | CssPropertyBorderWidth CssValueBorderWidth'
+
   | CssPropertyBorderBottomColor CssValueBorderColor -- 5                parsing is tested
   | CssPropertyBorderBottomStyle CssValueBorderStyle -- 6                parsing is tested
   | CssPropertyBorderBottomWidth CssValueBorderWidth -- 7                parsing is tested
@@ -604,14 +611,30 @@ makeCssPropertyBorder pat0 = run constructors pat0 []
 
 
 
-makeCssPropertyBorderWidth :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyBorderWidth pat = parseDeclaration4321trbl
-                                    pat
-                                    [ CssPropertyBorderTopWidth
-                                    , CssPropertyBorderRightWidth
-                                    , CssPropertyBorderBottomWidth
-                                    , CssPropertyBorderLeftWidth ]
-                                    parseTokensAsBorderWidthValue
+data CssValueBorderWidth' = CssValueBorderWidth'
+  { borderWidthTop    :: CssValueBorderWidth
+  , borderWidthRight  :: CssValueBorderWidth
+  , borderWidthBottom :: CssValueBorderWidth
+  , borderWidthLeft   :: CssValueBorderWidth
+  } deriving (Data, Eq, Show)
+
+
+
+
+ctorCssPropertyBorderWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+ctorCssPropertyBorderWidth pat =
+  case runParser parser pat of
+    Just (x, [top, right, bottom, left]) -> Just (x, CssPropertyBorderWidth $ CssValueBorderWidth' top right bottom left)
+    Just (x, [top, rl, bottom])          -> Just (x, CssPropertyBorderWidth $ CssValueBorderWidth' top rl    bottom rl)
+    Just (x, [tb, rl])                   -> Just (x, CssPropertyBorderWidth $ CssValueBorderWidth' tb  rl    tb     rl)
+    Just (x, [v])                        -> Just (x, CssPropertyBorderWidth $ CssValueBorderWidth' v   v     v      v)
+    _                                    -> Nothing
+  where
+    -- TODO: check if we should use 'many' or 'some' for space parsers.
+    parser :: Parser (CssParser, CssToken) [CssValueBorderWidth]
+    parser = some (many ignoreSpace *> parserValueBorderWidth <* many ignoreSpace)
+
+    ignoreSpace = ignoreSpace' (CssValueBorderWidthDistance CssDistanceAuto)
 
 
 
@@ -624,14 +647,30 @@ makeCssPropertyBorderWidth pat = parseDeclaration4321trbl
 
 
 
-makeCssPropertyBorderColor :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyBorderColor pat = parseDeclaration4321trbl
-                                    pat
-                                    [ CssPropertyBorderTopColor
-                                    , CssPropertyBorderRightColor
-                                    , CssPropertyBorderBottomColor
-                                    , CssPropertyBorderLeftColor ]
-                                    parseTokensAsBorderColorValue
+data CssValueBorderColor' = CssValueBorderColor'
+  { borderColorTop    :: CssValueBorderColor
+  , borderColorRight  :: CssValueBorderColor
+  , borderColorBottom :: CssValueBorderColor
+  , borderColorLeft   :: CssValueBorderColor
+  } deriving (Data, Eq, Show)
+
+
+
+
+ctorCssPropertyBorderColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+ctorCssPropertyBorderColor pat =
+  case runParser parser pat of
+    Just (x, [top, right, bottom, left]) -> Just (x, CssPropertyBorderColor $ CssValueBorderColor' top right bottom left)
+    Just (x, [top, rl, bottom])          -> Just (x, CssPropertyBorderColor $ CssValueBorderColor' top rl    bottom rl)
+    Just (x, [tb, rl])                   -> Just (x, CssPropertyBorderColor $ CssValueBorderColor' tb  rl    tb     rl)
+    Just (x, [v])                        -> Just (x, CssPropertyBorderColor $ CssValueBorderColor' v   v     v      v)
+    _                                    -> Nothing
+  where
+    -- TODO: check if we should use 'many' or 'some' for space parsers.
+    parser :: Parser (CssParser, CssToken) [CssValueBorderColor]
+    parser = some (many ignoreSpace *> parserValueBorderColor <* many ignoreSpace)
+
+    ignoreSpace = ignoreSpace' (CssValueBorderColor 0x000000)
 
 
 
@@ -643,15 +682,32 @@ makeCssPropertyBorderColor pat = parseDeclaration4321trbl
 
 
 
+data CssValueBorderStyle' = CssValueBorderStyle'
+  { borderStyleTop    :: CssValueBorderStyle
+  , borderStyleRight  :: CssValueBorderStyle
+  , borderStyleBottom :: CssValueBorderStyle
+  , borderStyleLeft   :: CssValueBorderStyle
+  } deriving (Data, Eq, Show)
 
-makeCssPropertyBorderStyle :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyBorderStyle pat = parseDeclaration4321trbl
-                                    pat
-                                    [ CssPropertyBorderTopStyle
-                                    , CssPropertyBorderRightStyle
-                                    , CssPropertyBorderBottomStyle
-                                    , CssPropertyBorderLeftStyle ]
-                                    parseTokensAsBorderStyleValue
+
+
+
+ctorCssPropertyBorderStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+ctorCssPropertyBorderStyle pat =
+  -- Parse 4, 3, 2 or 1 tokens, specifying values for top, right, bottom, left,
+  -- or for t, r-l, b, or for t-b, r-l, or for all of them at once.
+  case runParser parser pat of
+    Just (x, [top, right, bottom, left]) -> Just (x, CssPropertyBorderStyle $ CssValueBorderStyle' top right bottom left)
+    Just (x, [top, rl, bottom])          -> Just (x, CssPropertyBorderStyle $ CssValueBorderStyle' top rl    bottom rl)
+    Just (x, [tb, rl])                   -> Just (x, CssPropertyBorderStyle $ CssValueBorderStyle' tb  rl    tb     rl)
+    Just (x, [v])                        -> Just (x, CssPropertyBorderStyle $ CssValueBorderStyle' v   v     v      v)
+    _                                    -> Nothing
+  where
+    -- TODO: check if we should use 'many' or 'some' for space parsers.
+    parser :: Parser (CssParser, CssToken) [CssValueBorderStyle]
+    parser = some (many ignoreSpace *> parserValueBorderStyle <* many ignoreSpace)
+
+    ignoreSpace = ignoreSpace' CssValueBorderStyleNone
 
 
 
@@ -854,10 +910,13 @@ cssValueBorderColorDict = [ ("transparent", CssValueBorderColorTransparent)
 
 
 parseTokensAsBorderColorValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBorderColor)
-parseTokensAsBorderColorValue pat = runParser parser pat
-  where
-    parser = (Parser $ interpretTokensAsEnum cssValueBorderColorDict)
-             <|> (Parser $ interpretTokensAsColor CssValueBorderColor)
+parseTokensAsBorderColorValue pat = runParser parserValueBorderColor pat
+
+
+
+
+parserValueBorderColor = (Parser $ interpretTokensAsEnum cssValueBorderColorDict)
+                         <|> (Parser $ interpretTokensAsColor CssValueBorderColor)
 
 
 
@@ -922,9 +981,12 @@ cssValueBorderStyleDict = [ ("none",     CssValueBorderStyleNone)
 
 
 parseTokensAsBorderStyleValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBorderStyle)
-parseTokensAsBorderStyleValue pat = parser pat
-  where
-    parser = interpretTokensAsEnum cssValueBorderStyleDict
+parseTokensAsBorderStyleValue pat = runParser parserValueBorderStyle pat
+
+
+
+
+parserValueBorderStyle = Parser $ interpretTokensAsEnum cssValueBorderStyleDict
 
 
 
@@ -975,10 +1037,13 @@ cssValueBorderWidthDict = [ ("thin",    CssValueBorderWidthThin)
 
 
 parseTokensAsBorderWidthValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBorderWidth)
-parseTokensAsBorderWidthValue pat = runParser parser pat
-  where
-    parser = (Parser $ interpretTokensAsEnum cssValueBorderWidthDict)
-             <|> (Parser $ interpretTokensAsLength False CssValueBorderWidthDistance)
+parseTokensAsBorderWidthValue pat = runParser parserValueBorderWidth pat
+
+
+
+
+parserValueBorderWidth = (Parser $ interpretTokensAsEnum cssValueBorderWidthDict)
+                         <|> (Parser $ interpretTokensAsLength False CssValueBorderWidthDistance)
 
 
 
@@ -2511,34 +2576,6 @@ parseDeclarationMultiple patArg propCtors = L.foldl f (patArg, []) propCtors
                               Just (pat', decl) -> (pat', acc ++ [decl])
                               Nothing           -> (pat, acc)
 
-
-
-
--- Parse 4, 3, 2 or 1 tokens, specifying values for top, right, bottom, left,
--- or for t, r-l, b, or for t-b, r-l, or for all of them at once.
-parseDeclaration4321trbl :: (CssParser, CssToken) -> [b -> CssProperty] -> PropertyValueCtor b -> ((CssParser, CssToken), [CssProperty])
-parseDeclaration4321trbl pat (propCtorT:propCtorR:propCtorB:propCtorL:_) propValueCtor = (pat', ds)
-  where
-    ds = case propertyValues of
-           [top, right, bottom, left] -> [ propCtorT top, propCtorR right, propCtorB bottom, propCtorL left ]
-           [top, rl, bottom]          -> [ propCtorT top, propCtorR rl,    propCtorB bottom, propCtorL rl   ]
-           [tb, rl]                   -> [ propCtorT tb,  propCtorR rl,    propCtorB tb,     propCtorL rl   ]
-           [v]                        -> [ propCtorT v,   propCtorR v,     propCtorB v,      propCtorL v    ]
-           _                          -> []
-    (pat', propertyValues) = matchOrderedTokens pat propValueCtor []
-parseDeclaration4321trbl pat _ _ = (pat, [])
-
-
-
-
--- Value tokens must be in proper order. Example: if property is
--- "border-color", and there are four value tokens, then tokens must
--- represent colors of "top","right","bottom","left" borders.
-matchOrderedTokens :: (CssParser, CssToken) -> PropertyValueCtor b -> [b] -> ((CssParser, CssToken), [b])
-matchOrderedTokens pat propValueCtor propertyValues =
-  case propValueCtor pat of
-    Just (pat', v) -> matchOrderedTokens pat' propValueCtor (propertyValues ++ [v])
-    Nothing        -> (pat, propertyValues)
 
 
 
