@@ -386,6 +386,22 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssPropertyBackgroundColor declValue     -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs declValue }
     CssPropertyBorderCollapse declValue      -> styleAttrs { styleBorderCollapse  = getBorderCollapse declValue }
 
+    CssPropertyBorder declValue              -> foldr f styleAttrs [ CssPropertyBorderTopWidth   . borderTRBLWidth $ declValue
+                                                                   , CssPropertyBorderRightWidth . borderTRBLWidth $ declValue
+                                                                   , CssPropertyBorderBottomWidth . borderTRBLWidth $ declValue
+                                                                   , CssPropertyBorderLeftWidth . borderTRBLWidth $ declValue
+
+                                                                   , CssPropertyBorderTopColor   . borderTRBLColor $ declValue
+                                                                   , CssPropertyBorderRightColor . borderTRBLColor $ declValue
+                                                                   , CssPropertyBorderBottomColor . borderTRBLColor $ declValue
+                                                                   , CssPropertyBorderLeftColor . borderTRBLColor $ declValue
+
+                                                                   , CssPropertyBorderTopStyle   . borderTRBLStyle $ declValue
+                                                                   , CssPropertyBorderRightStyle . borderTRBLStyle $ declValue
+                                                                   , CssPropertyBorderBottomStyle . borderTRBLStyle $ declValue
+                                                                   , CssPropertyBorderLeftStyle . borderTRBLStyle $ declValue
+                                                                   ]
+
     CssPropertyBorderTop value         -> foldr f styleAttrs [ CssPropertyBorderTopWidth . borderTRBLWidth $ value,    CssPropertyBorderTopStyle . borderTRBLStyle $ value,    CssPropertyBorderTopColor . borderTRBLColor $ value]
     CssPropertyBorderRight value       -> foldr f styleAttrs [ CssPropertyBorderRightWidth . borderTRBLWidth $ value,  CssPropertyBorderRightStyle . borderTRBLStyle $ value,  CssPropertyBorderRightColor . borderTRBLColor $ value]
     CssPropertyBorderBottom value      -> foldr f styleAttrs [ CssPropertyBorderBottomWidth . borderTRBLWidth $ value, CssPropertyBorderBottomStyle . borderTRBLStyle $ value, CssPropertyBorderBottomColor . borderTRBLColor $ value]

@@ -95,6 +95,8 @@ cssPropertyCtors = M.fromList [
    , ("background-position",    makeCssPropertyBackgroundPosition)
    , ("background-repeat",      makeCssPropertyBackgroundRepeat)
 
+   , ("border",                 ctorCssPropertyBorder)
+
    , ("border-collapse",        makeCssPropertyBorderCollapse)
    , ("border-spacing",         makeCssPropertyBorderSpacing)
 
@@ -201,10 +203,6 @@ cssPropertyCtors = M.fromList [
 cssShorthandInfo :: M.Map T.Text ShorthandPropertyCtor
 cssShorthandInfo = M.fromList [
     ("background",         makeCssPropertyBackground)
-
-    -- Parsing of this property is unit-tested.
-  , ("border",             makeCssPropertyBorder)
-
 
   , ("font",               makeCssPropertyFont)
   ]

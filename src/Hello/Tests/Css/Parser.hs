@@ -126,6 +126,89 @@ parseDeclarationTestData =
 
 
 
+  , ( "border: 10px inset #00fff1",
+      [ CssDeclaration { property = CssPropertyBorder $ CssValueBorderTRBL
+                                    { borderTRBLWidth = CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)
+                                    , borderTRBLStyle = CssValueBorderStyleInset
+                                    , borderTRBLColor = CssValueBorderColor 0x00fff1
+                                    }
+                       , important = False
+                       }
+      ])
+  , ( "border: 10px inset #00fff1 !important",
+      [ CssDeclaration { property = CssPropertyBorder $ CssValueBorderTRBL
+                                    { borderTRBLWidth = CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)
+                                    , borderTRBLStyle = CssValueBorderStyleInset
+                                    , borderTRBLColor = CssValueBorderColor 0x00fff1
+                                    }
+                       , important = True
+                       }
+      ])
+
+  , ( "border: 17px red",
+      [ CssDeclaration { property = CssPropertyBorder $ CssValueBorderTRBL
+                                    { borderTRBLWidth = CssValueBorderWidthDistance (CssDistanceAbsPx 17.0)
+                                    , borderTRBLStyle = defaultBorderTRBLStyle
+                                    , borderTRBLColor = CssValueBorderColor 0xff0000
+                                    }
+                       , important = False
+                       }
+      ])
+
+  , ( "border: outset rgb(0, 255, 0) 29em",
+      [ CssDeclaration { property = CssPropertyBorder $ CssValueBorderTRBL
+                                    { borderTRBLWidth = CssValueBorderWidthDistance (CssDistanceRelEm 29.0)
+                                    , borderTRBLStyle = CssValueBorderStyleOutset
+                                    , borderTRBLColor = CssValueBorderColor 0x00ff00
+                                    }
+                       , important = False
+                       }
+      ])
+  , ( "border: outset rgb(0, 255, 0) 29em !important",
+      [ CssDeclaration { property = CssPropertyBorder $ CssValueBorderTRBL
+                                    { borderTRBLWidth = CssValueBorderWidthDistance (CssDistanceRelEm 29.0)
+                                    , borderTRBLStyle = CssValueBorderStyleOutset
+                                    , borderTRBLColor = CssValueBorderColor 0x00ff00
+                                    }
+                       , important = True
+                       }
+      ])
+
+  , ( "border: dotted",
+      [ CssDeclaration { property = CssPropertyBorder $ CssValueBorderTRBL
+                                    { borderTRBLWidth = defaultBorderTRBLWidth
+                                    , borderTRBLStyle = CssValueBorderStyleDotted
+                                    , borderTRBLColor = defaultBorderTRBLColor
+                                    }
+                       , important = False
+                       }
+      ])
+  , ( "border: dotted !important",
+      [ CssDeclaration { property = CssPropertyBorder $ CssValueBorderTRBL
+                                    { borderTRBLWidth = defaultBorderTRBLWidth
+                                    , borderTRBLStyle = CssValueBorderStyleDotted
+                                    , borderTRBLColor = defaultBorderTRBLColor
+                                    }
+                       , important = True
+                       }
+      ])
+
+  -- Invalid case: no value, just "!important".
+  , ( "border: !important",
+      [])
+  -- Invalid case: nothing after the property name.
+  , ( "border:",
+      [])
+  -- Invalid case: just a space after the property name.
+  , ( "border:",
+      [])
+  -- Invalid case: invalid value.
+  , ( "border: elephant",
+      [])
+
+
+
+
   , ( "border-collapse: separate",               [CssDeclaration { property = CssPropertyBorderCollapse CssValueBorderCollapseSeparate,        important = False } ])
   , ( "border-collapse: separate !important",    [CssDeclaration { property = CssPropertyBorderCollapse CssValueBorderCollapseSeparate,        important = True  } ])
   , ( "border-collapse: collapse",               [CssDeclaration { property = CssPropertyBorderCollapse CssValueBorderCollapseCollapse,        important = False } ])
@@ -1209,50 +1292,6 @@ parseDeclarationTestData =
 
 
 
--- Shorthands. For now it's just most basic set of tests.
---
--- I'm putting them in separate list just because the set will become larger,
--- and I don't want the main list to become veeeery long.
---
--- TODO: none of the test inputs is using "important" keywords. Check if the
--- keyword is allowed in such declarations, and implement if necessary.
---
--- TODO: it looks like CSS standard allows omitting selected values, but our
--- parser doesn't support that.
-parseDeclarationShorthandTestData =
-  [
-    ( "border: 10px inset #00fff1",           [ CssDeclaration { property = CssPropertyBorderTopWidth    (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
-                                              , CssDeclaration { property = CssPropertyBorderRightWidth  (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
-                                              , CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
-                                              , CssDeclaration { property = CssPropertyBorderLeftWidth   (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
-
-                                              , CssDeclaration { property = CssPropertyBorderTopStyle    CssValueBorderStyleInset, important = False }
-                                              , CssDeclaration { property = CssPropertyBorderRightStyle  CssValueBorderStyleInset, important = False }
-                                              , CssDeclaration { property = CssPropertyBorderBottomStyle CssValueBorderStyleInset, important = False }
-                                              , CssDeclaration { property = CssPropertyBorderLeftStyle   CssValueBorderStyleInset, important = False }
-
-                                              , CssDeclaration { property = CssPropertyBorderTopColor    $ CssValueBorderColor 0x00fff1 , important = False }
-                                              , CssDeclaration { property = CssPropertyBorderRightColor  $ CssValueBorderColor 0x00fff1 , important = False }
-                                              , CssDeclaration { property = CssPropertyBorderBottomColor $ CssValueBorderColor 0x00fff1 , important = False }
-                                              , CssDeclaration { property = CssPropertyBorderLeftColor   $ CssValueBorderColor 0x00fff1 , important = False }
-                                              ])
-
-  , ( "border: 10px red",                     [ CssDeclaration { property = CssPropertyBorderTopWidth    (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
-                                              , CssDeclaration { property = CssPropertyBorderRightWidth  (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
-                                              , CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
-                                              , CssDeclaration { property = CssPropertyBorderLeftWidth   (CssValueBorderWidthDistance (CssDistanceAbsPx 10.0)), important = False }
-
-                                              , CssDeclaration { property = CssPropertyBorderTopColor    $ CssValueBorderColor 0xff0000 , important = False }
-                                              , CssDeclaration { property = CssPropertyBorderRightColor  $ CssValueBorderColor 0xff0000 , important = False }
-                                              , CssDeclaration { property = CssPropertyBorderBottomColor $ CssValueBorderColor 0xff0000 , important = False }
-                                              , CssDeclaration { property = CssPropertyBorderLeftColor   $ CssValueBorderColor 0xff0000 , important = False }
-                                              ])
-
-  ]
-
-
-
-
 -- On success return empty string. On failure return string showing
 -- approximately where the problem is.
 parseDeclarationTest :: [(T.Text, [CssDeclaration])] -> T.Text
@@ -1283,9 +1322,7 @@ testCases =
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.
     TestCase (do
-                 assertEqual "manual tests of standard  declarations with parseDeclaration" "" (parseDeclarationTest parseDeclarationTestData))
-  , TestCase (do
-                 assertEqual "manual tests of shorthand declarations with parseDeclaration" "" (parseDeclarationTest parseDeclarationShorthandTestData))
+                 assertEqual "manual tests of declarations with parseDeclaration" "" (parseDeclarationTest parseDeclarationTestData))
   ]
 
 

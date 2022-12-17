@@ -41,6 +41,8 @@ module Hello.Css.Declaration
   , CssValueBackgroundImage (..)
   , CssValueBackgroundPosition (..)
   , CssValueBackgroundRepeat (..)
+
+  -- , CssValueBorder (..)
   , CssValueBorderTRBL (..)
   , CssValueBorderCollapse (..)
   , CssValueBorderColor (..)
@@ -90,7 +92,7 @@ module Hello.Css.Declaration
   , makeCssPropertyBackgroundPosition
   , makeCssPropertyBackgroundRepeat
 
-  , makeCssPropertyBorder
+  , ctorCssPropertyBorder
   , ctorCssPropertyBorderColor
   , ctorCssPropertyBorderWidth
   , ctorCssPropertyBorderStyle
@@ -273,6 +275,8 @@ data CssProperty
   | CssPropertyBackgroundImage CssValueBackgroundImage                -- 2    This property is barely unit-tested because some decisions need to be made first.
   | CssPropertyBackgroundPosition CssValueBackgroundPosition          -- 3    There are some unit tests, but they don't really test much.
   | CssPropertyBackgroundRepeat CssValueBackgroundRepeat              -- 4
+
+  | CssPropertyBorder CssValueBorderTRBL
 
   | CssPropertyBorderTop CssValueBorderTRBL
   | CssPropertyBorderRight CssValueBorderTRBL
@@ -552,53 +556,34 @@ makeCssPropertyBackgroundRepeat pat = fmapSnd CssPropertyBackgroundRepeat (parse
 
 
 -- ------------------------------------------------
--- Border (border)
+-- Border ("border")
 -- This is a shorthand property.
+-- Unit-tested: yes.
+--
+-- https://drafts.csswg.org/css-backgrounds-3/#propdef-border
 -- ------------------------------------------------
 
 
 
 
--- Parse "{ border = X Y Z }" CSS declaration. Expand the single "border"
--- declaration into a series of "border-top-width", "border-left-color" etc.
--- properties with their values. Return the list of the expanded
--- declarations.
---
--- TODO: this implementation can correctly parse all value tokens only when
--- they appear in one specific order: first widht, then style, then color.
--- The function should be able to handle the tokens in any order.
-makeCssPropertyBorder :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyBorder pat0 = run constructors pat0 []
+data CssValueBorder = CssValueBorder
+  { borderWidth :: CssValueBorderWidth'
+  , borderStyle :: CssValueBorderStyle'
+  , borderColor :: CssValueBorderColor'
+  } deriving (Data, Eq, Show)
+
+
+
+
+-- Parse "{ border = X Y Z }" CSS declaration. The simple trio of values
+-- should be expanded to full list of non-shortcu properties by style engine.
+ctorCssPropertyBorder :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+ctorCssPropertyBorder pat = fmapSnd CssPropertyBorder (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
   where
-    run :: [(CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)] -- constructors
-        -> (CssParser, CssToken)  -- pat
-        -> [CssProperty]          -- acc
-        -> ((CssParser, CssToken), [CssProperty])
-    run _  pat@(_, CssTokEnd) acc = (pat, acc)
-    run (ctor:ctors) pat acc = case ctor pat of
-                                 Just (_, prop) -> run ctors pat (acc ++ [prop])
-                                 Nothing        -> case ctor (nextToken . fst $ pat) of
-                                                     -- The 'case' above checks for possible method of recovery from Nothing.
-                                                     Just _  -> (run (ctor:ctors) (nextToken . fst $ pat) acc) -- Recover by re-running current ctor with next pat.
-                                                     Nothing -> (run ctors pat acc) -- Recover by passing current pat with next ctor.
-
-    run []           pat acc = (pat, acc)
-
-    constructors = [ makeCssPropertyBorderTopWidth
-                   , makeCssPropertyBorderRightWidth
-                   , makeCssPropertyBorderBottomWidth
-                   , makeCssPropertyBorderLeftWidth
-
-                   , makeCssPropertyBorderTopStyle
-                   , makeCssPropertyBorderRightStyle
-                   , makeCssPropertyBorderBottomStyle
-                   , makeCssPropertyBorderLeftStyle
-
-                   , makeCssPropertyBorderTopColor
-                   , makeCssPropertyBorderRightColor
-                   , makeCssPropertyBorderBottomColor
-                   , makeCssPropertyBorderLeftColor
-                   ]
+    fs = [ parseBorderWidthValue
+         , parseBorderStyleValue
+         , parseBorderColorValue
+         ]
 
 
 
@@ -736,14 +721,17 @@ defaultBorderTRBLColor = cssValueCurrentColor
 makeCssPropertyBorderTop :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyBorderTop pat = fmapSnd CssPropertyBorderTop (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
   where
-    fs = [ wrapper1
-         , wrapper2
-         , wrapper3
+    fs = [ parseBorderWidthValue
+         , parseBorderStyleValue
+         , parseBorderColorValue
          ]
 
-wrapper1 pat acc = fmapSnd (\ x -> acc { borderTRBLWidth = x }) $ parseTokensAsBorderWidthValue pat
-wrapper2 pat acc = fmapSnd (\ x -> acc { borderTRBLStyle = x }) $ parseTokensAsBorderStyleValue pat
-wrapper3 pat acc = fmapSnd (\ x -> acc { borderTRBLColor = x }) $ parseTokensAsBorderColorValue pat
+
+
+
+parseBorderWidthValue pat acc = fmapSnd (\ x -> acc { borderTRBLWidth = x }) $ parseTokensAsBorderWidthValue pat
+parseBorderStyleValue pat acc = fmapSnd (\ x -> acc { borderTRBLStyle = x }) $ parseTokensAsBorderStyleValue pat
+parseBorderColorValue pat acc = fmapSnd (\ x -> acc { borderTRBLColor = x }) $ parseTokensAsBorderColorValue pat
 
 
 
@@ -762,9 +750,9 @@ wrapper3 pat acc = fmapSnd (\ x -> acc { borderTRBLColor = x }) $ parseTokensAsB
 makeCssPropertyBorderRight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyBorderRight pat = fmapSnd CssPropertyBorderRight (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
   where
-    fs = [ wrapper1
-         , wrapper2
-         , wrapper3
+    fs = [ parseBorderWidthValue
+         , parseBorderStyleValue
+         , parseBorderColorValue
          ]
 
 
@@ -784,9 +772,9 @@ makeCssPropertyBorderRight pat = fmapSnd CssPropertyBorderRight (combinatorOneOr
 makeCssPropertyBorderBottom :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyBorderBottom pat = fmapSnd CssPropertyBorderBottom (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
   where
-    fs = [ wrapper1
-         , wrapper2
-         , wrapper3
+    fs = [ parseBorderWidthValue
+         , parseBorderStyleValue
+         , parseBorderColorValue
          ]
 
 
@@ -806,9 +794,9 @@ makeCssPropertyBorderBottom pat = fmapSnd CssPropertyBorderBottom (combinatorOne
 makeCssPropertyBorderLeft :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyBorderLeft pat = fmapSnd CssPropertyBorderLeft (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
   where
-    fs = [ wrapper1
-         , wrapper2
-         , wrapper3
+    fs = [ parseBorderWidthValue
+         , parseBorderStyleValue
+         , parseBorderColorValue
          ]
 
 
