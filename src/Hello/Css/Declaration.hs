@@ -604,8 +604,11 @@ makeCssPropertyBorder pat0 = run constructors pat0 []
 
 
 -- ------------------------------------------------
--- Border width (border-width)
+-- Border width ("border-width")
 -- This is a shorthand property.
+-- Unit-tested: yes.
+--
+-- https://drafts.csswg.org/css-backgrounds-3/#propdef-border-width
 -- ------------------------------------------------
 
 
@@ -622,26 +625,21 @@ data CssValueBorderWidth' = CssValueBorderWidth'
 
 
 ctorCssPropertyBorderWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBorderWidth pat =
-  case runParser parser pat of
-    Just (x, [top, right, bottom, left]) -> Just (x, CssPropertyBorderWidth $ CssValueBorderWidth' top right bottom left)
-    Just (x, [top, rl, bottom])          -> Just (x, CssPropertyBorderWidth $ CssValueBorderWidth' top rl    bottom rl)
-    Just (x, [tb, rl])                   -> Just (x, CssPropertyBorderWidth $ CssValueBorderWidth' tb  rl    tb     rl)
-    Just (x, [v])                        -> Just (x, CssPropertyBorderWidth $ CssValueBorderWidth' v   v     v      v)
-    _                                    -> Nothing
+ctorCssPropertyBorderWidth pat = parse1234 parser pat CssPropertyBorderWidth CssValueBorderWidth'
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parser :: Parser (CssParser, CssToken) [CssValueBorderWidth]
     parser = some (many ignoreSpace *> parserValueBorderWidth <* many ignoreSpace)
 
-    ignoreSpace = ignoreSpace' (CssValueBorderWidthDistance CssDistanceAuto)
-
 
 
 
 -- ------------------------------------------------
--- Border color (border-color)
+-- Border color ("border-color")
 -- This is a shorthand property.
+-- Unit-tested: yes.
+--
+-- https://drafts.csswg.org/css-backgrounds-3/#propdef-border-color
 -- ------------------------------------------------
 
 
@@ -658,27 +656,23 @@ data CssValueBorderColor' = CssValueBorderColor'
 
 
 ctorCssPropertyBorderColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBorderColor pat =
-  case runParser parser pat of
-    Just (x, [top, right, bottom, left]) -> Just (x, CssPropertyBorderColor $ CssValueBorderColor' top right bottom left)
-    Just (x, [top, rl, bottom])          -> Just (x, CssPropertyBorderColor $ CssValueBorderColor' top rl    bottom rl)
-    Just (x, [tb, rl])                   -> Just (x, CssPropertyBorderColor $ CssValueBorderColor' tb  rl    tb     rl)
-    Just (x, [v])                        -> Just (x, CssPropertyBorderColor $ CssValueBorderColor' v   v     v      v)
-    _                                    -> Nothing
+ctorCssPropertyBorderColor pat = parse1234 parser pat CssPropertyBorderColor CssValueBorderColor'
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parser :: Parser (CssParser, CssToken) [CssValueBorderColor]
     parser = some (many ignoreSpace *> parserValueBorderColor <* many ignoreSpace)
 
-    ignoreSpace = ignoreSpace' (CssValueBorderColor 0x000000)
-
 
 
 
 -- ------------------------------------------------
--- Border style (border-style)
+-- Border style ("border-style")
 -- This is a shorthand property.
+-- Unit-tested: yes.
+--
+-- https://drafts.csswg.org/css-backgrounds-3/#propdef-border-style
 -- ------------------------------------------------
+
 
 
 
@@ -693,21 +687,11 @@ data CssValueBorderStyle' = CssValueBorderStyle'
 
 
 ctorCssPropertyBorderStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBorderStyle pat =
-  -- Parse 4, 3, 2 or 1 tokens, specifying values for top, right, bottom, left,
-  -- or for t, r-l, b, or for t-b, r-l, or for all of them at once.
-  case runParser parser pat of
-    Just (x, [top, right, bottom, left]) -> Just (x, CssPropertyBorderStyle $ CssValueBorderStyle' top right bottom left)
-    Just (x, [top, rl, bottom])          -> Just (x, CssPropertyBorderStyle $ CssValueBorderStyle' top rl    bottom rl)
-    Just (x, [tb, rl])                   -> Just (x, CssPropertyBorderStyle $ CssValueBorderStyle' tb  rl    tb     rl)
-    Just (x, [v])                        -> Just (x, CssPropertyBorderStyle $ CssValueBorderStyle' v   v     v      v)
-    _                                    -> Nothing
+ctorCssPropertyBorderStyle pat = parse1234 parser pat CssPropertyBorderStyle CssValueBorderStyle'
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parser :: Parser (CssParser, CssToken) [CssValueBorderStyle]
     parser = some (many ignoreSpace *> parserValueBorderStyle <* many ignoreSpace)
-
-    ignoreSpace = ignoreSpace' CssValueBorderStyleNone
 
 
 
@@ -1905,28 +1889,11 @@ data CssValueMargin = CssValueMargin
 
 
 makeCssPropertyMargin :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyMargin pat =
-  case runParser parser pat of
-    Just (x, [top, right, bottom, left]) -> Just (x, CssPropertyMargin $ CssValueMargin top right bottom left)
-    Just (x, [top, rl, bottom])          -> Just (x, CssPropertyMargin $ CssValueMargin top rl    bottom rl)
-    Just (x, [tb, rl])                   -> Just (x, CssPropertyMargin $ CssValueMargin tb  rl    tb     rl)
-    Just (x, [v])                        -> Just (x, CssPropertyMargin $ CssValueMargin v   v     v      v)
-    _                                    -> Nothing
+makeCssPropertyMargin pat = parse1234 parser pat CssPropertyMargin CssValueMargin
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parser :: Parser (CssParser, CssToken) [CssValueMarginX]
     parser = some (many ignoreSpace *> marginValueParser <* many ignoreSpace)
-
-    -- TODO: use ignoreSpace'
-    ignoreSpace :: Parser (CssParser, CssToken) CssValueMarginX
-    ignoreSpace = Parser $ \ (p, t) -> case (p, t) of
-                                         -- The fact that I'm using CssValueMarginXDistance in
-                                         -- returned value doesn't really matter since it will
-                                         -- be ignored anyway.
-                                         (p', CssTokWS) -> Just ((nextToken p'), CssValueMarginXDistance CssDistanceAuto)
-                                         _             -> Nothing
-
-
 
 
 
@@ -2022,30 +1989,11 @@ data CssValuePadding = CssValuePadding
 
 
 makeCssPropertyPadding :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyPadding pat =
-  case runParser parser pat of
-    Just (x, [top, right, bottom, left]) -> Just (x, CssPropertyPadding $ CssValuePadding top right bottom left)
-    Just (x, [top, rl, bottom])          -> Just (x, CssPropertyPadding $ CssValuePadding top rl    bottom rl)
-    Just (x, [tb, rl])                   -> Just (x, CssPropertyPadding $ CssValuePadding tb  rl    tb     rl)
-    Just (x, [v])                        -> Just (x, CssPropertyPadding $ CssValuePadding v   v     v      v)
-    _                                    -> Nothing
+makeCssPropertyPadding pat = parse1234 parser pat CssPropertyPadding CssValuePadding
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parser :: Parser (CssParser, CssToken) [CssValuePaddingX]
     parser = some (many ignoreSpace *> paddingValueParser <* many ignoreSpace)
-
-    ignoreSpace = ignoreSpace' (CssValuePaddingX CssDistanceAuto)
-
-
-
-
-ignoreSpace' :: a -> Parser (CssParser, CssToken) a
-ignoreSpace' dummy = Parser $ \ (p, t) -> case (p, t) of
-                                            -- The fact that I'm using dummy in
-                                            -- returned value doesn't really matter since it will
-                                            -- be ignored anyway.
-                                            (p', CssTokWS) -> Just ((nextToken p'), dummy)
-                                            _              -> Nothing
 
 
 
@@ -2577,6 +2525,43 @@ parseDeclarationMultiple patArg propCtors = L.foldl f (patArg, []) propCtors
                               Nothing           -> (pat, acc)
 
 
+
+
+
+-- I know that result of the parser will be ignored because it is used in
+-- conjunction with *> or <* operators. But the "ignore" in the name should
+-- stress that this parser can't be used in conjunction with operators other
+-- than these two. The parser returns a constant dummy value that must not be
+-- passed to next steps.
+ignoreSpace :: Parser (CssParser, CssToken) ()
+ignoreSpace = Parser $ \ (p, t) -> case (p, t) of
+                                           -- The fact that I'm using () in
+                                           -- returned value doesn't really
+                                           -- matter since it will be ignored
+                                           -- anyway.
+                                           (p', CssTokWS) -> Just (nextToken p', ())
+                                           _              -> Nothing
+
+
+
+
+-- Parse 1, 2, 3 or 4 component values, where the component values are
+-- specifying values for all sides of a box at once, or for t-b, r-l sides,
+-- or for t, r-l, b sides, or for top, right, bottom, left sides.
+--
+-- See this part of CSS spec
+-- (https://drafts.csswg.org/css-backgrounds-3/#propdef-border-style): "If
+-- there is only one component value, it applies to all sides. If there are
+-- two values, the top and bottom are set to the first value and the right
+-- and left are set to the second [...]"
+parse1234 :: Parser state [v] -> state -> (val -> prop) -> (v -> v -> v -> v -> val) -> Maybe (state, prop)
+parse1234 parser pat propCtor valueCtor =
+  case runParser parser pat of
+    Just (pat', [top, right, bottom, left]) -> Just (pat', propCtor $ valueCtor top right bottom left)
+    Just (pat', [top, rl, bottom])          -> Just (pat', propCtor $ valueCtor top rl    bottom rl)
+    Just (pat', [tb, rl])                   -> Just (pat', propCtor $ valueCtor tb  rl    tb     rl)
+    Just (pat', [v])                        -> Just (pat', propCtor $ valueCtor v   v     v      v)
+    _                                       -> Nothing
 
 
 
