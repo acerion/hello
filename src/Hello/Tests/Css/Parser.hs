@@ -49,7 +49,47 @@ names such as "background" or "border".
 
 parseDeclarationTestData =
   [
-    ( "background-attachment: scroll",              [CssDeclaration { property = CssPropertyBackgroundAttachment CssValueBackgroundAttachmentScroll,       important = False } ])
+    ( "background: red",
+      [CssDeclaration { property = CssPropertyBackground
+                        $ initialValueBackground { backgroundColor = CssValueBackgroundColorColor 0xff0000 }
+                      , important = False }
+      ])
+  -- The same as above, but with important flag set.
+  , ( "background: red !important",
+      [CssDeclaration { property = CssPropertyBackground
+                        $ initialValueBackground { backgroundColor = CssValueBackgroundColorColor 0xff0000 }
+                      , important = True }
+      ])
+
+  , ( "background: rgb(0, 255, 0) repeat-x",
+      [CssDeclaration { property = CssPropertyBackground
+                        $ initialValueBackground { backgroundColor       = CssValueBackgroundColorColor 0x00ff00
+                                                 , backgroundRepeatStyle = CssValueBackgroundRepeatRepeatX
+                                                 }
+                      , important = False }
+      ])
+  -- The same as above, but values are in different order.
+  , ( "background: repeat-x rgb(0, 255, 0)",
+      [CssDeclaration { property = CssPropertyBackground
+                        $ initialValueBackground { backgroundColor       = CssValueBackgroundColorColor 0x00ff00
+                                                 , backgroundRepeatStyle = CssValueBackgroundRepeatRepeatX
+                                                 }
+                      , important = False }
+      ])
+
+  , ( "background: repeat-y scroll rgb(0, 255, 255)",
+      [CssDeclaration { property = CssPropertyBackground
+                        $ initialValueBackground { backgroundColor       = CssValueBackgroundColorColor 0x00ffff
+                                                 , backgroundRepeatStyle = CssValueBackgroundRepeatRepeatY
+                                                 , backgroundAttachment  = CssValueBackgroundAttachmentScroll
+                                                 }
+                      , important = False }
+      ])
+
+
+
+
+  , ( "background-attachment: scroll",              [CssDeclaration { property = CssPropertyBackgroundAttachment CssValueBackgroundAttachmentScroll,       important = False } ])
   , ( "background-attachment: scroll !important",   [CssDeclaration { property = CssPropertyBackgroundAttachment CssValueBackgroundAttachmentScroll,       important = True  } ])
   , ( "background-attachment: fixed",               [CssDeclaration { property = CssPropertyBackgroundAttachment CssValueBackgroundAttachmentFixed,        important = False } ])
   , ( "background-attachment: fixed !important",    [CssDeclaration { property = CssPropertyBackgroundAttachment CssValueBackgroundAttachmentFixed,        important = True  } ])

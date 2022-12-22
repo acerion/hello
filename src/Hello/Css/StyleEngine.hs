@@ -381,8 +381,21 @@ yet because a full support for them in dillo seems to be missing or broken.
 
 -}
 
+  
+
   -- Probably because of code like this someone invented lenses.
   case declaration of
+    CssPropertyBackground declValue     -> foldr f styleAttrs [ CssPropertyBackgroundColor . backgroundColor $ declValue
+                                                              , CssPropertyBackgroundImage . backgroundImage $ declValue
+                                                              , CssPropertyBackgroundPosition . backgroundPosition $ declValue
+                                                              , CssPropertyBackgroundRepeat . backgroundRepeatStyle $ declValue
+                                                              , CssPropertyBackgroundAttachment . backgroundAttachment $ declValue
+                                                              {-
+                                                              , CssPropertyBackgroundOrigin . backgroundOrigin $ declValue
+                                                              , CssPropertyBackgroundClip . backgroundClip $ declValue
+                                                              -}  -- TODO: enable when the two properties get implemented.
+                                                              ]
+
     CssPropertyBackgroundColor declValue     -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs declValue }
     CssPropertyBorderCollapse declValue      -> styleAttrs { styleBorderCollapse  = getBorderCollapse declValue }
 

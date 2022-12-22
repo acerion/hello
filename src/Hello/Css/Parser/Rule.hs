@@ -89,7 +89,8 @@ import Hello.Utils.Parser
 --
 -- Only a subset of CSS2.2 properties is supported by this implementation.
 cssPropertyCtors = M.fromList [
-     ("background-attachment",  makeCssPropertyBackgroundAttachment)
+     ("background",             ctorCssPropertyBackground)
+   , ("background-attachment",  makeCssPropertyBackgroundAttachment)
    , ("background-color",       makeCssPropertyBackgroundColor)
    , ("background-image",       makeCssPropertyBackgroundImage)
    , ("background-position",    makeCssPropertyBackgroundPosition)
@@ -202,9 +203,7 @@ cssPropertyCtors = M.fromList [
 -- Only a subset of CSS2.2 properties is supported by this implementation.
 cssShorthandInfo :: M.Map T.Text ShorthandPropertyCtor
 cssShorthandInfo = M.fromList [
-    ("background",         makeCssPropertyBackground)
-
-  , ("font",               makeCssPropertyFont)
+  ("font",               makeCssPropertyFont)
   ]
 
 
@@ -572,6 +571,9 @@ declarationsSetUpdateOrAdd declSet decl =
 
     ix = items declSet
 
+    -- TODO: 'background image' can be also set in value of
+    -- CssPropertyBackground property. Expand the function to cover that case
+    -- too.
     newSafe :: CssDeclarationSet -> CssDeclaration -> Bool
     newSafe declSet' decl' = isSafe declSet' && case property decl' of
                                                   CssPropertyDisplay _         -> False

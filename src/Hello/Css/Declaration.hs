@@ -36,6 +36,7 @@ module Hello.Css.Declaration
     CssProperty (..)
   , CssDeclaration (..)
 
+  , CssValueBackground (..)
   , CssValueBackgroundAttachment (..)
   , CssValueBackgroundColor (..)
   , CssValueBackgroundImage (..)
@@ -85,7 +86,7 @@ module Hello.Css.Declaration
   , CssValueXLink (..)
   , CssValueXTooltip (..)
 
-  , makeCssPropertyBackground
+  , ctorCssPropertyBackground
   , makeCssPropertyBackgroundAttachment
   , makeCssPropertyBackgroundColor
   , makeCssPropertyBackgroundImage
@@ -192,6 +193,8 @@ module Hello.Css.Declaration
   , defaultBorderTRBLStyle
   , defaultBorderTRBLColor
 
+  , initialValueBackground
+
   , initialValueListStyleType
   , initialValueListStylePosition
   , initialValueListStyleImage
@@ -209,7 +212,6 @@ where
 import Control.Applicative (Alternative(..), many)
 
 import Data.Data
-import Data.List as L
 import Data.Text as T
 
 import Hello.Css.Distance
@@ -270,7 +272,8 @@ cssValueCurrentColor = CssValueBorderColor 0x000000
 
 -- A property name + property value.
 data CssProperty
-  = CssPropertyBackgroundAttachment CssValueBackgroundAttachment      -- 0    parsing is unit-tested
+  = CssPropertyBackground CssValueBackground
+  | CssPropertyBackgroundAttachment CssValueBackgroundAttachment      -- 0    parsing is unit-tested
   | CssPropertyBackgroundColor CssValueBackgroundColor                -- 1    parsing is unit-tested
   | CssPropertyBackgroundImage CssValueBackgroundImage                -- 2    This property is barely unit-tested because some decisions need to be made first.
   | CssPropertyBackgroundPosition CssValueBackgroundPosition          -- 3    There are some unit tests, but they don't really test much.
@@ -383,8 +386,10 @@ data CssProperty
 
 
 -- ------------------------------------------------
--- Background (background)
+-- Background ("background")
 -- This is a shorthand property.
+--
+-- This implementation is closer to CSS 2 rather than CSS Backgrounds 3.
 --
 -- https://www.w3.org/TR/CSS22/colors.html#propdef-background
 -- https://www.w3.org/TR/css-backgrounds-3/#background
@@ -393,24 +398,50 @@ data CssProperty
 
 
 
--- TODO: this behaviour from CSS2.2 should be implemented:
---
--- "Given a valid declaration, the 'background' property first sets all the
--- individual background properties to their initial values, then assigns
--- explicit values given in the declaration."
+data CssValueBackground = CssValueBackground
+  { backgroundColor       :: CssValueBackgroundColor
+  , backgroundImage       :: CssValueBackgroundImage
+  , backgroundPosition    :: CssValueBackgroundPosition
+  , backgroundRepeatStyle :: CssValueBackgroundRepeat
+  , backgroundAttachment  :: CssValueBackgroundAttachment
+{-
+  , backgroundOrigin      :: CssValueBackgroundOrigin
+  , backgroundClip        :: CssValueBackgroundClip
+-}
+  } deriving (Data, Eq, Show)
+
+
+initialValueBackground = CssValueBackground
+                         initialValueBackgroundColor
+                         initialValueBackgroundImage
+                         initialValueBackgroundPosition
+                         initialValueBackgroundRepeatStyle
+                         initialValueBackgroundAttachment
+{-
+                         initialValueBackgroundOrigin
+                         initialValueBackgroundClip
+-}
 
 
 
 
-makeCssPropertyBackground :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
-makeCssPropertyBackground pat = parseDeclarationMultiple
-                                   pat
-                                   [ makeCssPropertyBackgroundColor
-                                   , makeCssPropertyBackgroundImage
-                                   , makeCssPropertyBackgroundRepeat
-                                   , makeCssPropertyBackgroundAttachment
-                                   , makeCssPropertyBackgroundPosition
-                                   ]
+
+
+ctorCssPropertyBackground :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+ctorCssPropertyBackground pat = fmapSnd CssPropertyBackground (combinatorOneOrMoreUnordered2 initialValueBackground fs pat)
+  where
+    fs = [fnColor, fnImage, fnPosition, fnRepeatStyle, fnAttachment]
+
+    fnColor :: (CssParser, CssToken) -> CssValueBackground -> Maybe ((CssParser, CssToken), CssValueBackground)
+    fnColor pat' acc       = fmapSnd (\ x -> acc { backgroundColor = x }) $ ctorValueBackgroundColor pat'
+    fnImage pat' acc       = fmapSnd (\ x -> acc { backgroundImage = x }) $ ctorValueBackgroundImage pat'
+    fnPosition pat' acc    = fmapSnd (\ x -> acc { backgroundPosition = x }) $ ctorValueBackgroundPosition pat'
+    fnRepeatStyle pat' acc = fmapSnd (\ x -> acc { backgroundRepeatStyle = x }) $ ctorValueBackgroundStyle pat'
+    fnAttachment pat' acc  = fmapSnd (\ x -> acc { backgroundAttachment = x }) $ ctorValueBackgroundAttachment pat'
+{-
+    fnOrigin pat' acc      = fmapSnd (\ x -> acc { backgroundOrigin = x }) $ ctorValueBackgroundOrigin pat'
+    fnClip pat' acc        = fmapSnd (\ x -> acc { backgroundClip = x }) $ ctorValueBackgroundClip pat'
+-}
 
 
 
@@ -428,6 +459,10 @@ data CssValueBackgroundAttachment
   deriving (Enum, Eq, Show, Data)
 
 
+-- https://www.w3.org/TR/css-backgrounds-3/#background-attachment
+initialValueBackgroundAttachment = CssValueBackgroundAttachmentScroll
+
+
 
 
 cssValueBackgroundAttachmentDict = [ ("scroll",  CssValueBackgroundAttachmentScroll)
@@ -440,9 +475,43 @@ fmapSnd ctor x = fmap (\(a, b) -> (a, ctor b)) x
 
 
 makeCssPropertyBackgroundAttachment :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundAttachment pat = fmapSnd CssPropertyBackgroundAttachment (parser pat)
-  where
-    parser = interpretTokensAsEnum cssValueBackgroundAttachmentDict
+makeCssPropertyBackgroundAttachment pat = fmapSnd CssPropertyBackgroundAttachment (ctorValueBackgroundAttachment pat)
+
+
+
+
+parserValueBackgroundAttachment = Parser $ interpretTokensAsEnum cssValueBackgroundAttachmentDict
+
+
+
+
+ctorValueBackgroundAttachment pat = runParser parserValueBackgroundAttachment pat
+
+
+
+
+-- ------------------------------------------------
+-- Background clip ("background-clip")
+--
+-- https://www.w3.org/TR/css-backgrounds-3/#background-clip
+-- ------------------------------------------------
+
+
+
+
+data CssValueBackgroundClip
+  = CssValueBackgroundClipBorderBox
+  | CssValueBackgroundClipPaddingBox
+  | CssValueBackgroundClipContentBox
+  deriving (Eq, Show, Data)
+
+_initialValueBackgroundClip = CssValueBackgroundClipBorderBox
+
+
+
+
+-- TODO: implement
+_ctorValueBackgroundClip _pat = Nothing
 
 
 
@@ -460,6 +529,11 @@ data CssValueBackgroundColor
   deriving (Eq, Show, Data)
 
 
+-- TODO: this should be "transparent" according to
+-- https://www.w3.org/TR/css-backgrounds-3/#propdef-background-color
+initialValueBackgroundColor = CssValueBackgroundColorColor 0xffffff
+
+
 
 
 cssValueBackgroundColorDict = [ ("inherit",    CssValueBackgroundColorInherit)
@@ -469,10 +543,18 @@ cssValueBackgroundColorDict = [ ("inherit",    CssValueBackgroundColorInherit)
 
 
 makeCssPropertyBackgroundColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundColor pat = fmapSnd CssPropertyBackgroundColor (runParser parser pat)
-  where
-    parser = (Parser $ interpretTokensAsEnum cssValueBackgroundColorDict)
-             <|> (Parser $ interpretTokensAsColor CssValueBackgroundColorColor)
+makeCssPropertyBackgroundColor pat = fmapSnd CssPropertyBackgroundColor (ctorValueBackgroundColor pat)
+
+
+
+
+paserValueBackgroundColor = (Parser $ interpretTokensAsEnum cssValueBackgroundColorDict)
+                            <|> (Parser $ interpretTokensAsColor CssValueBackgroundColorColor)
+
+
+
+
+ctorValueBackgroundColor pat = runParser paserValueBackgroundColor pat
 
 
 
@@ -489,13 +571,51 @@ data CssValueBackgroundImage
  deriving (Data, Eq, Show)
 
 
+-- TODO: according to https://www.w3.org/TR/css-backgrounds-3/#background-image we need here a "none" value.
+initialValueBackgroundImage = CssValueBackgroundImageUri ""
+
+
 
 
 makeCssPropertyBackgroundImage :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundImage pat = fmapSnd CssPropertyBackgroundImage (parser pat)
-  where
-    parser = interpretTokensAsURI CssValueBackgroundImageUri
+makeCssPropertyBackgroundImage pat = fmapSnd CssPropertyBackgroundImage (ctorValueBackgroundImage pat)
 
+
+
+
+parserValueBackgroundImage = Parser $ interpretTokensAsURI CssValueBackgroundImageUri
+
+
+
+
+ctorValueBackgroundImage pat = runParser parserValueBackgroundImage pat
+
+
+
+
+-- ------------------------------------------------
+-- Background origin ("background-origin")
+--
+-- https://www.w3.org/TR/css-backgrounds-3/#background-origin
+-- ------------------------------------------------
+
+
+
+
+data CssValueBackgroundOrigin
+ = CssValueBackgroundOriginPaddingBox
+ | CssValueBackgroundOriginBorderBox
+ | CssValueBackgroundOriginContentBox
+ deriving (Data, Enum, Eq, Show)
+
+
+_initialValueBackgroundOrigin = CssValueBackgroundOriginPaddingBox
+
+
+
+
+-- TODO: implement
+_ctorValueBackgroundOrigin _pat = Nothing
 
 
 
@@ -511,12 +631,25 @@ data CssValueBackgroundPosition
  deriving (Data, Eq, Show)
 
 
+-- According to https://www.w3.org/TR/css-backgrounds-3/#background-position,
+-- these values should be percentages.
+initialValueBackgroundPosition = CssValueBackgroundPositionXY 0 0
+
+
 
 
 makeCssPropertyBackgroundPosition :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundPosition pat = fmapSnd CssPropertyBackgroundPosition (parser pat)
-  where
-    parser = interpretTokensAsBgPosition CssValueBackgroundPositionXY
+makeCssPropertyBackgroundPosition pat = fmapSnd CssPropertyBackgroundPosition (ctorValueBackgroundPosition pat)
+
+
+
+
+parserValueBackgroundPosition = Parser $ interpretTokensAsBgPosition CssValueBackgroundPositionXY
+
+
+
+
+ctorValueBackgroundPosition pat = runParser parserValueBackgroundPosition pat
 
 
 
@@ -536,6 +669,10 @@ data CssValueBackgroundRepeat
   deriving (Data, Enum, Eq, Show)
 
 
+-- https://www.w3.org/TR/css-backgrounds-3/#background-repeat
+initialValueBackgroundRepeatStyle = CssValueBackgroundRepeatRepeat
+
+
 
 
 cssValueBackgroundRepeatDict = [ ("repeat",     CssValueBackgroundRepeatRepeat)
@@ -548,9 +685,17 @@ cssValueBackgroundRepeatDict = [ ("repeat",     CssValueBackgroundRepeatRepeat)
 
 
 makeCssPropertyBackgroundRepeat :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundRepeat pat = fmapSnd CssPropertyBackgroundRepeat (parser pat)
-  where
-    parser = interpretTokensAsEnum cssValueBackgroundRepeatDict
+makeCssPropertyBackgroundRepeat pat = fmapSnd CssPropertyBackgroundRepeat (ctorValueBackgroundStyle pat)
+
+
+
+
+parserValueBackgroundStyle = Parser $ interpretTokensAsEnum cssValueBackgroundRepeatDict
+
+
+
+
+ctorValueBackgroundStyle pat = runParser parserValueBackgroundStyle pat
 
 
 
@@ -2499,7 +2644,7 @@ makeCssPropertyInvalid _ = CssPropertyInvalid
 
 
 
-
+{-
 -- TODO: this implementation can correctly parse all values only if they
 -- appear in input CSS in the same order as they appear in a list of ctors.
 -- The example in CSS2.2 for "background" property suggests that values in
@@ -2511,7 +2656,7 @@ parseDeclarationMultiple patArg propCtors = L.foldl f (patArg, []) propCtors
     f (pat, acc) propCtor = case propCtor pat of
                               Just (pat', decl) -> (pat', acc ++ [decl])
                               Nothing           -> (pat, acc)
-
+-}
 
 
 
