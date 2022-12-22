@@ -203,7 +203,6 @@ module Hello.Css.Declaration
   , initialValueListStylePosition
   , initialValueListStyleImage
 
-  , ShorthandPropertyCtor
   , PropertyCtor
   )
 where
@@ -229,12 +228,6 @@ import Hello.Utils.Parser
 
 
 
--- I could make the two types equal by turning 'Maybe CssProperty' into
--- '[CssProperty]' in type of "normal" constructor. The normal constructor
--- would then return one-element list if parsing was successfull, and empty
--- list on non-successful parse. But I don't know if a list is as efficient
--- (in terms of resources) as Maybe.
-type ShorthandPropertyCtor = (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
 type PropertyCtor = (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 
 

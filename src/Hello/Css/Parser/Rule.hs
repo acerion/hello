@@ -45,7 +45,7 @@ module Hello.Css.Parser.Rule
   , CssCombinator (..)
 
   , parseDeclarationWrapper
-  , takePropertyNameToken
+  , takePropertyName
 
   , parseElementStyleAttribute
   , parseAllDeclarations
@@ -84,8 +84,7 @@ import Hello.Utils.Parser
 
 
 
--- Mapping between name of non-shorthand property and a constructor of the
--- property.
+-- Mapping between name of property and a constructor of the property.
 --
 -- Only a subset of CSS2.2 properties is supported by this implementation.
 cssPropertyCtors = M.fromList [
@@ -199,17 +198,6 @@ cssPropertyCtors = M.fromList [
 
 
 
--- Mapping between name of shorthand property and a constructor of the
--- property.
---
--- Only a subset of CSS2.2 properties is supported by this implementation.
-cssShorthandInfo :: M.Map T.Text ShorthandPropertyCtor
-cssShorthandInfo = M.fromList [
-
-  ]
-
-
-
 
 -- Use name of property to look up a constructor used to parse the property
 -- and the property's value.
@@ -217,16 +205,6 @@ cssShorthandInfo = M.fromList [
 -- TODO: case-insensitive search?
 getPropertyCtorByName :: T.Text -> Maybe PropertyCtor
 getPropertyCtorByName propertyName = M.lookup propertyName cssPropertyCtors
-
-
-
-
--- Use name of shorthand property to look up a constructor used to parse the
--- shorthand property and the property's value.
---
--- TODO: case-insensitive search?
-getShorthandCtorByName :: T.Text -> Maybe ShorthandPropertyCtor
-getShorthandCtorByName shorthandName = M.lookup shorthandName cssShorthandInfo
 
 
 
@@ -441,33 +419,17 @@ defaultCssDeclarationSet = CssDeclarationSet
 
 
 
-parseDeclarationNormal :: (CssParser, CssToken) -> PropertyCtor -> ((CssParser, CssToken), [CssDeclaration])
-parseDeclarationNormal pat propCtor = case propCtor pat of
-                                        Just (pat', prop) -> (pat', [defaultDeclaration{property = prop}])
-                                        Nothing           -> (pat, [])
-
-
-
-
-parseDeclarationShorthand :: (CssParser, CssToken) -> ShorthandPropertyCtor -> ((CssParser, CssToken), [CssDeclaration])
-parseDeclarationShorthand pat ctor = (pat', decls)
-  where
-    (pat', properties) = ctor pat
-    decls = fmap (\x -> defaultDeclaration { property = x }) properties
-
-
-
-
 -- The input to the function is (parser { rem = ": value" }, TokIdent
 -- "name"). The function confirms that current token is an ident, that it is
--- followed by colon name, and returns updated parser + token with CSS
--- property's name. Colon token is discarded.
+-- followed by colon name, and returns updated parser + the property's name.
 --
 -- :m +Hello.Css.Parser.Rule
 -- :m +Hello.Css.Tokenizer
--- takePropertyNameToken (defaultParserInBlock ": value", CssTokIdent "name")
-takePropertyNameToken :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssToken)
-takePropertyNameToken state = runParser (getIdentToken <* getColonToken) state
+-- takePropertyName (defaultParserInBlock ": value", CssTokIdent "name")
+takePropertyName :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), T.Text)
+takePropertyName state = case runParser (getIdentToken <* getColonToken) state of
+                           Just (state', CssTokIdent name) -> Just (state', name)
+                           _                               -> Nothing
 
 
 
@@ -488,29 +450,31 @@ getColonToken = Parser $ \ (parser, token) -> case token of
 
 
 
--- The function returns a list of declarations because a line in CSS with a
--- shorthand declaration will be translated to N corresponding "normal"
--- declarations. E.g. "border-color: red" shorthand will be translated into a
--- list of "normal" declarations that will look like this:
--- ["border-top-color: red"; "border-right-color: red"; "border-bottom-color: red"; "border-left-color: red"]
-parseSingleDeclarationNormalOrShorthand :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-parseSingleDeclarationNormalOrShorthand pat = case takePropertyNameToken pat of
-                                                -- HASKELL FEATURE: pattern guards
-                                                Just (pat', (CssTokIdent sym)) | Just ctor <- getPropertyCtorByName sym  -> parseDeclarationNormal pat' ctor
-                                                                               | Just ctor <- getShorthandCtorByName sym -> parseDeclarationShorthand pat' ctor
-                                                                               | otherwise                               -> (pat', [])
-                                                _ -> (pat, [])
+parseDeclaration  :: (CssParser, CssToken) -> PropertyCtor -> Maybe ((CssParser, CssToken), CssDeclaration)
+parseDeclaration pat propCtor = (fmap . fmap) (\ prop -> defaultDeclaration { property = prop }) (propCtor pat)
 
 
 
 
--- For non-shorthand declaration, this function should produce one-element
--- list. But a shorthand declaration translates into two or more regular
--- declarations, hence the return type contains a list of declarations.
+parseSingleDeclaration' :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssDeclaration)
+parseSingleDeclaration' pat = case takePropertyName pat of
+                                Just (pat', name) -> case getPropertyCtorByName name of
+                                                       Just ctor -> parseDeclaration pat' ctor
+                                                       Nothing   -> Nothing
+                                _ -> Nothing
+
+
+
+
+-- The function uses a list in return type for historical reasons. At some
+-- point a shorthand CSS property was parsed into list of non-shorthand
+-- properties.
 parseSingleDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
 parseSingleDeclaration (p1, t1) = ((outParser, outToken), declarationsWithImportant)
   where
-    ((p2, t2), declarations) = parseSingleDeclarationNormalOrShorthand (p1, t1)
+    ((p2, t2), declarations) = case parseSingleDeclaration' (p1, t1) of
+                                 Just (pat, decl) -> (pat, [decl])
+                                 Nothing          -> ((p1, t1), [])
     ((p3, t3), isImportant) = cssParseImportance (p2, t2)
     declarationsWithImportant = if isImportant
                                 then markAsImportant <$> declarations
