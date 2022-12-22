@@ -678,15 +678,23 @@ parseDeclarationTestData =
 
     -- CSS2.2: [ [ <'font-style'> || <'font-variant'> || <'font-weight'> ]? <'font-size'> [ / <'line-height'> ]? <'font-family'> ]
     --         | caption | icon | menu | message-box | small-caption | status-bar | inherit
-  , ("font: italic small-caps 8px serif",       [ CssDeclaration { property = CssPropertyFontStyle $ CssValueFontStyleItalic,          important = False }
-                                                , CssDeclaration { property = CssPropertyFontVariant $ CssValueFontVariantSmallCaps,   important = False }
-                                                , CssDeclaration { property = CssPropertyFontSize $ CssValueFontSizeDistance $ CssDistanceAbsPx 8.0,          important = False }
-                                                , CssDeclaration { property = CssPropertyFontFamily $ CssValueFontFamilyList ["serif"],          important = False }
+  , ("font: italic small-caps 8px serif",       [ CssDeclaration { property = CssPropertyFont
+                                                                   $ CssValueFont [ CssPropertyFontStyle CssValueFontStyleItalic
+                                                                                  , CssPropertyFontVariant CssValueFontVariantSmallCaps
+                                                                                  , CssPropertyFontSize $ CssValueFontSizeDistance $ CssDistanceAbsPx 8.0
+                                                                                  , CssPropertyFontFamily $ CssValueFontFamilyList ["serif"]
+                                                                                  ]
+                                                                 , important = False
+                                                                 }
                                                 ])
 
     -- Absolute required minimum: font-size and font-family
-  , ("font: 8px monospace",                     [ CssDeclaration { property = CssPropertyFontSize $ CssValueFontSizeDistance $ CssDistanceAbsPx 8.0,          important = False }
-                                                , CssDeclaration { property = CssPropertyFontFamily $ CssValueFontFamilyList ["monospace"],          important = False }
+  , ("font: 8px monospace",                     [ CssDeclaration { property = CssPropertyFont
+                                                                   $ CssValueFont [ CssPropertyFontSize $ CssValueFontSizeDistance $ CssDistanceAbsPx 8.0
+                                                                                  , CssPropertyFontFamily $ CssValueFontFamilyList ["monospace"]
+                                                                                  ]
+                                                                 , important = False
+                                                                 }
                                                 ])
 
     -- Invalid input: font-family is missing

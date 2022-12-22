@@ -57,6 +57,8 @@ module Hello.Css.Declaration
   , CssValueContent (..)
   , CssValueDisplay (..)
   , CssValueCursor (..)
+
+  , CssValueFont (..)
   , CssValueFontFamily (..)
   , CssValueFontSize (..)
   , CssValueFontStyle (..)
@@ -134,7 +136,8 @@ module Hello.Css.Declaration
   , makeCssPropertyDisplay
   , makeCssPropertyEmptyCells
   , makeCssPropertyFloat
-  , makeCssPropertyFont
+
+  , ctorCssPropertyFont
   , makeCssPropertyFontFamily
   , makeCssPropertyFontSize
   , makeCssPropertyFontSizeAdjust
@@ -142,6 +145,7 @@ module Hello.Css.Declaration
   , makeCssPropertyFontStyle
   , makeCssPropertyFontVariant
   , makeCssPropertyFontWeight
+
   , makeCssPropertyHeight
   , makeCssPropertyLeft
   , makeCssPropertyLetterSpacing
@@ -317,6 +321,8 @@ data CssProperty
   | CssPropertyDisplay CssValueDisplay               -- 29               parsing is unit-tested
   | CssPropertyEmptyCells CssValue                   -- 30
   | CssPropertyFloat CssValue                        -- 31
+
+  | CssPropertyFont CssValueFont
   | CssPropertyFontFamily CssValueFontFamily         -- 32               parsing is unit-tested (poorly)
   | CssPropertyFontSize CssValueFontSize             -- 33               parsing is unit-tested
   | CssPropertyFontSizeAdjust CssValue               -- 34
@@ -1420,6 +1426,18 @@ makeCssPropertyFloat v = CssPropertyFloat v
 
 
 
+-- Value of the "font" shortcut property contains non-shortcut font-*
+-- properties.
+--
+-- TODO: use a proper record with font properties as type of CssValueFont.
+-- Rewrite parsing of value tokens: parser should put the parsed tokens into
+-- the record.
+data CssValueFont = CssValueFont [CssProperty]
+  deriving (Data, Eq, Show)
+
+
+
+
 data CssValueFontEnum
  = CssValueFontCaption
  | CssValueFontIcon
@@ -1442,6 +1460,16 @@ cssValueFontDict = [ ("caption",          CssValueFontCaption)
                    , ("status-bar",       CssValueFontStatusBar)
                    , ("inherit",          CssValueFontInherit)
                    ]
+
+
+
+
+ctorCssPropertyFont :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+ctorCssPropertyFont pat = case makeCssPropertyFont pat of
+                            (pat', list@(_:_)) -> Just (pat', CssPropertyFont $ CssValueFont list)
+                            _                  -> Nothing
+
+
 
 
 

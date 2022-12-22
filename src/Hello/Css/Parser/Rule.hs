@@ -138,6 +138,8 @@ cssPropertyCtors = M.fromList [
    , ("display",                makeCssPropertyDisplay)
    --, ("empty-cells",            Nothing)
    --, ("float",                  Nothing)
+
+   , ("font",                   ctorCssPropertyFont)
    , ("font-family",            makeCssPropertyFontFamily)
    , ("font-size",              makeCssPropertyFontSize)
    --, ("font-size-adjust",       Nothing)
@@ -203,7 +205,7 @@ cssPropertyCtors = M.fromList [
 -- Only a subset of CSS2.2 properties is supported by this implementation.
 cssShorthandInfo :: M.Map T.Text ShorthandPropertyCtor
 cssShorthandInfo = M.fromList [
-  ("font",               makeCssPropertyFont)
+
   ]
 
 

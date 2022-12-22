@@ -303,6 +303,7 @@ styleEngineApplyStyleToFont declSet preferences displayArg parentFontAttrsArg fo
       case S.null decls of
         True -> fontAttrs
         False -> case property x of
+                   CssPropertyFont (CssValueFont ps)  -> styleEngineApplyStyleToFont (fontDeclSet ps) preferences displayArg parentFontAttrsArg fontAttrsArg
                    CssPropertyFontFamily value        -> apply xs prefs display parentFontAttrs $ styleEngineSetFontFamily value prefs fontAttrs
                    CssPropertyFontSize declValue      -> apply xs prefs display parentFontAttrs $ styleEngineSetFontSize declValue prefs display parentFontAttrs fontAttrs
                    CssPropertyFontStyle declValue     -> apply xs prefs display parentFontAttrs $ styleEngineSetFontStyle declValue fontAttrs
@@ -313,6 +314,12 @@ styleEngineApplyStyleToFont declSet preferences displayArg parentFontAttrsArg fo
           where
             x  :: CssDeclaration       = S.index decls 0
             xs :: S.Seq CssDeclaration = S.drop 1 decls
+
+            -- TODO: replace False with proper value of 'important' flag once
+            -- you start properly parsing "font" shortcut property.
+            fontDeclSet properties = defaultCssDeclarationSet { items = S.fromList $ fmap (\ p -> CssDeclaration p False ) properties }
+
+
 
 
 
