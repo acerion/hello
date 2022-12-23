@@ -427,25 +427,9 @@ defaultCssDeclarationSet = CssDeclarationSet
 -- :m +Hello.Css.Tokenizer
 -- takePropertyName (defaultParserInBlock ": value", CssTokIdent "name")
 takePropertyName :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), T.Text)
-takePropertyName state = case runParser (getIdentToken <* getColonToken) state of
+takePropertyName state = case runParser (parserTokenIdentAny <* parserTokenColon) state of
                            Just (state', CssTokIdent name) -> Just (state', name)
                            _                               -> Nothing
-
-
-
-
-getIdentToken :: Parser (CssParser, CssToken) CssToken
-getIdentToken = Parser $ \ (parser, token) -> case token of
-                                                CssTokIdent _ -> Just ((nextToken parser), token)
-                                                _             -> Nothing
-
-
-
-
-getColonToken :: Parser (CssParser, CssToken) CssToken
-getColonToken = Parser $ \ (parser, token) -> case token of
-                                                CssTokColon -> Just ((nextToken parser), token)
-                                                _           -> Nothing
 
 
 

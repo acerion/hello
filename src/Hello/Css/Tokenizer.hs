@@ -83,6 +83,16 @@ module Hello.Css.Tokenizer
   , isWhitespace
 
   , splitAtCommaToken
+
+  , parserTokenIdentAny
+  , parserTokenIdent
+  , parserTokenColon
+  , parserTokenSemicolon
+  , parserTokenBraceCurlyOpen
+  , parserTokenBraceCurlyClose
+  , parserTokenDelim
+  , parserTokenWhitespace
+  , parserTokenEnd
   )
 where
 
@@ -96,6 +106,7 @@ import qualified Data.Text.Read as T.R
 
 import qualified Hello.Utils as HU
 import Hello.Utils
+import Hello.Utils.Parser
 import qualified Hello.Unicode as H.U
 
 
@@ -774,4 +785,86 @@ splitAtCommaToken [] acc               = reverse acc
 splitAtCommaToken (CssTokComma:xs) acc = splitAtCommaToken xs ([]:acc)
 splitAtCommaToken (x:xs)       (a:acc) = splitAtCommaToken xs ((a ++ [x]):acc)
 splitAtCommaToken (x:xs)       []      = splitAtCommaToken xs [[x]]
+
+
+
+
+
+parserTokenIdentAny :: Parser (CssParser, CssToken) CssToken
+parserTokenIdentAny = Parser $ \ (parser, token) -> case token of
+                                                      CssTokIdent _ -> Just ((nextToken parser), token)
+                                                      _             -> Nothing
+
+
+
+
+parserTokenIdent :: T.Text -> Parser (CssParser, CssToken) CssToken
+parserTokenIdent ident = Parser $ \ (parser, token) -> case token of
+                                                         CssTokIdent i | i == ident -> Just ((nextToken parser), token)
+                                                                       | otherwise  -> Nothing
+                                                         _             -> Nothing
+
+
+
+
+parserTokenColon :: Parser (CssParser, CssToken) CssToken
+parserTokenColon = Parser $ \ (parser, token) -> case token of
+                                                   CssTokColon -> Just ((nextToken parser), token)
+                                                   _           -> Nothing
+
+
+
+
+parserTokenSemicolon :: Parser (CssParser, CssToken) CssToken
+parserTokenSemicolon = Parser $ \ (parser, token) -> case token of
+                                                       CssTokSemicolon -> Just ((nextToken parser), token)
+                                                       _               -> Nothing
+
+
+
+
+parserTokenBraceCurlyOpen :: Parser (CssParser, CssToken) CssToken
+parserTokenBraceCurlyOpen = Parser $ \ (parser, token) -> case token of
+                                                            CssTokBraceCurlyOpen -> Just ((nextToken parser), token)
+                                                            _                    -> Nothing
+
+
+
+
+parserTokenBraceCurlyClose :: Parser (CssParser, CssToken) CssToken
+parserTokenBraceCurlyClose = Parser $ \ (parser, token) -> case token of
+                                                             CssTokBraceCurlyClose -> Just ((nextToken parser), token)
+                                                             _                     -> Nothing
+
+
+
+
+parserTokenDelim :: Char -> Parser (CssParser, CssToken) CssToken
+parserTokenDelim delim = Parser $ \ (parser, token) -> case token of
+                                                         CssTokDelim d | d == delim -> Just ((nextToken parser), token)
+                                                                       | otherwise  -> Nothing
+                                                         _             -> Nothing
+
+
+
+
+parserTokenWhitespace :: Parser (CssParser, CssToken) CssToken
+parserTokenWhitespace = Parser $ \ (parser, token) -> case token of
+                                                        CssTokWS -> Just ((nextToken parser), token)
+                                                        _        -> Nothing
+
+
+
+
+parserTokenEnd :: Parser (CssParser, CssToken) CssToken
+parserTokenEnd = Parser $ \ (parser, token) -> case token of
+                                                 CssTokEnd -> Just ((nextToken parser), token)
+                                                 _         -> Nothing
+
+
+
+
+
+
+
 
