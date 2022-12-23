@@ -58,40 +58,40 @@ buildValidInput propName values units = T.pack $ propName ++ ": " ++ (L.intercal
 buildSuccessOut :: [v -> a]                      -- ^ Converter between raw value and type accepted by
                                                  --   declaration value constructor. E.g. CssDistanceRelPx constructor.
                 -> [v]                           -- ^ Raw value of property, e.g. 11.5.
-                -> [CssDeclaration]
+                -> Maybe CssDeclaration
 -}
-buildSuccessOut (ct:cr:cb:cl:[]) (vt:vr:vb:vl:[]) = [ CssDeclaration { property = CssPropertyMargin (CssValueMargin
-                                                                                                      (CssValueMarginXDistance . ct $ vt)
-                                                                                                      (CssValueMarginXDistance . cr $ vr)
-                                                                                                      (CssValueMarginXDistance . cb $ vb)
-                                                                                                      (CssValueMarginXDistance . cl $ vl)
-                                                                                                    )
+buildSuccessOut (ct:cr:cb:cl:[]) (vt:vr:vb:vl:[]) = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
+                                                                                                          (CssValueMarginXDistance . ct $ vt)
+                                                                                                          (CssValueMarginXDistance . cr $ vr)
+                                                                                                          (CssValueMarginXDistance . cb $ vb)
+                                                                                                          (CssValueMarginXDistance . cl $ vl)
+                                                                                                         )
+                                                                          , important = False }
+
+buildSuccessOut (ct:clr:cb:[])   (vt:vlr:vb:[])   = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
+                                                                                                    (CssValueMarginXDistance . ct  $ vt)
+                                                                                                    (CssValueMarginXDistance . clr $ vlr)
+                                                                                                    (CssValueMarginXDistance . cb  $ vb)
+                                                                                                    (CssValueMarginXDistance . clr $ vlr)
+                                                                                                  )
                                                                      , important = False }
-                                                                            ]
-buildSuccessOut (ct:clr:cb:[])   (vt:vlr:vb:[])   = [ CssDeclaration { property = CssPropertyMargin (CssValueMargin
-                                                                                                      (CssValueMarginXDistance . ct  $ vt)
-                                                                                                      (CssValueMarginXDistance . clr $ vlr)
-                                                                                                      (CssValueMarginXDistance . cb  $ vb)
-                                                                                                      (CssValueMarginXDistance . clr $ vlr)
-                                                                                                    )
-                                                                     , important = False }
-                                                                            ]
-buildSuccessOut (ctb:clr:[])     (vtb:vlr:[])     = [ CssDeclaration { property = CssPropertyMargin (CssValueMargin
+
+buildSuccessOut (ctb:clr:[])     (vtb:vlr:[])     = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
                                                                                                       (CssValueMarginXDistance . ctb $ vtb)
                                                                                                       (CssValueMarginXDistance . clr $ vlr)
                                                                                                       (CssValueMarginXDistance . ctb $ vtb)
                                                                                                       (CssValueMarginXDistance . clr $ vlr)
                                                                                                     )
                                                                      , important = False }
-                                                                            ]
-buildSuccessOut (ctrlb:[])       (vtrbl:[])       = [ CssDeclaration { property = CssPropertyMargin (CssValueMargin
+
+buildSuccessOut (ctrlb:[])       (vtrbl:[])       = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
                                                                                                       (CssValueMarginXDistance . ctrlb $ vtrbl)
                                                                                                       (CssValueMarginXDistance . ctrlb $ vtrbl)
                                                                                                       (CssValueMarginXDistance . ctrlb $ vtrbl)
                                                                                                       (CssValueMarginXDistance . ctrlb $ vtrbl)
                                                                                                     )
                                                                      , important = False }
-                                                    ]
+
 
 
 
@@ -104,7 +104,7 @@ buildSuccessOut (ctrlb:[])       (vtrbl:[])       = [ CssDeclaration { property 
 --
 -- If CSS parser works correctly, then there will be a match between its
 -- result and a second element of tuple returned by this function.
-buildSuccessRow :: String ->  [String] -> [Float] ->  (T.Text, [CssDeclaration])
+buildSuccessRow :: String ->  [String] -> [Float] ->  (T.Text, Maybe CssDeclaration)
 -- buildSuccessRow name  units values = trace ("generated input string = " ++ show input ++ ", generated output = " ++ show output) (input, output)
 buildSuccessRow name units values = (input, output)
     where
