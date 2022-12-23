@@ -98,8 +98,8 @@ parseDeclarationTestData =
   , ( "background-atachment: scroll",               Nothing)
   -- Testing for parsing of bad css: invalid value.
   , ( "background-attachment: italic",              Nothing)
-  -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "background-attachment: fixed important",     Just CssDeclaration { property = CssPropertyBackgroundAttachment CssValueBackgroundAttachmentFixed,        important = False  } )
+  -- Testing for parsing of bad css: misspelled "important "word. TODO: check how parser should behave here according to spec.
+  , ( "background-attachment: fixed important",     Nothing)
 
 
 
@@ -121,7 +121,7 @@ parseDeclarationTestData =
   , ( "background-color: square",                    Nothing)
   , ( "background-color: 0x00ff00",                  Nothing) -- Invalid format of HEX value
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "background-color: rgb(255, 0, 0) important",  Just CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xff0000),        important = False  } )
+  , ( "background-color: rgb(255, 0, 0) important",  Nothing)
 
 
 
@@ -146,7 +146,7 @@ parseDeclarationTestData =
   --, ( "background-position: italic",                Nothing)
   --, ( "background-position: left-top",              Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "background-position: left top important",    Just CssDeclaration { property = CssPropertyBackgroundPosition (CssValueBackgroundPositionXY 0 0),    important = False  } )
+  , ( "background-position: left top important",    Nothing)
 
 
 
@@ -161,7 +161,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "background-repeat: #00ff00",                 Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "background-repeat: no-repeat !importan",     Just CssDeclaration { property = CssPropertyBackgroundRepeat CssValueBackgroundRepeatNoRepeat,       important = False  } )
+  , ( "background-repeat: no-repeat !importan",     Nothing)
 
 
 
@@ -259,7 +259,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "border-collapse: #00ff00",                Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "border-collapse: separate !importan",     Just CssDeclaration { property = CssPropertyBorderCollapse CssValueBorderCollapseSeparate,        important = False  } )
+  , ( "border-collapse: separate !importan",     Nothing)
 
 
 
@@ -274,7 +274,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid property value.
   , ( "border-spacing: latin",                        Nothing)
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "border-spacing: 74.0ex !importan",             Just CssDeclaration { property = CssPropertyBorderSpacing (CssValueBorderSpacingDistance (CssDistanceRelEx 74.0)),  important = False  } )
+  , ( "border-spacing: 74.0ex !importan",             Nothing)
 
 
 
@@ -483,7 +483,7 @@ parseDeclarationTestData =
   , ( "border-top-color: red",                            Just CssDeclaration { property = CssPropertyBorderTopColor   $ CssValueBorderColor 0xff0000,   important = False } )
   , ( "border-top-color: #0000ff !important",             Just CssDeclaration { property = CssPropertyBorderTopColor   $ CssValueBorderColor 0x0000ff,   important = True  } )
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "border-top-color: #0000ff !iportant",              Just CssDeclaration { property = CssPropertyBorderTopColor   $ CssValueBorderColor 0x0000ff,   important = False } )
+  , ( "border-top-color: #0000ff !iportant",              Nothing)
 
   , ( "border-right-color: inherit",                      Just CssDeclaration { property = CssPropertyBorderRightColor CssValueBorderColorInherit,       important = False } )
   , ( "border-right-color: transparent",                  Just CssDeclaration { property = CssPropertyBorderRightColor CssValueBorderColorTransparent,   important = False } )
@@ -521,7 +521,7 @@ parseDeclarationTestData =
   , ( "border-top-style: outset",                Just CssDeclaration { property = CssPropertyBorderTopStyle CssValueBorderStyleOutset,        important = False } )
   , ( "border-top-style: inherit !important",    Just CssDeclaration { property = CssPropertyBorderTopStyle CssValueBorderStyleInherit,       important = True  } )
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "border-top-style: inherit !mportant",     Just CssDeclaration { property = CssPropertyBorderTopStyle CssValueBorderStyleInherit,       important = False } )
+  , ( "border-top-style: inherit !mportant",     Nothing)
 
   , ( "border-right-style: none",                Just CssDeclaration { property = CssPropertyBorderRightStyle CssValueBorderStyleNone,        important = False } )
   , ( "border-right-style: hidden !important",   Just CssDeclaration { property = CssPropertyBorderRightStyle CssValueBorderStyleHidden,      important = True  } )
@@ -584,7 +584,7 @@ parseDeclarationTestData =
   , ( "border-bottom-width: 1.0em",                       Just CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceRelEm 1.0)),  important = False } )
   , ( "border-bottom-width: 2.0ex !important",            Just CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceRelEx 2.0)),  important = True  } )
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "border-bottom-width: 2.0ex !importan",             Just CssDeclaration { property = CssPropertyBorderBottomWidth (CssValueBorderWidthDistance (CssDistanceRelEx 2.0)),  important = False  } )
+  , ( "border-bottom-width: 2.0ex !importan",             Nothing)
 
   , ( "border-left-width: inherit",                       Just CssDeclaration { property = CssPropertyBorderLeftWidth CssValueBorderWidthInherit,                              important = False } )
   , ( "border-left-width: 1.0em",                         Just CssDeclaration { property = CssPropertyBorderLeftWidth (CssValueBorderWidthDistance (CssDistanceRelEm 1.0)),    important = False } )
@@ -623,8 +623,8 @@ parseDeclarationTestData =
     -- Testing for parsing of bad css: invalid value.
   , ( "content: train",                          Nothing)
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "content: \"bullet\" !improtant",          Just CssDeclaration { property = CssPropertyContent (CssValueContent "bullet"),  important = False  } )
-  , ( "content: 'train' !improtant",             Just CssDeclaration { property = CssPropertyContent (CssValueContent "train"),   important = False  } )
+  , ( "content: \"bullet\" !improtant",          Nothing)
+  , ( "content: 'train' !improtant",             Nothing)
 
 
 
@@ -649,7 +649,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "cursor: ponter",               Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "cursor: help !improtant",      Just CssDeclaration { property = CssPropertyCursor CssValueCursorHelp,        important = False  } )
+  , ( "cursor: help !improtant",      Nothing)
 
 
 
@@ -671,7 +671,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "display: rgb(0, 100, 200)",              Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "display: table !improtant",              Just CssDeclaration { property = CssPropertyDisplay CssValueDisplayTable,              important = False  } )
+  , ( "display: table !improtant",              Nothing)
 
 
 
@@ -738,7 +738,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "font-size: square",             Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "font-size: large important",    Just CssDeclaration { property = CssPropertyFontSize CssValueFontSizeLarge,     important = False  } )
+  , ( "font-size: large important",    Nothing)
 
 
 
@@ -751,7 +751,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "font-style: obligue",             Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "font-style: normal !!important",  Just CssDeclaration { property = CssPropertyFontStyle CssValueFontStyleNormal,   important = False  } )
+  , ( "font-style: normal !!important",  Nothing)
 
 
 
@@ -763,7 +763,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "font-variant: xx-large",            Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "font-variant: normal !_mportant",   Just CssDeclaration { property = CssPropertyFontVariant CssValueFontVariantNormal,      important = False  } )
+  , ( "font-variant: normal !_mportant",   Nothing)
 
 
 
@@ -781,7 +781,7 @@ parseDeclarationTestData =
   , ("font-weight: light",              Nothing)
   , ("font-weight: 1200",               Nothing)
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "font-weight: normal !_mportant", Just CssDeclaration { property = CssPropertyFontWeight CssValueFontWeightNormal,   important = False  } )
+  , ( "font-weight: normal !_mportant", Nothing)
 
 
 
@@ -804,7 +804,7 @@ parseDeclarationTestData =
     -- TODO: per CSS2.2 negative values are invalid. Fix this case in parser.
   , ("height: -500.0mm",                 Just CssDeclaration { property = CssPropertyHeight (CssValueHeightDistance (CssDistanceAbsMm (-500.00))),         important = False } )
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ("height:  22.22mm !importat",       Just CssDeclaration { property = CssPropertyHeight (CssValueHeightDistance (CssDistanceAbsMm  22.22)),            important = False } )
+  , ("height:  22.22mm !importat",       Nothing)
 
 
 
@@ -823,7 +823,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ("letter-spacing: bold",               Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ("letter-spacing: normal !_omportant",  Just CssDeclaration { property = CssPropertyLetterSpacing CssValueLetterSpacingNormal,                              important = False  } )
+  , ("letter-spacing: normal !_omportant",  Nothing)
 
 
 
@@ -842,7 +842,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ("line-height: bold",               Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ("line-height: normal important",  Just CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                                important = False  } )
+  , ("line-height: normal important",   Nothing)
 
 
 
@@ -931,7 +931,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "list-style-type: lower-ronan",                     Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "list-style-type: none !improtant",                 Just CssDeclaration { property = CssPropertyListStyleType CssValueListStyleTypeNone,                important = False  } )
+  , ( "list-style-type: none !improtant",                 Nothing)
 
 
 
@@ -1003,7 +1003,7 @@ parseDeclarationTestData =
     -- Testing for parsing of bad css: invalid value.
   , ( "margin-top: red",                       Nothing)
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "margin-top: 26.6px !inportant",         Just CssDeclaration { property = CssPropertyMarginTop (CssValueMarginXDistance (CssDistanceAbsPx 26.6)),        important = False  } )
+  , ( "margin-top: 26.6px !inportant",         Nothing)
 
 
 
@@ -1019,7 +1019,7 @@ parseDeclarationTestData =
     -- Testing for parsing of bad css: invalid value.
   , ( "margin-right: italic",                  Nothing)
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "margin-right: 33.6px !inportant",       Just CssDeclaration { property = CssPropertyMarginRight (CssValueMarginXDistance (CssDistanceAbsPx 33.6)),      important = False  } )
+  , ( "margin-right: 33.6px !inportant",       Nothing)
 
 
 
@@ -1035,7 +1035,7 @@ parseDeclarationTestData =
     -- Testing for parsing of bad css: invalid value.
   , ( "margin-bottom: none",                   Nothing)
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "margin-bottom: 33.6px !inportant",      Just CssDeclaration { property = CssPropertyMarginBottom (CssValueMarginXDistance (CssDistanceAbsPx 33.6)),     important = False  } )
+  , ( "margin-bottom: 33.6px !inportant",      Nothing)
 
 
 
@@ -1051,7 +1051,7 @@ parseDeclarationTestData =
     -- Testing for parsing of bad css: invalid value.
   , ( "margin-left: latin",                    Nothing)
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "margin-left: 33.6px !inportant",        Just CssDeclaration { property = CssPropertyMarginLeft (CssValueMarginXDistance (CssDistanceAbsPx 33.6)),       important = False  } )
+  , ( "margin-left: 33.6px !inportant",        Nothing)
 
 
 
@@ -1129,7 +1129,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "padding-top: red",                     Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "padding-top: 6.6px !inportant",        Just CssDeclaration { property = CssPropertyPaddingTop (CssValuePaddingX (CssDistanceAbsPx 6.6)),       important = False  } )
+  , ( "padding-top: 6.6px !inportant",        Nothing)
 
 
 
@@ -1142,7 +1142,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "padding-right: red",                   Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "padding-right: 6.6px !inportant",      Just CssDeclaration { property = CssPropertyPaddingRight (CssValuePaddingX (CssDistanceAbsPx 6.6)),     important = False  } )
+  , ( "padding-right: 6.6px !inportant",      Nothing)
 
 
 
@@ -1155,7 +1155,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "padding-bottom: red",                  Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "padding-bottom: 6.6px !inportant",     Just CssDeclaration { property = CssPropertyPaddingBottom (CssValuePaddingX (CssDistanceAbsPx 6.6)),    important = False  } )
+  , ( "padding-bottom: 6.6px !inportant",     Nothing)
 
 
 
@@ -1168,7 +1168,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "padding-left: red",                    Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "padding-left: 6.6px !inportant",       Just CssDeclaration { property = CssPropertyPaddingLeft (CssValuePaddingX (CssDistanceAbsPx 6.6)),      important = False  } )
+  , ( "padding-left: 6.6px !inportant",       Nothing)
 
 
 
@@ -1185,7 +1185,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid property value.
   , ( "text-indent: justify",                      Nothing)
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ( "text-indent: 77.7ex !importan",             Just CssDeclaration { property = CssPropertyTextIndent (CssValueTextIndentDistance (CssDistanceRelEx 77.7)),  important = False  } )
+  , ( "text-indent: 77.7ex !importan",             Nothing)
 
 
 
@@ -1199,7 +1199,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ("text-align: italic",                Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ("text-align: left !!important",      Just CssDeclaration { property = CssPropertyTextAlign CssValueTextAlignLeft,     important = False  } )
+  , ("text-align: left !!important",      Nothing)
 
 
 
@@ -1213,7 +1213,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ("text-transform: 1.0px",                 Nothing)
   -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ("text-transform: uppercase _important",  Just CssDeclaration { property = CssPropertyTextTransform CssValueTextTransformUppercase,   important = False  } )
+  , ("text-transform: uppercase _important",  Nothing)
 
 
 
@@ -1281,7 +1281,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "vertical-align: suber",                Nothing)
   -- Testing for parsing of bad css: incorrect value of "important" keyword. TODO: check how parser should behave here according to spec.
-  , ( "vertical-align: top !!important",      Just CssDeclaration { property = CssPropertyVerticalAlign CssValueVerticalAlignTop,        important = False } )
+  , ( "vertical-align: top !!important",      Nothing)
 
 
 
@@ -1304,7 +1304,7 @@ parseDeclarationTestData =
     -- TODO: per CSS2.2 negative values are invalid. Fix this case in parser.
   , ("width: -500.0mm",                 Just CssDeclaration { property = CssPropertyWidth (CssValueWidthDistance (CssDistanceAbsMm (-500.00))),         important = False } )
     -- Testing for parsing of bad css: misspelled "important" word. TODO: check how parser should behave here according to spec.
-  , ("width:  22.22mm !importat",       Just CssDeclaration { property = CssPropertyWidth (CssValueWidthDistance (CssDistanceAbsMm  22.22)),            important = False } )
+  , ("width:  22.22mm !importat",       Nothing)
 
 
 
@@ -1319,7 +1319,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value.
   , ( "white-space: prewrap",               Nothing)
   -- Testing for parsing of bad css: incorrect value of "important" keyword. TODO: check how parser should behave here according to spec.
-  , ( "white-space: pre important",         Just CssDeclaration { property = CssPropertyWhitespace CssValueWhitespacePre,      important = False } )
+  , ( "white-space: pre important",         Nothing)
 
 
 
@@ -1334,7 +1334,7 @@ parseDeclarationTestData =
   -- Testing for parsing of bad css: invalid value. TODO: shouldn't "1" be considered a valid value?
   , ( "word-spacing: 1;0xz",                Nothing)
   -- Testing for parsing of bad css: incorrect value of "important" keyword. TODO: check how parser should behave here according to spec.
-  , ( "word-spacing: normal !importan",     Just CssDeclaration { property = CssPropertyWordSpacing CssValueWordSpacingNormal,   important = False  } )
+  , ( "word-spacing: normal !importan",     Nothing)
   ]
 
 

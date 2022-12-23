@@ -60,12 +60,17 @@ module Hello.Css.Parser.Rule
   , parseStyleRule
 
   , getTopCompound
+
+  , parseImportantPresent
+  , parseImportantNotPresent
+  , parseImportant
+  , parserImportant
   )
 where
 
 
 
-
+import Control.Applicative (Alternative(..))
 import Data.Data (toConstr)
 import qualified Data.Text as T
 import qualified Data.Map as M
@@ -381,6 +386,70 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
 
 
 
+-- See if last two non-white tokens in value string are "!important". This
+-- requires looking at tokens that come after the "!important", and seeing if
+-- they are valid post-value tokens. The post-value tokens should form a
+-- valid end of declaration.
+--
+-- This function succeeds if the "!important" was found and value string is
+-- terminated properly. Returned parser points to the end of "!important".
+--
+-- TODO: the backtracking in the function brings inefficiency.
+--
+-- many: zero or more
+-- https://hackage.haskell.org/package/base-4.17.0.0/docs/Control-Applicative.html#v:many
+parseImportantPresent :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssToken)
+parseImportantPresent pat = case runParser parser pat of
+                              -- Backtrack: take just "!important" and leave rest to next parser.
+                              Just (_, _) -> runParser parserImportant pat
+                              Nothing     -> Nothing
+  where
+    parser = parserImportant
+             *> many parserTokenWhitespace
+             *> (parserTokenSemicolon <|> parserTokenBraceCurlyClose <|> parserTokenEnd)
+
+
+
+
+parserImportant :: Parser (CssParser, CssToken) CssToken
+parserImportant = (parserTokenDelim '!') *> (parserTokenIdent "important")
+
+
+
+
+-- See if last two non-white tokens in value string are "!important". This
+-- requires looking at current token and following tokens, and seeing if they
+-- are valid post-value tokens. The post-value tokens should form a valid end
+-- of declaration. Since this function doesn't expect to find "!important",
+-- then it only expects valid post-value tokens.
+--
+-- This function succeeds if the "!important" was NOT found and value string
+-- is terminated properly. Returned parser points to the end of value string.
+--
+-- TODO: the backtracking in the function brings inefficiency.
+parseImportantNotPresent ::  (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssToken)
+parseImportantNotPresent pat@(_, t) = case runParser parser pat of
+                                        -- Backtrack: take just spaces and leave rest to next parser.
+                                        --
+                                        -- TODO: returning the same token in
+                                        -- 'pat' and in second may cause
+                                        -- problems if caller code will
+                                        -- attempt to actually use result of
+                                        -- the function.
+                                        Just (_, _) -> Just (pat, t)
+                                        Nothing     -> Nothing
+  where parser = (many parserTokenWhitespace
+                   *> (parserTokenSemicolon
+                        <|> parserTokenBraceCurlyClose
+                        <|> parserTokenEnd))
+
+
+
+
+
+-- Parse "!important" string that is at the end of value. The "!important"
+-- string may or may not be present - both cases are valid.
+--
 -- https://www.w3.org/TR/CSS22/cascade.html#important-rules
 -- https://www.w3.org/TR/css-cascade-5/#importance
 --
@@ -389,14 +458,16 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
 -- with the value "!" followed by an <ident-token> with a value that is an
 -- ASCII case-insensitive match for "important", remove them from the
 -- declaration’s value and set the declaration’s important flag to true."
-cssParseImportance :: (CssParser, CssToken) -> ((CssParser, CssToken), Bool)
-cssParseImportance (parser, CssTokDelim '!') = case nextToken parser of
-                                                 (newParser, CssTokIdent "important") -> (nextToken newParser, True)
-                                                 (newParser, tok)                     -> ((newParser, tok), False)
-cssParseImportance (parser, tok)             = ((parser, tok), False)
-
-
-
+--
+-- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Tokenizer
+-- :m +Hello.Css.Declaration
+-- parseImportant ((nextToken . defaultParser $ "!important;"), defaultDeclaration)
+-- parseImportant ((nextToken . defaultParser $ "!important }"), defaultDeclaration)
+parseImportant :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
+parseImportant (pat, decl) | Just (pat', _) <- parseImportantNotPresent pat = Just (pat', decl)
+                           | Just (pat', _) <- parseImportantPresent pat    = Just (pat', decl { important = True })
+                           | otherwise                                      = Nothing -- Bad termination of property's value string.
 
 
 
@@ -464,14 +535,6 @@ parseSingleDeclaration pat =
 
 parseSingleDeclaration2 :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
 parseSingleDeclaration2 (pat, _) = parseSingleDeclaration' pat
-
-
-
-
-parseImportant :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
-parseImportant (pat, decl) = case cssParseImportance pat of
-                               (pat', True)  -> Just (pat', decl {important = True})
-                               (pat', False) -> Just (pat', decl)
 
 
 
