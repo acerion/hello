@@ -10,6 +10,19 @@ High-level information about changes and progress of the project.
 
 
 
+202X.XX.XX
+
+ - New public release: hello-0.3.0.
+
+ - Internal changes and improvements to code parsing CSS (mostly to code
+   parsing CSS declarations.
+
+ - Replacing occurrences of "Dillo" with new name of the program in help
+   document available from program's UI.
+
+
+
+
 2022.10.14
 
  - New public release: hello-0.2.0.
