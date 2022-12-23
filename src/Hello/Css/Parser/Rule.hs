@@ -469,34 +469,40 @@ parseSingleDeclaration' pat = case takePropertyName pat of
 -- The function uses a list in return type for historical reasons. At some
 -- point a shorthand CSS property was parsed into list of non-shorthand
 -- properties.
-parseSingleDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssDeclaration])
-parseSingleDeclaration (p1, t1) = ((outParser, outToken), declarationsWithImportant)
-  where
-    ((p2, t2), declarations) = case parseSingleDeclaration' (p1, t1) of
-                                 Just (pat, decl) -> (pat, [decl])
-                                 Nothing          -> ((p1, t1), [])
-    ((p3, t3), isImportant) = cssParseImportance (p2, t2)
-    declarationsWithImportant = if isImportant
-                                then markAsImportant <$> declarations
-                                else declarations
-    (outParser, outToken) = consumeRestOfDeclaration (p3, t3)
+parseSingleDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
+parseSingleDeclaration pat =
+  case parseSingleDeclaration2 (pat, defaultDeclaration) >>= parseImportant of
+    Just (pat', declaration) -> (consumeRestOfDeclaration pat', Just declaration)
+    Nothing                  -> (consumeRestOfDeclaration pat, Nothing)
 
-    markAsImportant inDecl = inDecl{important = True}
+
+
+
+parseSingleDeclaration2 :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
+parseSingleDeclaration2 (pat, _) = parseSingleDeclaration' pat
+
+
+
+
+parseImportant :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
+parseImportant (pat, decl) = case cssParseImportance pat of
+                               (pat', True)  -> Just (pat', decl {important = True})
+                               (pat', False) -> Just (pat', decl)
 
 
 
 
 parseDeclarationWrapper :: (CssParser, CssToken) -> CssDeclarationSets -> ((CssParser, CssToken), CssDeclarationSets)
-parseDeclarationWrapper pat (inSet, inSetImp) = (pat', (outSet, outSetImp))
+parseDeclarationWrapper pat inSets = (pat', outSets)
   where
     (pat', declarations) = parseSingleDeclaration pat
-    (outSet, outSetImp)  = appendDeclarations declarations inSet inSetImp
+    outSets = appendDeclaration declarations inSets
 
-    appendDeclarations :: [CssDeclaration] -> CssDeclarationSet -> CssDeclarationSet -> CssDeclarationSets
-    appendDeclarations [] set setImp     = (set, setImp)
-    appendDeclarations (d:ds) set setImp = if important d
-                                           then appendDeclarations ds set (declarationsSetUpdateOrAdd setImp d)
-                                           else appendDeclarations ds (declarationsSetUpdateOrAdd set d) setImp
+    appendDeclaration :: Maybe CssDeclaration -> CssDeclarationSets -> CssDeclarationSets
+    appendDeclaration Nothing sets = sets
+    appendDeclaration (Just d) (set, setImp) = if important d
+                                               then (set, (declarationsSetUpdateOrAdd setImp d))
+                                               else ((declarationsSetUpdateOrAdd set d), setImp)
 
 
 

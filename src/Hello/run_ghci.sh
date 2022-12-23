@@ -10,5 +10,6 @@ ghci -fobject-code \
      ./Tests/Css/Parser/*.hs \
      ./Tests/Html/*.hs \
      ./Tests/TestUtils/*.hs \
-     ./Ffi/Css/SelectorLink.hs
+     ./Ffi/Css/SelectorLink.hs \
+     ./Utils/*.hs
 
