@@ -57,6 +57,8 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 --import Debug.Trace
 
+import System.IO
+
 import Hello.Css.MatchCache
 import Hello.Css.Parser.Rule
 import Hello.Css.StyleNode
@@ -165,10 +167,13 @@ updateMatchingRulesIndices matchingRulesIndices minSpecIndex = listReplaceElem m
 -- Apply potentially matching rules from matchingRules with ascending
 -- specificity. If specificity is equal, rules are applied in order of
 -- appearance. Each matchingRules is sorted already.
-applyMatchingRules :: MatchingRules -> Doctree -> Maybe DoctreeNode -> CssCachedDeclarationSet -> IO CssCachedDeclarationSet
-applyMatchingRules matchingRules doctree mDtn cachedDeclSet = do
+applyMatchingRules :: Handle -> MatchingRules -> Doctree -> Maybe DoctreeNode -> CssCachedDeclarationSet -> IO CssCachedDeclarationSet
+applyMatchingRules fHandle matchingRules doctree mDtn cachedDeclSet = do
   let state = cssGetMinSpecState matchingRules
-  putStrLn ("minSpec = " ++ (show . triplet1st $ state) ++ ", minPos = " ++ (show . triplet2nd $ state) ++ ", minSpecIndex = " ++ (show . triplet3rd $ state))
+
+  let debugString1 = "minSpec = " ++ (show . triplet1st $ state) ++ ", minPos = " ++ (show . triplet2nd $ state) ++ ", minSpecIndex = " ++ (show . triplet3rd $ state) ++ "\n"
+  hPutStr fHandle debugString1
+
   let minSpecIndex = triplet3rd state
   if minSpecIndex >= 0
     then
@@ -179,10 +184,12 @@ applyMatchingRules matchingRules doctree mDtn cachedDeclSet = do
 
       let matchingRules' = matchingRules { indices = updateMatchingRulesIndices (indices matchingRules) minSpecIndex }
 
-      putStrLn . show $ fst cachedDeclSet'
-      putStrLn . show $ V.fromList . indices $ matchingRules'
+      let debugString2 = (show $ fst cachedDeclSet') ++ "\n"
+      hPutStr fHandle debugString2
+      let debugString3 = (show $ V.fromList . indices $ matchingRules') ++ "\n"
+      hPutStr fHandle debugString3
 
-      applyMatchingRules matchingRules' doctree mDtn cachedDeclSet'
+      applyMatchingRules fHandle matchingRules' doctree mDtn cachedDeclSet'
     else return cachedDeclSet
 
 
@@ -192,8 +199,8 @@ applyMatchingRules matchingRules doctree mDtn cachedDeclSet = do
 --
 -- The declarations (list property+value) are set as defined by the rules in
 -- the stylesheet that match at the given node in the document tree.
-cssStyleSheetApplyStyleSheet :: CssStyleSheet -> CssCachedDeclarationSet -> Doctree -> DoctreeNode -> IO CssCachedDeclarationSet
-cssStyleSheetApplyStyleSheet styleSheet cachedDeclSet doctree dtn = do
+cssStyleSheetApplyStyleSheet :: Handle -> CssStyleSheet -> CssCachedDeclarationSet -> Doctree -> DoctreeNode -> IO CssCachedDeclarationSet
+cssStyleSheetApplyStyleSheet fHandle styleSheet cachedDeclSet doctree dtn = do
 
   let matchingRules = MatchingRules
         {
@@ -204,7 +211,7 @@ cssStyleSheetApplyStyleSheet styleSheet cachedDeclSet doctree dtn = do
         , indices = replicate (L.length . rules $ matchingRules) 0
         }
 
-  cachedDeclSet' <- applyMatchingRules matchingRules doctree (Just dtn) cachedDeclSet
+  cachedDeclSet' <- applyMatchingRules fHandle matchingRules doctree (Just dtn) cachedDeclSet
   return cachedDeclSet'
 
 
@@ -303,26 +310,26 @@ declarationsSetAppend' (targetDs, cache) ds = (declarationsSetAppend targetDs ds
 -- ordering defined by CSS 2.1. Stylesheets that are applied later can
 -- overwrite properties set by previous stylesheets. This allows e.g. user
 -- styles to overwrite author styles.
-cssContextApplyCssContext :: CssContext -> Doctree -> DoctreeNode -> StyleNode -> IO (CssDeclarationSet, CssMatchCache)
-cssContextApplyCssContext context doctree dtn styleNode = do
+cssContextApplyCssContext :: Handle -> CssContext -> Doctree -> DoctreeNode -> StyleNode -> IO (CssDeclarationSet, CssMatchCache)
+cssContextApplyCssContext fHandle context doctree dtn styleNode = do
 
   let cachedDeclSet1 = (defaultCssDeclarationSet, matchCache context)
 
-  cachedDeclSet2 <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUserAgent) cachedDeclSet1 doctree dtn
+  cachedDeclSet2 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserAgent) cachedDeclSet1 doctree dtn
 
-  cachedDeclSet3 <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUser) cachedDeclSet2 doctree dtn
+  cachedDeclSet3 <- cssStyleSheetApplyStyleSheet fHandle(getSheet context CssPrimaryUser) cachedDeclSet2 doctree dtn
 
   let cachedDeclSet4 = declarationsSetAppend' cachedDeclSet3 (nonCssDeclSet styleNode)
 
-  cachedDeclSet5 <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryAuthor) cachedDeclSet4 doctree dtn
+  cachedDeclSet5 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryAuthor) cachedDeclSet4 doctree dtn
 
   let cachedDeclSet6 = declarationsSetAppend' cachedDeclSet5 (mainDeclSet styleNode)
 
-  cachedDeclSet7 <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryAuthorImportant) cachedDeclSet6 doctree dtn
+  cachedDeclSet7 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryAuthorImportant) cachedDeclSet6 doctree dtn
 
   let cachedDeclSet8 = declarationsSetAppend' cachedDeclSet7 (importantDeclSet styleNode)
 
-  cachedDeclSet9 <- cssStyleSheetApplyStyleSheet (getSheet context CssPrimaryUserImportant) cachedDeclSet8 doctree dtn
+  cachedDeclSet9 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserImportant) cachedDeclSet8 doctree dtn
 
   return cachedDeclSet9
 

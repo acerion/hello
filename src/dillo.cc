@@ -391,6 +391,13 @@ int main(int argc, char **argv)
 
    roundInt_test();
 
+   /*
+     Remove file used for debug purposes by previous session of the program.
+     Haskell code writing to the file can only append to the file, it can't
+     manage it too well.
+   */
+   unlink("/tmp/hello_browser_matching_rules_debug.txt");
+
    uint_t opt_id;
    uint_t options_got = 0;
    uint32_t xid = 0;

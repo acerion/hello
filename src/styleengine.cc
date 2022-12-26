@@ -715,8 +715,8 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
    }
 
    static int i = 0;
-   char path[30] = { 0 };
-   snprintf(path, sizeof (path), "/tmp/hello_context_%03d", i);
+   char path[50] = { 0 };
+   snprintf(path, sizeof (path), "/tmp/hello_browser_context_%03d", i);
    FILE * file = fopen(path, "w");
    i++;
 

@@ -207,6 +207,8 @@ getSomeDeclSet2 ref = if (-1) == ref
 hll_cssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO CInt
 hll_cssContextApplyCssContext cRef cDoctreeRef cDtnNum cMainDeclSetRef cImportantDeclSetRef cNonCssDeclSetRef = do
 
+  fHandle <- openFile "/tmp/hello_browser_matching_rules_debug.txt" AppendMode
+
   let ref  = fromIntegral cRef
   context <- globalContextGet ref
 
@@ -228,12 +230,14 @@ hll_cssContextApplyCssContext cRef cDoctreeRef cDtnNum cMainDeclSetRef cImportan
                                , nonCssDeclSet    = nonCssDeclSetIn
                                }
 
-  (mergedDeclSet, matchCache') <- cssContextApplyCssContext context doctree dtn styleNode
+  (mergedDeclSet, matchCache') <- cssContextApplyCssContext fHandle context doctree dtn styleNode
 
   declSetRef <- globalDeclarationSetPut mergedDeclSet
 
   let context2 = context { matchCache = matchCache' }
   globalContextUpdate ref context2 -- { matchCache = matchCache' }
+
+  hClose fHandle
 
   return . fromIntegral $ declSetRef
 
