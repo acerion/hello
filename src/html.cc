@@ -407,15 +407,17 @@ DilloHtml::DilloHtml(BrowserWindow *p_bw, const DilloUrl *url,
    stack = new misc::SimpleVector <DilloHtmlState> (16);
    stack->increase();
    stack->getRef(0)->parse_mode = DILLO_HTML_PARSE_MODE_INIT;
-   stack->getRef(0)->table_mode = DILLO_HTML_TABLE_MODE_NONE;
-   stack->getRef(0)->table_border_mode = DILLO_HTML_TABLE_BORDER_SEPARATE;
-   stack->getRef(0)->cell_text_align_set = false;
+
+   stack->getRef(0)->table_context.table_mode = DILLO_HTML_TABLE_MODE_NONE;
+   stack->getRef(0)->table_context.table_border_mode = DILLO_HTML_TABLE_BORDER_SEPARATE;
+   stack->getRef(0)->table_context.cell_text_align_set = false;
+   stack->getRef(0)->table_context.table_widget = nullptr;
+
    stack->getRef(0)->display_none = false;
    stack->getRef(0)->list_type = HTML_LIST_NONE;
    stack->getRef(0)->list_number = 0;
    stack->getRef(0)->tag_idx = -1;               /* MUST not be used */
    stack->getRef(0)->textblock = NULL;
-   stack->getRef(0)->table = NULL;
    stack->getRef(0)->ref_list_item = NULL;
    stack->getRef(0)->hand_over_break = false;
 

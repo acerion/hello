@@ -8,6 +8,7 @@
 #include "dw/core.hh"
 #include "dw/image.hh"
 #include "dw/style.hh"
+#include "dw/table.hh"
 
 #include "image.hh"
 
@@ -97,11 +98,18 @@ typedef struct {
    DilloImage *image;
 } DilloHtmlImage;
 
+
 typedef struct {
-   DilloHtmlParseMode parse_mode;
    DilloHtmlTableMode table_mode;
    DilloHtmlTableBorderMode table_border_mode;
    bool cell_text_align_set;
+
+   dw::Table * table_widget;
+} TableContext;
+
+typedef struct {
+   TableContext table_context;
+   DilloHtmlParseMode parse_mode;
    bool display_none;
    DilloHtmlListMode list_type;
    int list_number;
@@ -109,7 +117,7 @@ typedef struct {
    /* TagInfo index for the tag that's being processed */
    int tag_idx;
 
-   dw::core::Widget *textblock, *table;
+   dw::core::Widget *textblock;
 
    /* This is used to align list items (especially in enumerated lists) */
    dw::core::Widget *ref_list_item;
