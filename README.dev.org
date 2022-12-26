@@ -1,0 +1,15 @@
+* git
+
+** Tagging of releases
+
+Use annotated tags.
+
+Create new tag:
+    git tag -a v0.3.0
+
+Push tag to remote:
+    git push origin --tags
+
+List current tags:
+    git tag
+
