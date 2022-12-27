@@ -65,6 +65,9 @@ module Hello.Css.Parser.Rule
   , parseImportantNotPresent
   , parseImportant
   , parserImportant
+
+  , readDeclarationsBlock
+  , readDeclarationsBlockWithError
   )
 where
 
@@ -564,6 +567,17 @@ consumeRestOfDeclaration (parser, _)                     = consumeRestOfDeclarat
 
 
 
+-- Consume input until end of {} block is encountered.
+-- To be called when handling errors during parsing of {} block.
+consumeRestOfCurlyBlock pair@(_, CssTokEnd)             = pair
+consumeRestOfCurlyBlock (parser, CssTokBraceCurlyClose) =
+    -- Since we are leaving the block, set inBlock flag accordingly.
+  nextToken parser { inBlock = False }
+consumeRestOfCurlyBlock (parser, _)                     = consumeRestOfCurlyBlock . nextToken $ parser
+
+
+
+
 {-
 takeAllTokens :: (CssParser, CssToken) -> IO CssParser
 takeAllTokens (parser,token) = do
@@ -700,47 +714,88 @@ getTopCompound rule = chainGetFirstDatum . chain . complexSelector $ rule
 parseStyleRule :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe ([CssCachedComplexSelector], CssDeclarationSet, CssDeclarationSet))
 parseStyleRule pat = case readSelectorList pat of
                        (pat', Nothing)           -> (pat', Nothing)
-                       (pat', Just selectorList) -> case readDeclarations pat' of
+                       (pat', Just selectorList) -> case readDeclarationsBlockWithError pat' of
                                                       (pat'', Just (declSet, declSetImp)) -> (pat'', Just (selectorList, declSet, declSetImp))
                                                       (pat'', Nothing)                    -> (pat'', Nothing)
 
 
 
 
-{-
--- Given list of selectors, and given declaration sets (regular and
--- important), for each of the selectors create one rule and add it to
--- context.
+-- Read declarations that are within a {} block.
 --
--- Each rule can have only one selector, so this function works like this:
--- "for each selector create a rule with given selector and some
--- declarations, and put it in appropriate style sheet in the context".
-constructAndAddRules :: CssContext -> [CssCachedComplexSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> CssContext
-constructAndAddRules context []           _       _          _      = context
-constructAndAddRules context selectorList declSet declSetImp origin = updatedContext
-  where
-    updatedContext = cssContextAddRules context rulePairs
-    rulePairs = makeRulePairs selectorList declSet declSetImp origin []
--}
-
-
-readDeclarations :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclarationSets)
-readDeclarations (parser, token) = ((p3, t3), Just declSets)
-  where
-    ((p2, t2), declSets) = case token of
-                             CssTokEnd -> ((parser, token), declSets)
-                             _         -> readDeclarations' (nextToken parser{ inBlock = True }, (defaultCssDeclarationSet, defaultCssDeclarationSet))
-    (p3, t3) = case t2 of
-                 CssTokBraceCurlyClose -> nextToken p2{ inBlock = False }
-                 _                     -> (p2{ inBlock = False }, t2)
-
-
-
-
-readDeclarations' ((parser, token), declSets) =
+-- The function expects some empty/initial/default declaration sets as input.
+--
+-- The function is not dealing with opening or closing brace.
+readDeclarations :: ((CssParser, CssToken), CssDeclarationSets) -> ((CssParser, CssToken), CssDeclarationSets)
+readDeclarations ((parser, token), declSets) =
   case token of
     CssTokEnd             -> ((parser, token), declSets)
     CssTokBraceCurlyClose -> ((parser, token), declSets) -- TODO: this should be (nextToken parser)
                              -- instead of (parser, token): ensure that '}' that is part of "declartions" block
                              -- is handled and consumed, so that the next part of code doesn't have to handle it.
-    _                     -> readDeclarations' (parseDeclarationWrapper (parser, token) declSets)
+    _                     -> readDeclarations (parseDeclarationWrapper (parser, token) declSets)
+
+
+
+
+-- Read a {} block with declarations.
+--
+-- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Tokenizer
+-- :m +Hello.Css.Declaration
+--
+-- readDeclarationsBlock (nextToken $ defaultParser "{} p.v")
+-- readDeclarationsBlock (nextToken $ defaultParser "{color: rgb(0, 100, 0)} p.v")
+-- readDeclarationsBlock (nextToken $ defaultParser " { color:rgb(0, 100, 0) !important} p.v")
+readDeclarationsBlock :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssDeclarationSets)
+readDeclarationsBlock = runParser $ parserOpeningBrace *> parserDeclarations <* parserClosingBrace
+  where
+    parserOpeningBrace :: Parser (CssParser, CssToken) CssToken
+    parserOpeningBrace = Parser $ \ pat ->
+      case runParser parser pat of
+        Just ((p, t), declSet) -> Just ((p { inBlock = True }, t), declSet) -- inBlock = True: we enter {} block.
+        Nothing                -> Nothing
+      where
+        parser = (many parserTokenWhitespace) *> parserTokenBraceCurlyOpen <* (many parserTokenWhitespace)
+
+
+    parserClosingBrace :: Parser (CssParser, CssToken) CssToken
+    parserClosingBrace = Parser $ \ pat ->
+      case runParser parser pat of
+        Just ((p, t), declSet) -> Just ((p { inBlock = False }, t), declSet) -- inBlock = False: we leave {} block.
+        Nothing                -> Nothing
+      where
+        parser = (many parserTokenWhitespace) *> parserTokenBraceCurlyClose <* (many parserTokenWhitespace)
+
+
+    -- Parse all declarations located between '{' and '}'.
+    -- This function appears to never fail: it always returns some Just. This
+    -- is because failure to parse a single declaration in declarations block
+    -- result in skipping just the single declaration. Other declarations in
+    -- the block may still be parsed correctly and be returned in Just.
+    --
+    -- TODO: check if a block with empty list of declarations is valid. If
+    -- this function fails to correctly parse zero declarations, it will
+    -- return empty CssDeclarationSets.
+    parserDeclarations :: Parser (CssParser, CssToken) CssDeclarationSets
+    parserDeclarations = Parser $ \ pat ->
+      case readDeclarations (pat, (defaultCssDeclarationSet, defaultCssDeclarationSet)) of
+        (pat', declSets) -> Just (pat', declSets)
+
+
+
+
+-- Read a {} block with declarations. On success return the declaration sets.
+-- On parse error do a recovery and move parser to end of invalid block.
+--
+-- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Tokenizer
+-- :m +Hello.Css.Declaration
+--
+-- readDeclarationsBlockWithError  (nextToken $ defaultParser " { color:rgb(0, 100, 0) !important } p.now ")   -- success
+-- readDeclarationsBlockWithError  (nextToken $ defaultParser " { color:rgb(0, 100, 0) !importan } p.now ")    -- failure (invalid input)
+readDeclarationsBlockWithError :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclarationSets)
+readDeclarationsBlockWithError pat = case readDeclarationsBlock pat of
+                                       Just (pat', declSets) -> (pat', Just declSets)
+                                       Nothing               -> (consumeRestOfCurlyBlock pat, Nothing)
+
