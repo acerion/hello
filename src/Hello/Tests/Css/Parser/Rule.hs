@@ -46,7 +46,7 @@ data ParseStyleRuleData = ParseStyleRuleData
                                     -- current token.
   , tokenExpected     :: CssToken   -- ^ Expected value of current token
                                     -- after given remainderIn is parsed.
-  , rulePartsExpected :: Maybe ([CssCachedComplexSelector], CssDeclarationSet, CssDeclarationSet) -- ^ Expected output of tested function.
+  , parsedStyleRuleExpected :: Maybe CssParsedStyleRule -- ^ Expected output of tested function.
   } deriving (Show, Eq)
 
 
@@ -64,19 +64,38 @@ data ParseStyleRuleData = ParseStyleRuleData
 parseStyleRuleTestData :: [ParseStyleRuleData]
 parseStyleRuleTestData =
   [
-    -- Just a single valid rule.
-    ParseStyleRuleData { remainderIn       = "body {color: black;background-color: #ffff00; line-height: normal;}"
+    -- Just a single valid rule with single property.
+    ParseStyleRuleData { remainderIn       = "body {color: #003412;background-color: #ffff00; line-height: normal;}"
                        , remainderExpected = ""
                        , tokenExpected     = CssTokEnd
-                       , rulePartsExpected = Just ( [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
-                                                  , defaultCssDeclarationSet { items =
-                                                                               S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0x000000),                          important = False }
-                                                                                          , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
-                                                                                          , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
-                                                                                          ]
-                                                                             }
-                                                  , defaultCssDeclarationSet
-                                                  )
+                       , parsedStyleRuleExpected =
+                           Just CssParsedStyleRule
+                           { prelude = [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
+                           , content = ( defaultCssDeclarationSet { items =
+                                                                      S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0x003412),                          important = False }
+                                                                                 , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
+                                                                                 , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
+                                                                                 ]
+                                                                  }
+                                       , defaultCssDeclarationSet )
+                           }
+                       }
+
+    -- Just a single valid rule with more than one property.
+  , ParseStyleRuleData { remainderIn       = "body {color: #34128c;background-color: #ffff00; line-height: normal;}"
+                       , remainderExpected = ""
+                       , tokenExpected     = CssTokEnd
+                       , parsedStyleRuleExpected =
+                           Just CssParsedStyleRule
+                           { prelude = [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
+                           , content = ( defaultCssDeclarationSet { items =
+                                                                      S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0x34128c),                          important = False }
+                                                                                 , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
+                                                                                 , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
+                                                                                 ]
+                                                                  }
+                                       , defaultCssDeclarationSet )
+                           }
                        }
 
     -- Almost the same valid rule as above, but with minor changes to spaces
@@ -85,32 +104,147 @@ parseStyleRuleTestData =
   , ParseStyleRuleData { remainderIn       = "body{ color:red ; background-color: #ffff00;line-height: normal}"
                        , remainderExpected = ""
                        , tokenExpected     = CssTokEnd
-                       , rulePartsExpected = Just ( [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
-                                                  , defaultCssDeclarationSet { items =
-                                                                               S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xff0000),                          important = False }
-                                                                                          , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
-                                                                                          , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
-                                                                                          ]
-                                                                             }
-                                                  , defaultCssDeclarationSet
-                                                  )
+                       , parsedStyleRuleExpected =
+                           Just CssParsedStyleRule
+                           { prelude = [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
+                           , content = ( defaultCssDeclarationSet { items =
+                                                                      S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xff0000),                          important = False }
+                                                                                 , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
+                                                                                 , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
+                                                                                 ]
+                                                                  }
+                                       , defaultCssDeclarationSet )
+                           }
                        }
 
-    -- Almost the same valid rule as above, but with some string after the
-    -- rule. That string will start to be parsed (the token will appear in
-    -- tokenExpected), and output remainder will be non-empty.
-  , ParseStyleRuleData { remainderIn       = "body{ color:red ; background-color: #ffff00;line-height: normal}h1{color:blue}"
+    -- Almost the same valid rule as above, but with another rule after
+    -- parsed rule. That next rule will start to be parsed (the token will
+    -- appear in tokenExpected), and output remainder will be non-empty.
+  , ParseStyleRuleData { remainderIn       = "body{ color:#4c4c4c ; background-color: #ffff00;line-height: normal}h1{color:blue}"
                        , remainderExpected = "{color:blue}"
                        , tokenExpected     = CssTokIdent "h1"
-                       , rulePartsExpected = Just ( [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
-                                                  , defaultCssDeclarationSet { items =
-                                                                               S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xff0000),                          important = False }
-                                                                                          , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
-                                                                                          , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
-                                                                                          ]
-                                                                             }
-                                                  , defaultCssDeclarationSet
-                                                  )
+                       , parsedStyleRuleExpected =
+                           Just CssParsedStyleRule
+                           { prelude = [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
+                           , content = ( defaultCssDeclarationSet { items =
+                                                                      S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0x4c4c4c),                          important = False }
+                                                                                 , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
+                                                                                 , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
+                                                                                 ]
+                                                                  }
+                                       , defaultCssDeclarationSet )
+                           }
+                       }
+
+    -- The same rules as above, but with changes to spaces and semicolons. The changes result in input that is still valid.
+  , ParseStyleRuleData { remainderIn       = " body { color : #22aa22 ; background-color:#ffff00;line-height: normal ; } h1{color:blue}"
+                       , remainderExpected = "{color:blue}"
+                       , tokenExpected     = CssTokIdent "h1"
+                       , parsedStyleRuleExpected =
+                           Just CssParsedStyleRule
+                           { prelude = [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
+                           , content = ( defaultCssDeclarationSet { items =
+                                                                      S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0x22aa22),                          important = False }
+                                                                                 , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
+                                                                                 , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
+                                                                                 ]
+                                                                  }
+                                       , defaultCssDeclarationSet )
+                           }
+                       }
+
+    -- The same rules as above, but one of properties is marked with
+    -- !important.
+  , ParseStyleRuleData { remainderIn       = " body { color : #ffdd33 !important; background-color:#ffff00;line-height: normal ; } h1{color:blue}"
+                       , remainderExpected = "{color:blue}"
+                       , tokenExpected     = CssTokIdent "h1"
+                       , parsedStyleRuleExpected =
+                           Just CssParsedStyleRule
+                           { prelude = [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
+                           , content = ( defaultCssDeclarationSet { items =
+                                                                      S.fromList [ CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
+                                                                                 , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
+                                                                                 ]
+                                                                  }
+                                       , defaultCssDeclarationSet { items =
+                                                                      S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xffdd33),                          important = True }
+                                                                                 ]
+                                                                  } )
+                           }
+                       }
+
+    -- The same rules as above, but one of properties is marked with
+    -- !important, and there are more valid changes to spaces and semicolons
+  , ParseStyleRuleData { remainderIn       = " body { color : #2a3b3d   !important   ; background-color :     #ffff00    ;     line-height: normal  } h1{color:blue}"
+                       , remainderExpected = "{color:blue}"
+                       , tokenExpected     = CssTokIdent "h1"
+                       , parsedStyleRuleExpected =
+                           Just CssParsedStyleRule
+                           { prelude = [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
+                           , content = ( defaultCssDeclarationSet { items =
+                                                                      S.fromList [ CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
+                                                                                 , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
+                                                                                 ]
+                                                                  }
+                                       , defaultCssDeclarationSet { items =
+                                                                      S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0x2a3b3d),                          important = True }
+                                                                                 ]
+                                                                  } )
+                           }
+                       }
+
+    -- The same rules as above, but !important is mis-spelled, so that
+    -- property is invalid and is rejected. The rest of properties are still
+    -- parsed and accepted.
+  , ParseStyleRuleData { remainderIn       = " body { color : #098765 !import_ant; background-color:#ffff00;line-height: normal ; } h1{color:blue}"
+                       , remainderExpected = "{color:blue}"
+                       , tokenExpected     = CssTokIdent "h1"
+                       , parsedStyleRuleExpected =
+                           Just CssParsedStyleRule
+                           { prelude = [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
+                           , content = ( defaultCssDeclarationSet { items =
+                                                                      S.fromList [ CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
+                                                                                 , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
+                                                                                 ]
+                                                                  }
+                                       , defaultCssDeclarationSet )
+                           }
+                       }
+
+    -- Failure case: missing opening brace. The invalid rule will be skipped.
+  , ParseStyleRuleData { remainderIn       = "body color:#386ccc ; background-color: #ffff00;line-height: normal}h1{color:blue}"
+                       , remainderExpected = "{color:blue}"
+                       , tokenExpected     = CssTokIdent "h1"
+                       , parsedStyleRuleExpected = Nothing
+                       }
+
+    -- Failure case: invalid selector. The invalid rule will be skipped.
+  , ParseStyleRuleData { remainderIn       = "33 {color:#aca3de ; background-color: #ffff00;line-height: normal} h1{color: rgb(0, 255, 0)} h2{color: #001122}"
+                       , remainderExpected = "{color: rgb(0, 255, 0)} h2{color: #001122}"
+                       , tokenExpected     = CssTokIdent "h1"
+                       , parsedStyleRuleExpected = Nothing
+                       }
+
+    -- Failure case: single rule with single property, but the property is
+    -- invalid. Right now the expected result is that parser will output a
+    -- rule, but rule's content (set of declarations) will be empty.
+  , ParseStyleRuleData { remainderIn       = "body {44: black;}"
+                       , remainderExpected = ""
+                       , tokenExpected     = CssTokEnd
+                       , parsedStyleRuleExpected =
+                           Just CssParsedStyleRule
+                           { prelude = [defaultComplexSelector { chain = Last defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} }]
+                           , content = ( defaultCssDeclarationSet
+                                       , defaultCssDeclarationSet )
+                           }
+                       }
+
+    -- Failure case: single rule with single property, but the rule is
+    -- invalid (because of invalid selector). Entire rule is skipped.
+  , ParseStyleRuleData { remainderIn       = "78c {color: black;}"
+                       , remainderExpected = ""
+                       , tokenExpected     = CssTokEnd
+                       , parsedStyleRuleExpected = Nothing
                        }
   ]
 
@@ -121,14 +255,14 @@ parseStyleRuleTestData =
 -- remainder string in a row, for which test failed.
 parseStyleRuleTestFunction :: [ParseStyleRuleData] -> T.Text
 parseStyleRuleTestFunction []     = ""
-parseStyleRuleTestFunction (x:xs) = if rulePartsExpected x /= ruleParts || tokenExpected x /= token' || remainderExpected x /= remainder parser'
-                                    then remainderIn x -- T.pack . show $ ruleParts
+parseStyleRuleTestFunction (x:xs) = if parsedStyleRuleExpected x /= parsedStyleRule || tokenExpected x /= token' || remainderExpected x /= remainder parser'
+                                    then remainderIn x -- T.pack . show $ parsedStyleRule
                                     else parseStyleRuleTestFunction xs
   where
 
     parser = defaultParser . remainderIn $ x
     token  = CssTokNone
-    ((parser', token'), ruleParts) = parseStyleRule (parser, token)
+    ((parser', token'), parsedStyleRule) = parseStyleRule (parser, token)
 
 
 

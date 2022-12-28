@@ -347,34 +347,34 @@ increaseMatchCacheSize size context = context { matchCache = matchCacheIncreaseT
 
 
 
-makeRulePairs :: [CssCachedComplexSelector] -> CssDeclarationSet -> CssDeclarationSet -> CssOrigin -> [(CssRule, CssSheetSelector)] -> [(CssRule, CssSheetSelector)]
-makeRulePairs []     _       _          _      acc = reverse acc
-makeRulePairs (x:xs) declSet declSetImp origin acc =
+makeRulePairs :: [CssCachedComplexSelector] -> CssDeclarationSets -> CssOrigin -> [(CssRule, CssSheetSelector)] -> [(CssRule, CssSheetSelector)]
+makeRulePairs []     _        _      acc = reverse acc
+makeRulePairs (x:xs) declSets origin acc =
   -- The case expression is now very complicated, but at least I'm avoiding
   -- the bizarre (Maybe CssRule, CssSheetSelector) type in accumulator and
   -- result.
   case origin of
-    CssOriginUserAgent | addRegular   -> makeRulePairs xs declSet declSetImp origin ((rule, CssPrimaryUserAgent) : acc)
-                       | otherwise    -> makeRulePairs xs declSet declSetImp origin acc
-    CssOriginUser      | addBoth      -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryUserImportant) : (rule, CssPrimaryUser) : acc)
-                       | addRegular   -> makeRulePairs xs declSet declSetImp origin ((rule, CssPrimaryUser) : acc)
-                       | addImportant -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryUserImportant) : acc)
-                       | otherwise    -> makeRulePairs xs declSet declSetImp origin acc
-    CssOriginAuthor    | addBoth      -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryAuthorImportant) : (rule, CssPrimaryAuthor) : acc)
-                       | addRegular   -> makeRulePairs xs declSet declSetImp origin ((rule, CssPrimaryAuthor) : acc)
-                       | addImportant -> makeRulePairs xs declSet declSetImp origin ((ruleImp, CssPrimaryAuthorImportant) : acc)
-                       | otherwise    -> makeRulePairs xs declSet declSetImp origin acc
+    CssOriginUserAgent | addRegular   -> makeRulePairs xs declSets origin ((rule, CssPrimaryUserAgent) : acc)
+                       | otherwise    -> makeRulePairs xs declSets origin acc
+    CssOriginUser      | addBoth      -> makeRulePairs xs declSets origin ((ruleImp, CssPrimaryUserImportant) : (rule, CssPrimaryUser) : acc)
+                       | addRegular   -> makeRulePairs xs declSets origin ((rule, CssPrimaryUser) : acc)
+                       | addImportant -> makeRulePairs xs declSets origin ((ruleImp, CssPrimaryUserImportant) : acc)
+                       | otherwise    -> makeRulePairs xs declSets origin acc
+    CssOriginAuthor    | addBoth      -> makeRulePairs xs declSets origin ((ruleImp, CssPrimaryAuthorImportant) : (rule, CssPrimaryAuthor) : acc)
+                       | addRegular   -> makeRulePairs xs declSets origin ((rule, CssPrimaryAuthor) : acc)
+                       | addImportant -> makeRulePairs xs declSets origin ((ruleImp, CssPrimaryAuthorImportant) : acc)
+                       | otherwise    -> makeRulePairs xs declSets origin acc
 
-  where rule    = ruleCtor x declSet
-        ruleImp = ruleCtor x declSetImp
+  where rule    = ruleCtor x (fst declSets)
+        ruleImp = ruleCtor x (snd declSets)
         ruleCtor cplxSel decls = CssRule { complexSelector = cplxSel
                                          , declarationSet  = decls
                                          , specificity     = selectorSpecificity . chain $ cplxSel
                                          , position        = 0 -- Position of a rule will be set at the moment of inserting the rule to CSS context
                                          }
-        addRegular   = not . S.null . items $ declSet     -- Should add a regular rule to accumulator?
-        addImportant = not . S.null . items $ declSetImp  -- Should add an important rule to accumulator?
-        addBoth      = addRegular && addImportant         -- Should add both regular and imporant rules to accumulator?
+        addRegular   = not . S.null . items . fst $ declSets  -- Should add a regular rule to accumulator?
+        addImportant = not . S.null . items . snd $ declSets  -- Should add an important rule to accumulator?
+        addBoth      = addRegular && addImportant             -- Should add both regular and imporant rules to accumulator?
 
 
 
@@ -384,10 +384,10 @@ makeRulePairs (x:xs) declSet declSetImp origin acc =
 
 rulesetToRulesWithOrigin :: (CssParser, CssToken) -> ((CssParser, CssToken), [(CssRule, CssSheetSelector)])
 rulesetToRulesWithOrigin (parser, token) = case parseStyleRule (parser, token) of
-                                             (pat', Nothing)                                  -> (pat', [])
-                                             (pat', Just (selectorList, declSet, declSetImp)) -> (pat', rulesWithOrigin)
+                                             (pat', Nothing)        -> (pat', [])
+                                             (pat', Just parsedStyleRule) -> (pat', rulesWithOrigin)
                                                where
-                                                 rulesWithOrigin = makeRulePairs selectorList declSet declSetImp (cssOrigin parser) []
+                                                 rulesWithOrigin = makeRulePairs (prelude parsedStyleRule) (content parsedStyleRule) (cssOrigin parser) []
 
 
 

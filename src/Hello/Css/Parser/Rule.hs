@@ -54,9 +54,11 @@ module Hello.Css.Parser.Rule
   , declarationsSetUpdateOrAdd
   , declarationsSetAppend
   , CssDeclarationSet (..)
+  , CssDeclarationSets
   , defaultCssDeclarationSet
 
   , CssRule (..)
+  , CssParsedStyleRule (..)
   , parseStyleRule
 
   , getTopCompound
@@ -571,8 +573,12 @@ consumeRestOfDeclaration (parser, _)                     = consumeRestOfDeclarat
 -- To be called when handling errors during parsing of {} block.
 consumeRestOfCurlyBlock pair@(_, CssTokEnd)             = pair
 consumeRestOfCurlyBlock (parser, CssTokBraceCurlyClose) =
-    -- Since we are leaving the block, set inBlock flag accordingly.
-  nextToken parser { inBlock = False }
+  -- Don't forget to consume the spaces after closing } too.
+  -- Since we are leaving the block, set inBlock flag accordingly.
+  consumeFinalSpaces . nextToken $ parser { inBlock = False }
+  where
+    consumeFinalSpaces (p, CssTokWS) = consumeFinalSpaces . nextToken $ p
+    consumeFinalSpaces pat = pat
 consumeRestOfCurlyBlock (parser, _)                     = consumeRestOfCurlyBlock . nextToken $ parser
 
 
@@ -698,6 +704,27 @@ getTopCompound rule = chainGetFirstDatum . chain . complexSelector $ rule
 
 
 
+
+-- A helper data type
+--
+-- https://www.w3.org/TR/css-syntax-3/#style-rules
+--
+-- "A style rule is a qualified rule that associates a selector list with a
+-- list of property declarations and possibly a list of nested rules."
+data CssParsedStyleRule = CssParsedStyleRule
+  { -- "The prelude of the qualified rule is parsed as a <selector-list>. If
+    -- this returns failure, the entire style rule is invalid."
+    prelude :: [CssCachedComplexSelector]
+
+    -- "The content of the qualified rule’s block is parsed as a style
+    -- block’s contents."
+  , content :: CssDeclarationSets
+  } deriving (Show, Eq)
+
+
+
+
+
 -- https://www.w3.org/TR/css-syntax-3/#style-rules
 -- https://www.w3.org/TR/css-syntax-3/#qualified-rule
 -- https://www.w3.org/TR/CSS22/syndata.html#rule-sets
@@ -710,13 +737,19 @@ getTopCompound rule = chainGetFirstDatum . chain . complexSelector $ rule
 -- list invalidates entire style rule. But a single invalid property doesn't
 -- invalidate the entire rule.
 --
+-- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Tokenizer
+-- :m +Hello.Css.Declaration
+--
+-- parseStyleRule (nextToken $ defaultParser "body {color:red ; background-color: #ffff00;line-height: normal h1{color:blue} h2{color: #001122} h3 {color : #998877;}")
+--
 -- Unit-tested: yes
-parseStyleRule :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe ([CssCachedComplexSelector], CssDeclarationSet, CssDeclarationSet))
+parseStyleRule :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssParsedStyleRule)
 parseStyleRule pat = case readSelectorList pat of
                        (pat', Nothing)           -> (pat', Nothing)
                        (pat', Just selectorList) -> case readDeclarationsBlockWithError pat' of
-                                                      (pat'', Just (declSet, declSetImp)) -> (pat'', Just (selectorList, declSet, declSetImp))
-                                                      (pat'', Nothing)                    -> (pat'', Nothing)
+                                                      (pat'', Just declSets) -> (pat'', Just $ CssParsedStyleRule selectorList declSets)
+                                                      (pat'', Nothing)       -> (pat'', Nothing)
 
 
 
