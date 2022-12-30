@@ -243,6 +243,10 @@ type CssPropertyParser = MyParser (CssParser, CssToken) CssProperty
 -- descriptor name with a value. Syntactically, a declaration has a name, a
 -- value consisting of a list of component values, and an important flag
 -- which is initially unset."
+--
+-- Also https://www.w3.org/TR/css-syntax-3/#syntax-description: "Declarations
+-- are separated by semicolons." (this is useful to know when parsing a
+-- declaration).
 data CssDeclaration = CssDeclaration
   { property  :: CssProperty
   , important :: Bool

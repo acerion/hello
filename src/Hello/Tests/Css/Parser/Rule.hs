@@ -35,6 +35,226 @@ import Hello.Html.Tag
 
 
 
+{- -------------------------------------------------------------------------- -}
+
+
+
+
+data ReadDeclarationsData = ReadDeclarationsData
+  { remainderInDs       :: T.Text     -- ^ Input remainder to be parsed and
+                                      -- turned into a set of declarations.
+  , remainderExpectedDs :: T.Text     -- ^ What should left in remainder
+                                      -- after all tokens of a declarations
+                                      -- are taken (remember that first token
+                                      -- from past-declarations string will
+                                      -- be taken as current token.
+  , tokenExpectedDs     :: CssToken   -- ^ Expected value of current token
+                                      -- after given remainderIn is parsed.
+  , expectedDeclSets   :: CssDeclarationSets -- ^ Expected output of tested function.
+  } deriving (Show, Eq)
+
+
+
+
+
+readDeclarationsTestData :: [ReadDeclarationsData]
+readDeclarationsTestData =
+  [
+    -- Single declaration. No spaces or semicolons at beginning/end of declaration.
+    ReadDeclarationsData { remainderInDs       = "color: #abab30}"
+                         , remainderExpectedDs = ""
+                         , tokenExpectedDs     = CssTokBraceCurlyClose
+                         , expectedDeclSets    =
+                             ( defaultCssDeclarationSet { items =
+                                                            S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xabab30), important = False }
+                                                                       ]
+                                                        }
+                             , defaultCssDeclarationSet )
+                         }
+
+    -- Single declaration. Spaces before and after declaration.
+    -- Tested function can consume these spaces in both places.
+  , ReadDeclarationsData { remainderInDs       = "  \t \n\t color: #abab31\n\n\t}"
+                         , remainderExpectedDs = ""
+                         , tokenExpectedDs     = CssTokBraceCurlyClose
+                         , expectedDeclSets    =
+                             ( defaultCssDeclarationSet { items =
+                                                            S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xabab31), important = False }
+                                                                       ]
+                                                        }
+                             , defaultCssDeclarationSet )
+                         }
+
+    -- Single declaration. Spaces and semicolons (multiple) at the beginning of declartion.
+    -- Tested function can consume spaces + semicolons at front of declaration.
+  , ReadDeclarationsData { remainderInDs       = "  ;\t ;\n;\t ;;color: #abab32}"
+                         , remainderExpectedDs = ""
+                         , tokenExpectedDs     = CssTokBraceCurlyClose
+                         , expectedDeclSets    =
+                             ( defaultCssDeclarationSet { items =
+                                                            S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xabab32), important = False }
+                                                                       ]
+                                                        }
+                             , defaultCssDeclarationSet )
+                         }
+
+    -- Single declaration. Multiple spaces + semicolons at the end. Tested
+    -- function can consume multiple spaces + semicolons between
+    -- declarations. The function will recognize them as something standing
+    -- before second declaration, but the second declaration will be invalid
+    -- and the 2nd declaration will be dropped.
+  , ReadDeclarationsData { remainderInDs       = "color: #abab33\n\n\t;;;}"
+                         , remainderExpectedDs = ""
+                         , tokenExpectedDs     = CssTokBraceCurlyClose
+                         , expectedDeclSets    =
+                             ( defaultCssDeclarationSet { items =
+                                                            S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xabab33), important = False }
+                                                                       ]
+                                                        }
+                             , defaultCssDeclarationSet )
+                         }
+
+    -- Two declarations. Multiple spaces + semicolons between them. Tested
+    -- function can consume multiple spaces + semicolons - the function will
+    -- recognize them as something standing before second declaration.
+  , ReadDeclarationsData { remainderInDs       = "color: #abab34\n\n\t;;; \t background-color: #0f0f0f}"
+                         , remainderExpectedDs = ""
+                         , tokenExpectedDs     = CssTokBraceCurlyClose
+                         , expectedDeclSets    =
+                             ( defaultCssDeclarationSet { items =
+                                                            S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xabab34),                          important = False }
+                                                                       , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0x0f0f0f), important = False }
+                                                                       ]
+                                                        }
+                             , defaultCssDeclarationSet )
+                         }
+
+    -- Three declarations. Multiple spaces + semicolons between them. Tested
+    -- function can consume multiple spaces + semicolons - the function will
+    -- recognize them as something standing before a declaration.
+  , ReadDeclarationsData { remainderInDs       = "color: #abab35\n\n\t;;; \t background-color: #0f0f0f \t\t;; \t \n; ; line-height: normal;}"
+                         , remainderExpectedDs = ""
+                         , tokenExpectedDs     = CssTokBraceCurlyClose
+                         , expectedDeclSets    =
+                             ( defaultCssDeclarationSet { items =
+                                                            S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xabab35),                          important = False }
+                                                                       , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0x0f0f0f), important = False }
+                                                                       , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
+                                                                       ]
+                                                        }
+                             , defaultCssDeclarationSet )
+                         }
+
+    -- Three declarations. Multiple spaces + semicolons between them. Tested
+    -- function can consume multiple spaces + semicolons - the function will
+    -- recognize them as something standing before a declaration.
+    --
+    -- This time with "!important".
+  , ReadDeclarationsData { remainderInDs       = "color: #abab36\n\n!important\t;;; \t background-color: #0f0f0f !important\t\t;; \t \n; ; line-height: normal !important;}"
+                         , remainderExpectedDs = ""
+                         , tokenExpectedDs     = CssTokBraceCurlyClose
+                         , expectedDeclSets    =
+                             ( defaultCssDeclarationSet
+                             , defaultCssDeclarationSet { items =
+                                                            S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xabab36),                          important = True }
+                                                                       , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0x0f0f0f), important = True }
+                                                                       , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = True }
+                                                                       ]
+                                                        }
+                             )
+                         }
+
+
+    -- Failure case
+    --
+    -- Three declarations. First of them is invalid (invalid property name).
+    -- Rest of them gets parsed correctly.
+  , ReadDeclarationsData { remainderInDs       = "3color: #abab37\n\n!important\t;;; \t background-color: #0f0f0f !important\t\t;; \t \n; ; line-height: normal !important\t ; \n}"
+                         , remainderExpectedDs = ""
+                         , tokenExpectedDs     = CssTokBraceCurlyClose
+                         , expectedDeclSets    =
+                             ( defaultCssDeclarationSet
+                             , defaultCssDeclarationSet { items =
+                                                            S.fromList [ CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0x0f0f0f), important = True }
+                                                                       , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = True }
+                                                                       ]
+                                                        }
+                             )
+                         }
+
+    -- Failure case
+    --
+    -- Three declarations. Second of them is invalid (invalid property name).
+    -- Rest of them gets parsed correctly.
+  , ReadDeclarationsData { remainderInDs       = "color: #abab38\n\n!important\t;;; \t 4background-color: #0f0f0f !important\t\t;; \t \n; ; line-height: normal !important\t ; \n}"
+                         , remainderExpectedDs = ""
+                         , tokenExpectedDs     = CssTokBraceCurlyClose
+                         , expectedDeclSets    =
+                             ( defaultCssDeclarationSet
+                             , defaultCssDeclarationSet { items =
+                                                            S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xabab38),                          important = True }
+                                                                       , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = True }
+                                                                       ]
+                                                        }
+                             )
+                         }
+
+    -- Failure case
+    --
+    -- Three declarations. Third of them is invalid (invalid property name).
+    -- Rest of them gets parsed correctly.
+  , ReadDeclarationsData { remainderInDs       = "color: #abab39\n\n!important\t;;; \t background-color: #0f0f0f !important\t\t;; \t \n; ; 5line-height: normal !important\t ; \n}"
+                         , remainderExpectedDs = ""
+                         , tokenExpectedDs     = CssTokBraceCurlyClose
+                         , expectedDeclSets    =
+                             ( defaultCssDeclarationSet
+                             , defaultCssDeclarationSet { items =
+                                                            S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xabab39),                          important = True }
+                                                                       , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0x0f0f0f), important = True }
+                                                                       ]
+                                                        }
+                             )
+                         }
+
+
+    -- Failure case
+    --
+    -- Three declarations. All three of them are invalid (invalid property
+    -- names).
+  , ReadDeclarationsData { remainderInDs       = "1color: #abab40\n\n!important\t;;; \t 2background-color: #0f0f0f !important\t\t;; \t \n; ; 3line-height: normal !important\t ; \n}"
+                         , remainderExpectedDs = ""
+                         , tokenExpectedDs     = CssTokBraceCurlyClose
+                         , expectedDeclSets    =
+                             ( defaultCssDeclarationSet
+                             , defaultCssDeclarationSet
+                             )
+                         }
+  ]
+
+
+
+
+-- On success return empty string. On failure return string representation of
+-- remainder string in a row, for which test failed.
+readDeclarationsTestFunction :: [ReadDeclarationsData] -> T.Text
+readDeclarationsTestFunction []     = ""
+readDeclarationsTestFunction (x:xs) = if expectedDeclSets x /= parsedDeclSets || tokenExpectedDs x /= token' || remainderExpectedDs x /= remainder parser'
+                                      then T.pack . show . remainderInDs $ x
+                                      else readDeclarationsTestFunction xs
+  where
+    -- The tested function parses contents of {} block, so we have to use here defaultParserInBlock
+    -- nextToken is used to kick-start a parser.
+    pat = nextToken . defaultParserInBlock . remainderInDs $ x
+    ((parser', token'), parsedDeclSets) = readDeclarations (pat, (defaultCssDeclarationSet, defaultCssDeclarationSet))
+
+
+
+
+{- -------------------------------------------------------------------------- -}
+
+
+
+
 data ParseStyleRuleData = ParseStyleRuleData
   { remainderIn       :: T.Text     -- ^ Input remainder to be parsed and
                                     -- turned into CSS rule (into rule's
@@ -52,12 +272,7 @@ data ParseStyleRuleData = ParseStyleRuleData
 
 
 
--- Test of getTopCompound function
---
--- "top compound selector" is the rightmost compound selector in a rule, and data
--- structure representing it is storing it at the end of a list. This test is
--- meant to ensure that even if we change the data structure, the tested
--- function will always return the right compound selector.
+-- Testcases of parseStyleRule function
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
@@ -271,7 +486,8 @@ testCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.
      TestCase (do
-                 assertEqual "manual tests of parseStyleRule" "" (parseStyleRuleTestFunction parseStyleRuleTestData))
+                  assertEqual "manual tests of readDeclarations" "" (readDeclarationsTestFunction readDeclarationsTestData)
+                  assertEqual "manual tests of parseStyleRule" ""   (parseStyleRuleTestFunction parseStyleRuleTestData))
   ]
 
 

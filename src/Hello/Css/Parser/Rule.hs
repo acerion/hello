@@ -44,11 +44,12 @@ module Hello.Css.Parser.Rule
 
   , CssCombinator (..)
 
-  , parseDeclarationWrapper
+  , parseSingleDeclarationWrapper
   , takePropertyName
 
   , parseElementStyleAttribute
   , parseAllDeclarations
+  , readDeclarations
   , parseSingleDeclaration
 
   , declarationsSetUpdateOrAdd
@@ -416,6 +417,10 @@ parseImportantPresent pat = case runParser parser pat of
 
 
 
+-- TODO: a railroad diagram for 'important' suggests that whitespaces are
+-- allowed between these two tokens.
+--
+-- https://www.w3.org/TR/css-syntax-3/#!important-diagram
 parserImportant :: Parser (CssParser, CssToken) CssToken
 parserImportant = (parserTokenDelim '!') *> (parserTokenIdent "important")
 
@@ -510,45 +515,47 @@ takePropertyName state = case runParser (parserTokenIdentAny <* parserTokenColon
 
 
 
-parseDeclaration  :: (CssParser, CssToken) -> PropertyCtor -> Maybe ((CssParser, CssToken), CssDeclaration)
-parseDeclaration pat propCtor = (fmap . fmap) (\ prop -> defaultDeclaration { property = prop }) (propCtor pat)
+-- Parse CSS property into a declaration:
+-- "color: rgb(0, 100, 0)" -> CssDeclaration { property = CssPropertyColor <value>, important = False }
+--
+-- In other words: set 'property' field in returned CssDeclaration.
+--
+-- The input CssDeclaration is ignored.
+parseProperty :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
+parseProperty (pat, _) = case takePropertyName pat of
+                           Nothing           -> Nothing
+                           Just (pat', name) -> case getPropertyCtorByName name of
+                                                  Nothing   -> Nothing
+                                                  Just ctor -> applyCtor ctor pat'
+
+  where
+    applyCtor :: PropertyCtor -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssDeclaration)
+    applyCtor propCtor parserAndToken = (fmap . fmap) (\ prop -> defaultDeclaration { property = prop }) (propCtor parserAndToken)
 
 
 
 
-parseSingleDeclaration' :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssDeclaration)
-parseSingleDeclaration' pat = case takePropertyName pat of
-                                Just (pat', name) -> case getPropertyCtorByName name of
-                                                       Just ctor -> parseDeclaration pat' ctor
-                                                       Nothing   -> Nothing
-                                _ -> Nothing
-
-
-
-
--- The function uses a list in return type for historical reasons. At some
--- point a shorthand CSS property was parsed into list of non-shorthand
--- properties.
+-- Consume and parse a declaration, from name of property unitl and including
+-- white spaces after value and after potential "!important". Per CSS3 syntax
+-- the semincolon(s) or '}' brace after that are not touched.
+--
+-- https://www.w3.org/TR/css-syntax-3/#consume-declaration
+-- https://www.w3.org/TR/css-syntax-3/#parse-declaration
 parseSingleDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 parseSingleDeclaration pat =
-  case parseSingleDeclaration2 (pat, defaultDeclaration) >>= parseImportant of
-    Just (pat', declaration) -> (consumeRestOfDeclaration pat', Just declaration)
-    Nothing                  -> (consumeRestOfDeclaration pat, Nothing)
+  -- HASKELL FEATURE: BIND
+  case parseDeclarationStart (pat, defaultDeclaration) >>= parseProperty >>= parseImportant >>= parseDeclarationEnd of
+    Just (pat', declaration) -> (pat', Just declaration)
+    Nothing                  -> (seekEndOfDeclaration pat, Nothing)
 
 
 
 
-parseSingleDeclaration2 :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
-parseSingleDeclaration2 (pat, _) = parseSingleDeclaration' pat
-
-
-
-
-parseDeclarationWrapper :: (CssParser, CssToken) -> CssDeclarationSets -> ((CssParser, CssToken), CssDeclarationSets)
-parseDeclarationWrapper pat inSets = (pat', outSets)
+parseSingleDeclarationWrapper :: ((CssParser, CssToken), CssDeclarationSets) -> ((CssParser, CssToken), CssDeclarationSets)
+parseSingleDeclarationWrapper (pat, declSets) = (pat', declSets')
   where
-    (pat', declarations) = parseSingleDeclaration pat
-    outSets = appendDeclaration declarations inSets
+    (pat', declaration) = parseSingleDeclaration pat
+    declSets' = appendDeclaration declaration declSets
 
     appendDeclaration :: Maybe CssDeclaration -> CssDeclarationSets -> CssDeclarationSets
     appendDeclaration Nothing sets = sets
@@ -559,12 +566,74 @@ parseDeclarationWrapper pat inSets = (pat', outSets)
 
 
 
--- Find end of current declaration (probably needed only if something goes
--- wrong during parsign of current declaration).
-consumeRestOfDeclaration pair@(_, CssTokEnd)             = pair
-consumeRestOfDeclaration pair@(_, CssTokBraceCurlyClose) = pair -- '}' is not a part of declaration, so don't go past it. Return '}' as current token.
-consumeRestOfDeclaration (parser, CssTokSemicolon)       = nextToken parser
-consumeRestOfDeclaration (parser, _)                     = consumeRestOfDeclaration . nextToken $ parser
+
+-- Consume spaces AND semicolonS from beginning of declaration.
+--
+-- https://www.w3.org/TR/css-syntax-3/#consume-style-block
+-- This place instructs to "do nothing" with initial whitespaces and semicolons. Just ignore them.
+--
+-- Also https://www.w3.org/TR/css-syntax-3/#consume-list-of-declarations
+-- treats initial whitespaces as semicolons as something to be ignored.
+--
+-- A semicolon isn't treaded by spec as part of a declaration, but as a separator between declarations:
+-- https://www.w3.org/TR/css-syntax-3/#syntax-description: "Declarations are separated by semicolons.".
+--
+-- This function makes sure that the semicolons separating the declarations
+-- are handled properly. Unfortunately the final semicolon after the last
+-- declaration will be consumed by seekEndOfDeclaration :(
+--
+-- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Tokenizer
+-- :m +Hello.Css.Declaration
+-- parseDeclarationStart ((nextToken . defaultParser $ " ; color: red"), defaultDeclaration)
+-- parseDeclarationStart ((nextToken . defaultParser $ "  color: red"), defaultDeclaration)
+-- parseDeclarationStart ((nextToken . defaultParserInBlock $ "   ; color: red"), defaultDeclaration)
+-- parseDeclarationStart ((nextToken . defaultParser $ "    } a.prop >"), defaultDeclaration)
+parseDeclarationStart :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
+parseDeclarationStart (pat, decl) = case runParser (many (parserTokenWhitespace <|> parserTokenSemicolon)) pat of
+                                      Just (pat', _) -> Just (pat', decl)    -- Some space tokens have been consumed.
+                                      Nothing        -> Just (pat, decl)     -- No space tokens were consumed.
+
+
+
+
+
+-- Consume spaces from end of declaration.
+--
+-- https://www.w3.org/TR/css-syntax-3/#consume-declaration:
+-- "6. While the last token in the declaration’s value is a <whitespace-token>, remove that token."
+--
+-- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Tokenizer
+-- :m +Hello.Css.Declaration
+-- parseDeclarationEnd ((nextToken . defaultParser $ " ; color: red"), defaultDeclaration)
+-- parseDeclarationEnd ((nextToken . defaultParser $ "  color: red"), defaultDeclaration)
+-- parseDeclarationEnd ((nextToken . defaultParserInBlock $ "   ; color: red"), defaultDeclaration)
+-- parseDeclarationEnd ((nextToken . defaultParser $ "    } a.prop >"), defaultDeclaration)
+parseDeclarationEnd :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
+parseDeclarationEnd (pat, decl) = case runParser (many parserTokenWhitespace) pat of
+                                    Just (pat', _) -> Just (pat', decl)    -- Some space tokens have been consumed.
+                                    Nothing        -> Just (pat, decl)     -- No space tokens were consumed.
+
+
+
+
+-- Find end of current declaration. Needed only if something goes wrong
+-- during parsign of current declaration.
+--
+-- https://www.w3.org/TR/css-syntax-3/#error-handling: "When interpreting a
+-- list of declarations, unknown syntax at any point causes the parser to
+-- throw away whatever declaration it’s currently building, and seek forward
+-- until it finds a semicolon (or the end of the block). It then starts
+-- fresh, trying to parse a declaration again."
+seekEndOfDeclaration pair@(_, CssTokEnd)             = pair
+seekEndOfDeclaration pair@(_, CssTokBraceCurlyClose) = pair -- '}' is not a
+ -- part of declaration, so don't go past it. Return '}' as current token.
+ -- strictly speaking ';' is not part of declaration - it separates
+ -- declarations, but to properly finalize seek on error let's consume ';'
+ -- too. TODO: evaluate if this is a good idea.
+seekEndOfDeclaration (parser, CssTokSemicolon)       = nextToken parser
+seekEndOfDeclaration (parser, _)                     = seekEndOfDeclaration . nextToken $ parser
 
 
 
@@ -670,14 +739,24 @@ parseElementStyleAttribute _baseUrl cssStyleAttribute declSets = declSets'
                       }
 
 
+
+
 type CssDeclarationSets = (CssDeclarationSet, CssDeclarationSet)
 
 
 
+
+-- TODO: this looks like a duplicate of readDeclarations.
+--
+-- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Tokenizer
+-- :m +Hello.Css.Declaration
+--
+-- parseAllDeclarations  (nextToken . defaultParserInBlock $ "border-top-color: #000001; border-right-color: #000002; border-bottom-color: #000003 !important; border-left-color: #000004;", (defaultCssDeclarationSet, defaultCssDeclarationSet))
 parseAllDeclarations :: ((CssParser, CssToken), CssDeclarationSets) -> ((CssParser, CssToken), CssDeclarationSets)
-parseAllDeclarations ((p1, t1), declSets) | t1 == CssTokEnd             = ((p1, t1), declSets)
-                                          | t1 == CssTokBraceCurlyClose = ((p1, t1), declSets)
-                                          | otherwise = parseAllDeclarations (parseDeclarationWrapper (p1, t1) declSets)
+parseAllDeclarations input@((_, CssTokEnd), _)             = input
+parseAllDeclarations input@((_, CssTokBraceCurlyClose), _) = input
+parseAllDeclarations input                                 = parseAllDeclarations . parseSingleDeclarationWrapper $ input
 
 
 
@@ -724,7 +803,6 @@ data CssParsedStyleRule = CssParsedStyleRule
 
 
 
-
 -- https://www.w3.org/TR/css-syntax-3/#style-rules
 -- https://www.w3.org/TR/css-syntax-3/#qualified-rule
 -- https://www.w3.org/TR/CSS22/syndata.html#rule-sets
@@ -759,14 +837,21 @@ parseStyleRule pat = case readSelectorList pat of
 -- The function expects some empty/initial/default declaration sets as input.
 --
 -- The function is not dealing with opening or closing brace.
+--
+-- TODO: this looks like a duplicate of parseAllDeclarations
+--
+-- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Tokenizer
+-- :m +Hello.Css.Declaration
+-- readDeclarations (nextToken . defaultParserInBlock $ "border-top-color: #000001; border-right-color: #000002; border-bottom-color: #000003 !important; border-left-color: #000004", (defaultCssDeclarationSet, defaultCssDeclarationSet))
+--
+-- Unit-tested: yes
 readDeclarations :: ((CssParser, CssToken), CssDeclarationSets) -> ((CssParser, CssToken), CssDeclarationSets)
-readDeclarations ((parser, token), declSets) =
+readDeclarations input@((_, token), _) =
   case token of
-    CssTokEnd             -> ((parser, token), declSets)
-    CssTokBraceCurlyClose -> ((parser, token), declSets) -- TODO: this should be (nextToken parser)
-                             -- instead of (parser, token): ensure that '}' that is part of "declartions" block
-                             -- is handled and consumed, so that the next part of code doesn't have to handle it.
-    _                     -> readDeclarations (parseDeclarationWrapper (parser, token) declSets)
+    CssTokEnd             -> input
+    CssTokBraceCurlyClose -> input
+    _                     -> readDeclarations . parseSingleDeclarationWrapper $ input
 
 
 
