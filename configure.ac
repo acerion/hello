@@ -26,7 +26,7 @@ AC_ARG_ENABLE(gprof,  [  --enable-gprof          Try to compile and run with pro
 AC_ARG_ENABLE(insure, [  --enable-insure         Try to compile and run with Insure++],
                     , enable_insure=no)
 AC_ARG_ENABLE(ssl,    [  --enable-ssl            Enable ssl, https (ALPHA CODE)],
-                    , enable_ssl=no)
+                    , enable_ssl=yes)
 AC_ARG_ENABLE(ipv6,   [  --enable-ipv6           Build with support for IPv6], , )
 AC_ARG_ENABLE(cookies,[  --disable-cookies       Don't compile support for cookies],
                     , enable_cookies=yes)

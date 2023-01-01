@@ -3375,7 +3375,7 @@ fi
 if test "${enable_ssl+set}" = set; then :
   enableval=$enable_ssl;
 else
-  enable_ssl=no
+  enable_ssl=yes
 fi
 
 # Check whether --enable-ipv6 was given.
