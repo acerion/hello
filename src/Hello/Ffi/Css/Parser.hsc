@@ -196,7 +196,7 @@ peekCssToken ptrStructCssToken = do
 
 
 -- Set fields in pointer to struct passed from C code.
-pokeCssToken :: Ptr FfiCssToken-> CssToken -> IO ()
+pokeCssToken :: Ptr FfiCssToken -> CssToken -> IO ()
 pokeCssToken ptrStructCssToken token = do
   s <- cstr token
   poke ptrStructCssToken $ FfiCssToken (getTokenType token) s
@@ -216,7 +216,8 @@ getTokenType (CssTokBraceSquareClose) = 7
 getTokenType (CssTokHash CssHashUn _) = 8
 getTokenType (CssTokHash CssHashId _) = 9
 getTokenType (CssTokAtKeyword _)      = 10
-getTokenType _                        = 11
+getTokenType CssTokWS                 = 11
+getTokenType _                        = 12
 
 
 
@@ -232,6 +233,7 @@ getTokenADT tokType tokValue | tokType ==  0 = CssTokIdent tokValue
                              | tokType ==  8 = CssTokHash CssHashUn tokValue
                              | tokType ==  9 = CssTokHash CssHashId tokValue
                              | tokType == 10 = CssTokAtKeyword tokValue
+                             | tokType == 11 = CssTokWS
                              | otherwise     = trace ("[EE] Unhandled token type " ++ (show tokType)) (CssTokNone)
 
 
