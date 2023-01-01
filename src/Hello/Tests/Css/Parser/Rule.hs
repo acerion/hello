@@ -43,7 +43,7 @@ import Hello.Html.Tag
 data ReadDeclarationsData = ReadDeclarationsData
   { remainderInDs       :: T.Text     -- ^ Input remainder to be parsed and
                                       -- turned into a set of declarations.
-  , remainderExpectedDs :: T.Text     -- ^ What should left in remainder
+  , remainderExpectedDs :: T.Text     -- ^ What should be left in remainder
                                       -- after all tokens of a declarations
                                       -- are taken (remember that first token
                                       -- from past-declarations string will
@@ -259,8 +259,8 @@ data ParseStyleRuleData = ParseStyleRuleData
   { remainderIn       :: T.Text     -- ^ Input remainder to be parsed and
                                     -- turned into CSS rule (into rule's
                                     -- ingredients).
-  , remainderExpected :: T.Text     -- ^ What should left in remainder after
-                                    -- all tokens of a rule are taken
+  , remainderExpected :: T.Text     -- ^ What should be left in remainder
+                                    -- after all tokens of a rule are taken
                                     -- (remember that first token from
                                     -- past-rule string will be taken as
                                     -- current token.

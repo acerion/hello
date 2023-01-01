@@ -71,6 +71,9 @@ module Hello.Css.Parser.Rule
 
   , readDeclarationsBlock
   , readDeclarationsBlockWithError
+
+  -- Exported only for tests
+  , parseProperty
   )
 where
 
@@ -519,18 +522,20 @@ takePropertyName state = case runParser (parserTokenIdentAny <* parserTokenColon
 -- "color: rgb(0, 100, 0)" -> CssDeclaration { property = CssPropertyColor <value>, important = False }
 --
 -- In other words: set 'property' field in returned CssDeclaration.
+-- This function doesn't parse "!important".
 --
 -- The input CssDeclaration is ignored.
+--
+-- The layout of the code is probably BAD, and probably a 'do' notation is
+-- more appropriate here, but I like it this way. And it's way better than
+-- the previous version.
 parseProperty :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
-parseProperty (pat, _) = case takePropertyName pat of
-                           Nothing           -> Nothing
-                           Just (pat', name) -> case getPropertyCtorByName name of
-                                                  Nothing   -> Nothing
-                                                  Just ctor -> applyCtor ctor pat'
+parseProperty (pat, _) = takePropertyName pat
+                         -- HASKELL FEATURE: BIND
+                         >>= (\ (pat', name) -> getPropertyCtorByName name
+                               >>= (\ propertyCtor -> propertyCtor pat'
+                                     >>= (\ (pat'', prop) -> Just (pat'', defaultDeclaration { property = prop }))))
 
-  where
-    applyCtor :: PropertyCtor -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssDeclaration)
-    applyCtor propCtor parserAndToken = (fmap . fmap) (\ prop -> defaultDeclaration { property = prop }) (propCtor parserAndToken)
 
 
 
