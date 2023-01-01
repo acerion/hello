@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2022 Kamil Ignacak acerion@wp.pl
+Copyright (C) 2022-2023 Kamil Ignacak acerion@wp.pl
 
 This file is part of "hello" web browser.
 
