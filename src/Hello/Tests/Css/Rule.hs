@@ -26,7 +26,7 @@ import Test.HUnit
 --import Debug.Trace
 
 import Hello.Css.Tokenizer
-import Hello.Css.Parser.Rule
+import Hello.Css.Parser.Declaration
 import Hello.Css.Parser.Selector
 import Hello.Css.Selector
 import Hello.Html.Tag

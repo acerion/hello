@@ -22,7 +22,7 @@ where
 
 
 import Hello.Chain
-import Hello.Css.Parser.Rule
+import Hello.Css.Parser.Declaration
 import Hello.Css.Selector
 
 

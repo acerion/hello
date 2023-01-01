@@ -48,7 +48,7 @@ import qualified Data.Text.Encoding as T.E
 import Hello.Css.Declaration
 import Hello.Css.DeclarationSetsGlobal
 import Hello.Css.Distance
-import Hello.Css.Parser.Rule
+import Hello.Css.Parser.Declaration
 import Hello.Css.StyleEngine
 --import Hello.Css.UserAgentStyle
 

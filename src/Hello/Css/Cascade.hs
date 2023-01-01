@@ -60,7 +60,7 @@ import qualified Data.Vector as V
 import System.IO
 
 import Hello.Css.MatchCache
-import Hello.Css.Parser.Rule
+import Hello.Css.Parser.Declaration
 import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
 import Hello.Css.SelectorMatch

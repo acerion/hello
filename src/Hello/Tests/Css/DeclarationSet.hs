@@ -29,7 +29,7 @@ import Test.HUnit
 
 import Hello.Css.Declaration
 import Hello.Css.Distance
-import Hello.Css.Parser.Rule
+import Hello.Css.Parser.Declaration
 
 import Hello.Utils
 

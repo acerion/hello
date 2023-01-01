@@ -34,7 +34,7 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 
 
-module Hello.Css.Parser.Rule
+module Hello.Css.Parser.Declaration
   (
     ignoreBlock
   , consumeBlock
@@ -472,7 +472,7 @@ parseImportantNotPresent pat@(_, t) = case runParser parser pat of
 -- ASCII case-insensitive match for "important", remove them from the
 -- declaration’s value and set the declaration’s important flag to true."
 --
--- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
 -- parseImportant ((nextToken . defaultParser $ "!important;"), defaultDeclaration)
@@ -507,7 +507,7 @@ defaultCssDeclarationSet = CssDeclarationSet
 -- "name"). The function confirms that current token is an ident, that it is
 -- followed by colon name, and returns updated parser + the property's name.
 --
--- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- takePropertyName (defaultParserInBlock ": value", CssTokIdent "name")
 takePropertyName :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), T.Text)
@@ -587,7 +587,7 @@ parseSingleDeclarationWrapper (pat, declSets) = (pat', declSets')
 -- are handled properly. Unfortunately the final semicolon after the last
 -- declaration will be consumed by seekEndOfDeclaration :(
 --
--- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
 -- parseDeclarationStart ((nextToken . defaultParser $ " ; color: red"), defaultDeclaration)
@@ -608,7 +608,7 @@ parseDeclarationStart (pat, decl) = case runParser (many (parserTokenWhitespace 
 -- https://www.w3.org/TR/css-syntax-3/#consume-declaration:
 -- "6. While the last token in the declaration’s value is a <whitespace-token>, remove that token."
 --
--- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
 -- parseDeclarationEnd ((nextToken . defaultParser $ " ; color: red"), defaultDeclaration)
@@ -753,7 +753,7 @@ type CssDeclarationSets = (CssDeclarationSet, CssDeclarationSet)
 
 -- TODO: this looks like a duplicate of readDeclarations.
 --
--- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
 --
@@ -820,7 +820,7 @@ data CssParsedStyleRule = CssParsedStyleRule
 -- list invalidates entire style rule. But a single invalid property doesn't
 -- invalidate the entire rule.
 --
--- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
 --
@@ -845,7 +845,7 @@ parseStyleRule pat = case readSelectorList pat of
 --
 -- TODO: this looks like a duplicate of parseAllDeclarations
 --
--- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
 -- readDeclarations (nextToken . defaultParserInBlock $ "border-top-color: #000001; border-right-color: #000002; border-bottom-color: #000003 !important; border-left-color: #000004", (defaultCssDeclarationSet, defaultCssDeclarationSet))
@@ -863,7 +863,7 @@ readDeclarations input@((_, token), _) =
 
 -- Read a {} block with declarations.
 --
--- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
 --
@@ -911,7 +911,7 @@ readDeclarationsBlock = runParser $ parserOpeningBrace *> parserDeclarations <* 
 -- Read a {} block with declarations. On success return the declaration sets.
 -- On parse error do a recovery and move parser to end of invalid block.
 --
--- :m +Hello.Css.Parser.Rule
+-- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
 --
