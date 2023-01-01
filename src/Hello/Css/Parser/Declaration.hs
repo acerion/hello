@@ -337,6 +337,8 @@ takePropertyName state = case runParser (parserTokenIdentAny <* parserTokenColon
 -- The layout of the code is probably BAD, and probably a 'do' notation is
 -- more appropriate here, but I like it this way. And it's way better than
 -- the previous version.
+--
+-- Unit-tested: yes
 parseProperty :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
 parseProperty (pat, _) = takePropertyName pat
                          -- HASKELL FEATURE: BIND
@@ -353,6 +355,8 @@ parseProperty (pat, _) = takePropertyName pat
 --
 -- https://www.w3.org/TR/css-syntax-3/#consume-declaration
 -- https://www.w3.org/TR/css-syntax-3/#parse-declaration
+--
+-- Unit-tested: yes
 parseSingleDeclaration :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclaration)
 parseSingleDeclaration pat =
   -- HASKELL FEATURE: BIND
