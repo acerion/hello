@@ -27,7 +27,6 @@ import Test.HUnit
 
 import Hello.Chain
 import Hello.Css.Tokenizer
-import Hello.Css.Parser.Declaration
 import Hello.Css.Parser.Selector
 import Hello.Css.Selector
 import Hello.Utils

@@ -57,6 +57,7 @@ import Debug.Trace
 
 import Hello.Css.DeclarationSetsGlobal
 import Hello.Css.Parser.Declaration
+import Hello.Css.Parser.Rule
 import Hello.Css.Tokenizer
 
 import Hello.Ffi.Utils
