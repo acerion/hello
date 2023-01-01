@@ -15,6 +15,10 @@ are not the things that I want to focus on right now. My main focus is on
 learning the core language and its features (hopefully more and more advanced
 features). Examples of X and Y are stack/cabal or a parsing library.
 
+A memory may be leaking in FFI code. The boundary between C code and Haskell
+is slowly but constantly shifting, so I'm not paying too much attention to
+lifetime of objects allocated in FFI code.
+
 
 
 
