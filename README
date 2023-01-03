@@ -22,6 +22,12 @@ lifetime of objects allocated in FFI code.
 
 
 
+Quality of SSL in this program is unknown (internally it is described as
+"ALPHA"). Don't rely on quality of SSL in this program.
+
+
+
+
 Currently (January 2023) the project is hosted on GitHub:
 https://github.com/acerion/hello.
 

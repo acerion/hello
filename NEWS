@@ -10,7 +10,7 @@ High-level information about changes and progress of the project.
 
 
 
-2023.XX.XX
+2023.01.XX
 
  - New public release: hello-0.3.0.
 
@@ -19,6 +19,10 @@ High-level information about changes and progress of the project.
 
  - Replacing occurrences of "Dillo" with new name of the program in help
    document available from program's UI.
+
+ - SSL is enabled by default (see "--enable-ssl" flag for ./configure). Be
+   aware that support for SSL is in ALPHA stage. Don't rely on security of
+   SSL in this program.
 
 
 
