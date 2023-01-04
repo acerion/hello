@@ -39,7 +39,14 @@ libssl-dev
 libpng-dev
 libjpeg-dev
 libfltk1.3-dev
+gcc
+g++
 ghc version 8.8.4
+
+Additionally for tests of Haskell code:
+libghc-hunit-dev
+libghc-quickcheck2-dev
+libghc-quickcheck-instances-dev
 
 
 
