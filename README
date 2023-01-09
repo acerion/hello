@@ -15,15 +15,20 @@ are not the things that I want to focus on right now. My main focus is on
 learning the core language and its features (hopefully more and more advanced
 features). Examples of X and Y are stack/cabal or a parsing library.
 
-A memory may be leaking in FFI code. The boundary between C code and Haskell
-is slowly but constantly shifting, so I'm not paying too much attention to
-lifetime of objects allocated in FFI code.
 
 
 
-
-Quality of SSL in this program is unknown (internally it is described as
-"ALPHA"). Don't rely on quality of SSL in this program.
+Known problems:
+1. A memory may be leaking in FFI code. The boundary between C code and
+   Haskell is slowly but constantly shifting, so I'm not paying too much
+   attention to lifetime of objects allocated in FFI code.
+2. Quality of SSL in this program is unknown (internally it is described as
+   "ALPHA"). Don't rely on quality of SSL in this program.
+3. Haskell code is slow. Processing a CSS of simple pages can take up to ~20
+   seconds.
+4. The Haskell code has been tested with only two real-life webpages: lwn.net
+   and soylentnews.org
+5. The Haskell code to a large degree resembles original C and C++ code.
 
 
 
