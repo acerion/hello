@@ -127,7 +127,7 @@ matchCacheSetItem mc dtnNum elemIdx = CssMatchCacheWrapper $ listReplaceElem (ge
 -- Get one specific item (at given index) from match cache.
 -- Invalid index results in runtime error.
 matchCacheGetItem :: CssMatchCacheWrapper a -> Int -> a
-matchCacheGetItem mc selectorIdx = (getCache mc) !! selectorIdx
+matchCacheGetItem mc selectorIdx = getCache mc !! selectorIdx
 
 
 

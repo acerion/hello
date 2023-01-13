@@ -109,7 +109,7 @@ instance Applicative (Parser state) where
 
 
 instance Alternative (Parser state) where
-  empty = Parser $ \_ -> Nothing
+  empty = Parser $ const Nothing
 
   -- Run first (left) parser, see if it succeeds. If it does succeed, then we
   -- don't have to run the second parser because one of parsers already

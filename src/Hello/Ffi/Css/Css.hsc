@@ -18,7 +18,7 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 -}
 
 
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 
 module Hello.Ffi.Css.Misc

@@ -163,7 +163,7 @@ hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cLengthValu
            | propertyArg == 62 = CssPropertyPaddingRight      $ CssValuePaddingX distance
            | propertyArg == 63 = CssPropertyPaddingTop        $ CssValuePaddingX distance
            | propertyArg == 77 = CssPropertyWidth             $ CssValueWidthDistance distance
-           | otherwise         = trace ("[EE] Unhandled length propertyArg " ++ (show propertyArg)) (undefined)
+           | otherwise         = trace ("[EE] Unhandled length propertyArg " ++ show propertyArg) undefined
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
@@ -195,8 +195,8 @@ getBorderStyle i | i ==  0 = CssValueBorderStyleNone
 
 -- '@': see https://typeclasses.com/phrasebook/enum-ranges
 getListStylePosition :: Int -> CssValueListStylePosition
-getListStylePosition i | i > (fromEnum (maxBound @CssValueListStylePosition)) = CssValueListStylePositionOutside
-                       | i < (fromEnum (minBound @CssValueListStylePosition)) = CssValueListStylePositionOutside
+getListStylePosition i | i > fromEnum (maxBound @CssValueListStylePosition) = CssValueListStylePositionOutside
+                       | i < fromEnum (minBound @CssValueListStylePosition) = CssValueListStylePositionOutside
                        | otherwise    = toEnum i
 
 
@@ -204,8 +204,8 @@ getListStylePosition i | i > (fromEnum (maxBound @CssValueListStylePosition)) = 
 
 -- '@': see https://typeclasses.com/phrasebook/enum-ranges
 getListStyleType :: Int -> CssValueListStyleType
-getListStyleType i | i > (fromEnum (maxBound @CssValueListStyleType)) = CssValueListStyleTypeCircle
-                   | i < (fromEnum (minBound @CssValueListStyleType)) = CssValueListStyleTypeCircle
+getListStyleType i | i > fromEnum (maxBound @CssValueListStyleType) = CssValueListStyleTypeCircle
+                   | i < fromEnum (minBound @CssValueListStyleType) = CssValueListStyleTypeCircle
                    | otherwise    = toEnum i
 
 
@@ -213,8 +213,8 @@ getListStyleType i | i > (fromEnum (maxBound @CssValueListStyleType)) = CssValue
 
 -- '@': see https://typeclasses.com/phrasebook/enum-ranges
 getWhitespace :: Int -> CssValueWhitespace
-getWhitespace i | i > (fromEnum (maxBound @CssValueWhitespace)) = CssValueWhitespaceNormal
-                | i < (fromEnum (minBound @CssValueWhitespace)) = CssValueWhitespaceNormal
+getWhitespace i | i > fromEnum (maxBound @CssValueWhitespace) = CssValueWhitespaceNormal
+                | i < fromEnum (minBound @CssValueWhitespace) = CssValueWhitespaceNormal
                 | otherwise    = toEnum i
 
 
@@ -222,8 +222,8 @@ getWhitespace i | i > (fromEnum (maxBound @CssValueWhitespace)) = CssValueWhites
 
 -- '@': see https://typeclasses.com/phrasebook/enum-ranges
 getVerticalAlign :: Int -> CssValueVerticalAlign
-getVerticalAlign i | i > (fromEnum (maxBound @CssValueVerticalAlign)) = CssValueVerticalAlignBaseline
-                   | i < (fromEnum (minBound @CssValueVerticalAlign)) = CssValueVerticalAlignBaseline
+getVerticalAlign i | i > fromEnum (maxBound @CssValueVerticalAlign) = CssValueVerticalAlignBaseline
+                   | i < fromEnum (minBound @CssValueVerticalAlign) = CssValueVerticalAlignBaseline
                    | otherwise    = toEnum i
 
 
@@ -231,9 +231,9 @@ getVerticalAlign i | i > (fromEnum (maxBound @CssValueVerticalAlign)) = CssValue
 
 -- '@': see https://typeclasses.com/phrasebook/enum-ranges
 getTextAlign :: Int -> CssValueTextAlign
-getTextAlign i | i > (fromEnum (maxBound @CssValueTextAlign)) = CssValueTextAlignLeft
-               | i < (fromEnum (minBound @CssValueTextAlign)) = CssValueTextAlignLeft
-               | otherwise                                    = toEnum i
+getTextAlign i | i > fromEnum (maxBound @CssValueTextAlign) = CssValueTextAlignLeft
+               | i < fromEnum (minBound @CssValueTextAlign) = CssValueTextAlignLeft
+               | otherwise                                  = toEnum i
 
 
 
@@ -253,7 +253,7 @@ hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
            | propertyArg == 67 = CssPropertyTextAlign         $ getTextAlign enumVal
            | propertyArg == 74 = CssPropertyVerticalAlign     $ getVerticalAlign enumVal
            | propertyArg == 76 = CssPropertyWhitespace        $ getWhitespace enumVal
-           | otherwise         = trace ("[EE] Unhandled enum propertyArg " ++ (show propertyArg)) (undefined)
+           | otherwise         = trace ("[EE] Unhandled enum propertyArg " ++ show propertyArg) undefined
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
@@ -273,7 +273,7 @@ hll_styleEngineSetNonCssHintOfNodeColor cNonCssDeclSetRef cProperty cColor  = do
   let color    = fromIntegral cColor
   let decl | propertyArg ==  1 = CssPropertyBackgroundColor $ CssValueBackgroundColorColor color
            | propertyArg == 23 = CssPropertyColor $ CssValueColor color
-           | otherwise          = trace ("[EE] Unhandled color propertyArg " ++ (show propertyArg)) (undefined)
+           | otherwise          = trace ("[EE] Unhandled color propertyArg " ++ show propertyArg) undefined
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
@@ -293,7 +293,7 @@ hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cStringVal 
   let propertyArg :: Int = fromIntegral cProperty
 
   let decl | propertyArg == 32 = CssPropertyFontFamily $ CssValueFontFamilyList [textVal]
-           | otherwise         = trace ("[EE] Unhandled string propertyArg " ++ (show propertyArg)) (undefined)
+           | otherwise         = trace ("[EE] Unhandled string propertyArg " ++ show propertyArg) undefined
 
   let newDeclSet = declarationsSetUpdateOrAdd declSet (CssDeclaration decl False)
 
@@ -372,7 +372,7 @@ hll_inheritNonCssHints cParentNonCssDeclSetRef cNonCssDeclSetRef = do
                      then Just current
                      else Nothing
       let inheritedAndCurrent = styleEngineInheritNonCssHints parent mCurrent
-      fmap fromIntegral $ globalDeclarationSetPut inheritedAndCurrent
+      fromIntegral <$> globalDeclarationSetPut inheritedAndCurrent
     else
     -- There are no hints that can be inherited from parent. Return unchanged
     -- current (possibly empty/NULL).

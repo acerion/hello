@@ -67,7 +67,7 @@ import Hello.Ffi.Css.DoctreeNode
 foreign export ccall "hll_doctreePrint" hll_doctreePrint :: Ptr FfiDoctree -> IO ()
 
 
-foreign export ccall "hll_doctreeCtor" hll_doctreeCtor :: IO (CInt)
+foreign export ccall "hll_doctreeCtor" hll_doctreeCtor :: IO CInt
 foreign export ccall "hll_doctreeUpdate" hll_doctreeUpdate :: CInt -> CInt -> IO ()
 foreign export ccall "hll_doctreePushNode" hll_doctreePushNode :: CInt -> CInt -> IO CInt
 foreign export ccall "hll_doctreePopNode" hll_doctreePopNode :: CInt -> IO ()
@@ -116,7 +116,7 @@ peekDoctree ptrStructDoctree = do
   ffiDoctree  <- peek ptrStructDoctree
   ffiRootNode <- peek . rootNode2C $ ffiDoctree
 
-  let numNodes = (fromIntegral . numNodesC $ ffiDoctree)
+  let numNodes = fromIntegral . numNodesC $ ffiDoctree
   let array :: Ptr (Ptr FfiDoctreeNode) = nodesArrayC ffiDoctree
   list :: [DoctreeNode] <- peekArrayOfPointers array numNodes peekDoctreeNode
   let keyValueList = fmap (\x -> (uniqueNum x, x)) list
@@ -143,7 +143,7 @@ pokeDoctreeNode dtn ptrDoctreeNodeRoot = do
 hll_doctreePrint :: Ptr FfiDoctree -> IO ()
 hll_doctreePrint ptrStructDoctree = do
   doctree <- peekDoctree ptrStructDoctree
-  putStr ("hll_doctreePrint: " ++ (show doctree) ++ "\n")
+  putStr ("hll_doctreePrint: " ++ show doctree ++ "\n")
 
 
 
@@ -160,7 +160,7 @@ hll_doctreeUpdate cRef cSomeVal = do
   let someVal = fromIntegral cSomeVal
 
   oldDoctree <- globalDoctreeGet ref
-  let newDoctree = oldDoctree { rootNode = (rootNode oldDoctree) + someVal }
+  let newDoctree = oldDoctree { rootNode = rootNode oldDoctree + someVal }
   globalDoctreeUpdate ref newDoctree
 
 
@@ -218,7 +218,7 @@ doctreeGetTopNode ref = do
       return Nothing
     else
     do
-      return $ Just ((nodes doctree) M.! (topNodeNum doctree))
+      return $ Just (nodes doctree M.! topNodeNum doctree)
 
 
 
@@ -235,7 +235,7 @@ updateTopNodeInTrees ref f = do
 hll_styleEngineSetElementId :: CInt -> CString -> IO ()
 hll_styleEngineSetElementId cDoctreeRef cElementId = do
     let doctreeRef = fromIntegral cDoctreeRef
-    stringVal     <- BSU.unsafePackCString $ cElementId
+    stringVal     <- BSU.unsafePackCString cElementId
     let elementId  = T.E.decodeLatin1 stringVal
 
     updateTopNodeInTrees doctreeRef (\x -> x { selId = elementId })
@@ -246,7 +246,7 @@ hll_styleEngineSetElementId cDoctreeRef cElementId = do
 hll_styleEngineSetElementClass :: CInt -> CString -> IO ()
 hll_styleEngineSetElementClass cDoctreeRef cElementClassTokens = do
     let doctreeRef = fromIntegral cDoctreeRef
-    tokens        <- BSU.unsafePackCString $ cElementClassTokens
+    tokens        <- BSU.unsafePackCString cElementClassTokens
     -- With ' ' character as separator of selectors, we can use 'words' to
     -- get the list of selectors.
     let ws = words . Char8.unpack $ tokens
@@ -260,7 +260,7 @@ hll_styleEngineSetElementClass cDoctreeRef cElementClassTokens = do
 hll_styleEngineSetElementPseudoClass :: CInt -> CString -> IO ()
 hll_styleEngineSetElementPseudoClass cDoctreeRef cElementPseudoClass = do
     let doctreeRef         = fromIntegral cDoctreeRef
-    stringVal             <- BSU.unsafePackCString $ cElementPseudoClass
+    stringVal             <- BSU.unsafePackCString cElementPseudoClass
     let elementPseudoClass = T.E.decodeLatin1 stringVal
 
     updateTopNodeInTrees doctreeRef (\x -> x { selPseudoClass = elementPseudoClass })

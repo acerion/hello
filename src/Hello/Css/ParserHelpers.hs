@@ -162,7 +162,7 @@ rgbFunctionToColor p1 = let
 interpretTokensAsEnum :: [(T.Text, value)] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
 interpretTokensAsEnum dict (parser, CssTokIdent sym) =
   case L.lookup sym' dict of
-    Just propValue -> Just ((nextToken parser), propValue)
+    Just propValue -> Just (nextToken parser, propValue)
     Nothing        -> Nothing
   where
     sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?

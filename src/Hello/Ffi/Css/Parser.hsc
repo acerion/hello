@@ -209,11 +209,11 @@ pokeCssToken ptrStructCssToken token = do
 getTokenType (CssTokIdent  _) = 0
 getTokenType (CssTokStr  _)   = 1
 getTokenType (CssTokDelim _)  = 2
-getTokenType (CssTokEnd)      = 3
-getTokenType (CssTokBraceCurlyClose)  = 4
-getTokenType (CssTokColon)            = 5
-getTokenType (CssTokBraceSquareOpen)  = 6
-getTokenType (CssTokBraceSquareClose) = 7
+getTokenType CssTokEnd        = 3
+getTokenType CssTokBraceCurlyClose    = 4
+getTokenType CssTokColon              = 5
+getTokenType CssTokBraceSquareOpen    = 6
+getTokenType CssTokBraceSquareClose   = 7
 getTokenType (CssTokHash CssHashUn _) = 8
 getTokenType (CssTokHash CssHashId _) = 9
 getTokenType (CssTokAtKeyword _)      = 10
@@ -235,7 +235,7 @@ getTokenADT tokType tokValue | tokType ==  0 = CssTokIdent tokValue
                              | tokType ==  9 = CssTokHash CssHashId tokValue
                              | tokType == 10 = CssTokAtKeyword tokValue
                              | tokType == 11 = CssTokWS
-                             | otherwise     = trace ("[EE] Unhandled token type " ++ (show tokType)) (CssTokNone)
+                             | otherwise     = trace ("[EE] Unhandled token type " ++ show tokType) CssTokNone
 
 
 

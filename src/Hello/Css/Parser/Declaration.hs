@@ -233,7 +233,7 @@ parseImportantPresent pat = case runParser parser pat of
 --
 -- https://www.w3.org/TR/css-syntax-3/#!important-diagram
 parserImportant :: Parser (CssParser, CssToken) CssToken
-parserImportant = (parserTokenDelim '!') *> (parserTokenIdent "important")
+parserImportant = parserTokenDelim '!' *> parserTokenIdent "important"
 
 
 
@@ -259,10 +259,10 @@ parseImportantNotPresent pat@(_, t) = case runParser parser pat of
                                         -- the function.
                                         Just (_, _) -> Just (pat, t)
                                         Nothing     -> Nothing
-  where parser = (many parserTokenWhitespace
-                   *> (parserTokenSemicolon
-                        <|> parserTokenBraceCurlyClose
-                        <|> parserTokenEnd))
+  where parser = many parserTokenWhitespace
+                 *> (parserTokenSemicolon
+                      <|> parserTokenBraceCurlyClose
+                      <|> parserTokenEnd)
 
 
 
@@ -376,8 +376,8 @@ parseSingleDeclarationWrapper (pat, declSets) = (pat', declSets')
     appendDeclaration :: Maybe CssDeclaration -> CssDeclarationSets -> CssDeclarationSets
     appendDeclaration Nothing sets = sets
     appendDeclaration (Just d) (set, setImp) = if important d
-                                               then (set, (declarationsSetUpdateOrAdd setImp d))
-                                               else ((declarationsSetUpdateOrAdd set d), setImp)
+                                               then (set, declarationsSetUpdateOrAdd setImp d)
+                                               else (declarationsSetUpdateOrAdd set d, setImp)
 
 
 

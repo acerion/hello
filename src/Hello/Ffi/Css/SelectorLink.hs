@@ -35,7 +35,6 @@ CssComplexSelector Haskell type. -}
 
 
 
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 
@@ -96,7 +95,7 @@ linksToChain = linksToChain' . reverse
 linksToChain' :: [CssComplexSelectorLink] -> CssComplexSelector
 linksToChain' (x:xs) = case combinator x of
                          Nothing    -> Last . compound $ x -- no combinator
-                         Just combi -> Chain (compound $ x) combi (linksToChain' xs)
+                         Just combi -> Chain (compound x) combi (linksToChain' xs)
 linksToChain' []     = Last defaultCssCompoundSelector
 
 

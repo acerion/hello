@@ -287,7 +287,7 @@ cssContextAddRule context sheetSelector rule  =
   -- TODO: should we increment rulePosition in a context, to which a rule
   -- is not being added (in "then" branch)?
   if (sheetSelector == CssPrimaryAuthor || sheetSelector == CssPrimaryAuthorImportant) && (not . cssRuleIsSafe $ rule)
-  then trace ("[WW] Ignoring unsafe author style that might reveal browsing history") (context{rulePosition = rulePosition context + 1})
+  then trace "[WW] Ignoring unsafe author style that might reveal browsing history" (context{rulePosition = rulePosition context + 1})
   else cssContextAddRule' . ruleSetOffsetAndPosition $ (context, sheetSelector, rule)
 
 
@@ -462,7 +462,7 @@ parseCss ((parser, token), context) =
 
 -- TODO: reimplement "void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)"
 parseImportRule :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
-parseImportRule ((parser, _token), context) = trace ("[DD] @import detected") (ignoreStatement parser, context)
+parseImportRule ((parser, _token), context) = trace "[DD] @import detected" (ignoreStatement parser, context)
 
 
 

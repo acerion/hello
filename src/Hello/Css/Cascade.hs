@@ -185,9 +185,9 @@ applyMatchingRules fHandle matchingRules doctree mDtn cachedDeclSet = do
 
       let matchingRules' = matchingRules { indices = updateMatchingRulesIndices (indices matchingRules) minSpecIndex }
 
-      let debugString2 = (show $ fst cachedDeclSet') ++ "\n"
+      let debugString2 = show (fst cachedDeclSet') ++ "\n"
       hPutStr fHandle debugString2
-      let debugString3 = (show $ V.fromList . indices $ matchingRules') ++ "\n"
+      let debugString3 = show (V.fromList . indices $ matchingRules') ++ "\n"
       hPutStr fHandle debugString3
 
       applyMatchingRules fHandle matchingRules' doctree mDtn cachedDeclSet'
@@ -212,8 +212,7 @@ cssStyleSheetApplyStyleSheet fHandle styleSheet cachedDeclSet doctree dtn = do
         , indices = replicate (L.length . rules $ matchingRules) 0
         }
 
-  cachedDeclSet' <- applyMatchingRules fHandle matchingRules doctree (Just dtn) cachedDeclSet
-  return cachedDeclSet'
+  applyMatchingRules fHandle matchingRules doctree (Just dtn) cachedDeclSet
 
 
 
@@ -279,7 +278,7 @@ buildMatchingRulesGroupForDtn styleSheet dtn = reverse rulesLists
     -}
     byElementId lists = if htmlElementIdx dtn == (-1)
                         then lists
-                        else ((rulesByType styleSheet) !! (htmlElementIdx dtn)):lists
+                        else (rulesByType styleSheet !! htmlElementIdx dtn):lists
 
 
     {-
@@ -289,7 +288,7 @@ buildMatchingRulesGroupForDtn styleSheet dtn = reverse rulesLists
     -}
     byAnyElement lists = if null . rulesByAnyElement $ styleSheet
                          then lists
-                         else (rulesByAnyElement styleSheet):lists
+                         else rulesByAnyElement styleSheet : lists
 
 
 
@@ -330,9 +329,7 @@ cssContextApplyCssContext fHandle context doctree dtn styleNode = do
 
   let cachedDeclSet8 = declarationsSetAppend' cachedDeclSet7 (importantDeclSet styleNode)
 
-  cachedDeclSet9 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserImportant) cachedDeclSet8 doctree dtn
-
-  return cachedDeclSet9
+  cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserImportant) cachedDeclSet8 doctree dtn
 
 
 

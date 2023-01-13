@@ -104,7 +104,7 @@ peekHtmlDoctype ptrStructHtmlDoctype = do
 -- Set fields in pointer to struct passed from C code.
 pokeHtmlDoctype :: Ptr FfiHtmlDoctype-> HtmlDoctype -> IO ()
 pokeHtmlDoctype ptrStructHtmlDoctype doctype = do
-  let (t, v) = doctypeToPair $ doctype
+  let (t, v) = doctypeToPair doctype
   poke ptrStructHtmlDoctype $ FfiHtmlDoctype t v
 
 

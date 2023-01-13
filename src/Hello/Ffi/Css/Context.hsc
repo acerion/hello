@@ -265,7 +265,7 @@ hll_parseCss ptrStructCssParser ptrStructCssToken cRef = do
 
 hll_cssContextPrint :: CString -> CInt -> IO ()
 hll_cssContextPrint cPath cRef = do
-  bufPathstringVal <- BSU.unsafePackCString $ cPath
+  bufPathstringVal <- BSU.unsafePackCString cPath
   let path :: String  = T.unpack . T.E.decodeLatin1 $ bufPathstringVal
 
   let ref  = fromIntegral cRef

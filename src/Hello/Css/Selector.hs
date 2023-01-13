@@ -129,8 +129,8 @@ data CssTypeSelector
 
 unCssTypeSelector :: CssTypeSelector -> Int
 unCssTypeSelector (CssTypeSelector t)    = t
-unCssTypeSelector CssTypeSelectorUniv    = (-2)
-unCssTypeSelector CssTypeSelectorUnknown = (-1)
+unCssTypeSelector CssTypeSelectorUniv    = -2
+unCssTypeSelector CssTypeSelectorUnknown = -1
 
 
 
@@ -260,8 +260,8 @@ selectorSpecificity :: CssComplexSelector -> Int
 selectorSpecificity complex = selectorSpecificity' complex 0
   where
     selectorSpecificity' :: CssComplexSelector -> Int -> Int
-    selectorSpecificity' (Chain c1 _ remainder) acc = selectorSpecificity' remainder (acc + (compoundSelectorSpecificity c1))
-    selectorSpecificity' (Last c1)              acc =                                 acc + (compoundSelectorSpecificity c1)
+    selectorSpecificity' (Chain c1 _ remainder) acc = selectorSpecificity' remainder (acc + compoundSelectorSpecificity c1)
+    selectorSpecificity' (Last c1)              acc =                                 acc + compoundSelectorSpecificity c1
 
 
 

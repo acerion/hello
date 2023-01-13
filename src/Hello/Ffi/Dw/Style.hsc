@@ -514,8 +514,8 @@ peekStyleAttrs ptrStructStyleAttrs = do
   height <- peekDwLength . ptrStructHeight $ ffiAttrs
   lineHeight <- peekDwLength . ptrStructLineHeight $ ffiAttrs
 
-  xLang  <- peekCharBuffer (ptrCharXLang $ ffiAttrs)
-  xTooltip  <- peekCharBuffer (ptrCharXTooltip $ ffiAttrs)
+  xLang  <- peekCharBuffer (ptrCharXLang ffiAttrs)
+  xTooltip  <- peekCharBuffer (ptrCharXTooltip ffiAttrs)
 
   return StyleAttrs
     {

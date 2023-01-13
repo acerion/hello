@@ -191,7 +191,7 @@ compoundSelectorMatches' compound dtnArg | mismatchOnElement compound dtnArg    
     mismatchOnClass :: CssCompoundSelector -> DoctreeNode -> Bool
     mismatchOnClass csel dtn = not allCompoundClassInNodeClass
       where
-        allCompoundClassInNodeClass = all (\x -> x `elem` classes) (compoundClass csel)
+        allCompoundClassInNodeClass = all (`elem` classes) (compoundClass csel)
         classes = map CssClassSelector (selClass dtn)
     -- for (int i = 0; i < selector->c_selector_class_size; i++) {
     -- bool found = false;

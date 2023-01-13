@@ -70,7 +70,7 @@ foreign export ccall "hll_htmlTagIndex" hll_htmlTagIndex :: CString -> IO Int
 hll_htmlAttributeGetValue :: CString -> Int -> CString -> IO CString
 hll_htmlAttributeGetValue cDocumentRem ctagSize cAttrName = do
   documentRem <- BSU.unsafePackCStringLen (cDocumentRem, ctagSize)
-  attrName <- BSU.unsafePackCString (cAttrName)
+  attrName <- BSU.unsafePackCString cAttrName
   case htmlAttributeGetValue (T.E.decodeUtf8 documentRem) (T.E.decodeUtf8 attrName) of
     Just attrValue -> newCString (T.unpack attrValue) -- This string may be empty if attr value is empty.
     Nothing        -> return nullPtr                  -- Null pointer indicates "attribute name not found".

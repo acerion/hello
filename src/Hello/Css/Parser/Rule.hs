@@ -101,7 +101,7 @@ _consumeBlock pat = consumeBlock' pat [] []
     -- to know what is the current nesting level of blocks.
     consumeBlock' (parser, tok@CssTokEnd) tokens _                                   = ((parser, tok), reverse tokens)
     consumeBlock' (parser, CssTokBraceCurlyOpen) tokens braces                       = consumeBlock' (nextToken parser) (CssTokBraceCurlyOpen : tokens) (CssTokBraceCurlyOpen : braces)
-    consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : []) = (nextToken parser, reverse tokens)
+    consumeBlock' (parser, CssTokBraceCurlyClose) tokens [CssTokBraceCurlyOpen]      = (nextToken parser, reverse tokens)
     consumeBlock' (parser, CssTokBraceCurlyClose) tokens (CssTokBraceCurlyOpen : xs) = consumeBlock' (nextToken parser) (CssTokBraceCurlyClose : tokens) xs
     consumeBlock' (parser, tok) tokens braces                                        = consumeBlock' (nextToken parser) (tok : tokens) braces
 
@@ -296,7 +296,7 @@ readDeclarationsBlock = runParser $ parserOpeningBrace *> parserDeclarations <* 
         Just ((p, t), declSet) -> Just ((p { inBlock = True }, t), declSet) -- inBlock = True: we enter {} block.
         Nothing                -> Nothing
       where
-        parser = (many parserTokenWhitespace) *> parserTokenBraceCurlyOpen <* (many parserTokenWhitespace)
+        parser = many parserTokenWhitespace *> parserTokenBraceCurlyOpen <* many parserTokenWhitespace
 
 
     parserClosingBrace :: Parser (CssParser, CssToken) CssToken
@@ -305,7 +305,7 @@ readDeclarationsBlock = runParser $ parserOpeningBrace *> parserDeclarations <* 
         Just ((p, t), declSet) -> Just ((p { inBlock = False }, t), declSet) -- inBlock = False: we leave {} block.
         Nothing                -> Nothing
       where
-        parser = (many parserTokenWhitespace) *> parserTokenBraceCurlyClose <* (many parserTokenWhitespace)
+        parser = many parserTokenWhitespace *> parserTokenBraceCurlyClose <* many parserTokenWhitespace
 
 
     -- Parse all declarations located between '{' and '}'.

@@ -296,7 +296,7 @@ isValidStartOfIdentifier buffer | null points             = False
                                 | c1 == '\\'              = length points >= 2 && isValidEscape c1 c2
                                 | otherwise               = False
   where
-    points = peekUpToNCodePoints buffer 3 (\_ -> True)
+    points = peekUpToNCodePoints buffer 3 (const True)
 
     tryStartingWithHyphen pts | length pts >= 2 && (isNameStartCodePoint c2 || c2 == '-') = True
                               | length pts >= 3 && isValidEscape c2 c3                    = True
@@ -310,14 +310,13 @@ isValidStartOfIdentifier buffer | null points             = False
 
 
 peekUpToNCodePoints :: T.Text -> Int -> (Char -> Bool) -> [Char]
-peekUpToNCodePoints buffer nPoints p = peekUpToNCodePoints' buffer [] nPoints
+peekUpToNCodePoints buffer nPoints predicate = peekUpToNCodePoints' buffer [] nPoints
   where
     peekUpToNCodePoints' :: T.Text -> [Char] -> Int -> [Char]
     peekUpToNCodePoints' _   acc 0 = acc
     peekUpToNCodePoints' buf acc n = case T.uncons buf of
-                                       Just (c, remd) -> if p c
-                                                         then peekUpToNCodePoints' remd (acc ++ [c]) (n - 1)
-                                                         else acc
+                                       Just (c, remd) | predicate c -> peekUpToNCodePoints' remd (acc ++ [c]) (n - 1)
+                                                      | otherwise   -> acc
                                        Nothing        -> acc
 
 
@@ -386,7 +385,7 @@ tryConsumingUrlToken p1 name | length points >= 1 && (c0 == '\'' || c0 == '\"') 
                              | otherwise = consumeUrlToken p2
   where
     p2 = removeDoubleWhitespaces p1
-    points = peekUpToNCodePoints (remainder p2) 2 (\_ -> True)
+    points = peekUpToNCodePoints (remainder p2) 2 (const True)
     c0 = points !! 0
     c1 = points !! 1
 
@@ -448,7 +447,7 @@ takeHashToken p1 =
                      | length points >= 2 && isValidEscape c0 c1 -> createHashToken p1{ remainder = remd }
                      | otherwise                                 -> (p1{ remainder = remd }, Just $ CssTokDelim '#')
       where
-        points = peekUpToNCodePoints remd 2 (\_ -> True)
+        points = peekUpToNCodePoints remd 2 (const True)
         c0 = points !! 0
         c1 = points !! 1
 
@@ -467,7 +466,7 @@ takeAtToken p1 =
     Just ('@', remd) | length points == 3 && isValidStartOfIdentifier (T.pack points) -> createAtToken p1{remainder = remd }
                      | otherwise                                                      -> (p1{ remainder = remd }, Just $ CssTokDelim '@')
       where
-        points           = peekUpToNCodePoints remd 3 (\_ -> True)
+        points           = peekUpToNCodePoints remd 3 (const True)
         createAtToken p2 = (parserMoveByLen p2 len, Just $ CssTokAtKeyword name)
           where
             (name, len) = consumeName (remainder p2) "" 0
@@ -792,7 +791,7 @@ splitAtCommaToken (x:xs)       []      = splitAtCommaToken xs [[x]]
 
 parserTokenIdentAny :: Parser (CssParser, CssToken) CssToken
 parserTokenIdentAny = Parser $ \ (parser, token) -> case token of
-                                                      CssTokIdent _ -> Just ((nextToken parser), token)
+                                                      CssTokIdent _ -> Just (nextToken parser, token)
                                                       _             -> Nothing
 
 
@@ -800,7 +799,7 @@ parserTokenIdentAny = Parser $ \ (parser, token) -> case token of
 
 parserTokenIdent :: T.Text -> Parser (CssParser, CssToken) CssToken
 parserTokenIdent ident = Parser $ \ (parser, token) -> case token of
-                                                         CssTokIdent i | i == ident -> Just ((nextToken parser), token)
+                                                         CssTokIdent i | i == ident -> Just (nextToken parser, token)
                                                                        | otherwise  -> Nothing
                                                          _             -> Nothing
 
@@ -809,7 +808,7 @@ parserTokenIdent ident = Parser $ \ (parser, token) -> case token of
 
 parserTokenColon :: Parser (CssParser, CssToken) CssToken
 parserTokenColon = Parser $ \ (parser, token) -> case token of
-                                                   CssTokColon -> Just ((nextToken parser), token)
+                                                   CssTokColon -> Just (nextToken parser, token)
                                                    _           -> Nothing
 
 
@@ -817,7 +816,7 @@ parserTokenColon = Parser $ \ (parser, token) -> case token of
 
 parserTokenSemicolon :: Parser (CssParser, CssToken) CssToken
 parserTokenSemicolon = Parser $ \ (parser, token) -> case token of
-                                                       CssTokSemicolon -> Just ((nextToken parser), token)
+                                                       CssTokSemicolon -> Just (nextToken parser, token)
                                                        _               -> Nothing
 
 
@@ -825,7 +824,7 @@ parserTokenSemicolon = Parser $ \ (parser, token) -> case token of
 
 parserTokenBraceCurlyOpen :: Parser (CssParser, CssToken) CssToken
 parserTokenBraceCurlyOpen = Parser $ \ (parser, token) -> case token of
-                                                            CssTokBraceCurlyOpen -> Just ((nextToken parser), token)
+                                                            CssTokBraceCurlyOpen -> Just (nextToken parser, token)
                                                             _                    -> Nothing
 
 
@@ -833,7 +832,7 @@ parserTokenBraceCurlyOpen = Parser $ \ (parser, token) -> case token of
 
 parserTokenBraceCurlyClose :: Parser (CssParser, CssToken) CssToken
 parserTokenBraceCurlyClose = Parser $ \ (parser, token) -> case token of
-                                                             CssTokBraceCurlyClose -> Just ((nextToken parser), token)
+                                                             CssTokBraceCurlyClose -> Just (nextToken parser, token)
                                                              _                     -> Nothing
 
 
@@ -841,7 +840,7 @@ parserTokenBraceCurlyClose = Parser $ \ (parser, token) -> case token of
 
 parserTokenDelim :: Char -> Parser (CssParser, CssToken) CssToken
 parserTokenDelim delim = Parser $ \ (parser, token) -> case token of
-                                                         CssTokDelim d | d == delim -> Just ((nextToken parser), token)
+                                                         CssTokDelim d | d == delim -> Just (nextToken parser, token)
                                                                        | otherwise  -> Nothing
                                                          _             -> Nothing
 
@@ -850,7 +849,7 @@ parserTokenDelim delim = Parser $ \ (parser, token) -> case token of
 
 parserTokenWhitespace :: Parser (CssParser, CssToken) CssToken
 parserTokenWhitespace = Parser $ \ (parser, token) -> case token of
-                                                        CssTokWS -> Just ((nextToken parser), token)
+                                                        CssTokWS -> Just (nextToken parser, token)
                                                         _        -> Nothing
 
 
@@ -858,7 +857,7 @@ parserTokenWhitespace = Parser $ \ (parser, token) -> case token of
 
 parserTokenEnd :: Parser (CssParser, CssToken) CssToken
 parserTokenEnd = Parser $ \ (parser, token) -> case token of
-                                                 CssTokEnd -> Just ((nextToken parser), token)
+                                                 CssTokEnd -> Just (nextToken parser, token)
                                                  _         -> Nothing
 
 

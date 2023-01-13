@@ -114,7 +114,7 @@ peekDoctreeNode ptrStructDoctreeNode = do
   pc <- ptrCCharToText . elementSelectorPseudoClassC $ ffiDtn
   i  <- ptrCCharToText . elementSelectorIdC $ ffiDtn
 
-  let cOffset = (#offset c_doctree_node_t, c_element_selector_class)
+  let cOffset = #offset c_doctree_node_t, c_element_selector_class
   let cStringArray :: Ptr CString = plusPtr ptrStructDoctreeNode cOffset
   c  <- peekArrayOfPointers cStringArray (fromIntegral . elementSelectorClassSizeC $ ffiDtn) ptrCCharToText
 
