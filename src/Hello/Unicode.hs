@@ -38,8 +38,10 @@ where
 
 
 
-replacementCharacter    = 0xFFFD   :: Int
-maximumAllowedCodePoint = 0x10FFFF :: Int
+replacementCharacter :: Int
+replacementCharacter    = 0xFFFD
+maximumAllowedCodePoint :: Int
+maximumAllowedCodePoint = 0x10FFFF
 
 
 

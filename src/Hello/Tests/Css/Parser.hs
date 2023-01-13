@@ -25,6 +25,7 @@ import Test.HUnit
 
 
 
+testCases :: [a]
 testCases =
   [
   ]

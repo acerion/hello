@@ -31,7 +31,10 @@ import Hello.Html.DoctreeNode
 
 
 
+push :: Bool
 push = True
+
+pop :: Bool
 pop  = False
 
 -- Doctree push and pop operation that were executed when a test html
@@ -41,6 +44,7 @@ pop  = False
 --
 -- Second element of the tuple is an index of html element, passed to 'push'
 -- function. For pop operations the second element is ignored.
+ops :: [(Bool, Int)]
 ops = [ ( push,  42 )
       , ( push,  39 )
       , ( push,  55 )
@@ -483,6 +487,7 @@ ops = [ ( push,  42 )
 --
 -- The layout of the nodes in the definition below reflects parent-child
 -- relations in the tree. It also reflects layout of the input html document.
+expectedDoctree :: Doctree
 expectedDoctree = Doctree {topNodeNum = -1, rootNode = 0,
                            root = DoctreeNode {uniqueNum = -1, htmlElementIdx = -1, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0},
                            nodes = fromList [
@@ -936,6 +941,7 @@ runDoctreeOps doctree []     = return doctree
 
 
 
+testCases :: [Test]
 testCases = [
   TestCase (do result <- runDoctreeOps (defaultDoctree {rootNode = 0}) ops
                assertEqual "doctrees aren't equal" expectedDoctree result)

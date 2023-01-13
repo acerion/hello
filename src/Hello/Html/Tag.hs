@@ -58,6 +58,7 @@ import qualified Data.Vector as V
 
 
 
+htmlTagInfo :: V.Vector T.Text
 htmlTagInfo = V.fromList [
     "a" --,                 B8(011101), 'R', 2, Html_tag_open_a,           NULL,                        Html_tag_close_a},
   , "abbr" --,              B8(010101), 'R', 2, Html_tag_open_abbr,        NULL,                        NULL)
@@ -179,6 +180,7 @@ data TagParser = TagParser {
 
 
 
+parserDefault :: TagParser
 parserDefault = TagParser {
     tagName   = Just ""
   , currentAttrName  = ""

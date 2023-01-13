@@ -47,7 +47,7 @@ data Display = Display
 
 
 
-
+defaultDisplay :: Display
 defaultDisplay = Display
   { dpiX = 0
   , dpiY = 0

@@ -61,14 +61,23 @@ data HtmlDoctype =
 
 
 -- TODO: check how much we can really coerce to lower cases
+html20 :: T.Text
 html20       = T.toLower "-//IETF//DTD HTML"
+html32 :: T.Text
 html32       = T.toLower "-//W3C//DTD HTML 3.2"
+html40 :: T.Text
 html40       = T.toLower "-//W3C//DTD HTML 4.0"
+html401 :: T.Text
 html401      = T.toLower "-//W3C//DTD HTML 4.01"
+html401Url :: T.Text
 html401Url   = T.toLower "http://www.w3.org/TR/html4/"
+xhtml1 :: T.Text
 xhtml1       = T.toLower "-//W3C//DTD XHTML 1.0"
+xhtml1Url :: T.Text
 xhtml1Url    = T.toLower "http://www.w3.org/TR/xhtml1/DTD/"
+xhtml11 :: T.Text
 xhtml11      = T.toLower "-//W3C//DTD XHTML 1.1"
+xhtml11Url :: T.Text
 xhtml11Url   = T.toLower "http://www.w3.org/TR/xhtml11/DTD/"
 
 
@@ -91,6 +100,8 @@ getDoctype4 bufL doctype | T.isPrefixOf  html401 bufL && urlMatches bufL  html40
 
 
 
+-- TODO: why this function accepts doctype as an arg?
+getDoctype5 :: T.Text -> HtmlDoctype -> HtmlDoctype
 getDoctype5 buffer doctype | any (\x -> x == buffer) html5Doctypes = HtmlDoctypeHtml 5.0
                            | otherwise                             = doctype
   where
@@ -131,6 +142,7 @@ and replace '\n' and '\r' with ' ' inside quoted strings.
 TODO: I'm not 100% sure how the different types of spaces should be
 collapsed. Check it one day.
 -}
+sanitizeDoctypeString' :: T.Text -> (SanState, T.Text)
 sanitizeDoctypeString' = T.mapAccumL f SanState { quote = ' ', accText = "" }
   where
     -- Notice that we first handle special spaces \r and \n, and only then

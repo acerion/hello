@@ -6,7 +6,6 @@ TEST_BIN=tests
 all: clean
 	ghc -j4 -g -O0 -o $(TEST_BIN) \
 		-Wall \
-		-Wno-missing-signatures \
 		../*.hs \
 		../Css/*.hs \
 		../Css/Parser/*.hs \

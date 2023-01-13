@@ -210,6 +210,7 @@ hll_doctreeGetTopNodeElementSelectorId cRef = do
 
 
 
+doctreeGetTopNode :: Int -> IO (Maybe DoctreeNode)
 doctreeGetTopNode ref = do
   doctree <- globalDoctreeGet ref
   if topNodeNum doctree == (-1)

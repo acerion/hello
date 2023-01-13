@@ -39,6 +39,7 @@ import Hello.Utils
 -- We are testing <number-token>'s here. Put space before alphabetical string
 -- that come after numeric value, otherwise that string will be treated as
 -- ident, interpreted as unit, and the whole token will be of type CssTokDim.
+numericTokenTestManualData :: [(T.Text, CssToken, T.Text)]
 numericTokenTestManualData = [
   -- parser's initial remainder     expected token           parser's remainder after
 
@@ -151,6 +152,7 @@ numericTokenTestManualData = [
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
+hashTokenTestManualData :: [(T.Text, CssToken, T.Text)]
 hashTokenTestManualData = [
   -- parser's initial remainder    expected token                  parser's remainder after
 
@@ -180,6 +182,7 @@ hashTokenTestManualData = [
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
+singleCharTokenTestManualData :: [(T.Text, CssToken, T.Text)]
 singleCharTokenTestManualData = [
   -- parser's initial remainder    expected token                  parser's remainder after
 
@@ -236,6 +239,7 @@ singleCharTokenTestManualData = [
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
+identTokenTestManualData :: [(T.Text, CssToken, T.Text)]
 identTokenTestManualData = [
   -- parser's initial remainder    expected token                  parser's remainder after
 
@@ -263,6 +267,7 @@ identTokenTestManualData = [
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
+functionUrlTokenTestManualData :: [(T.Text, CssToken, T.Text)]
 functionUrlTokenTestManualData = [
   -- parser's initial remainder    expected token                  parser's remainder after
 
@@ -327,9 +332,9 @@ tokenizerTestRunner inB (x:xs) = if expectedToken /= t2 || expectedRemainder /= 
                                  then T.pack . showFailedCase $ x
                                  else tokenizerTestRunner inB xs
   where
-    initialRemainder  = tripletFst x
-    expectedToken     = tripletSnd x
-    expectedRemainder = tripletThrd x
+    initialRemainder  = triplet1st x
+    expectedToken     = triplet2nd x
+    expectedRemainder = triplet3rd x
     (p2, t2)          = if inB
                         then nextToken . defaultParserInBlock $ initialRemainder
                         else nextToken . defaultParser $ initialRemainder
@@ -353,6 +358,7 @@ tokenizerTestRunner inB (x:xs) = if expectedToken /= t2 || expectedRemainder /= 
 
 
 
+tokenizerTestCases :: [Test]
 tokenizerTestCases = [
   -- If some error is found, tokenizerTestRunner returns non-empty string
   -- which can help in finding out which test failed.

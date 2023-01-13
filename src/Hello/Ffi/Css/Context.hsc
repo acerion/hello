@@ -198,6 +198,7 @@ hll_cssContextPut ptrStructCssContext = do
 
 
 
+getSomeDeclSet2 :: Int -> IO CssDeclarationSet
 getSomeDeclSet2 ref = if (-1) == ref
                       then return defaultCssDeclarationSet
                       else globalDeclarationSetGet ref

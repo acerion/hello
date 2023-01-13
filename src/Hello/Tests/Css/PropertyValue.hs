@@ -105,6 +105,7 @@ data EnumTestData
 -- The test code will be testing if parsing a string token will result in
 -- proper Haskell enum value. This dict is specifying the mapping from the
 -- string to enum.
+enumTestDict :: [(T.Text, EnumTestData)]
 enumTestDict = [ ("first",    EnumTestDataFirst)
                , ("second",   EnumTestDataSecond)
                , ("third",    EnumTestDataThird)
@@ -188,6 +189,7 @@ data MultiEnumTestDataMultiEnum
 -- The test code will be testing if parsing a string token will result in
 -- proper Haskell enum value. This dict is specifying the mapping from the
 -- string to enum.
+multiEnumTestDict :: [(T.Text, MultiEnumTestDataMultiEnum)]
 multiEnumTestDict = [ ("first",    MultiEnumTestDataMultiEnumFirst)
                     , ("second",   MultiEnumTestDataMultiEnumSecond)
                     , ("third",    MultiEnumTestDataMultiEnumThird)
@@ -660,6 +662,7 @@ integerTestData =
 
 -- If some error is found, test function returns non-empty string which can
 -- help identify a test that failed.
+testCases :: [Test]
 testCases =
   [
     TestCase (do assertEqual "manual tests of interpretTokensAsEnum"              "" (testFunction enumTestData))

@@ -27,11 +27,7 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 module Hello.Utils
   (
-    tripletFst
-  , tripletSnd
-  , tripletThrd
-
-  , triplet1st
+    triplet1st
   , triplet2nd
   , triplet3rd
 
@@ -55,13 +51,12 @@ import qualified Data.Text as T
 
 
 
+triplet1st :: (a, b, c) -> a
 triplet1st (x, _, _) = x
+triplet2nd :: (a, b, c) -> b
 triplet2nd (_, y, _) = y
+triplet3rd :: (a, b, c) -> c
 triplet3rd (_, _, z) = z
-
-tripletFst  = triplet1st
-tripletSnd  = triplet2nd
-tripletThrd = triplet3rd
 
 
 

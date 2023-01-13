@@ -150,6 +150,7 @@ cssGetMinSpecState matchingRules = minSpecificityForRulesLists (rules matchingRu
 
 
 
+getSomeRule :: MatchingRules -> Int -> CssRule
 getSomeRule matchingRules minSpecIndex = rulesList !! idx
   where
     rulesList = rules matchingRules !! minSpecIndex
@@ -158,6 +159,7 @@ getSomeRule matchingRules minSpecIndex = rulesList !! idx
 
 
 
+updateMatchingRulesIndices :: [Int] -> Int -> [Int]
 updateMatchingRulesIndices matchingRulesIndices minSpecIndex = listReplaceElem matchingRulesIndices (oldElem + 1) minSpecIndex
   where
     oldElem = matchingRulesIndices !! minSpecIndex
@@ -298,6 +300,7 @@ type CssCachedDeclarationSet = (CssDeclarationSet, CssMatchCache)
 
 
 
+declarationsSetAppend' :: (CssDeclarationSet, CssMatchCache) -> CssDeclarationSet -> (CssDeclarationSet, CssMatchCache)
 declarationsSetAppend' (targetDs, cache) ds = (declarationsSetAppend targetDs ds, cache)
 
 

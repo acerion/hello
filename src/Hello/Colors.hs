@@ -58,6 +58,7 @@ import qualified Data.Vector as V
 The colors MUST be in alphabetical order and lower case because the code uses
 a binary search.
 -}
+colorsTable :: V.Vector (T.Text, Int)
 colorsTable = V.fromList [
     ( "aliceblue",            0xf0f8ff )
   , ( "antiquewhite",         0xfaebd7 )

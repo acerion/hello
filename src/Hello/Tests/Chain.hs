@@ -59,6 +59,7 @@ datumLengthTestFunction (x:xs) = if not success
 
 
 
+datumLengthTestData :: [(Chain DatumType Char, Int)]
 datumLengthTestData =
   [
     (Last  "sel1",                                                          1)
@@ -93,6 +94,7 @@ anyDatumTestFunction (x:xs) = if not success
 
 
 
+anyDatumTestData :: [(Chain DatumType Char, T.Text -> Bool, Bool)]
 anyDatumTestData =
   [
     -- I'm using "isInfixOf" because my version of Data.Text doesn't provide "elem" :(
@@ -140,6 +142,7 @@ getFirstDatumTestFunction (x:xs) = if not success
 
 
 
+getFirstDatumTestData :: [(Chain DatumType Char, DatumType)]
 getFirstDatumTestData =
   [
     (Last  "first",                                                               "first")
@@ -158,6 +161,7 @@ getFirstDatumTestData =
 
 -- If some error is found, test function returns non-empty string which can
 -- help identify a test that failed.
+testCases :: [Test]
 testCases =
   [
     TestCase (do assertEqual "manual tests of chainDatumLength"         "" (datumLengthTestFunction   datumLengthTestData))

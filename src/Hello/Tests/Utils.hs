@@ -29,6 +29,7 @@ import Hello.Utils
 
 
 
+roundIntTestData :: [(Float, Int)]
 roundIntTestData =
   [
     (    0.00,    0 )
@@ -67,6 +68,7 @@ roundIntTest (x:xs) = if expected /= roundInt f
 
 
 
+testCases :: [Test]
 testCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.

@@ -61,6 +61,7 @@ data FontAttrs = FontAttrs
 
 
 
+defaultFontAttrs :: FontAttrs
 defaultFontAttrs = FontAttrs
   {
     fontSize    = 0

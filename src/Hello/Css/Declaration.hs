@@ -255,6 +255,7 @@ data CssDeclaration = CssDeclaration
 
 
 
+defaultDeclaration :: CssDeclaration
 defaultDeclaration = CssDeclaration
   { property  = CssPropertyInvalid -- TODO: somewhere there is a code that does not set property2 field.
   , important = False
@@ -414,6 +415,7 @@ data CssValueBackground = CssValueBackground
   } deriving (Data, Eq, Show)
 
 
+initialValueBackground :: CssValueBackground
 initialValueBackground = CssValueBackground
                          initialValueBackgroundColor
                          initialValueBackgroundImage
@@ -463,11 +465,13 @@ data CssValueBackgroundAttachment
 
 
 -- https://www.w3.org/TR/css-backgrounds-3/#background-attachment
+initialValueBackgroundAttachment :: CssValueBackgroundAttachment
 initialValueBackgroundAttachment = CssValueBackgroundAttachmentScroll
 
 
 
 
+cssValueBackgroundAttachmentDict :: [(Text, CssValueBackgroundAttachment)]
 cssValueBackgroundAttachmentDict = [ ("scroll",  CssValueBackgroundAttachmentScroll)
                                    , ("fixed",   CssValueBackgroundAttachmentFixed)
                                    ]
@@ -480,11 +484,13 @@ makeCssPropertyBackgroundAttachment pat = (fmap . fmap) CssPropertyBackgroundAtt
 
 
 
+parserValueBackgroundAttachment :: Parser (CssParser, CssToken) CssValueBackgroundAttachment
 parserValueBackgroundAttachment = Parser $ interpretTokensAsEnum cssValueBackgroundAttachmentDict
 
 
 
 
+ctorValueBackgroundAttachment :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBackgroundAttachment)
 ctorValueBackgroundAttachment pat = runParser parserValueBackgroundAttachment pat
 
 
@@ -505,12 +511,14 @@ data CssValueBackgroundClip
   | CssValueBackgroundClipContentBox
   deriving (Eq, Show, Data)
 
+_initialValueBackgroundClip :: CssValueBackgroundClip
 _initialValueBackgroundClip = CssValueBackgroundClipBorderBox
 
 
 
 
 -- TODO: implement
+_ctorValueBackgroundClip :: (CssParser, CssToken) -> Maybe (CssParser, CssToken)
 _ctorValueBackgroundClip _pat = Nothing
 
 
@@ -531,11 +539,13 @@ data CssValueBackgroundColor
 
 -- TODO: this should be "transparent" according to
 -- https://www.w3.org/TR/css-backgrounds-3/#propdef-background-color
+initialValueBackgroundColor :: CssValueBackgroundColor
 initialValueBackgroundColor = CssValueBackgroundColorColor 0xffffff
 
 
 
 
+cssValueBackgroundColorDict :: [(Text, CssValueBackgroundColor)]
 cssValueBackgroundColorDict = [ ("inherit",    CssValueBackgroundColorInherit)
                               ]
 
@@ -548,12 +558,14 @@ makeCssPropertyBackgroundColor pat = (fmap . fmap) CssPropertyBackgroundColor (c
 
 
 
+paserValueBackgroundColor :: Parser (CssParser, CssToken) CssValueBackgroundColor
 paserValueBackgroundColor = Parser (interpretTokensAsEnum cssValueBackgroundColorDict)
                             <|> Parser (interpretTokensAsColor CssValueBackgroundColorColor)
 
 
 
 
+ctorValueBackgroundColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBackgroundColor)
 ctorValueBackgroundColor pat = runParser paserValueBackgroundColor pat
 
 
@@ -572,6 +584,7 @@ data CssValueBackgroundImage
 
 
 -- TODO: according to https://www.w3.org/TR/css-backgrounds-3/#background-image we need here a "none" value.
+initialValueBackgroundImage :: CssValueBackgroundImage
 initialValueBackgroundImage = CssValueBackgroundImageUri ""
 
 
@@ -583,11 +596,13 @@ makeCssPropertyBackgroundImage pat = (fmap . fmap) CssPropertyBackgroundImage (c
 
 
 
+parserValueBackgroundImage :: Parser (CssParser, CssToken) CssValueBackgroundImage
 parserValueBackgroundImage = Parser $ interpretTokensAsURI CssValueBackgroundImageUri
 
 
 
 
+ctorValueBackgroundImage :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBackgroundImage)
 ctorValueBackgroundImage pat = runParser parserValueBackgroundImage pat
 
 
@@ -609,12 +624,14 @@ data CssValueBackgroundOrigin
  deriving (Data, Enum, Eq, Show)
 
 
+_initialValueBackgroundOrigin :: CssValueBackgroundOrigin
 _initialValueBackgroundOrigin = CssValueBackgroundOriginPaddingBox
 
 
 
 
 -- TODO: implement
+_ctorValueBackgroundOrigin ::  (CssParser, CssToken) -> Maybe (CssParser, CssToken)
 _ctorValueBackgroundOrigin _pat = Nothing
 
 
@@ -633,6 +650,7 @@ data CssValueBackgroundPosition
 
 -- According to https://www.w3.org/TR/css-backgrounds-3/#background-position,
 -- these values should be percentages.
+initialValueBackgroundPosition :: CssValueBackgroundPosition
 initialValueBackgroundPosition = CssValueBackgroundPositionXY 0 0
 
 
@@ -644,11 +662,13 @@ makeCssPropertyBackgroundPosition pat = (fmap . fmap) CssPropertyBackgroundPosit
 
 
 
+parserValueBackgroundPosition :: Parser (CssParser, CssToken) CssValueBackgroundPosition
 parserValueBackgroundPosition = Parser $ interpretTokensAsBgPosition CssValueBackgroundPositionXY
 
 
 
 
+ctorValueBackgroundPosition :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBackgroundPosition)
 ctorValueBackgroundPosition pat = runParser parserValueBackgroundPosition pat
 
 
@@ -670,11 +690,13 @@ data CssValueBackgroundRepeat
 
 
 -- https://www.w3.org/TR/css-backgrounds-3/#background-repeat
+initialValueBackgroundRepeatStyle :: CssValueBackgroundRepeat
 initialValueBackgroundRepeatStyle = CssValueBackgroundRepeatRepeat
 
 
 
 
+cssValueBackgroundRepeatDict :: [(Text, CssValueBackgroundRepeat)]
 cssValueBackgroundRepeatDict = [ ("repeat",     CssValueBackgroundRepeatRepeat)
                                , ("repeat-x",   CssValueBackgroundRepeatRepeatX)
                                , ("repeat-y",   CssValueBackgroundRepeatRepeatY)
@@ -690,11 +712,13 @@ makeCssPropertyBackgroundRepeat pat = (fmap . fmap) CssPropertyBackgroundRepeat 
 
 
 
+parserValueBackgroundStyle :: Parser (CssParser, CssToken) CssValueBackgroundRepeat
 parserValueBackgroundStyle = Parser $ interpretTokensAsEnum cssValueBackgroundRepeatDict
 
 
 
 
+ctorValueBackgroundStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBackgroundRepeat)
 ctorValueBackgroundStyle pat = runParser parserValueBackgroundStyle pat
 
 
@@ -855,8 +879,19 @@ defaultValueBorderTRBL = CssValueBorderTRBL defaultBorderTRBLWidth defaultBorder
 
 -- Default values taken from
 -- https://www.w3.org/TR/css-backgrounds-3/#property-index
+defaultBorderTRBLWidth :: CssValueBorderWidth
 defaultBorderTRBLWidth = CssValueBorderWidthMedium
+
+
+
+
+defaultBorderTRBLStyle :: CssValueBorderStyle
 defaultBorderTRBLStyle = CssValueBorderStyleNone
+
+
+
+
+defaultBorderTRBLColor :: CssValueBorderColor
 defaultBorderTRBLColor = cssValueCurrentColor
 
 
@@ -874,8 +909,18 @@ makeCssPropertyBorderTop pat = (fmap . fmap) CssPropertyBorderTop (combinatorOne
 
 
 
+parseBorderWidthValue :: (CssParser, CssToken) -> CssValueBorderTRBL -> Maybe ((CssParser, CssToken), CssValueBorderTRBL)
 parseBorderWidthValue pat acc = (fmap . fmap) (\ x -> acc { borderTRBLWidth = x }) $ parseTokensAsBorderWidthValue pat
+
+
+
+
+parseBorderStyleValue :: (CssParser, CssToken) -> CssValueBorderTRBL -> Maybe ((CssParser, CssToken), CssValueBorderTRBL)
 parseBorderStyleValue pat acc = (fmap . fmap) (\ x -> acc { borderTRBLStyle = x }) $ parseTokensAsBorderStyleValue pat
+
+
+
+parseBorderColorValue :: (CssParser, CssToken) -> CssValueBorderTRBL -> Maybe ((CssParser, CssToken), CssValueBorderTRBL)
 parseBorderColorValue pat acc = (fmap . fmap) (\ x -> acc { borderTRBLColor = x }) $ parseTokensAsBorderColorValue pat
 
 
@@ -962,6 +1007,7 @@ data CssValueBorderCollapse
 
 
 
+cssValueBorderCollapseDict :: [(Text, CssValueBorderCollapse)]
 cssValueBorderCollapseDict = [ ("separate",   CssValueBorderCollapseSeparate)
                              , ("collapse",   CssValueBorderCollapseCollapse)
                              ]
@@ -1032,6 +1078,7 @@ parseTokensAsBorderColorValue pat = runParser parserValueBorderColor pat
 
 
 
+parserValueBorderColor :: Parser (CssParser, CssToken) CssValueBorderColor
 parserValueBorderColor = Parser (interpretTokensAsEnum cssValueBorderColorDict)
                          <|> Parser (interpretTokensAsColor CssValueBorderColor)
 
@@ -1046,10 +1093,26 @@ makeCssPropertyBorderXColor propCtor pat = (fmap . fmap) propCtor (parser pat)
 
 
 
-makeCssPropertyBorderTopColor    = makeCssPropertyBorderXColor CssPropertyBorderTopColor
-makeCssPropertyBorderRightColor  = makeCssPropertyBorderXColor CssPropertyBorderRightColor
+makeCssPropertyBorderTopColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderTopColor = makeCssPropertyBorderXColor CssPropertyBorderTopColor
+
+
+
+
+makeCssPropertyBorderRightColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderRightColor = makeCssPropertyBorderXColor CssPropertyBorderRightColor
+
+
+
+
+makeCssPropertyBorderBottomColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyBorderBottomColor = makeCssPropertyBorderXColor CssPropertyBorderBottomColor
-makeCssPropertyBorderLeftColor   = makeCssPropertyBorderXColor CssPropertyBorderLeftColor
+
+
+
+
+makeCssPropertyBorderLeftColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderLeftColor = makeCssPropertyBorderXColor CssPropertyBorderLeftColor
 
 
 
@@ -1103,6 +1166,7 @@ parseTokensAsBorderStyleValue pat = runParser parserValueBorderStyle pat
 
 
 
+parserValueBorderStyle :: Parser (CssParser, CssToken) CssValueBorderStyle
 parserValueBorderStyle = Parser $ interpretTokensAsEnum cssValueBorderStyleDict
 
 
@@ -1116,10 +1180,17 @@ makeCssPropertyBorderXStyle propCtor pat = (fmap . fmap) propCtor (parser pat)
 
 
 
-makeCssPropertyBorderTopStyle    = makeCssPropertyBorderXStyle CssPropertyBorderTopStyle
-makeCssPropertyBorderRightStyle  = makeCssPropertyBorderXStyle CssPropertyBorderRightStyle
+makeCssPropertyBorderTopStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderTopStyle = makeCssPropertyBorderXStyle CssPropertyBorderTopStyle
+
+makeCssPropertyBorderRightStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderRightStyle = makeCssPropertyBorderXStyle CssPropertyBorderRightStyle
+
+makeCssPropertyBorderBottomStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyBorderBottomStyle = makeCssPropertyBorderXStyle CssPropertyBorderBottomStyle
-makeCssPropertyBorderLeftStyle   = makeCssPropertyBorderXStyle CssPropertyBorderLeftStyle
+
+makeCssPropertyBorderLeftStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyBorderLeftStyle = makeCssPropertyBorderXStyle CssPropertyBorderLeftStyle
 
 
 
@@ -1159,6 +1230,7 @@ parseTokensAsBorderWidthValue pat = runParser parserValueBorderWidth pat
 
 
 
+parserValueBorderWidth :: Parser (CssParser, CssToken) CssValueBorderWidth
 parserValueBorderWidth = Parser (interpretTokensAsEnum cssValueBorderWidthDict)
                          <|> Parser (interpretTokensAsLength False CssValueBorderWidthDistance)
 
@@ -1195,9 +1267,16 @@ makeCssPropertyBorderLeftWidth = makeCssPropertyBorderXWidth CssPropertyBorderLe
 
 
 
+makeCssPropertyBottom :: CssValue -> CssProperty
 makeCssPropertyBottom v = CssPropertyBottom v
+
+makeCssPropertyCaptionSide :: CssValue -> CssProperty
 makeCssPropertyCaptionSide v = CssPropertyCaptionSide v
+
+makeCssPropertyClear :: CssValue -> CssProperty
 makeCssPropertyClear v = CssPropertyClear v
+
+makeCssPropertyClip :: CssValue -> CssProperty
 makeCssPropertyClip v = CssPropertyClip v
 
 
@@ -1266,7 +1345,10 @@ makeCssPropertyContent pat = (fmap . fmap) CssPropertyContent (parser pat)
 
 
 
+makeCssPropertyCounterIncrement :: CssValue -> CssProperty
 makeCssPropertyCounterIncrement v = CssPropertyCounterIncrement v
+
+makeCssPropertyCounterReset :: CssValue -> CssProperty
 makeCssPropertyCounterReset v = CssPropertyCounterReset v
 
 
@@ -1336,6 +1418,7 @@ makeCssPropertyCursor pat = (fmap . fmap) CssPropertyCursor (parser pat)
 
 
 
+makeCssPropertyDirection :: CssValue -> CssProperty
 makeCssPropertyDirection v = CssPropertyDirection v
 
 
@@ -1397,7 +1480,10 @@ makeCssPropertyDisplay pat = (fmap . fmap) CssPropertyDisplay (parser pat)
 
 
 
+makeCssPropertyEmptyCells :: CssValue -> CssProperty
 makeCssPropertyEmptyCells v = CssPropertyEmptyCells v
+
+makeCssPropertyFloat :: CssValue -> CssProperty
 makeCssPropertyFloat v = CssPropertyFloat v
 
 
@@ -1485,6 +1571,7 @@ makeCssPropertyFont patArg = case runRecipe patArg of
 
 
 
+shortcutWrapper :: ((CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe [CssProperty])
 shortcutWrapper ctor pat = case ctor pat of
                              Just (pat', prop) -> (pat', Just [prop])
                              Nothing           -> (pat, Nothing)
@@ -1577,6 +1664,7 @@ data CssValueFontSize
 
 
 
+cssValueFontSizeDict :: [(Text, CssValueFontSize)]
 cssValueFontSizeDict = [ ("xx-small", CssValueFontSizeXXSmall)
                        , ("x-small",  CssValueFontSizeXSmall)
                        , ("small",    CssValueFontSizeSmall)
@@ -1608,7 +1696,10 @@ makeCssPropertyFontSize pat = (fmap . fmap) CssPropertyFontSize (runParser parse
 
 
 
+makeCssPropertyFontSizeAdjust :: CssValue -> CssProperty
 makeCssPropertyFontSizeAdjust v = CssPropertyFontSizeAdjust v
+
+makeCssPropertyFontStretch :: CssValue -> CssProperty
 makeCssPropertyFontStretch v = CssPropertyFontStretch v
 
 
@@ -1630,6 +1721,7 @@ data CssValueFontStyle
 
 
 
+cssValueFontStyleDict :: [(Text, CssValueFontStyle)]
 cssValueFontStyleDict = [ ("normal",  CssValueFontStyleNormal)
                         , ("italic",  CssValueFontStyleItalic)
                         , ("oblique", CssValueFontStyleOblique)
@@ -1661,6 +1753,7 @@ data CssValueFontVariant
 
 
 
+cssValueFontVariantDict :: [(Text, CssValueFontVariant)]
 cssValueFontVariantDict = [ ("normal",  CssValueFontVariantNormal)
                           , ("small-caps",  CssValueFontVariantSmallCaps)
                           ]
@@ -1695,6 +1788,7 @@ data CssValueFontWeight
 
 
 
+cssValueFontWeightDict :: [(Text, CssValueFontWeight)]
 cssValueFontWeightDict = [ ("normal",  CssValueFontWeightNormal)
                          , ("bold",    CssValueFontWeightBold)
                          , ("bolder",  CssValueFontWeightBolder)
@@ -1745,6 +1839,7 @@ makeCssPropertyHeight pat = (fmap . fmap) CssPropertyHeight (runParser parser pa
 
 
 
+makeCssPropertyLeft :: CssValue -> CssProperty
 makeCssPropertyLeft v = CssPropertyLeft v
 
 
@@ -1765,6 +1860,7 @@ data CssValueLetterSpacing
 
 
 
+cssValueLetterSpacingDict :: [(Text, CssValueLetterSpacing)]
 cssValueLetterSpacingDict = [ ("normal",    CssValueLetterSpacingNormal)
                             ]
 
@@ -1795,6 +1891,7 @@ data CssValueLineHeight
 
 
 
+cssValueLineHeightDict :: [(Text, CssValueLineHeight)]
 cssValueLineHeightDict = [ ("normal",    CssValueLineHeightNormal)
                          ]
 
@@ -1838,6 +1935,7 @@ data CssValueListStyle = CssValueListStyle
   , listStyleImage    :: CssValueListStyleImage
   } deriving (Data, Eq, Show)
 
+initialValueListStyle :: CssValueListStyle
 initialValueListStyle = CssValueListStyle initialValueListStyleType initialValueListStylePosition initialValueListStyleImage
 
 
@@ -1873,6 +1971,7 @@ data CssValueListStyleImage
  | CssValueListStyleImageInherit
  deriving (Eq, Show, Data)
 
+initialValueListStyleImage :: CssValueListStyleImage
 initialValueListStyleImage = CssValueListStyleImageNone
 
 
@@ -1911,6 +2010,7 @@ data CssValueListStylePosition
  | CssValueListStylePositionOutside
   deriving (Eq, Show, Data, Enum, Bounded)
 
+initialValueListStylePosition :: CssValueListStylePosition
 initialValueListStylePosition = CssValueListStylePositionOutside
 
 
@@ -1930,6 +2030,7 @@ ctorCssPropertyListStylePosition pat = (fmap . fmap) CssPropertyListStylePositio
 
 
 
+ctorValueListStylePosition :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueListStylePosition)
 ctorValueListStylePosition pat = runParser parserValueListStylePosition pat
 
 
@@ -1974,6 +2075,7 @@ data CssValueListStyleType
   | CssValueListStyleTypeNone
   deriving (Eq, Show, Data, Enum, Bounded)
 
+initialValueListStyleType :: CssValueListStyleType
 initialValueListStyleType = CssValueListStyleTypeDisc
 
 
@@ -2012,6 +2114,7 @@ ctorCssPropertyListStyleType pat = (fmap . fmap) CssPropertyListStyleType (ctorV
 
 
 
+ctorValueListStyleType :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueListStyleType)
 ctorValueListStyleType pat = runParser parserValueListStyleType pat
 
 
@@ -2093,10 +2196,17 @@ parseTokensAsMarginValue pat = runParser marginValueParser pat
 
 
 
-makeCssPropertyMarginTop    = makeCssPropertyMarginX CssPropertyMarginTop
-makeCssPropertyMarginRight  = makeCssPropertyMarginX CssPropertyMarginRight
+makeCssPropertyMarginTop :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyMarginTop = makeCssPropertyMarginX CssPropertyMarginTop
+
+makeCssPropertyMarginRight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyMarginRight = makeCssPropertyMarginX CssPropertyMarginRight
+
+makeCssPropertyMarginBottom :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyMarginBottom = makeCssPropertyMarginX CssPropertyMarginBottom
-makeCssPropertyMarginLeft   = makeCssPropertyMarginX CssPropertyMarginLeft
+
+makeCssPropertyMarginLeft :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyMarginLeft = makeCssPropertyMarginX CssPropertyMarginLeft
 
 
 
@@ -2108,15 +2218,34 @@ makeCssPropertyMarginLeft   = makeCssPropertyMarginX CssPropertyMarginLeft
 
 
 
+makeCssPropertyMarkerOffset :: CssValue -> CssProperty
 makeCssPropertyMarkerOffset v = CssPropertyMarkerOffset v
+
+makeCssPropertyMarks :: CssValue -> CssProperty
 makeCssPropertyMarks v = CssPropertyMarks v
+
+makeCssPropertyMaxHeight :: CssValue -> CssProperty
 makeCssPropertyMaxHeight v = CssPropertyMaxHeight v
+
+makeCssPropertyMaxWidth :: CssValue -> CssProperty
 makeCssPropertyMaxWidth v = CssPropertyMaxWidth v
+
+makeCssPropertyMinHeight :: CssValue -> CssProperty
 makeCssPropertyMinHeight v = CssPropertyMinHeight v
+
+makeCssPropertyMinWidth :: CssValue -> CssProperty
 makeCssPropertyMinWidth v = CssPropertyMinWidth v
+
+makeCssPropertyOutlineColor :: CssValue -> CssProperty
 makeCssPropertyOutlineColor v = CssPropertyOutlineColor v
+
+makeCssPropertyOutlineStyle :: CssValue -> CssProperty
 makeCssPropertyOutlineStyle v = CssPropertyOutlineStyle v
+
+makeCssPropertyOutlineWidth :: CssValue -> CssProperty
 makeCssPropertyOutlineWidth v = CssPropertyOutlineWidth v
+
+makeCssPropertyOverflow :: CssValue -> CssProperty
 makeCssPropertyOverflow v = CssPropertyOverflow v
 
 
@@ -2192,10 +2321,17 @@ paddingValueParser = Parser $ interpretTokensAsLength False CssValuePaddingX
 
 
 
+makeCssPropertyPaddingTop :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyPaddingTop    = makeCssPropertyPaddingX CssPropertyPaddingTop
-makeCssPropertyPaddingRight  = makeCssPropertyPaddingX CssPropertyPaddingRight
+
+makeCssPropertyPaddingRight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyPaddingRight = makeCssPropertyPaddingX CssPropertyPaddingRight
+
+makeCssPropertyPaddingBottom :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyPaddingBottom = makeCssPropertyPaddingX CssPropertyPaddingBottom
-makeCssPropertyPaddingLeft   = makeCssPropertyPaddingX CssPropertyPaddingLeft
+
+makeCssPropertyPaddingLeft :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyPaddingLeft = makeCssPropertyPaddingX CssPropertyPaddingLeft
 
 
 
@@ -2208,8 +2344,19 @@ makeCssPropertyPaddingLeft   = makeCssPropertyPaddingX CssPropertyPaddingLeft
 
 
 
+makeCssPropertyPosition :: CssValue -> CssProperty
 makeCssPropertyPosition v = CssPropertyPosition v
+
+
+
+
+makeCssPropertyQuotes :: CssValue -> CssProperty
 makeCssPropertyQuotes v = CssPropertyQuotes v
+
+
+
+
+makeCssPropertyRight :: CssValue -> CssProperty
 makeCssPropertyRight v = CssPropertyRight v
 
 
@@ -2235,6 +2382,7 @@ data CssValueTextAlign
 
 
 
+cssValueTextAlignDict :: [(Text, CssValueTextAlign)]
 cssValueTextAlignDict = [ ("left",    CssValueTextAlignLeft)
                         , ("right",   CssValueTextAlignRight)
                         , ("center",  CssValueTextAlignCenter)
@@ -2272,6 +2420,7 @@ data CssValueTextDecoration
 
 
 
+cssValueTextDecorationDict :: [(Text, CssValueTextDecoration)]
 cssValueTextDecorationDict = [ ("underline",     CssValueTextDecorationUnderline)
                              , ("overline",      CssValueTextDecorationOverline)
                              , ("line-through",  CssValueTextDecorationLineThrough)
@@ -2318,6 +2467,7 @@ makeCssPropertyTextIndent pat = (fmap . fmap) CssPropertyTextIndent (parser pat)
 
 
 
+makeCssPropertyTextShadow :: CssValue -> CssProperty
 makeCssPropertyTextShadow v = CssPropertyTextShadow v
 
 
@@ -2340,6 +2490,7 @@ data CssValueTextTransform
 
 
 
+cssValueTextTransformDict :: [(Text, CssValueTextTransform)]
 cssValueTextTransformDict = [ ("none",       CssValueTextTransformNone)
                             , ("capitalize", CssValueTextTransformCapitalize)
                             , ("uppercase",  CssValueTextTransformUppercase)
@@ -2364,7 +2515,12 @@ makeCssPropertyTextTransform pat = (fmap . fmap) CssPropertyTextTransform (parse
 
 
 
+makeCssPropertyTop :: CssValue -> CssProperty
 makeCssPropertyTop v = CssPropertyTop v
+
+
+
+makeCssPropertyUnicodeBiDi :: CssValue -> CssProperty
 makeCssPropertyUnicodeBiDi v = CssPropertyUnicodeBiDi v
 
 
@@ -2420,6 +2576,8 @@ makeCssPropertyVerticalAlign pat = (fmap . fmap) CssPropertyVerticalAlign (parse
 
 
 
+
+makeCssPropertyVisibility :: CssValue -> CssProperty
 makeCssPropertyVisibility v = CssPropertyVisibility v
 
 
@@ -2503,6 +2661,7 @@ data CssValueWordSpacing
 
 
 
+cssValueWordSpacingDict :: [(Text, CssValueWordSpacing)]
 cssValueWordSpacingDict = [ ("normal",    CssValueWordSpacingNormal)
                           ]
 
@@ -2525,6 +2684,7 @@ makeCssPropertyWordSpacing pat = (fmap . fmap) CssPropertyWordSpacing (runParser
 
 
 
+makeCssPropertyZIndex :: CssValue -> CssProperty
 makeCssPropertyZIndex v = CssPropertyZIndex v
 
 
@@ -2655,6 +2815,7 @@ data CssValueXTooltip
 
 
 
+makeCssPropertyInvalid :: CssValue -> CssProperty
 makeCssPropertyInvalid _ = CssPropertyInvalid
 
 

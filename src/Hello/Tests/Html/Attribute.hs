@@ -32,6 +32,7 @@ import Hello.Html.Doctype
 
 
 
+lengthData :: [(T.Text, Maybe (Float, Int))]
 lengthData =
   --  attribute token               resulting length
   [
@@ -67,6 +68,7 @@ lengthTest (x:xs) = if len x == parseLengthOrMultiLength (inAttribute x)
 
 
 
+nameOrIdValuesData :: [(HtmlDoctype, T.Text, T.Text, Bool)]
 nameOrIdValuesData =
   [
     -- HTML4 tests
@@ -117,6 +119,7 @@ nameOrIdValuesTest (x:xs) = if expected x == validateNameOrIdValue (doctype x) (
 
 
 
+testCases :: [Test]
 testCases = [
     TestCase(assertEqual "valid length tests"           "" (lengthTest lengthData))
   , TestCase(assertEqual "name or id values"            "" (nameOrIdValuesTest nameOrIdValuesData))

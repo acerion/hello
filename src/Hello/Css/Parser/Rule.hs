@@ -121,6 +121,7 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
 
 -- Consume input until end of {} block is encountered.
 -- To be called when handling errors during parsing of {} block.
+consumeRestOfCurlyBlock :: (CssParser, CssToken) -> (CssParser, CssToken)
 consumeRestOfCurlyBlock pair@(_, CssTokEnd)             = pair
 consumeRestOfCurlyBlock (parser, CssTokBraceCurlyClose) =
   -- Don't forget to consume the spaces after closing } too.

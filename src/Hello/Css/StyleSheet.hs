@@ -112,6 +112,7 @@ instance Show CssStyleSheet where
 
 
 
+defaultStyleSheet :: CssStyleSheet
 defaultStyleSheet = CssStyleSheet { rulesById         = M.empty
                                   , rulesByClass      = M.empty
                                   , rulesByType       = replicate styleSheetElementCount []
@@ -210,6 +211,7 @@ data CssStyleSheets = CssStyleSheets
 
 
 
+defaultStyleSheets :: CssStyleSheets
 defaultStyleSheets = CssStyleSheets
   { sheetUserAgent       = defaultStyleSheet
   , sheetUser            = defaultStyleSheet
@@ -230,6 +232,7 @@ data CssContext = CssContext {
 
 
 
+defaultCssContext :: CssContext
 defaultCssContext = CssContext { sheets       = defaultStyleSheets
                                , matchCache   = matchCacheFromList []
                                , rulePosition = 0
@@ -261,6 +264,7 @@ updateSheet sheetsArg selector sheet = case selector of
 
 
 
+cssRuleIsSafe :: CssRule -> Bool
 cssRuleIsSafe rule = (not . cssComplexSelectorHasPseudoClass . complexSelector $ rule) || (isSafe . declarationSet $ rule)
 
 
@@ -293,6 +297,7 @@ cssContextAddRule context sheetSelector rule  =
 
 
 
+ruleSetOffsetAndPosition :: (CssContext, CssSheetSelector, CssRule) -> (CssContext, CssSheetSelector, CssRule)
 ruleSetOffsetAndPosition (context, ss, rule) = ( context
                                                , ss
                                                , rule { complexSelector = newComplexSelector . complexSelector $ rule
@@ -394,8 +399,7 @@ rulesetToRulesWithOrigin (parser, token) = case parseStyleRule (parser, token) o
 
 
 
-
-
+parseRuleset :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
 parseRuleset (pat, context) = ((p2, t2), updatedContext)
   where
     updatedContext = cssContextAddRules context rulesWithOrigin
@@ -482,6 +486,7 @@ parseMediaRule ((parser, token), context) = ((p3, t3), c3)
 
 
 
+parseMediaBlock :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
 parseMediaBlock ((parser, token), context) = case parseRuleset ((parser, token), context) of
                                                ((p2, CssTokEnd), c2)             -> ((p2, CssTokEnd), c2)
                                                ((p2, CssTokBraceCurlyClose), c2) -> (nextToken p2, c2) -- Consume closing brace of media block

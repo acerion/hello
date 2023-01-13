@@ -29,6 +29,7 @@ import Hello.Html.Doctype
 
 
 
+sanitizationData :: [(T.Text, T.Text)]
 sanitizationData =
   [
     ( "hello", "hello" )
@@ -85,6 +86,7 @@ sanitizationTest (x:xs) = if expected x == sanitizeDoctypeString (toSanitize x)
 
 -- TODO: add tests with unrecognizable input strings
 -- TODO: add tests with white spaces embedded in input strings
+getDoctypeData :: [(T.Text, HtmlDoctype)]
 getDoctypeData =
   [
     -- HTML 2.0 - PASS
@@ -133,6 +135,7 @@ getDoctypeTest (x:xs) = if expected x == getDoctypeFromBuffer (input x) emptyDoc
 
 
 
+testCases :: [Test]
 testCases = [
     TestCase(assertEqual "sanitization of doctype"                   "" (sanitizationTest sanitizationData))
   , TestCase(assertEqual "top-level function getting doctype"        "" (getDoctypeTest getDoctypeData))

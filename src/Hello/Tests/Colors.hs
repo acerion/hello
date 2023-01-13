@@ -35,6 +35,7 @@ import Hello.Colors
 -- with the two arguments from first two columns.
 -- Fourth column is a result of calling original C function Color_distance3()
 -- with the two arguments from first two columns.
+distanceXTestData :: [[Int]]
 distanceXTestData =
   --  color1    color2    d2 d3
   [ [ 0xb22222, 0x20b2aa, 3, 3 ],
@@ -191,6 +192,7 @@ distanceXTestData =
 -- Colors.colorsTable.
 -- Fifth column is a result of calling original C function a_Color_vc() with
 -- the four arguments from first four columns.
+visitedColorTestData :: [[Int]]
 visitedColorTestData =
   --  candidate txt       lnk       bg        expected result
   [ [ 0xf5f5f5, 0xb0c4de, 0x708090, 0xff69b4, 0x800080 ],
@@ -388,6 +390,7 @@ visitedColorTest (c:cs) = if expected /= (colorsVisitedColor candidate txt lnk b
 
 
 
+colorsTestCases :: [Test]
 colorsTestCases = [
   -- If some error is found, test function returns non-empty string with
   -- representation of integer from first column in a row, for which the test

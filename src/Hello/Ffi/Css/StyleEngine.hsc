@@ -92,6 +92,7 @@ foreign export ccall "hll_inheritNonCssHints" hll_inheritNonCssHints :: CInt -> 
 
 
 
+getSomeDeclSet3 :: Int -> IO (CssDeclarationSet, Int)
 getSomeDeclSet3 nonCssDeclSetRef = if (-1) == nonCssDeclSetRef
                                    then
                                      do
@@ -378,6 +379,22 @@ hll_inheritNonCssHints cParentNonCssDeclSetRef cNonCssDeclSetRef = do
     -- current (possibly empty/NULL).
     do
       return . fromIntegral $ nonCssDeclSetRef
+
+
+
+
+cssLengthToDistance :: Float -> Int -> CssDistance
+cssLengthToDistance lenValue lenType | lenType == cssLengthTypeNone       = CssNumericNone lenValue
+                                     | lenType == cssLengthTypeMM         = CssDistanceAbsMm lenValue
+                                     | lenType == cssLengthTypePX         = CssDistanceAbsPx lenValue
+                                     | lenType == cssLengthTypeEM         = CssDistanceRelEm lenValue
+                                     | lenType == cssLengthTypeEX         = CssDistanceRelEx lenValue
+                                     | lenType == cssLengthTypePercentage = CssNumericPercentage lenValue
+                                     | lenType == cssLengthTypeRelative   = CssNumericRelative lenValue
+                                     | lenType == cssLengthTypeAuto       = CssDistanceAuto
+                                     | otherwise                          = CssNumericNone 0.0
+
+
 
 {-
 

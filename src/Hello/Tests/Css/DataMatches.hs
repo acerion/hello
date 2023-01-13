@@ -35,7 +35,8 @@ import Hello.Html.DoctreeNode
 -- function, and printing the input selector in Haskell function.
 --
 -- Perhaps in the future I will write some generator of test data.
-matchTestManualData :: [(CssCompoundSelectorMatch, CssCompoundSelector, DoctreeNode)] = [
+matchTestManualData :: [(CssCompoundSelectorMatch, CssCompoundSelector, DoctreeNode)]
+matchTestManualData = [
     (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 36, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 453, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})

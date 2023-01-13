@@ -51,7 +51,7 @@ import Hello.Html.Doctype
 
 
 
-
+takeValue :: T.Text -> Maybe (Double, T.Text)
 takeValue text = case T.R.double text of
                    Right (f, remainder) -> Just (f, remainder)
                    Left _               -> Nothing

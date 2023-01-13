@@ -57,6 +57,7 @@ data EntityParser = EntityParser {
 
 
 
+parserDefault :: EntityParser
 parserDefault = EntityParser { entityIsoCode = Nothing, remainder = "" }
 
 
@@ -71,6 +72,7 @@ parserDefault = EntityParser { entityIsoCode = Nothing, remainder = "" }
 --
 -- TODO: some entities allow not adding terminating ";". Don't report error
 -- for such cases.
+gEntities :: M.Map T.Text Int
 gEntities = M.fromList [
   ("AElig",   0o306),     ("Aacute",   0o301),     ("Acirc",   0o302),     ("Agrave",  0o300),
   ("Alpha",   0o1621),    ("Aring",    0o305),     ("Atilde",  0o303),     ("Auml",    0o304),

@@ -23,6 +23,8 @@ where
 import Test.QuickCheck
 import Test.QuickCheck.Instances.Text()
 
+import Data.Text.Internal (Text)
+
 import Hello.Gif
 import Hello.Tests.Utils.Gifted
 import Hello.Tests.Utils.QuickCheck
@@ -52,6 +54,7 @@ handle invalid byte sequences in incoming Extensions.
 
 
 
+prop_parseCommentExtension :: Data.Text.Internal.Text -> Bool
 prop_parseCommentExtension text =
   case parseExtension gifDefault extension of
     Just gif -> text == comment gif

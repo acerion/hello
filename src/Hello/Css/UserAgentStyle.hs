@@ -47,6 +47,7 @@ import Hello.Css.Tokenizer
 
 
 -- FIXME: hello crashes when this list is empty.
+userAgentStyleString :: T.Text
 userAgentStyleString = T.unlines
   [
     --"head { color: red }"
@@ -132,11 +133,13 @@ styleEngineBuildUserAgentStyle = context
 
 
 
+userAgentContext :: CssContext
 userAgentContext = styleEngineBuildUserAgentStyle
 
 
 
 
+userAgentStyleSheet :: CssStyleSheet
 userAgentStyleSheet = getSheet userAgentContext CssPrimaryUserAgent
 
 

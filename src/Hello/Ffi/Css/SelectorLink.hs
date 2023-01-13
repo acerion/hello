@@ -66,6 +66,7 @@ data CssComplexSelectorLink = CssComplexSelectorLink
 
 
 
+defaultComplexSelectorLink :: CssComplexSelectorLink
 defaultComplexSelectorLink = CssComplexSelectorLink
   { compound   = defaultCssCompoundSelector
 

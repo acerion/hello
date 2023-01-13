@@ -50,6 +50,7 @@ data ValueTestType = ValueTestType
 
 
 
+display1 :: Display
 display1 = defaultDisplay { dpiX = 141.767441, dpiY = 141.402069 }
 
 
@@ -59,6 +60,7 @@ display1 = defaultDisplay { dpiX = 141.767441, dpiY = 141.402069 }
 -- StyleEngine::computeAbsoluteLengthValue() function. There is no reference
 -- formula behind it, the data just relies on behaviour of (slightly
 -- refactored) dillo code.
+computeAbsoluteLengthValueTestData :: [ValueTestType]
 computeAbsoluteLengthValueTestData =
   [
     ValueTestType { dist = CssDistanceRelEm 0.500000,     fontAttrs = makeFontAttrs 14 8,  referenceValue = 0,  display = display1, ret = Just 7.0    }
@@ -183,6 +185,7 @@ computeAbsoluteLengthValueTestData =
 
 
 
+makeFontAttrs :: Int -> Int -> FontAttrs
 makeFontAttrs size xHeight = defaultFontAttrs { fontSize = size, fontXHeight = xHeight }
 
 
@@ -219,11 +222,13 @@ data ApplyToFontTestData = ApplyToFontTestData
 
 
 
+display2 :: Display
 display2 = defaultDisplay { dpiX = 141.76744, dpiY = 141.40207 }
 
 
 
 
+styleEngineApplyStyleToFontTestData :: [ApplyToFontTestData]
 styleEngineApplyStyleToFontTestData =
   [
     -- weight
@@ -680,7 +685,7 @@ styleEngineApplyStyleToFontTest (x:xs) = if expected /= styleEngineApplyStyleToF
 
 
 
-
+testCases :: [Test]
 testCases =
   [
     -- If some error is found, test function returns some data (e.g. non-empty

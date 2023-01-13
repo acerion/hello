@@ -88,7 +88,8 @@ import Hello.Chain
 
   TODO: make it a constant imported from other (Html?) module
 -}
-styleSheetElementCount = (90 + 14) :: Int
+styleSheetElementCount :: Int
+styleSheetElementCount = (90 + 14)
 
 
 
@@ -176,6 +177,7 @@ compoundId CssCompoundSelector{selectorId = i}  = [CssIdSelector i]
 
 
 -- Is a compound selector an 'Any' HTML tag?
+compoundHasUniversalType :: CssCompoundSelector -> Bool
 compoundHasUniversalType CssCompoundSelector{selectorTagName = CssTypeSelectorUniv} = True
 compoundHasUniversalType _                                                          = False
 
@@ -224,7 +226,7 @@ data CssCombinator =
 
 
 
-
+defaultCssCompoundSelector :: CssCompoundSelector
 defaultCssCompoundSelector = CssCompoundSelector
   { selectorPseudoClass = []
   , selectorId          = ""
@@ -234,7 +236,7 @@ defaultCssCompoundSelector = CssCompoundSelector
 
 
 
-
+defaultComplexSelector :: CssCachedComplexSelector
 defaultComplexSelector = CssCachedComplexSelector {
     matchCacheOffset = -1
   , chain            = Last defaultCssCompoundSelector

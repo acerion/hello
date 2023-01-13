@@ -44,6 +44,7 @@ import Hello.Html.Tag
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
+getTopCompoundTestManualDataBasic :: [(T.Text, CssCompoundSelector)]
 getTopCompoundTestManualDataBasic = [
   -- parser's input remainder      expected top simple selector
 
@@ -97,6 +98,7 @@ getTopCompoundTest (x:xs) = if expectedCompound /= cpd
 
 
 
+ruleTestCases :: [Test]
 ruleTestCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.

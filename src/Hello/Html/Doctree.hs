@@ -68,6 +68,7 @@ data Doctree = Doctree {
 
 
 
+defaultDoctree :: Doctree
 defaultDoctree = Doctree {
     topNodeNum  = -1
   , rootNode    = -1

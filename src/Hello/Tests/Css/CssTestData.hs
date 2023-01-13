@@ -34,6 +34,7 @@ import Hello.Css.Selector
 -- function, and printing the input selector in Haskell function.
 --
 -- Perhaps in the future I will write some generator of test data.
+specificityTestManualData :: [(Int, CssComplexSelector)]
 specificityTestManualData :: [(Int, CssComplexSelector)] = [
   -- expected specificity, intput selector
 

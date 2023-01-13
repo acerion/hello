@@ -60,6 +60,7 @@ buildSuccessOut :: [v -> a]                      -- ^ Converter between raw valu
                 -> [v]                           -- ^ Raw value of property, e.g. 11.5.
                 -> Maybe CssDeclaration
 -}
+buildSuccessOut :: [a -> CssDistance] -> [a] -> Maybe CssDeclaration
 buildSuccessOut (ct:cr:cb:cl:[]) (vt:vr:vb:vl:[]) = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
                                                                                                           (CssValueMarginXDistance . ct $ vt)
                                                                                                           (CssValueMarginXDistance . cr $ vr)

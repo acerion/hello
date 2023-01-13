@@ -104,27 +104,33 @@ peekHtmlDoctype ptrStructHtmlDoctype = do
 -- Set fields in pointer to struct passed from C code.
 pokeHtmlDoctype :: Ptr FfiHtmlDoctype-> HtmlDoctype -> IO ()
 pokeHtmlDoctype ptrStructHtmlDoctype doctype = do
-  let (t, v) = doctypeToPair doctype
-  poke ptrStructHtmlDoctype $ FfiHtmlDoctype t v
+  let (tag, htmlVer) = doctypeToPair doctype
+  poke ptrStructHtmlDoctype $ FfiHtmlDoctype tag htmlVer
 
 
 
 
+-- Convert Haskell type into a pair of (C tag indicating html type, html
+-- Version float).
+doctypeToPair :: HtmlDoctype -> (CInt, Float)
 doctypeToPair doctype = case doctype of
                           HtmlDoctypeNone         -> (0, 0)
                           HtmlDoctypeUnrecognized -> (1, 0)
-                          HtmlDoctypeHtml v       -> (2, v)
-                          HtmlDoctypeXhtml v      -> (3, v)
+                          HtmlDoctypeHtml ver     -> (2, ver)
+                          HtmlDoctypeXhtml ver    -> (3, ver)
 
 
 
+
+-- Convert a C tag (indicating html type) and a float (representing html
+-- version) into Haskell type.
 intToDoctype :: Int -> Float -> HtmlDoctype
-intToDoctype i v = case i of
-                     0 -> HtmlDoctypeNone
-                     1 -> HtmlDoctypeUnrecognized
-                     2 -> HtmlDoctypeHtml v
-                     3 -> HtmlDoctypeXhtml v
-                     _ -> HtmlDoctypeNone
+intToDoctype tag ver = case tag of
+                         0 -> HtmlDoctypeNone
+                         1 -> HtmlDoctypeUnrecognized
+                         2 -> HtmlDoctypeHtml ver
+                         3 -> HtmlDoctypeXhtml ver
+                         _ -> HtmlDoctypeNone
 
 
 

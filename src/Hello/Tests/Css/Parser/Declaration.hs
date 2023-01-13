@@ -151,6 +151,7 @@ names such as "background" or "border".
 
 
 
+parseSingleDeclarationTestData :: [(T.Text, Maybe CssDeclaration)]
 parseSingleDeclarationTestData =
   [
     ( "background: red",
@@ -1469,6 +1470,7 @@ parseSingleDeclarationTest (x:xs) = if expectedDeclarations /= declarations
 
 
 
+testCases :: [Test]
 testCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.

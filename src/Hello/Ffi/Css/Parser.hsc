@@ -206,16 +206,17 @@ pokeCssToken ptrStructCssToken token = do
 
 
 -- This function corresponds with cssparser.hh::CssTokenType
-getTokenType (CssTokIdent  _) = 0
-getTokenType (CssTokStr  _)   = 1
-getTokenType (CssTokDelim _)  = 2
-getTokenType CssTokEnd        = 3
-getTokenType CssTokBraceCurlyClose    = 4
-getTokenType CssTokColon              = 5
-getTokenType CssTokBraceSquareOpen    = 6
-getTokenType CssTokBraceSquareClose   = 7
-getTokenType (CssTokHash CssHashUn _) = 8
-getTokenType (CssTokHash CssHashId _) = 9
+getTokenType :: CssToken -> CInt
+getTokenType (CssTokIdent  _)         =  0
+getTokenType (CssTokStr  _)           =  1
+getTokenType (CssTokDelim _)          =  2
+getTokenType CssTokEnd                =  3
+getTokenType CssTokBraceCurlyClose    =  4
+getTokenType CssTokColon              =  5
+getTokenType CssTokBraceSquareOpen    =  6
+getTokenType CssTokBraceSquareClose   =  7
+getTokenType (CssTokHash CssHashUn _) =  8
+getTokenType (CssTokHash CssHashId _) =  9
 getTokenType (CssTokAtKeyword _)      = 10
 getTokenType CssTokWS                 = 11
 getTokenType _                        = 12
@@ -223,9 +224,11 @@ getTokenType _                        = 12
 
 
 
+-- Combine integer and text value into a properly typed token.
+getTokenADT :: CInt -> T.Text -> CssToken
 getTokenADT tokType tokValue | tokType ==  0 = CssTokIdent tokValue
                              | tokType ==  1 = CssTokStr tokValue
-                             | tokType ==  2 = CssTokDelim  (T.head tokValue)
+                             | tokType ==  2 = CssTokDelim (T.head tokValue)
                              | tokType ==  3 = CssTokEnd
                              | tokType ==  4 = CssTokBraceCurlyClose
                              | tokType ==  5 = CssTokColon

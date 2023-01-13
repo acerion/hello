@@ -50,6 +50,7 @@ instance Arbitrary T.Text where
 
 
 
+parseExtensionComment :: [Test]
 parseExtensionComment = [
   -- These three tests succeed because tested function ignores anything shorter than 3 bytes.
     TestCase(assertEqual "comment: empty stream"
@@ -134,6 +135,7 @@ parseExtensionComment = [
 
 
 
+parseCommentExtension :: T.Text -> Bool
 parseCommentExtension text =
   case parseExtension gifDefault extension of
     Just gif -> text == comment gif && BS.length extension == consumed gif

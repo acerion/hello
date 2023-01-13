@@ -63,6 +63,7 @@ matchTest (x:xs) = if expectedMatch x /= (compoundSelectorMatches' (cpdSel x) (d
 
 
 
+cssTestCases :: [Test]
 cssTestCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.

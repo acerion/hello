@@ -29,6 +29,7 @@ import Hello.Utils
 
 
 
+validEntityData :: [(T.Text, Maybe Int, T.Text)]
 validEntityData =
   --  token                          code              remainder
   [
@@ -76,6 +77,7 @@ validEntityData =
 -- Well-formed, but unsupported values of entity names. They should be
 -- consumed/skipped, and and whatever comes after name should be saved as
 -- remainder.
+wellFormedEntityData :: [(T.Text, Maybe a, T.Text)]
 wellFormedEntityData =
   --  token                          code              remainder
   [
@@ -88,6 +90,7 @@ wellFormedEntityData =
 
 
 -- Verify that we are reaching the special case for w1252 codes.
+w1252EntityData :: [(T.Text, Maybe Int, T.Text)]
 w1252EntityData =
   --  token                          code              remainder
   [
@@ -115,6 +118,7 @@ w1252EntityData =
 
 
 
+invalidEntityData :: [(T.Text, Maybe Int, T.Text)]
 invalidEntityData =
   --  token                          code              remainder
   [
@@ -151,6 +155,7 @@ validEntityTest (x:xs) = if isMatch x (htmlEntityToIsoCode . inName $ x)
 
 
 
+testCases :: [Test]
 testCases = [
     TestCase(assertEqual "valid entity tests"           "" (validEntityTest validEntityData))
   , TestCase(assertEqual "well-formed entity tests"     "" (validEntityTest wellFormedEntityData))

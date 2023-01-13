@@ -493,6 +493,7 @@ parseUrl (p1, token)            = ((p1, token), Nothing)
 
 
 
+consumeFunctionBody :: CssParser -> [CssToken] -> ((CssParser, CssToken), [CssToken])
 consumeFunctionBody p1 acc = case nextToken p1 of
                                (p2, t2@CssTokParenClose) -> (nextToken p2, L.reverse (t2:acc))
                                (p2, CssTokEnd)           -> (nextToken p2, L.reverse acc) -- TODO: this is a parse error, handle the error

@@ -28,7 +28,6 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 
 
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveDataTypeable #-} -- For 'Data'.
 
@@ -38,9 +37,6 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 module Hello.Css.Distance
   (
     CssDistance (..)
-
-  , cssLengthToDistance
-  , distanceToCssLength
 
   , cssLengthTypeNone
   , cssLengthTypePX
@@ -81,38 +77,38 @@ data CssDistance =
   | CssNumericNone     Float     -- CSS_LENGTH_TYPE_NONE
   | CssNumericRelative Float     -- CSS_LENGTH_TYPE_RELATIVE; This does not exist in CSS but is used in HTML
     -- Value corresponding to "auto" value of "height", "width", "margin-*" property.
-  | CssDistanceAuto              -- CSS_LENGTH_TYPE_AUTO;
+  | CssDistanceAuto              -- CSS_LENGTH_TYPE_AUTO; This can be used as a simple value.
   deriving (Show, Eq, Data)
 
 
 
 
-cssLengthTypeNone       = 0 :: Int
-cssLengthTypePX         = 1 :: Int
-cssLengthTypeMM         = 2 :: Int -- "cm", "in", "pt" and "pc" are converted into millimeters.
-cssLengthTypeEM         = 3 :: Int
-cssLengthTypeEX         = 4 :: Int
-cssLengthTypePercentage = 5 :: Int
-cssLengthTypeRelative   = 6 :: Int -- This does not exist in CSS but is used in HTML
-cssLengthTypeAuto       = 7 :: Int -- This can be used as a simple value.
+
+cssLengthTypeNone :: Int
+cssLengthTypeNone       = 0
+cssLengthTypePX :: Int
+cssLengthTypePX         = 1
+cssLengthTypeMM :: Int
+cssLengthTypeMM         = 2
+cssLengthTypeEM :: Int
+cssLengthTypeEM         = 3
+cssLengthTypeEX :: Int
+cssLengthTypeEX         = 4
+cssLengthTypePercentage :: Int
+cssLengthTypePercentage = 5
+cssLengthTypeRelative :: Int
+cssLengthTypeRelative   = 6
+cssLengthTypeAuto :: Int
+cssLengthTypeAuto       = 7
 
 
 
 
-cssLengthToDistance :: Float -> Int -> CssDistance
-cssLengthToDistance lenValue lenType | lenType == cssLengthTypeNone       = CssNumericNone lenValue
-                                     | lenType == cssLengthTypeMM         = CssDistanceAbsMm lenValue
-                                     | lenType == cssLengthTypePX         = CssDistanceAbsPx lenValue
-                                     | lenType == cssLengthTypeEM         = CssDistanceRelEm lenValue
-                                     | lenType == cssLengthTypeEX         = CssDistanceRelEx lenValue
-                                     | lenType == cssLengthTypePercentage = CssNumericPercentage lenValue
-                                     | lenType == cssLengthTypeRelative   = CssNumericRelative lenValue
-                                     | lenType == cssLengthTypeAuto       = CssDistanceAuto
-                                     | otherwise                          = CssNumericNone 0.0
 
 
 
 
+{-
 distanceToCssLength :: CssDistance -> (Float, Int)
 distanceToCssLength distance = case distance of
                                  CssDistanceRelEm x     -> (x, cssLengthTypeEM)
@@ -123,5 +119,5 @@ distanceToCssLength distance = case distance of
                                  CssNumericNone     x   -> (x, cssLengthTypeNone)
                                  CssNumericRelative x   -> (x, cssLengthTypeRelative)
                                  CssDistanceAuto        -> (0.0, cssLengthTypeAuto)
-
+-}
 

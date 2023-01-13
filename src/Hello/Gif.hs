@@ -58,10 +58,15 @@ import Data.Word
 
 
 
+extensionIntroducer :: Word8
 extensionIntroducer           = 0x21 -- First byte of Extension. "23. Graphic Control Extension."
+extensionTypeGraphicControl :: Word8
 extensionTypeGraphicControl   = 0xf9 -- "23. Graphic Control Extension."
+extensionTypeComment :: Word8
 extensionTypeComment          = 0xfe -- "24. Comment Extension."
+extensionTypePlainText :: Word8
 extensionTypePlainText        = 0x01 -- "25. Plain Text Extension."
+extensionTypeApplication :: Word8
 extensionTypeApplication      = 0xff -- "26. Application Extension."
 
 
@@ -229,10 +234,12 @@ gifNotEnoughData gif = gif { consumed = 0 }
 
 -- If parser has correctly parsed and consumed a chunk of data in full,
 -- return True.
+gifParseSuccess :: Gif -> Gif -> Bool
 gifParseSuccess gifPre gifPost = consumed gifPost > consumed gifPre
 
 
 
+gifDefault :: Gif
 gifDefault = Gif {
     consumed = 0
 

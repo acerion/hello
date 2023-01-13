@@ -81,6 +81,7 @@ import Hello.Utils.Parser
 -- Mapping between name of property and a constructor of the property.
 --
 -- Only a subset of CSS2.2 properties is supported by this implementation.
+cssPropertyCtors :: M.Map T.Text PropertyCtor
 cssPropertyCtors = M.fromList [
      ("background",             ctorCssPropertyBackground)
    , ("background-attachment",  makeCssPropertyBackgroundAttachment)
@@ -303,6 +304,7 @@ data CssDeclarationSet = CssDeclarationSet
 
 
 
+defaultCssDeclarationSet :: CssDeclarationSet
 defaultCssDeclarationSet = CssDeclarationSet
   { isSafe = True
   , items  = S.fromList []
@@ -440,6 +442,7 @@ parseDeclarationEnd (pat, decl) = case runParser (many parserTokenWhitespace) pa
 -- throw away whatever declaration it’s currently building, and seek forward
 -- until it finds a semicolon (or the end of the block). It then starts
 -- fresh, trying to parse a declaration again."
+seekEndOfDeclaration :: (CssParser, CssToken) -> (CssParser, CssToken)
 seekEndOfDeclaration pair@(_, CssTokEnd)             = pair
 seekEndOfDeclaration pair@(_, CssTokBraceCurlyClose) = pair -- '}' is not a
  -- part of declaration, so don't go past it. Return '}' as current token.

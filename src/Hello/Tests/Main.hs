@@ -46,7 +46,7 @@ import Hello.Tests.Utils
 
 
 
-
+testFunctions :: [IO String]
 testFunctions = [ testsChain
                 , testsColors
                 , testsCookies

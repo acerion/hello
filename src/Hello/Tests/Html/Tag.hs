@@ -28,6 +28,7 @@ import Hello.Html.Tag
 
 
 
+testAttributeValueData :: [(T.Text, T.Text, T.Text, Maybe T.Text)]
 testAttributeValueData =
   -- test id   full tag to parse              attr name     expected attr value         code              remainder
   [
@@ -150,6 +151,7 @@ testAttributeValueFun (x:xs) = if (expectedValue x) == (htmlAttributeGetValue (t
 
 
 
+testCases :: [Test]
 testCases = [
     TestCase(assertEqual "'get attribute value' tests" "" (testAttributeValueFun testAttributeValueData))
   ]

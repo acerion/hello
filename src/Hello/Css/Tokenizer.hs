@@ -117,6 +117,10 @@ data CssNum
   | CssNumF Float
   deriving (Show, Eq)
 
+
+
+
+cssNumToFloat :: CssNum -> Float
 cssNumToFloat (CssNumF f) = f
 cssNumToFloat (CssNumI i) = fromIntegral i
 
@@ -187,6 +191,7 @@ data CssParser = CssParser {
 
 
 -- Create a CSS parser with all fields set to empty values.
+defaultParserEmpty :: CssParser
 defaultParserEmpty = CssParser {
     remainder      = ""
   , inBlock        = False
@@ -290,6 +295,7 @@ takeIdentToken parser = if isValidStartOfIdentifier . remainder $ parser
 
 -- https://www.w3.org/TR/css-syntax-3/#check-if-three-code-points-would-start-an-identifier
 -- TODO: write test for this function.
+isValidStartOfIdentifier :: T.Text -> Bool
 isValidStartOfIdentifier buffer | null points             = False
                                 | c1 == '-'               = tryStartingWithHyphen points
                                 | isNameStartCodePoint c1 = True
@@ -323,6 +329,7 @@ peekUpToNCodePoints buffer nPoints predicate = peekUpToNCodePoints' buffer [] nP
 
 
 -- https://www.w3.org/TR/css-syntax-3/#starts-with-a-valid-escape
+isValidEscape :: Char -> Char -> Bool
 isValidEscape c1 c2 = c1 == '\\' && c2 /= '\n'
 
 
@@ -353,6 +360,7 @@ takeIdentLikeToken p1 = if len == 0
     p2 = parserMoveByLen p1 len
 
 
+takeIdentLikeToken' :: CssParser -> T.Text -> (CssParser, Maybe CssToken)
 takeIdentLikeToken' p1 name =
   case T.uncons . remainder $ p1 of
     -- Opening paren disappears, it is not represented in list of output
@@ -369,8 +377,9 @@ takeIdentLikeToken' p1 name =
 
 -- Remove a leading whitespace from parser's remainder as long as the
 -- remainder starts with two whitespaces.
--- 
+--
 -- TODO: this is not very effective. Just peek all whitespaces and them move parser by all-1.
+removeDoubleWhitespaces :: CssParser -> CssParser
 removeDoubleWhitespaces p1 = if length points == 2
                              then removeDoubleWhitespaces $ parserMoveByLen p1 1
                              else p1
@@ -380,6 +389,7 @@ removeDoubleWhitespaces p1 = if length points == 2
 
 
 
+tryConsumingUrlToken :: CssParser -> T.Text -> (CssParser, Maybe CssToken)
 tryConsumingUrlToken p1 name | length points >= 1 && (c0 == '\'' || c0 == '\"')                    = (p2, Just $ CssTokFunc name)
                              | length points == 2 && isWhitespace c0 && (c1 == '\'' || c1 == '\"') = (p2, Just $ CssTokFunc name)
                              | otherwise = consumeUrlToken p2
@@ -392,6 +402,7 @@ tryConsumingUrlToken p1 name | length points >= 1 && (c0 == '\'' || c0 == '\"') 
 
 
 
+consumeUrlToken :: CssParser -> (CssParser, Maybe CssToken)
 consumeUrlToken p1 = if T.length text > 0 && T.last text == ')' -- TODO: shouldn't the ')' char be CssTokParenClose?
                      then (p2, Just $ CssTokUrl $ T.take (n - 1) text) -- Don't include closing paren.
                      else (p2, Just CssTokBadUrl)
@@ -441,6 +452,7 @@ takeString parser = case HU.takeEnclosed (remainder parser) "\"" "\"" True of
 
 -- Implementation of algorithm for hash token described in
 -- https://www.w3.org/TR/css-syntax-3/#consume-token
+takeHashToken :: CssParser -> (CssParser, Maybe CssToken)
 takeHashToken p1 =
   case T.uncons $ remainder p1 of
     Just ('#', remd) | length points >= 1 && isNameCodePoint c0  -> createHashToken p1{ remainder = remd }
@@ -461,6 +473,7 @@ takeHashToken p1 =
 
 
 
+takeAtToken :: CssParser -> (CssParser, Maybe CssToken)
 takeAtToken p1 =
   case T.uncons $ remainder p1 of
     Just ('@', remd) | length points == 3 && isValidStartOfIdentifier (T.pack points) -> createAtToken p1{remainder = remd }
@@ -628,6 +641,7 @@ takeNumber parser = takeFloat parser >>? takeInt
 -- in 10 lines of code, but I'm at the stage of a project where I don't use
 -- external libs too much (yet). Hence I'm using this "manual" parsing for
 -- now.
+takeFloatString :: (T.Text, T.Text) -> Maybe (T.Text, T.Text)
 takeFloatString (buf, acc) = expectSign (buf, acc) >>!
                              expectLeadingDigits   >>!
                              expectDot             >>!
@@ -677,6 +691,7 @@ expectFollowingDigits (buf, acc) = case T.uncons buf of
 
 
 
+tryTakingDigits :: (T.Text, T.Text) -> Char -> Maybe (T.Text, T.Text)
 tryTakingDigits (buf, acc) d = if D.C.isDigit d
                                then Just (T.drop len buf, T.concat [acc, digits])
                                else Just (buf, acc)
@@ -687,12 +702,14 @@ tryTakingDigits (buf, acc) d = if D.C.isDigit d
 
 
 
+requestFollowingDigits :: (T.Text, T.Text) -> Maybe (T.Text, T.Text)
 requestFollowingDigits (buf, acc) = case T.uncons buf of
                                       Just (d, _) -> requestDigits (buf, acc) d
                                       Nothing     -> Nothing
 
 
 
+requestDigits :: (T.Text, T.Text) -> Char -> Maybe (T.Text, T.Text)
 requestDigits (buf, acc) d = if D.C.isDigit d
                              then Just (T.drop len buf, T.concat [acc, digits])
                              else Nothing
@@ -728,6 +745,7 @@ takeFloat parser = case takeFloatString (remainder parser, "") of
 
 
 
+interpretFloatString :: T.Text -> Maybe CssNum
 interpretFloatString buf = case T.R.signed T.R.rational buf of
                              -- T.R.rational is happy to interpret "100" as float,
                              -- but we want to treat is as int and reject it.

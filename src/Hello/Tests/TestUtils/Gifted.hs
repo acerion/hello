@@ -36,10 +36,12 @@ import qualified Data.ByteString as BS
 
 -- [1] "15. Data Sub-blocks.".
 -- "A data sub-block may contain from 0 to 255 data bytes."
+subBlockSizeLimit :: Int
 subBlockSizeLimit = 255
 
 -- [1] "16. Block Terminator."
-blockTerminator = 0x00 :: Word8
+blockTerminator :: Word8
+blockTerminator = 0x00
 
 
 

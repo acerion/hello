@@ -60,8 +60,13 @@ takeChar char text = case T.uncons text of
 
 
 -- Finally our parsers that try to take/match specific character from input.
+takeA :: TestParser
 takeA = takeChar 'a'
+
+takeB :: TestParser
 takeB = takeChar 'b'
+
+takeC :: TestParser
 takeC = takeChar 'c'
 
 
@@ -122,6 +127,7 @@ multiplierTestFunction multiplier (x:xs) = if not success
 -- single (one) parser from CombinatorTestData::parsers succeeds. When zero or
 -- two or three parsers succeed, then the tested combinator should return
 -- Nothing.
+combinatorExactlyOneTestData :: [CombinatorTestData]
 combinatorExactlyOneTestData =
   [
     -- Success cases
@@ -198,6 +204,7 @@ combinatorExactlyOneTestData =
 -- single (one) parser from CombinatorTestData::parsers succeeds. When zero or
 -- two or three parsers succeed, then the tested combinator should return
 -- Nothing.
+combinatorAllInOrderTestData :: [CombinatorTestData]
 combinatorAllInOrderTestData =
   [
     -- Success cases
@@ -292,6 +299,7 @@ combinatorAllInOrderTestData =
 --
 -- TODO: the "unordered" part of the combinator is not implemented yet. Once
 -- it is, expand the tests to cover the expanded functionality.
+combinatorOneOrMoreUnorderedTestData :: [CombinatorTestData]
 combinatorOneOrMoreUnorderedTestData =
   [
     -- Success cases
@@ -363,6 +371,7 @@ combinatorOneOrMoreUnorderedTestData =
 
 -- We expect here that tested multiplier will return some 'Just' for zero
 -- succeeses or one success.
+multiplierZeroOrOnceTestData :: [MultiplierTestData]
 multiplierZeroOrOnceTestData =
   [
     -- Success cases.
@@ -454,6 +463,7 @@ multiplierZeroOrOnceTestData =
 
 -- We expect here that tested multiplier will return some 'Just' for zero
 -- succeeses or one success.
+multiplierOnceTestData :: [MultiplierTestData]
 multiplierOnceTestData =
   [
     -- Success cases.
@@ -525,6 +535,7 @@ multiplierOnceTestData =
 
 -- If some error is found, test function returns non-empty string which can
 -- help identify a test that failed.
+testCases :: [Test]
 testCases =
   [
     TestCase (do assertEqual "manual tests of combinatorExactlyOne"              "" (combinatorTestFunction combinatorExactlyOne         combinatorExactlyOneTestData))

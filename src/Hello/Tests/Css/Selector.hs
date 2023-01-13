@@ -39,6 +39,7 @@ import Hello.Ffi.Css.SelectorLink -- CssComplexSelectorLink; TODO: the FFI code 
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
+parseComplexSelectorTestManualDataBasic :: [(T.Text, T.Text, Maybe CssCachedComplexSelector)]
 parseComplexSelectorTestManualDataBasic = [
   -- parser's remainder before/after      expected selector
 
@@ -99,7 +100,7 @@ parseComplexSelectorTest (x:xs) = if expectedSelector /= cplxSel || remainderAft
 
 
 
-
+linkAndChainTestData :: [[CssComplexSelectorLink]]
 linkAndChainTestData =
   [
     -- Single link
@@ -186,7 +187,7 @@ linkAndChainTest (x:xs) = if linkIn x /= linkOut x
 
 
 
-
+selectorTestCases :: [Test]
 selectorTestCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.

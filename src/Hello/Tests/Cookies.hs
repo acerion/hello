@@ -26,7 +26,7 @@ import Hello.Cookies as Cookies
 
 
 
-
+lineToRuleCases :: [Test]
 lineToRuleCases = [
 
   -- Empty line.
@@ -77,6 +77,7 @@ lineToRuleCases = [
 -- sure that all domains start with the same letter. This doesn't prevent all
 -- errors because even bad code that compares "aaa.com" with "aaaaaa.com"
 -- will recognize that '.' /= 'a', but maybe it will at least help somewhat.
+sortRulesCases :: [Test]
 sortRulesCases = [
 
   -- Empty list of rules.
@@ -117,6 +118,7 @@ sortRulesCases = [
   ]
 
 
+matchDomainCases :: [Test]
 matchDomainCases = [
     TestCase(assertEqual "simple match"             True  (domainMatchesRule "abc.com"  "abc.com"))
   , TestCase(assertEqual "simple mismatch"          False (domainMatchesRule "xyz.com"  "abc.com"))

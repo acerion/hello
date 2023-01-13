@@ -525,10 +525,17 @@ getBorderCollapse declValue = fromEnum declValue
 
 
 
+getBorderStyleTop :: StyleAttrs -> CssValueBorderStyle -> Int
 getBorderStyleTop    = getBorderStyle styleBorderStyleTop
-getBorderStyleRight  = getBorderStyle styleBorderStyleRight
+
+getBorderStyleRight :: StyleAttrs -> CssValueBorderStyle -> Int
+getBorderStyleRight = getBorderStyle styleBorderStyleRight
+
+getBorderStyleBottom :: StyleAttrs -> CssValueBorderStyle -> Int
 getBorderStyleBottom = getBorderStyle styleBorderStyleBottom
-getBorderStyleLeft   = getBorderStyle styleBorderStyleLeft
+
+getBorderStyleLeft :: StyleAttrs -> CssValueBorderStyle -> Int
+getBorderStyleLeft = getBorderStyle styleBorderStyleLeft
 
 getBorderStyle :: (StyleBorderStyle -> Int) -> StyleAttrs -> CssValueBorderStyle -> Int
 getBorderStyle field parentStyleAttrs value = case value of
@@ -548,11 +555,19 @@ getBorderStyle field parentStyleAttrs value = case value of
 
 
 
-getBorderWidthTop    = getBorderWidth styleBorderWidthTop
-getBorderWidthRight  = getBorderWidth styleBorderWidthRight
-getBorderWidthBottom = getBorderWidth styleBorderWidthBottom
-getBorderWidthLeft   = getBorderWidth styleBorderWidthLeft
+getBorderWidthTop :: StyleAttrs -> CssValueBorderWidth -> Display -> FontAttrs -> Int
+getBorderWidthTop = getBorderWidth styleBorderWidthTop
 
+getBorderWidthRight :: StyleAttrs -> CssValueBorderWidth -> Display -> FontAttrs -> Int
+getBorderWidthRight = getBorderWidth styleBorderWidthRight
+
+getBorderWidthBottom :: StyleAttrs -> CssValueBorderWidth -> Display -> FontAttrs -> Int
+getBorderWidthBottom = getBorderWidth styleBorderWidthBottom
+
+getBorderWidthLeft :: StyleAttrs -> CssValueBorderWidth -> Display -> FontAttrs -> Int
+getBorderWidthLeft = getBorderWidth styleBorderWidthLeft
+
+getBorderWidth :: (StyleBorderWidth -> Int) -> StyleAttrs -> CssValueBorderWidth -> Display -> FontAttrs -> Int
 getBorderWidth field parentStyleAttrs declValue display fontAttrs = case declValue of
                                                                       CssValueBorderWidthInherit -> field . styleBorderWidth $ parentStyleAttrs
                                                                       CssValueBorderWidthThin       -> 1
@@ -579,14 +594,17 @@ styleEngineComputeBorderWidth distance display fontAttrs = roundInt <$> styleEng
 
 
 
+getBorderColorTop :: StyleAttrs -> CssValueBorderColor -> Int
+getBorderColorTop = getBorderColor styleBorderColorTop
 
+getBorderColorRight :: StyleAttrs -> CssValueBorderColor -> Int
+getBorderColorRight = getBorderColor styleBorderColorRight
 
-
-
-getBorderColorTop    = getBorderColor styleBorderColorTop
-getBorderColorRight  = getBorderColor styleBorderColorRight
+getBorderColorBottom :: StyleAttrs -> CssValueBorderColor -> Int
 getBorderColorBottom = getBorderColor styleBorderColorBottom
-getBorderColorLeft   = getBorderColor styleBorderColorLeft
+
+getBorderColorLeft :: StyleAttrs -> CssValueBorderColor -> Int
+getBorderColorLeft = getBorderColor styleBorderColorLeft
 
 getBorderColor :: (StyleBorderColor -> Int) -> StyleAttrs -> CssValueBorderColor -> Int
 getBorderColor field parentStyleAttrs value = case value of
@@ -603,6 +621,7 @@ getBorderColor field parentStyleAttrs value = case value of
 -- TODO: notice that when you finally add support for other (non-enum) values
 -- of the property, you won't be able to use fromEnum anymore. The new values
 -- will complicate the function.
+getTextAlign :: CssValueTextAlign -> Int
 getTextAlign declValue = fromEnum declValue
 
 
@@ -637,6 +656,7 @@ getTextIndent (CssValueTextIndentDistance distance) fontAttrs display =
 -- TODO: notice that when you finally add support for other (non-enum) values
 -- of the property, you won't be able to use fromEnum anymore. The new values
 -- will complicate the function.
+getTextTransform :: CssValueTextTransform -> Int
 getTextTransform declValue = fromEnum declValue
 
 
@@ -694,6 +714,7 @@ getPadding (CssValuePaddingX distance) fontAttrs display =
 -- TODO: notice that when you finally add support for other (non-enum) values
 -- of the property, you won't be able to use fromEnum anymore. The new values
 -- will complicate the function.
+getVerticalAlign :: CssValueVerticalAlign -> Int
 getVerticalAlign declValue = fromEnum declValue
 
 
@@ -705,6 +726,7 @@ getVerticalAlign declValue = fromEnum declValue
 -- TODO: notice that when adding support for "inherit" and "initial", you
 -- won't be able to use fromEnum anymore. The two new values will complicate
 -- the function.
+getWhiteSpace :: CssValueWhitespace -> Int
 getWhiteSpace declValue = fromEnum declValue
 
 
@@ -752,6 +774,7 @@ getListStyleType declValue = fromEnum declValue
 
 
 
+getLineHeight :: CssValueLineHeight -> FontAttrs -> Display -> DwLength
 getLineHeight CssValueLineHeightNormal                        _         _       = createAutoDwLength
 getLineHeight (CssValueLineHeightDistance (CssNumericNone f)) _         _       = createPercentageDwLength . realToFrac $ f
 getLineHeight (CssValueLineHeightDistance distance)           fontAttrs display =
@@ -787,6 +810,7 @@ getLineHeight (CssValueLineHeightDistance distance)           fontAttrs display 
 -- TODO: notice that when adding support for "inherit" and "initial", you
 -- won't be able to use fromEnum anymore. The two new values will complicate
 -- the function.
+getDisplay :: CssValueDisplay -> Int
 getDisplay declValue = fromEnum declValue
 
 
