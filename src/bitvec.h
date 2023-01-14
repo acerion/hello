@@ -1,9 +1,8 @@
 #ifndef __BITVEC_H__
 #define __BITVEC_H__
 
-#include "d_size.h"
 
-#define BVEC_TYPE uchar_t
+#define BVEC_TYPE unsigned char
 #define BVEC_SIZE sizeof(BVEC_TYPE)
 
 typedef struct {

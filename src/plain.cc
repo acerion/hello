@@ -43,7 +43,7 @@ private:
    };
    PlainLinkReceiver plainReceiver;
 
-   void addLine(char *Buf, uint_t BufSize);
+   void addLine(char *Buf, unsigned int BufSize);
 
 public:
    BrowserWindow *bw;
@@ -56,7 +56,7 @@ public:
    DilloPlain(BrowserWindow *bw);
    ~DilloPlain();
 
-   void write(char *Buf, uint_t BufSize, bool isEof);
+   void write(char *Buf, unsigned int BufSize, bool isEof);
 };
 
 /* FSM states */
@@ -128,13 +128,13 @@ bool DilloPlain::PlainLinkReceiver::press (Widget *widget, int, int, int, int,
    _MSG("DilloPlain::PlainLinkReceiver::buttonPress\n");
 
    if (event->button == 3) {
-      a_UIcmd_page_popup(plain->bw, FALSE, NULL);
+      a_UIcmd_page_popup(plain->bw, false, NULL);
       return true;
    }
    return false;
 }
 
-void DilloPlain::addLine(char *Buf, uint_t BufSize)
+void DilloPlain::addLine(char *Buf, unsigned int BufSize)
 {
    int len;
    char buf[129];
@@ -144,7 +144,7 @@ void DilloPlain::addLine(char *Buf, uint_t BufSize)
       // Limit word length to avoid X11 coordinate
       // overflow with extremely long lines.
       while ((len = a_Misc_expand_tabs(&Buf, end, buf, sizeof(buf) - 1))) {
-         assert ((uint_t)len < sizeof(buf));
+         assert ((unsigned int)len < sizeof(buf));
          buf[len] = '\0';
          DW2TB(dw)->addText(buf, len, widgetStyle);
       }
@@ -160,14 +160,14 @@ void DilloPlain::addLine(char *Buf, uint_t BufSize)
  * Here we parse plain text and put it into the page structure.
  * (This function is called by Plain_callback whenever there's new data)
  */
-void DilloPlain::write(char *Buf, uint_t BufSize, bool isEof)
+void DilloPlain::write(char *Buf, unsigned int BufSize, bool isEof)
 {
    _MSG("DilloPlain::write isEof=%d\n", isEof);
 
    char * Start = Buf + this->Start_Ofs;
-   const uint_t MaxBytes = BufSize - this->Start_Ofs;
-   uint_t i = 0;
-   uint_t len = 0;
+   const unsigned int MaxBytes = BufSize - this->Start_Ofs;
+   unsigned int i = 0;
+   unsigned int len = 0;
    while ( i < MaxBytes ) {
       switch ( state ) {
       case ST_SeekingEol:

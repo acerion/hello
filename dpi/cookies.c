@@ -92,9 +92,9 @@ typedef struct {
    char *domain;
    char *path;
    time_t expires_at;
-   bool_t host_only;
-   bool_t secure;
-   bool_t session_only;
+   bool host_only;
+   bool secure;
+   bool session_only;
    long last_used;
 } CookieData_t;
 
@@ -119,7 +119,7 @@ static int num_ccontrol_max = 1;
 static CookieControlAction default_action = COOKIE_DENY;
 
 static long cookies_use_counter = 0;
-static bool_t disabled;
+static bool disabled;
 static FILE *file_stream;
 static const char *const cookies_txt_header_str =
 "# HTTP Cookie File\n"
@@ -256,9 +256,9 @@ static void Cookies_load_cookies(FILE *stream)
          /*
           * Split the row into pieces using a tab as the delimiter.
           * pieces[0] The domain name
-          * pieces[1] TRUE/FALSE: is the domain a suffix, or a full domain?
+          * pieces[1] true/false: is the domain a suffix, or a full domain?
           * pieces[2] The path
-          * pieces[3] TRUE/FALSE: is the cookie for secure use only?
+          * pieces[3] true/false: is the cookie for secure use only?
           * pieces[4] Timestamp of expire date
           * pieces[5] Name of the cookie
           * pieces[6] Value of the cookie
@@ -268,15 +268,15 @@ static void Cookies_load_cookies(FILE *stream)
          char *line_marker = line;
          CookieData_t *cookie = dNew0(CookieData_t, 1);
 
-         cookie->session_only = FALSE;
+         cookie->session_only = false;
          cookie->domain = dStrdup(dStrsep(&line_marker, "\t"));
          piece = dStrsep(&line_marker, "\t");
          if (piece != NULL && piece[0] == 'F')
-            cookie->host_only = TRUE;
+            cookie->host_only = true;
          cookie->path = dStrdup(dStrsep(&line_marker, "\t"));
          piece = dStrsep(&line_marker, "\t");
          if (piece != NULL && piece[0] == 'T')
-            cookie->secure = TRUE;
+            cookie->secure = true;
          piece = dStrsep(&line_marker, "\t");
          if (piece != NULL) {
             /* There is some problem with simply putting the maximum value
@@ -307,7 +307,7 @@ static void Cookies_load_cookies(FILE *stream)
             Cookies_free_cookie(cookie);
             continue;
          } else if (action == COOKIE_ACCEPT_SESSION) {
-            cookie->session_only = TRUE;
+            cookie->session_only = true;
          }
 
          /* Save cookie in memory */
@@ -330,7 +330,7 @@ static void Cookies_init()
    struct tm future_tm = {7, 14, 3, 19, 0, 138, 0, 0, 0, 0, 0};
 
    /* Default setting */
-   disabled = TRUE;
+   disabled = true;
 
    cookies_epoch_time = mktime(&cookies_epoch_tm);
    cookies_future_time = mktime(&future_tm);
@@ -687,7 +687,7 @@ static void Cookies_add_cookie(CookieData_t *cookie)
 static char *Cookies_parse_attr(char **cookie_str)
 {
    char *str;
-   uint_t len;
+   unsigned int len;
 
    while (dIsspace(**cookie_str))
       (*cookie_str)++;
@@ -707,7 +707,7 @@ static char *Cookies_parse_attr(char **cookie_str)
  */
 static char *Cookies_parse_value(char **cookie_str)
 {
-   uint_t len;
+   unsigned int len;
    char *str;
 
    if (**cookie_str == '=') {
@@ -763,7 +763,7 @@ static double Cookies_server_timediff(const char *server_date)
 static void Cookies_unquote_string(char *str)
 {
    if (str && str[0] == '\"') {
-      uint_t len = strlen(str);
+      unsigned int len = strlen(str);
 
       if (len > 1 && str[len - 1] == '\"') {
          str[len - 1] = '\0';
@@ -781,9 +781,9 @@ static CookieData_t *Cookies_parse(char *cookie_str, const char *server_date)
 {
    CookieData_t *cookie = NULL;
    char *str = cookie_str;
-   bool_t first_attr = TRUE;
-   bool_t max_age = FALSE;
-   bool_t expires = FALSE;
+   bool first_attr = true;
+   bool max_age = false;
+   bool expires = false;
 
    /* Iterate until there is nothing left of the string */
    while (*str) {
@@ -835,7 +835,7 @@ static CookieData_t *Cookies_parse(char *cookie_str, const char *server_date)
                cookie->expires_at = cookies_future_time;
             }
             _MSG("Cookie to expire at %s", ctime(&cookie->expires_at));
-            expires = max_age = TRUE;
+            expires = max_age = true;
          }
          dFree(value);
       } else if (dStrAsciiCasecmp(attr, "Expires") == 0) {
@@ -860,13 +860,13 @@ static CookieData_t *Cookies_parse(char *cookie_str, const char *server_date)
             } else {
                cookie->expires_at = (time_t) -1;
             }
-            expires = TRUE;
+            expires = true;
             dFree(value);
          } else {
             Cookies_eat_value(&str);
          }
       } else if (dStrAsciiCasecmp(attr, "Secure") == 0) {
-         cookie->secure = TRUE;
+         cookie->secure = true;
          Cookies_eat_value(&str);
       } else if (dStrAsciiCasecmp(attr, "HttpOnly") == 0) {
          Cookies_eat_value(&str);
@@ -876,14 +876,14 @@ static CookieData_t *Cookies_parse(char *cookie_str, const char *server_date)
       }
 
       if (first_attr)
-         first_attr = FALSE;
+         first_attr = false;
       else
          dFree(attr);
 
       if (*str == ';')
          str++;
    }
-   cookie->session_only = expires == FALSE;
+   cookie->session_only = expires == false;
    return cookie;
 }
 
@@ -902,26 +902,26 @@ static int Cookies_cmp(const void *a, const void *b)
 /*
  * Is the domain an IP address?
  */
-static bool_t Cookies_domain_is_ip(const char *domain)
+static bool Cookies_domain_is_ip(const char *domain)
 {
-   uint_t len;
+   unsigned int len;
 
    if (!domain)
-      return FALSE;
+      return false;
 
    len = strlen(domain);
 
    if (len == strspn(domain, "0123456789.")) {
       _MSG("an IPv4 address\n");
-      return TRUE;
+      return true;
    }
    if (strchr(domain, ':') &&
        (len == strspn(domain, "0123456789abcdefABCDEF:."))) {
       /* The precise format is shown in section 3.2.2 of rfc 3986 */
       MSG("an IPv6 address\n");
-      return TRUE;
+      return true;
    }
-   return FALSE;
+   return false;
 }
 
 /*
@@ -930,16 +930,16 @@ static bool_t Cookies_domain_is_ip(const char *domain)
  * Note different user agents apparently vary in path-matching behaviour,
  * but this is the recommended method at the moment.
  */
-static bool_t Cookies_path_matches(const char *url_path,
+static bool Cookies_path_matches(const char *url_path,
                                    const char *cookie_path)
 {
-   bool_t ret = TRUE;
+   bool ret = true;
 
    if (!url_path || !cookie_path) {
-      ret = FALSE;
+      ret = false;
    } else {
-      uint_t c_len = strlen(cookie_path);
-      uint_t u_len = strlen(url_path);
+      unsigned int c_len = strlen(cookie_path);
+      unsigned int u_len = strlen(url_path);
 
       ret = (!strncmp(cookie_path, url_path, c_len) &&
              ((c_len == u_len) ||
@@ -958,7 +958,7 @@ static void Cookies_validate_path(CookieData_t *cookie, const char *url_path)
       dFree(cookie->path);
 
       if (url_path) {
-         uint_t len = strlen(url_path);
+         unsigned int len = strlen(url_path);
 
          while (len && url_path[len] != '/')
             len--;
@@ -972,12 +972,12 @@ static void Cookies_validate_path(CookieData_t *cookie, const char *url_path)
 /*
  * Check whether host name A domain-matches host name B.
  */
-static bool_t Cookies_domain_matches(char *A, char *B)
+static bool Cookies_domain_matches(char *A, char *B)
 {
    int diff;
 
    if (!A || !*A || !B || !*B)
-      return FALSE;
+      return false;
 
    if (*B == '.')
       B++;
@@ -988,10 +988,10 @@ static bool_t Cookies_domain_matches(char *A, char *B)
     */
 
    if (!dStrAsciiCasecmp(A, B))
-      return TRUE;
+      return true;
 
    if (Cookies_domain_is_ip(B))
-      return FALSE;
+      return false;
 
    diff = strlen(A) - strlen(B);
 
@@ -999,7 +999,7 @@ static bool_t Cookies_domain_matches(char *A, char *B)
       /* B is the tail of A, and the match is preceded by a '.' */
       return (dStrAsciiCasecmp(A + diff, B) == 0 && A[diff - 1] == '.');
    } else {
-      return FALSE;
+      return false;
    }
 }
 
@@ -1012,9 +1012,9 @@ static bool_t Cookies_domain_matches(char *A, char *B)
  * TLDs is the solution that Konqueror used once upon a time, according to
  * reports.
  */
-static uint_t Cookies_internal_dots_required(const char *host)
+static unsigned int Cookies_internal_dots_required(const char *host)
 {
-   uint_t ret = 1;
+   unsigned int ret = 1;
 
    if (host) {
       int start, after, tld_len;
@@ -1039,10 +1039,10 @@ static uint_t Cookies_internal_dots_required(const char *host)
          const char *const tlds[] = {"bd","bn","ck","cy","er","fj","fk",
                                      "gu","il","jm","ke","kh","kw","mm","mz",
                                      "ni","np","pg","ye","za","zm","zw"};
-         uint_t i, tld_num = sizeof(tlds) / sizeof(tlds[0]);
+         unsigned int i, tld_num = sizeof(tlds) / sizeof(tlds[0]);
 
          for (i = 0; i < tld_num; i++) {
-            if (strlen(tlds[i]) == (uint_t) tld_len &&
+            if (strlen(tlds[i]) == (unsigned int) tld_len &&
                 !dStrnAsciiCasecmp(tlds[i], host + start, tld_len)) {
                _MSG("TLD code matched %s\n", tlds[i]);
                ret++;
@@ -1057,18 +1057,18 @@ static uint_t Cookies_internal_dots_required(const char *host)
 /*
  * Validate cookies domain against some security checks.
  */
-static bool_t Cookies_validate_domain(CookieData_t *cookie, char *host)
+static bool Cookies_validate_domain(CookieData_t *cookie, char *host)
 {
-   uint_t i, internal_dots;
+   unsigned int i, internal_dots;
 
    if (!cookie->domain) {
       cookie->domain = dStrdup(host);
-      cookie->host_only = TRUE;
-      return TRUE;
+      cookie->host_only = true;
+      return true;
    }
 
    if (!Cookies_domain_matches(host, cookie->domain))
-      return FALSE;
+      return false;
 
    internal_dots = 0;
    for (i = 1; i < strlen(cookie->domain) - 1; i++) {
@@ -1081,11 +1081,11 @@ static bool_t Cookies_validate_domain(CookieData_t *cookie, char *host)
     */
    if (internal_dots < Cookies_internal_dots_required(host)) {
       MSG("not enough dots in %s\n", cookie->domain);
-      return FALSE;
+      return false;
    }
 
    _MSG("host %s and domain %s is all right\n", host, cookie->domain);
-   return TRUE;
+   return true;
 }
 
 /*
@@ -1114,7 +1114,7 @@ static int Cookies_set(char *cookie_string, char *url_host,
          if (Cookies_validate_domain(cookie, url_host)) {
             Cookies_validate_path(cookie, url_path);
             if (action == COOKIE_ACCEPT_SESSION)
-               cookie->session_only = TRUE;
+               cookie->session_only = true;
             Cookies_add_cookie(cookie);
             ret = 0;
          } else {
@@ -1131,29 +1131,29 @@ static int Cookies_set(char *cookie_string, char *url_host,
 /*
  * Compare the cookie with the supplied data to see whether it matches
  */
-static bool_t Cookies_match(CookieData_t *cookie, const char *url_path,
-                            bool_t host_only_val, bool_t is_ssl)
+static bool Cookies_match(CookieData_t *cookie, const char *url_path,
+                            bool host_only_val, bool is_ssl)
 {
    if (cookie->host_only != host_only_val)
-      return FALSE;
+      return false;
 
    /* Insecure cookies match both secure and insecure urls, secure
       cookies match only secure urls */
    if (cookie->secure && !is_ssl)
-      return FALSE;
+      return false;
 
    if (!Cookies_path_matches(url_path, cookie->path))
-      return FALSE;
+      return false;
 
    /* It's a match */
-   return TRUE;
+   return true;
 }
 
 static void Cookies_add_matching_cookies(const char *domain,
                                          const char *url_path,
-                                         bool_t host_only_val,
+                                         bool host_only_val,
                                          Dlist *matching_cookies,
-                                         bool_t is_ssl)
+                                         bool is_ssl)
 {
    DomainNode *node = dList_find_sorted(domains, domain,
                                         Domain_node_by_domain_cmp);
@@ -1176,7 +1176,7 @@ static void Cookies_add_matching_cookies(const char *domain,
          if (Cookies_match(cookie, url_path, host_only_val, is_ssl)) {
             int j;
             CookieData_t *curr;
-            uint_t path_length = strlen(cookie->path);
+            unsigned int path_length = strlen(cookie->path);
 
             cookie->last_used = cookies_use_counter;
 
@@ -1203,7 +1203,7 @@ static char *Cookies_get(char *url_host, char *url_path,
    char *domain_str, *str;
    CookieData_t *cookie;
    Dlist *matching_cookies;
-   bool_t is_ssl, is_ip_addr, host_only_val;
+   bool is_ssl, is_ip_addr, host_only_val;
 
    Dstr *cookie_dstring;
    int i;
@@ -1225,7 +1225,7 @@ static char *Cookies_get(char *url_host, char *url_path,
     * attrs can have leading dots, which should be ignored for matching
     * purposes.
     */
-   host_only_val = FALSE;
+   host_only_val = false;
    if (!is_ip_addr) {
       /* e.g., sub.example.com set a cookie with domain ".sub.example.com". */
       domain_str = dStrconcat(".", url_host, NULL);
@@ -1233,11 +1233,11 @@ static char *Cookies_get(char *url_host, char *url_path,
                                    matching_cookies, is_ssl);
       dFree(domain_str);
    }
-   host_only_val = TRUE;
+   host_only_val = true;
    /* e.g., sub.example.com set a cookie with no domain attribute. */
    Cookies_add_matching_cookies(url_host, url_path, host_only_val,
                                 matching_cookies, is_ssl);
-   host_only_val = FALSE;
+   host_only_val = false;
    /* e.g., sub.example.com set a cookie with domain "sub.example.com". */
    Cookies_add_matching_cookies(url_host, url_path, host_only_val,
                                 matching_cookies, is_ssl);
@@ -1273,7 +1273,7 @@ static char *Cookies_get(char *url_host, char *url_path,
 
    dList_free(matching_cookies);
    str = cookie_dstring->str;
-   dStr_free(cookie_dstring, FALSE);
+   dStr_free(cookie_dstring, false);
 
    if (*str) {
       MSG("%s GETTING: %s", url_host, str);
@@ -1302,7 +1302,7 @@ static int Cookie_control_init(void)
    char line[LINE_MAXLEN];
    char domain[LINE_MAXLEN];
    char rule[LINE_MAXLEN];
-   bool_t enabled = FALSE;
+   bool enabled = false;
 
    /* Get a file pointer */
    filename = dStrconcat(dGethomedir(), "/" PROGRAM_LOCAL_DIR "/cookiesrc", NULL);
@@ -1362,7 +1362,7 @@ static int Cookie_control_init(void)
             dFree(cc.domain);
          } else {
             int i;
-            uint_t len = strlen(cc.domain);
+            unsigned int len = strlen(cc.domain);
 
             /* Insert into list such that longest rules come first. */
             a_List_add(ccontrol, num_ccontrol, num_ccontrol_max);
@@ -1375,7 +1375,7 @@ static int Cookie_control_init(void)
          }
 
          if (cc.action != COOKIE_DENY)
-            enabled = TRUE;
+            enabled = true;
       }
    }
 

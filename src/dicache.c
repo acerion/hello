@@ -35,7 +35,7 @@ enum {
  */
 static Dlist *CachedIMGs = NULL;
 
-static uint_t dicache_size_total; /* invariant: dicache_size_total is
+static unsigned int dicache_size_total; /* invariant: dicache_size_total is
                                    * the sum of the image sizes (3*w*h)
                                    * of all the images in the dicache. */
 
@@ -223,7 +223,7 @@ void a_Dicache_invalidate_entry(const DilloUrl *Url)
  * - CSS sizing is handled by the CSS engine.
  */
 void a_Dicache_set_parms(DilloUrl *url, int version, DilloImage *Image,
-                         uint_t width, uint_t height, DilloImgType type,
+                         unsigned int width, unsigned int height, DilloImgType type,
                          double gamma)
 {
    DICacheEntry *DicEntry;
@@ -257,7 +257,7 @@ void a_Dicache_set_parms(DilloUrl *url, int version, DilloImage *Image,
  * Implement the set_color_map method for the Image
  */
 void a_Dicache_set_color_map(DilloUrl *url, int version, int bg_color,
-                             const uchar_t * color_map, uint_t num_colors,
+                             const unsigned char * color_map, unsigned int num_colors,
                              int num_colors_max, int bg_index)
 {
    DICacheEntry *DicEntry = a_Dicache_get_entry(url, version);
@@ -266,9 +266,9 @@ void a_Dicache_set_color_map(DilloUrl *url, int version, int bg_color,
    dReturn_if_fail ( DicEntry != NULL );
 
    dFree(DicEntry->color_map);
-   DicEntry->color_map = dNew0(uchar_t, 3 * num_colors_max);
+   DicEntry->color_map = dNew0(unsigned char, 3 * num_colors_max);
    memcpy(DicEntry->color_map, color_map, 3 * num_colors);
-   if (bg_index >= 0 && (uint_t)bg_index < num_colors) {
+   if (bg_index >= 0 && (unsigned int)bg_index < num_colors) {
       DicEntry->color_map[bg_index * 3]     = (bg_color >> 16) & 0xff;
       DicEntry->color_map[bg_index * 3 + 1] = (bg_color >> 8) & 0xff;
       DicEntry->color_map[bg_index * 3 + 2] = (bg_color) & 0xff;
@@ -303,7 +303,7 @@ void a_Dicache_new_scan(const DilloUrl *url, int version)
  * row_data buffer with bytes of image's row
  * row_number row number
  */
-void a_image_cache_add_row(DilloUrl *url, int version, const uchar_t * row_data, uint_t row_number)
+void a_image_cache_add_row(DilloUrl *url, int version, const unsigned char * row_data, unsigned int row_number)
 {
    DICacheEntry *DicEntry;
 
@@ -438,7 +438,7 @@ void *a_Dicache_jpeg_image(const char *Type, void *Ptr, CA_Callback_t *Call,
  */
 void a_Dicache_callback(int Op, CacheClient_t *Client)
 {
-   uint_t i;
+   unsigned int i;
    DilloWeb *Web = Client->Web;
    DilloImage *Image = Web->Image;
    DICacheEntry *DicEntry = a_Dicache_get_entry(Web->url, DIC_Last);

@@ -228,25 +228,25 @@ void a_Capi_set_vsource_url(const DilloUrl *url)
 int a_Capi_dpi_verify_request(BrowserWindow *bw, DilloUrl *url)
 {
    const DilloUrl *referer;
-   int allow = FALSE;
+   int allow = false;
 
    if (dStrAsciiCasecmp(URL_SCHEME(url), "dpi") == 0) {
       if (!(URL_FLAGS(url) & (URL_Post + URL_Get))) {
-         allow = TRUE;
+         allow = true;
       } else if (!(URL_FLAGS(url) & URL_Post) &&
                  strncmp(URL_PATH(url), "/vsource/", 9) == 0) {
-         allow = TRUE;
+         allow = true;
       } else {
          /* only allow GET&POST dpi-requests from dpi-generated urls */
          if (a_Nav_stack_size(bw)) {
             referer = a_History_get_url(NAV_TOP_UIDX(bw));
             if (dStrAsciiCasecmp(URL_SCHEME(referer), "dpi") == 0) {
-               allow = TRUE;
+               allow = true;
             }
          }
       }
    } else {
-      allow = TRUE;
+      allow = true;
    }
 
    if (!allow) {
@@ -273,7 +273,7 @@ static int Capi_url_uses_dpi(DilloUrl *url, char **server_ptr)
    } else if (dStrnAsciiCasecmp(url_str, "dpi:/", 5) == 0) {
       /* dpi prefix, get this server's name */
       if ((p = strchr(url_str + 5, '/')) != NULL) {
-         server = dStrndup(url_str + 5, (uint_t)(p - url_str - 5));
+         server = dStrndup(url_str + 5, (unsigned int)(p - url_str - 5));
       } else {
          server = dStrdup("?");
       }
@@ -302,9 +302,9 @@ static char *Capi_dpi_build_cmd(DilloWeb *web, char *server)
       /* Let's be kind and make the HTTP query string for the dpi */
       char *proxy_connect = a_Http_make_connect_str(web->url);
       Dstr *http_query = a_Http_make_query_str(web->url, web->requester,
-                                               web->flags, FALSE);
+                                               web->flags, false);
 
-      if ((uint_t) http_query->len > strlen(http_query->str)) {
+      if ((unsigned int) http_query->len > strlen(http_query->str)) {
          /* Can't handle NULLs embedded in query data */
          MSG_ERR("HTTPS query truncated!\n");
       }
@@ -476,7 +476,7 @@ int a_Capi_open_url(DilloWeb *web, CA_Callback_t Call, void *CbData)
 /*
  * Convert cache-defined flags to Capi ones.
  */
-static int Capi_map_cache_flags(uint_t flags)
+static int Capi_map_cache_flags(unsigned int flags)
 {
    int status = 0;
 
@@ -499,7 +499,7 @@ static int Capi_map_cache_flags(uint_t flags)
  */
 int a_Capi_get_flags(const DilloUrl *Url)
 {
-   uint_t flags = a_Cache_get_flags(Url);
+   unsigned int flags = a_Cache_get_flags(Url);
    int status = flags ? Capi_map_cache_flags(flags) : 0;
    return status;
 }
@@ -509,7 +509,7 @@ int a_Capi_get_flags(const DilloUrl *Url)
  */
 int a_Capi_get_flags_with_redirection(const DilloUrl *Url)
 {
-   uint_t flags = a_Cache_get_flags_with_redirection(Url);
+   unsigned int flags = a_Cache_get_flags_with_redirection(Url);
    int status = flags ? Capi_map_cache_flags(flags) : 0;
    return status;
 }

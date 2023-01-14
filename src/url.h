@@ -9,7 +9,6 @@
 #ifndef __URL_H__
 #define __URL_H__
 
-#include "d_size.h"
 #include "../dlib/dlib.h"
 
 
@@ -120,7 +119,7 @@ void a_Url_set_ismap_coords(DilloUrl *u, char *coord_str);
 char *a_Url_decode_hex_str(const char *str);
 char *a_Url_encode_hex_str(const char *str);
 char *a_Url_string_strip_delimiters(const char *str);
-bool_t a_Url_same_organization(const DilloUrl *u1, const DilloUrl *u2);
+bool a_Url_same_organization(const DilloUrl *u1, const DilloUrl *u2);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

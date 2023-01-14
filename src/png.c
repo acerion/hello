@@ -55,7 +55,7 @@ typedef struct {
 
    /* Beginning of all image data received so far. Part of it has already
       been parsed and sent to cache. */
-   uchar_t * all_data;
+   unsigned char * all_data;
    /* Total size of all of the image data received so far. */
    int all_size;
 
@@ -97,15 +97,15 @@ typedef struct {
    png_uint_32 height;          /* png image height */
    png_structp png_ptr;         /* libpng private data */
    png_infop info_ptr;          /* libpng private info */
-   uchar_t *image_data;         /* decoded image data    */
-   uchar_t **row_pointers;      /* pntr to row starts    */
+   unsigned char *image_data;         /* decoded image data    */
+   unsigned char **row_pointers;      /* pntr to row starts    */
    jmp_buf jmpbuf;              /* png error processing */
    int error;                   /* error flag */
    png_uint_32 previous_row;
    int bytes_per_row;           /* No. bytes in image row */
    short channels;              /* No. image channels */
 
-   uchar_t * row_data;          /* o/p raster data */
+   unsigned char * row_data;          /* o/p raster data */
 
 } DilloPng;
 
@@ -147,14 +147,14 @@ Png_datainfo_callback(png_structp png_ptr, png_infop info_ptr)
    if (png->width == 0 || png->height == 0 ||
        png->width > IMAGE_MAX_AREA / png->height) {
       MSG("Png_datainfo_callback: suspicious image size request %lu x %lu\n",
-          (ulong_t) png->width, (ulong_t) png->height);
+          (unsigned long) png->width, (unsigned long) png->height);
       Png_error_handling(png_ptr, "Aborting...");
       return; /* not reached */
    }
 
    _MSG("Png_datainfo_callback: png->width  = %lu\n"
         "Png_datainfo_callback: png->height = %lu\n",
-        (ulong_t) png->width, (ulong_t) png->height);
+        (unsigned long) png->width, (unsigned long) png->height);
 
    /* we need RGB/RGBA in the end */
    if (color_type == PNG_COLOR_TYPE_PALETTE && bit_depth <= 8) {
@@ -205,12 +205,12 @@ Png_datainfo_callback(png_structp png_ptr, png_infop info_ptr)
    _MSG("Png_datainfo_callback: bytes per row = %d\n"
         "Png_datainfo_callback: width         = %lu\n"
         "Png_datainfo_callback: height        = %lu\n",
-        png->bytes_per_row, (ulong_t) png->width, (ulong_t) png->height);
+        png->bytes_per_row, (unsigned long) png->width, (unsigned long) png->height);
 
-   png->image_data = (uchar_t *) dMalloc(png->bytes_per_row * png->height);
-   png->row_pointers = (uchar_t **) dMalloc(png->height * sizeof(uchar_t *));
+   png->image_data = (unsigned char *) dMalloc(png->bytes_per_row * png->height);
+   png->row_pointers = (unsigned char **) dMalloc(png->height * sizeof(unsigned char *));
 
-   for (uint_t row = 0; row < png->height; row++) {
+   for (unsigned int row = 0; row < png->height; row++) {
       png->row_pointers[row] = png->image_data + (row * png->bytes_per_row);
    }
 
@@ -218,7 +218,7 @@ Png_datainfo_callback(png_structp png_ptr, png_infop info_ptr)
 
    /* Initialize the dicache-entry here */
    a_Dicache_set_parms(png->url, png->version, png->Image,
-                       (uint_t)png->width, (uint_t)png->height,
+                       (unsigned int)png->width, (unsigned int)png->height,
                        DILLO_IMG_TYPE_RGB, file_gamma);
    png->Image = NULL; /* safeguard: hereafter it may be freed by its owner */
 }
@@ -257,8 +257,8 @@ Png_datarow_callback(png_structp png_ptr, png_bytep new_row,
       /* With alpha channel */
       /* TODO: get the backgound color from the parent
        * of the image widget -- Livio.                 */
-      uchar_t * out_ptr = png->row_data;
-      const uchar_t *in_ptr = png->image_data + (row_num * png->bytes_per_row);
+      unsigned char * out_ptr = png->row_data;
+      const unsigned char *in_ptr = png->image_data + (row_num * png->bytes_per_row);
 
       /* TODO: maybe change prefs.bg_color to `a_Dw_widget_get_bg_color`,
        * when background colors are correctly implementated */
@@ -266,7 +266,7 @@ Png_datarow_callback(png_structp png_ptr, png_bytep new_row,
       const int bg_green = (png->bgcolor>>8) & 0xFF;
       const int bg_red   = (png->bgcolor>>16) & 0xFF;
 
-      for (uint_t i = 0; i < png->width; i++) {
+      for (unsigned int i = 0; i < png->width; i++) {
          const int alpha = *(in_ptr+3);
 
          if (alpha == 255) {
@@ -288,7 +288,7 @@ Png_datarow_callback(png_structp png_ptr, png_bytep new_row,
       }
       row_data = png->row_data;
    }
-   a_image_cache_add_row(png->url, png->version, row_data, (uint_t)row_num);
+   a_image_cache_add_row(png->url, png->version, row_data, (unsigned int)row_num);
 }
 
 /* performs cleanup actions */
@@ -353,7 +353,7 @@ static void Png_write(DilloPng *png, png_parser * parser)
          if (setjmp(png->jmpbuf)) {
             png->parser.state = IS_finished;
          } else if (!png->error) {
-            const uint_t data_size = png->parser.all_size - png->parser.start_offset;
+            const unsigned int data_size = png->parser.all_size - png->parser.start_offset;
             png_process_data( png->png_ptr,
                               png->info_ptr,
                               png->parser.all_data + png->parser.start_offset,
@@ -375,7 +375,7 @@ static void Png_write(DilloPng *png, png_parser * parser)
 */
 static int initialize_png_lib(DilloPng * png)
 {
-   const uint_t data_size = png->parser.all_size - png->parser.start_offset;
+   const unsigned int data_size = png->parser.all_size - png->parser.start_offset;
    if (data_size < 8) {
       return -1;            /* need MORE data */
    }

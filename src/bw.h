@@ -84,7 +84,7 @@ void a_Bw_cleanup(BrowserWindow *bw);
 /* expect API */
 void a_Bw_expect(BrowserWindow *bw, const DilloUrl *Url);
 void a_Bw_cancel_expect(BrowserWindow *bw);
-bool_t a_Bw_expecting(BrowserWindow *bw);
+bool a_Bw_expecting(BrowserWindow *bw);
 const DilloUrl *a_Bw_expected_url(BrowserWindow *bw);
 
 typedef void (*BwCallback_t)(BrowserWindow *bw, const void *data);

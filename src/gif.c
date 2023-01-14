@@ -75,7 +75,7 @@
 
 
 
-#define LM_to_uint(a,b)   ((((uchar_t)b)<<8)|((uchar_t)a))
+#define LM_to_uint(a,b)   ((((unsigned char)b)<<8)|((unsigned char)a))
 
 #define MAX_COLORMAP_SIZE     256
 #define MAX_LWZ_BITS           12
@@ -98,7 +98,7 @@ typedef enum {
 
 
 typedef struct img_chunk {
-   uchar_t * buf;   /* New data received, but not processed yet. */
+   unsigned char * buf;   /* New data received, but not processed yet. */
    int size;        /* Size of the new data. */
 } img_chunk;
 
@@ -112,37 +112,37 @@ typedef struct {
    DilloUrl *url;
    int version;
 
-   uint_t Flags;
+   unsigned int Flags;
    bool interlace;
 
-   uchar_t input_code_size;
-   uchar_t *row_data;
+   unsigned char input_code_size;
+   unsigned char *row_data;
    int pass;
 
-   uint_t row_number; /* Row number of decoded image. */
+   unsigned int row_number; /* Row number of decoded image. */
 
    /* state for lwz_read_byte */
    int code_size;
 
    /* The original GifScreen from giftopnm */
-   uint_t Width;
-   uint_t Height;
+   unsigned int Width;
+   unsigned int Height;
 
    bool global_color_map_present;
-   uchar_t global_color_map[3 * MAX_COLORMAP_SIZE]; /* "sequence of bytes representing red-green-blue color triplets. */
-   uint_t global_color_map_triplets_count; /* Number of color triplets in color map. */
+   unsigned char global_color_map[3 * MAX_COLORMAP_SIZE]; /* "sequence of bytes representing red-green-blue color triplets. */
+   unsigned int global_color_map_triplets_count; /* Number of color triplets in color map. */
 
    bool local_color_map_present;
-   uchar_t local_color_map[3 * MAX_COLORMAP_SIZE]; /* "sequence of bytes representing red-green-blue color triplets. */
-   uint_t local_color_map_triplets_count; /* Number of color triplets in color map. */
+   unsigned char local_color_map[3 * MAX_COLORMAP_SIZE]; /* "sequence of bytes representing red-green-blue color triplets. */
+   unsigned int local_color_map_triplets_count; /* Number of color triplets in color map. */
 
 
-   uint_t color_resolution; /* "18. Logical Screen Descriptor." -> "<Packed Fields>" -> "Color Resolution" */
+   unsigned int color_resolution; /* "18. Logical Screen Descriptor." -> "<Packed Fields>" -> "Color Resolution" */
 
    int    Background;
-   uint_t spill_line_index;
+   unsigned int spill_line_index;
 #if 0
-   uint_t AspectRatio;    /* AspectRatio (not used) */
+   unsigned int AspectRatio;    /* AspectRatio (not used) */
 #endif
 
 
@@ -151,11 +151,11 @@ typedef struct {
 
    /* state for the new push-oriented decoder */
    int packet_size;       /* The amount of the data block left to process */
-   uint_t window;
+   unsigned int window;
    int bits_in_window;
-   uint_t last_code;        /* Last "compressed" code in the look up table */
-   uint_t line_index;
-   uchar_t **spill_lines;
+   unsigned int last_code;        /* Last "compressed" code in the look up table */
+   unsigned int line_index;
+   unsigned char **spill_lines;
    int num_spill_lines_max;
    int length[(1 << MAX_LWZ_BITS) + 1];
    int code_and_byte[(1 << MAX_LWZ_BITS) + 1];
@@ -169,7 +169,7 @@ typedef struct {
  */
 
 
-typedef bool (* extension_sub_block_handler_t)(c_gif_t * gif, const uchar_t * buf, int size);
+typedef bool (* extension_sub_block_handler_t)(c_gif_t * gif, const unsigned char * buf, int size);
 /*
  * Forward declarations
  */
@@ -183,14 +183,14 @@ static int gif_do_extension(DilloGif * gif, img_chunk chunk);
 static int peek_lzw(DilloGif * gif, img_chunk img_descriptor);
 
 
-static bool color_table_is_present(uchar_t flags)
+static bool color_table_is_present(unsigned char flags)
 {
-   const uchar_t mask = 0x80; /* Mask for 'Color Table Flag' bit (both Global and Local color table). */
+   const unsigned char mask = 0x80; /* Mask for 'Color Table Flag' bit (both Global and Local color table). */
    return flags & mask;
 }
 
 
-static int get_color_table_triplets_count(uchar_t flags)
+static int get_color_table_triplets_count(unsigned char flags)
 {
    /* "To determine that actual size of the color table, raise 2 to [the
       value of the field + 1]". */
@@ -265,7 +265,7 @@ void a_Gif_callback(int Op, void *data)
       DilloGif * gif = Client->CbData;
       /* Beginning of all image data received so far. Part of it has already
          been parsed and sent to cache. */
-      const uchar_t * all_data = (uchar_t *) Client->Buf;
+      const unsigned char * all_data = (unsigned char *) Client->Buf;
       /* Total size of all of the image data received so far. */
       const int all_size = Client->BufSize;
       img_chunk chunk = {
@@ -310,7 +310,7 @@ static void gif_close(DilloGif *gif, CacheClient_t *Client)
 static void Gif_lwz_init(DilloGif *gif)
 {
    gif->num_spill_lines_max = 1;
-   gif->spill_lines = malloc(sizeof(uchar_t *) * gif->num_spill_lines_max);
+   gif->spill_lines = malloc(sizeof(unsigned char *) * gif->num_spill_lines_max);
 
    gif->spill_lines[0] = malloc(gif->Width);
    gif->bits_in_window = 0;
@@ -329,7 +329,7 @@ static void Gif_lwz_init(DilloGif *gif)
 /*
  * Send the image line to the dicache, also handling the interlacing.
  */
-static void Gif_emit_line(DilloGif *gif, const uchar_t *row_data)
+static void Gif_emit_line(DilloGif *gif, const unsigned char *row_data)
 {
    a_image_cache_add_row(gif->url, gif->version, row_data, gif->row_number);
    if (gif->interlace) {
@@ -372,7 +372,7 @@ static void Gif_emit_line(DilloGif *gif, const uchar_t *row_data)
 /*
  * Decode the packetized lwz bytes
  */
-static void Gif_literal(DilloGif *gif, uint_t code)
+static void Gif_literal(DilloGif *gif, unsigned int code)
 {
    gif->row_data[gif->line_index++] = code;
    if (gif->line_index >= gif->Width) {
@@ -388,14 +388,14 @@ static void Gif_literal(DilloGif *gif, uint_t code)
  * ?
  */
 /* Profiling reveals over half the GIF time is spent here: */
-static void Gif_sequence(DilloGif *gif, uint_t code)
+static void Gif_sequence(DilloGif *gif, unsigned int code)
 {
-   uint_t o_index, o_size, orig_code;
-   uint_t sequence_length = gif->length[code];
-   uint_t line_index = gif->line_index;
+   unsigned int o_index, o_size, orig_code;
+   unsigned int sequence_length = gif->length[code];
+   unsigned int line_index = gif->line_index;
    int num_spill_lines;
    int spill_line_index = gif->spill_line_index;
-   uchar_t *last_byte_ptr, *obuf;
+   unsigned char *last_byte_ptr, *obuf;
 
    gif->length[gif->last_code + 1] = sequence_length + 1;
    gif->code_and_byte[gif->last_code + 1] = (code << 8);
@@ -418,7 +418,7 @@ static void Gif_sequence(DilloGif *gif, uint_t code)
          gif->num_spill_lines_max = num_spill_lines << 1;
          gif->spill_lines = dRealloc(gif->spill_lines,
                                       gif->num_spill_lines_max *
-                                      sizeof(uchar_t *));
+                                      sizeof(unsigned char *));
 
          for (; spill_line_index < gif->num_spill_lines_max;
               spill_line_index++)
@@ -443,7 +443,7 @@ static void Gif_sequence(DilloGif *gif, uint_t code)
       /* Write o_size bytes to
        * obuf[o_index - o_size..o_index). */
       for (; o_size > 0 && o_index > 0; o_size--) {
-         uint_t code_and_byte = gif->code_and_byte[code];
+         unsigned int code_and_byte = gif->code_and_byte[code];
 
          _MSG("%d ", gif->code_and_byte[code] & 255);
 
@@ -492,7 +492,7 @@ static void Gif_sequence(DilloGif *gif, uint_t code)
    if (num_spill_lines) {
       /* Swap the last spill line with the gif line, using
        * row_data as the swap temporary. */
-      uchar_t *row_data = gif->spill_lines[num_spill_lines - 1];
+      unsigned char *row_data = gif->spill_lines[num_spill_lines - 1];
 
       gif->spill_lines[num_spill_lines - 1] = gif->row_data;
       gif->row_data = row_data;
@@ -510,7 +510,7 @@ static void Gif_sequence(DilloGif *gif, uint_t code)
  *   < 0 on error
  *   -1 if the decompression code was not in the lookup table
  */
-static int Gif_process_code(DilloGif *gif, uint_t code, uint_t clear_code)
+static int Gif_process_code(DilloGif *gif, unsigned int code, unsigned int clear_code)
 {
 
    /* A short table describing what to do with the code:
@@ -548,7 +548,7 @@ static int Gif_decode(DilloGif *gif, img_chunk chunk)
 {
    img_chunk_forward(&chunk, 1); /* First byte was already inspected by peek_lzw(). */
 
-   const uchar_t *buf = chunk.buf;
+   const unsigned char *buf = chunk.buf;
    int bsize = chunk.size;
    /*
     * Data block processing.  The image stuff is a series of data blocks.
@@ -560,11 +560,11 @@ static int Gif_decode(DilloGif *gif, img_chunk chunk)
 
    /* Want to get all inner loop state into local variables. */
    int packet_size = gif->packet_size;
-   uint_t window = gif->window;
+   unsigned int window = gif->window;
    int bits_in_window = gif->bits_in_window;
    int code_size = gif->code_size;
-   uint_t code_mask = (1 << code_size) - 1;
-   uint_t clear_code = 1 << gif->input_code_size;
+   unsigned int code_mask = (1 << code_size) - 1;
+   unsigned int clear_code = 1 << gif->input_code_size;
 
    /* If packet size == 0, we are at the start of a data block.
     * The first byte of the data block indicates how big it is (0 == last
@@ -589,7 +589,7 @@ static int Gif_decode(DilloGif *gif, img_chunk chunk)
          while (bits_in_window >= code_size) {
             /* Extract the code.  The code is code_size (3 to 12) bits long,
              * at the start of the window */
-            uint_t code = (window >> (32 - bits_in_window)) & code_mask;
+            unsigned int code = (window >> (32 - bits_in_window)) & code_mask;
 
             _MSG("code = %d, ", code);
 
@@ -711,7 +711,7 @@ static int gif_parse_logical_screen_descriptor(DilloGif *gif, img_chunk descript
    if (descriptor.size < block_size)
       return 0;
 
-   const uchar_t flags = descriptor.buf[4]; /* "<Packed Fields>" from "18. Logical Screen Descriptor." */
+   const unsigned char flags = descriptor.buf[4]; /* "<Packed Fields>" from "18. Logical Screen Descriptor." */
    const bool global_color_table_is_present = color_table_is_present(flags);
    if (global_color_table_is_present) {
 #if 0
@@ -749,7 +749,7 @@ static int gif_parse_logical_screen_descriptor(DilloGif *gif, img_chunk descript
 
 static int gif_do_image_descriptor_header(DilloGif * gif, const img_chunk image_descriptor)
 {
-   const uchar_t image_separator = image_descriptor.buf[0];
+   const unsigned char image_separator = image_descriptor.buf[0];
    if (image_separator != ImageSeparator) {
       fprintf(stderr, "%s:%d\n", __func__, __LINE__);
       return 0;
@@ -862,7 +862,7 @@ static int GIF_Block(DilloGif * gif, img_chunk chunk)
          return 0;
       }
 
-      const uchar_t block_id = chunk.buf[0];;
+      const unsigned char block_id = chunk.buf[0];;
       switch (block_id) {
       case ExtensionIntroducer:
          {

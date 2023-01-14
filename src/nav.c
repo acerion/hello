@@ -193,7 +193,7 @@ static void Nav_open_url(BrowserWindow *bw, const DilloUrl *url,
                          const DilloUrl *requester, int offset)
 {
    const DilloUrl *old_url;
-   bool_t MustLoad, ForceReload, IgnoreScroll;
+   bool MustLoad, ForceReload, IgnoreScroll;
    int x, y, idx, ClientKey;
    DilloWeb *Web;
 
@@ -270,7 +270,7 @@ void a_Nav_cancel_expect_if_eq(BrowserWindow *bw, const DilloUrl *url)
  */
 void a_Nav_expect_done(BrowserWindow *bw)
 {
-   int m, url_idx, posx, posy, reload, repush, e2equery, goto_old_scroll=TRUE;
+   int m, url_idx, posx, posy, reload, repush, e2equery, goto_old_scroll=true;
    DilloUrl *url;
    char *fragment = NULL;
 
@@ -301,11 +301,11 @@ void a_Nav_expect_done(BrowserWindow *bw)
       }
 
       if (fragment) {
-         goto_old_scroll = FALSE;
+         goto_old_scroll = false;
          if (repush) {
             Nav_get_scroll_pos(bw, &posx, &posy);
             if (posx || posy)
-               goto_old_scroll = TRUE;
+               goto_old_scroll = true;
          } else if (e2equery) {
             /* Reset scroll, so repush goes to fragment in the next pass */
             Nav_save_scroll_pos(bw, a_Nav_stack_ptr(bw), 0, 0);

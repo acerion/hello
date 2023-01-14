@@ -51,8 +51,8 @@
 #include "../dlib/dlib.h"
 #include "../dpip/dpip.h"
 
-static uint_t failed = 0;
-static uint_t passed = 0;
+static unsigned int failed = 0;
+static unsigned int passed = 0;
 
 static char SharedKey[32];
 
@@ -85,7 +85,7 @@ static char *Dpi_blocking_read(int fd)
    } while (st == buf_sz);
 
    msg = (dstr->len > 0) ? dstr->str : NULL;
-   dStr_free(dstr, (dstr->len > 0) ? FALSE : TRUE);
+   dStr_free(dstr, (dstr->len > 0) ? false : true);
    return msg;
 }
 
@@ -785,7 +785,7 @@ int Cookies_rc_check()
    FILE *stream;
    char *filename;
    char line[line_maxlen];
-   bool_t default_deny = TRUE;
+   bool default_deny = true;
 
    /* Get a file pointer */
    filename = dStrconcat(dGethomedir(), "/" PROGRAM_LOCAL_DIR "/cookiesrc", NULL);
@@ -836,7 +836,7 @@ int Cookies_rc_check()
          if (!dStrAsciiCasecmp(line, "DEFAULT")) {
             if (!dStrAsciiCasecmp(rule, "ACCEPT") ||
                 !dStrAsciiCasecmp(rule, "ACCEPT_SESSION"))
-               default_deny = FALSE;
+               default_deny = false;
          } else {
             if (!dStrAsciiCasecmp(rule, "DENY"))
                MSG_WARN("DENY rules in cookiesrc can interfere with test.\n");

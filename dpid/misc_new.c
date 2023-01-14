@@ -44,7 +44,7 @@ Dstr *a_Misc_rdtag(int socket)
 
    if (rdlen == -1) {
       perror("a_Misc_rdtag");
-      dStr_free(tag, TRUE);
+      dStr_free(tag, true);
       return (NULL);
    }
    return (tag);
@@ -149,7 +149,7 @@ char *a_Misc_mkfname(char *template)
 {
    char *tmp = template + strlen(template) - 6;
    int i;
-   uint_t random;
+   unsigned int random;
    struct stat stat_buf;
 
    if (tmp < template)
@@ -160,7 +160,7 @@ char *a_Misc_mkfname(char *template)
          errno = EINVAL;
          return 0;
       }
-   srand((uint_t)(time(0) ^ getpid()));
+   srand((unsigned int)(time(0) ^ getpid()));
 
    for (;;) {
       random = (unsigned) rand();
@@ -182,10 +182,10 @@ char *a_Misc_mkfname(char *template)
 char *a_Misc_mksecret(int nchar)
 {
    int i;
-   uint_t random;
+   unsigned int random;
    char *secret = dNew(char, nchar + 1);
 
-   srand((uint_t)(time(0) ^ getpid()));
+   srand((unsigned int)(time(0) ^ getpid()));
    random = (unsigned) rand();
    for (i = 0; i < nchar; ++i) {
       int hexdigit = (random >> (i * 5)) & 0x0f;

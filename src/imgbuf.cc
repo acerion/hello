@@ -20,17 +20,17 @@ using namespace dw::core;
  * Local data
  */
 static size_t linebuf_size = 0;
-static uchar_t *linebuf = NULL;
+static unsigned char *linebuf = NULL;
 
 
 /*
  * Decode 'buf' (an image line) into RGB format.
  */
-static uchar_t *Imgbuf_rgb_line(const uchar_t *buf,
-                                DilloImgType type, uchar_t *color_map,
-                                uint_t width, uint_t row_number)
+static unsigned char *Imgbuf_rgb_line(const unsigned char *buf,
+                                DilloImgType type, unsigned char *color_map,
+                                unsigned int width, unsigned int row_number)
 {
-   uint_t x;
+   unsigned int x;
 
    switch (type) {
    case DILLO_IMG_TYPE_INDEXED:
@@ -52,7 +52,7 @@ static uchar_t *Imgbuf_rgb_line(const uchar_t *buf,
        * the issue is that Adobe CMYK is "wrong" but ubiquitous.
        */
       for (x = 0; x < width; x++) {
-         uint_t white = buf[x * 4 + 3];
+         unsigned int white = buf[x * 4 + 3];
          linebuf[x * 3] = buf[x * 4] * white / 0x100;
          linebuf[x * 3 + 1] = buf[x * 4 + 1] * white / 0x100;
          linebuf[x * 3 + 2] = buf[x * 4 + 2] * white / 0x100;
@@ -60,7 +60,7 @@ static uchar_t *Imgbuf_rgb_line(const uchar_t *buf,
       break;
    case DILLO_IMG_TYPE_RGB:
       /* avoid a memcpy here!  --Jcid */
-      return (uchar_t *)buf;
+      return (unsigned char *)buf;
    case DILLO_IMG_TYPE_NOTSET:
       MSG_ERR("Imgbuf_rgb_line: type not set...\n");
       break;
@@ -90,7 +90,7 @@ void a_Imgbuf_unref(void *v_imgbuf)
 /*
  * Create a new Imgbuf
  */
-void *a_Imgbuf_new(void *layout, int img_type, uint_t width, uint_t height,
+void *a_Imgbuf_new(void *layout, int img_type, unsigned int width, unsigned int height,
                    double gamma)
 {
    if (!layout) {
@@ -100,7 +100,7 @@ void *a_Imgbuf_new(void *layout, int img_type, uint_t width, uint_t height,
    // Assert linebuf is wide enough.
    if (3 * width > linebuf_size) {
       linebuf_size = 3 * width;
-      linebuf = (uchar_t*) dRealloc(linebuf, linebuf_size);
+      linebuf = (unsigned char*) dRealloc(linebuf, linebuf_size);
    }
 
    return (void*)((Layout*)layout)->createImgbuf(Imgbuf::RGB, width, height,
@@ -118,14 +118,14 @@ int a_Imgbuf_last_reference(void *v_imgbuf)
 /*
  * Update the root buffer of an imgbuf.
  */
-void a_Imgbuf_update(void *v_imgbuf, const uchar_t *buf, DilloImgType type,
-                     uchar_t *color_map, uint_t width, uint_t height, uint_t row_number)
+void a_Imgbuf_update(void *v_imgbuf, const unsigned char *buf, DilloImgType type,
+                     unsigned char *color_map, unsigned int width, unsigned int height, unsigned int row_number)
 
 {
    dReturn_if_fail ( row_number < height );
 
    /* Decode 'buf' and copy it into the imgbuf */
-   uchar_t *newbuf = Imgbuf_rgb_line(buf, type, color_map, width, row_number);
+   unsigned char *newbuf = Imgbuf_rgb_line(buf, type, color_map, width, row_number);
    ((Imgbuf*)v_imgbuf)->copyRow(row_number, (byte *)newbuf);
 }
 

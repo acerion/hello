@@ -186,7 +186,7 @@ public:  //BUG: for now everything is public
 
    /* element counters: used for validation purposes.
     * ATM they're used as three state flags {0,1,>1} */
-   uchar_t Num_HTML, Num_HEAD, Num_BODY, Num_TITLE;
+   unsigned char Num_HTML, Num_HEAD, Num_BODY, Num_TITLE;
 
    char attr_data[1024];       /* Buffer for attribute value */
 
@@ -218,7 +218,7 @@ public:
    int formNew(DilloHtmlMethod method, const DilloUrl *action,
                DilloHtmlEnc enc, const char *charset);
    DilloHtmlForm *getCurrentForm ();
-   bool_t unloadedImages();
+   bool unloadedImages();
    void loadImages (const DilloUrl *pattern);
    void addCssUrl(const DilloUrl *url);
 };

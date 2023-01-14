@@ -103,7 +103,7 @@ void a_Image_ref(DilloImage *Image)
  * Set initial parameters of the image
  */
 void a_Image_set_parms(DilloImage *Image, void *v_imgbuf, DilloUrl *url,
-                       int version, uint_t width, uint_t height,
+                       int version, unsigned int width, unsigned int height,
                        DilloImgType type)
 {
    _MSG("a_Image_set_parms: width=%d height=%d iw=%d ih=%d\n",
@@ -123,7 +123,7 @@ void a_Image_set_parms(DilloImage *Image, void *v_imgbuf, DilloUrl *url,
 /*
  * Implement the write method
  */
-void a_Image_write(DilloImage *Image, uint_t y)
+void a_Image_write(DilloImage *Image, unsigned int y)
 {
    _MSG("a_Image_write\n");
    dReturn_if_fail ( y < Image->height );

@@ -23,7 +23,7 @@ static Rule *exceptions = NULL;
 static int num_exceptions = 0;
 static int num_exceptions_max = 1;
 
-static bool_t default_deny = FALSE;
+static bool default_deny = false;
 
 /*
  * Parse domainrc.
@@ -31,7 +31,7 @@ static bool_t default_deny = FALSE;
 void a_Domain_parse(FILE *fp)
 {
    char *line;
-   uint_t lineno = 0;
+   unsigned int lineno = 0;
 
    _MSG("Reading domainrc...\n");
 
@@ -55,10 +55,10 @@ void a_Domain_parse(FILE *fp)
          } else {
             if (dStrAsciiCasecmp(tok1, "default") == 0) {
                if (dStrAsciiCasecmp(tok2, "deny") == 0) {
-                  default_deny = TRUE;
+                  default_deny = true;
                   MSG("Domain: Default deny.\n");
                } else if (dStrAsciiCasecmp(tok2, "accept") == 0) {
-                  default_deny = FALSE;
+                  default_deny = false;
                   MSG("Domain: Default accept.\n");
                } else {
                   MSG("Domain: Default action \"%s\" not recognised.\n", tok2);
@@ -92,7 +92,7 @@ void a_Domain_freeall(void)
  * "example.org" pattern matches "example.org".
  * ".example.org" pattern matches "example.org" and "sub.example.org".
  */
-static bool_t Domain_match(const char *host, const char *pattern) {
+static bool Domain_match(const char *host, const char *pattern) {
    int cmp = strcmp(pattern, "*");
 
    if (cmp) {
@@ -107,20 +107,20 @@ static bool_t Domain_match(const char *host, const char *pattern) {
             cmp = dStrAsciiCasecmp(host + diff, pattern);
       }
    }
-   return cmp ? FALSE : TRUE;
+   return cmp ? false : true;
 }
 
 /*
  * Is the resource at 'source' permitted to request the resource at 'dest'?
  */
-bool_t a_Domain_permit(const DilloUrl *source, const DilloUrl *dest)
+bool a_Domain_permit(const DilloUrl *source, const DilloUrl *dest)
 {
    int i;
-   bool_t ret;
+   bool ret;
    const char *source_host, *dest_host;
 
-   if (default_deny == FALSE && num_exceptions == 0)
-      return TRUE;
+   if (default_deny == false && num_exceptions == 0)
+      return true;
 
    source_host = URL_HOST(source);
    dest_host = URL_HOST(dest);
@@ -128,15 +128,15 @@ bool_t a_Domain_permit(const DilloUrl *source, const DilloUrl *dest)
    if (dest_host[0] == '\0') {
       ret = source_host[0] == '\0' ||
             !dStrAsciiCasecmp(URL_SCHEME(dest), "data");
-      if (ret == FALSE)
+      if (ret == false)
          MSG("Domain: DENIED %s -> %s.\n", source_host, URL_STR(dest));
       return ret;
    }
 
    if (a_Url_same_organization(source, dest))
-      return TRUE;
+      return true;
 
-   ret = default_deny ? FALSE : TRUE;
+   ret = default_deny ? false : true;
 
    for (i = 0; i < num_exceptions; i++) {
       if (Domain_match(source_host, exceptions[i].origin) &&
@@ -148,7 +148,7 @@ bool_t a_Domain_permit(const DilloUrl *source, const DilloUrl *dest)
       }
    }
 
-   if (ret == FALSE) {
+   if (ret == false) {
       const char *src = source_host[0] ? source_host : URL_STR(source);
 
       MSG("Domain: DENIED %s -> %s.\n", src, dest_host);

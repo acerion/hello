@@ -61,7 +61,7 @@ static int Mime_add_major_type(const char *Key, Viewer_t Method)
  * Search the list of specific MIME viewers, for a Method that matches 'Key'
  * 'Key' is the content-type string that identifies the MIME type
  */
-static Viewer_t Mime_minor_type_fetch(const char *Key, uint_t Size)
+static Viewer_t Mime_minor_type_fetch(const char *Key, unsigned int Size)
 {
    int i;
 
@@ -77,7 +77,7 @@ static Viewer_t Mime_minor_type_fetch(const char *Key, uint_t Size)
  * Search the list of major MIME viewers, for a Method that matches 'Key'
  * 'Key' is the content-type string that identifies the MIME type
  */
-static Viewer_t Mime_major_type_fetch(const char *Key, uint_t Size)
+static Viewer_t Mime_major_type_fetch(const char *Key, unsigned int Size)
 {
    int i;
 
@@ -123,7 +123,7 @@ void a_Mime_init()
 Viewer_t a_Mime_get_viewer(const char *content_type)
 {
    Viewer_t viewer;
-   uint_t MinSize, MajSize, i;
+   unsigned int MinSize, MajSize, i;
    const char *str = content_type;
 
    MajSize = 0;

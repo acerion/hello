@@ -301,7 +301,7 @@ static char *Dpi_blocking_read(int fd)
    } while (st == buf_sz);
 
    msg = (dstr->len > 0) ? dstr->str : NULL;
-   dStr_free(dstr, (dstr->len > 0) ? FALSE : TRUE);
+   dStr_free(dstr, (dstr->len > 0) ? false : true);
    return msg;
 }
 

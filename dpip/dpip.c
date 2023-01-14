@@ -20,7 +20,6 @@
 #include <fcntl.h>    /* for fcntl */
 
 #include "dpip.h"
-#include "d_size.h"
 
 #define RBUF_SZ 16*1024
 //#define RBUF_SZ 1
@@ -116,7 +115,7 @@ char *a_Dpip_build_cmd(const char *format, ...)
    dStr_append_c(cmd, '>');
 
    p = cmd->str;
-   dStr_free(cmd, FALSE);
+   dStr_free(cmd, false);
    return p;
 }
 
@@ -128,7 +127,7 @@ char *a_Dpip_build_cmd(const char *format, ...)
  */
 char *a_Dpip_get_attr_l(const char *tag, size_t tagsize, const char *attrname)
 {
-   uint_t i, n = 0, found = 0;
+   unsigned int i, n = 0, found = 0;
    const char *p, *q, *start;
    char *r, *s, *val = NULL;
    DpipTagParsingState state = SEEK_NAME;
@@ -171,7 +170,7 @@ char *a_Dpip_get_attr_l(const char *tag, size_t tagsize, const char *attrname)
       while ((q = strchr(p, Quote)) && q[1] == Quote)
          p = q + 2;
       if (q && q[1] == ' ') {
-         val = dStrndup(start, (uint_t)(q - start));
+         val = dStrndup(start, (unsigned int)(q - start));
          for (r = s = val; (*r = *s); ++r, ++s)
             if (s[0] == Quote && s[0] == s[1])
                ++s;

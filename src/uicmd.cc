@@ -84,15 +84,15 @@ static void UIcmd_set_window_labels(Fl_Window *win, const char *str);
  */
 class CustTabButton : public Fl_Button {
    UI *ui_;
-   uint_t focus_num_; // Used to choose which tab to focus when closing the
+   unsigned int focus_num_; // Used to choose which tab to focus when closing the
                       // active one (the highest numbered gets focus).
 public:
    CustTabButton (int x,int y,int w,int h, const char* label = 0) :
       Fl_Button (x,y,w,h,label) { ui_ = NULL; focus_num_ = 0; };
    void ui(UI *pui) { ui_ = pui; }
    UI *ui(void) { return ui_; }
-   void focus_num(uint_t fn) { focus_num_ = fn; }
-   uint_t focus_num(void) { return focus_num_; }
+   void focus_num(unsigned int fn) { focus_num_ = fn; }
+   unsigned int focus_num(void) { return focus_num_; }
 };
 
 static int btn_cmp(const void *p1, const void *p2)
@@ -105,7 +105,7 @@ static int btn_cmp(const void *p1, const void *p2)
  * Allows fine control of the tabbed interface
  */
 class CustTabs : public Fl_Group {
-   uint_t focus_counter; // An increasing counter
+   unsigned int focus_counter; // An increasing counter
    int tab_w, tab_h, ctab_h, btn_w, ctl_w;
    Fl_Wizard *Wizard;
    Fl_Scroll *Scroll;
@@ -1134,7 +1134,7 @@ void a_UIcmd_add_bookmark(BrowserWindow *bw, const DilloUrl *url)
 /*
  * Popup the page menu
  */
-void a_UIcmd_page_popup(void *vbw, bool_t has_bugs, void *v_cssUrls)
+void a_UIcmd_page_popup(void *vbw, bool has_bugs, void *v_cssUrls)
 {
    BrowserWindow *bw = (BrowserWindow*)vbw;
    const DilloUrl *url = a_History_get_url(NAV_TOP_UIDX(bw));
@@ -1152,7 +1152,7 @@ void a_UIcmd_link_popup(void *vbw, const DilloUrl *url)
 /*
  * Pop up the image menu
  */
-void a_UIcmd_image_popup(void *vbw, const DilloUrl *url, bool_t loaded_img,
+void a_UIcmd_image_popup(void *vbw, const DilloUrl *url, bool loaded_img,
                          DilloUrl *page_url, DilloUrl *link_url)
 {
    a_Menu_image_popup((BrowserWindow*)vbw, url, loaded_img, page_url,link_url);
@@ -1162,7 +1162,7 @@ void a_UIcmd_image_popup(void *vbw, const DilloUrl *url, bool_t loaded_img,
  * Pop up the form menu
  */
 void a_UIcmd_form_popup(void *vbw, const DilloUrl *url, void *vform,
-                        bool_t showing_hiddens)
+                        bool showing_hiddens)
 {
    a_Menu_form_popup((BrowserWindow*)vbw, url, vform, showing_hiddens);
 }
@@ -1352,7 +1352,7 @@ void a_UIcmd_scroll(BrowserWindow *bw, int icmd)
       };
       KeysCommand_t keycmd = (KeysCommand_t)icmd;
 
-      for (uint_t i = 0; i < sizeof(map) / sizeof(map[0]); i++) {
+      for (unsigned int i = 0; i < sizeof(map) / sizeof(map[0]); i++) {
          if (keycmd == map[i].keys_cmd) {
             layout->scroll(map[i].dw_cmd);
             break;
@@ -1418,7 +1418,7 @@ void a_UIcmd_set_page_title(BrowserWindow *bw, const char *label)
    char title[size];
 
    if (snprintf(title, size, "Hello: %s", label ? label : "") >= size) {
-      uint_t i = MIN(size - 4, 1 + a_Utf8_end_of_char(title, size - 8));
+      unsigned int i = MIN(size - 4, 1 + a_Utf8_end_of_char(title, size - 8));
       snprintf(title + i, 4, "...");
    }
    BW2UI(bw)->copy_label(title);

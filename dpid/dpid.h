@@ -11,8 +11,6 @@
 #include <signal.h>       /* for sig_atomic_t */
 #include <netinet/in.h>   /* for ntohl, IPPORT_USERRESERVED and stuff */
 
-#include "d_size.h"
-
 /* FreeBSD 6.4 doesn't have it */
 #ifndef IPPORT_USERRESERVED
  #define IPPORT_USERRESERVED 5000

@@ -52,7 +52,7 @@ char *Escape_uri_str(const char *str, const char *p_esc_set)
       }
    }
    p = dstr->str;
-   dStr_free(dstr, FALSE);
+   dStr_free(dstr, false);
 
    return p;
 }
@@ -103,7 +103,7 @@ char *Escape_html_str(const char *str)
          dStr_append_c(dstr, str[i]);
    }
    p = dstr->str;
-   dStr_free(dstr, FALSE);
+   dStr_free(dstr, false);
 
    return p;
 }

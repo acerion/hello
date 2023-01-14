@@ -64,7 +64,7 @@ typedef struct my_error_mgr *my_error_ptr;
 typedef struct {
    /* Beginning of all image data received so far. Part of it has already
       been parsed and sent to cache. */
-   uchar_t * all_data;
+   unsigned char * all_data;
    /* Total size of all of the image data received so far. */
    int all_size;
 
@@ -85,7 +85,7 @@ struct DilloJpeg {
 
    size_t Skip;
 
-   uint_t row_number; /* Row number of decoded image. */
+   unsigned int row_number; /* Row number of decoded image. */
 
    struct jpeg_decompress_struct cinfo;
    struct my_error_mgr jerr;
@@ -145,20 +145,20 @@ static boolean fill_input_buffer(j_decompress_ptr cinfo)
       _MSG("fill_input_buffer: %ld bytes in buffer\n",
            (long)cinfo->src->bytes_in_buffer);
 
-      jpeg->parser.start_offset = (ulong_t) jpeg->cinfo.src->next_input_byte -
-         (ulong_t) jpeg->parser.all_data;
+      jpeg->parser.start_offset = (unsigned long) jpeg->cinfo.src->next_input_byte -
+         (unsigned long) jpeg->parser.all_data;
 #endif
       if (jpeg->Skip) {
          jpeg->parser.start_offset = jpeg->parser.all_size + jpeg->Skip - 1;
          jpeg->Skip = 0;
       } else {
-         jpeg->parser.start_offset = (ulong_t) jpeg->cinfo.src->next_input_byte -
-            (ulong_t) jpeg->parser.all_data;
+         jpeg->parser.start_offset = (unsigned long) jpeg->cinfo.src->next_input_byte -
+            (unsigned long) jpeg->parser.all_data;
       }
-      return FALSE;
+      return false;
 #if 0
    }
-   return TRUE;
+   return true;
 #endif
 }
 
@@ -269,7 +269,7 @@ static void Jpeg_write(DilloJpeg *jpeg, jpeg_parser * parser)
    if (parser->state == DILLO_JPEG_INIT) {
 
       /* decompression step 3 (see libjpeg.doc) */
-      if (jpeg_read_header(&(jpeg->cinfo), TRUE) != JPEG_SUSPENDED) {
+      if (jpeg_read_header(&(jpeg->cinfo), true) != JPEG_SUSPENDED) {
          type = DILLO_IMG_TYPE_GRAY;
          if (jpeg->cinfo.num_components == 1) {
             type = DILLO_IMG_TYPE_GRAY;
@@ -288,23 +288,23 @@ static void Jpeg_write(DilloJpeg *jpeg, jpeg_parser * parser)
           */
          if (jpeg_has_multiple_scans(&jpeg->cinfo) &&
              !(a_Capi_get_flags(jpeg->url) & CAPI_Completed))
-            jpeg->cinfo.buffered_image = TRUE;
+            jpeg->cinfo.buffered_image = true;
 
          /* check max image size */
          if (jpeg->cinfo.image_width <= 0 || jpeg->cinfo.image_height <= 0 ||
              jpeg->cinfo.image_width >
              IMAGE_MAX_AREA / jpeg->cinfo.image_height) {
             MSG("Jpeg_write: suspicious image size request %u x %u\n",
-                (uint_t)jpeg->cinfo.image_width,
-                (uint_t)jpeg->cinfo.image_height);
+                (unsigned int)jpeg->cinfo.image_width,
+                (unsigned int)jpeg->cinfo.image_height);
             parser->state = DILLO_JPEG_ERROR;
             return;
          }
 
          /** \todo Gamma for JPEG? */
          a_Dicache_set_parms(jpeg->url, jpeg->version, jpeg->Image,
-                             (uint_t)jpeg->cinfo.image_width,
-                             (uint_t)jpeg->cinfo.image_height,
+                             (unsigned int)jpeg->cinfo.image_width,
+                             (unsigned int)jpeg->cinfo.image_height,
                              type, 1 / 2.2);
          jpeg->Image = NULL; /* safeguard: may be freed by its owner later */
 
@@ -345,7 +345,7 @@ static void Jpeg_write(DilloJpeg *jpeg, jpeg_parser * parser)
    }
 
    if (parser->state == DILLO_JPEG_READ_IN_SCAN) {
-      uchar_t * row_data = dMalloc(jpeg->cinfo.image_width *
+      unsigned char * row_data = dMalloc(jpeg->cinfo.image_width *
                                     jpeg->cinfo.num_components);
       JSAMPLE *array[1] = { row_data };
 

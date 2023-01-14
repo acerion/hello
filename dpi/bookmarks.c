@@ -710,7 +710,7 @@ static void Bms_check_import(void)
                 dStrerror(errno));
          }
 
-         dStr_free(dstr, TRUE);
+         dStr_free(dstr, true);
          dFree(OldBmFile);
       }
    }
@@ -848,7 +848,7 @@ static int Bms_save(void)
       }
    }
 
-   dStr_free(dstr, TRUE);
+   dStr_free(dstr, true);
    fclose(BmTxt);
 
    /* keep track of the timestamp */
@@ -1235,7 +1235,7 @@ static int Bmsrv_modify_update(char *url)
             /* we have a title/key to change */
             key = strtol(p + 1, NULL, 10);
             if ((q = strchr(p + 1, '&')))
-               title = dStrndup(p + 2 + i, (uint_t)(q - (p + 2 + i)));
+               title = dStrndup(p + 2 + i, (unsigned int)(q - (p + 2 + i)));
             else
                title = dStrdup(p + 2 + i);
 
@@ -1254,7 +1254,7 @@ static int Bmsrv_modify_update(char *url)
             /* we have a title/key to change */
             key = strtol(p + 5, NULL, 10);
             if ((q = strchr(p + 5, '&')))
-               title = dStrndup(p + 6 + i, (uint_t)(q - (p + 6 + i)));
+               title = dStrndup(p + 6 + i, (unsigned int)(q - (p + 6 + i)));
             else
                title = dStrdup(p + 6 + i);
 

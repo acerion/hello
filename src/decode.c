@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <stdlib.h>     /* strtol */
 
+#include "config.h"
 #include "decode.h"
 #include "utf8.hh"
 #include "msg.h"
@@ -229,7 +230,7 @@ static Dstr *Decode_deflate(Decode *dc, const char *instr, int inlen)
  */
 static Dstr *Decode_charset(Decode *dc, const char *instr, int inlen)
 {
-   inbuf_t *inPtr;
+   inbuf_t *inPtr; // TODO: should this be inbuf_t or char? See types of args to iconv().
    char *outPtr;
    size_t inLeft, outRoom;
 

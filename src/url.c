@@ -103,7 +103,7 @@ const char *a_Url_hostname(const DilloUrl *u)
       if (url->authority[0] == '[' && (p = strchr(url->authority, ']'))) {
          /* numeric ipv6 address, strip the brackets */
          url->hostname = dStrndup(url->authority + 1,
-                                  (uint_t)(p - url->authority - 1));
+                                  (unsigned int)(p - url->authority - 1));
          if ((p = strchr(p, ':'))) {
             url->port = strtol(p + 1, NULL, 10);
          }
@@ -112,7 +112,7 @@ const char *a_Url_hostname(const DilloUrl *u)
          if ((p = strchr(url->authority, ':'))) {
             url->port = strtol(p + 1, NULL, 10);
             url->hostname = dStrndup(url->authority,
-                                     (uint_t)(p - url->authority));
+                                     (unsigned int)(p - url->authority));
          } else {
             url->hostname = url->authority;
          }
@@ -194,7 +194,7 @@ void a_Url_free(DilloUrl *url)
 {
    if (url) {
       if (url->url_string)
-         dStr_free(url->url_string, TRUE);
+         dStr_free(url->url_string, true);
       if (url->hostname != url->authority)
          dFree((char *)url->hostname);
       dFree((char *)url->buffer);
@@ -329,7 +329,7 @@ static Dstr *Url_resolve_relative(const char *RelStr,
    }
 
 done:
-   dStr_free(Path, TRUE);
+   dStr_free(Path, true);
    a_Url_free(RelUrl);
    if (BaseUrl != BaseUrlPar)
       a_Url_free(BaseUrl);
@@ -645,9 +645,9 @@ char *a_Url_string_strip_delimiters(const char *str)
  * Of course this is only a simple and imperfect approximation of
  * organizational boundaries.
  */
-static uint_t Url_host_public_internal_dots(const char *host)
+static unsigned int Url_host_public_internal_dots(const char *host)
 {
-   uint_t ret = 1;
+   unsigned int ret = 1;
 
    if (host) {
       int start, after, tld_len;
@@ -676,10 +676,10 @@ static uint_t Url_host_public_internal_dots(const char *host)
          const char *const tlds[] = {"bd","bn","ck","cy","er","fj","fk",
                                      "gu","il","jm","ke","kh","kw","mm","mz",
                                      "ni","np","pg","ye","za","zm","zw"};
-         uint_t i, tld_num = sizeof(tlds) / sizeof(tlds[0]);
+         unsigned int i, tld_num = sizeof(tlds) / sizeof(tlds[0]);
 
          for (i = 0; i < tld_num; i++) {
-            if (strlen(tlds[i]) == (uint_t) tld_len &&
+            if (strlen(tlds[i]) == (unsigned int) tld_len &&
                 !dStrnAsciiCasecmp(tlds[i], host + start, tld_len)) {
                _MSG("TLD code matched %s\n", tlds[i]);
                ret++;
@@ -699,7 +699,7 @@ static uint_t Url_host_public_internal_dots(const char *host)
 static const char *Url_host_find_public_suffix(const char *host)
 {
    const char *s;
-   uint_t dots;
+   unsigned int dots;
 
    if (!host || !*host)
       return host;
@@ -741,12 +741,12 @@ static const char *Url_host_find_public_suffix(const char *host)
    return s;
 }
 
-bool_t a_Url_same_organization(const DilloUrl *u1, const DilloUrl *u2)
+bool a_Url_same_organization(const DilloUrl *u1, const DilloUrl *u2)
 {
    if (!u1 || !u2)
-      return FALSE;
+      return false;
 
    return dStrAsciiCasecmp(Url_host_find_public_suffix(URL_HOST(u1)),
                            Url_host_find_public_suffix(URL_HOST(u2)))
-          ? FALSE : TRUE;
+          ? false : true;
 }

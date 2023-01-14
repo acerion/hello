@@ -1,12 +1,11 @@
 #ifndef __DLIB_H__
 #define __DLIB_H__
 
+#include <stdbool.h>
 #include <stdio.h>     /* for FILE*  */
 #include <stddef.h>    /* for size_t */
 #include <stdarg.h>    /* for va_list */
 #include <string.h>    /* for strerror */
-
-#include "d_size.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,14 +14,6 @@ extern "C" {
 /*
  *-- Common macros -----------------------------------------------------------
  */
-#ifndef FALSE
-#define FALSE   (0)
-#endif
-
-#ifndef TRUE
-#define TRUE    (!FALSE)
-#endif
-
 #undef  MAX
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 
@@ -30,8 +21,8 @@ extern "C" {
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
 
 /* Handle signed char */
-#define dIsspace(c) isspace((uchar_t)(c))
-#define dIsalnum(c) isalnum((uchar_t)(c))
+#define dIsspace(c) isspace((unsigned char)(c))
+#define dIsalnum(c) isalnum((unsigned char)(c))
 
 #define D_ASCII_TOUPPER(c) (((c) >= 'a' && (c) <= 'z') ? (c) - 0x20 : (c))
 #define D_ASCII_TOLOWER(c) (((c) >= 'A' && (c) <= 'Z') ? (c) + 0x20 : (c))
@@ -168,7 +159,7 @@ int dParser_parse_rc_line(char **line, char **name, char **value);
 /*
  *- Dlib messages -------------------------------------------------------------
  */
-void dLib_show_messages(bool_t show);
+void dLib_show_messages(bool show);
 
 /*
  *- Misc utility functions ----------------------------------------------------

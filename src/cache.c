@@ -60,7 +60,7 @@ typedef struct {
    Decode *CharsetDecoder;   /* Translates text to UTF-8 encoding */
    int ExpectedSize;         /* Goal size of the HTTP transfer (0 if unknown)*/
    int TransferSize;         /* Actual length of the HTTP transfer */
-   uint_t Flags;             /* See Flag Defines in cache.h */
+   unsigned int Flags;             /* See Flag Defines in cache.h */
 } CacheEntry_t;
 
 
@@ -77,7 +77,7 @@ static Dlist *ClientQueue;
 /* A list for delayed clients (it holds weak pointers to cache entries,
  * which are used to make deferred calls to Cache_process_queue) */
 static Dlist *DelayedQueue;
-static uint_t DelayedQueueIdleId = 0;
+static unsigned int DelayedQueueIdleId = 0;
 
 
 /*
@@ -300,7 +300,7 @@ static void Cache_entry_free(CacheEntry_t *entry)
    dFree(entry->TypeHdr);
    dFree(entry->TypeMeta);
    dFree(entry->TypeNorm);
-   dStr_free(entry->Header, TRUE);
+   dStr_free(entry->Header, true);
    a_Url_free((DilloUrl *)entry->Location);
    Cache_auth_free(entry->Auth);
    dStr_free(entry->Data, 1);
@@ -400,7 +400,7 @@ int a_Cache_open_url(void *web, CA_Callback_t Call, void *CbData)
 /*
  * Get cache entry status
  */
-uint_t a_Cache_get_flags(const DilloUrl *url)
+unsigned int a_Cache_get_flags(const DilloUrl *url)
 {
    CacheEntry_t *entry = Cache_entry_search(url);
    return (entry ? entry->Flags : 0);
@@ -409,7 +409,7 @@ uint_t a_Cache_get_flags(const DilloUrl *url)
 /*
  * Get cache entry status (following redirections).
  */
-uint_t a_Cache_get_flags_with_redirection(const DilloUrl *url)
+unsigned int a_Cache_get_flags_with_redirection(const DilloUrl *url)
 {
    CacheEntry_t *entry = Cache_entry_search_with_redirect(url);
    return (entry ? entry->Flags : 0);
@@ -575,7 +575,7 @@ void a_Cache_unref_buf(const DilloUrl *Url)
 static char *Cache_parse_field(const char *header, const char *fieldname)
 {
    char *field;
-   uint_t i, j;
+   unsigned int i, j;
 
    for (i = 0; header[i]; i++) {
       /* Search fieldname */
@@ -609,7 +609,7 @@ static char *Cache_parse_field(const char *header, const char *fieldname)
 static Dlist *Cache_parse_multiple_fields(const char *header,
                                           const char *fieldname)
 {
-   uint_t i, j;
+   unsigned int i, j;
    Dlist *fields = dList_new(8);
    char *field;
 
@@ -1114,17 +1114,17 @@ static void Cache_provide_redirection_blocked_page(CacheEntry_t *entry,
  */
 static CacheEntry_t *Cache_process_queue(CacheEntry_t *entry)
 {
-   uint_t i;
+   unsigned int i;
    int st;
    const char *Type;
    Dstr *data;
    CacheClient_t *Client;
    DilloWeb *ClientWeb;
    BrowserWindow *Client_bw = NULL;
-   static bool_t Busy = FALSE;
-   bool_t AbortEntry = FALSE;
-   bool_t OfferDownload = FALSE;
-   bool_t TypeMismatch = FALSE;
+   static bool Busy = false;
+   bool AbortEntry = false;
+   bool OfferDownload = false;
+   bool TypeMismatch = false;
 
    if (Busy)
       MSG_ERR("FATAL!: >>>> Cache_process_queue Caught busy!!! <<<<\n");
@@ -1138,7 +1138,7 @@ static CacheEntry_t *Cache_process_queue(CacheEntry_t *entry)
          if (a_Misc_content_type_check(entry->TypeHdr, Type) < 0) {
             MSG_HTTP("Content-Type '%s' doesn't match the real data.\n",
                      entry->TypeHdr);
-            TypeMismatch = TRUE;
+            TypeMismatch = true;
          }
          entry->TypeDet = dStrdup(Type);
          entry->Flags |= CA_GotContentType;
@@ -1146,7 +1146,7 @@ static CacheEntry_t *Cache_process_queue(CacheEntry_t *entry)
          return entry;  /* i.e., wait for more data */
    }
 
-   Busy = TRUE;
+   Busy = true;
    for (i = 0; (Client = dList_nth_data(ClientQueue, i)); ++i) {
       if (Client->Url == entry->Url) {
          ClientWeb = Client->Web;    /* It was a (void*) */
@@ -1161,7 +1161,7 @@ static CacheEntry_t *Cache_process_queue(CacheEntry_t *entry)
             if (TypeMismatch) {
                a_UIcmd_set_msg(Client_bw,"HTTP warning: Content-Type '%s' "
                                "doesn't match the real data.", entry->TypeHdr);
-               OfferDownload = TRUE;
+               OfferDownload = true;
             }
             if (entry->Flags & CA_Redirect) {
                if (!Client->Callback) {
@@ -1174,7 +1174,7 @@ static CacheEntry_t *Cache_process_queue(CacheEntry_t *entry)
             if (entry->Flags & CA_HugeFile) {
                a_UIcmd_set_msg(Client_bw,"Huge file! (%dMB)",
                                entry->ExpectedSize / (1024*1024));
-               AbortEntry = OfferDownload = TRUE;
+               AbortEntry = OfferDownload = true;
             }
          } else {
             /* For non root URLs, ignore redirections and 404 answers */
@@ -1190,7 +1190,7 @@ static CacheEntry_t *Cache_process_queue(CacheEntry_t *entry)
                /* Not following redirection, so don't display page body. */
             } else {
                if (TypeMismatch) {
-                  AbortEntry = TRUE;
+                  AbortEntry = true;
                } else {
                   const char *curr_type = Cache_current_content_type(entry);
                   st = a_Web_dispatch_by_type(curr_type, ClientWeb,
@@ -1201,7 +1201,7 @@ static CacheEntry_t *Cache_process_queue(CacheEntry_t *entry)
                      if (ClientWeb->flags & WEB_RootUrl) {
                         MSG("Content-Type '%s' not viewable.\n", curr_type);
                         /* prepare a download offer... */
-                        AbortEntry = OfferDownload = TRUE;
+                        AbortEntry = OfferDownload = true;
                      } else {
                         /* TODO: Resource Type not handled.
                          * Not aborted to avoid multiple connections on the
@@ -1286,7 +1286,7 @@ static CacheEntry_t *Cache_process_queue(CacheEntry_t *entry)
       a_Dicache_cleanup();
    }
 
-   Busy = FALSE;
+   Busy = false;
    _MSG("QueueSize ====> %d\n", dList_length(ClientQueue));
    return entry;
 }

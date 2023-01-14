@@ -41,7 +41,7 @@ char *a_Misc_escape_chars(const char *str, const char *esc_set)
       }
    }
    p = dstr->str;
-   dStr_free(dstr, FALSE);
+   dStr_free(dstr, false);
 
    return p;
 }
@@ -54,7 +54,7 @@ int
 a_Misc_expand_tabs(char **start, char *end, char *buf, int buflen)
 {
    int j, pos = 0, written = 0, old_pos, char_len;
-   uint_t code;
+   unsigned int code;
    static const int combining_char_space = 32;
 
    while (*start < end && written < buflen - TAB_SIZE - combining_char_space) {
@@ -178,7 +178,7 @@ int a_Misc_get_content_type_from_data(void *Data, size_t Size, const char **PT)
       non_ascci = non_ascci_text = bin_chars = 0;
       Size = MIN (Size, 256);
       for (i = 0; i < Size; i++) {
-         int ch = (uchar_t) p[i];
+         int ch = (unsigned char) p[i];
          if (ch < 32 && !dIsspace(ch))
             ++bin_chars;
          if (ch > 126)
@@ -222,13 +222,13 @@ void a_Misc_parse_content_type(const char *type, char **major, char **minor,
    if (!(str = type))
       return;
 
-   for (s = str; *s && isascii((uchar_t)*s) && !iscntrl((uchar_t)*s) &&
+   for (s = str; *s && isascii((unsigned char)*s) && !iscntrl((unsigned char)*s) &&
         !strchr(tspecials_space, *s); s++) ;
    if (major)
       *major = dStrndup(str, s - str);
 
    if (*s == '/') {
-      for (str = ++s; *s && isascii((uchar_t)*s) && !iscntrl((uchar_t)*s) &&
+      for (str = ++s; *s && isascii((unsigned char)*s) && !iscntrl((unsigned char)*s) &&
            !strchr(tspecials_space, *s); s++) ;
       if (minor)
          *minor = dStrndup(str, s - str);

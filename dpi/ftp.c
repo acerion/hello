@@ -43,7 +43,6 @@
 
 #include "../dpip/dpip.h"
 #include "dpiutil.h"
-#include "d_size.h"
 
 /*
  * Debugging macros
@@ -93,7 +92,7 @@ static int a_Misc_get_content_type_from_data2(void *Data, size_t Size,
    int st = 1;      /* default to "doubt' */
    int Type = 0;    /* default to "application/octet-stream" */
    char *p = Data;
-   uchar_t ch;
+   unsigned char ch;
    size_t i, non_ascci;
 
    /* HTML try */
@@ -128,7 +127,7 @@ static int a_Misc_get_content_type_from_data2(void *Data, size_t Size,
       non_ascci = 0;
       Size = MIN (Size, 256);
       for (i = 0; i < Size; i++) {
-         ch = (uchar_t) p[i];
+         ch = (unsigned char) p[i];
          if ((ch < 32 || ch > 126) && !dIsspace(ch))
             ++non_ascci;
       }

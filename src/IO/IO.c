@@ -156,11 +156,11 @@ static void IO_close_fd(IOData_t *io, int CloseCode)
 /*
  * Read data from a file descriptor into a specific buffer
  */
-static bool_t IO_read(IOData_t *io)
+static bool IO_read(IOData_t *io)
 {
    char Buf[IOBufLen];
    ssize_t St;
-   bool_t ret = FALSE;
+   bool ret = false;
    int io_key = io->Key;
 
    _MSG("  IO_read\n");
@@ -178,7 +178,7 @@ static bool_t IO_read(IOData_t *io)
          if (errno == EINTR) {
             continue;
          } else if (errno == EAGAIN) {
-            ret = TRUE;
+            ret = true;
             break;
          } else {
             io->Status = errno;
@@ -210,10 +210,10 @@ static bool_t IO_read(IOData_t *io)
 /*
  * Write data, from a specific buffer, into a file descriptor
  */
-static bool_t IO_write(IOData_t *io)
+static bool IO_write(IOData_t *io)
 {
    ssize_t St;
-   bool_t ret = FALSE;
+   bool ret = false;
 
    _MSG("  IO_write\n");
    io->Status = 0;
@@ -225,7 +225,7 @@ static bool_t IO_write(IOData_t *io)
          if (errno == EINTR) {
             continue;
          } else if (errno == EAGAIN) {
-            ret = TRUE;
+            ret = true;
             break;
          } else {
             io->Status = errno;
@@ -250,7 +250,7 @@ static bool_t IO_write(IOData_t *io)
  */
 static int IO_callback(IOData_t *io)
 {
-   bool_t ret = FALSE;
+   bool ret = false;
 
    _MSG("IO_callback:: (%s) FD = %d\n",
         (io->Op == IORead) ? "IORead" : "IOWrite", io->FD);

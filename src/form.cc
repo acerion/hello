@@ -9,6 +9,7 @@
  * (at your option) any later version.
  */
 
+#include "config.h"
 #include "form.hh"
 #include "html_common.hh"
 
@@ -611,7 +612,7 @@ void Html_tag_open_isindex(DilloHtml *html, const char *tag, int tagsize)
    EntryResource *entryResource = factory->createEntryResource (20, false,
                                                                 NULL, NULL);
    embed = new Embed (entryResource);
-   Html_add_input(html, DILLO_HTML_INPUT_INDEX, embed, NULL, NULL, FALSE);
+   Html_add_input(html, DILLO_HTML_INPUT_INDEX, embed, NULL, NULL, false);
 
    Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle (html->bw));
 
@@ -944,7 +945,7 @@ void Html_tag_open_button(DilloHtml *html, const char *tag, int tagsize)
       ResourceFactory *factory = Html2Layout(html)->getResourceFactory();
       Resource *resource = factory->createComplexButtonResource(page, true);
       embed = new Embed(resource);
-// a_Dw_button_set_sensitive (DW_BUTTON (button), FALSE);
+// a_Dw_button_set_sensitive (DW_BUTTON (button), false);
 
       Html2TextBlock(html)->addParbreak (5, html->styleEngine->getWordStyle (html->bw));
       Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle (html->bw));
@@ -955,7 +956,7 @@ void Html_tag_open_button(DilloHtml *html, const char *tag, int tagsize)
       value = html_attribute_get_value_with_default(tag, tagsize, "value", NULL);
       name = html_attribute_get_value_with_default(tag, tagsize, "name", NULL);
 
-      Html_add_input(html, inp_type, embed, name, value, FALSE);
+      Html_add_input(html, inp_type, embed, name, value, false);
       dFree(name);
       dFree(value);
    }
@@ -1304,7 +1305,7 @@ Dstr *DilloHtmlForm::encodeText(iconv_t char_encoder, Dstr **input)
    int rc = 0;
    Dstr *output;
    const int bufsize = 128;
-   inbuf_t *inPtr;
+   inbuf_t *inPtr; // TODO: should this be inbuf_t or char? See types of args to iconv().
    char *buffer, *outPtr;
    size_t inLeft, outRoom;
    bool bad_chars = false;

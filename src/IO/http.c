@@ -55,8 +55,8 @@ static const int HTTP_SOCKET_TO_BE_FREED = 0x8;
 /* 'Url' and 'web' are just references (no need to deallocate them here). */
 typedef struct {
    int SockFD;
-   uint_t port;            /* need a separate port in order to support PROXY */
-   uint_t flags;
+   unsigned int port;            /* need a separate port in order to support PROXY */
+   unsigned int flags;
    DilloWeb *web;          /* reference to client's web structure */
    Dlist *addr_list;       /* Holds the DNS answer */
    int Err;                /* Holds the errno of the connect() call */
@@ -262,7 +262,7 @@ static Dstr *Http_make_content_type(const DilloUrl *url)
  * Make the http query string
  */
 Dstr *a_Http_make_query_str(const DilloUrl *url, const DilloUrl *requester,
-                            int web_flags, bool_t use_proxy)
+                            int web_flags, bool use_proxy)
 {
    char *ptr, *cookies, *referer, *auth;
    Dstr *query      = dStr_new(""),
@@ -319,7 +319,7 @@ Dstr *a_Http_make_query_str(const DilloUrl *url, const DilloUrl *requester,
          proxy_auth->str, referer, content_type->str, (long)URL_DATA(url)->len,
          cookies);
       dStr_append_l(query, URL_DATA(url)->str, URL_DATA(url)->len);
-      dStr_free(content_type, TRUE);
+      dStr_free(content_type, true);
    } else {
       dStr_sprintfa(
          query,
@@ -348,8 +348,8 @@ Dstr *a_Http_make_query_str(const DilloUrl *url, const DilloUrl *requester,
    dFree(cookies);
    dFree(auth);
 
-   dStr_free(request_uri, TRUE);
-   dStr_free(proxy_auth, TRUE);
+   dStr_free(request_uri, true);
+   dStr_free(proxy_auth, true);
    _MSG("Query: {%s}\n", dStr_printable(query, 8192));
    return query;
 }

@@ -9,6 +9,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+#include <stdint.h>
 #include "bitvec.h"
 #include "url.h"
 
@@ -47,12 +48,12 @@ struct _DilloImage {
    void *layout, *img_rndr;
 
    /* Parameters as told by image data */
-   uint_t width;
-   uint_t height;
+   unsigned int width;
+   unsigned int height;
 
    int32_t bg_color;        /* Background color */
    bitvec_t *BitVec;        /* Bit vector for decoded rows */
-   uint_t ScanNumber;       /* Current decoding scan */
+   unsigned int ScanNumber;       /* Current decoding scan */
    ImageState State;        /* Processing status */
 
    int RefCount;            /* Reference counter */
@@ -70,9 +71,9 @@ void a_Image_ref(DilloImage *Image);
 void a_Image_unref(DilloImage *Image);
 
 void a_Image_set_parms(DilloImage *Image, void *v_imgbuf, DilloUrl *url,
-                       int version, uint_t width, uint_t height,
+                       int version, unsigned int width, unsigned int height,
                        DilloImgType type);
-void a_Image_write(DilloImage *Image, uint_t y);
+void a_Image_write(DilloImage *Image, unsigned int y);
 void a_Image_close(DilloImage *Image);
 void a_Image_abort(DilloImage *Image);
 

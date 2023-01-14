@@ -67,7 +67,7 @@ static int parseOption(char *name, char *value,
 
    switch (node->type) {
    case PREFS_BOOL:
-      *(bool_t *)node->pref = (!dStrAsciiCasecmp(value, "yes") ||
+      *(bool *)node->pref = (!dStrAsciiCasecmp(value, "yes") ||
                                !dStrAsciiCasecmp(value, "true"));
       break;
    case PREFS_COLOR:

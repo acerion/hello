@@ -30,20 +30,20 @@ typedef enum {
 typedef struct DICacheEntry {
    DilloUrl *url;          /* Image URL for this entry */
    DilloImgType type;      /* Image type */
-   uint_t width, height;   /* As taken from image data */
+   unsigned int width, height;   /* As taken from image data */
    short Flags;            /* See Flags */
    short SurvCleanup;      /* Cleanup-pass survival for unused images */
-   uchar_t * color_map;
+   unsigned char * color_map;
    void *v_imgbuf;         /* Void pointer to an Imgbuf object */
-   uint_t TotalSize;       /* Amount of memory the image takes up */
-   uint_t ScanNumber;      /* Current decoding scan */
+   unsigned int TotalSize;       /* Amount of memory the image takes up */
+   unsigned int ScanNumber;      /* Current decoding scan */
    bitvec_t *BitVec;       /* Bit vector for decoded rows */
    DicEntryState State;    /* Current status for this entry */
    int RefCount;           /* Reference Counter */
    int version;            /* Version number, used for different
                               versions of the same URL image */
 
-   uint_t DecodedSize;     /* Size of already decoded data */
+   unsigned int DecodedSize;     /* Size of already decoded data */
    CA_Callback_t Decoder;  /* Client function */
    void *DecoderData;      /* Client function data */
 } DICacheEntry;
@@ -62,13 +62,13 @@ void *a_Dicache_jpeg_image(const char *Type, void *Ptr, CA_Callback_t *Call,
 void a_Dicache_callback(int Op, CacheClient_t *Client);
 
 void a_Dicache_set_parms(DilloUrl *url, int version, DilloImage *Image,
-                         uint_t width, uint_t height, DilloImgType type,
+                         unsigned int width, unsigned int height, DilloImgType type,
                          double gamma);
 void a_Dicache_set_color_map(DilloUrl *url, int version, int bg_color,
-                             const uchar_t *color_map, uint_t num_colors,
+                             const unsigned char *color_map, unsigned int num_colors,
                              int num_colors_max, int bg_index);
 void a_Dicache_new_scan(const DilloUrl *url, int version);
-void a_image_cache_add_row(DilloUrl *url, int version, const uchar_t * row_data, uint_t row_number);
+void a_image_cache_add_row(DilloUrl *url, int version, const unsigned char * row_data, unsigned int row_number);
 void a_Dicache_close(DilloUrl *url, int version, CacheClient_t *Client);
 
 void a_Dicache_invalidate_entry(const DilloUrl *Url);

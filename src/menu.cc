@@ -330,7 +330,7 @@ static void Menu_popup_cb(void *data)
  * Page popup menu (construction & popup)
  */
 void a_Menu_page_popup(BrowserWindow *bw, const DilloUrl *url,
-                       bool_t has_bugs, void *v_cssUrls)
+                       bool has_bugs, void *v_cssUrls)
 {
    lout::misc::SimpleVector <DilloUrl*> *cssUrls =
                             (lout::misc::SimpleVector <DilloUrl*> *) v_cssUrls;
@@ -355,7 +355,7 @@ void a_Menu_page_popup(BrowserWindow *bw, const DilloUrl *url,
    a_Url_free(popup_url);
    popup_url = a_Url_dup(url);
 
-   has_bugs == TRUE ? pm[1].activate() : pm[1].deactivate();
+   has_bugs == true ? pm[1].activate() : pm[1].deactivate();
 
    if (dStrAsciiCasecmp(URL_SCHEME(url), "dpi") == 0 &&
        strncmp(URL_PATH(url), "/vsource/", 9) == 0)
@@ -382,7 +382,7 @@ void a_Menu_page_popup(BrowserWindow *bw, const DilloUrl *url,
       for (j = 0; j < cssUrls->size(); j++) {
          DilloUrl *url = cssUrls->get(j);
          const char *url_str = URL_STR(url);
-         const uint_t head_length = 30, tail_length = 40,
+         const unsigned int head_length = 30, tail_length = 40,
                       url_len = strlen(url_str);
          char *label;
 
@@ -450,7 +450,7 @@ void a_Menu_link_popup(BrowserWindow *bw, const DilloUrl *url)
  * Image popup menu (construction & popup)
  */
 void a_Menu_image_popup(BrowserWindow *bw, const DilloUrl *url,
-                        bool_t loaded_img, DilloUrl *page_url,
+                        bool loaded_img, DilloUrl *page_url,
                         DilloUrl *link_url)
 {
    static DilloUrl *popup_page_url = NULL;
@@ -509,7 +509,7 @@ void a_Menu_image_popup(BrowserWindow *bw, const DilloUrl *url,
  * Form popup menu (construction & popup)
  */
 void a_Menu_form_popup(BrowserWindow *bw, const DilloUrl *page_url,
-                       void *formptr, bool_t hidvis)
+                       void *formptr, bool hidvis)
 {
    static bool hiddens_visible;
    static Fl_Menu_Item pm[] = {

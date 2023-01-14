@@ -115,7 +115,7 @@ FltkFont::FltkFont (core::style::FontAttrs *attrs)
    font = family->get (fa);
 
    fl_font(font, this->font_attrs.size);
-   // WORKAROUND: A bug with fl_width(uint_t) on non-xft X was present in
+   // WORKAROUND: A bug with fl_width(unsigned int) on non-xft X was present in
    // 1.3.0 (STR #2688).
    spaceWidth = misc::max(0, (int)fl_width(" ") + this->font_attrs.letterSpacing);
    int xx, xy, xw, xh;

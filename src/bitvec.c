@@ -24,7 +24,7 @@ bitvec_t *a_Bitvec_new(int num_bits)
 {
    bitvec_t *bvec = dNew(bitvec_t, 1);
 
-   bvec->vec = dNew0(uchar_t, num_bits/BVEC_SIZE + 1);
+   bvec->vec = dNew0(unsigned char, num_bits/BVEC_SIZE + 1);
    bvec->len = num_bits;
    return bvec;
 }
@@ -34,7 +34,7 @@ bitvec_t *a_Bitvec_new(int num_bits)
  */
 void a_Bitvec_clear(bitvec_t *bvec)
 {
-   memset(bvec->vec, 0, sizeof(uchar_t) * bvec->len/BVEC_SIZE + 1);
+   memset(bvec->vec, 0, sizeof(unsigned char) * bvec->len/BVEC_SIZE + 1);
 }
 
 /*

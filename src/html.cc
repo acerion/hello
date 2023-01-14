@@ -105,7 +105,7 @@ typedef struct {
    const char *name;      /* element name */
    unsigned char Flags;   /* flags (explained near the table data) */
    char EndTag;           /* Is it Required, Optional or Forbidden */
-   uchar_t TagLevel;      /* Used to heuristically parse bad HTML  */
+   unsigned char TagLevel;      /* Used to heuristically parse bad HTML  */
    TagOpenFunct open;     /* Open function */
    TagOpenFunct content;  /* Content function */
    TagCloseFunct close;   /* Close function */
@@ -138,7 +138,7 @@ void DilloHtml::bugMessage(const char *format, ... )
 
 /*
  * Wrapper for a_Url_new that adds an error detection message.
- * If use_base_url is TRUE, it uses base_url. Otherwise it uses html->base_url.
+ * If use_base_url is true, it uses base_url. Otherwise it uses html->base_url.
  */
 DilloUrl *a_Html_url_new(DilloHtml *html,
                          const char *url_str, const char *base_url,
@@ -238,7 +238,7 @@ void a_Html_form_reset(void *v_html, void *v_form)
 /*
  * Used by the "Show/Hide hiddens" form menuitem.
  */
-void a_Html_form_display_hiddens(void *v_html, void *v_form, bool_t display)
+void a_Html_form_display_hiddens(void *v_html, void *v_form, bool display)
 {
    DilloHtml *html = (DilloHtml*)v_html;
 
@@ -564,7 +564,7 @@ void DilloHtml::freeParseData()
 {
    delete(stack);
 
-   dStr_free(Stash, TRUE);
+   dStr_free(Stash, true);
    dFree(content_type);
    dFree(charset);
 }
@@ -621,14 +621,14 @@ DilloHtmlForm *DilloHtml::getCurrentForm ()
    return forms->get (forms->size() - 1);
 }
 
-bool_t DilloHtml::unloadedImages()
+bool DilloHtml::unloadedImages()
 {
    for (int i = 0; i < images->size(); i++) {
       if (images->get(i)->image != NULL) {
-         return TRUE;
+         return true;
       }
    }
-   return FALSE;
+   return false;
 }
 
 /*
@@ -706,7 +706,7 @@ bool DilloHtml::HtmlLinkReceiver::press (Widget *widget, int link, int img,
          // image menu
          if (link != -1)
             linkurl = html->links->get(link);
-         const bool_t loaded_img = (html->images->get(img)->image == NULL);
+         const bool loaded_img = (html->images->get(img)->image == NULL);
          a_UIcmd_image_popup(bw, html->images->get(img)->url, loaded_img,
                              html->page_url, linkurl);
          ret = true;
@@ -1957,7 +1957,7 @@ static void Html_tag_content_img(DilloHtml *html, const char *tag, int tagsize)
               usemap_url == NULL) {
       /* For simple links, we have to suppress the "image_pressed" signal.
        * This is overridden for USEMAP images. */
-//    a_Dw_widget_set_button_sensitive (Image2DwWidget(Image->dw), FALSE);
+//    a_Dw_widget_set_button_sensitive (Image2DwWidget(Image->dw), false);
    }
 
    if (usemap_url) {

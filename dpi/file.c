@@ -35,7 +35,6 @@
 
 #include "../dpip/dpip.h"
 #include "dpiutil.h"
-#include "d_size.h"
 
 /*
  * Debugging macros
@@ -47,7 +46,7 @@
 
 
 #define MAXNAMESIZE 30
-#define HIDE_DOTFILES TRUE
+#define HIDE_DOTFILES true
 
 /*
  * Communication flags
@@ -168,7 +167,7 @@ static const char *File_get_content_type_from_data(void *Data, size_t Size)
       non_ascci = 0;
       Size = MIN (Size, 256);
       for (i = 0; i < Size; i++)
-         if ((uchar_t) p[i] > 127)
+         if ((unsigned char) p[i] > 127)
             ++non_ascci;
       if (Size == 256) {
          Type = (non_ascci > 10) ? 0 : 2;
@@ -596,7 +595,7 @@ static void File_send_error_page(ClientInfo *client)
                      "\r\n"
                      "%s",
                      status, body->len, body->str);
-   dStr_free(body, TRUE);
+   dStr_free(body, true);
 
    client->flags |= FILE_DONE;
 }
@@ -617,7 +616,7 @@ static int File_prepare_send_dir(ClientInfo *client,
 
    /* Let's get a structure ready for transfer */
    Ddir = File_dillodir_new(ds_dirname->str);
-   dStr_free(ds_dirname, TRUE);
+   dStr_free(ds_dirname, true);
    if (Ddir) {
       /* looks ok, set things accordingly */
       client->orig_url = dStrdup(orig_url);
@@ -697,7 +696,7 @@ static int File_send_file(ClientInfo *client)
    const char *unknown_type = "application/octet-stream";
    char buf[LBUF], *d_cmd, *name;
    int st, st2, namelen;
-   bool_t gzipped = FALSE;
+   bool gzipped = false;
 
    if (client->state == st_start) {
       /* Send DPI command */
@@ -714,7 +713,7 @@ static int File_send_file(ClientInfo *client)
       namelen = strlen(client->filename);
       if (namelen > 3 &&
           !dStrAsciiCasecmp(client->filename + namelen - 3, ".gz")) {
-         gzipped = TRUE;
+         gzipped = true;
          namelen -= 3;
       }
       /* Content-Type info is based on filename extension (with ".gz" removed).
@@ -1003,7 +1002,7 @@ static void File_serve_clients()
  * Check the fd sets for activity, with a max timeout.
  * return value: 0 if timeout, 1 if input available, -1 if error.
  */
-static int File_check_fds(uint_t seconds)
+static int File_check_fds(unsigned int seconds)
 {
    int i, st;
    ClientInfo *client;

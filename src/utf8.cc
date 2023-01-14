@@ -11,7 +11,7 @@
 
 #include <FL/fl_utf8.h>
 
-#include "../dlib/dlib.h"    /* TRUE/FALSE */
+//#include "../dlib/dlib.h"    /* TRUE/FALSE */
 #include "utf8.hh"
 
 // C++ functions with C linkage ----------------------------------------------
@@ -20,7 +20,7 @@
  * Return index of the last byte of the UTF-8-encoded character that str + i
  * points to or into.
  */
-uint_t a_Utf8_end_of_char(const char *str, uint_t i)
+unsigned int a_Utf8_end_of_char(const char *str, unsigned int i)
 {
    /* We can almost get what we want from utf8fwd(p+1,...)-1, but that
     * does not work for the last character in a string, and the fn makes some
@@ -43,7 +43,7 @@ uint_t a_Utf8_end_of_char(const char *str, uint_t i)
  * Note that utf8decode(), if given non-UTF-8 data, will interpret
  * it as ISO-8859-1 or CP1252 if possible.
  */
-uint_t a_Utf8_decode(const char* str, const char* end, int* len)
+unsigned int a_Utf8_decode(const char* str, const char* end, int* len)
 {
    return fl_utf8decode(str, end, len);
 }
@@ -73,11 +73,11 @@ int a_Utf8_test(const char* src, unsigned int srclen)
  * for what might make the most sense for the browser. Surprisingly, they include
  * Hangul Compatibility Jamo, but they're the experts, so I'll follow along.
  */
-bool_t a_Utf8_ideographic(const char *s, const char *end, int *len)
+bool a_Utf8_ideographic(const char *s, const char *end, int *len)
 {
-   bool_t ret = FALSE;
+   bool ret = false;
 
-   if ((uchar_t)*s >= 0xe2) {
+   if ((unsigned char)*s >= 0xe2) {
       /* Unicode char >= U+2000. */
       unsigned unicode = a_Utf8_decode(s, end, len);
 
@@ -85,7 +85,7 @@ bool_t a_Utf8_ideographic(const char *s, const char *end, int *len)
            ((unicode <= 0xa4cf) ||
             (unicode >= 0xf900 && unicode <= 0xfaff) ||
             (unicode >= 0xff00 && unicode <= 0xff9f))) {
-         ret = TRUE;
+         ret = true;
      }
    } else {
       *len = 1 + (int)a_Utf8_end_of_char(s, 0);
@@ -93,7 +93,7 @@ bool_t a_Utf8_ideographic(const char *s, const char *end, int *len)
    return ret;
 }
 
-bool_t a_Utf8_combining_char(int unicode)
+bool a_Utf8_combining_char(int unicode)
 {
    return ((unicode >= 0x0300 && unicode <= 0x036f) ||
            (unicode >= 0x1dc0 && unicode <= 0x1dff) ||
@@ -103,5 +103,5 @@ bool_t a_Utf8_combining_char(int unicode)
 
 int a_Utf8_char_count(const char *str, int len)
 {
-   return fl_utf_nb_char((const uchar_t*)str, len);
+   return fl_utf_nb_char((const unsigned char*)str, len);
 }

@@ -19,7 +19,6 @@
 #define __DPIUTIL_H__
 
 #include <stdio.h>
-#include "d_size.h"
 #include "../dlib/dlib.h"
 
 

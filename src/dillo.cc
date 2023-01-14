@@ -398,8 +398,8 @@ int main(int argc, char **argv)
    */
    unlink("/tmp/hello_browser_matching_rules_debug.txt");
 
-   uint_t opt_id;
-   uint_t options_got = 0;
+   unsigned int opt_id;
+   unsigned int options_got = 0;
    uint32_t xid = 0;
    int idx = 1;
    int xpos = PREFS_GEOMETRY_DEFAULT_XPOS, ypos = PREFS_GEOMETRY_DEFAULT_YPOS,
@@ -408,7 +408,7 @@ int main(int argc, char **argv)
    char **opt_argv;
    FILE *fp;
 
-   srand((uint_t)(time(0) ^ getpid()));
+   srand((unsigned int)(time(0) ^ getpid()));
 
    // Some OSes exit the browser without this (not GNU/Linux).
    signal(SIGPIPE, SIG_IGN);
@@ -499,7 +499,7 @@ int main(int argc, char **argv)
 
    /* command line options override preferences */
    if (options_got & DILLO_CLI_FULLWINDOW)
-      prefs.fullwindow_start = TRUE;
+      prefs.fullwindow_start = true;
    if (options_got & DILLO_CLI_GEOMETRY) {
        prefs.width = width;
        prefs.height = height;

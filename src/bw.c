@@ -326,7 +326,7 @@ void a_Bw_cancel_expect(BrowserWindow *bw)
    bw->nav_expect_url = NULL;
 }
 
-bool_t a_Bw_expecting(BrowserWindow *bw)
+bool a_Bw_expecting(BrowserWindow *bw)
 {
    return (bw->nav_expect_url != NULL);
 }

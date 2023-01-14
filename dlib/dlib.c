@@ -27,7 +27,7 @@
 
 #include "dlib.h"
 
-static bool_t dLib_show_msg = TRUE;
+static bool dLib_show_msg = true;
 
 /* dlib msgs go to stderr to avoid problems with filter dpis */
 #define DLIB_MSG(...)                              \
@@ -871,7 +871,7 @@ int dParser_parse_rc_line(char **line, char **name, char **value)
 /*
  *- Dlib messages -------------------------------------------------------------
  */
-void dLib_show_messages(bool_t show)
+void dLib_show_messages(bool show)
 {
    dLib_show_msg = show;
 }

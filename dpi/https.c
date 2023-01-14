@@ -370,7 +370,7 @@ static int get_network_connection(char * url)
    int s;
    int url_offset = 0;
    int portnum = 443;
-   uint_t url_look_up_length = 0;
+   unsigned int url_look_up_length = 0;
    char * url_look_up = NULL;
 
    /*Determine how much of url we chop off as unneeded*/
@@ -714,7 +714,7 @@ static int save_certificate_home(X509 * cert)
    char buf[4096];
 
    FILE * fp = NULL;
-   uint_t i = 0;
+   unsigned int i = 0;
    int ret = 1;
 
    /*Attempt to create .PROGRAM_LOCAL_DIR/certs blindly - check later*/

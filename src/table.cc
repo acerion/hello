@@ -145,7 +145,7 @@ void Html_tag_content_table(DilloHtml *html, const char *tag, int tagsize)
 
    TopOfParsingStack(html)->table_context.table_mode = DILLO_HTML_TABLE_MODE_TOP;
    TopOfParsingStack(html)->table_context.table_border_mode = DILLO_HTML_TABLE_BORDER_SEPARATE;
-   TopOfParsingStack(html)->table_context.cell_text_align_set = FALSE;
+   TopOfParsingStack(html)->table_context.cell_text_align_set = false;
    TopOfParsingStack(html)->table_context.table_widget = table;
 }
 
@@ -181,7 +181,7 @@ void Html_tag_open_tr(DilloHtml *html, const char *tag, int tagsize)
 
       if (html_attribute_get_value(tag, tagsize, "align")) {
          StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         TopOfParsingStack(html)->table_context.cell_text_align_set = TRUE;
+         TopOfParsingStack(html)->table_context.cell_text_align_set = true;
          a_Html_tag_set_align_attr(&html->doctype, currentNode, tag, tagsize);
       }
 
