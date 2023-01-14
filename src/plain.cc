@@ -56,7 +56,7 @@ public:
    DilloPlain(BrowserWindow *bw);
    ~DilloPlain();
 
-   void write(void *Buf, uint_t BufSize, int Eof);
+   void write(char *Buf, uint_t BufSize, bool isEof);
 };
 
 /* FSM states */
@@ -91,7 +91,7 @@ DilloPlain::DilloPlain(BrowserWindow *p_bw)
    /* Init internal variables */
    bw = p_bw;
    dw = new Textblock (prefs.limit_text_width);
-   Start_Ofs = 0;
+   this->Start_Ofs = 0;
    state = ST_SeekingEol;
 
    Layout *layout = (Layout*) bw->render_layout;
@@ -160,16 +160,14 @@ void DilloPlain::addLine(char *Buf, uint_t BufSize)
  * Here we parse plain text and put it into the page structure.
  * (This function is called by Plain_callback whenever there's new data)
  */
-void DilloPlain::write(void *Buf, uint_t BufSize, int Eof)
+void DilloPlain::write(char *Buf, uint_t BufSize, bool isEof)
 {
-   char *Start;
-   uint_t i, len, MaxBytes;
+   _MSG("DilloPlain::write isEof=%d\n", isEof);
 
-   _MSG("DilloPlain::write Eof=%d\n", Eof);
-
-   Start = (char*)Buf + Start_Ofs;
-   MaxBytes = BufSize - Start_Ofs;
-   i = len = 0;
+   char * Start = Buf + this->Start_Ofs;
+   const uint_t MaxBytes = BufSize - this->Start_Ofs;
+   uint_t i = 0;
+   uint_t len = 0;
    while ( i < MaxBytes ) {
       switch ( state ) {
       case ST_SeekingEol:
@@ -181,17 +179,21 @@ void DilloPlain::write(void *Buf, uint_t BufSize, int Eof)
          break;
       case ST_Eol:
          addLine(Start + i - len, len);
-         if (Start[i] == '\r' && Start[i + 1] == '\n') ++i;
-         if (i < MaxBytes) ++i;
+         if (Start[i] == '\r' && Start[i + 1] == '\n') {
+            ++i;
+         }
+         if (i < MaxBytes) {
+            ++i;
+         }
          state = ST_SeekingEol;
          len = 0;
          break;
       }
    }
-   Start_Ofs += i - len;
-   if (Eof && len) {
+   this->Start_Ofs += i - len;
+   if (isEof && len) {
       addLine(Start + i - len, len);
-      Start_Ofs += len;
+      this->Start_Ofs += len;
    }
 
    DW2TB(dw)->flush();
@@ -226,11 +228,11 @@ static void Plain_callback(int Op, CacheClient_t *Client)
 
    if (Op) {
       /* Do the last line: */
-      plain->write(Client->Buf, Client->BufSize, 1);
+      plain->write((char *) Client->Buf, Client->BufSize, true);
       /* remove this client from our active list */
       a_Bw_close_client(plain->bw, Client->Key);
    } else {
-      plain->write(Client->Buf, Client->BufSize, 0);
+      plain->write((char *) Client->Buf, Client->BufSize, false);
    }
 }
 
