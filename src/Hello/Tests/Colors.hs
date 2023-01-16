@@ -468,31 +468,31 @@ colorsTestCases = [
 
 
   -- colorsStringToColorWithDefault: valid inputs
-  , TestCase (assertEqual "c_60" 0x0000ff (colorsStringToColorWithDefault "blue"     60))
-  , TestCase (assertEqual "c_61" 0xffa500 (colorsStringToColorWithDefault "ORangE"   61))
+  , TestCase (assertEqual "c_60" 0x0000ff (colorsStringToColorWithDefault "blue"     0x000001))
+  , TestCase (assertEqual "c_61" 0xffa500 (colorsStringToColorWithDefault "ORangE"   0x000001))
 
-  , TestCase (assertEqual "c_62" 0x991ced (colorsStringToColorWithDefault "#991cED"  62))
-  , TestCase (assertEqual "c_63" 0x55ff33 (colorsStringToColorWithDefault "#5f3"     63))
+  , TestCase (assertEqual "c_62" 0x991ced (colorsStringToColorWithDefault "#991cED"  0x000001))
+  , TestCase (assertEqual "c_63" 0x55ff33 (colorsStringToColorWithDefault "#5f3"     0x000001))
 
-  , TestCase (assertEqual "c_64" 0xace000 (colorsStringToColorWithDefault "0xacE000" 64))
-  , TestCase (assertEqual "c_65" 0xffee77 (colorsStringToColorWithDefault "0XfE7"    65))
+  , TestCase (assertEqual "c_64" 0xace000 (colorsStringToColorWithDefault "0xacE000" 0x000001))
+  , TestCase (assertEqual "c_65" 0xffee77 (colorsStringToColorWithDefault "0XfE7"    0x000001))
 
-  , TestCase (assertEqual "c_66" 0xffff11 (colorsStringToColorWithDefault "FF1"      66))
-  , TestCase (assertEqual "c_67" 0x0022cc (colorsStringToColorWithDefault "02c"      67))
+  , TestCase (assertEqual "c_66" 0xffff11 (colorsStringToColorWithDefault "FF1"      0x000001))
+  , TestCase (assertEqual "c_67" 0x0022cc (colorsStringToColorWithDefault "02c"      0x000001))
 
 
   -- colorsStringToColorWithDefault: invalid inputs, leading to returning a fallback value.
-  , TestCase (assertEqual "c_70" 70 (colorsStringToColorWithDefault "strange" 70))
-  , TestCase (assertEqual "c_71" 71 (colorsStringToColorWithDefault "oval"    71))
+  , TestCase (assertEqual "c_70" 0x000001 (colorsStringToColorWithDefault "strange"  0x000001))
+  , TestCase (assertEqual "c_71" 0x000001 (colorsStringToColorWithDefault "oval"     0x000001))
 
-  , TestCase (assertEqual "c_72" 72 (colorsStringToColorWithDefault "#21"     72))
-  , TestCase (assertEqual "c_73" 73 (colorsStringToColorWithDefault "#21z"    73))
+  , TestCase (assertEqual "c_72" 0x000001 (colorsStringToColorWithDefault "#21"      0x000001))
+  , TestCase (assertEqual "c_73" 0x000001 (colorsStringToColorWithDefault "#21z"     0x000001))
 
-  , TestCase (assertEqual "c_74" 74 (colorsStringToColorWithDefault "0x21"    74))
-  , TestCase (assertEqual "c_75" 75 (colorsStringToColorWithDefault "0x21z"   75))
+  , TestCase (assertEqual "c_74" 0x000001 (colorsStringToColorWithDefault "0x21"     0x000001))
+  , TestCase (assertEqual "c_75" 0x000001 (colorsStringToColorWithDefault "0x21z"    0x000001))
 
-  , TestCase (assertEqual "c_76" 76 (colorsStringToColorWithDefault "[0a"    76))
-  , TestCase (assertEqual "c_77" 77 (colorsStringToColorWithDefault "???"    77))
+  , TestCase (assertEqual "c_76" 0x000001 (colorsStringToColorWithDefault "[0a"      0x000001))
+  , TestCase (assertEqual "c_77" 0x000001 (colorsStringToColorWithDefault "???"      0x000001))
 
   ]
 
