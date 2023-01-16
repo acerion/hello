@@ -47,6 +47,7 @@ where
 
 import Prelude
 import Data.Bits
+import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Read as T.R
 import qualified Data.Vector as V
@@ -232,10 +233,7 @@ Parse a color string. Case insensitive.
 TODO: add returning of "err" flag
 -}
 colorsStringToColorWithDefault :: T.Text -> Int -> Int
-colorsStringToColorWithDefault text defaultColor =
-  case colorsStringToColor text of
-    Just val -> val
-    Nothing  -> defaultColor
+colorsStringToColorWithDefault text defaultColor = fromMaybe defaultColor (colorsStringToColor text)
 
 
 

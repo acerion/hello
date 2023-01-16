@@ -195,7 +195,7 @@ makeFontAttrs size xHeight = defaultFontAttrs { fontSize = size, fontXHeight = x
 -- remainder string in a row, for which test failed.
 computeAbsoluteLengthValueTest :: [ValueTestType] -> Maybe T.Text
 computeAbsoluteLengthValueTest []     = Nothing
-computeAbsoluteLengthValueTest (x:xs) = if expected /= styleEngineComputeAbsoluteLengthValue (dist x) (fontAttrs x) (referenceValue x) (display x)
+computeAbsoluteLengthValueTest (x:xs) = if expected /= computeAbsoluteLengthValue (dist x) (fontAttrs x) (referenceValue x) (display x)
                                         then Just . T.pack . show $ x
                                         else computeAbsoluteLengthValueTest xs
   where

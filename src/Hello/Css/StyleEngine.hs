@@ -31,9 +31,7 @@ Copyright assignments from the file:
 
 module Hello.Css.StyleEngine
   (
-    styleEngineComputeAbsoluteLengthValue
-
-  , styleEngineApplyStyleToFont
+    styleEngineApplyStyleToFont
 
   , styleEngineSetFontFamily
   , styleEngineSetFontWeight
@@ -51,6 +49,9 @@ module Hello.Css.StyleEngine
   , styleEngineCalculateDwLength
 
   , styleEngineInheritNonCssHints
+
+  -- Exported only for tests
+  , computeAbsoluteLengthValue
   )
 where
 
@@ -59,6 +60,7 @@ where
 
 import Prelude
 import Data.Bits
+import Data.Maybe
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 --import Debug.Trace
@@ -91,8 +93,8 @@ import Hello.Utils
 -- theory for any html element) is accepting arguments specific to font (font
 -- size and font X heigth arguments). is it because of EM and EX distance
 -- types?
-styleEngineComputeAbsoluteLengthValue :: CssDistance -> FontAttrs -> Int -> Display -> Maybe Float
-styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display =
+computeAbsoluteLengthValue :: CssDistance -> FontAttrs -> Int -> Display -> Maybe Float
+computeAbsoluteLengthValue distance fontAttrs referenceValue display =
   case distance of
     CssDistanceAbsPx d     -> Just d
     CssDistanceAbsMm d     -> Just (fromIntegral (roundInt (d * dpmm)))
@@ -223,20 +225,17 @@ styleEngineSetFontSize declValueArg prefs display parentFontAttrs fontAttrsArg =
 
 fontSizeToAbs :: CssValueFontSize -> Preferences -> Display -> FontAttrs -> FontAttrs -> Maybe Int
 fontSizeToAbs declValue prefs display fontAttrs parentFontAttrs = case declValue of
-                                                                    CssValueFontSizeXXSmall   -> Just $ roundInt ( 8.1  * prefsFontFactor prefs)
-                                                                    CssValueFontSizeXSmall    -> Just $ roundInt ( 9.7  * prefsFontFactor prefs)
-                                                                    CssValueFontSizeSmall     -> Just $ roundInt (11.7  * prefsFontFactor prefs)
-                                                                    CssValueFontSizeMedium    -> Just $ roundInt (14.0  * prefsFontFactor prefs)
-                                                                    CssValueFontSizeLarge     -> Just $ roundInt (16.8  * prefsFontFactor prefs)
-                                                                    CssValueFontSizeXLarge    -> Just $ roundInt (20.2  * prefsFontFactor prefs)
-                                                                    CssValueFontSizeXXLarge   -> Just $ roundInt (24.2  * prefsFontFactor prefs)
-                                                                    CssValueFontSizeLarger    -> Just $ roundInt ( 1.2  * (fromIntegral . fontSize $ fontAttrs))
-                                                                    CssValueFontSizeSmaller   -> Just $ roundInt ( 0.83 * (fromIntegral . fontSize $ fontAttrs))
-                                                                    CssValueFontSizeDistance distance -> case size of
-                                                                                                           Just s  -> Just $ roundInt s
-                                                                                                           Nothing -> Nothing
+                                                                    CssValueFontSizeXXSmall    -> Just $ roundInt ( 8.1  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeXSmall     -> Just $ roundInt ( 9.7  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeSmall      -> Just $ roundInt (11.7  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeMedium     -> Just $ roundInt (14.0  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeLarge      -> Just $ roundInt (16.8  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeXLarge     -> Just $ roundInt (20.2  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeXXLarge    -> Just $ roundInt (24.2  * prefsFontFactor prefs)
+                                                                    CssValueFontSizeLarger     -> Just $ roundInt ( 1.2  * (fromIntegral . fontSize $ fontAttrs))
+                                                                    CssValueFontSizeSmaller    -> Just $ roundInt ( 0.83 * (fromIntegral . fontSize $ fontAttrs))
+                                                                    CssValueFontSizeDistance d -> fmap roundInt (computeAbsoluteLengthValue d parentFontAttrs referenceValue display)
                                                                       where
-                                                                        size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue display
                                                                         referenceValue = fontSize parentFontAttrs
 
 
@@ -267,7 +266,7 @@ styleEngineSetLetterSpacing declValue display parentFontAttrs fontAttrsArg = cli
         Just s  -> fontAttrs { fontLetterSpacing = roundInt s }
         Nothing -> fontAttrs
       where
-        size           = styleEngineComputeAbsoluteLengthValue distance parentFontAttrs referenceValue display
+        size           = computeAbsoluteLengthValue distance parentFontAttrs referenceValue display
         referenceValue = fontSize parentFontAttrs
 
 
@@ -322,16 +321,13 @@ styleEngineApplyStyleToFont declSet preferences displayArg parentFontAttrsArg fo
 
 
 
-
-
 styleEngineCalculateDwLength :: CssDistance -> FontAttrs -> Display -> Maybe DwLength
 styleEngineCalculateDwLength distance fontAttrs display =
   case distance of
     CssNumericPercentage v -> Just $ createPercentageDwLength (realToFrac v)
     CssDistanceAuto        -> Just createAutoDwLength
-    _                      -> case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
-                                Just val -> Just $ createAbsoluteDwLength (round val) -- TODO: a type of Float -> Int function to be verified here
-                                Nothing  -> Nothing
+                              -- TODO: a type of Float -> Int function to be verified below (see whether "round" is optimal).
+    _                      -> createAbsoluteDwLength . round <$> computeAbsoluteLengthValue distance fontAttrs 0 display
 
 
 
@@ -573,11 +569,9 @@ getBorderWidth field parentStyleAttrs declValue display fontAttrs = case declVal
                                                                       CssValueBorderWidthThin       -> 1
                                                                       CssValueBorderWidthMedium     -> 2
                                                                       CssValueBorderWidthThick      -> 3
-                                                                      CssValueBorderWidthDistance d -> case styleEngineComputeBorderWidth d display fontAttrs of
-                                                                                                         -- TODO: another place where Maybe returned by Compute function
-                                                                                                         -- causes unnecessary trouble.
-                                                                                                         Just x  -> x
-                                                                                                         Nothing -> 0
+                                                                                                       -- TODO: another place where Maybe returned by Compute function
+                                                                                                       -- causes unnecessary trouble.
+                                                                      CssValueBorderWidthDistance d -> fromMaybe 0 (styleEngineComputeBorderWidth d display fontAttrs)
                                                                       -- TODO: otherwise is most probably unnecesary because
                                                                       -- the compiler will warn us about unhandled patterns.
                                                                       -- otherwise -> trace ("unknown value " ++ (show declValue)) (undefined)
@@ -585,11 +579,11 @@ getBorderWidth field parentStyleAttrs declValue display fontAttrs = case declVal
 
 
 
--- TODO: re-think value returned by styleEngineComputeAbsoluteLengthValue: it
+-- TODO: re-think value returned by computeAbsoluteLengthValue: it
 -- most probably should be Int, not Float. Then the Float->int conversion
 -- won't be necessary.
 styleEngineComputeBorderWidth :: CssDistance -> Display -> FontAttrs -> Maybe Int
-styleEngineComputeBorderWidth distance display fontAttrs = roundInt <$> styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display
+styleEngineComputeBorderWidth distance display fontAttrs = roundInt <$> computeAbsoluteLengthValue distance fontAttrs 0 display
 
 
 
@@ -673,12 +667,9 @@ updateStyleMargin (CssValueMargin t r b l) style fontAttrs display =
         }
   where
     -- TODO: the calculate function is duplicated in getMargin. Remove duplication.
-    calculate (CssValueMarginXDistance dist) =
-      case styleEngineComputeAbsoluteLengthValue dist fontAttrs 0 display of
-        -- TODO: another place where Maybe returned by Compute function
-        -- causes unnecessary trouble.
-        Just x  -> roundInt x
-        Nothing -> 0
+    -- TODO: another place where Maybe returned by Compute function
+    -- causes unnecessary trouble.
+    calculate (CssValueMarginXDistance dist) = maybe 0 roundInt (computeAbsoluteLengthValue dist fontAttrs 0 display)
     clip x = if x > 0 then x else 0   -- TODO: fix negative margins in dw/*
 
 
@@ -687,11 +678,9 @@ updateStyleMargin (CssValueMargin t r b l) style fontAttrs display =
 getMargin :: CssValueMarginX -> FontAttrs -> Display -> Int
 getMargin (CssValueMarginXDistance distance) fontAttrs display = clip . calculate $ distance
   where
-    calculate dist = case styleEngineComputeAbsoluteLengthValue dist fontAttrs 0 display of
-                       -- TODO: another place where Maybe returned by Compute function
-                       -- causes unnecessary trouble.
-                       Just x  -> roundInt x
-                       Nothing -> 0
+    -- TODO: another place where Maybe returned by Compute function
+    -- causes unnecessary trouble.
+    calculate dist = maybe 0 roundInt (computeAbsoluteLengthValue dist fontAttrs 0 display)
     clip x = if x > 0 then x else 0   -- TODO: fix negative margins in dw/*
 
 
@@ -699,11 +688,9 @@ getMargin (CssValueMarginXDistance distance) fontAttrs display = clip . calculat
 
 getPadding :: CssValuePaddingX -> FontAttrs -> Display -> Int
 getPadding (CssValuePaddingX distance) fontAttrs display =
-  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
-    -- TODO: another place where Maybe returned by Compute function
-    -- causes unnecessary trouble.
-    Just x  -> roundInt x
-    Nothing -> 0
+  -- TODO: another place where Maybe returned by Compute function
+  -- causes unnecessary trouble.
+  maybe 0 roundInt (computeAbsoluteLengthValue distance fontAttrs 0 display)
 
 
 
@@ -778,7 +765,7 @@ getLineHeight :: CssValueLineHeight -> FontAttrs -> Display -> DwLength
 getLineHeight CssValueLineHeightNormal                        _         _       = createAutoDwLength
 getLineHeight (CssValueLineHeightDistance (CssNumericNone f)) _         _       = createPercentageDwLength . realToFrac $ f
 getLineHeight (CssValueLineHeightDistance distance)           fontAttrs display =
-  case styleEngineComputeAbsoluteLengthValue distance fontAttrs referenceValue display of
+  case computeAbsoluteLengthValue distance fontAttrs referenceValue display of
     Just len -> createAbsoluteDwLength . roundInt $ len
     Nothing  -> createAutoDwLength -- TODO: is it the best choice?
   where
@@ -849,9 +836,9 @@ getCursor declValue = fromEnum declValue
 -- ignored.
 getBorderSpacing :: CssValueBorderSpacing -> FontAttrs -> Display -> Int
 getBorderSpacing (CssValueBorderSpacingDistance distance) fontAttrs display =
-  case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 display of
-    Just val -> round val -- TODO: a type of Float -> Int function to be verified here
-    Nothing  -> 0         -- TODO: is it a good default?
+  maybe 0 round (computeAbsoluteLengthValue distance fontAttrs 0 display)
+  -- TODO: a type of Float -> Int function to be verified here; is 'round' a good choice here?
+  -- TODO: is zero a good default?
 
 
 
@@ -868,9 +855,9 @@ getWordSpacig declValue fontAttrsArg display = clipSpacing (getSpacing declValue
     getSpacing :: CssValueWordSpacing -> FontAttrs -> Display -> Int
     getSpacing CssValueWordSpacingNormal              _         _    = 0
     getSpacing (CssValueWordSpacingDistance distance) fontAttrs disp =
-      case styleEngineComputeAbsoluteLengthValue distance fontAttrs 0 disp of
-        Just val -> round val -- TODO: a type of Float -> Int function to be verified here
-        Nothing  -> 0         -- TODO: is it a good default?
+      maybe 0 round (computeAbsoluteLengthValue distance fontAttrs 0 disp)
+      -- TODO: a type of Float -> Int function to be verified here; is "round" the best choice here?
+      -- TODO: is zero a good default?
 
     -- Limit to reasonable values to avoid overflows
     clipSpacing :: Int -> Int

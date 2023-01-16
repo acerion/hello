@@ -440,7 +440,7 @@ hll_styleEngineComputeAbsoluteLengthValue lengthValue cLengthType ptrStructFontA
   let percentageBase = fromIntegral cPercentageBase
   let distance       = cssLengthToDistance lengthValue lengthType
 
-  case styleEngineComputeAbsoluteLengthValue distance fontAttrs percentageBase dpiX dpiY of
+  case computeAbsoluteLengthValue distance fontAttrs percentageBase dpiX dpiY of
     Just val -> do
       let out = round val -- TODO: a type of Float -> Int function to be verified here
       poke ptrOut (fromIntegral out)
