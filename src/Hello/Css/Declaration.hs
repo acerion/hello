@@ -438,14 +438,14 @@ ctorCssPropertyBackground pat = (fmap . fmap) CssPropertyBackground (combinatorO
     fs = [fnColor, fnImage, fnPosition, fnRepeatStyle, fnAttachment]
 
     fnColor :: (CssParser, CssToken) -> CssValueBackground -> Maybe ((CssParser, CssToken), CssValueBackground)
-    fnColor pat' acc       = (fmap . fmap) (\ x -> acc { backgroundColor = x }) $ ctorValueBackgroundColor pat'
-    fnImage pat' acc       = (fmap . fmap) (\ x -> acc { backgroundImage = x }) $ ctorValueBackgroundImage pat'
-    fnPosition pat' acc    = (fmap . fmap) (\ x -> acc { backgroundPosition = x }) $ ctorValueBackgroundPosition pat'
-    fnRepeatStyle pat' acc = (fmap . fmap) (\ x -> acc { backgroundRepeatStyle = x }) $ ctorValueBackgroundStyle pat'
-    fnAttachment pat' acc  = (fmap . fmap) (\ x -> acc { backgroundAttachment = x }) $ ctorValueBackgroundAttachment pat'
+    fnColor pat' acc       = fmap (\ x -> acc { backgroundColor = x }) <$> ctorValueBackgroundColor pat'
+    fnImage pat' acc       = fmap (\ x -> acc { backgroundImage = x }) <$> ctorValueBackgroundImage pat'
+    fnPosition pat' acc    = fmap (\ x -> acc { backgroundPosition = x }) <$> ctorValueBackgroundPosition pat'
+    fnRepeatStyle pat' acc = fmap (\ x -> acc { backgroundRepeatStyle = x }) <$> ctorValueBackgroundStyle pat'
+    fnAttachment pat' acc  = fmap (\ x -> acc { backgroundAttachment = x }) <$> ctorValueBackgroundAttachment pat'
 {-
-    fnOrigin pat' acc      = (fmap . fmap) (\ x -> acc { backgroundOrigin = x }) $ ctorValueBackgroundOrigin pat'
-    fnClip pat' acc        = (fmap . fmap) (\ x -> acc { backgroundClip = x }) $ ctorValueBackgroundClip pat'
+    fnOrigin pat' acc      = fmap (\ x -> acc { backgroundOrigin = x }) <$> ctorValueBackgroundOrigin pat'
+    fnClip pat' acc        = fmap (\ x -> acc { backgroundClip = x }) <$> ctorValueBackgroundClip pat'
 -}
 
 
@@ -910,18 +910,18 @@ makeCssPropertyBorderTop pat = (fmap . fmap) CssPropertyBorderTop (combinatorOne
 
 
 parseBorderWidthValue :: (CssParser, CssToken) -> CssValueBorderTRBL -> Maybe ((CssParser, CssToken), CssValueBorderTRBL)
-parseBorderWidthValue pat acc = (fmap . fmap) (\ x -> acc { borderTRBLWidth = x }) $ parseTokensAsBorderWidthValue pat
+parseBorderWidthValue pat acc = fmap (\ x -> acc { borderTRBLWidth = x }) <$> parseTokensAsBorderWidthValue pat
 
 
 
 
 parseBorderStyleValue :: (CssParser, CssToken) -> CssValueBorderTRBL -> Maybe ((CssParser, CssToken), CssValueBorderTRBL)
-parseBorderStyleValue pat acc = (fmap . fmap) (\ x -> acc { borderTRBLStyle = x }) $ parseTokensAsBorderStyleValue pat
+parseBorderStyleValue pat acc = fmap (\ x -> acc { borderTRBLStyle = x }) <$> parseTokensAsBorderStyleValue pat
 
 
 
 parseBorderColorValue :: (CssParser, CssToken) -> CssValueBorderTRBL -> Maybe ((CssParser, CssToken), CssValueBorderTRBL)
-parseBorderColorValue pat acc = (fmap . fmap) (\ x -> acc { borderTRBLColor = x }) $ parseTokensAsBorderColorValue pat
+parseBorderColorValue pat acc = fmap (\ x -> acc { borderTRBLColor = x }) <$> parseTokensAsBorderColorValue pat
 
 
 
@@ -1948,9 +1948,9 @@ ctorCssPropertyListStyle pat = (fmap . fmap) CssPropertyListStyle (combinatorOne
     fs = [fnType, fnPosition, fnImage]
 
     fnType :: (CssParser, CssToken) -> CssValueListStyle -> Maybe ((CssParser, CssToken), CssValueListStyle)
-    fnType pat' acc     = (fmap . fmap) (\ x -> acc { listStyleType = x }) $ ctorValueListStyleType pat'
-    fnPosition pat' acc = (fmap . fmap) (\ x -> acc { listStylePosition = x }) $ ctorValueListStylePosition pat'
-    fnImage pat' acc    = (fmap . fmap) (\ x -> acc { listStyleImage = x }) $ ctorValueListStyleImage pat'
+    fnType pat' acc     = fmap (\ x -> acc { listStyleType = x }) <$> ctorValueListStyleType pat'
+    fnPosition pat' acc = fmap (\ x -> acc { listStylePosition = x }) <$> ctorValueListStylePosition pat'
+    fnImage pat' acc    = fmap (\ x -> acc { listStyleImage = x }) <$> ctorValueListStyleImage pat'
 
 
 

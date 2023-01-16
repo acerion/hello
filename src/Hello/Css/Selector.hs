@@ -89,7 +89,7 @@ import Hello.Chain
   TODO: make it a constant imported from other (Html?) module
 -}
 styleSheetElementCount :: Int
-styleSheetElementCount = (90 + 14)
+styleSheetElementCount = 90 + 14
 
 
 
