@@ -64,6 +64,7 @@ where
 import Data.Bits
 import Data.List as L
 import Data.Map as M
+import Data.Maybe
 import Data.Text as T
 
 import Hello.Colors
@@ -417,10 +418,11 @@ takeBgTokens (parser, token) = ((outParser, outToken), outTokens)
 
     -- Change CssTokIdent tokens for top/left/center etc. into <percentage-token>s.
     -- TODO: this function doesn't handle "initial" and "inherit" - what do we do with them?
+    --
+    -- TODO: map lookup will return Nothing for "initial" and "inherit"
+    -- tokens, which aren't really handled here.
     remapToken :: CssToken -> CssToken
-    remapToken tok@(CssTokIdent sym) = case M.lookup sym posMap of
-                                         Just percToken -> percToken
-                                         Nothing        -> tok -- TODO: this will happen for "initial" and "inherit" tokens, which aren't really handled here.
+    remapToken tok@(CssTokIdent sym) = fromMaybe tok (M.lookup sym posMap)
       where posMap = M.fromList [ ("left",   CssTokPerc $ CssNumI 0)
                                 , ("right",  CssTokPerc $ CssNumI 100)
                                 , ("top",    CssTokPerc $ CssNumI 0)

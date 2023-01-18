@@ -162,10 +162,7 @@ htmlEntityToIsoCode text =
     Just p1 ->
       case takeBody p1 (remainder p1) of
         Nothing -> Nothing
-        Just p2 ->
-          case takeSemicolon p2 (remainder p2) of
-            Nothing -> Nothing
-            Just p3 -> Just p3
+        Just p2 -> takeSemicolon p2 (remainder p2)
 
 
 

@@ -218,9 +218,7 @@ TODO: handling of escaped delimiter inside of attribute value
 htmlAttributeGetValue :: T.Text -> T.Text -> Maybe T.Text
 htmlAttributeGetValue text needle = case htmlTagParseWholeTag text of
                                       Nothing     -> Nothing
-                                      Just parser -> case M.lookup needle (attributes parser) of
-                                                       Nothing  -> Nothing
-                                                       Just txt -> Just txt
+                                      Just parser -> M.lookup needle (attributes parser)
 
 
 
@@ -240,9 +238,7 @@ htmlTagParseWholeTag text =
 
 
 takeAllAttrNamesAndValues :: TagParser -> TagParser
-takeAllAttrNamesAndValues parser = case takeAttrNameAndValue parser of
-                                     Just parser' -> takeAllAttrNamesAndValues parser'
-                                     Nothing      -> parser
+takeAllAttrNamesAndValues parser = maybe parser takeAllAttrNamesAndValues (takeAttrNameAndValue parser)
 
 
 
