@@ -74,10 +74,9 @@ testFunction (x:xs) = if not (success result (expectedResult x))
     -- function returned Nothing, so everything went according to
     -- expecations.
     success Nothing Nothing = True
-    success (Just (pat1, val1)) (Just (pat2, val2)) = and [ (remainder . fst $ pat1) == (remainder . fst $ pat2) -- Parsers
-                                                          , snd pat1 == snd pat2                                 -- Tokens
-                                                          , val1 == val2                                         -- Parsed values
-                                                          ]
+    success (Just (pat1, val1)) (Just (pat2, val2)) = (remainder . fst $ pat1) == (remainder . fst $ pat2) -- Parsers
+                                                      && snd pat1 == snd pat2                              -- Tokens
+                                                      && val1 == val2                                      -- Parsed values
     success _ _             = False
 
 

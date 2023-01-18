@@ -439,13 +439,13 @@ takeBgTokens' :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), 
 takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
   where
-    ((outParser, outToken), outTokens) = if doContinue tokens token
-                                         then case token of
-                                                CssTokNone -> takeBgTokens' (nextToken parser) tokens -- Take the token, but don't append it to result
-                                                _          -> takeBgTokens' (nextToken parser) (tokens ++ [token])
-                                         else if tokensValid tokens
-                                              then ((parser, token), tokens)
-                                              else ((parser, token), [])
+    ((outParser, outToken), outTokens) | doContinue tokens token =
+                                           case token of
+                                             CssTokNone -> takeBgTokens' (nextToken parser) tokens -- Take the token, but don't append it to result
+                                             _          -> takeBgTokens' (nextToken parser) (tokens ++ [token])
+                                       | otherwise = if tokensValid tokens
+                                                     then ((parser, token), tokens)
+                                                     else ((parser, token), [])
 
 
 

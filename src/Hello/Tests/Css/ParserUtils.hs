@@ -61,37 +61,37 @@ buildSuccessOut :: [v -> a]                      -- ^ Converter between raw valu
                 -> Maybe CssDeclaration
 -}
 buildSuccessOut :: [a -> CssDistance] -> [a] -> Maybe CssDeclaration
-buildSuccessOut (ct:cr:cb:cl:[]) (vt:vr:vb:vl:[]) = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
-                                                                                                          (CssValueMarginXDistance . ct $ vt)
-                                                                                                          (CssValueMarginXDistance . cr $ vr)
-                                                                                                          (CssValueMarginXDistance . cb $ vb)
-                                                                                                          (CssValueMarginXDistance . cl $ vl)
-                                                                                                         )
-                                                                          , important = False }
+buildSuccessOut [ct, cr, cb, cl] [vt, vr, vb, vl] = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
+                                                                                                         (CssValueMarginXDistance . ct $ vt)
+                                                                                                         (CssValueMarginXDistance . cr $ vr)
+                                                                                                         (CssValueMarginXDistance . cb $ vb)
+                                                                                                         (CssValueMarginXDistance . cl $ vl)
+                                                                                                       )
+                                                                        , important = False }
 
-buildSuccessOut (ct:clr:cb:[])   (vt:vlr:vb:[])   = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
-                                                                                                    (CssValueMarginXDistance . ct  $ vt)
-                                                                                                    (CssValueMarginXDistance . clr $ vlr)
-                                                                                                    (CssValueMarginXDistance . cb  $ vb)
-                                                                                                    (CssValueMarginXDistance . clr $ vlr)
-                                                                                                  )
-                                                                     , important = False }
+buildSuccessOut [ct, clr, cb]   [vt, vlr, vb]     = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
+                                                                                                        (CssValueMarginXDistance . ct  $ vt)
+                                                                                                        (CssValueMarginXDistance . clr $ vlr)
+                                                                                                        (CssValueMarginXDistance . cb  $ vb)
+                                                                                                        (CssValueMarginXDistance . clr $ vlr)
+                                                                                                       )
+                                                                        , important = False }
 
-buildSuccessOut (ctb:clr:[])     (vtb:vlr:[])     = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
-                                                                                                      (CssValueMarginXDistance . ctb $ vtb)
-                                                                                                      (CssValueMarginXDistance . clr $ vlr)
-                                                                                                      (CssValueMarginXDistance . ctb $ vtb)
-                                                                                                      (CssValueMarginXDistance . clr $ vlr)
-                                                                                                    )
-                                                                     , important = False }
+buildSuccessOut [ctb, clr]     [vtb, vlr]         = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
+                                                                                                        (CssValueMarginXDistance . ctb $ vtb)
+                                                                                                        (CssValueMarginXDistance . clr $ vlr)
+                                                                                                        (CssValueMarginXDistance . ctb $ vtb)
+                                                                                                        (CssValueMarginXDistance . clr $ vlr)
+                                                                                                       )
+                                                                        , important = False }
 
-buildSuccessOut (ctrlb:[])       (vtrbl:[])       = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
-                                                                                                      (CssValueMarginXDistance . ctrlb $ vtrbl)
-                                                                                                      (CssValueMarginXDistance . ctrlb $ vtrbl)
-                                                                                                      (CssValueMarginXDistance . ctrlb $ vtrbl)
-                                                                                                      (CssValueMarginXDistance . ctrlb $ vtrbl)
-                                                                                                    )
-                                                                     , important = False }
+buildSuccessOut [ctrlb]       [vtrbl]             = Just CssDeclaration { property = CssPropertyMargin (CssValueMargin
+                                                                                                        (CssValueMarginXDistance . ctrlb $ vtrbl)
+                                                                                                        (CssValueMarginXDistance . ctrlb $ vtrbl)
+                                                                                                        (CssValueMarginXDistance . ctrlb $ vtrbl)
+                                                                                                        (CssValueMarginXDistance . ctrlb $ vtrbl)
+                                                                                                       )
+                                                                        , important = False }
 
 
 
