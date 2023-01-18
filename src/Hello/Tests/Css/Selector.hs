@@ -48,7 +48,7 @@ parseComplexSelectorTestManualDataBasic = [
 
   -- Recognition of most basic case: just "id" selector.
   , ( "#some_id",       "",   Just CssCachedComplexSelector
-                              { matchCacheOffset = (-1)
+                              { matchCacheOffset = -1
                               , chain = Last CssCompoundSelector { selectorPseudoClass = []
                                                                  , selectorId = "some_id"
                                                                  , selectorClass = []
@@ -58,7 +58,7 @@ parseComplexSelectorTestManualDataBasic = [
 
   -- Recognition of most basic case: just "class" selector.
   , ( ".some_class",    "",   Just CssCachedComplexSelector
-                              { matchCacheOffset = (-1)
+                              { matchCacheOffset = -1
                               , chain = Last CssCompoundSelector { selectorPseudoClass = []
                                                                  , selectorId = ""
                                                                  , selectorClass = ["some_class"]
@@ -68,7 +68,7 @@ parseComplexSelectorTestManualDataBasic = [
 
   -- Recognition of most basic case: just "pseudo class" selector.
   , ( ":link",          "",   Just CssCachedComplexSelector
-                              { matchCacheOffset = (-1)
+                              { matchCacheOffset = -1
                               , chain = Last CssCompoundSelector { selectorPseudoClass = ["link"]
                                                                  , selectorId = ""
                                                                  , selectorClass = []
@@ -84,7 +84,7 @@ parseComplexSelectorTestManualDataBasic = [
 -- remainder string in a row, for which test failed.
 parseComplexSelectorTest :: [(T.Text, T.Text, Maybe CssCachedComplexSelector)] -> T.Text
 parseComplexSelectorTest []     = ""
-parseComplexSelectorTest (x:xs) = if expectedSelector /= cplxSel || remainderAfter /= (remainder p1)
+parseComplexSelectorTest (x:xs) = if expectedSelector /= cplxSel || remainderAfter /= remainder p1
                                   then remainderBefore
                                   else parseComplexSelectorTest xs
   where
@@ -178,7 +178,7 @@ linkAndChainTestData =
 linkAndChainTest :: [[CssComplexSelectorLink]] -> T.Text
 linkAndChainTest []     = ""
 linkAndChainTest (x:xs) = if linkIn x /= linkOut x
-                          then T.pack $ ("in = " ++ (show $ linkIn x) ++ ", chain = " ++ (show $ linksToChain x) ++ ", out = " ++ (show $ linkOut x))
+                          then T.pack ("in = " ++ show (linkIn x) ++ ", chain = " ++ show (linksToChain x) ++ ", out = " ++ show (linkOut x))
                           else linkAndChainTest xs
   where
     linkIn l  = l
@@ -204,8 +204,8 @@ selectorTestCases = [
 
 testsCssComplexSelector :: IO String
 testsCssComplexSelector = do
-  testCounts <- runTestTT (TestList (selectorTestCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList selectorTestCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] testsCssComplexSelector failed"
 

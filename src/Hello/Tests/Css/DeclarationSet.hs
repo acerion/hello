@@ -125,7 +125,7 @@ declarationsSetAppendData = [
 declarationsSetAppendTest :: [(CssDeclarationSet, CssDeclarationSet, CssDeclarationSet)] -> T.Text
 declarationsSetAppendTest []     = ""
 declarationsSetAppendTest (x:xs) = if expectedMerged /= merged
-                                   then (T.pack . show $ expectedMerged)
+                                   then T.pack . show $ expectedMerged
                                    else declarationsSetAppendTest xs
   where
     target         = triplet1st x
@@ -154,8 +154,8 @@ testCases = [
 
 testsCssDeclarationSet :: IO String
 testsCssDeclarationSet = do
-  testCounts <- runTestTT (TestList (testCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList testCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] Tests.Css.DeclarationSet failed"
 

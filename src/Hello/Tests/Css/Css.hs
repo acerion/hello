@@ -39,7 +39,7 @@ import Hello.Tests.Css.Match.Data
 -- selector, for which test failed.
 specificityTest :: [(Int, CssComplexSelector)] -> T.Text
 specificityTest []     = ""
-specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity complex)
+specificityTest (x:xs) = if expectedSpecificity /= selectorSpecificity complex
                          then T.pack . show $ complex
                          else specificityTest xs
   where
@@ -52,8 +52,8 @@ specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity complex)
 -- selector, for which test failed.
 matchTest :: [(CssCompoundSelectorMatch, CssCompoundSelector, DoctreeNode)] -> T.Text
 matchTest []     = ""
-matchTest (x:xs) = if expectedMatch x /= (compoundSelectorMatches' (cpdSel x) (dtn x))
-                         then T.pack ((show $ cpdSel x) ++ "    @@@@    " ++ (show $ dtn x))
+matchTest (x:xs) = if expectedMatch x /= compoundSelectorMatches' (cpdSel x) (dtn x)
+                         then T.pack (show (cpdSel x) ++ "    @@@@    " ++ show (dtn x))
                          else matchTest xs
   where
     expectedMatch (a, _, _) = a
@@ -80,8 +80,8 @@ cssTestCases = [
 
 testsCssCss :: IO String
 testsCssCss = do
-  testCounts <- runTestTT (TestList (cssTestCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList cssTestCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] testsCssCss failed"
 

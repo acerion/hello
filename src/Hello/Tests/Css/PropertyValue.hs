@@ -60,7 +60,7 @@ testFunction (x:xs) = if not (success result (expectedResult x))
                       then T.pack ("Got: " ++ show result ++ ", Expected: " ++ show (expectedResult x))
                       else testFunction xs
   where
-    result = (testedFunction x) (inputPat x)
+    result = testedFunction x (inputPat x)
 
     -- See if test succeeded, i.e. if first argument (actual result of
     -- running a tested function) is equal to second argument (expected
@@ -679,8 +679,8 @@ testCases =
 
 testsCssPropertyValue :: IO String
 testsCssPropertyValue = do
-  testCounts <- runTestTT (TestList (testCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList testCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] Hello.Tests.Css.PropertyValue failed"
 

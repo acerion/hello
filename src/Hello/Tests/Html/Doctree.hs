@@ -952,8 +952,8 @@ testCases = [
 
 testsHtmlDoctree :: IO String
 testsHtmlDoctree = do
-  testCounts <- runTestTT (TestList (testCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList testCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] Hello.Tests.Html.Doctree failed"
 

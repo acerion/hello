@@ -80,7 +80,7 @@ defaultDoctree = Doctree {
 
 
 getDtnUnsafe :: Doctree -> Int -> DoctreeNode
-getDtnUnsafe tree dtnNum = (nodes tree) M.! dtnNum
+getDtnUnsafe tree dtnNum = nodes tree M.! dtnNum
 
 
 getDtnParent :: Doctree -> DoctreeNode -> Maybe DoctreeNode
@@ -118,7 +118,7 @@ doctreePushNode doctree elementIdx = insertNode (updateParent doctree (uniqueNum
     pushingFirstNode = topNodeNum doctree == (-1)
     parentNum  = topNodeNum doctree
     rootParent = root doctree
-    someParent = (nodes doctree) M.! parentNum
+    someParent = nodes doctree M.! parentNum
 
     makeNewDtn parent elemIdx num = defaultDoctreeNode { uniqueNum      = num
                                                        , htmlElementIdx = elemIdx
@@ -153,12 +153,12 @@ doctreePushNode doctree elementIdx = insertNode (updateParent doctree (uniqueNum
 
 doctreePopNode :: Doctree -> Doctree
 doctreePopNode doctree = if uniqueNum dtn == 0 -- We are popping the element of html document that was added to the tree as the first one. What should now remain on top of the doctree is a tree's root element.
-                         then doctree { topNodeNum = (-1) }
+                         then doctree { topNodeNum = -1 }
                          else doctree { topNodeNum = dtnParentNum dtn }
 
   where
     -- c_doctree_node_t * dtn = doctree->c_nodes_array[doctree->c_top_node_num];
-    dtn = (nodes doctree) M.! (topNodeNum doctree)
+    dtn = nodes doctree M.! topNodeNum doctree
 
 {-
    if (0 == dtn->c_unique_num) {
@@ -178,7 +178,7 @@ doctreePopNode doctree = if uniqueNum dtn == 0 -- We are popping the element of 
 adjustTopNode :: Doctree -> (DoctreeNode -> DoctreeNode) -> Doctree
 adjustTopNode doctree f = doctree { nodes = M.adjust f (uniqueNum dtn) (nodes doctree)}
   where
-    dtn = (nodes doctree) M.! (topNodeNum doctree)
+    dtn = nodes doctree M.! topNodeNum doctree
 
 
 

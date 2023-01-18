@@ -156,7 +156,7 @@ testsGif = do
                   then ""
                   else "[EE] testsGif part 1 failed "
 
-  testCounts <- runTestTT (TestList (parseExtensionComment))
+  testCounts <- runTestTT (TestList parseExtensionComment)
   let failures2 = if errors testCounts + failures testCounts == 0
                   then ""
                   else "[EE] testsGif part 2 failed"

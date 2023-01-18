@@ -59,7 +59,7 @@ roundIntTestData =
 roundIntTest :: [(Float, Int)] -> T.Text
 roundIntTest []     = ""
 roundIntTest (x:xs) = if expected /= roundInt f
-                      then T.pack ((show f) ++ ": " ++ (show $ roundInt f) ++ " /= " ++ (show expected))
+                      then T.pack (show f ++ ": " ++ show (roundInt f) ++ " /= " ++ show expected)
                       else roundIntTest xs
   where
     f        = fst x
@@ -81,8 +81,8 @@ testCases = [
 
 testsUtils :: IO String
 testsUtils = do
-  testCounts <- runTestTT (TestList (testCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList testCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] Hello.Tests.Utils failed"
 

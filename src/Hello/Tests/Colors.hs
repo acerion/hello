@@ -357,14 +357,14 @@ visitedColorTestData =
 -- cs test data
 distanceXTest :: (Int -> Int -> Int) -> Int -> [[Int]] -> String
 distanceXTest _       _ []                 = ""
-distanceXTest distFun expectedIndex (c:cs) = if expected /= (distFun c1 c2)
+distanceXTest distFun expectedIndex (c:cs) = if expected /= distFun c1 c2
                                              then c1Str
                                              else distanceXTest distFun expectedIndex cs
   where
-    c1       = (c !! 0)
-    c2       = (c !! 1)
-    expected = (c !! expectedIndex)
-    c1Str    = (showHex c1 "")
+    c1       = c !! 0
+    c2       = c !! 1
+    expected = c !! expectedIndex
+    c1Str    = showHex c1 ""
 
 
 
@@ -376,16 +376,16 @@ distanceXTest distFun expectedIndex (c:cs) = if expected /= (distFun c1 c2)
 -- for which test failed.
 visitedColorTest :: [[Int]] -> String
 visitedColorTest []     = ""
-visitedColorTest (c:cs) = if expected /= (colorsVisitedColor candidate txt lnk bg)
+visitedColorTest (c:cs) = if expected /= colorsVisitedColor candidate txt lnk bg
                           then candidateStr
                           else visitedColorTest cs
   where
-    candidate    = (c !! 0)
-    txt          = (c !! 1)
-    lnk          = (c !! 2)
-    bg           = (c !! 3)
-    expected     = (c !! 4)
-    candidateStr = (showHex candidate "")
+    candidate    = c !! 0
+    txt          = c !! 1
+    lnk          = c !! 2
+    bg           = c !! 3
+    expected     = c !! 4
+    candidateStr = showHex candidate ""
 
 
 
@@ -502,8 +502,8 @@ colorsTestCases = [
 
 testsColors :: IO String
 testsColors = do
-  testCounts <- runTestTT (TestList (colorsTestCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList colorsTestCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] testsColors failed"
 

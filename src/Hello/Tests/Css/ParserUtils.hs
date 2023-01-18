@@ -44,8 +44,8 @@ import Hello.Css.Distance
 -- TODO: randomize count of spaces in the result string: spaces around colon
 -- and between distances.
 buildValidInput :: String -> [Float] -> [String] -> T.Text
-buildValidInput propName values units = T.pack $ propName ++ ": " ++ (L.intercalate " " (zipWith f values units))
-  where f value unit = (show value) ++ unit
+buildValidInput propName values units = T.pack $ propName ++ ": " ++ L.intercalate " " (zipWith f values units)
+  where f value unit = show value ++ unit
 
 
 
@@ -116,14 +116,14 @@ buildSuccessRow name units values = (input, output)
 
 
 
-makeDistanceCtorsList :: [String] -> [(Float -> CssDistance)]
+makeDistanceCtorsList :: [String] -> [Float -> CssDistance]
 makeDistanceCtorsList unitStrings = fmap f unitStrings
   where
     f u | u == "px" = CssDistanceAbsPx
         | u == "mm" = CssDistanceAbsMm
         | u == "em" = CssDistanceRelEm
         | u == "ex" = CssDistanceRelEx
-        | otherwise = error ("[EE] unhandled unit " ++ (show u))
+        | otherwise = error ("[EE] unhandled unit " ++ show u)
 
 
 

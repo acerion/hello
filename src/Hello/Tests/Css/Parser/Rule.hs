@@ -497,8 +497,8 @@ testCases = [
 
 testsCssParserRule :: IO String
 testsCssParserRule = do
-  testCounts <- runTestTT (TestList (testCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList testCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] Hello.Tests.Css.Parser.Rule failed"
 

@@ -140,12 +140,12 @@ validEntityTest :: [(T.Text, Maybe Int, T.Text)] -> T.Text
 validEntityTest []     = ""
 validEntityTest (x:xs) = if isMatch x (htmlEntityToIsoCode . inName $ x)
                          then validEntityTest xs
-                         else (inName x)
+                         else inName x
   where
     isMatch :: (T.Text, Maybe Int, T.Text) -> Maybe EntityParser -> Bool
     isMatch a parser = case parser of
                          Just parser' -> inCode a == entityIsoCode parser'
-                                         && (inRemainder a) == remainder parser'
+                                         && inRemainder a == remainder parser'
                          Nothing      -> False
 
     inName      = triplet1st
@@ -168,8 +168,8 @@ testCases = [
 
 testsHtmlEntity :: IO String
 testsHtmlEntity = do
-  testCounts <- runTestTT (TestList (testCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList testCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] Tests.Html.Entity failed"
 

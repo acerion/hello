@@ -63,8 +63,8 @@ data DoctreeNode = DoctreeNode {
 
 defaultDoctreeNode :: DoctreeNode
 defaultDoctreeNode = DoctreeNode
-  { uniqueNum = (-1)
-  , htmlElementIdx = (-1)
+  { uniqueNum      = -1
+  , htmlElementIdx = -1
 
   , selPseudoClass = ""
   , selId = ""

@@ -83,10 +83,10 @@ numericTokenTestManualData = [
   , ( "-.721e+11{",            CssTokNum $ CssNumF (-0.721e+11),     "{" ) -- With few more digits
   , ( "-.734E+13{",            CssTokNum $ CssNumF (-0.734e+13),     "{" ) -- With few more digits
   , ( "+.4e+4,",               CssTokNum $ CssNumF 0.4e+4,           "," )
-  , ( "1.2e-3}",               CssTokNum $ CssNumF (1.2e-3),         "}" )
-  , ( "+1.2e-3}",              CssTokNum $ CssNumF (1.2e-3),         "}" )
+  , ( "1.2e-3}",               CssTokNum $ CssNumF 1.2e-3,           "}" )
+  , ( "+1.2e-3}",              CssTokNum $ CssNumF 1.2e-3,           "}" )
   , ( "-1.2e-3}",              CssTokNum $ CssNumF (-1.2e-3),        "}" )
-  , ( "+12.21e-4}",            CssTokNum $ CssNumF (12.21e-4),       "}" ) -- With few more digits
+  , ( "+12.21e-4}",            CssTokNum $ CssNumF 12.21e-4,         "}" ) -- With few more digits
   , ( "-97.54e-2}",            CssTokNum $ CssNumF (-97.54e-2),      "}" ) -- With few more digits
 
 
@@ -328,7 +328,7 @@ functionUrlTokenTestManualData = [
 -- testcase that failed.
 tokenizerTestRunner :: Bool -> [(T.Text, CssToken, T.Text)] -> T.Text
 tokenizerTestRunner _ []       = ""
-tokenizerTestRunner inB (x:xs) = if expectedToken /= t2 || expectedRemainder /= (remainder p2)
+tokenizerTestRunner inB (x:xs) = if expectedToken /= t2 || expectedRemainder /= remainder p2
                                  then T.pack . showFailedCase $ x
                                  else tokenizerTestRunner inB xs
   where
@@ -339,11 +339,11 @@ tokenizerTestRunner inB (x:xs) = if expectedToken /= t2 || expectedRemainder /= 
                         then nextToken . defaultParserInBlock $ initialRemainder
                         else nextToken . defaultParser $ initialRemainder
 
-    showFailedCase _ =    "Initial remainder = "  ++ (show initialRemainder) ++ "; "
-                       ++ "Expected remainder = " ++ (show expectedRemainder) ++ "; "
-                       ++ "Expected token = "     ++ (show expectedToken) ++ "; "
-                       ++ "Output remainder = "   ++ (show . remainder $ p2) ++ "; "
-                       ++ "Output token = "       ++ (show t2)
+    showFailedCase _ =    "Initial remainder = "  ++ show initialRemainder ++ "; "
+                       ++ "Expected remainder = " ++ show expectedRemainder ++ "; "
+                       ++ "Expected token = "     ++ show expectedToken ++ "; "
+                       ++ "Output remainder = "   ++ show (remainder p2) ++ "; "
+                       ++ "Output token = "       ++ show t2
 
 
 
@@ -393,8 +393,8 @@ tokenizerTestCases = [
 
 testsCssTokenizer :: IO String
 testsCssTokenizer = do
-  testCounts <- runTestTT (TestList (tokenizerTestCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList tokenizerTestCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] testsCssTokenizer failed"
 

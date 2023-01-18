@@ -98,7 +98,7 @@ combinatorTestFunction combinator (x:xs) = if not success
                                            then T.pack ("Got: " ++ show output ++ ", Expected: " ++ (show . expectedOutput $ x) ++ "; input = " ++ (show . input $ x))
                                            else combinatorTestFunction combinator xs
   where
-    success = output == (expectedOutput x)
+    success = output == expectedOutput x
     output = combinator (parsers x) (input x)
 
 
@@ -112,7 +112,7 @@ multiplierTestFunction multiplier (x:xs) = if not success
                                            then T.pack ("Got: " ++ show output ++ ", Expected: " ++ (show . expectedOutput2 $ x) ++ "; input = " ++ (show . input2 $ x))
                                            else multiplierTestFunction multiplier xs
   where
-    success = output == (expectedOutput2 x)
+    success = output == expectedOutput2 x
     output = multiplier (childItems2 x) (input2 x)
 
 
@@ -551,8 +551,8 @@ testCases =
 
 testsCssParserCombinators :: IO String
 testsCssParserCombinators = do
-  testCounts <- runTestTT (TestList (testCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList testCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] Hello.Tests.Css.Parser.Combinators failed"
 

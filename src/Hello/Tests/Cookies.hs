@@ -82,35 +82,35 @@ sortRulesCases = [
 
   -- Empty list of rules.
   TestCase(assertEqual "sort empty"
-           (          [])
+                      []
            (sortRules [])
           )
 
   -- Single rule.
   , TestCase(assertEqual "sort single rule"
-             (          [ Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
+                        [ Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }]
              (sortRules [ Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
             )
 
   -- Two sorted rules.
   , TestCase(assertEqual "two sorted rules"
-             (          [ Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny },
-                          Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
+                        [ Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny },
+                          Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }]
              (sortRules [ Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny },
                           Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
             )
 
   , TestCase(assertEqual "two unsorted rules"
-             (          [ Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny },
-                          Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
+                        [ Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny },
+                          Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }]
              (sortRules [ Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny },
                           Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny }])
             )
 
   , TestCase(assertEqual "three rules"
-             (          [ Cookies.CookieRule { domain = "aaaaaaaaa.com", action = CookieActionDeny },
+                        [ Cookies.CookieRule { domain = "aaaaaaaaa.com", action = CookieActionDeny },
                           Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny },
-                          Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }])
+                          Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny }]
              (sortRules [ Cookies.CookieRule { domain = "aaa.com", action = CookieActionDeny },
                           Cookies.CookieRule { domain = "aaaaaaaaa.com", action = CookieActionDeny },
                           Cookies.CookieRule { domain = "aaaaaa.com", action = CookieActionDeny }])
@@ -143,6 +143,6 @@ matchDomainCases = [
 testsCookies :: IO String
 testsCookies = do
   testCounts <- runTestTT (TestList (lineToRuleCases ++ sortRulesCases ++ matchDomainCases))
-  if (errors testCounts + failures testCounts == 0)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] Tests.Cookies failed"

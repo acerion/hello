@@ -35,8 +35,8 @@ testCases =
 
 testsCssParser :: IO String
 testsCssParser = do
-  testCounts <- runTestTT (TestList (testCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList testCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] Tests.Css.Parser failed"
 

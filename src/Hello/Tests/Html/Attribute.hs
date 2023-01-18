@@ -55,7 +55,7 @@ lengthTest :: [(T.Text, Maybe (Float, Int))] -> T.Text
 lengthTest []     = ""
 lengthTest (x:xs) = if len x == parseLengthOrMultiLength (inAttribute x)
                     then lengthTest xs
-                    else (inAttribute x)
+                    else inAttribute x
   where
     inAttribute = fst
     len         = snd
@@ -104,7 +104,7 @@ nameOrIdValuesTest :: [(HtmlDoctype, T.Text, T.Text, Bool)] -> T.Text
 nameOrIdValuesTest []     = ""
 nameOrIdValuesTest (x:xs) = if expected x == validateNameOrIdValue (doctype x) (attrName x) (attrValue x)
                             then nameOrIdValuesTest xs
-                            else (attrName x)
+                            else attrName x
   where
     doctype   (a, _, _, _) = a
     attrName  (_, b, _, _) = b
@@ -130,8 +130,8 @@ testCases = [
 
 testsHtmlAttribute :: IO String
 testsHtmlAttribute = do
-  testCounts <- runTestTT (TestList (testCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList testCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] Hello.Tests.Html.Attribute failed"
 

@@ -71,7 +71,7 @@ sanitizationTest :: [(T.Text, T.Text)] -> T.Text
 sanitizationTest []     = ""
 sanitizationTest (x:xs) = if expected x == sanitizeDoctypeString (toSanitize x)
                           then sanitizationTest xs
-                          else (toSanitize x)
+                          else toSanitize x
   where
     toSanitize = fst
     expected   = snd
@@ -146,8 +146,8 @@ testCases = [
 
 testsHtmlDoctype :: IO String
 testsHtmlDoctype = do
-  testCounts <- runTestTT (TestList (testCases))
-  if (errors testCounts + failures testCounts == 0)
+  testCounts <- runTestTT (TestList testCases)
+  if errors testCounts + failures testCounts == 0
     then return ""
     else return "[EE] Hello.Tests.Html.Doctype failed"
 

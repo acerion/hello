@@ -71,7 +71,7 @@ instance QC.Arbitrary ValuesAndUnitsNN where
 getValueNN :: QC.Gen Float
 getValueNN = do
   value <- QC.choose (0, 20000) :: QC.Gen Int
-  let x = (fromIntegral value) / 50 :: Float
+  let x = fromIntegral value / 50 :: Float
   return x
 
 
@@ -94,7 +94,7 @@ getValueNN = do
 getUnit :: QC.Gen String
 getUnit = do
   let units :: [String] = ["mm", "px", "em", "ex"]
-  idx <- QC.choose (0, (L.length units) - 1) :: QC.Gen Int
+  idx <- QC.choose (0, L.length units - 1) :: QC.Gen Int
   let unit = units !! idx
   return unit
 
@@ -119,7 +119,7 @@ parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected
 
     -- For debugging only
     _traceData       = "generated values = " ++ show valuesWithUnits ++ ", expected declarations = " ++ show expected ++ ", parsed declarations = " ++ show outDeclarations
-    valuesWithUnits = zipWith (\value unit -> (show value) ++ unit) values units
+    valuesWithUnits = zipWith (\value unit -> show value ++ unit) values units
 
 
 
