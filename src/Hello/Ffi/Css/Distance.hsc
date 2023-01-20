@@ -28,6 +28,15 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 module Hello.Ffi.Css.Distance
   (
     FfiCssLength (..)
+
+  , cssLengthTypeNone
+  , cssLengthTypePX
+  , cssLengthTypeMM
+  , cssLengthTypeEM
+  , cssLengthTypeEX
+  , cssLengthTypePercentage
+  , cssLengthTypeRelative
+  , cssLengthTypeAuto
   )
 where
 
@@ -73,6 +82,26 @@ instance Storable FfiCssLength where
     a <- #{peek c_css_length_t, c_length_value} ptr
     b <- #{peek c_css_length_t, c_length_type}  ptr
     return (FfiCssLength a b)
+
+
+
+
+cssLengthTypeNone :: Int
+cssLengthTypeNone       = 0
+cssLengthTypePX :: Int
+cssLengthTypePX         = 1
+cssLengthTypeMM :: Int
+cssLengthTypeMM         = 2
+cssLengthTypeEM :: Int
+cssLengthTypeEM         = 3
+cssLengthTypeEX :: Int
+cssLengthTypeEX         = 4
+cssLengthTypePercentage :: Int
+cssLengthTypePercentage = 5
+cssLengthTypeRelative :: Int
+cssLengthTypeRelative   = 6
+cssLengthTypeAuto :: Int
+cssLengthTypeAuto       = 7
 
 
 

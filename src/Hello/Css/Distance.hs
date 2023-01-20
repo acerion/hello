@@ -37,16 +37,6 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 module Hello.Css.Distance
   (
     CssDistance (..)
-
-  , cssLengthTypeNone
-  , cssLengthTypePX
-  , cssLengthTypeMM
-  , cssLengthTypeEM
-  , cssLengthTypeEX
-  , cssLengthTypePercentage
-  , cssLengthTypeRelative
-  , cssLengthTypeAuto
-
   )
 where
 
@@ -82,42 +72,4 @@ data CssDistance =
 
 
 
-
-
-cssLengthTypeNone :: Int
-cssLengthTypeNone       = 0
-cssLengthTypePX :: Int
-cssLengthTypePX         = 1
-cssLengthTypeMM :: Int
-cssLengthTypeMM         = 2
-cssLengthTypeEM :: Int
-cssLengthTypeEM         = 3
-cssLengthTypeEX :: Int
-cssLengthTypeEX         = 4
-cssLengthTypePercentage :: Int
-cssLengthTypePercentage = 5
-cssLengthTypeRelative :: Int
-cssLengthTypeRelative   = 6
-cssLengthTypeAuto :: Int
-cssLengthTypeAuto       = 7
-
-
-
-
-
-
-
-
-{-
-distanceToCssLength :: CssDistance -> (Float, Int)
-distanceToCssLength distance = case distance of
-                                 CssDistanceRelEm x     -> (x, cssLengthTypeEM)
-                                 CssDistanceRelEx x     -> (x, cssLengthTypeEX)
-                                 CssDistanceAbsMm x     -> (x, cssLengthTypeMM)
-                                 CssDistanceAbsPx x     -> (x, cssLengthTypePX)
-                                 CssNumericPercentage x -> (x, cssLengthTypePercentage)
-                                 CssNumericNone     x   -> (x, cssLengthTypeNone)
-                                 CssNumericRelative x   -> (x, cssLengthTypeRelative)
-                                 CssDistanceAuto        -> (0.0, cssLengthTypeAuto)
--}
 

@@ -44,29 +44,18 @@ import qualified Data.ByteString.Unsafe as BSU
 import Debug.Trace
 import qualified Data.Text.Encoding as T.E
 
---import Hello.Css.ContextGlobal
 import Hello.Css.Declaration
 import Hello.Css.DeclarationSetsGlobal
 import Hello.Css.Distance
 import Hello.Css.Parser.Declaration
 import Hello.Css.StyleEngine
---import Hello.Css.UserAgentStyle
 
 import Hello.Display
-
---import Hello.Dw.DwLength
---import Hello.Dw.FontAttrs
 import Hello.Dw.Style
 
---import Hello.Ffi.Css.Context
---import Hello.Ffi.Css.Parser
-
---import Hello.Ffi.Dw.DwLength
---import Hello.Ffi.Dw.FontAttrs
+import Hello.Ffi.Css.Distance
 import Hello.Ffi.Dw.Style
-
 import Hello.Ffi.Preferences
---import Hello.Ffi.Utils
 
 
 

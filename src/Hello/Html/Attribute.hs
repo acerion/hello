@@ -31,7 +31,6 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 module Hello.Html.Attribute
   (
-  -- Only for tests
     parseLengthOrMultiLength
   , validateNameOrIdValue
   )
@@ -60,16 +59,19 @@ takeValue text = case T.R.double text of
 
 
 -- Parsing of values of "height" or "width" attributes in some of html tags.
-parseLengthOrMultiLength :: T.Text -> Maybe (Float, Int)
+--
+-- Reference: https://www.w3.org/TR/html4/types.html#h-6.6.
+-- In particular look at meaning of asterisk.
+parseLengthOrMultiLength :: T.Text -> Maybe CssDistance
 parseLengthOrMultiLength attribute =
   case takeValue attribute of
     Just (f, remainder) -> case T.uncons remainder of
                              -- The "px" suffix seems not allowed by HTML4.01 SPEC.
-                             Nothing       -> Just (realToFrac f, cssLengthTypePX) -- empty remainder: attribute string is just a number
-                             Just ('%', _) -> Just (realToFrac (f / 100), cssLengthTypePercentage) -- not sure why we divide by 100, but the dillo c++ code did this for percentage
-                             Just ('*', _) -> Just (0.0, cssLengthTypeAuto)
+                             Nothing       -> Just $ CssDistanceAbsPx (realToFrac f) -- empty remainder: attribute string is just a number
+                             Just ('%', _) -> Just $ CssNumericPercentage (realToFrac (f / 100)) -- not sure why we divide by 100, but the dillo c++ code did this for percentage
+                             Just ('*', _) -> Just CssDistanceAuto -- TODO: test this case.
                              Just (c, _)   -> if D.C.isSpace c
-                                              then Just (realToFrac f, cssLengthTypePX)
+                                              then Just $ CssDistanceAbsPx (realToFrac f)
                                               else Nothing -- Don't accept garbage attached to a number
     Nothing      -> Nothing
 

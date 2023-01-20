@@ -32,16 +32,16 @@ import Hello.Html.Doctype
 
 
 
-lengthData :: [(T.Text, Maybe (Float, Int))]
+lengthData :: [(T.Text, Maybe CssDistance)]
 lengthData =
   --  attribute token               resulting length
   [
-    ("100",                         Just (100.0, cssLengthTypePX))
-  , ("100.1",                       Just (100.1, cssLengthTypePX))
+    ("100",                         Just (CssDistanceAbsPx 100.0))
+  , ("100.1",                       Just (CssDistanceAbsPx 100.1))
 
   -- when lengths are in percentage, the main code divides percentage by 100
-  , ("100%",                        Just (1.0, cssLengthTypePercentage))
-  , ("100.1%",                      Just (1.001, cssLengthTypePercentage))
+  , ("100%",                        Just (CssNumericPercentage 1.0))
+  , ("100.1%",                      Just (CssNumericPercentage 1.001))
 
   , ("",                            Nothing)
   , ("bird",                        Nothing)
@@ -51,7 +51,7 @@ lengthData =
 
 
 
-lengthTest :: [(T.Text, Maybe (Float, Int))] -> T.Text
+lengthTest :: [(T.Text, Maybe CssDistance)] -> T.Text
 lengthTest []     = ""
 lengthTest (x:xs) = if len x == parseLengthOrMultiLength (inAttribute x)
                     then lengthTest xs

@@ -67,8 +67,10 @@ hll_htmlParseAttributeWidthOrHeight cAttrValue ptrStructCssLength = do
   attrValue <- BSU.unsafePackCString cAttrValue
 
   let (v', t') = case parseLengthOrMultiLength (T.E.decodeUtf8 attrValue) of
-                   Just (l, t) -> (l, t)
-                   Nothing     -> (0.0, cssLengthTypeAuto)
+                   Just (CssDistanceAbsPx val)     -> (val, cssLengthTypePX)
+                   Just (CssNumericPercentage val) -> (val, cssLengthTypePercentage)
+                   Just CssDistanceAuto            -> (0.0, cssLengthTypeAuto)
+                   _                               -> (0.0, cssLengthTypeAuto)
 
   poke ptrStructCssLength $ FfiCssLength v' (fromIntegral t')
 
