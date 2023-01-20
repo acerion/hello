@@ -45,13 +45,13 @@ import Hello.Cookies
 
 
 
-foreign export ccall "hll_lookupActionForDomain" hll_lookupActionForDomain :: CString -> IO Int
+foreign export ccall "ffiLookupActionForDomain" ffiLookupActionForDomain :: CString -> IO Int
 
 
 
 
-hll_lookupActionForDomain :: CString -> IO Int
-hll_lookupActionForDomain dom = do
+ffiLookupActionForDomain :: CString -> IO Int
+ffiLookupActionForDomain dom = do
   domainString <- T.pack <$> peekCString dom
   cookiesConfig <- getCookiesConfig
   -- putStr ("hello: cookies: " ++ (show cookiesConfig) ++ "\n") -- For debug only.

@@ -72,9 +72,9 @@ import Hello.Ffi.Utils
 
 
 
---foreign export ccall "hll_rulesMapGetList" hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
---foreign export ccall "hll_printCssDeclarationSet" hll_printCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO ()
---foreign export ccall "hll_printCssIndex" hll_printCssIndex :: Ptr CInt -> IO ()
+--foreign export ccall "ffiRulesMapGetList" ffiRulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
+--foreign export ccall "ffiPrintCssDeclarationSet" ffiPrintCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO ()
+--foreign export ccall "ffiPrintCssIndex" ffiPrintCssIndex :: Ptr CInt -> IO ()
 
 
 
@@ -352,8 +352,8 @@ pokeCssRulesMap ptrStructRulesMap map = do
 
 
 
-hll_rulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
-hll_rulesMapGetList ptrStructRulesMap cStringKey = do
+ffiRulesMapGetList :: Ptr FfiCssRulesMap -> CString -> IO (Ptr FfiCssRulesList)
+ffiRulesMapGetList ptrStructRulesMap cStringKey = do
   ffiRulesMap :: FfiCssRulesMap <- peek ptrStructRulesMap
   key :: T.Text                 <- ptrCCharToText cStringKey
 
@@ -381,8 +381,8 @@ findString array size string = do
 
 
 
-hll_printCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO ()
-hll_printCssDeclarationSet ptrStructCssDeclarationSet = do
+ffiPrintCssDeclarationSet :: Ptr FfiCssDeclarationSet -> IO ()
+ffiPrintCssDeclarationSet ptrStructCssDeclarationSet = do
   declSet:: CssDeclarationSet <- peekCssDeclarationSet ptrStructCssDeclarationSet
   putStrLn . show $ declSet
   return ()
@@ -390,8 +390,8 @@ hll_printCssDeclarationSet ptrStructCssDeclarationSet = do
 
 
 
-hll_printCssIndex :: Ptr CInt -> IO ()
-hll_printCssIndex cPtrIndexArray = do
+ffiPrintCssIndex :: Ptr CInt -> IO ()
+ffiPrintCssIndex cPtrIndexArray = do
     index <- fmap (map fromIntegral) (peekArray 32 cPtrIndexArray)
     let v = V.fromList index
     putStrLn . show $ v

@@ -37,11 +37,11 @@ import Hello.Url
 
 
 
-foreign export ccall "hll_hostIsIP" hll_hostIsIP :: CString -> IO Bool
+foreign export ccall "ffiHostIsIP" ffiHostIsIP :: CString -> IO Bool
 
 
 
-hll_hostIsIP :: CString -> IO Bool
-hll_hostIsIP host = do
+ffiHostIsIP :: CString -> IO Bool
+ffiHostIsIP host = do
   str <- peekCString host
   return (hostIsIP . T.pack $ str)

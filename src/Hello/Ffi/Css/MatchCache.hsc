@@ -104,8 +104,8 @@ pokeCssMatchCache ptrStructMatchCache cache = do
 -- TODO: This function seems to just allocate a new vector of (-1) elements.
 -- So far I haven't seen this function update a vector of some non-(-1)
 -- elements by adding (-1)s at the end.
-hll_matchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
-hll_matchCacheSetSize ptrStructMatchCache cNewSize = do
+ffiMatchCacheSetSize :: Ptr FfiCssMatchCache -> CInt -> IO ()
+ffiMatchCacheSetSize ptrStructMatchCache cNewSize = do
   oldMatchCache <- peekPtrCssMatchCache ptrStructMatchCache
   let newSize = fromIntegral cNewSize
   let newMatchCache = matchCacheIncreaseTo oldMatchCache newSize

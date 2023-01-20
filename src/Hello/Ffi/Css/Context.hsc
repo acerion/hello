@@ -72,11 +72,11 @@ import Hello.Ffi.Css.Parser
 
 
 
-foreign export ccall "hll_cssContextCtor" hll_cssContextCtor :: IO CInt
-foreign export ccall "hll_cssContextApplyCssContext" hll_cssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO CInt
-foreign export ccall "hll_parseCss" hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
+foreign export ccall "ffiCssContextCtor" ffiCssContextCtor :: IO CInt
+foreign export ccall "ffiCssContextApplyCssContext" ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO CInt
+foreign export ccall "ffiParseCss" ffiParseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
 
-foreign export ccall "hll_cssContextPrint" hll_cssContextPrint :: CString -> CInt -> IO ()
+foreign export ccall "ffiCssContextPrint" ffiCssContextPrint :: CString -> CInt -> IO ()
 
 
 
@@ -152,8 +152,8 @@ pokeCssContext ptrStructContext context = do
 
 
 -- Constructor of new context.
-hll_cssContextCtor :: IO CInt
-hll_cssContextCtor = do
+ffiCssContextCtor :: IO CInt
+ffiCssContextCtor = do
   ref     <- fmap fromIntegral globalContextCtor
   context <- globalContextGet ref
 
@@ -177,8 +177,8 @@ hll_cssContextCtor = do
 
 
 {-
-hll_cssContextUpdate :: CInt -> Ptr FfiCssContext -> IO ()
-hll_cssContextUpdate cRef ptrStructCssContext = do
+ffiCssContextUpdate :: CInt -> Ptr FfiCssContext -> IO ()
+ffiCssContextUpdate cRef ptrStructCssContext = do
   let ref  = fromIntegral cRef
   context <- peekCssContext ptrStructCssContext
 
@@ -187,8 +187,8 @@ hll_cssContextUpdate cRef ptrStructCssContext = do
 
 
 
-hll_cssContextPut :: Ptr FfiCssContext -> IO CInt
-hll_cssContextPut ptrStructCssContext = do
+ffiCssContextPut :: Ptr FfiCssContext -> IO CInt
+ffiCssContextPut ptrStructCssContext = do
   context <- peekCssContext ptrStructCssContext
   ref <- globalContextPut context
 
@@ -205,8 +205,8 @@ getSomeDeclSet2 ref = if (-1) == ref
 
 
 
-hll_cssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO CInt
-hll_cssContextApplyCssContext cRef cDoctreeRef cDtnNum cMainDeclSetRef cImportantDeclSetRef cNonCssDeclSetRef = do
+ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO CInt
+ffiCssContextApplyCssContext cRef cDoctreeRef cDtnNum cMainDeclSetRef cImportantDeclSetRef cNonCssDeclSetRef = do
 
   fHandle <- openFile "/tmp/hello_browser_matching_rules_debug.txt" AppendMode
 
@@ -245,8 +245,8 @@ hll_cssContextApplyCssContext cRef cDoctreeRef cDtnNum cMainDeclSetRef cImportan
 
 
 
-hll_parseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
-hll_parseCss ptrStructCssParser ptrStructCssToken cRef = do
+ffiParseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
+ffiParseCss ptrStructCssParser ptrStructCssToken cRef = do
   parser  <- peekCssParser ptrStructCssParser
   token   <- peekCssToken ptrStructCssToken
 
@@ -264,8 +264,8 @@ hll_parseCss ptrStructCssParser ptrStructCssToken cRef = do
 
 
 
-hll_cssContextPrint :: CString -> CInt -> IO ()
-hll_cssContextPrint cPath cRef = do
+ffiCssContextPrint :: CString -> CInt -> IO ()
+ffiCssContextPrint cPath cRef = do
   bufPathstringVal <- BSU.unsafePackCString cPath
   let path :: String  = T.unpack . T.E.decodeLatin1 $ bufPathstringVal
 

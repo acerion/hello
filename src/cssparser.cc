@@ -36,7 +36,7 @@ using namespace dw::core::style;
 
 #define DEBUG_LEVEL 10
 
-void nextToken(c_css_parser_t * hll_parser, c_css_token_t * token);
+void nextToken(c_css_parser_t * parser, c_css_token_t * token);
 void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url);
 //void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
 static void parse_media_query(c_css_parser_t * parser, c_css_token_t * token, int * mediaSyntaxIsOk, int * mediaIsSelected);
@@ -58,9 +58,9 @@ CssParser::CssParser(CssOrigin origin, const DilloUrl * baseUrl, const char * bu
    nextToken(&this->m_parser, &this->m_token);
 }
 
-void nextToken(c_css_parser_t * hll_parser, c_css_token_t * token)
+void nextToken(c_css_parser_t * parser, c_css_token_t * token)
 {
-   char * tokenValue = hll_nextToken(hll_parser, token);
+   char * tokenValue = ffiNextToken(parser, token);
 }
 
 #if 0
@@ -75,7 +75,7 @@ void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token
 
    if (token->c_type == CSS_TOKEN_TYPE_IDENT &&
        dStrAsciiCasecmp(token->c_value, "url") == 0)
-      urlStr = hll_declarationValueAsString(parser, token, 0);
+      urlStr = ffiDeclarationValueAsString(parser, token, 0);
    else if (token->c_type == CSS_TOKEN_TYPE_STRING)
       urlStr = dStrdup (token->c_value);
 
@@ -88,11 +88,11 @@ void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token
       parse_media_query(parser, token, &mediaSyntaxIsOK, &mediaIsSelected);
    }
 
-   if (mediaSyntaxIsOK && hll_isTokenSemicolon(token)) {
+   if (mediaSyntaxIsOK && ffiIsTokenSemicolon(token)) {
       importSyntaxIsOK = true;
       nextToken(parser, token);
    } else
-      hll_ignoreStatement(parser, token);
+      ffiIgnoreStatement(parser, token);
 
    if (urlStr) {
       if (importSyntaxIsOK && mediaIsSelected) {
@@ -116,8 +116,8 @@ void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t 
    parse_media_query(parser, token, &mediaSyntaxIsOK, &mediaIsSelected);
 
    /* check that the syntax is OK so far */
-   if (!(mediaSyntaxIsOK && hll_isTokenBraceCurlyOpen(token))) {
-      hll_ignoreStatement(parser, token);
+   if (!(mediaSyntaxIsOK && ffiIsTokenBraceCurlyOpen(token))) {
+      ffiIgnoreStatement(parser, token);
       return;
    }
 
@@ -125,14 +125,14 @@ void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t 
    if (mediaIsSelected) {
       nextToken(parser, token);
       while (token->c_type != CSS_TOKEN_TYPE_END) {
-         hll_cssParseRuleset(parser, token, context);
-         if (hll_isTokenBraceCurlyClose(token)) {
+         ffiCssParseRuleset(parser, token, context);
+         if (ffiIsTokenBraceCurlyClose(token)) {
             nextToken(parser, token);
             break;
          }
       }
    } else {
-      hll_ignoreBlock(parser, token);
+      ffiIgnoreBlock(parser, token);
    }
 }
 #endif
@@ -148,7 +148,7 @@ static void parse_media_query(c_css_parser_t * parser, c_css_token_t * token, in
 
       nextToken(parser, token);
 
-      if (hll_isTokenComma(token)) {
+      if (ffiIsTokenComma(token)) {
          nextToken(parser, token);
       } else {
          *mediaSyntaxIsOK = true;

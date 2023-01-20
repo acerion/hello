@@ -37,7 +37,7 @@ References:
 
 module Hello.Ffi.Gif
   (
-    hll_parseExtension
+    ffiParseExtension
   )
 where
 
@@ -54,7 +54,7 @@ import Hello.Gif
 
 
 
-foreign export ccall "hll_parseExtension" hll_parseExtension :: Ptr HelloGifGC -> CString -> Int -> IO Int
+foreign export ccall "ffiParseExtension" ffiParseExtension :: Ptr HelloGifGC -> CString -> Int -> IO Int
 
 #include "../hello.h"
 
@@ -88,28 +88,28 @@ instance Storable HelloGifGC where
 
 
 
-hll_parseExtension :: Ptr HelloGifGC -> CString -> Int -> IO Int
-hll_parseExtension hll_gif cBuf size = do
+ffiParseExtension :: Ptr HelloGifGC -> CString -> Int -> IO Int
+ffiParseExtension ffi_gif cBuf size = do
   buf <- BSU.unsafePackCStringLen (cBuf, size)
   case parseExtension gifDefault buf of
     Just gif -> do
       -- A hack needed because pointer to C struct is not member of GIF
       -- struct and extension handlers update only fields of GIF, but not
       -- fields of HelloGifGC.
-      when (BS.index buf 1 == extensionTypeGraphicControl) $ manipulatePtrGC hll_gif gif
+      when (BS.index buf 1 == extensionTypeGraphicControl) $ manipulatePtrGC ffi_gif gif
       return (consumed gif)
     Nothing  -> return (-1)
     where
-      manipulatePtrGC hllGif gif =
+      manipulatePtrGC ffiGif gif =
         -- Set Graphic Control Extension fields in pointer passed from C code.
-        poke hllGif $ HelloGifGC (transparentColorIndex gif) (delayTime gif) (userInputFlag gif) (disposalMethod gif)
+        poke ffiGif $ HelloGifGC (transparentColorIndex gif) (delayTime gif) (userInputFlag gif) (disposalMethod gif)
 
 
 
 {-
 -- TODO: make use of this function
-hll_dataSubBlockGetAvailableBytes :: CString -> Int -> IO Int
-hll_dataSubBlockGetAvailableBytes cBuf size = do
+ffiDataSubBlockGetAvailableBytes :: CString -> Int -> IO Int
+ffiDataSubBlockGetAvailableBytes cBuf size = do
   buf <- BSU.unsafePackCStringLen (cBuf, size)
   let subBlockSize = fromIntegral (BS.index buf 0)
   if 0 == size

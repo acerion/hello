@@ -296,12 +296,12 @@ typedef struct c_doctree_t {
         c_doctree_node_t * c_nodes_array[2048];
 } c_doctree_t;
 
-c_doctree_node_t * hll_doctreeNodeNew(void);
-void hll_doctreePrint(c_doctree_t * doctree);
-int hll_doctreeCtor(void);
-int hll_doctreePushNode(int doctree_ref, int element_idx);
-void hll_doctreePopNode(int doctree_ref);
-const char * hll_doctreeGetTopNodeElementSelectorId(int doctree_ref);
+c_doctree_node_t * ffiDoctreeNodeNew(void);
+void ffiDoctreePrint(c_doctree_t * doctree);
+int ffiDoctreeCtor(void);
+int ffiDoctreePushNode(int doctree_ref, int element_idx);
+void ffiDoctreePopNode(int doctree_ref);
+const char * ffiDoctreeGetTopNodeElementSelectorId(int doctree_ref);
 
 
 
@@ -360,54 +360,54 @@ typedef struct c_css_match_cache_t {
 
 
 /* URL */
-bool hll_hostIsIP(const char * hostname);
+bool ffiHostIsIP(const char * hostname);
 
 /* cookies */
-int hll_lookupActionForDomain(const char * domain);
+int ffiLookupActionForDomain(const char * domain);
 
 /* Gif */
-int hll_parseExtension(c_gif_t * hll_gif, const unsigned char * buf, int size);
+int ffiParseExtension(c_gif_t * ffi_gif, const unsigned char * buf, int size);
 
 /* Colors */
-int hll_colorsStringToColor(const char * str, int default_color);
-int hll_colorsVisitedColor(int candidate, int txt, int lnk, int bg);
+int ffiColorsStringToColor(const char * str, int default_color);
+int ffiColorsVisitedColor(int candidate, int txt, int lnk, int bg);
 
 /* HtmlEntity */
-int64_t hll_htmlEntityToIsoCode(const char * token, int tokenLen);
+int64_t ffiHtmlEntityToIsoCode(const char * token, int tokenLen);
 
 
 
 
-bool hll_htmlValidateNameOrIdValue(c_html_doctype_t * doctype, const char * attrName, const char * attrValue);
-void hll_getDoctype4(c_html_doctype_t * doctype, const char * buf);
-void hll_getDoctypeFromBuffer(c_html_doctype_t * doctype, const char * buf, int buflen);
+bool ffiHtmlValidateNameOrIdValue(c_html_doctype_t * doctype, const char * attrName, const char * attrValue);
+void ffiGetDoctype4(c_html_doctype_t * doctype, const char * buf);
+void ffiGetDoctypeFromBuffer(c_html_doctype_t * doctype, const char * buf, int buflen);
 
 
 
 
 /* HtmlTag */
-char * hll_htmlAttributeGetValue(const char * documentRem, int tagSize, const char * attrName);
+char * ffiHtmlAttributeGetValue(const char * documentRem, int tagSize, const char * attrName);
 /* Return index of tag named \p tagName. The index is an index to 'TagInfo
    Tags[]' array. Return -1 if tag name was not found. */
-int hll_htmlTagIndex(const char * tagName);
+int ffiHtmlTagIndex(const char * tagName);
 
 
 
 
 /* CssParser */
 /* Token value is returned through return statement. */
-char * hll_nextToken(c_css_parser_t * hll_parser, c_css_token_t * token);
+char * ffiNextToken(c_css_parser_t * parser, c_css_token_t * token);
 /* Function returns color through return statement. */
-//int hll_parseRgbFunction(c_css_parser_t * hll_parser, const char * remainder);
+//int ffiParseRgbFunction(c_css_parser_t * parser, const char * remainder);
 
-//char * hll_declarationValueAsString(c_css_parser_t * hll_parser, c_css_token_t * token, int valueType);
-int hll_ignoreBlock(c_css_parser_t * hll_parser, c_css_token_t * token);
-int hll_ignoreStatement(c_css_parser_t * hll_parser, c_css_token_t * token);
-
-
+//char * ffiDeclarationValueAsString(c_css_parser_t * parser, c_css_token_t * token, int valueType);
+int ffiIgnoreBlock(c_css_parser_t * parser, c_css_token_t * token);
+int ffiIgnoreStatement(c_css_parser_t * parser, c_css_token_t * token);
 
 
-void hll_cssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const char * cssStyleAttribute, int buflen, int main_decl_set_ref, int important_decl_set_ref);
+
+
+void ffiCssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const char * cssStyleAttribute, int buflen, int main_decl_set_ref, int important_decl_set_ref);
 
 
 
@@ -416,59 +416,59 @@ typedef struct {
         float c_length_value;
         int c_length_type;
 } c_css_length_t;
-void hll_htmlParseAttributeWidthOrHeight(const char * attribute_value, c_css_length_t * length);
+void ffiHtmlParseAttributeWidthOrHeight(const char * attribute_value, c_css_length_t * length);
 
 
 
-int hll_cssContextApplyCssContext(int context_ref,
-                                  int doc_tree_ref, int dtn_num,
-                                  int main_decl_set_ref,
-                                  int important_decl_set_ref,
-                                  int non_css_decl_set_ref);
+int ffiCssContextApplyCssContext(int context_ref,
+                                 int doc_tree_ref, int dtn_num,
+                                 int main_decl_set_ref,
+                                 int important_decl_set_ref,
+                                 int non_css_decl_set_ref);
 
-void hll_cssContextPrint(const char * path, int css_context_ref);
-
-
-void hll_parseCss(c_css_parser_t * parser, c_css_token_t * token, int context_ref);
+void ffiCssContextPrint(const char * path, int css_context_ref);
 
 
-int hll_cssContextCtor(void);
+void ffiParseCss(c_css_parser_t * parser, c_css_token_t * token, int context_ref);
 
 
-int hll_isTokenComma(c_css_token_t * token);
-int hll_isTokenSemicolon(c_css_token_t * token);
+int ffiCssContextCtor(void);
+
+
+int ffiIsTokenComma(c_css_token_t * token);
+int ffiIsTokenSemicolon(c_css_token_t * token);
 
 
 
-int hll_styleEngineSetNonCssHintOfNodeLength(int non_css_decl_set_ref, int property, float lengthValue, int lengthType);
-int hll_styleEngineSetNonCssHintOfNodeEnum(int non_css_decl_set_ref, int property, int enumVal);
-int hll_styleEngineSetNonCssHintOfNodeColor(int non_css_decl_set_ref, int property, int color);
-int hll_styleEngineSetNonCssHintOfNodeString(int non_css_decl_set_ref, int property, const char * stringVal);
+int ffiStyleEngineSetNonCssHintOfNodeLength(int non_css_decl_set_ref, int property, float lengthValue, int lengthType);
+int ffiStyleEngineSetNonCssHintOfNodeEnum(int non_css_decl_set_ref, int property, int enumVal);
+int ffiStyleEngineSetNonCssHintOfNodeColor(int non_css_decl_set_ref, int property, int color);
+int ffiStyleEngineSetNonCssHintOfNodeString(int non_css_decl_set_ref, int property, const char * stringVal);
 
 /* For setting pseudo-css-properties. */
-int hll_styleEngineSetXImgOfNode(int non_css_decl_set_ref, int intVal);
-int hll_styleEngineSetXLangOfNode(int non_css_decl_set_ref, const char * stringVal);
-int hll_styleEngineSetXLinkOfNode(int non_css_decl_set_ref, int intVal);
-int hll_styleEngineSetXTooltipOfNode(int non_css_decl_set_ref, const char * stringVal);
+int ffiStyleEngineSetXImgOfNode(int non_css_decl_set_ref, int intVal);
+int ffiStyleEngineSetXLangOfNode(int non_css_decl_set_ref, const char * stringVal);
+int ffiStyleEngineSetXLinkOfNode(int non_css_decl_set_ref, int intVal);
+int ffiStyleEngineSetXTooltipOfNode(int non_css_decl_set_ref, const char * stringVal);
 
 
-void hll_styleEngineSetElementId(int doc_tree_ref, const char * element_id);
-void hll_styleEngineSetElementClass(int doc_tree_ref, const char * element_class_tokens);
-void hll_styleEngineSetElementPseudoClass(int doc_tree_ref, const char * element_pseudo_class);
-
-
-
-
-void hll_styleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * prefs, float dpiX, float dpiY, c_style_attrs_t * parent_style_attrs, c_style_attrs_t * style_attrs);
+void ffiStyleEngineSetElementId(int doc_tree_ref, const char * element_id);
+void ffiStyleEngineSetElementClass(int doc_tree_ref, const char * element_class_tokens);
+void ffiStyleEngineSetElementPseudoClass(int doc_tree_ref, const char * element_pseudo_class);
 
 
 
-int hll_declarationSetCtor(void);
 
-int hll_inheritNonCssHints(int parent_non_css_decl_set_ref, int non_css_decl_set_ref);
+void ffiStyleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * prefs, float dpiX, float dpiY, c_style_attrs_t * parent_style_attrs, c_style_attrs_t * style_attrs);
 
-void hll_createPercentageDwLength(DwLength * length, double v);
-void hll_createAbsoluteDwLength(DwLength * length, int v);
+
+
+int ffiDeclarationSetCtor(void);
+
+int ffiInheritNonCssHints(int parent_non_css_decl_set_ref, int non_css_decl_set_ref);
+
+void ffiCreatePercentageDwLength(DwLength * length, double v);
+void ffiCreateAbsoluteDwLength(DwLength * length, int v);
 
 
 

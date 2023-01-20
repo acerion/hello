@@ -48,13 +48,13 @@ import Hello.Css.DeclarationSetsGlobal
 
 
 
-foreign export ccall "hll_declarationSetCtor" hll_declarationSetCtor :: IO CInt
+foreign export ccall "ffiDeclarationSetCtor" ffiDeclarationSetCtor :: IO CInt
 
 
 
 
-hll_declarationSetCtor :: IO CInt
-hll_declarationSetCtor = fmap fromIntegral globalDeclarationSetCtor
+ffiDeclarationSetCtor :: IO CInt
+ffiDeclarationSetCtor = fmap fromIntegral globalDeclarationSetCtor
 
 
 

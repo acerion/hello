@@ -65,12 +65,12 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    FontAttrs font_attrs;
 
    this->doc_tree_ptr = doctreeCtor();
-   this->doc_tree_ref = hll_doctreeCtor();
+   this->doc_tree_ref = ffiDoctreeCtor();
 
    //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
 
    {
-      this->css_context_ref = hll_cssContextCtor();
+      this->css_context_ref = ffiCssContextCtor();
       buildUserStyle(this->css_context_ref);
    }
 
@@ -155,8 +155,8 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    StyleNode *n = &styleNodesStack[styleNodesStackSize - 1];
 
    n->doctreeNodeIdx = doctreePushNode(this->doc_tree_ptr, html_element_idx);
-   //n->doctreeNodeIdx = hll_doctreePushNode(this->doc_tree_ref, html_element_idx);
-   hll_doctreePushNode(this->doc_tree_ref, html_element_idx);
+   //n->doctreeNodeIdx = ffiDoctreePushNode(this->doc_tree_ref, html_element_idx);
+   ffiDoctreePushNode(this->doc_tree_ref, html_element_idx);
 
    if (styleNodesStackSize > 1) {
       StyleNode * parentNode = getParentNode(this);
@@ -165,7 +165,7 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
 }
 
 void StyleEngine::startElement (const char *tagname, BrowserWindow *bw) {
-   startElement (hll_htmlTagIndex(tagname), bw);
+   startElement (ffiHtmlTagIndex(tagname), bw);
 }
 
 void StyleEngine::setElementId (const char *id) {
@@ -173,7 +173,7 @@ void StyleEngine::setElementId (const char *id) {
    assert (dtn->c_element_selector_id == NULL);
    dtn->c_element_selector_id = strdup (id);
 
-   hll_styleEngineSetElementId(this->doc_tree_ref, id);
+   ffiStyleEngineSetElementId(this->doc_tree_ref, id);
 }
 
 void StyleEngine::setElementClass(const char * element_class_tokens) {
@@ -191,7 +191,7 @@ void StyleEngine::setElementClass(const char * element_class_tokens) {
    dtn->c_element_selector_class_size = i;
    free(in);
 
-   hll_styleEngineSetElementClass(this->doc_tree_ref, element_class_tokens);
+   ffiStyleEngineSetElementClass(this->doc_tree_ref, element_class_tokens);
 }
 
 // 'cssStyleAttribute' is contents of element's "style" attribute, describing CSS
@@ -202,12 +202,12 @@ void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
    //assert (currentNode->declLists.main == NULL);
    // parse style information from style="" attribute, if it exists
    if (cssStyleAttribute && prefs.parse_embedded_css) {
-      currentNode->declLists.main_decl_set_ref      = hll_declarationSetCtor();
-      currentNode->declLists.important_decl_set_ref = hll_declarationSetCtor();
+      currentNode->declLists.main_decl_set_ref      = ffiDeclarationSetCtor();
+      currentNode->declLists.important_decl_set_ref = ffiDeclarationSetCtor();
 
-      hll_cssParseElementStyleAttribute(baseUrl, cssStyleAttribute, strlen (cssStyleAttribute),
-                                        currentNode->declLists.main_decl_set_ref,
-                                        currentNode->declLists.important_decl_set_ref);
+      ffiCssParseElementStyleAttribute(baseUrl, cssStyleAttribute, strlen (cssStyleAttribute),
+                                       currentNode->declLists.main_decl_set_ref,
+                                       currentNode->declLists.important_decl_set_ref);
    }
 }
 
@@ -222,7 +222,7 @@ void StyleEngine::inheritNonCssHints()
    StyleNode * parentNode  = getParentNode(this);
 
    int ref = currentNode->declLists.non_css_decl_set_ref;
-   currentNode->declLists.non_css_decl_set_ref = hll_inheritNonCssHints(parentNode->declLists.non_css_decl_set_ref, ref);
+   currentNode->declLists.non_css_decl_set_ref = ffiInheritNonCssHints(parentNode->declLists.non_css_decl_set_ref, ref);
 }
 
 void StyleEngine::clearNonCssHints()
@@ -283,7 +283,7 @@ void StyleEngine::setPseudoLink () {
    c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree_ptr);
    dtn->c_element_selector_pseudo_class = "link";
 
-   hll_styleEngineSetElementPseudoClass(this->doc_tree_ref, "link");
+   ffiStyleEngineSetElementPseudoClass(this->doc_tree_ref, "link");
 }
 
 /**
@@ -293,7 +293,7 @@ void StyleEngine::setPseudoVisited () {
    c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree_ptr);
    dtn->c_element_selector_pseudo_class = "visited";
 
-   hll_styleEngineSetElementPseudoClass(this->doc_tree_ref, "visited");
+   ffiStyleEngineSetElementPseudoClass(this->doc_tree_ref, "visited");
 }
 
 /**
@@ -304,7 +304,7 @@ void StyleEngine::endElement (int element) {
 
    stackPop ();
    doctreePopNode(this->doc_tree_ptr);
-   hll_doctreePopNode(this->doc_tree_ref);
+   ffiDoctreePopNode(this->doc_tree_ref);
 }
 
 void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
@@ -543,7 +543,7 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    Font * parentFont = styleNodesStack[styleNodeIndex - 1].style->font;
 
    // TODO: this should be set from style_attrs calculated by
-   // hll_styleEngineApplyStyleToGivenNode for CSS_PROPERTY_BACKGROUND_IMAGE
+   // ffiStyleEngineApplyStyleToGivenNode for CSS_PROPERTY_BACKGROUND_IMAGE
    // property.
    DilloUrl *imgUrl = nullptr;
 
@@ -555,7 +555,7 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    c_style_attrs_init(parent_style_attrs);
    c_style_attrs_copy_from(parent_style_attrs, parentAttrs);
 
-   hll_styleEngineApplyStyleToGivenNode(merged_decl_set_ref, &prefs.preferences, layout->dpiX(), layout->dpiY(), parent_style_attrs, style_attrs);
+   ffiStyleEngineApplyStyleToGivenNode(merged_decl_set_ref, &prefs.preferences, layout->dpiX(), layout->dpiY(), parent_style_attrs, style_attrs);
 
    c_style_attrs_copy_to(attrs, style_attrs, this->layout);
    c_style_attrs_dealloc(&style_attrs);
@@ -644,11 +644,11 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw)
 
    // merge style information
    int dtnNum = styleNodesStack[styleNodeIndex].doctreeNodeIdx;
-   int merged_decl_set_ref = hll_cssContextApplyCssContext(this->css_context_ref,
-                                                           this->doc_tree_ref, dtnNum,
-                                                           declLists->main_decl_set_ref,
-                                                           declLists->important_decl_set_ref,
-                                                           declLists->non_css_decl_set_ref);
+   int merged_decl_set_ref = ffiCssContextApplyCssContext(this->css_context_ref,
+                                                          this->doc_tree_ref, dtnNum,
+                                                          declLists->main_decl_set_ref,
+                                                          declLists->important_decl_set_ref,
+                                                          declLists->non_css_decl_set_ref);
 
    // apply style
    applyStyleToGivenNode(styleNodeIndex, &parentStyleAttrs, &styleAttrs, merged_decl_set_ref, bw);
@@ -723,11 +723,11 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
    importDepth++;
    {
       CssParser parser_(origin, url, buf, buflen);
-      hll_parseCss(&parser_.m_parser, &parser_.m_token, this->css_context_ref);
+      ffiParseCss(&parser_.m_parser, &parser_.m_token, this->css_context_ref);
    }
    importDepth--;
 
-   hll_cssContextPrint(path, this->css_context_ref);
+   ffiCssContextPrint(path, this->css_context_ref);
    fclose(file);
 }
 
@@ -739,7 +739,7 @@ void StyleEngine::buildUserStyle(int context_ref)
    if ((style = a_Misc_file2dstr(filename))) {
       {
          CssParser parser_(CSS_ORIGIN_USER, NULL, style->str, style->len);
-         hll_parseCss(&parser_.m_parser, &parser_.m_token, context_ref);
+         ffiParseCss(&parser_.m_parser, &parser_.m_token, context_ref);
       }
       dStr_free (style, 1);
    }
@@ -750,25 +750,25 @@ void cpp_styleEngineSetNonCssHintOfNodeLength(StyleNode * styleNode, CssDeclarat
 {
    float lengthValue = cpp_cssLengthValue(cssLength);
    int lengthType  = (int) cpp_cssLengthType(cssLength);
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeLength(styleNode->declLists.non_css_decl_set_ref, property, lengthValue, lengthType);
+   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetNonCssHintOfNodeLength(styleNode->declLists.non_css_decl_set_ref, property, lengthValue, lengthType);
    return;
 }
 
 void cpp_styleEngineSetNonCssHintOfNodeColor(StyleNode * styleNode, int property, int color)
 {
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeColor(styleNode->declLists.non_css_decl_set_ref, property, color);
+   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetNonCssHintOfNodeColor(styleNode->declLists.non_css_decl_set_ref, property, color);
    return;
 }
 
 void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, const char * stringVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeString(styleNode->declLists.non_css_decl_set_ref, property, stringVal);
+   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetNonCssHintOfNodeString(styleNode->declLists.non_css_decl_set_ref, property, stringVal);
    return;
 }
 
 void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property, int enumVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetNonCssHintOfNodeEnum(styleNode->declLists.non_css_decl_set_ref, property, enumVal);
+   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetNonCssHintOfNodeEnum(styleNode->declLists.non_css_decl_set_ref, property, enumVal);
    return;
 }
 
@@ -777,25 +777,25 @@ void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property,
 
 void cpp_styleEngineSetXImgOfNode(StyleNode * styleNode, int intVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetXImgOfNode(styleNode->declLists.non_css_decl_set_ref, intVal);
+   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetXImgOfNode(styleNode->declLists.non_css_decl_set_ref, intVal);
    return;
 }
 
 void cpp_styleEngineSetXLangOfNode(StyleNode * styleNode, const char * stringVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetXLangOfNode(styleNode->declLists.non_css_decl_set_ref, stringVal);
+   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetXLangOfNode(styleNode->declLists.non_css_decl_set_ref, stringVal);
    return;
 }
 
 void cpp_styleEngineSetXLinkOfNode(StyleNode * styleNode, int intVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetXLinkOfNode(styleNode->declLists.non_css_decl_set_ref, intVal);
+   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetXLinkOfNode(styleNode->declLists.non_css_decl_set_ref, intVal);
    return;
 }
 
 void cpp_styleEngineSetXTooltipOfNode(StyleNode * styleNode, const char * stringVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = hll_styleEngineSetXTooltipOfNode(styleNode->declLists.non_css_decl_set_ref, stringVal);
+   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetXTooltipOfNode(styleNode->declLists.non_css_decl_set_ref, stringVal);
    return;
 }
 

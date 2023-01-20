@@ -31,9 +31,9 @@ module Hello.Ffi.Dw.DwLength
   , peekDwLength
   , pokeDwLength
 
-  , hll_createPercentageDwLength
-  , hll_createAbsoluteDwLength
-  , hll_createAutoDwLength
+  , ffiCreatePercentageDwLength
+  , ffiCreateAbsoluteDwLength
+  , ffiCreateAutoDwLength
   )
 where
 
@@ -54,8 +54,8 @@ import Hello.Dw.DwLength
 
 
 
-foreign export ccall "hll_createPercentageDwLength" hll_createPercentageDwLength :: Ptr FfiDwLength -> CDouble -> IO ()
-foreign export ccall "hll_createAbsoluteDwLength" hll_createAbsoluteDwLength :: Ptr FfiDwLength -> CInt -> IO ()
+foreign export ccall "ffiCreatePercentageDwLength" ffiCreatePercentageDwLength :: Ptr FfiDwLength -> CDouble -> IO ()
+foreign export ccall "ffiCreateAbsoluteDwLength" ffiCreateAbsoluteDwLength :: Ptr FfiDwLength -> CInt -> IO ()
 
 
 
@@ -117,8 +117,8 @@ pokeDwLength len ptrStructDwLength = do
 
 
 
-hll_createPercentageDwLength :: Ptr FfiDwLength -> CDouble -> IO ()
-hll_createPercentageDwLength ptrStructDwLength cValue = do
+ffiCreatePercentageDwLength :: Ptr FfiDwLength -> CDouble -> IO ()
+ffiCreatePercentageDwLength ptrStructDwLength cValue = do
   let value = coerce cValue
   let len   = createPercentageDwLength value
   pokeDwLength len ptrStructDwLength
@@ -127,8 +127,8 @@ hll_createPercentageDwLength ptrStructDwLength cValue = do
 
 
 
-hll_createAbsoluteDwLength :: Ptr FfiDwLength -> CInt -> IO ()
-hll_createAbsoluteDwLength ptrStructDwLength cValue = do
+ffiCreateAbsoluteDwLength :: Ptr FfiDwLength -> CInt -> IO ()
+ffiCreateAbsoluteDwLength ptrStructDwLength cValue = do
   let value = fromIntegral cValue
   let len   = createAbsoluteDwLength value
   pokeDwLength len ptrStructDwLength
@@ -137,8 +137,8 @@ hll_createAbsoluteDwLength ptrStructDwLength cValue = do
 
 
 
-hll_createAutoDwLength :: Ptr FfiDwLength -> IO ()
-hll_createAutoDwLength ptrStructDwLength = do
+ffiCreateAutoDwLength :: Ptr FfiDwLength -> IO ()
+ffiCreateAutoDwLength ptrStructDwLength = do
   let len = createAutoDwLength
   pokeDwLength len ptrStructDwLength
   return ()

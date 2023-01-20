@@ -704,7 +704,7 @@ static const char *Url_host_find_public_suffix(const char *host)
    if (!host || !*host)
       return host;
 
-   if (hll_hostIsIP(host)) {
+   if (ffiHostIsIP(host)) {
       /* TODO: it looks like this function is never called for an actual
          IP. why then do we check if function is an IP here? */
       fprintf(stderr, "hello: '%s' is IP\n", host);

@@ -370,12 +370,12 @@ yet because a full support for them in dillo seems to be missing or broken.
             cssLength.length_bits = decl->c_value->c_bg_pos_x;
             val_  = (double) cpp_cssLengthValue(cssLength);
             type_ = cpp_cssLengthType(cssLength);
-            hll_computeDwLength(&attrs->backgroundPositionX, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
+            ffiComputeDwLength(&attrs->backgroundPositionX, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
 
             cssLength.length_bits = decl->c_value->c_bg_pos_y;
             val_  = (double) cpp_cssLengthValue(cssLength);
             type_ = cpp_cssLengthType(cssLength);
-            hll_computeDwLength(&attrs->backgroundPositionY, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
+            ffiComputeDwLength(&attrs->backgroundPositionY, val_, type_, &attrs->font->font_attrs, layout->dpiX(), layout->dpiY());
 
             break;
          case CSS_PROPERTY_BACKGROUND_REPEAT:
@@ -781,7 +781,7 @@ getLineHeight (CssValueLineHeightDistance distance)           fontAttrs display 
                CssLength cssLength = cpp_cssCreateLength(decl->c_value->c_length_val, (CssLengthType) decl->c_value->c_length_type);
                if (cpp_cssLengthType(cssLength) == CSS_LENGTH_TYPE_NONE) {
                   attrs->lineHeight = createPercentageDwLength(cpp_cssLengthValue(cssLength));
-               } else if ((bool) hll_styleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, attrs->font->font_attrs.size, layout->dpiX(), layout->dpiY(), &lineHeight)) {
+               } else if ((bool) ffiStyleEngineComputeAbsoluteLengthValue(cpp_cssLengthValue(cssLength), cpp_cssLengthType(cssLength), &attrs->font->font_attrs, attrs->font->font_attrs.size, layout->dpiX(), layout->dpiY(), &lineHeight)) {
                   attrs->lineHeight = createAbsoluteDwLength(lineHeight);
                }
             }

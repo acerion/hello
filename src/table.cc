@@ -255,7 +255,7 @@ static DilloHtmlTableBorderMode Html_table_get_border_model(DilloHtml *html)
 {
    static int i_TABLE = -1;
    if (i_TABLE == -1)
-      i_TABLE = hll_htmlTagIndex("table");
+      i_TABLE = ffiHtmlTagIndex("table");
 
    int s_idx = html->stack->size();
    while (--s_idx > 0 && html->stack->getRef(s_idx)->tag_idx != i_TABLE)
@@ -270,7 +270,7 @@ static void Html_table_set_border_model(DilloHtml *html,
                                         DilloHtmlTableBorderMode mode)
 {
    int s_idx = html->stack->size();
-   const int i_TABLE = hll_htmlTagIndex("table");
+   const int i_TABLE = ffiHtmlTagIndex("table");
 
    while (--s_idx > 0 && html->stack->getRef(s_idx)->tag_idx != i_TABLE) ;
    if (s_idx > 0)

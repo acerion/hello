@@ -46,7 +46,7 @@ import Hello.Html.Entity
 
 
 
-foreign export ccall "hll_htmlEntityToIsoCode" hll_htmlEntityToIsoCode :: CString -> Int -> IO Int64
+foreign export ccall "ffiHtmlEntityToIsoCode" ffiHtmlEntityToIsoCode :: CString -> Int -> IO Int64
 
 
 
@@ -64,8 +64,8 @@ foreign export ccall "hll_htmlEntityToIsoCode" hll_htmlEntityToIsoCode :: CStrin
 -- error code were returned by function arugments (pointers). I don't want to
 -- put too much work in doing this in similar way in FFI code, because sooner
 -- or later the FFI code will be removed (replaced with "pure" Haskell code).
-hll_htmlEntityToIsoCode :: CString -> Int -> IO Int64
-hll_htmlEntityToIsoCode cBuf len = do
+ffiHtmlEntityToIsoCode :: CString -> Int -> IO Int64
+ffiHtmlEntityToIsoCode cBuf len = do
   buf <- if len > 0
          then BSU.unsafePackCStringLen (cBuf, len)
          else BSU.unsafePackCString cBuf

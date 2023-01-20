@@ -32,7 +32,7 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 module Hello.Ffi.Html.Tag
   (
-    hll_htmlAttributeGetValue
+    ffiHtmlAttributeGetValue
   )
 where
 
@@ -51,8 +51,8 @@ import Hello.Html.Tag
 
 
 
-foreign export ccall "hll_htmlAttributeGetValue" hll_htmlAttributeGetValue :: CString -> Int -> CString -> IO CString
-foreign export ccall "hll_htmlTagIndex" hll_htmlTagIndex :: CString -> IO Int
+foreign export ccall "ffiHtmlAttributeGetValue" ffiHtmlAttributeGetValue :: CString -> Int -> CString -> IO CString
+foreign export ccall "ffiHtmlTagIndex" ffiHtmlTagIndex :: CString -> IO Int
 
 
 
@@ -67,8 +67,8 @@ foreign export ccall "hll_htmlTagIndex" hll_htmlTagIndex :: CString -> IO Int
 -- newCString), but I don't care that much because sooner or later most of
 -- HTML code (if not all) will be rewritten in Haskell, and this particular
 -- FFI function will be gone.
-hll_htmlAttributeGetValue :: CString -> Int -> CString -> IO CString
-hll_htmlAttributeGetValue cDocumentRem ctagSize cAttrName = do
+ffiHtmlAttributeGetValue :: CString -> Int -> CString -> IO CString
+ffiHtmlAttributeGetValue cDocumentRem ctagSize cAttrName = do
   documentRem <- BSU.unsafePackCStringLen (cDocumentRem, ctagSize)
   attrName <- BSU.unsafePackCString cAttrName
   case htmlAttributeGetValue (T.E.decodeUtf8 documentRem) (T.E.decodeUtf8 attrName) of
@@ -78,7 +78,7 @@ hll_htmlAttributeGetValue cDocumentRem ctagSize cAttrName = do
 
 
 
-hll_htmlTagIndex :: CString -> IO Int
-hll_htmlTagIndex cName = do
+ffiHtmlTagIndex :: CString -> IO Int
+ffiHtmlTagIndex cName = do
   name <- BSU.unsafePackCString cName
   return (htmlTagIndex . T.E.decodeUtf8 $ name)

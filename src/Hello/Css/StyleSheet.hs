@@ -416,7 +416,7 @@ void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * conte
 {
 #if 1
    CssParser parser_(origin, baseUrl, buf, buflen);
-   hll_parseCss(&parser_.m_parser, &parser_.m_token, context);
+   ffiParseCss(&parser_.m_parser, &parser_.m_token, context);
 #else
    CssParser parser_(origin, baseUrl, buf, buflen);
    bool importsAreAllowed = true;
@@ -436,14 +436,14 @@ void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * conte
                //fprintf(stderr, "MEAS: PARSE MEDIA\n");
                parseMedia(parser, token, context);
             } else {
-               hll_ignoreStatement(parser, token);
+               ffiIgnoreStatement(parser, token);
             }
          } else {
-            hll_ignoreStatement(parser, token);
+            ffiIgnoreStatement(parser, token);
          }
       } else {
          importsAreAllowed = false;
-         hll_cssParseRuleset(parser, token, context);
+         ffiCssParseRuleset(parser, token, context);
       }
    }
 #endif
@@ -504,10 +504,10 @@ parseMediaBlock ((parser, token), context) = case parseRuleset ((parser, token),
             } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
                parseMedia(parser, token, context);
             } else {
-               hll_ignoreStatement(parser, token);
+               ffiIgnoreStatement(parser, token);
             }
          } else {
-            hll_ignoreStatement(parser, token);
+            ffiIgnoreStatement(parser, token);
          }
 -}
 

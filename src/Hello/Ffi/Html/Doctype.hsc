@@ -59,8 +59,8 @@ import Hello.Html.Doctype
 
 
 
-foreign export ccall "hll_getDoctype4" hll_getDoctype4 :: Ptr FfiHtmlDoctype -> CString -> IO ()
-foreign export ccall "hll_getDoctypeFromBuffer" hll_getDoctypeFromBuffer :: Ptr FfiHtmlDoctype -> CString -> CInt -> IO ()
+foreign export ccall "ffiGetDoctype4" ffiGetDoctype4 :: Ptr FfiHtmlDoctype -> CString -> IO ()
+foreign export ccall "ffiGetDoctypeFromBuffer" ffiGetDoctypeFromBuffer :: Ptr FfiHtmlDoctype -> CString -> CInt -> IO ()
 
 
 
@@ -136,8 +136,8 @@ intToDoctype tag ver = case tag of
 
 
 
-hll_getDoctype4 :: Ptr FfiHtmlDoctype -> CString -> IO ()
-hll_getDoctype4 ptrHtmlDoctype cBuf = do
+ffiGetDoctype4 :: Ptr FfiHtmlDoctype -> CString -> IO ()
+ffiGetDoctype4 ptrHtmlDoctype cBuf = do
   buf <- BSU.unsafePackCString cBuf
   let bufT = T.E.decodeUtf8 buf
 
@@ -154,8 +154,8 @@ hll_getDoctype4 ptrHtmlDoctype cBuf = do
 
 
 
-hll_getDoctypeFromBuffer :: Ptr FfiHtmlDoctype -> CString -> CInt -> IO ()
-hll_getDoctypeFromBuffer ptrHtmlDoctype cBuf cBufLen = do
+ffiGetDoctypeFromBuffer :: Ptr FfiHtmlDoctype -> CString -> CInt -> IO ()
+ffiGetDoctypeFromBuffer ptrHtmlDoctype cBuf cBufLen = do
   buf <- BSU.unsafePackCStringLen (cBuf, fromIntegral cBufLen)
   let bufT = T.E.decodeUtf8 buf
 

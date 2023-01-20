@@ -55,7 +55,7 @@ import Hello.Ffi.Utils
 
 
 
-foreign export ccall "hll_doctreeNodeNew" hll_doctreeNodeNew :: IO (Ptr FfiDoctreeNode)
+foreign export ccall "ffiDoctreeNodeNew" ffiDoctreeNodeNew :: IO (Ptr FfiDoctreeNode)
 
 
 
@@ -146,8 +146,8 @@ pokeDoctreeNode dtn ptrDoctreeNodeRoot = do
 
 
 
-hll_doctreeNodeNew :: IO (Ptr FfiDoctreeNode)
-hll_doctreeNodeNew = callocBytes #{size c_doctree_node_t}
+ffiDoctreeNodeNew :: IO (Ptr FfiDoctreeNode)
+ffiDoctreeNodeNew = callocBytes #{size c_doctree_node_t}
 
 
 
@@ -179,8 +179,8 @@ doctreeNodePush doctree htmlElementIdx = (doctree2, dtn)
             otherwise -> defaultDoctreeNode
 
 
-hll_doctreeNodePush doctree htmlElementIdx = do
-  ptrStructDoctreeNode <- hll_doctreeNodeNew
+ffiDoctreeNodePush doctree htmlElementIdx = do
+  ptrStructDoctreeNode <- ffiDoctreeNodeNew
   let (doctree, dtn) = doctreeNodePush doctree htmlElementIdx
 
   pokeDoctreeNode dtn ptrStructDoctreeNode

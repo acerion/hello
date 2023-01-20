@@ -146,7 +146,7 @@ typedef struct {
 #endif
 
 
-   c_gif_t hll_gif;
+   c_gif_t ffi_gif;
 
 
    /* state for the new push-oriented decoder */
@@ -226,7 +226,7 @@ void *a_Gif_new(DilloImage *Image, DilloUrl *url, int version)
    gif->url = url;
    gif->version = version;
    gif->Background = Image->bg_color;
-   gif->hll_gif.c_transparent_color_index = -1;
+   gif->ffi_gif.c_transparent_color_index = -1;
 
    return gif;
 }
@@ -820,7 +820,7 @@ static int gif_do_image_descriptor(DilloGif *gif, img_chunk img_descriptor)
    } else {
       a_Dicache_set_color_map(gif->url, gif->version, gif->Background,
                               gif->global_color_map,
-                              gif->global_color_map_triplets_count, MAX_COLORMAP_SIZE, gif->hll_gif.c_transparent_color_index);
+                              gif->global_color_map_triplets_count, MAX_COLORMAP_SIZE, gif->ffi_gif.c_transparent_color_index);
    }
 
    return total_size;
@@ -954,7 +954,7 @@ int gif_do_extension(DilloGif * gif, img_chunk extension_chunk)
 
    //fprintf(stderr, "======== DO EXTENSION: introducer = %02x, label = %02x\n", extension_chunk.buf[0], extension_chunk.buf[1]);
 
-   const int consumed_size = hll_parseExtension(&gif->hll_gif, extension_chunk.buf, extension_chunk.size);
+   const int consumed_size = ffiParseExtension(&gif->ffi_gif, extension_chunk.buf, extension_chunk.size);
    if (0 == consumed_size) {
       /* Not all of the extension is there.. quit until more data
        * arrives */

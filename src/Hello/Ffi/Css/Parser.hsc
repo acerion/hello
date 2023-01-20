@@ -65,17 +65,17 @@ import Hello.Ffi.Utils
 
 
 
-foreign export ccall "hll_nextToken" hll_nextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO CString
---foreign export ccall "hll_declarationValueAsString" hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> IO CString
-foreign export ccall "hll_ignoreBlock" hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
-foreign export ccall "hll_ignoreStatement" hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
+foreign export ccall "ffiNextToken" ffiNextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO CString
+--foreign export ccall "ffiDeclarationValueAsString" ffiDeclarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> IO CString
+foreign export ccall "ffiIgnoreBlock" ffiIgnoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
+foreign export ccall "ffiIgnoreStatement" ffiIgnoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 
 
---foreign export ccall "hll_declarationListAppend" hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-foreign export ccall "hll_cssParseElementStyleAttribute" hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> CInt -> CInt -> IO ()
+--foreign export ccall "ffiDeclarationListAppend" ffiDeclarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+foreign export ccall "ffiCssParseElementStyleAttribute" ffiCssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> CInt -> CInt -> IO ()
 
-foreign export ccall "hll_isTokenComma" hll_isTokenComma :: Ptr FfiCssToken -> IO Int
-foreign export ccall "hll_isTokenSemicolon" hll_isTokenSemicolon :: Ptr FfiCssToken -> IO Int
+foreign export ccall "ffiIsTokenComma" ffiIsTokenComma :: Ptr FfiCssToken -> IO Int
+foreign export ccall "ffiIsTokenSemicolon" ffiIsTokenSemicolon :: Ptr FfiCssToken -> IO Int
 
 
 
@@ -243,8 +243,8 @@ getTokenADT tokType tokValue | tokType ==  0 = CssTokIdent tokValue
 
 
 
-hll_nextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO CString
-hll_nextToken ptrStructCssParser ptrStructCssToken = do
+ffiNextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO CString
+ffiNextToken ptrStructCssParser ptrStructCssToken = do
   parser <- peekCssParser ptrStructCssParser
 
   let (newParser, newToken) = nextToken parser
@@ -272,8 +272,8 @@ cstr token = case token of
 
 
 {-
-hll_declarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> IO CString
-hll_declarationValueAsString ptrStructCssParser ptrStructCssToken valueType = do
+ffiDeclarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> IO CString
+ffiDeclarationValueAsString ptrStructCssParser ptrStructCssToken valueType = do
   parser <- peekCssParser ptrStructCssParser
   token  <- peekCssToken ptrStructCssToken
 
@@ -289,8 +289,8 @@ hll_declarationValueAsString ptrStructCssParser ptrStructCssToken valueType = do
 
 
 
-hll_ignoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
-hll_ignoreBlock ptrStructCssParser ptrStructCssToken = do
+ffiIgnoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
+ffiIgnoreBlock ptrStructCssParser ptrStructCssToken = do
   parser <- peekCssParser ptrStructCssParser
 
   let (newParser, newToken) = ignoreBlock parser -- TODO: shouldn't we pass current token to the function?
@@ -301,8 +301,8 @@ hll_ignoreBlock ptrStructCssParser ptrStructCssToken = do
 
 
 
-hll_ignoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
-hll_ignoreStatement ptrStructCssParser ptrStructCssToken = do
+ffiIgnoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
+ffiIgnoreStatement ptrStructCssParser ptrStructCssToken = do
   parser <- peekCssParser ptrStructCssParser
 
   let (newParser, newToken) = ignoreBlock parser -- TODO: shouldn't we pass current token to the function?
@@ -828,8 +828,8 @@ pokeCssDeclarationSet ptrStructDeclarationSet newDeclSet = do
 
 
 
-hll_parseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken ptrStructCssDeclarationSet ptrStructCssDeclarationSetImp = do
+ffiParseDeclarationWrapper :: Ptr FfiCssParser -> Ptr FfiCssToken -> Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+ffiParseDeclarationWrapper ptrStructCssParser ptrStructCssToken ptrStructCssDeclarationSet ptrStructCssDeclarationSetImp = do
   parser <- peekCssParser ptrStructCssParser
   token  <- peekCssToken ptrStructCssToken
 
@@ -851,8 +851,8 @@ hll_parseDeclarationWrapper ptrStructCssParser ptrStructCssToken ptrStructCssDec
 
 
 
-hll_declarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO (Ptr FfiCssDeclarationSet)
-hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDeclaration = do
+ffiDeclarationListAddOrUpdateDeclaration :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclaration -> IO (Ptr FfiCssDeclarationSet)
+ffiDeclarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDeclaration = do
 
   declSet :: CssDeclarationSet <- if ptrStructDeclarationSet == nullPtr
                                   then return defaultCssDeclarationSet
@@ -870,8 +870,8 @@ hll_declarationListAddOrUpdateDeclaration ptrStructDeclarationSet ptrStructDecla
 
 
 
-hll_declarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-hll_declarationListAppend ptrStructTarget ptrStructSource = do
+ffiDeclarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
+ffiDeclarationListAppend ptrStructTarget ptrStructSource = do
 
   source :: CssDeclarationSet <- peekCssDeclarationSet ptrStructSource
   target :: CssDeclarationSet <- peekCssDeclarationSet ptrStructTarget
@@ -885,8 +885,8 @@ hll_declarationListAppend ptrStructTarget ptrStructSource = do
 
 
 {-
-hll_declarationListAppend2 :: Ptr FfiCssDeclarationSet -> CssDeclarationSet -> IO ()
-hll_declarationListAppend2 ptrStructTarget source = do
+ffiDeclarationListAppend2 :: Ptr FfiCssDeclarationSet -> CssDeclarationSet -> IO ()
+ffiDeclarationListAppend2 ptrStructTarget source = do
 
   target :: CssDeclarationSet <- peekCssDeclarationSet ptrStructTarget
 
@@ -920,8 +920,8 @@ peekCssValue ffiCssValue = do
 
 
 
-hll_cssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> CInt -> CInt -> IO ()
-hll_cssParseElementStyleAttribute _ptrBaseUrl ptrStringCssStyleAttribute buflen cMainDeclSetRef cImportantDeclSetRef = do
+ffiCssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> CInt -> CInt -> IO ()
+ffiCssParseElementStyleAttribute _ptrBaseUrl ptrStringCssStyleAttribute buflen cMainDeclSetRef cImportantDeclSetRef = do
 
   cssStyleAttribute <- BSU.unsafePackCStringLen (ptrStringCssStyleAttribute, fromIntegral buflen)
 
@@ -995,15 +995,15 @@ getIntOrigin origin = case origin of
 
 
 
-hll_isTokenComma :: Ptr FfiCssToken -> IO Int
-hll_isTokenComma ptrStructCssToken = do
+ffiIsTokenComma :: Ptr FfiCssToken -> IO Int
+ffiIsTokenComma ptrStructCssToken = do
   token <- peekCssToken ptrStructCssToken
   case token of
     CssTokComma -> return 1
     _           -> return 0
 
-hll_isTokenSemicolon :: Ptr FfiCssToken -> IO Int
-hll_isTokenSemicolon ptrStructCssToken = do
+ffiIsTokenSemicolon :: Ptr FfiCssToken -> IO Int
+ffiIsTokenSemicolon ptrStructCssToken = do
   token <- peekCssToken ptrStructCssToken
   case token of
     CssTokSemicolon -> return 1
@@ -1015,29 +1015,29 @@ hll_isTokenSemicolon ptrStructCssToken = do
 allDeclMakers :: [(CssValue -> CssDeclaration, Int)]
 allDeclMakers =
   [ ( (\v -> CssDeclaration_LAST), 0 )                   -- CssDeclarationBackgroundAttachment; C++ code will never ask for this property
-  , ( (\v -> CssDeclaration_LAST), 1 )                   -- CssDeclarationBackgroundColor; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeColor
+  , ( (\v -> CssDeclaration_LAST), 1 )                   -- CssDeclarationBackgroundColor; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeColor
   , ( (\v -> CssDeclaration_LAST), 2 )                   -- CssDeclarationBackgroundImage; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 3 )                   -- CssDeclarationBackgroundPosition; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 4 )                   -- CssDeclarationBackgroundRepeat; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 5 )                   -- CssDeclarationBorderBottomColor; C++ code will never ask for this property
-  , ( (\v -> CssDeclaration_LAST), 6 )                   -- CssDeclarationBorderBottomStyle; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclaration_LAST), 7 )                   -- CssDeclarationBorderBottomWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 6 )                   -- CssDeclarationBorderBottomStyle; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeEnum
+  , ( (\v -> CssDeclaration_LAST), 7 )                   -- CssDeclarationBorderBottomWidth; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclaration_LAST), 8 )                   -- CssDeclarationBorderCollapse; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 9 )                   -- CssDeclarationBorderLeftColor; C++ code will never ask for this property
-  , ( (\v -> CssDeclaration_LAST), 10 )                  -- CssDeclarationBorderLeftStyle; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclaration_LAST), 11 )                  -- CssDeclarationBorderLeftWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 10 )                  -- CssDeclarationBorderLeftStyle; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeEnum
+  , ( (\v -> CssDeclaration_LAST), 11 )                  -- CssDeclarationBorderLeftWidth; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclaration_LAST), 12 )                  -- CssDeclarationBorderRightColor; C++ code will never ask for this property
-  , ( (\v -> CssDeclaration_LAST), 13 )                  -- CssDeclarationBorderRightStyle; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclaration_LAST), 14 )                  -- CssDeclarationBorderRightWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
-  , ( (\v -> CssDeclaration_LAST), 15 )                  -- CssDeclarationBorderSpacing; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 13 )                  -- CssDeclarationBorderRightStyle; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeEnum
+  , ( (\v -> CssDeclaration_LAST), 14 )                  -- CssDeclarationBorderRightWidth; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 15 )                  -- CssDeclarationBorderSpacing; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclaration_LAST), 16 )                  -- CssDeclarationBorderTopColor; C++ code will never ask for this property
-  , ( (\v -> CssDeclaration_LAST), 17 )                  -- CssDeclarationBorderTopStyle; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclaration_LAST), 18 )                  -- CssDeclarationBorderTopWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 17 )                  -- CssDeclarationBorderTopStyle; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeEnum
+  , ( (\v -> CssDeclaration_LAST), 18 )                  -- CssDeclarationBorderTopWidth; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclarationBottom v), 19 )
   , ( (\v -> CssDeclarationCaptionSide v), 20 )
   , ( (\v -> CssDeclarationClear v), 21 )
   , ( (\v -> CssDeclarationClip v), 22 )
-  , ( (\v -> CssDeclaration_LAST), 23 )                  -- CssDeclarationColor; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeColor
+  , ( (\v -> CssDeclaration_LAST), 23 )                  -- CssDeclarationColor; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeColor
   , ( (\v -> CssDeclaration_LAST), 24 )                  -- CssDeclarationContent; C++ code will never ask for this property
   , ( (\v -> CssDeclarationCounterIncrement v), 25 )
   , ( (\v -> CssDeclarationCounterReset v), 26 )
@@ -1046,24 +1046,24 @@ allDeclMakers =
   , ( (\v -> CssDeclaration_LAST), 29 )                  -- CssDeclarationDisplay; C++ code will never ask for this property
   , ( (\v -> CssDeclarationEmptyCells v), 30 )
   , ( (\v -> CssDeclarationFloat v), 31 )
-  , ( (\v -> CssDeclaration_LAST), 32 )                  -- CssDeclarationFontFamily; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeString
+  , ( (\v -> CssDeclaration_LAST), 32 )                  -- CssDeclarationFontFamily; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeString
   , ( (\v -> CssDeclaration_LAST), 33 )                  -- CssDeclarationFontSize; C++ code will never ask for this property
   , ( (\v -> CssDeclarationFontSizeAdjust v), 34 )
   , ( (\v -> CssDeclarationFontStretch v), 35 )
   , ( (\v -> CssDeclaration_LAST), 36 )                  -- CssDeclarationFontStyle; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 37 )                  -- CssDeclarationFontVariant; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 38 )                  -- CssDeclarationFontWeight; C++ code will never ask for this property
-  , ( (\v -> CssDeclaration_LAST), 39 )                  -- CssDeclarationHeight; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 39 )                  -- CssDeclarationHeight; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclarationLeft v), 40 )
   , ( (\v -> CssDeclaration_LAST), 41 )                  -- CssDeclarationLetterSpacing; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 42 )                  -- CssDeclarationLineHeight; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 43 )                  -- CssDeclarationListStyleImage; C++ code will never ask for this property
-  , ( (\v -> CssDeclaration_LAST), 44 )                  -- CssDeclarationListStylePosition; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclaration_LAST), 45 )                  -- CssDeclarationListStyleType; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclaration_LAST), 46 )                  -- CssDeclarationMarginBottom; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
-  , ( (\v -> CssDeclaration_LAST), 47 )                  -- CssDeclarationMarginLeft;   Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
-  , ( (\v -> CssDeclaration_LAST), 48 )                  -- CssDeclarationMarginRight;  Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
-  , ( (\v -> CssDeclaration_LAST), 49 )                  -- CssDeclarationMarginTop;    Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 44 )                  -- CssDeclarationListStylePosition; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeEnum
+  , ( (\v -> CssDeclaration_LAST), 45 )                  -- CssDeclarationListStyleType; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeEnum
+  , ( (\v -> CssDeclaration_LAST), 46 )                  -- CssDeclarationMarginBottom; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 47 )                  -- CssDeclarationMarginLeft;   Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 48 )                  -- CssDeclarationMarginRight;  Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 49 )                  -- CssDeclarationMarginTop;    Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclarationMarkerOffset v), 50 )
   , ( (\v -> CssDeclarationMarks v), 51 )
   , ( (\v -> CssDeclarationMaxHeight v), 52 )
@@ -1074,32 +1074,32 @@ allDeclMakers =
   , ( (\v -> CssDeclarationOutlineStyle v), 57 )
   , ( (\v -> CssDeclarationOutlineWidth v), 58 )
   , ( (\v -> CssDeclarationOverflow v), 59 )
-  , ( (\v -> CssDeclaration_LAST), 60 )                  -- CssDeclarationPaddingBottom; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
-  , ( (\v -> CssDeclaration_LAST), 61 )                  -- CssDeclarationPaddingLeft; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
-  , ( (\v -> CssDeclaration_LAST), 62 )                  -- CssDeclarationPaddingRight; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
-  , ( (\v -> CssDeclaration_LAST), 63 )                  -- CssDeclarationPaddingTop; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 60 )                  -- CssDeclarationPaddingBottom; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 61 )                  -- CssDeclarationPaddingLeft; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 62 )                  -- CssDeclarationPaddingRight; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 63 )                  -- CssDeclarationPaddingTop; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclarationPosition v), 64 )
   , ( (\v -> CssDeclarationQuotes v), 65 )
   , ( (\v -> CssDeclarationRight v), 66 )
-  , ( (\v -> CssDeclaration_LAST), 67 )                  -- CssDeclarationTextAlign; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
+  , ( (\v -> CssDeclaration_LAST), 67 )                  -- CssDeclarationTextAlign; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclaration_LAST), 68 )                  -- CssDeclarationTextDecoration; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 69 )                  -- CssDeclarationTextIndent; C++ code will never ask for this property
   , ( (\v -> CssDeclarationTextShadow v), 70 )
   , ( (\v -> CssDeclaration_LAST), 71 )                  -- CssDeclarationTextTransform; C++ code will never ask for this property
   , ( (\v -> CssDeclarationTop v), 72 )
   , ( (\v -> CssDeclarationUnicodeBiDi v), 73 )
-  , ( (\v -> CssDeclaration_LAST), 74 )                  -- CssDeclarationVerticalAlign; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
+  , ( (\v -> CssDeclaration_LAST), 74 )                  -- CssDeclarationVerticalAlign; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeEnum
   , ( (\v -> CssDeclarationVisibility v), 75 )
-  , ( (\v -> CssDeclaration_LAST), 76 )                  -- CssDeclarationWhitespace; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeEnum
-  , ( (\v -> CssDeclaration_LAST), 77 )                  -- CssDeclarationWidth; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetNonCssHintOfNodeLength
+  , ( (\v -> CssDeclaration_LAST), 76 )                  -- CssDeclarationWhitespace; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeEnum
+  , ( (\v -> CssDeclaration_LAST), 77 )                  -- CssDeclarationWidth; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetNonCssHintOfNodeLength
   , ( (\v -> CssDeclaration_LAST), 78 )                  -- CssDeclarationWordSpacing; C++ code will never ask for this property
   , ( (\v -> CssDeclarationZIndex v), 79 )
-  , ( (\v -> CssDeclaration_LAST), 80 )                  -- CssDeclarationXLink; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXLinkOfNode
+  , ( (\v -> CssDeclaration_LAST), 80 )                  -- CssDeclarationXLink; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetXLinkOfNode
   , ( (\v -> CssDeclaration_LAST), 81 )                  -- CssDeclarationXColSpan; C++ code will never ask for this property
   , ( (\v -> CssDeclaration_LAST), 82 )                  -- CssDeclarationXRowSpan; C++ code will never ask for this property
-  , ( (\v -> CssDeclaration_LAST), 83 )                  -- CssDeclarationXLang; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXLangOfNode
-  , ( (\v -> CssDeclaration_LAST), 84 )                  -- CssDeclarationXImg; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXImgOfNode
-  , ( (\v -> CssDeclaration_LAST), 85 )                  -- CssDeclarationXTooltip; Handling of a request from C++ to add this declaration is done in hll_styleEngineSetXTooltipOfNode
+  , ( (\v -> CssDeclaration_LAST), 83 )                  -- CssDeclarationXLang; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetXLangOfNode
+  , ( (\v -> CssDeclaration_LAST), 84 )                  -- CssDeclarationXImg; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetXImgOfNode
+  , ( (\v -> CssDeclaration_LAST), 85 )                  -- CssDeclarationXTooltip; Handling of a request from C++ to add this declaration is done in ffiStyleEngineSetXTooltipOfNode
   , ( (\v -> CssDeclaration_LAST), 86 )                  -- "last" item
   ]
 -}

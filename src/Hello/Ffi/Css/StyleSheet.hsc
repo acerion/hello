@@ -68,7 +68,7 @@ import Hello.Ffi.Utils
 
 
 {-
-foreign export ccall "hll_cssStyleSheetApplyStyleSheet" hll_cssStyleSheetApplyStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssDeclarationSet -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO ()
+foreign export ccall "ffiCssStyleSheetApplyStyleSheet" ffiCssStyleSheetApplyStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssDeclarationSet -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO ()
 
 
 
@@ -161,8 +161,8 @@ pokeStyleSheet ptrStructStyleSheet sheet = do
 --
 -- The declarations (list property+value) are set as defined by the rules in
 -- the stylesheet that match at the given node in the document tree.
-hll_cssStyleSheetApplyStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssDeclarationSet -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO ()
-hll_cssStyleSheetApplyStyleSheet ptrStructCssStyleSheet ptrStructTarget cDoctreeRef ptrStructDtn ptrStructMatchCache = do
+ffiCssStyleSheetApplyStyleSheet :: Ptr FfiCssStyleSheet -> Ptr FfiCssDeclarationSet -> CInt -> Ptr FfiDoctreeNode -> Ptr FfiCssMatchCache -> IO ()
+ffiCssStyleSheetApplyStyleSheet ptrStructCssStyleSheet ptrStructTarget cDoctreeRef ptrStructDtn ptrStructMatchCache = do
 
   dtn           <- peekDoctreeNode ptrStructDtn
   styleSheet    <- peekCssStyleSheet ptrStructCssStyleSheet

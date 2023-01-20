@@ -64,18 +64,18 @@ import Hello.Ffi.Css.DoctreeNode
 
 
 
-foreign export ccall "hll_doctreePrint" hll_doctreePrint :: Ptr FfiDoctree -> IO ()
+foreign export ccall "ffiDoctreePrint" ffiDoctreePrint :: Ptr FfiDoctree -> IO ()
 
 
-foreign export ccall "hll_doctreeCtor" hll_doctreeCtor :: IO CInt
-foreign export ccall "hll_doctreeUpdate" hll_doctreeUpdate :: CInt -> CInt -> IO ()
-foreign export ccall "hll_doctreePushNode" hll_doctreePushNode :: CInt -> CInt -> IO CInt
-foreign export ccall "hll_doctreePopNode" hll_doctreePopNode :: CInt -> IO ()
-foreign export ccall "hll_doctreeGetTopNodeElementSelectorId" hll_doctreeGetTopNodeElementSelectorId :: CInt -> IO CString
+foreign export ccall "ffiDoctreeCtor" ffiDoctreeCtor :: IO CInt
+foreign export ccall "ffiDoctreeUpdate" ffiDoctreeUpdate :: CInt -> CInt -> IO ()
+foreign export ccall "ffiDoctreePushNode" ffiDoctreePushNode :: CInt -> CInt -> IO CInt
+foreign export ccall "ffiDoctreePopNode" ffiDoctreePopNode :: CInt -> IO ()
+foreign export ccall "ffiDoctreeGetTopNodeElementSelectorId" ffiDoctreeGetTopNodeElementSelectorId :: CInt -> IO CString
 
-foreign export ccall "hll_styleEngineSetElementId" hll_styleEngineSetElementId :: CInt -> CString -> IO ()
-foreign export ccall "hll_styleEngineSetElementClass" hll_styleEngineSetElementClass :: CInt -> CString -> IO ()
-foreign export ccall "hll_styleEngineSetElementPseudoClass" hll_styleEngineSetElementPseudoClass :: CInt -> CString -> IO ()
+foreign export ccall "ffiStyleEngineSetElementId" ffiStyleEngineSetElementId :: CInt -> CString -> IO ()
+foreign export ccall "ffiStyleEngineSetElementClass" ffiStyleEngineSetElementClass :: CInt -> CString -> IO ()
+foreign export ccall "ffiStyleEngineSetElementPseudoClass" ffiStyleEngineSetElementPseudoClass :: CInt -> CString -> IO ()
 
 
 
@@ -140,22 +140,22 @@ pokeDoctreeNode dtn ptrDoctreeNodeRoot = do
 
 
 
-hll_doctreePrint :: Ptr FfiDoctree -> IO ()
-hll_doctreePrint ptrStructDoctree = do
+ffiDoctreePrint :: Ptr FfiDoctree -> IO ()
+ffiDoctreePrint ptrStructDoctree = do
   doctree <- peekDoctree ptrStructDoctree
-  putStr ("hll_doctreePrint: " ++ show doctree ++ "\n")
+  putStr ("ffiDoctreePrint: " ++ show doctree ++ "\n")
 
 
 
 
-hll_doctreeCtor :: IO CInt
-hll_doctreeCtor = fmap fromIntegral globalDoctreeCtor
+ffiDoctreeCtor :: IO CInt
+ffiDoctreeCtor = fmap fromIntegral globalDoctreeCtor
 
 
 
 
-hll_doctreeUpdate :: CInt -> CInt -> IO ()
-hll_doctreeUpdate cRef cSomeVal = do
+ffiDoctreeUpdate :: CInt -> CInt -> IO ()
+ffiDoctreeUpdate cRef cSomeVal = do
   let ref     = fromIntegral cRef
   let someVal = fromIntegral cSomeVal
 
@@ -166,8 +166,8 @@ hll_doctreeUpdate cRef cSomeVal = do
 
 
 
-hll_doctreePushNode :: CInt -> CInt -> IO CInt
-hll_doctreePushNode cRef cElementIdx = do
+ffiDoctreePushNode :: CInt -> CInt -> IO CInt
+ffiDoctreePushNode cRef cElementIdx = do
   let ref        = fromIntegral cRef
   let elementIdx = fromIntegral cElementIdx
 
@@ -180,8 +180,8 @@ hll_doctreePushNode cRef cElementIdx = do
 
 
 
-hll_doctreePopNode :: CInt -> IO ()
-hll_doctreePopNode cRef = do
+ffiDoctreePopNode :: CInt -> IO ()
+ffiDoctreePopNode cRef = do
   let ref = fromIntegral cRef
   doctree <- globalDoctreeGet ref
   let doctree' = doctreePopNode doctree
@@ -190,8 +190,8 @@ hll_doctreePopNode cRef = do
 
 
 {-
-hll_doctreeGetTopNodeHtmlElementIdx :: CInt -> IO CInt
-hll_doctreeGetTopNodeHtmlElementIdx cRef = do
+ffiDoctreeGetTopNodeHtmlElementIdx :: CInt -> IO CInt
+ffiDoctreeGetTopNodeHtmlElementIdx cRef = do
   mDtn <- doctreeGetTopNode . fromIntegral $ cRef
   case mDtn of
     Just dtn -> return . fromIntegral . htmlElementIdx $ dtn
@@ -200,8 +200,8 @@ hll_doctreeGetTopNodeHtmlElementIdx cRef = do
 
 
 
-hll_doctreeGetTopNodeElementSelectorId :: CInt -> IO CString
-hll_doctreeGetTopNodeElementSelectorId cRef = do
+ffiDoctreeGetTopNodeElementSelectorId :: CInt -> IO CString
+ffiDoctreeGetTopNodeElementSelectorId cRef = do
   mDtn <- doctreeGetTopNode . fromIntegral $ cRef
   case mDtn of
     Just dtn -> newCString . T.unpack . selId $ dtn
@@ -233,8 +233,8 @@ updateTopNodeInTrees ref f = do
 
 
 
-hll_styleEngineSetElementId :: CInt -> CString -> IO ()
-hll_styleEngineSetElementId cDoctreeRef cElementId = do
+ffiStyleEngineSetElementId :: CInt -> CString -> IO ()
+ffiStyleEngineSetElementId cDoctreeRef cElementId = do
     let doctreeRef = fromIntegral cDoctreeRef
     stringVal     <- BSU.unsafePackCString cElementId
     let elementId  = T.E.decodeLatin1 stringVal
@@ -244,8 +244,8 @@ hll_styleEngineSetElementId cDoctreeRef cElementId = do
 
 
 
-hll_styleEngineSetElementClass :: CInt -> CString -> IO ()
-hll_styleEngineSetElementClass cDoctreeRef cElementClassTokens = do
+ffiStyleEngineSetElementClass :: CInt -> CString -> IO ()
+ffiStyleEngineSetElementClass cDoctreeRef cElementClassTokens = do
     let doctreeRef = fromIntegral cDoctreeRef
     tokens        <- BSU.unsafePackCString cElementClassTokens
     -- With ' ' character as separator of selectors, we can use 'words' to
@@ -258,8 +258,8 @@ hll_styleEngineSetElementClass cDoctreeRef cElementClassTokens = do
 
 
 
-hll_styleEngineSetElementPseudoClass :: CInt -> CString -> IO ()
-hll_styleEngineSetElementPseudoClass cDoctreeRef cElementPseudoClass = do
+ffiStyleEngineSetElementPseudoClass :: CInt -> CString -> IO ()
+ffiStyleEngineSetElementPseudoClass cDoctreeRef cElementPseudoClass = do
     let doctreeRef         = fromIntegral cDoctreeRef
     stringVal             <- BSU.unsafePackCString cElementPseudoClass
     let elementPseudoClass = T.E.decodeLatin1 stringVal

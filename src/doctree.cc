@@ -59,7 +59,7 @@ int doctreePushNode(c_doctree_t * doctree, int element_idx)
 
 
    /* Allocate. */
-   c_doctree_node_t * dtn = hll_doctreeNodeNew();
+   c_doctree_node_t * dtn = ffiDoctreeNodeNew();
    //fprintf(stderr, "new doctree node = %lu\n", (long unsigned) dtn);
 
 
@@ -198,7 +198,7 @@ void doctreePopNode(c_doctree_t * doctree)
 
 #if 1
    if (dtn->c_html_element_idx == 42) { /* html element */
-      //hll_doctreePrint(doctree);
+      //ffiDoctreePrint(doctree);
    }
 #endif
 }
@@ -208,7 +208,7 @@ c_doctree_t * doctreeCtor(void)
    c_doctree_t * doctree = (c_doctree_t *) calloc(1, sizeof (c_doctree_t));
    memset(doctree->c_nodes_array, 0, sizeof (doctree->c_nodes_array[0]) * 2048);
    //fprintf(stderr, "doctree pointer = %lu\n", (long unsigned) doctree);
-   doctree->c_root_node = hll_doctreeNodeNew();
+   doctree->c_root_node = ffiDoctreeNodeNew();
    //fprintf(stderr, "root node pointer = %lu\n", (long unsigned) doctree->c_root_node);
    doctree->c_top_node_num = ROOT_NODE_NUM;
    doctree->c_num_nodes = 0;

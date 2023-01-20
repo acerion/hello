@@ -794,7 +794,7 @@ void a_Html_stash_init(DilloHtml *html)
 static int Html_parse_entity(DilloHtml *html, const char *token,
                              int toksize, int *entsize)
 {
-   const int64_t ret = hll_htmlEntityToIsoCode(token, toksize);
+   const int64_t ret = ffiHtmlEntityToIsoCode(token, toksize);
    const int isoCode = ret & 0xffffffff;
    *entsize = (ret & 0xffffffff00000000) >> 32;
 
@@ -1172,9 +1172,9 @@ static void Html_tag_cleanup_to_idx(DilloHtml *html, int idx)
  */
 static void Html_tag_cleanup_at_close(DilloHtml *html, int new_idx)
 {
-   static int i_BUTTON   = hll_htmlTagIndex("button");
-   static int i_SELECT   = hll_htmlTagIndex("select");
-   static int i_TEXTAREA = hll_htmlTagIndex("textarea");
+   static int i_BUTTON   = ffiHtmlTagIndex("button");
+   static int i_SELECT   = ffiHtmlTagIndex("select");
+   static int i_TEXTAREA = ffiHtmlTagIndex("textarea");
 
    int w3c_mode = !prefs.w3c_plus_heuristics;
    int stack_idx, tag_idx, matched = 0, expected = 0;
@@ -1221,9 +1221,9 @@ static void Html_tag_cleanup_at_close(DilloHtml *html, int new_idx)
  */
 static void Html_tag_cleanup_nested_inputs(DilloHtml *html, int new_idx)
 {
-   static int i_BUTTON   = hll_htmlTagIndex("button");
-   static int i_SELECT   = hll_htmlTagIndex("select");
-   static int i_TEXTAREA = hll_htmlTagIndex("textarea");
+   static int i_BUTTON   = ffiHtmlTagIndex("button");
+   static int i_SELECT   = ffiHtmlTagIndex("select");
+   static int i_TEXTAREA = ffiHtmlTagIndex("textarea");
 
    int stack_idx, u_idx, matched = 0;
 
@@ -1270,7 +1270,7 @@ static void Html_tag_cleanup_nested_inputs(DilloHtml *html, int new_idx)
 CssLength html_parse_attribute_width_or_height(const char * attr_value)
 {
    c_css_length_t length = {};
-   hll_htmlParseAttributeWidthOrHeight(attr_value, &length);
+   ffiHtmlParseAttributeWidthOrHeight(attr_value, &length);
 
    return cpp_cssCreateLength(length.c_length_value, (CssLengthType) length.c_length_type);
 }
@@ -1283,7 +1283,7 @@ int32_t a_Html_color_parse(DilloHtml *html, const char *str,
                            int32_t default_color)
 {
    int colorError = 1;
-   int32_t color = hll_colorsStringToColor(str, default_color); colorError = 0; /* TODO: set correct value of error flag colorError. */
+   int32_t color = ffiColorsStringToColor(str, default_color); colorError = 0; /* TODO: set correct value of error flag colorError. */
 
    if (colorError) {
       BUG_MSG("Color '%s' is not in \"#RRGGBB\" format.", str);
@@ -1466,7 +1466,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
 {
    const char *attr_value;
    int32_t color;
-   const int tag_index_a = hll_htmlTagIndex("a");
+   const int tag_index_a = ffiHtmlTagIndex("a");
    style::Color *bgColor;
    style::StyleImage *bgImage;
    style::BackgroundRepeat bgRepeat;
@@ -1558,7 +1558,7 @@ static void Html_tag_open_body(DilloHtml *html, const char *tag, int tagsize)
    if (prefs.contrast_visited_color) {
       /* get a color that has a "safe distance" from text, link and bg */
       html->visited_color =
-         hll_colorsVisitedColor(html->visited_color,
+         ffiColorsVisitedColor(html->visited_color,
             html->styleEngine->getStyle (html->bw)->color->getColor(),
             html->non_css_link_color,
             html->styleEngine->getBackgroundStyle(html->bw)->backgroundColor->getColor());
@@ -2395,7 +2395,7 @@ static void Html_tag_open_a(DilloHtml *html, const char *tag, int tagsize)
       const char *id = html->styleEngine->getElementId ();
 
       if (prefs.show_extra_warnings) {
-         hll_htmlValidateNameOrIdValue(&html->doctype, "name", attr_value);
+         ffiHtmlValidateNameOrIdValue(&html->doctype, "name", attr_value);
       }
 
       nameVal = a_Url_decode_hex_str(attr_value);
@@ -2722,7 +2722,7 @@ static int Html_tag_pre_excludes(DilloHtml *html, int tag_idx)
       /* initialize array */
       if (!ei_set[0])
          for (i = 0; es_set[i]; ++i)
-            ei_set[i] = hll_htmlTagIndex(es_set[i]);
+            ei_set[i] = ffiHtmlTagIndex(es_set[i]);
 
       for (i = 0; ei_set[i]; ++i)
          if (tag_idx == ei_set[i])
@@ -3226,17 +3226,17 @@ static int Html_needs_optional_close(int old_idx, int cur_idx)
 
    if (i_P == -1) {
     /* initialize the indexes of elements with optional close */
-    i_P  = hll_htmlTagIndex("p"),
-    i_LI = hll_htmlTagIndex("li"),
-    i_TD = hll_htmlTagIndex("td"),
-    i_TR = hll_htmlTagIndex("tr"),
-    i_TH = hll_htmlTagIndex("th"),
-    i_DD = hll_htmlTagIndex("dd"),
-    i_DT = hll_htmlTagIndex("dt"),
-    i_OPTION = hll_htmlTagIndex("option");
-    // i_THEAD = hll_htmlTagIndex("thead");
-    // i_TFOOT = hll_htmlTagIndex("tfoot");
-    // i_COLGROUP = hll_htmlTagIndex("colgroup");
+    i_P  = ffiHtmlTagIndex("p"),
+    i_LI = ffiHtmlTagIndex("li"),
+    i_TD = ffiHtmlTagIndex("td"),
+    i_TR = ffiHtmlTagIndex("tr"),
+    i_TH = ffiHtmlTagIndex("th"),
+    i_DD = ffiHtmlTagIndex("dd"),
+    i_DT = ffiHtmlTagIndex("dt"),
+    i_OPTION = ffiHtmlTagIndex("option");
+    // i_THEAD = ffiHtmlTagIndex("thead");
+    // i_TFOOT = ffiHtmlTagIndex("tfoot");
+    // i_COLGROUP = ffiHtmlTagIndex("colgroup");
    }
 
    if (old_idx == i_P || old_idx == i_DT) {
@@ -3334,7 +3334,7 @@ static void Html_test_section(DilloHtml *html, int new_idx, int IsCloseTag)
 
    if (!(html->InFlags & IN_HTML)) {
       tag = "<html>";
-      tag_idx = hll_htmlTagIndex(tag + 1);
+      tag_idx = ffiHtmlTagIndex(tag + 1);
       if (tag_idx != new_idx || IsCloseTag) {
          /* implicit open */
          Html_force_push_tag(html, tag_idx);
@@ -3347,7 +3347,7 @@ static void Html_test_section(DilloHtml *html, int new_idx, int IsCloseTag)
       /* head element */
       if (!(html->InFlags & IN_HEAD) && html->Num_HEAD == 0) {
          tag = "<head>";
-         tag_idx = hll_htmlTagIndex(tag + 1);
+         tag_idx = ffiHtmlTagIndex(tag + 1);
          if (tag_idx != new_idx || IsCloseTag) {
             /* implicit open of the head element */
             Html_force_push_tag(html, tag_idx);
@@ -3360,11 +3360,11 @@ static void Html_test_section(DilloHtml *html, int new_idx, int IsCloseTag)
       /* body element */
       if (html->InFlags & IN_HEAD) {
          tag = "</head>";
-         tag_idx = hll_htmlTagIndex(tag + 2);
+         tag_idx = ffiHtmlTagIndex(tag + 2);
          Html_tag_cleanup_at_close(html, tag_idx);
       }
       tag = "<body>";
-      tag_idx = hll_htmlTagIndex(tag + 1);
+      tag_idx = ffiHtmlTagIndex(tag + 1);
       if (tag_idx != new_idx || IsCloseTag) {
          /* implicit open */
          Html_force_push_tag(html, tag_idx);
@@ -3390,7 +3390,7 @@ static void Html_parse_common_attrs(DilloHtml *html, char *tag, int tagsize)
        * spec states in Sec. 7.5.2 that anchor ids are case-sensitive.
        * So we don't do it and hope for better specs in the future ...
        */
-      hll_htmlValidateNameOrIdValue(&html->doctype, "id", attr_value);
+      ffiHtmlValidateNameOrIdValue(&html->doctype, "id", attr_value);
 
       html->styleEngine->setElementId(attr_value);
    }
@@ -3440,15 +3440,15 @@ static void Html_check_html5_obsolete(DilloHtml *html, int ni)
    static int indexes[9] = {-1};
 
    if (indexes[0] == -1) {
-      indexes[0] = hll_htmlTagIndex("dir");
-      indexes[1] = hll_htmlTagIndex("frame");
-      indexes[2] = hll_htmlTagIndex("frameset");
-      indexes[3] = hll_htmlTagIndex("isindex");
-      indexes[4] = hll_htmlTagIndex("strike");
-      indexes[5] = hll_htmlTagIndex("big");
-      indexes[6] = hll_htmlTagIndex("center");
-      indexes[7] = hll_htmlTagIndex("font");
-      indexes[8] = hll_htmlTagIndex("tt");
+      indexes[0] = ffiHtmlTagIndex("dir");
+      indexes[1] = ffiHtmlTagIndex("frame");
+      indexes[2] = ffiHtmlTagIndex("frameset");
+      indexes[3] = ffiHtmlTagIndex("isindex");
+      indexes[4] = ffiHtmlTagIndex("strike");
+      indexes[5] = ffiHtmlTagIndex("big");
+      indexes[6] = ffiHtmlTagIndex("center");
+      indexes[7] = ffiHtmlTagIndex("font");
+      indexes[8] = ffiHtmlTagIndex("tt");
    }
    for (int i = 0; i < 9; i++) {
       if (indexes[i] == ni) {
@@ -3510,12 +3510,12 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
 
    dReturn_if (html->stop_parser == true);
 
-   const int new_tag_idx = hll_htmlTagIndex(start + IsCloseTag);
+   const int new_tag_idx = ffiHtmlTagIndex(start + IsCloseTag);
    if (new_tag_idx == -1) {
       /* TODO: doctype parsing is a bit fuzzy, but enough for the time being */
       if (!(html->InFlags & IN_HTML)) {
          if (tagsize > 9 && !dStrnAsciiCasecmp(tag, "<!doctype", 9))
-            hll_getDoctypeFromBuffer(&html->doctype, tag, tagsize);
+            ffiGetDoctypeFromBuffer(&html->doctype, tag, tagsize);
       }
       /* Ignore unknown tags */
       return;
@@ -3644,11 +3644,11 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
  */
 const char * html_attribute_get_value(const char * document_rem, int tag_length, const char * attr_name)
 {
-   return hll_htmlAttributeGetValue(document_rem, tag_length, attr_name);
+   return ffiHtmlAttributeGetValue(document_rem, tag_length, attr_name);
 #if 0
    dReturn_val_if_fail(*attr_name, NULL);
 
-   const char * attrValue = hll_htmlAttributeGetValue(document_rem, tag_length, attr_name);
+   const char * attrValue = ffiHtmlAttributeGetValue(document_rem, tag_length, attr_name);
    return attrValue;
    if (NULL == attrValue) {
       return NULL;

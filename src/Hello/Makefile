@@ -77,5 +77,5 @@ install:
 
 
 hlint:
-	hlint ./ -i "Eta reduce" -i "Use head" -i "Avoid lambda" -i "Avoid lambda using \`infix\`" -i "Use camelCase" -i "Use null" -i "Use newtype instead of data"
+	hlint ./ -i "Eta reduce" -i "Use head" -i "Avoid lambda" -i "Avoid lambda using \`infix\`" -i "Use null" -i "Use newtype instead of data"
 

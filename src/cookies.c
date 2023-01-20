@@ -164,6 +164,6 @@ char *a_Cookies_get_query(const DilloUrl *query_url, const DilloUrl *requester)
  */
 static CookieControlAction Cookies_control_check(const DilloUrl *url)
 {
-   return (CookieControlAction) hll_lookupActionForDomain(URL_HOST(url));
+   return (CookieControlAction) ffiLookupActionForDomain(URL_HOST(url));
 }
 

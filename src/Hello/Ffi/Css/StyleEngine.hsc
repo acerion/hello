@@ -65,18 +65,18 @@ import Hello.Ffi.Preferences
 
 
 
-foreign export ccall "hll_styleEngineSetNonCssHintOfNodeLength" hll_styleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> Float -> CInt -> IO CInt
-foreign export ccall "hll_styleEngineSetNonCssHintOfNodeEnum" hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
-foreign export ccall "hll_styleEngineSetNonCssHintOfNodeString" hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
-foreign export ccall "hll_styleEngineSetNonCssHintOfNodeColor" hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
+foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeLength" ffiStyleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> Float -> CInt -> IO CInt
+foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeEnum" ffiStyleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
+foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeString" ffiStyleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
+foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeColor" ffiStyleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
 
-foreign export ccall "hll_styleEngineSetXImgOfNode" hll_styleEngineSetXImgOfNode :: CInt -> CInt -> IO CInt
-foreign export ccall "hll_styleEngineSetXLangOfNode" hll_styleEngineSetXLangOfNode :: CInt -> CString -> IO CInt
-foreign export ccall "hll_styleEngineSetXLinkOfNode" hll_styleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
-foreign export ccall "hll_styleEngineSetXTooltipOfNode" hll_styleEngineSetXTooltipOfNode :: CInt -> CString -> IO CInt
+foreign export ccall "ffiStyleEngineSetXImgOfNode" ffiStyleEngineSetXImgOfNode :: CInt -> CInt -> IO CInt
+foreign export ccall "ffiStyleEngineSetXLangOfNode" ffiStyleEngineSetXLangOfNode :: CInt -> CString -> IO CInt
+foreign export ccall "ffiStyleEngineSetXLinkOfNode" ffiStyleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
+foreign export ccall "ffiStyleEngineSetXTooltipOfNode" ffiStyleEngineSetXTooltipOfNode :: CInt -> CString -> IO CInt
 
-foreign export ccall "hll_styleEngineApplyStyleToGivenNode" hll_styleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiStyleAttrs -> Ptr FfiStyleAttrs -> IO ()
-foreign export ccall "hll_inheritNonCssHints" hll_inheritNonCssHints :: CInt -> CInt -> IO CInt
+foreign export ccall "ffiStyleEngineApplyStyleToGivenNode" ffiStyleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiStyleAttrs -> Ptr FfiStyleAttrs -> IO ()
+foreign export ccall "ffiInheritNonCssHints" ffiInheritNonCssHints :: CInt -> CInt -> IO CInt
 
 
 
@@ -96,8 +96,8 @@ getSomeDeclSet3 nonCssDeclSetRef = if (-1) == nonCssDeclSetRef
 
 
 
-hll_styleEngineSetXImgOfNode :: CInt -> CInt -> IO CInt
-hll_styleEngineSetXImgOfNode cNonCssDeclSetRef cIntVal = do
+ffiStyleEngineSetXImgOfNode :: CInt -> CInt -> IO CInt
+ffiStyleEngineSetXImgOfNode cNonCssDeclSetRef cIntVal = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
@@ -111,8 +111,8 @@ hll_styleEngineSetXImgOfNode cNonCssDeclSetRef cIntVal = do
 
 
 
-hll_styleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
-hll_styleEngineSetXLinkOfNode cNonCssDeclSetRef cIntVal = do
+ffiStyleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
+ffiStyleEngineSetXLinkOfNode cNonCssDeclSetRef cIntVal = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
@@ -126,8 +126,8 @@ hll_styleEngineSetXLinkOfNode cNonCssDeclSetRef cIntVal = do
 
 
 
-hll_styleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> Float -> CInt -> IO CInt
-hll_styleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cLengthValue cLengthType  = do
+ffiStyleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> Float -> CInt -> IO CInt
+ffiStyleEngineSetNonCssHintOfNodeLength cNonCssDeclSetRef cProperty cLengthValue cLengthType  = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
@@ -228,8 +228,8 @@ getTextAlign i | i > fromEnum (maxBound @CssValueTextAlign) = CssValueTextAlignL
 
 
 
-hll_styleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
-hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
+ffiStyleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
+ffiStyleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
   let propertyArg :: Int = fromIntegral cProperty
@@ -254,8 +254,8 @@ hll_styleEngineSetNonCssHintOfNodeEnum cNonCssDeclSetRef cProperty cEnumVal = do
 
 
 
-hll_styleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
-hll_styleEngineSetNonCssHintOfNodeColor cNonCssDeclSetRef cProperty cColor  = do
+ffiStyleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
+ffiStyleEngineSetNonCssHintOfNodeColor cNonCssDeclSetRef cProperty cColor  = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
@@ -274,8 +274,8 @@ hll_styleEngineSetNonCssHintOfNodeColor cNonCssDeclSetRef cProperty cColor  = do
 
 
 
-hll_styleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
-hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cStringVal = do
+ffiStyleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
+ffiStyleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cStringVal = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
@@ -294,8 +294,8 @@ hll_styleEngineSetNonCssHintOfNodeString cNonCssDeclSetRef cProperty cStringVal 
 
 
 
-hll_styleEngineSetXLangOfNode :: CInt -> CString -> IO CInt
-hll_styleEngineSetXLangOfNode cNonCssDeclSetRef cStringVal = do
+ffiStyleEngineSetXLangOfNode :: CInt -> CString -> IO CInt
+ffiStyleEngineSetXLangOfNode cNonCssDeclSetRef cStringVal = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
@@ -310,8 +310,8 @@ hll_styleEngineSetXLangOfNode cNonCssDeclSetRef cStringVal = do
 
 
 
-hll_styleEngineSetXTooltipOfNode :: CInt -> CString -> IO CInt
-hll_styleEngineSetXTooltipOfNode cNonCssDeclSetRef cStringVal = do
+ffiStyleEngineSetXTooltipOfNode :: CInt -> CString -> IO CInt
+ffiStyleEngineSetXTooltipOfNode cNonCssDeclSetRef cStringVal = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 
@@ -326,8 +326,8 @@ hll_styleEngineSetXTooltipOfNode cNonCssDeclSetRef cStringVal = do
 
 
 
-hll_styleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiStyleAttrs -> Ptr FfiStyleAttrs -> IO ()
-hll_styleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiXArg dpiYArg ptrStructParentStyleAttrs ptrStructStyleAttrs = do
+ffiStyleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiStyleAttrs -> Ptr FfiStyleAttrs -> IO ()
+ffiStyleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiXArg dpiYArg ptrStructParentStyleAttrs ptrStructStyleAttrs = do
   prefs                        <- peekPreferences ptrStructPrefs
   styleAttrs :: StyleAttrs     <- peekStyleAttrs ptrStructStyleAttrs
   parentStyleAttrs :: StyleAttrs  <- peekStyleAttrs ptrStructParentStyleAttrs
@@ -346,8 +346,8 @@ hll_styleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiXArg dp
 
 
 
-hll_inheritNonCssHints :: CInt -> CInt -> IO CInt
-hll_inheritNonCssHints cParentNonCssDeclSetRef cNonCssDeclSetRef = do
+ffiInheritNonCssHints :: CInt -> CInt -> IO CInt
+ffiInheritNonCssHints cParentNonCssDeclSetRef cNonCssDeclSetRef = do
   let parentNonCssDeclSetRef = fromIntegral cParentNonCssDeclSetRef
   let nonCssDeclSetRef       = fromIntegral cNonCssDeclSetRef
   parent  <- globalDeclarationSetGet parentNonCssDeclSetRef
@@ -394,7 +394,7 @@ cssLengthToDistance lenValue lenType | lenType == cssLengthTypeNone       = CssN
       currentNode->declLists.non_css_decl_set_ref = declarationListNew(parentNode->declLists.non_css_decl_set_ref); // NOTICE: copy constructo
 
       if (orig_non_css_decl_set_ref != -1) {// original declListNonCss have precedence
-         hll_declarationListAppend(currentNode->declLists.non_css_decl_set_ref, orig_non_css_decl_set_ref);
+         ffiDeclarationListAppend(currentNode->declLists.non_css_decl_set_ref, orig_non_css_decl_set_ref);
       }
 
       //delete origDeclListNonCss;
@@ -407,8 +407,8 @@ cssLengthToDistance lenValue lenType | lenType == cssLengthTypeNone       = CssN
 
 
 {-
-hll_styleEngineBuildUserAgentStyle :: CInt -> IO ()
-hll_styleEngineBuildUserAgentStyle cRef = do
+ffiStyleEngineBuildUserAgentStyle :: CInt -> IO ()
+ffiStyleEngineBuildUserAgentStyle cRef = do
 
   let ref  = fromIntegral cRef
   context <- globalContextGet ref
@@ -422,8 +422,8 @@ hll_styleEngineBuildUserAgentStyle cRef = do
 
 
 
-hll_styleEngineComputeAbsoluteLengthValue :: Float -> CInt -> Ptr FfiFontAttrs -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
-hll_styleEngineComputeAbsoluteLengthValue lengthValue cLengthType ptrStructFontAttrs cPercentageBase dpiX dpiY ptrOut = do
+ffiStyleEngineComputeAbsoluteLengthValue :: Float -> CInt -> Ptr FfiFontAttrs -> CInt -> Float -> Float -> Ptr CInt -> IO CInt
+ffiStyleEngineComputeAbsoluteLengthValue lengthValue cLengthType ptrStructFontAttrs cPercentageBase dpiX dpiY ptrOut = do
   let lengthType     = fromIntegral cLengthType
   fontAttrs         <- peekFontAttrs ptrStructFontAttrs
   let percentageBase = fromIntegral cPercentageBase
@@ -439,8 +439,8 @@ hll_styleEngineComputeAbsoluteLengthValue lengthValue cLengthType ptrStructFontA
 
 
 
-hll_setFontFamily :: Ptr FfiCssValue -> Ptr FfiPreferences -> Ptr FfiFontAttrs -> IO ()
-hll_setFontFamily ptrStructCssValue ptrStructPreferences ptrStructFontAttrs = do
+ffiSetFontFamily :: Ptr FfiCssValue -> Ptr FfiPreferences -> Ptr FfiFontAttrs -> IO ()
+ffiSetFontFamily ptrStructCssValue ptrStructPreferences ptrStructFontAttrs = do
   ffiCssValue <- peek ptrStructCssValue
   value       <- peekCssValue ffiCssValue
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
@@ -451,8 +451,8 @@ hll_setFontFamily ptrStructCssValue ptrStructPreferences ptrStructFontAttrs = do
 
 
 
-hll_setFontWeight :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
-hll_setFontWeight ptrStructFontAttrs ptrStructCssValue = do
+ffiSetFontWeight :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
+ffiSetFontWeight ptrStructFontAttrs ptrStructCssValue = do
   ffiCssValue <- peek ptrStructCssValue
   value       <- peekCssValue ffiCssValue
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
@@ -463,8 +463,8 @@ hll_setFontWeight ptrStructFontAttrs ptrStructCssValue = do
 
 
 
-hll_setFontSize :: Ptr FfiCssValue -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
-hll_setFontSize ptrStructCssValue ptrStructPreferences dpiX dpiY ptrStructParentFontAttrs ptrStructFontAttrs = do
+ffiSetFontSize :: Ptr FfiCssValue -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
+ffiSetFontSize ptrStructCssValue ptrStructPreferences dpiX dpiY ptrStructParentFontAttrs ptrStructFontAttrs = do
   ffiCssValue <- peek ptrStructCssValue
   value       <- peekCssValue ffiCssValue
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
@@ -477,8 +477,8 @@ hll_setFontSize ptrStructCssValue ptrStructPreferences dpiX dpiY ptrStructParent
 
 
 
-hll_setFontStyle :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
-hll_setFontStyle ptrStructFontAttrs ptrStructCssValue = do
+ffiSetFontStyle :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
+ffiSetFontStyle ptrStructFontAttrs ptrStructCssValue = do
   ffiCssValue <- peek ptrStructCssValue
   value       <- peekCssValue ffiCssValue
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
@@ -489,8 +489,8 @@ hll_setFontStyle ptrStructFontAttrs ptrStructCssValue = do
 
 
 
-hll_setFontLetterSpacing :: Ptr FfiCssValue -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
-hll_setFontLetterSpacing ptrStructCssValue dpiX dpiY ptrStructParentFontAttrs ptrStructFontAttrs = do
+ffiSetFontLetterSpacing :: Ptr FfiCssValue -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
+ffiSetFontLetterSpacing ptrStructCssValue dpiX dpiY ptrStructParentFontAttrs ptrStructFontAttrs = do
   ffiCssValue <- peek ptrStructCssValue
   value       <- peekCssValue ffiCssValue
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
@@ -502,8 +502,8 @@ hll_setFontLetterSpacing ptrStructCssValue dpiX dpiY ptrStructParentFontAttrs pt
 
 
 
-hll_setFontVariant :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
-hll_setFontVariant ptrStructFontAttrs ptrStructCssValue = do
+ffiSetFontVariant :: Ptr FfiFontAttrs -> Ptr FfiCssValue -> IO ()
+ffiSetFontVariant ptrStructFontAttrs ptrStructCssValue = do
   ffiCssValue <- peek ptrStructCssValue
   value       <- peekCssValue ffiCssValue
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
@@ -514,8 +514,8 @@ hll_setFontVariant ptrStructFontAttrs ptrStructCssValue = do
 
 
 
-hll_styleEngineApplyStyleToFont :: Ptr FfiCssDeclarationSet -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
-hll_styleEngineApplyStyleToFont ptrStructDeclSet ptrStructPrefs dpiX dpiY ptrStructParentFontAttrs ptrStructFontAttrs = do
+ffiStyleEngineApplyStyleToFont :: Ptr FfiCssDeclarationSet -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiFontAttrs -> Ptr FfiFontAttrs -> IO ()
+ffiStyleEngineApplyStyleToFont ptrStructDeclSet ptrStructPrefs dpiX dpiY ptrStructParentFontAttrs ptrStructFontAttrs = do
   declSet         <- peekCssDeclarationSet ptrStructDeclSet
   prefs           <- peekPreferences ptrStructPrefs
   fontAttrs       <- peekFontAttrs ptrStructFontAttrs
@@ -528,8 +528,8 @@ hll_styleEngineApplyStyleToFont ptrStructDeclSet ptrStructPrefs dpiX dpiY ptrStr
 
 
 
-hll_styleEngineComputeBorderWidth :: Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
-hll_styleEngineComputeBorderWidth ptrStructCssValue ptrStructFontAttrs dpiX dpiY  = do
+ffiStyleEngineComputeBorderWidth :: Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
+ffiStyleEngineComputeBorderWidth ptrStructCssValue ptrStructFontAttrs dpiX dpiY  = do
   ffiCssValue <- peek ptrStructCssValue
   value       <- peekCssValue ffiCssValue
   fontAttrs   <- peekFontAttrs ptrStructFontAttrs
@@ -541,8 +541,8 @@ hll_styleEngineComputeBorderWidth ptrStructCssValue ptrStructFontAttrs dpiX dpiY
 
 
 
-hll_styleEngineSetBorderWidth :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
-hll_styleEngineSetBorderWidth cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpiY ptrStructStyleAttrs = do
+ffiStyleEngineSetBorderWidth :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
+ffiStyleEngineSetBorderWidth cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpiY ptrStructStyleAttrs = do
   let property = fromIntegral cProperty
   ffiCssValue <- peek ptrStructCssValue
   value       <- peekCssValue ffiCssValue
@@ -558,8 +558,8 @@ hll_styleEngineSetBorderWidth cProperty ptrStructCssValue ptrStructFontAttrs dpi
 
 
 
-hll_styleEngineSetBorderStyle :: CInt -> Ptr FfiCssValue -> Ptr FfiStyleAttrs -> IO ()
-hll_styleEngineSetBorderStyle cProperty ptrStructCssValue ptrStructStyleAttrs = do
+ffiStyleEngineSetBorderStyle :: CInt -> Ptr FfiCssValue -> Ptr FfiStyleAttrs -> IO ()
+ffiStyleEngineSetBorderStyle cProperty ptrStructCssValue ptrStructStyleAttrs = do
   let property = fromIntegral cProperty
   ffiCssValue <- peek ptrStructCssValue
   value       <- peekCssValue ffiCssValue
@@ -575,8 +575,8 @@ hll_styleEngineSetBorderStyle cProperty ptrStructCssValue ptrStructStyleAttrs = 
 
 
 
-hll_styleEngineSetMargin :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
-hll_styleEngineSetMargin cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpiY ptrStructStyleAttrs = do
+ffiStyleEngineSetMargin :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
+ffiStyleEngineSetMargin cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpiY ptrStructStyleAttrs = do
   let property = fromIntegral cProperty
   ffiCssValue <- peek ptrStructCssValue
   value       <- peekCssValue ffiCssValue
@@ -594,8 +594,8 @@ hll_styleEngineSetMargin cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpi
 
 
 
-hll_styleEngineSetPadding :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
-hll_styleEngineSetPadding cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpiY ptrStructStyleAttrs = do
+ffiStyleEngineSetPadding :: CInt -> Ptr FfiCssValue -> Ptr FfiFontAttrs -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
+ffiStyleEngineSetPadding cProperty ptrStructCssValue ptrStructFontAttrs dpiX dpiY ptrStructStyleAttrs = do
   let property  = fromIntegral cProperty
   ffiCssValue  <- peek ptrStructCssValue
   value        <- peekCssValue ffiCssValue
@@ -612,8 +612,8 @@ hll_styleEngineSetPadding cProperty ptrStructCssValue ptrStructFontAttrs dpiX dp
 
 
 
-hll_computeDwLength :: Ptr FfiDwLength -> CDouble -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
-hll_computeDwLength ptrStructDwLength cLenValue cLenType ptrStructFontAttrs dpiX dpiY = do
+ffiComputeDwLength :: Ptr FfiDwLength -> CDouble -> CInt -> Ptr FfiFontAttrs -> Float -> Float -> IO Int
+ffiComputeDwLength ptrStructDwLength cLenValue cLenType ptrStructFontAttrs dpiX dpiY = do
   let lenType  = fromIntegral cLenType
   let lenValue = cDoubleToDouble cLenValue
   let distance = cssLengthToDistance (realToFrac lenValue) lenType
@@ -628,8 +628,8 @@ hll_computeDwLength ptrStructDwLength cLenValue cLenType ptrStructFontAttrs dpiX
 
 
 
-hll_styleEngineSetStyle :: CInt -> Ptr FfiCssValue -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
-hll_styleEngineSetStyle cProperty ptrStructCssValue dpiX dpiY ptrStructStyleAttrs = do
+ffiStyleEngineSetStyle :: CInt -> Ptr FfiCssValue -> Float -> Float -> Ptr FfiStyleAttrs -> IO ()
+ffiStyleEngineSetStyle cProperty ptrStructCssValue dpiX dpiY ptrStructStyleAttrs = do
   let property  = fromIntegral cProperty
   ffiCssValue  <- peek ptrStructCssValue
   value        <- peekCssValue ffiCssValue
@@ -646,8 +646,8 @@ hll_styleEngineSetStyle cProperty ptrStructCssValue dpiX dpiY ptrStructStyleAttr
 
 
 {-
-hll_makeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssProperty)
-hll_makeCssDeclaration cProperty ptrFfiCssValue = do
+ffiMakeCssDeclaration :: CInt -> Ptr FfiCssValue -> IO (Ptr FfiCssProperty)
+ffiMakeCssDeclaration cProperty ptrFfiCssValue = do
   let property = fromIntegral cProperty
 
   ffiCssValue :: FfiCssValue <- peek ptrFfiCssValue
@@ -662,8 +662,8 @@ hll_makeCssDeclaration cProperty ptrFfiCssValue = do
 
 
 {-
-hll_styleEngineSetNonCssHintOfNodeInt :: CInt -> CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
-hll_styleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIntVal cLengthValue cLengthType  = do
+ffiStyleEngineSetNonCssHintOfNodeInt :: CInt -> CInt -> CInt -> CInt -> Float -> CInt -> IO CInt
+ffiStyleEngineSetNonCssHintOfNodeInt cNonCssDeclSetRef cProperty cValueType cIntVal cLengthValue cLengthType  = do
 
   (declSet, ref) <- getSomeDeclSet3 $ fromIntegral cNonCssDeclSetRef
 

@@ -77,7 +77,7 @@ i.e. that toLower is called at proper places.
 TODO: action enum is defined here. Acceptable set of action strings is
 defined elsewhere (in lineToRule). Mapping of string to enum is elsewher (in
 stringToAction). Mapping of action to integer is elsewhere (in
-hll_lookupActionForDomain). Try to put all this in one place.
+ffiLookupActionForDomain). Try to put all this in one place.
 -}
 data CookieAction = CookieActionAccept
                   | CookieActionAcceptSession

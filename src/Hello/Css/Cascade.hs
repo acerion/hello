@@ -239,7 +239,7 @@ buildMatchingRulesGroupForDtn styleSheet dtn = reverse rulesLists
 
     {-
     if (dtn->c_element_selector_id) {
-       rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_rules_by_id, dtn->c_element_selector_id);
+       rules_lists[numLists] = ffiRulesMapGetList(style_sheet->c_rules_by_id, dtn->c_element_selector_id);
        if (rules_lists[numLists]) {
           numLists++;
        }
@@ -259,7 +259,7 @@ buildMatchingRulesGroupForDtn styleSheet dtn = reverse rulesLists
           break;
        }
 
-       rules_lists[numLists] = hll_rulesMapGetList(style_sheet->c_rules_by_class, dtn->c_element_selector_class[i]);
+       rules_lists[numLists] = ffiRulesMapGetList(style_sheet->c_rules_by_class, dtn->c_element_selector_class[i]);
        if (rules_lists[numLists]) {
           numLists++;
        }

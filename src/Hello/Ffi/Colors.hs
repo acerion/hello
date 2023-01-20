@@ -46,22 +46,22 @@ import Hello.Colors
 
 
 
-foreign export ccall "hll_colorsStringToColor" hll_colorsStringToColor ::  CString -> Int -> IO Int
-foreign export ccall "hll_colorsVisitedColor"  hll_colorsVisitedColor :: Int -> Int -> Int -> Int -> IO Int
+foreign export ccall "ffiColorsStringToColor" ffiColorsStringToColor ::  CString -> Int -> IO Int
+foreign export ccall "ffiColorsVisitedColor"  ffiColorsVisitedColor :: Int -> Int -> Int -> Int -> IO Int
 
 
 
 
-hll_colorsStringToColor :: CString -> Int -> IO Int
-hll_colorsStringToColor cBuf defaultColor = do
+ffiColorsStringToColor :: CString -> Int -> IO Int
+ffiColorsStringToColor cBuf defaultColor = do
   buf <- BSU.unsafePackCString cBuf
   return (colorsStringToColorWithDefault (T.E.decodeUtf8 buf) defaultColor)
 
 
 
 
-hll_colorsVisitedColor :: Int -> Int -> Int -> Int -> IO Int
-hll_colorsVisitedColor candidate txt lnk bg = do
+ffiColorsVisitedColor :: Int -> Int -> Int -> Int -> IO Int
+ffiColorsVisitedColor candidate txt lnk bg = do
   return (colorsVisitedColor candidate txt lnk bg)
 
 

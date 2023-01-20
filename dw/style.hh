@@ -352,7 +352,7 @@ enum WhiteSpace {
 
 
 /** \brief Returns a length of \em n pixels. */
-// Notice that this function is already re-implemented in Haskell with hll_createAutoDwLength()
+// Notice that this function is already re-implemented in Haskell with ffiCreateAutoDwLength()
 inline DwLength createAutoLength(void)
 {
    DwLength l = {};
@@ -363,7 +363,7 @@ inline DwLength createAutoLength(void)
 }
 
 /** \brief Returns a length of \em n pixels. */
-// Notice that this function is already re-implemented in Haskell with hll_createAbsoluteDwLength.
+// Notice that this function is already re-implemented in Haskell with ffiCreateAbsoluteDwLength.
 inline DwLength createAbsoluteDwLength(int n)
 {
    DwLength l = {};
@@ -374,7 +374,7 @@ inline DwLength createAbsoluteDwLength(int n)
 }
 
 /** \brief Returns a percentage, \em v is relative to 1, not to 100. */
-// Notice that this function is already re-implemented in Haskell with hll_createPercentageDwLength.
+// Notice that this function is already re-implemented in Haskell with ffiCreatePercentageDwLength.
 inline DwLength createPercentageDwLength(double v)
 {
    DwLength l = {};

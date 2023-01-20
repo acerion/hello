@@ -33,7 +33,7 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 module Hello.Ffi.Html.Attribute
   (
-    hll_htmlParseAttributeWidthOrHeight
+    ffiHtmlParseAttributeWidthOrHeight
   )
 where
 
@@ -56,14 +56,14 @@ import Hello.Ffi.Html.Document
 
 
 
-foreign export ccall "hll_htmlParseAttributeWidthOrHeight" hll_htmlParseAttributeWidthOrHeight :: CString -> Ptr FfiCssLength -> IO ()
-foreign export ccall "hll_htmlValidateNameOrIdValue" hll_htmlValidateNameOrIdValue :: Ptr FfiHtmlDoctype -> CString -> CString -> IO Bool
+foreign export ccall "ffiHtmlParseAttributeWidthOrHeight" ffiHtmlParseAttributeWidthOrHeight :: CString -> Ptr FfiCssLength -> IO ()
+foreign export ccall "ffiHtmlValidateNameOrIdValue" ffiHtmlValidateNameOrIdValue :: Ptr FfiHtmlDoctype -> CString -> CString -> IO Bool
 
 
 
 
-hll_htmlParseAttributeWidthOrHeight :: CString -> Ptr FfiCssLength -> IO ()
-hll_htmlParseAttributeWidthOrHeight cAttrValue ptrStructCssLength = do
+ffiHtmlParseAttributeWidthOrHeight :: CString -> Ptr FfiCssLength -> IO ()
+ffiHtmlParseAttributeWidthOrHeight cAttrValue ptrStructCssLength = do
   attrValue <- BSU.unsafePackCString cAttrValue
 
   let (v', t') = case parseLengthOrMultiLength (T.E.decodeUtf8 attrValue) of
@@ -80,8 +80,8 @@ hll_htmlParseAttributeWidthOrHeight cAttrValue ptrStructCssLength = do
 
 
 
-hll_htmlValidateNameOrIdValue :: Ptr FfiHtmlDoctype -> CString -> CString -> IO Bool
-hll_htmlValidateNameOrIdValue ptrHtmlDoctype ptrAttrName ptrAttrValue = do
+ffiHtmlValidateNameOrIdValue :: Ptr FfiHtmlDoctype -> CString -> CString -> IO Bool
+ffiHtmlValidateNameOrIdValue ptrHtmlDoctype ptrAttrName ptrAttrValue = do
 
   htmlDocument <- peekHtmlDoctype ptrHtmlDoctype
 
