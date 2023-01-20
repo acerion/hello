@@ -151,9 +151,50 @@ testAttributeValueFun (x:xs) = if expectedValue x == htmlAttributeGetValue (tag 
 
 
 
+{- -------------------------------------------------------------------------- -}
+
+
+
+
+htmlTagIndexTestData :: [(T.Text, Int)]
+htmlTagIndexTestData =
+  [
+    -- First item from tags list
+    ( "a", 0)
+    -- Last item from tags list
+  , ( "wbr", 88)
+    -- Some item from the middle
+  , ( "figcaption", 26)
+  ]
+
+
+
+
+-- On success return empty string. On failure return string representation of
+-- remainder string in a row, for which test failed.
+htmlTagIndexTest :: [(T.Text, Int)] -> T.Text
+htmlTagIndexTest []     = ""
+htmlTagIndexTest (x:xs) = if expectedIdx /= idx
+                          then T.pack (show str ++ ", " ++ show idx ++ ", " ++ show expectedIdx)
+                          else htmlTagIndexTest xs
+  where
+    str         = fst x
+    expectedIdx = snd x
+    idx         = htmlTagIndex str
+
+
+
+
+{- -------------------------------------------------------------------------- -}
+
+
+
+
 testCases :: [Test]
-testCases = [
-    TestCase(assertEqual "'get attribute value' tests" "" (testAttributeValueFun testAttributeValueData))
+testCases =
+  [
+    TestCase (assertEqual "'get attribute value' tests" "" (testAttributeValueFun testAttributeValueData))
+  , TestCase (assertEqual "htmlTagIndex tests"          "" (htmlTagIndexTest htmlTagIndexTestData))
   ]
 
 

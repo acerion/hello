@@ -52,6 +52,7 @@ import Prelude
 import Data.Char
 import qualified Data.Text as T
 import qualified Data.Map as M
+import Data.Maybe
 import qualified Data.Vector as V
 --import Debug.Trace
 
@@ -317,30 +318,24 @@ fixWhiteSpaces text = T.map (\c -> if c == '\t' || c == '\n' then ' ' else c) te
 
 
 
+-- Convert a string with HTML element name (e.g. "body" or "hr") into an
+-- integer used internally for different stuff.
+--
 -- Notice that tag name in elementName may be followed by characters that can
 -- appear in a HTML: '/', '>', ' ', e.g. "head>", "a ", "br/".
 -- The other chars that can appear in the elementName are '\n', '\r', '\t'.
 --
 -- TODO: make sure before calling the function that the elementName contains
 -- only an element name, without any following characters.
+--
+-- Unit-tested: yes
 htmlTagIndex :: T.Text -> Int -- TODO: replace all calls of this function with htmlTagIndex2
-htmlTagIndex elementName =
-  case V.findIndex findP htmlTagInfo of
-    Just idx -> idx
-    Nothing  -> -1
-  where
-    findP :: T.Text -> Bool
-    findP = \t -> t == elementName'
-
-    nameP :: Char -> Bool
-    nameP = \c -> isAlphaNum c && isAscii c
-
-    elementName' = T.toLower (T.takeWhile nameP elementName)
+htmlTagIndex elementName = fromMaybe (-1) (htmlTagIndex2 elementName)
 
 
 
 
-htmlTagIndex2 :: T.Text -> Maybe Int -- TODO: the function should return Maybe Int
+htmlTagIndex2 :: T.Text -> Maybe Int
 htmlTagIndex2 elementName = V.findIndex findP htmlTagInfo
   where
     findP :: T.Text -> Bool
@@ -350,3 +345,4 @@ htmlTagIndex2 elementName = V.findIndex findP htmlTagInfo
     nameP = \c -> isAlphaNum c && isAscii c
 
     elementName' = T.toLower (T.takeWhile nameP elementName)
+
