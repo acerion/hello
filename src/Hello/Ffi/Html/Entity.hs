@@ -33,13 +33,12 @@ where
 
 
 
---import Prelude
 import Foreign
 import Foreign.C
 
+import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
-import qualified Data.ByteString.Unsafe as BSU
 
 import Hello.Html.Entity
 
@@ -65,17 +64,19 @@ foreign export ccall "ffiHtmlEntityToIsoCode" ffiHtmlEntityToIsoCode :: CString 
 -- put too much work in doing this in similar way in FFI code, because sooner
 -- or later the FFI code will be removed (replaced with "pure" Haskell code).
 ffiHtmlEntityToIsoCode :: CString -> Int -> IO Int64
-ffiHtmlEntityToIsoCode cBuf len = do
-  buf <- if len > 0
-         then BSU.unsafePackCStringLen (cBuf, len)
-         else BSU.unsafePackCString cBuf
-  case htmlEntityToIsoCode . T.E.decodeUtf8 $ buf of
-    Just parser ->
-      case entityIsoCode parser of
-        Just code -> return (fromIntegral ((consumed `shiftL` 32) .|. code))
-          where consumed = (T.length . T.E.decodeUtf8 $ buf) - T.length (remainder parser)
-        Nothing -> return (-1)
-    Nothing     -> return (-1)
+ffiHtmlEntityToIsoCode cBuf len =
+  if len > 0
+  then
+    do
+      buf <- BSU.unsafePackCStringLen (cBuf, len)
+      case htmlEntityToIsoCode . T.E.decodeUtf8 $ buf of
+        Just (rest, entity) -> return (fromIntegral ((consumed `shiftL` 32) .|. entityIsoCode entity))
+          where consumed = (T.length . T.E.decodeUtf8 $ buf) - T.length rest
+        Nothing     -> return (-1)
+  else
+    do
+      putStrLn ("[EE] invalid length of entity token: " ++ show len)
+      return (-1)
 
 
 

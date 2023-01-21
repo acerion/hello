@@ -31,9 +31,9 @@ Copyright (C) 2005-2007 Jorge Arellano Cid <jcid@dillo.org>
 
 module Hello.Html.Entity
   (
-  -- Only for tests
     htmlEntityToIsoCode
-  , EntityParser (..)
+
+  , HtmlEntity (..)
   )
 where
 
@@ -46,19 +46,15 @@ import qualified Data.Text as T
 import qualified Data.Text.Read as T.R
 import qualified Data.Map as M
 
+import Hello.Utils.Parser
 
 
 
-data EntityParser = EntityParser {
-    entityIsoCode :: Maybe Int
-  , remainder :: T.Text
+
+data HtmlEntity = HtmlEntity
+  {
+    entityIsoCode :: Int
   } deriving (Eq, Show)
-
-
-
-
-parserDefault :: EntityParser
-parserDefault = EntityParser { entityIsoCode = Nothing, remainder = "" }
 
 
 
@@ -146,75 +142,72 @@ gEntities = M.fromList [
 -- characters from which an entity should be parsed. The entity should be at
 -- the very beginning of input string.
 --
--- The big parser of whole HTML document will have a big buffer with whole
--- HTML document. You probably don't want to pass this whole document here -
--- you want to pass only a small token that starts with entity to parse. Or
--- maybe you want to pass the whole document. Who knows how the final HTML
--- parser will work.
+-- You probably don't want to pass a whole HTML document here - you want to
+-- pass only a small token that starts with entity to parse. Or maybe you
+-- want to pass the whole document. Who knows how the final HTML parser will
+-- work.
 --
--- TODO: this function looks exactly like a first example of parser from Real
--- World Haskell. This is a good place to learn more from that chapter of
--- RWH.
-htmlEntityToIsoCode :: T.Text -> Maybe EntityParser
-htmlEntityToIsoCode text =
-  case takeAmpersand parserDefault text of
-    Nothing -> Nothing
-    Just p1 ->
-      case takeBody p1 (remainder p1) of
-        Nothing -> Nothing
-        Just p2 -> takeSemicolon p2 (remainder p2)
+-- Unit-tested: yes
+htmlEntityToIsoCode :: T.Text -> Maybe (T.Text, HtmlEntity)
+htmlEntityToIsoCode text = runParser (ampersandParser *> bodyParser <* semicolonParser) text
 
 
 
 
-takeAmpersand :: EntityParser -> T.Text -> Maybe EntityParser
-takeAmpersand parser text = if T.isPrefixOf "&" text
-                            then Just parser { remainder = T.tail text }
-                            else Just parser
+-- Take an ampersand from input text.
+ampersandParser :: Parser T.Text ()
+ampersandParser = Parser $ (\ text -> if T.isPrefixOf "&" text
+                                      then Just (T.tail text, ())
+                                      else Nothing)
 
 
 
 
-takeBody :: EntityParser -> T.Text -> Maybe EntityParser
-takeBody parser text = if T.isPrefixOf "#" text
-                       then Just (htmlEntityNumberToIsoCode parser (T.tail text))
-                       else Just (htmlEntityNameToIsoCode parser text)
+-- Convert a body of "&body;" entity into a HtmlEntity value.
+bodyParser :: Parser T.Text HtmlEntity
+bodyParser = Parser $ (\ text -> if T.isPrefixOf "#" text
+                                 then numberToIsoCode . T.tail $ text
+                                 else nameToIsoCode text)
 
 
 
 
-takeSemicolon :: EntityParser -> T.Text -> Maybe EntityParser
-takeSemicolon parser text = if T.isPrefixOf ";" text
-                            then Just (parser { remainder = T.tail text })
-                            else Just parser
+-- Take a semicolon from input text.
+--
+-- TODO: proper handling of missing semicolon should be reviewed.
+semicolonParser :: Parser T.Text ()
+semicolonParser = Parser fn
+  where
+    fn :: T.Text -> Maybe (T.Text, ())
+    fn text | T.isPrefixOf ";" text = Just (T.tail text, ())
+            | T.null text           = Just (text, ()) -- "no semicolon" case that is not treated as error.
+            | T.isPrefixOf " " text = Just (text, ()) -- "no semicolon" case that is not treated as error.
+            | otherwise             = Nothing         -- "no semicolon" case that is treated as error.
 
 
 
 
 -- Parse a number into entity code.
 --
--- Pass the string without initial "&#" to the function. It should be either
--- "nnnn;" or "xhhhh;" string.
+-- Caller must pass a string with initial "&#" stripped from it. The argument
+-- should be either "nnnn;" or "xhhhh;" string.
 --
 -- TODO: original code returned error if iso code was >= 0xFFFF. Verify if
 -- this needs to be introduced into this code.
-htmlEntityNumberToIsoCode :: EntityParser -> T.Text -> EntityParser
-htmlEntityNumberToIsoCode parserArg textArg =
-  if T.isPrefixOf "x" text'
-  then if T.isPrefixOf "x0x" text'  -- T.R.hexadecimal supports leading 0x, but leading 0x is not valid in numeric entity.
-       then parserArg { entityIsoCode = Nothing, remainder = T.drop 3 textArg }
-       else numReader T.R.hexadecimal parserArg (T.tail textArg)
-  else numReader T.R.decimal parserArg textArg
+numberToIsoCode :: T.Text -> Maybe (T.Text, HtmlEntity)
+numberToIsoCode input
+  | T.isPrefixOf "x" text' = if T.isPrefixOf "x0x" text'
+                             then Nothing -- T.R.hexadecimal supports leading 0x, but leading 0x is not valid in numeric entity.
+                             else numReader T.R.hexadecimal (T.tail input)
+  | otherwise = numReader T.R.decimal input
   where
-    text' = T.toLower textArg
-    numReader :: T.R.Reader Int -> EntityParser -> T.Text -> EntityParser
-    numReader reader parser text =
+    text' = T.toLower input
+    numReader :: T.R.Reader Int -> T.Text -> Maybe (T.Text, HtmlEntity)
+    numReader reader text =
       case reader text of
-        Right pair -> parser { entityIsoCode = Just (if code >= 145 && code <= 151 then replaceQuotes code else code)
-                             , remainder = snd pair }
+        Right pair -> Just (snd pair, HtmlEntity (if code >= 145 && code <= 151 then replaceQuotes code else code))
           where code = fst pair
-        Left _     -> parser { entityIsoCode = Nothing
-                             , remainder = text }
+        Left _     -> Nothing
 
 
 
@@ -224,12 +217,13 @@ htmlEntityNumberToIsoCode parserArg textArg =
 -- This was the code that was getting "name" of enity:
 --       while (*++s && (isalnum(*s) || strchr(":_.-", *s))) ;
 -- The pred function should take this into consideration.
-htmlEntityNameToIsoCode :: EntityParser -> T.Text -> EntityParser
-htmlEntityNameToIsoCode parser name = parser { entityIsoCode = M.lookup name' gEntities,
-                                               remainder = T.drop (T.length name') name }
-  where name' = T.takeWhile predicate name
-        predicate :: Char -> Bool
-        predicate c = Data.Char.isDigit c || Data.Char.isAsciiUpper c || Data.Char.isAsciiLower c
+nameToIsoCode :: T.Text -> Maybe (T.Text, HtmlEntity)
+nameToIsoCode input = fmap (\ i -> (rmd, HtmlEntity i)) (M.lookup name' gEntities)
+  where
+    rmd = T.drop (T.length name') input
+    name' = T.takeWhile predicate input
+    predicate :: Char -> Bool
+    predicate c = Data.Char.isDigit c || Data.Char.isAsciiUpper c || Data.Char.isAsciiLower c
 
 
 

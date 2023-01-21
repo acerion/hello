@@ -24,51 +24,50 @@ import Test.HUnit
 import qualified Data.Text as T
 
 import Hello.Html.Entity
-import Hello.Utils
 
 
 
 
-validEntityData :: [(T.Text, Maybe Int, T.Text)]
+validEntityData :: [(T.Text, Maybe (T.Text, HtmlEntity))]
 validEntityData =
-  --  token                          code              remainder
+  --  input                          Maybe (remainder, html entity)
   [
   -- Correct values of entity names.
-    ("&amp;",                        Just 0x0026,      "")
-  , ("&lt;",                         Just 0x003C,      "")
-  , ("&diams;",                      Just 0x2666,      "")
+    ("&amp;",                        Just ("", HtmlEntity 0x0026))
+  , ("&lt;",                         Just ("", HtmlEntity 0x003C))
+  , ("&diams;",                      Just ("", HtmlEntity 0x2666))
 
   -- Correct values of entity names, but without terminating semicolon.
-  , ("&nbsp",                        Just 0x00A0,      "")
-  , ("&cent",                        Just 0x00A2,      "")
-  , ("&sup3",                        Just 0x00B3,      "")
+  , ("&nbsp",                        Just ("", HtmlEntity 0x00A0))
+  , ("&cent",                        Just ("", HtmlEntity 0x00A2))
+  , ("&sup3",                        Just ("", HtmlEntity 0x00B3))
 
   -- Correct values of entity names, with some text after them. The
   -- additional text should be put into 'remainder' field of parser.
-  , ("&Agrave; one",                 Just 0x00C0,      " one")
-  , ("&clubs;t w o",                 Just 0x2663,      "t w o")
-  , ("&sum;three ",                  Just 0x2211,      "three ")
+  , ("&Agrave; one",                 Just (" one",   HtmlEntity 0x00C0))
+  , ("&clubs;t w o",                 Just ("t w o",  HtmlEntity 0x2663))
+  , ("&sum;three ",                  Just ("three ", HtmlEntity 0x2211))
 
   -- Correct decimal values. With ending semicolon.
-  , ("&#1234;",                      Just 1234,        "")
-  , ("&#3212;hello",                 Just 3212,        "hello")
-  , ("&#999; world",                 Just 999,         " world")
+  , ("&#1234;",                      Just ("",       HtmlEntity 1234))
+  , ("&#3212;hello",                 Just ("hello",  HtmlEntity 3212))
+  , ("&#999; world",                 Just (" world", HtmlEntity 999))
 
   -- Correct decimal values. Without ending semicolon.
-  , ("&#7123",                       Just 7123,        "")
-  , ("&#356 day",                    Just 356,         " day")
-  , ("&#83 night ",                  Just 83,          " night ")
+  , ("&#7123",                       Just ("",        HtmlEntity 7123))
+  , ("&#356 day",                    Just (" day",    HtmlEntity 356))
+  , ("&#83 night ",                  Just (" night ", HtmlEntity 83))
 
     -- Correct hex values. With ending semicolon.
-  , ("&#xa34e;",                     Just 0xa34e,      "")
-  , ("&#xff123;never",               Just 0xff123,     "never")
-  , ("&#x995;gonna ",                Just 0x995,       "gonna ")
-  , ("&#x123ff; let ",               Just 0x123ff,     " let ")
+  , ("&#xa34e;",                     Just ("",       HtmlEntity 0xa34e))
+  , ("&#xff123;never",               Just ("never",  HtmlEntity 0xff123))
+  , ("&#x995;gonna ",                Just ("gonna ", HtmlEntity 0x995))
+  , ("&#x123ff; let ",               Just (" let ",  HtmlEntity 0x123ff))
 
   -- Correct hex values. Without ending semicolon.
-  , ("&#x7",                         Just 0x7,         "")
-  , ("&#x7d left",                   Just 0x7d,        " left")
-  , ("&#x7d1 right ",                Just 0x7d1,       " right ")
+  , ("&#x7",                         Just ("",        HtmlEntity 0x7))
+  , ("&#x7d left",                   Just (" left",   HtmlEntity 0x7d))
+  , ("&#x7d1 right ",                Just (" right ", HtmlEntity 0x7d1))
   ]
 
 
@@ -77,80 +76,74 @@ validEntityData =
 -- Well-formed, but unsupported values of entity names. They should be
 -- consumed/skipped, and and whatever comes after name should be saved as
 -- remainder.
-wellFormedEntityData :: [(T.Text, Maybe a, T.Text)]
+wellFormedEntityData :: [(T.Text, Maybe (T.Text, HtmlEntity))]
 wellFormedEntityData =
-  --  token                          code              remainder
+  --  token                          Maybe (remainder, html entity)
   [
-    ("&monday; semispace",           Nothing,          " semispace")   -- Semicolon and space used as separator.
-  , ("&tuesday;nospace",             Nothing,          "nospace")      -- Only semicolon used to separate name from following text.
-  , ("&wednesday justspace ",        Nothing,          " justspace ")  -- Only space used to separeate name from following text.
+    ("&monday; semispace",           Nothing)  -- Semicolon and space used as separator.
+  , ("&tuesday;nospace",             Nothing)  -- Only semicolon used to separate name from following text.
+  , ("&wednesday justspace ",        Nothing)  -- Only space used to separeate name from following text.
   ]
 
 
 
 
 -- Verify that we are reaching the special case for w1252 codes.
-w1252EntityData :: [(T.Text, Maybe Int, T.Text)]
+w1252EntityData :: [(T.Text, Maybe (T.Text, HtmlEntity))]
 w1252EntityData =
-  --  token                          code              remainder
+  --  token                          Maybe (remainder, html entity)
   [
   -- Values before special range.
-    ("&#141; 241",                   Just 141,         " 241")
-  , ("&#142;242",                    Just 142,         "242")
-  , ("&#143;243",                    Just 143,         "243")
-  , ("&#144; 244 ",                  Just 144,         " 244 ")
+    ("&#141; 241",                   Just (" 241",  HtmlEntity 141))
+  , ("&#142;242",                    Just ("242",   HtmlEntity 142))
+  , ("&#143;243",                    Just ("243",   HtmlEntity 143))
+  , ("&#144; 244 ",                  Just (" 244 ", HtmlEntity 144))
 
   -- Special range.
-  , ("&#145; 245",                   Just 0x27,        " 245")
-  , ("&#146;246",                    Just 0x27,        "246")
-  , ("&#147; 247 ",                  Just 0x22,        " 247 ")
-  , ("&#148;248 ",                   Just 0x22,        "248 ")
-  , ("&#149; 249",                   Just 0xb0,        " 249")
-  , ("&#150;",                       Just 0x2d,        "")
-  , ("&#151; 251",                   Just 0x2d,        " 251")
+  , ("&#145; 245",                   Just (" 245",  HtmlEntity 0x27))
+  , ("&#146;246",                    Just ("246",   HtmlEntity 0x27))
+  , ("&#147; 247 ",                  Just (" 247 ", HtmlEntity 0x22))
+  , ("&#148;248 ",                   Just ("248 ",  HtmlEntity 0x22))
+  , ("&#149; 249",                   Just (" 249",  HtmlEntity 0xb0))
+  , ("&#150;",                       Just ("",      HtmlEntity 0x2d))
+  , ("&#151; 251",                   Just (" 251",  HtmlEntity 0x2d))
 
   -- Values after special range.
-  , ("&#152; 252",                   Just 152,         " 252")
-  , ("&#153; 253",                   Just 153,         " 253")
-  , ("&#154; 254",                   Just 154,         " 254")
+  , ("&#152; 252",                   Just (" 252", HtmlEntity 152))
+  , ("&#153; 253",                   Just (" 253", HtmlEntity 153))
+  , ("&#154; 254",                   Just (" 254", HtmlEntity 154))
   ]
 
 
 
 
-invalidEntityData :: [(T.Text, Maybe Int, T.Text)]
+invalidEntityData :: [(T.Text, Maybe (T.Text, HtmlEntity))]
 invalidEntityData =
-  --  token                          code              remainder
+  --  token                          Maybe (remainder, html entity)
   [
   -- Decimal values, but without leading '#'.
-    ("&1234;",                       Nothing,          "")
-  , ("&3212;hello",                  Nothing,          "hello")
-  , ("&999; world",                  Nothing,          " world")
-  , ("&999; ! ",                     Nothing,          " ! ")
+    ("&1234;",                       Nothing)
+  , ("&3212;hello",                  Nothing)
+  , ("&999; world",                  Nothing)
+  , ("&999; ! ",                     Nothing)
 
   -- Inorrect hex values.
-  , ("&xa34e;",                      Nothing,          "")             -- No leading '#'
-  , ("&#xff123later",                Just 0xff123,     "later")        -- Kind-of incorrect, reader should read initial part as valid hex.
+  , ("&xa34e;",                      Nothing) -- No leading '#'
+  , ("&#xff123later",                Nothing)
+  , ("$#x0x123",                     Nothing) -- Incorrect "0x" prefix in hex number.
   ]
 
 
 
 
-validEntityTest :: [(T.Text, Maybe Int, T.Text)] -> T.Text
+validEntityTest :: [(T.Text, Maybe (T.Text, HtmlEntity))] -> T.Text
 validEntityTest []     = ""
-validEntityTest (x:xs) = if isMatch x (htmlEntityToIsoCode . inName $ x)
+validEntityTest (x:xs) = if isMatch x (htmlEntityToIsoCode . fst $ x)
                          then validEntityTest xs
-                         else inName x
+                         else fst x
   where
-    isMatch :: (T.Text, Maybe Int, T.Text) -> Maybe EntityParser -> Bool
-    isMatch a parser = case parser of
-                         Just parser' -> inCode a == entityIsoCode parser'
-                                         && inRemainder a == remainder parser'
-                         Nothing      -> False
-
-    inName      = triplet1st
-    inCode      = triplet2nd
-    inRemainder = triplet3rd
+    isMatch :: (T.Text, Maybe (T.Text, HtmlEntity)) -> Maybe (T.Text, HtmlEntity) -> Bool
+    isMatch expected result = result == snd expected
 
 
 
