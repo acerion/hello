@@ -187,6 +187,12 @@ void StyleEngine::setElementClass(const char * element_class_tokens) {
    for (char * tok = strtok_r(in, sep, &saveptr); tok; tok = strtok_r(NULL, sep, &saveptr)) {
       dtn->c_element_selector_class[i] = strdup(tok);
       i++;
+
+      if (i == SELECTOR_CLASS_MAX) {
+         fprintf(stderr, "[WW] 'class' selector string has more tokens than limit==%d\n", SELECTOR_CLASS_MAX);
+         fprintf(stderr, "[WW] the 'class' selector is '%s'\n", element_class_tokens);
+         break;
+      }
    }
    dtn->c_element_selector_class_size = i;
    free(in);

@@ -264,7 +264,8 @@ typedef struct c_gif_t {
 
 
 
-
+// FIXME: en.wikipedia.org has a class selector for <body> that has 23 elements. So 10 is too little.
+#define SELECTOR_CLASS_MAX 10
 struct c_doctree_node_t;
 /* From doctree.h */
 typedef struct c_doctree_node_t {
@@ -274,7 +275,7 @@ typedef struct c_doctree_node_t {
    /* Css Selectors. */
    char * c_element_selector_pseudo_class;
    char * c_element_selector_id;
-   char * c_element_selector_class[10];
+   char * c_element_selector_class[SELECTOR_CLASS_MAX];
    int c_element_selector_class_size;
 
    int c_parent_num;
