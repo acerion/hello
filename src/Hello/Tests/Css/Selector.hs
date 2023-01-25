@@ -52,7 +52,7 @@ parseComplexSelectorTestManualDataBasic = [
                               , chain = Last CssCompoundSelector { selectorPseudoClass = []
                                                                  , selectorId = "some_id"
                                                                  , selectorClass = []
-                                                                 , selectorTagName = CssTypeSelectorUniv
+                                                                 , selectorTagName = CssTypeSelectorUniversal
                                                                  }
                               })
 
@@ -62,7 +62,7 @@ parseComplexSelectorTestManualDataBasic = [
                               , chain = Last CssCompoundSelector { selectorPseudoClass = []
                                                                  , selectorId = ""
                                                                  , selectorClass = ["some_class"]
-                                                                 , selectorTagName = CssTypeSelectorUniv
+                                                                 , selectorTagName = CssTypeSelectorUniversal
                                                                  }
                               })
 
@@ -72,7 +72,7 @@ parseComplexSelectorTestManualDataBasic = [
                               , chain = Last CssCompoundSelector { selectorPseudoClass = ["link"]
                                                                  , selectorId = ""
                                                                  , selectorClass = []
-                                                                 , selectorTagName = CssTypeSelectorUniv
+                                                                 , selectorTagName = CssTypeSelectorUniversal
                                                                  }
                               })
   ]
@@ -107,7 +107,7 @@ linkAndChainTestData =
     [CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = ["link"]
                                                             , selectorId = ""
                                                             , selectorClass = []
-                                                            , selectorTagName = CssTypeSelectorUniv}
+                                                            , selectorTagName = CssTypeSelectorUniversal}
                             , combinator = Nothing}]
 
 
@@ -115,7 +115,7 @@ linkAndChainTestData =
   , [CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = []
                                                             , selectorId = ""
                                                             , selectorClass = ["topnav-container"]
-                                                            , selectorTagName = CssTypeSelectorUniv}
+                                                            , selectorTagName = CssTypeSelectorUniversal}
                             , combinator = Nothing},
      CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = ["visited"]
                                                             , selectorId = ""
@@ -133,7 +133,7 @@ linkAndChainTestData =
      CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = []
                                                             , selectorId = "id"
                                                             , selectorClass = []
-                                                            , selectorTagName = CssTypeSelectorUniv}
+                                                            , selectorTagName = CssTypeSelectorUniversal}
                             , combinator = Just CssCombinatorAdjacentSibling}]
 
 
@@ -141,24 +141,24 @@ linkAndChainTestData =
   , [CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = []
                                                             , selectorId = ""
                                                             , selectorClass = ["pure-menu-horizontal"]
-                                                            , selectorTagName = CssTypeSelectorUniv}
+                                                            , selectorTagName = CssTypeSelectorUniversal}
                             , combinator = Nothing},
      CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = []
                                                             , selectorId = ""
                                                             , selectorClass = ["pure-menu-has-children"]
-                                                            , selectorTagName = CssTypeSelectorUniv}
+                                                            , selectorTagName = CssTypeSelectorUniversal}
                             , combinator = Just CssCombinatorDescendant},
      CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = ["after"]
                                                             , selectorId = ""
                                                             , selectorClass = ["pure-menu-link"]
-                                                            , selectorTagName = CssTypeSelectorUniv}
+                                                            , selectorTagName = CssTypeSelectorUniversal}
                             , combinator = Just CssCombinatorDescendant}]
 
 
   , [CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = []
                                                             , selectorId = ""
                                                             , selectorClass = ["navmenu"]
-                                                            , selectorTagName = CssTypeSelectorUniv}
+                                                            , selectorTagName = CssTypeSelectorUniversal}
                             , combinator = Nothing},
      CssComplexSelectorLink {compound = CssCompoundSelector { selectorPseudoClass = ["hover"]
                                                             , selectorId = ""

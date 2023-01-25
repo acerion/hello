@@ -50,7 +50,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 729, htmlElementIdx = 0, selPseudoClass = "visited", selId = "", selClass = ["STC"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 660, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -62,7 +62,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 85, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 57, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["submemu"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["submemu"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1066, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
@@ -74,7 +74,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["hover"], selectorId = ""},
     DoctreeNode {uniqueNum = 992, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 988, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["intro"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -83,19 +83,19 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 456, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentBody"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentBody"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1112, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 61, selectorClass = [], selectorPseudoClass = ["first-child"], selectorId = ""},
     DoctreeNode {uniqueNum = 1052, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 0, htmlElementIdx = 42, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 218, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "olderstuff-content"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "olderstuff-content"},
     DoctreeNode {uniqueNum = 567, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -128,7 +128,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 646, htmlElementIdx = 46, selPseudoClass = "", selId = "more_21/09/09/0126238", selClass = ["story_more"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 283, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -158,13 +158,13 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 479, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["intro"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "olderstuff-content"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "olderstuff-content"},
     DoctreeNode {uniqueNum = 28, htmlElementIdx = 21, selPseudoClass = "", selId = "frame", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["generalbody"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["generalbody"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 526, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["generaltitle"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "formtabs"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "formtabs"},
     DoctreeNode {uniqueNum = 958, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["storylinks"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -182,7 +182,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 567, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 867, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -206,7 +206,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 783, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 397, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["generaltitle"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -215,7 +215,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1138, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
     DoctreeNode {uniqueNum = 714, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["comments"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -242,7 +242,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 942, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 331, htmlElementIdx = 36, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -257,7 +257,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 936, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["btmnav"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["btmnav"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1137, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["btmnav"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -275,7 +275,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 74, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 1161, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -305,16 +305,16 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1106, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 612, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 328, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 189, htmlElementIdx = 21, selPseudoClass = "", selId = "poll-block", selClass = ["block"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 865, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["storylinks"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["hover"], selectorId = ""},
@@ -368,7 +368,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["hover"], selectorId = ""},
     DoctreeNode {uniqueNum = 1005, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1139, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["begin"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -407,7 +407,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 351, htmlElementIdx = 12, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "slashboxes"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "slashboxes"},
     DoctreeNode {uniqueNum = 121, htmlElementIdx = 21, selPseudoClass = "", selId = "slashboxes", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -428,10 +428,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 401, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["details"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentBody"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentBody"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 796, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["intro"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 1019, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
@@ -464,7 +464,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 961, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["more"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 67, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -506,7 +506,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 96, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 90, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 61, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -530,13 +530,13 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 483, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "slashboxes"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "slashboxes"},
     DoctreeNode {uniqueNum = 53, htmlElementIdx = 21, selPseudoClass = "", selId = "navigation-block", selClass = ["block"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 541, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["topic"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["title"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["title"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 776, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -557,7 +557,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 436, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 120, htmlElementIdx = 0, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -599,7 +599,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = ["storylinks"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 958, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["storylinks"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 452, htmlElementIdx = 7, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -632,7 +632,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = ["selected"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1137, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["btmnav"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 957, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -653,13 +653,13 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 893, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 943, htmlElementIdx = 10, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1046, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 1152, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 85, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -683,10 +683,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = ["begin"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 264, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 970, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["generaltitle"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 661, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["more"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -698,7 +698,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 203, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
     DoctreeNode {uniqueNum = 398, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["title"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -710,7 +710,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 955, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 726, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -722,10 +722,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 252, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 558, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 685, htmlElementIdx = 7, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -734,7 +734,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 540, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["body"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 370, htmlElementIdx = 46, selPseudoClass = "", selId = "more_21/09/10/0426236", selClass = ["story_more"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["hover"], selectorId = ""},
@@ -758,7 +758,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 789, htmlElementIdx = 0, selPseudoClass = "visited", selId = "", selClass = ["STC"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["intro"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["intro"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1048, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -788,7 +788,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = ["selected"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 340, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["generaltitle"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 326, htmlElementIdx = 7, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -818,7 +818,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1067, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 918, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -851,7 +851,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 305, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 455, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["comments"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["hover"], selectorId = ""},
@@ -878,7 +878,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 343, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 19, htmlElementIdx = 11, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 10, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -896,7 +896,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 61, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 148, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "olderstuff-content"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "olderstuff-content"},
     DoctreeNode {uniqueNum = 448, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -938,7 +938,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 268, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 181, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
@@ -959,7 +959,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 271, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 558, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 36, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1001,10 +1001,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 137, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 522, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1018, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["comments"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 36, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1037,7 +1037,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 480, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = ["byline"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 622, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1049,13 +1049,13 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 678, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["purchasesubscription__duration"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["purchasesubscription__duration"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 227, htmlElementIdx = 21, selPseudoClass = "", selId = "top10journals-content", selClass = ["content"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 440, htmlElementIdx = 7, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 446, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1073,10 +1073,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 720, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["generaltitle"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 522, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 142, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["whysub"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1085,16 +1085,16 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 35, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 326, htmlElementIdx = 7, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 757, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 73, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
     DoctreeNode {uniqueNum = 594, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1109,7 +1109,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 840, htmlElementIdx = 12, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 908, htmlElementIdx = 69, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1124,7 +1124,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 507, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 704, htmlElementIdx = 41, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1136,7 +1136,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = [], selectorPseudoClass = [], selectorId = "frame"},
     DoctreeNode {uniqueNum = 28, htmlElementIdx = 21, selPseudoClass = "", selId = "frame", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "slashboxes"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "slashboxes"},
     DoctreeNode {uniqueNum = 121, htmlElementIdx = 21, selPseudoClass = "", selId = "slashboxes", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1160,13 +1160,13 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 77, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 1144, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 755, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1108, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1175,7 +1175,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 10, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 994, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 106, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1202,13 +1202,13 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 61, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 747, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["generalbody"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["generalbody"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 720, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["generaltitle"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1020, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "topnav"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "topnav"},
     DoctreeNode {uniqueNum = 264, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1244,7 +1244,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 36, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 573, htmlElementIdx = 35, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["submenu"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["submenu"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 448, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1259,7 +1259,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = ["selected"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 450, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["more"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 182, htmlElementIdx = 7, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1274,7 +1274,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 151, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "login_box"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "login_box"},
     DoctreeNode {uniqueNum = 567, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1283,13 +1283,13 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1063, htmlElementIdx = 69, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 396, htmlElementIdx = 71, selPseudoClass = "", selId = "", selClass = ["type"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 498, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["intro"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["intro"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 696, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1304,7 +1304,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 61, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 642, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 1077, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["generaltitle"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = ["first-child", "before"], selectorId = ""},
@@ -1316,7 +1316,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 85, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 193, htmlElementIdx = 21, selPseudoClass = "", selId = "poll-content", selClass = ["content"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 73, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1340,7 +1340,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 163, htmlElementIdx = 7, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
     DoctreeNode {uniqueNum = 612, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 85, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1364,7 +1364,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1097, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 767, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1373,7 +1373,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 908, htmlElementIdx = 69, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 601, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
@@ -1406,19 +1406,19 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = [], selectorPseudoClass = [], selectorId = "frame"},
     DoctreeNode {uniqueNum = 28, htmlElementIdx = 21, selPseudoClass = "", selId = "frame", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 1142, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "slashboxes"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "slashboxes"},
     DoctreeNode {uniqueNum = 612, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 927, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 792, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["body"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["intro"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["intro"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 796, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["intro"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 36, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1442,7 +1442,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 849, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 463, htmlElementIdx = 35, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1460,7 +1460,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 85, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 227, htmlElementIdx = 21, selPseudoClass = "", selId = "top10journals-content", selClass = ["content"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["quote"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["quote"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 984, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["body"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1481,7 +1481,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 541, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["topic"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 302, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1505,7 +1505,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 61, selectorClass = [], selectorPseudoClass = ["first-child"], selectorId = ""},
     DoctreeNode {uniqueNum = 754, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 399, htmlElementIdx = 35, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1589,13 +1589,13 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = [], selectorPseudoClass = [], selectorId = "articles"},
     DoctreeNode {uniqueNum = 335, htmlElementIdx = 21, selPseudoClass = "", selId = "articles", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 549, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 583, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["body"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 1155, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = ["selected"], selectorPseudoClass = [], selectorId = ""},
@@ -1622,16 +1622,16 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1140, htmlElementIdx = 0, selPseudoClass = "visited", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1039, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["topic"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "polls-wide"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "polls-wide"},
     DoctreeNode {uniqueNum = 448, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1139, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["begin"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 872, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1664,7 +1664,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = ["begin"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1020, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 90, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1685,7 +1685,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 36, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 961, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["more"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["intro"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["intro"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 421, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1724,7 +1724,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 979, htmlElementIdx = 0, selPseudoClass = "visited", selId = "", selClass = ["STC"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1143, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 85, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1748,7 +1748,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 380, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 1137, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["btmnav"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1772,7 +1772,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 256, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["generaltitle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["generaltitle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 829, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["generaltitle"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1784,7 +1784,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 172, htmlElementIdx = 71, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1155, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1832,10 +1832,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 164, htmlElementIdx = 12, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "commentlisting"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "commentlisting"},
     DoctreeNode {uniqueNum = 101, htmlElementIdx = 21, selPseudoClass = "", selId = "sitebox-block", selClass = ["block"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 1074, htmlElementIdx = 71, selPseudoClass = "", selId = "", selClass = ["sd-info-block"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
@@ -1859,7 +1859,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 260, htmlElementIdx = 21, selPseudoClass = "", selId = "olderstuff-title", selClass = ["title"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "slashboxes"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "slashboxes"},
     DoctreeNode {uniqueNum = 190, htmlElementIdx = 21, selPseudoClass = "", selId = "poll-title", selClass = ["title"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1871,16 +1871,16 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 798, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["title"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["title"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 398, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["title"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 107, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 781, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["title"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 972, htmlElementIdx = 35, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
@@ -1892,7 +1892,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 715, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1050, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1916,7 +1916,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 562, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["more"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["purchasesubscription__duration"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["purchasesubscription__duration"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 52, htmlElementIdx = 21, selPseudoClass = "", selId = "links", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = ["storylinks"], selectorPseudoClass = [], selectorId = ""},
@@ -1946,7 +1946,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 653, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 70, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1964,7 +1964,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 964, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["comments"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1091, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["body"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -1979,16 +1979,16 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 43, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 914, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 494, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 324, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 845, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["intro"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
@@ -2009,7 +2009,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 930, htmlElementIdx = 74, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 716, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 34, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2042,7 +2042,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 379, htmlElementIdx = 41, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 752, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
@@ -2051,10 +2051,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = ["selected"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 259, htmlElementIdx = 21, selPseudoClass = "", selId = "olderstuff-block", selClass = ["block"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 881, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["details"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 101, htmlElementIdx = 21, selPseudoClass = "", selId = "sitebox-block", selClass = ["block"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2123,7 +2123,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 36, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 802, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 31, htmlElementIdx = 33, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 7, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2147,7 +2147,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 61, selectorClass = [], selectorPseudoClass = ["last-child"], selectorId = ""},
     DoctreeNode {uniqueNum = 553, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 808, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 10, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2195,7 +2195,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 833, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["details"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 919, htmlElementIdx = 71, selPseudoClass = "", selId = "", selClass = ["sd-info-block"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
@@ -2204,7 +2204,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 36, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 74, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
     DoctreeNode {uniqueNum = 194, htmlElementIdx = 21, selPseudoClass = "", selId = "pollbody", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = ["selected"], selectorPseudoClass = [], selectorId = ""},
@@ -2225,7 +2225,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 42, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 0, htmlElementIdx = 42, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "editComment"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "editComment"},
     DoctreeNode {uniqueNum = 686, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["body"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2282,7 +2282,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 889, htmlElementIdx = 73, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "formtabs"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "formtabs"},
     DoctreeNode {uniqueNum = 1065, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["storylinks"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2294,7 +2294,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = ["selected"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 820, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["more"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["quote"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["quote"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 372, htmlElementIdx = 10, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2321,7 +2321,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 986, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 567, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["hover"], selectorId = ""},
@@ -2330,7 +2330,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 35, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 336, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 335, htmlElementIdx = 21, selPseudoClass = "", selId = "articles", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2354,7 +2354,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1152, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 1141, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2396,16 +2396,16 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 242, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 630, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 316, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["purchasesubscription__duration"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["purchasesubscription__duration"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 513, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["generalbody"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["generalbody"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 457, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 85, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2435,13 +2435,13 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1077, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["generaltitle"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 271, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 574, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentBox"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 476, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["topic"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2459,7 +2459,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 736, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 86, htmlElementIdx = 21, selPseudoClass = "", selId = "sections-block", selClass = ["block"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = [], selectorPseudoClass = [], selectorId = "contents"},
@@ -2567,7 +2567,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 61, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 765, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 781, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["title"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2579,10 +2579,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 455, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["comments"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 147, htmlElementIdx = 21, selPseudoClass = "", selId = "site_news-content", selClass = ["content"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 56, htmlElementIdx = 21, selPseudoClass = "", selId = "navigation-content", selClass = ["content"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2606,10 +2606,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 33, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 62, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 43, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 153, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
@@ -2618,10 +2618,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 760, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 868, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["more"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
     DoctreeNode {uniqueNum = 33, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2630,7 +2630,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 42, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 0, htmlElementIdx = 42, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 457, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 10, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2660,7 +2660,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = ["storylinks"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 910, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["storylinks"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["briefarticle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 819, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2696,7 +2696,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 402, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 946, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2714,7 +2714,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 36, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 955, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 1026, htmlElementIdx = 35, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2738,10 +2738,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 533, htmlElementIdx = 45, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 28, htmlElementIdx = 21, selPseudoClass = "", selId = "frame", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 797, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = ["byline"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2750,7 +2750,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 861, htmlElementIdx = 41, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 482, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2762,7 +2762,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1083, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["btmnav"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["btmnav"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 262, htmlElementIdx = 21, selPseudoClass = "", selId = "olderstuff-content", selClass = ["content"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
@@ -2777,10 +2777,10 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 611, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
     DoctreeNode {uniqueNum = 1071, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = ["comments"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["generaltitle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["generaltitle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 923, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["title"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
@@ -2798,7 +2798,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 767, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 1073, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2819,7 +2819,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1148, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 359, htmlElementIdx = 61, selPseudoClass = "", selId = "", selClass = ["byline"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2831,7 +2831,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = [], selectorPseudoClass = [], selectorId = "index"},
     DoctreeNode {uniqueNum = 119, htmlElementIdx = 21, selPseudoClass = "", selId = "index", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 966, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 21, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
@@ -2852,19 +2852,19 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 990, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 1067, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 866, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["generaltitle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["generaltitle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 53, htmlElementIdx = 21, selPseudoClass = "", selId = "navigation-block", selClass = ["block"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "commentlisting"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "commentlisting"},
     DoctreeNode {uniqueNum = 659, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 1025, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["title"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 36, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2873,7 +2873,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 7, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1151, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 90, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
@@ -2894,7 +2894,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 470, htmlElementIdx = 0, selPseudoClass = "visited", selId = "", selClass = ["STC"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["generaltitle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["generaltitle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 527, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["title"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2903,7 +2903,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 453, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["article"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 877, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["generaltitle"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2921,13 +2921,13 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 7, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 228, htmlElementIdx = 85, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["link"], selectorId = ""},
     DoctreeNode {uniqueNum = 168, htmlElementIdx = 12, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 35, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1143, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["details"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1079, htmlElementIdx = 35, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2957,7 +2957,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = ["comments"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 46, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["data_head"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1155, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = ["selected"], selectorPseudoClass = [], selectorId = ""},
@@ -2972,7 +2972,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 50, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 1157, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchPseudoClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 966, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 85, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -2990,7 +2990,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 1082, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["menuoldstyle"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["menuoldstyle"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 559, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["storylinks"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMatch,
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -3014,7 +3014,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelector 0, selectorClass = [], selectorPseudoClass = ["visited"], selectorId = ""},
     DoctreeNode {uniqueNum = 753, htmlElementIdx = 0, selPseudoClass = "link", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchClass,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = ["commentTop"], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 716, htmlElementIdx = 21, selPseudoClass = "", selId = "", selClass = ["article"], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -3023,7 +3023,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 251, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "section_banner"},
     DoctreeNode {uniqueNum = 99, htmlElementIdx = 50, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchElement,
     CssCompoundSelector { selectorTagName = CssTypeSelector 36, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
@@ -3035,7 +3035,7 @@ matchTestManualData = [
     CssCompoundSelector { selectorTagName = CssTypeSelectorUnknown, selectorClass = [], selectorPseudoClass = [], selectorId = ""},
     DoctreeNode {uniqueNum = 706, htmlElementIdx = 69, selPseudoClass = "", selId = "", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   , (CssCompoundSelectorMismatchId,
-    CssCompoundSelector { selectorTagName = CssTypeSelectorUniv, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
+    CssCompoundSelector { selectorTagName = CssTypeSelectorUniversal, selectorClass = [], selectorPseudoClass = [], selectorId = "links"},
     DoctreeNode {uniqueNum = 29, htmlElementIdx = 21, selPseudoClass = "", selId = "topnav", selClass = [], dtnParentNum = 0, dtnSiblingNum = 0, dtnLastChildNum = 0})
   ]
 

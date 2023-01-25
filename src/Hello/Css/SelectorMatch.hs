@@ -170,7 +170,7 @@ compoundSelectorMatches' compound dtnArg | mismatchOnElement compound dtnArg    
                                          | otherwise                             = CssCompoundSelectorMatch
   where
     mismatchOnElement :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnElement csel dtn = compoundTagName csel /= CssTypeSelectorUniv && (unCssTypeSelector . compoundTagName $ csel) /= htmlElementIdx dtn
+    mismatchOnElement csel dtn = compoundTagName csel /= CssTypeSelectorUniversal && (unCssTypeSelector . compoundTagName $ csel) /= htmlElementIdx dtn
     -- if (selector->c_selector_element != CssSimpleSelectorElementAny && selector->c_selector_element != dtn->c_html_element_idx)
     --     return false;
 

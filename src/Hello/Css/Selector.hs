@@ -120,8 +120,8 @@ data CssCachedComplexSelector = CssCachedComplexSelector {
 -- https://www.w3.org/TR/selectors-4/#type-selectors
 data CssTypeSelector
     -- Type selectors: "regular" and universal
-  = CssTypeSelector Int  --   https://www.w3.org/TR/selectors-4/#type-selector; Use htmlTagIndex "text" to get the integer value.
-  | CssTypeSelectorUniv  --   https://www.w3.org/TR/selectors-4/#the-universal-selector
+  = CssTypeSelector Int       --   https://www.w3.org/TR/selectors-4/#type-selector; Use htmlTagIndex "text" to get the integer value.
+  | CssTypeSelectorUniversal  --   https://www.w3.org/TR/selectors-4/#the-universal-selector
   | CssTypeSelectorUnknown
   deriving (Show, Eq)
 
@@ -129,16 +129,16 @@ data CssTypeSelector
 
 
 unCssTypeSelector :: CssTypeSelector -> Int
-unCssTypeSelector (CssTypeSelector t)    = t
-unCssTypeSelector CssTypeSelectorUniv    = -2
-unCssTypeSelector CssTypeSelectorUnknown = -1
+unCssTypeSelector (CssTypeSelector t)      = t
+unCssTypeSelector CssTypeSelectorUniversal = -2
+unCssTypeSelector CssTypeSelectorUnknown   = -1
 
 
 
 
 mkCssTypeSelector :: Int -> CssTypeSelector
 mkCssTypeSelector t | t >= 0 && t < styleSheetElementCount = CssTypeSelector t
-                    | t == (-2)                            = CssTypeSelectorUniv
+                    | t == (-2)                            = CssTypeSelectorUniversal
                     | otherwise                            = CssTypeSelectorUnknown
 
 
@@ -179,7 +179,7 @@ compoundId CssCompoundSelector{selectorId = i}  = [CssIdSelector i]
 
 -- Is a compound selector an 'Any' HTML tag?
 compoundHasUniversalType :: CssCompoundSelector -> Bool
-compoundHasUniversalType CssCompoundSelector{selectorTagName = CssTypeSelectorUniv} = True
+compoundHasUniversalType CssCompoundSelector{selectorTagName = CssTypeSelectorUniversal} = True
 compoundHasUniversalType _                                                          = False
 
 
@@ -232,7 +232,7 @@ defaultCssCompoundSelector = CssCompoundSelector
   { selectorPseudoClass = []
   , selectorId          = ""
   , selectorClass       = []
-  , selectorTagName     = CssTypeSelectorUniv
+  , selectorTagName     = CssTypeSelectorUniversal
   }
 
 
