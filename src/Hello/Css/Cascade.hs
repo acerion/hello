@@ -89,7 +89,7 @@ data MatchingRules = MatchingRules
   {
     rules   :: MatchingRulesGroup
   , indices :: MatchingRulesIndices
-  }
+  } deriving (Show)
 
 
 
@@ -114,6 +114,9 @@ minSpecificityForRulesList rulesList ruleIdx rulesListIdx state =
 
 
 
+-- This function is calculating minimal specificity of a rule, but this document:
+-- https://www.w3.org/TR/css-cascade-3/#cascade-specificity
+-- says "The declaration with the highest specificity wins."
 minSpecificityForRule :: CssRule -> Int -> CssSpecificityState -> CssSpecificityState
 minSpecificityForRule rule rulesListIdx state =
   if (specificity rule < minSpec) || (specificity rule == minSpec && position rule < minPos)
@@ -124,15 +127,15 @@ minSpecificityForRule rule rulesListIdx state =
 
 
 
-applyCssRule :: CssCachedDeclarationSet -> Doctree -> Maybe DoctreeNode -> CssRule -> CssCachedDeclarationSet
-applyCssRule cachedDeclSet doctree mDtn rule =
+applyCssRule :: CssCachedDeclarationSet -> Doctree -> DoctreeNode -> CssRule -> CssCachedDeclarationSet
+applyCssRule cachedDeclSet doctree dtn rule =
   if match
   then (targetDeclSet', matchCache2)
   else (fst cachedDeclSet,  matchCache2)
 
   where
     targetDeclSet'       = declarationsSetAppend (fst cachedDeclSet) (declarationSet rule)
-    (match, matchCache2) = complexSelectorMatches (complexSelector rule) doctree mDtn (snd cachedDeclSet)
+    (match, matchCache2) = complexSelectorMatches (complexSelector rule) doctree dtn (snd cachedDeclSet)
 
 
 
@@ -170,8 +173,8 @@ updateMatchingRulesIndices matchingRulesIndices minSpecIndex = listReplaceElem m
 -- Apply potentially matching rules from matchingRules with ascending
 -- specificity. If specificity is equal, rules are applied in order of
 -- appearance. Each matchingRules is sorted already.
-applyMatchingRules :: Handle -> MatchingRules -> Doctree -> Maybe DoctreeNode -> CssCachedDeclarationSet -> IO CssCachedDeclarationSet
-applyMatchingRules fHandle matchingRules doctree mDtn cachedDeclSet = do
+applyMatchingRules :: Handle -> MatchingRules -> Doctree -> DoctreeNode -> CssCachedDeclarationSet -> IO CssCachedDeclarationSet
+applyMatchingRules fHandle matchingRules doctree dtn cachedDeclSet = do
   let state = cssGetMinSpecState matchingRules
 
   let debugString1 = "minSpec = " ++ (show . triplet1st $ state) ++ ", minPos = " ++ (show . triplet2nd $ state) ++ ", minSpecIndex = " ++ (show . triplet3rd $ state) ++ "\n"
@@ -183,7 +186,7 @@ applyMatchingRules fHandle matchingRules doctree mDtn cachedDeclSet = do
     do
       let rule = getSomeRule matchingRules minSpecIndex
 
-      let cachedDeclSet' = applyCssRule cachedDeclSet doctree mDtn rule
+      let cachedDeclSet' = applyCssRule cachedDeclSet doctree dtn rule
 
       let matchingRules' = matchingRules { indices = updateMatchingRulesIndices (indices matchingRules) minSpecIndex }
 
@@ -192,7 +195,7 @@ applyMatchingRules fHandle matchingRules doctree mDtn cachedDeclSet = do
       let debugString3 = show (V.fromList . indices $ matchingRules') ++ "\n"
       hPutStr fHandle debugString3
 
-      applyMatchingRules fHandle matchingRules' doctree mDtn cachedDeclSet'
+      applyMatchingRules fHandle matchingRules' doctree dtn cachedDeclSet'
     else return cachedDeclSet
 
 
@@ -214,7 +217,7 @@ cssStyleSheetApplyStyleSheet fHandle styleSheet cachedDeclSet doctree dtn = do
         , indices = replicate (L.length . rules $ matchingRules) 0
         }
 
-  applyMatchingRules fHandle matchingRules doctree (Just dtn) cachedDeclSet
+  applyMatchingRules fHandle matchingRules doctree dtn cachedDeclSet
 
 
 

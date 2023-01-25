@@ -65,10 +65,10 @@ import Hello.Html.DoctreeNode
 
 
 
-complexSelectorMatches :: CssCachedComplexSelector -> Doctree -> Maybe DoctreeNode -> CssMatchCache -> (Bool, CssMatchCache)
-complexSelectorMatches cachedComplexSelector doctree mDtn matchCache = (isMatch, matchCache2)
+complexSelectorMatches :: CssCachedComplexSelector -> Doctree -> DoctreeNode -> CssMatchCache -> (Bool, CssMatchCache)
+complexSelectorMatches cachedComplexSelector doctree dtn matchCache = (isMatch, matchCache2)
   where
-    (isMatch, matchCache2) = complexSelectorMatches' (chain cachedComplexSelector) mDtn doctree matchCache cacheOffset
+    (isMatch, matchCache2) = complexSelectorMatches' (chain cachedComplexSelector) (Just dtn) doctree matchCache cacheOffset
     cacheOffset            = matchCacheOffset cachedComplexSelector
 
 

@@ -135,6 +135,7 @@ unCssTypeSelector CssTypeSelectorUnknown = -1
 
 
 
+
 mkCssTypeSelector :: Int -> CssTypeSelector
 mkCssTypeSelector t | t >= 0 && t < styleSheetElementCount = CssTypeSelector t
                     | t == (-2)                            = CssTypeSelectorUniv
