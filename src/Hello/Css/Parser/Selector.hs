@@ -42,6 +42,7 @@ module Hello.Css.Parser.Selector
   -- Just for unit tests.
   , parserComplexSelector
   , parserSelectorList
+  , parserCompound
   )
 where
 

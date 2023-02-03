@@ -34,6 +34,78 @@ import Hello.Utils.Parser
 
 
 
+-- Tests of parsing of compound selectors.
+--
+-- This array is called "Manual" because these tests were written manually.
+-- Perhaps in the future I will write some generator of test data.
+parserCompoundTestData :: [(T.Text, Maybe ((CssParser, CssToken), SelectorWrapper))]
+parserCompoundTestData = [
+  -- parser's remainder before/after      expected selector
+
+  -- Recognition of most basic case: no selector in input buffer.
+    ( "0",
+      Nothing )
+
+  -- Recognition of most basic case: just "id" selector.
+  , ( "#some_id",
+      Just (((defaultParser "") { bufOffset = 8 }, CssTokEnd)
+           , WrapCompound $ CssCompoundSelector { selectorPseudoClass = []
+                                                , selectorId = "some_id"
+                                                , selectorClass = []
+                                                , selectorTagName = CssTypeSelectorUniversal
+                                                }
+           )
+    )
+
+
+  -- Recognition of most basic case: just "class" selector.
+  , ( ".some_class",
+      Just (((defaultParser "") { bufOffset = 11 }, CssTokEnd)
+           , WrapCompound $ CssCompoundSelector { selectorPseudoClass = []
+                                                , selectorId = ""
+                                                , selectorClass = ["some_class"]
+                                                , selectorTagName = CssTypeSelectorUniversal
+                                                }
+           )
+    )
+
+  -- Recognition of most basic case: just "pseudo class" selector.
+  , ( ":link",
+      Just (((defaultParser "") { bufOffset = 5 }, CssTokEnd)
+           , WrapCompound $ CssCompoundSelector { selectorPseudoClass = ["link"]
+                                                , selectorId = ""
+                                                , selectorClass = []
+                                                , selectorTagName = CssTypeSelectorUniversal
+                                                }
+           )
+    )
+  ]
+
+
+
+
+-- On success return empty string. On failure return string representation of
+-- remainder string in a row, for which test failed.
+parserCompoundTest :: [(T.Text, Maybe ((CssParser, CssToken), SelectorWrapper))] -> T.Text
+parserCompoundTest xs = foldr f "" xs
+  where
+    f x acc = if expected /= result
+              then T.append errMsg acc
+              else acc
+      where
+        remainderBefore = fst x
+        expected        = snd x
+        result = runParser parserCompound (nextToken . defaultParser $ remainderBefore)
+        errMsg = T.pack ("\n*** remainder before = " ++ show remainderBefore ++ "\n*** expected = " ++ show expected ++ "\n*** result = " ++ show result)
+
+
+
+
+{- -------------------------------------------------------------------------- -}
+
+
+
+
 -- Tests of parsing of complex selector, most basic cases
 --
 -- This array is called "Manual" because these tests were written manually.
@@ -188,7 +260,8 @@ selectorTestCases =
   [
     -- If some error is found, test function returns some data (e.g. non-empty
     -- string or test index) which can help identify which test failed.
-    TestCase (do assertEqual "manual tests of parsing of complex selector"             "" (parseComplexSelectorTest parseComplexSelectorTestManualDataBasic))
+    TestCase (do assertEqual "manual tests of parserCompound - basic cases"            "" (parserCompoundTest parserCompoundTestData))
+  , TestCase (do assertEqual "manual tests of parsing of complex selector"             "" (parseComplexSelectorTest parseComplexSelectorTestManualDataBasic))
   , TestCase (do assertEqual "manual tests of parsing of list of complex selectors"    "" (parseListOfSelectorsTest parseListOfSelectorsTestManualData))
   ]
 
