@@ -434,10 +434,23 @@ parseStyleRuleTestData =
                        , parsedStyleRuleExpected = Nothing
                        }
 
-    -- Failure case: invalid selector. The invalid rule will be skipped.
+    -- Failure case: invalid compound selector. The invalid rule will be
+    -- skipped.
+    --
+    -- https://www.w3.org/TR/css-syntax-3/#style-rules: "The prelude of the
+    -- qualified rule is parsed as a <selector-list>. If this returns
+    -- failure, the entire style rule is invalid."
   , ParseStyleRuleData { remainderIn       = "33 {color:#aca3de ; background-color: #ffff00;line-height: normal} h1{color: rgb(0, 255, 0)} h2{color: #001122}"
                        , remainderExpected = "{color: rgb(0, 255, 0)} h2{color: #001122}"
                        , tokenExpected     = CssTokIdent "h1"
+                       , parsedStyleRuleExpected = Nothing
+                       }
+
+    -- Failure case: Invalid selector (due to two combinators next to each
+    -- other). The invalid rule will be skipped.
+  , ParseStyleRuleData { remainderIn       = "body + > h1 {color:#aca001 ; background-color: #55ff00;line-height: normal} h2{color: rgb(11, 22, 33)} h3{color: #043256}"
+                       , remainderExpected = "{color: rgb(11, 22, 33)} h3{color: #043256}"
+                       , tokenExpected     = CssTokIdent "h2"
                        , parsedStyleRuleExpected = Nothing
                        }
 
@@ -477,8 +490,7 @@ parseStyleRuleTestFunction (x:xs) = if parsedStyleRuleExpected x /= parsedStyleR
   where
 
     parser = defaultParser . remainderIn $ x
-    token  = CssTokNone
-    ((parser', token'), parsedStyleRule) = parseStyleRule (parser, token)
+    ((parser', token'), parsedStyleRule) = parseStyleRule (nextToken parser)
 
 
 

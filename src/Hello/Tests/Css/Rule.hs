@@ -80,13 +80,13 @@ getTopCompoundTestManualDataBasic = [
 getTopCompoundTest :: [(T.Text, CssCompoundSelector)] -> T.Text
 getTopCompoundTest []     = ""
 getTopCompoundTest (x:xs) = if expectedCompound /= cpd
-                            then T.pack $ show remainderIn ++ ", expected " ++ show expectedCompound ++ ", got " ++ show cpd
+                            then T.pack $ show remainderIn ++ ", expected " ++ (show expectedCompound) ++ ", got " ++ show cpd
                             else getTopCompoundTest xs
   where
     remainderIn  = fst x
     expectedCompound = snd x
 
-    (_, selectorList) = readSelectorList (defaultParser remainderIn, CssTokNone)
+    (_, selectorList) = readSelectorList (nextToken . defaultParser $ remainderIn)
     cpd = case selectorList of
             Just l  -> getTopCompound CssRule { complexSelector = head l
                                               , declarationSet  = defaultCssDeclarationSet

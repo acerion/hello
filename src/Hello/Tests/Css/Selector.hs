@@ -85,7 +85,7 @@ parseComplexSelectorTestManualDataBasic = [
 parseComplexSelectorTest :: [(T.Text, T.Text, Maybe CssCachedComplexSelector)] -> T.Text
 parseComplexSelectorTest []     = ""
 parseComplexSelectorTest (x:xs) = if expectedSelector /= cplxSel || remainderAfter /= remainder p1
-                                  then remainderBefore
+                                  then T.pack (show remainderBefore ++ ",    " ++ show cplxSel)
                                   else parseComplexSelectorTest xs
   where
     remainderBefore  = triplet1st x
@@ -94,7 +94,7 @@ parseComplexSelectorTest (x:xs) = if expectedSelector /= cplxSel || remainderAft
 
     -- Both cases should work the same. If current token is None, tested
     -- function should get some non-None input token.
-    ((p1, _t1), cplxSel) = parseComplexSelector (defaultParser remainderBefore, CssTokNone)
+    ((p1, _t1), cplxSel) = parseComplexSelector (nextToken . defaultParser $ remainderBefore)
     --((p1, t1), cplxSel) = parseComplexSelector $ nextToken (defaultParser remainderBefore)
 
 
