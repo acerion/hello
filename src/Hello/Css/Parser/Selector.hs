@@ -38,12 +38,17 @@ module Hello.Css.Parser.Selector
   (
     readSelectorList
   , parseComplexSelector
+
+  -- Just for unit tests.
+  , parserComplexSelector
+  , parserSelectorList
   )
 where
 
 
 
 
+import Control.Applicative
 import qualified Data.Text as T
 --import Debug.Trace
 
@@ -51,13 +56,14 @@ import Hello.Chain
 import Hello.Css.Tokenizer
 import Hello.Css.Selector
 import Hello.Html.Tag
+import Hello.Utils.Parser
 
 
 
 
 -- Update compound selector with given subclass selector.
-appendSubclassSelector :: CssCompoundSelector -> CssSubclassSelector -> CssCompoundSelector
-appendSubclassSelector compound subSel =
+setSubclassSelector :: CssCompoundSelector -> CssSubclassSelector -> CssCompoundSelector
+setSubclassSelector compound subSel =
   case subSel of
     CssClassSelector ident       -> compound {selectorClass = selectorClass compound ++ [ident]}
     CssPseudoClassSelector ident -> if T.null ident
@@ -79,100 +85,147 @@ appendSubclassSelector compound subSel =
 -- Function always consumes the group of tokens, regardless of
 -- success/failure of the parsing.
 parseComplexSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssCachedComplexSelector)
-parseComplexSelector (parser, token) = ((outParser, outToken), selector)
+parseComplexSelector (parser, token) = (pat'', complex)
   where
-    (outParser, outToken) = consumeRestOfSelector (p2, t2)
-    ((p2, t2), selector) = case parseComplexSelectorTokens (removeSpaceTokens cplxSelTokens []) of
-                             Just xs -> ((newParser, newToken), Just defaultComplexSelector{chain = xs})
-                             Nothing -> ((newParser, newToken), Nothing)
-
-    ((newParser, newToken), cplxSelTokens) = takeComplexSelectorTokens (parser, token)
+    (pat'', complex) = case runParser parserComplexSelector (parser, token) of
+                         Just (_, [])   -> (nextToken parser, Nothing) -- Empty compound/combinator list means bad parsing.
+                         Just (pat', l) -> (pat', Just defaultComplexSelector { chain = listToChain . reverse $ l } )
+                         _              -> (nextToken parser, Nothing)
 
 
 
 
-parseCombinator :: [CssToken] -> Maybe (CssCombinator, [CssToken])
-parseCombinator (CssTokDelim '>':tokens) = Just (CssCombinatorChild, tokens)
-parseCombinator (CssTokDelim '+':tokens) = Just (CssCombinatorAdjacentSibling, tokens)
-parseCombinator (CssTokWS:tokens)        = Just (CssCombinatorDescendant, tokens)
-parseCombinator _                        = Nothing
+-- TODO: this function has missing cases for pattern matching.
+listToChain :: [SelectorWrapper] -> Chain CssCompoundSelector CssCombinator
+listToChain [WrapCompound compound] = Last compound
+listToChain (WrapCompound compound:WrapCombinator combi:xs) = Chain compound combi (listToChain xs)
+--listToChain [] = (Last defaultCssCompoundSelector)
 
 
 
 
-parseCompoundSelector :: (Maybe CssCompoundSelector, [CssToken]) -> Maybe (CssCompoundSelector, [CssToken])
-parseCompoundSelector (Just compound, CssTokDelim '*':tokens) = parseCompoundSelector (Just compound, tokens)
-parseCompoundSelector (Just compound, CssTokIdent sym:tokens) = case htmlTagIndex2 sym of
-                                                                  Just idx -> parseCompoundSelector (Just (setSelectorTagName compound (CssTypeSelector idx)), tokens)
-                                                                  Nothing  -> parseCompoundSelector (Just (setSelectorTagName compound CssTypeSelectorUnknown), tokens)
+-- :m +Hello.Css.Tokenizer
+-- :m +Hello.Utils.Parser
+-- :m +Hello.Css.Parser.Selector
+--
+-- runParser parserComplexSelector (nextToken . defaultParser $ "b    >   head")
+-- runParser parserComplexSelector (nextToken . defaultParser $ "a    >   head + a")
+--
+-- HASKELL FEATURE: APPLICATIVE FUNCTOR
+parserComplexSelector :: Parser (CssParser, CssToken) CssComplexSelector'
+parserComplexSelector = ((:) <$> parserFirstCompound <*> fmap concat (many parserCombinatorAndCompound))
   where
-    setSelectorTagName :: CssCompoundSelector -> CssTypeSelector -> CssCompoundSelector
-    setSelectorTagName cpd t = cpd { selectorTagName = t }
+    -- A first compound selector in a complex selector may be preceded with spaces.
+    parserFirstCompound :: Parser (CssParser, CssToken) SelectorWrapper
+    parserFirstCompound = many parserTokenWhitespace *> parserCompound
+
+    parserCombinatorAndCompound :: Parser (CssParser, CssToken) CssComplexSelector'
+    parserCombinatorAndCompound = (( \ a b -> [a, b]) <$> parserCombinator <*> parserCompound)
+
+
+
+
+-- :m +Hello.Css.Tokenizer
+-- :m +Hello.Utils.Parser
+-- :m +Hello.Css.Parser.Selector
+--
+-- runParser parserCombinator  (nextToken . defaultParser $ "    >   head")
+parserCombinator :: Parser (CssParser, CssToken) SelectorWrapper
+parserCombinator = Parser $ \ pat -> parseCombinator pat
+
+
+
+
+parseCombinator :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), SelectorWrapper)
+parseCombinator pat = case runParser parser pat of
+                        Just (pat', CssTokWS)        -> Just (pat', WrapCombinator CssCombinatorDescendant)
+                        Just (pat', CssTokDelim '>') -> Just (pat', WrapCombinator CssCombinatorChild)
+                        Just (pat', CssTokDelim '+') -> Just (pat', WrapCombinator CssCombinatorAdjacentSibling)
+                        _                            -> Nothing
+  where
+    parser = many parserTokenWhitespace *> parserTokenDelim '>'  <* many parserTokenWhitespace
+             <|> many parserTokenWhitespace *> parserTokenDelim '+'  <* many parserTokenWhitespace
+             <|> parserTokenWhitespace <* many parserTokenWhitespace
+
+
+
+
+parserCompound :: Parser (CssParser, CssToken) SelectorWrapper
+parserCompound = Parser $ \ pat -> parseCompound [] pat
+
+
+
+
+-- Parse a compound selector.
+-- https://www.w3.org/TR/selectors-4/#compound
+--
+-- TODO: type selector and explicit universal selector are allowed in a
+-- compound selector only when type/universal is first on the list:
+-- https://www.w3.org/TR/selectors-4/#compound: "If it contains a type
+-- selector or universal selector, that selector must come first in the
+-- sequence.".
+parseCompound :: [CssSimpleSelector] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), SelectorWrapper)
+parseCompound acc (parser, CssTokDelim '*') = parseCompound (CssSimpleSelectorType CssTypeSelectorUniversal:acc) (nextToken parser)
+parseCompound acc (parser, CssTokIdent sym) = case htmlTagIndex2 sym of
+                                                Just idx -> parseCompound (CssSimpleSelectorType (CssTypeSelector idx):acc) (nextToken parser)
+                                                Nothing  -> parseCompound (CssSimpleSelectorType CssTypeSelectorUnknown:acc) (nextToken parser)
 -- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
 -- the "id" type are valid ID selectors."
-parseCompoundSelector (Just compound, CssTokHash CssHashId ident:tokens)      = parseCompoundSelector (Just (appendSubclassSelector compound (CssIdSelector ident)), tokens)
-parseCompoundSelector (Just compound, CssTokDelim '.':CssTokIdent sym:tokens) = parseCompoundSelector (Just (appendSubclassSelector compound (CssClassSelector sym)), tokens)
-parseCompoundSelector (Just compound, CssTokColon:CssTokIdent sym:tokens)     = parseCompoundSelector (Just (appendSubclassSelector compound (CssPseudoClassSelector sym)), tokens)
-parseCompoundSelector (Just compound, tokens)                                 = Just (compound, tokens)
-parseCompoundSelector (Nothing, _)                                            = Nothing
+parseCompound acc (parser, CssTokHash CssHashId ident) = parseCompound (CssSimpleSelectorSubclass (CssIdSelector ident):acc) (nextToken parser)
+parseCompound acc pat@(_, CssTokComma)                 = finalizeCompound acc pat
+parseCompound acc pat@(_, CssTokBraceCurlyOpen)        = finalizeCompound acc pat
+parseCompound acc pat@(_, CssTokEnd)                   = finalizeCompound acc pat
+parseCompound acc pat@(_, CssTokWS)                    = finalizeCompound acc pat
+parseCompound acc (parser, CssTokDelim '.') = case nextToken parser of
+                                                (parser', CssTokIdent sym) -> parseCompound (CssSimpleSelectorSubclass (CssClassSelector sym):acc) (nextToken parser')
+                                                _                          -> Nothing
+parseCompound acc (parser, CssTokColon)     = case nextToken parser of
+                                                (parser', CssTokIdent sym) -> parseCompound (CssSimpleSelectorSubclass (CssPseudoClassSelector sym):acc) (nextToken parser')
+                                                _                          -> Nothing
+-- Don't just return Nothing: acc may contain some simple selectors, so the
+-- fact that we don't match any token in this pattern doesn't mean that we
+-- encounter invalid situation. Call 'finalizeCompound' instead.
+parseCompound acc pat = finalizeCompound acc pat
 
 
 
 
-{-
-parseCompoundSelectorTokens :: [CssToken] -> CssCompoundSelector -> Maybe ([CssToken], CssCompoundSelector)
-parseCompoundSelectorTokens (CssTokDelim '*':tokens) compound = parseCompoundSelectorTokens tokens (setSelectorTagName compound CssTypeSelectorUniversal)
-parseCompoundSelectorTokens (CssTokIdent sym:tokens) compound = case htmlTagIndex2 sym of
-                                                                  Just idx -> parseCompoundSelectorTokens tokens (setSelectorTagName compound (CssTypeSelector idx))
-                                                                  Nothing  -> parseCompoundSelectorTokens tokens (setSelectorTagName compound CssTypeSelectorUnknown)
--- https://www.w3.org/TR/css-syntax-3/#tokenization: "Only hash tokens with
--- the "id" type are valid ID selectors."
-parseCompoundSelectorTokens (CssTokHash CssHashId ident:tokens) compound      = parseCompoundSelectorTokens
-                                                                                tokens (appendSubclassSelector compound (CssIdSelector ident))
-parseCompoundSelectorTokens (CssTokDelim '.':CssTokIdent sym:tokens) compound = parseCompoundSelectorTokens
-                                                                                tokens (appendSubclassSelector compound (CssClassSelector sym))
-parseCompoundSelectorTokens (CssTokColon:CssTokIdent sym:tokens) compound     = parseCompoundSelectorTokens
-                                                                                tokens (appendSubclassSelector compound (CssPseudoClassSelector sym))
-parseCompoundSelectorTokens t@(CssTokDelim '>':_ts) compound = Just (t, compound)
-parseCompoundSelectorTokens t@(CssTokDelim '+':_ts) compound = Just (t, compound)
-parseCompoundSelectorTokens t@(CssTokWS:_ts)        compound = Just (t, compound)
-parseCompoundSelectorTokens [] compound = Just ([], compound)
-parseCompoundSelectorTokens _  _        = Nothing
--}
-
-
-
-
--- First take a single compound selector. Then, in properly built complex
--- selector, there should be zero or more pairs of combinator-compound. Take
--- the pairs, and combine them with the first compound into a complex
--- selector.
-parseComplexSelectorTokens :: [CssToken] -> Maybe CssComplexSelector
-parseComplexSelectorTokens tokens = case parseCompoundSelector (Just defaultCssCompoundSelector, tokens) of
-                                      Nothing                  -> Nothing
-                                      Just (compound, tokens2) -> case parsePairs tokens2 [] of
-                                                                    Nothing         -> Nothing
-                                                                    Just (_, pairs) -> Just (makeComplexR (Last compound) pairs)
-
-
-
-
-makeComplexR :: CssComplexSelector -> [(CssCombinator, CssCompoundSelector)] -> CssComplexSelector
-makeComplexR compound pairs = foldr f compound pairs
+-- Convert list of simple selectors into compound selector.
+--
+-- Utility function to be used in few places of parseCompound to nicely
+-- check, wrap and return a value of desided type.
+finalizeCompound :: [CssSimpleSelector] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), SelectorWrapper)
+finalizeCompound []   _ = Nothing
+finalizeCompound ss pat = Just (pat, WrapCompound compound)
   where
-    f :: (CssCombinator, CssCompoundSelector) -> CssComplexSelector -> CssComplexSelector
-    f x acc = Chain (snd x) (fst x) acc
+    compound = foldr f defaultCssCompoundSelector ss
+    f (CssSimpleSelectorType CssTypeSelectorUniversal) cpd = cpd { selectorTagName = CssTypeSelectorUniversal }
+    f (CssSimpleSelectorType (CssTypeSelector idx)) cpd    = cpd { selectorTagName = CssTypeSelector idx }
+    f (CssSimpleSelectorType CssTypeSelectorUnknown) cpd   = cpd { selectorTagName = CssTypeSelectorUnknown }
+    f (CssSimpleSelectorSubclass subclass) cpd             = setSubclassSelector cpd subclass
 
 
 
 
-parsePairs :: [CssToken] -> [(CssCombinator, CssCompoundSelector)] -> Maybe ([CssToken], [(CssCombinator, CssCompoundSelector)])
-parsePairs [] acc   = Just ([], acc) -- There is no "combinator followed by selector" data. Don't return error here.
-parsePairs tokens acc = case parseCombinator tokens of
-                          Nothing                    -> Nothing
-                          Just (combinator, tokens2) -> case parseCompoundSelector (Just defaultCssCompoundSelector, tokens2) of
-                                                          Nothing -> Nothing
-                                                          Just (compound, tokens3) -> parsePairs tokens3 ((combinator, compound):acc)
+parserSeparatedList :: Parser (CssParser, CssToken) value -> Parser (CssParser, CssToken) separator -> Parser (CssParser, CssToken) [value]
+parserSeparatedList parserValue parserSeparator = (:) <$> parserValue <*> many (parserSeparator *> parserValue)
+                                                  <|> pure []
+
+
+
+
+-- Parser of list of complex selectors separated with comma.
+--
+-- https://www.w3.org/TR/selectors-4/#list-of-simple-selectors
+--
+-- https://www.w3.org/TR/selectors-4/#grouping: "If just one of these
+-- selectors were invalid, the entire selector list would be invalid."
+--
+-- Unit-tested: yes, but with issues
+parserSelectorList :: Parser (CssParser, CssToken) [CssComplexSelector']
+parserSelectorList = parserSeparatedList parserComplexSelector parserSeparator
+  where
+    parserSeparator = (many parserTokenWhitespace) *> parserTokenComma <* (many parserTokenWhitespace)
 
 
 
@@ -192,67 +245,21 @@ parsePairs tokens acc = case parseCombinator tokens of
 -- TODO: dump whole ruleset in case of parse error as required by CSS 2.1
 -- however make sure we don't dump it if only dillo fails to parse valid CSS.
 readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe [CssCachedComplexSelector])
-readSelectorList pat = parseSelectorWrapper pat []
+readSelectorList pat = case runParser parserSelectorList pat of
+                           Just (pat', list) -> (pat', Just $ fmap (\ x -> defaultComplexSelector { chain = listToChain . reverse $ x } ) list)
+                           Nothing           -> (pat, Nothing)
+
+
+
+{-
+readSelectorList2 :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe [CssCachedComplexSelector])
+readSelectorList2 pat = parseSelectors' pat []
   where
-    parseSelectorWrapper pat' acc =
+    parseSelectors' pat' acc =
       case parseComplexSelector pat' of
         ((parser, token), Just selector) -> case token of
-                                              CssTokComma -> parseSelectorWrapper (nextToken parser) (acc ++ [selector])
+                                              CssTokComma -> parseSelectors' (nextToken parser) (acc ++ [selector])
                                               _           -> ((parser, token), Just $ acc ++ [selector])
         _                                -> (pat', Just acc)
-
-
-
-
--- Find end of current selector (probably needed only if something goes wrong
--- during parsign of current selector).
-consumeRestOfSelector :: (CssParser, CssToken) -> (CssParser, CssToken)
-consumeRestOfSelector pair@(_, CssTokEnd)            = pair
-consumeRestOfSelector pair@(_, CssTokBraceCurlyOpen) = pair
-consumeRestOfSelector pair@(_, CssTokComma)          = pair
-consumeRestOfSelector (parser, _)                    = consumeRestOfSelector . nextToken $ parser
-
-
-
-
--- Take all tokens until ',' or '{' or EOF is met. The tokens will be used to
--- create list of CssCompoundSelectors (with separating combinators). If input
--- stream starts with whitespace, discard the whitespace (don't return token
--- for it) - leading whitespace is certainly meaningless.
-takeComplexSelectorTokens :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssToken])
-takeComplexSelectorTokens pat = takeNext pat []
-  where
-    takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
-    takeNext (parser, token) tokens = case token of
-                                        CssTokBraceCurlyOpen -> ((parser, token), tokens)
-                                        CssTokComma          -> ((parser, token), tokens)
-                                        CssTokEnd    -> ((parser, token), tokens)
-                                        -- Ignore whitespace occurring at the
-                                        -- beginning of selectors list. I
-                                        -- could filter it out later with
-                                        -- removeSpaceTokens, but it's easier
-                                        -- to not to add it at all.
-                                        CssTokWS   -> if null tokens
-                                                      then takeNext (nextToken parser) tokens
-                                                      else takeNext (nextToken parser) (tokens ++ [token])
-                                        CssTokNone -> takeNext (nextToken parser) tokens -- This token can be used to 'kick-start' of parsing
-                                        _          -> takeNext (nextToken parser) (tokens ++ [token])
-
-
-
-
--- A dumb way to remove spaces that are adjactent to '+' or '>' combinators.
--- In such situations the spaces aren't combinators themselves but are just
--- separators.
-removeSpaceTokens :: [CssToken] -> [CssToken] -> [CssToken]
-removeSpaceTokens (CssTokWS:(CssTokDelim '+'):xs) acc = removeSpaceTokens (CssTokDelim '+':xs) acc
-removeSpaceTokens ((CssTokDelim '+'):CssTokWS:xs) acc = removeSpaceTokens (CssTokDelim '+':xs) acc
-removeSpaceTokens (CssTokWS:(CssTokDelim '>'):xs) acc = removeSpaceTokens (CssTokDelim '>':xs) acc
-removeSpaceTokens ((CssTokDelim '>'):CssTokWS:xs) acc = removeSpaceTokens (CssTokDelim '>':xs) acc
-removeSpaceTokens [x, CssTokWS] acc                   = acc ++ [x] -- Don't forget to remove ending whitespace too.
-removeSpaceTokens (x:xs) acc                          = removeSpaceTokens xs (acc ++ [x])
-removeSpaceTokens [] acc                              = acc
-
-
-
+-}
 

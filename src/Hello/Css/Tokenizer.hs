@@ -87,6 +87,7 @@ module Hello.Css.Tokenizer
   , parserTokenIdentAny
   , parserTokenIdent
   , parserTokenColon
+  , parserTokenComma
   , parserTokenSemicolon
   , parserTokenBraceCurlyOpen
   , parserTokenBraceCurlyClose
@@ -827,6 +828,13 @@ parserTokenIdent ident = Parser $ \ (parser, token) -> case token of
 parserTokenColon :: Parser (CssParser, CssToken) CssToken
 parserTokenColon = Parser $ \ (parser, token) -> case token of
                                                    CssTokColon -> Just (nextToken parser, token)
+                                                   _           -> Nothing
+
+
+
+parserTokenComma :: Parser (CssParser, CssToken) CssToken
+parserTokenComma = Parser $ \ (parser, token) -> case token of
+                                                   CssTokComma -> Just (nextToken parser, token)
                                                    _           -> Nothing
 
 

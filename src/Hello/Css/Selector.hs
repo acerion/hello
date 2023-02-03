@@ -39,6 +39,8 @@ module Hello.Css.Selector
   , unCssTypeSelector
   , mkCssTypeSelector
 
+  , CssSimpleSelector (..)
+
   , CssCompoundSelector (..)
   , defaultCssCompoundSelector
   , compoundTagName
@@ -58,6 +60,9 @@ module Hello.Css.Selector
   , defaultComplexSelector
 
   , CssComplexSelector
+
+  , SelectorWrapper (..)
+  , CssComplexSelector'
 
   , CssCombinator (..)
 
@@ -150,6 +155,17 @@ data CssSubclassSelector
  --  | CssAttrSelector -- Unsupported for now
  | CssPseudoClassSelector T.Text
  deriving (Show, Eq)
+
+
+
+
+-- Wrapper type for both kinds of simple selectors: type selector or subclass selector.
+-- https://www.w3.org/TR/selectors-4/#typedef-simple-selector
+data CssSimpleSelector
+ = CssSimpleSelectorType CssTypeSelector
+ | CssSimpleSelectorSubclass CssSubclassSelector
+ deriving (Eq, Show)
+
 
 
 
@@ -249,6 +265,21 @@ defaultComplexSelector = CssCachedComplexSelector {
 -- https://www.w3.org/TR/selectors-4/#structure: "A complex selector is a
 -- sequence of one or more compound selectors separated by combinators."
 type CssComplexSelector = Chain CssCompoundSelector CssCombinator
+
+
+
+
+-- Simple type allowing me to put compound selectors and the combinators in
+-- the same list.
+data SelectorWrapper
+  = WrapCompound CssCompoundSelector
+  | WrapCombinator CssCombinator
+  deriving (Show, Eq)
+
+
+
+
+type CssComplexSelector' = [SelectorWrapper]
 
 
 
