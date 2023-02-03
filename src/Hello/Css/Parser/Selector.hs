@@ -37,12 +37,11 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 module Hello.Css.Parser.Selector
   (
     readSelectorList
-  , parseComplexSelector
 
   -- Just for unit tests.
+  , parserCompoundSelector
   , parserComplexSelector
   , parserSelectorList
-  , parserCompound
   )
 where
 
@@ -77,25 +76,6 @@ setSubclassSelector compound subSel =
 
 
 
--- Create a comples selector from a group of tokens that are terminated by
--- ',' or '{' character.
---
--- https://www.w3.org/TR/selectors-4/#structure: "A complex selector is a
--- sequence of one or more compound selectors separated by combinators."
---
--- Function always consumes the group of tokens, regardless of
--- success/failure of the parsing.
-parseComplexSelector :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssCachedComplexSelector)
-parseComplexSelector (parser, token) = (pat'', complex)
-  where
-    (pat'', complex) = case runParser parserComplexSelector (parser, token) of
-                         Just (_, [])   -> (nextToken parser, Nothing) -- Empty compound/combinator list means bad parsing.
-                         Just (pat', l) -> (pat', Just defaultComplexSelector { chain = listToChain . reverse $ l } )
-                         _              -> (nextToken parser, Nothing)
-
-
-
-
 -- TODO: this function has missing cases for pattern matching.
 listToChain :: [SelectorWrapper] -> Chain CssCompoundSelector CssCombinator
 listToChain [WrapCompound compound] = Last compound
@@ -105,6 +85,13 @@ listToChain (WrapCompound compound:WrapCombinator combi:xs) = Chain compound com
 
 
 
+
+-- https://www.w3.org/TR/selectors-4/#structure: "A complex selector is a
+-- sequence of one or more compound selectors separated by combinators."
+--
+-- Function always consumes the group of tokens, regardless of
+-- success/failure of the parsing.
+--
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Utils.Parser
 -- :m +Hello.Css.Parser.Selector
@@ -118,10 +105,10 @@ parserComplexSelector = ((:) <$> parserFirstCompound <*> fmap concat (many parse
   where
     -- A first compound selector in a complex selector may be preceded with spaces.
     parserFirstCompound :: Parser (CssParser, CssToken) SelectorWrapper
-    parserFirstCompound = many parserTokenWhitespace *> parserCompound
+    parserFirstCompound = many parserTokenWhitespace *> parserCompoundSelector
 
     parserCombinatorAndCompound :: Parser (CssParser, CssToken) CssComplexSelector'
-    parserCombinatorAndCompound = (( \ a b -> [a, b]) <$> parserCombinator <*> parserCompound)
+    parserCombinatorAndCompound = (( \ a b -> [a, b]) <$> parserCombinator <*> parserCompoundSelector)
 
 
 
@@ -151,8 +138,9 @@ parseCombinator pat = case runParser parser pat of
 
 
 
-parserCompound :: Parser (CssParser, CssToken) SelectorWrapper
-parserCompound = Parser $ \ pat -> parseCompound [] pat
+-- Unit-tested: yes
+parserCompoundSelector :: Parser (CssParser, CssToken) SelectorWrapper
+parserCompoundSelector = Parser $ \ pat -> parseCompound [] pat
 
 
 

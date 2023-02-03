@@ -7,7 +7,6 @@ may be different than a license for whole "Hello" package.
 
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE BinaryLiterals #-} -- For specifying expected integer values of CssValueTypeMultiEnum.
 
 
 
@@ -31,6 +30,8 @@ import Hello.Css.Selector
 import Hello.Html.Tag
 import Hello.Utils.Parser
 
+import qualified Hello.Tests.Utils.Hunit as H.H
+
 
 
 
@@ -38,8 +39,8 @@ import Hello.Utils.Parser
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
-parserCompoundTestData :: [(T.Text, Maybe ((CssParser, CssToken), SelectorWrapper))]
-parserCompoundTestData = [
+parserCompoundSelectorTestData :: [(T.Text, Maybe ((CssParser, CssToken), SelectorWrapper))]
+parserCompoundSelectorTestData = [
   -- parser's remainder before/after      expected selector
 
   -- Recognition of most basic case: no selector in input buffer.
@@ -86,17 +87,17 @@ parserCompoundTestData = [
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-parserCompoundTest :: [(T.Text, Maybe ((CssParser, CssToken), SelectorWrapper))] -> T.Text
-parserCompoundTest xs = foldr f "" xs
+parserCompoundSelectorTest :: [(T.Text, Maybe ((CssParser, CssToken), SelectorWrapper))] -> [T.Text]
+parserCompoundSelectorTest xs = foldr f [] xs
   where
     f x acc = if expected /= result
-              then T.append errMsg acc
+              then errMsg:acc
               else acc
       where
-        remainderBefore = fst x
-        expected        = snd x
-        result = runParser parserCompound (nextToken . defaultParser $ remainderBefore)
-        errMsg = T.pack ("\n*** remainder before = " ++ show remainderBefore ++ "\n*** expected = " ++ show expected ++ "\n*** result = " ++ show result)
+        inputRemainder = fst x
+        expected       = snd x
+        result = runParser parserCompoundSelector (nextToken . defaultParser $ inputRemainder)
+        errMsg = T.pack ("\n*** input remainder = " ++ show inputRemainder ++ "\n*** expected = " ++ show expected ++ "\n*** result =   " ++ show result)
 
 
 
@@ -110,8 +111,8 @@ parserCompoundTest xs = foldr f "" xs
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
-parseComplexSelectorTestManualDataBasic :: [(T.Text, Maybe ((CssParser, CssToken), [SelectorWrapper]))]
-parseComplexSelectorTestManualDataBasic =
+parserComplexSelectorTestManualDataBasic :: [(T.Text, Maybe ((CssParser, CssToken), [SelectorWrapper]))]
+parserComplexSelectorTestManualDataBasic =
   [
     -- Success case: an example from https://www.w3.org/TR/selectors-4/#descendant-combinators
     ( "div * p",             Just (((defaultParser "") { bufOffset = 7 }, CssTokEnd)
@@ -152,11 +153,11 @@ parseComplexSelectorTestManualDataBasic =
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-parseComplexSelectorTest :: [(T.Text, Maybe ((CssParser, CssToken), [SelectorWrapper]))] -> T.Text
-parseComplexSelectorTest []     = ""
-parseComplexSelectorTest (x:xs) = if expectedResult /= result
-                                  then T.pack ("remainder before = " ++ T.unpack remainderBefore ++ ", result = " ++ show result)
-                                  else parseComplexSelectorTest xs
+parserComplexSelectorTest :: [(T.Text, Maybe ((CssParser, CssToken), [SelectorWrapper]))] -> T.Text
+parserComplexSelectorTest []     = ""
+parserComplexSelectorTest (x:xs) = if expectedResult /= result
+                                   then T.pack ("remainder before = " ++ T.unpack remainderBefore ++ ", result = " ++ show result)
+                                   else parserComplexSelectorTest xs
   where
     remainderBefore  = fst x
     expectedResult   = snd x
@@ -260,9 +261,9 @@ selectorTestCases =
   [
     -- If some error is found, test function returns some data (e.g. non-empty
     -- string or test index) which can help identify which test failed.
-    TestCase (do assertEqual "manual tests of parserCompound - basic cases"            "" (parserCompoundTest parserCompoundTestData))
-  , TestCase (do assertEqual "manual tests of parsing of complex selector"             "" (parseComplexSelectorTest parseComplexSelectorTestManualDataBasic))
-  , TestCase (do assertEqual "manual tests of parsing of list of complex selectors"    "" (parseListOfSelectorsTest parseListOfSelectorsTestManualData))
+    TestCase (do H.H.assertSuccess "manual tests of parserCompoundSelector"               (parserCompoundSelectorTest parserCompoundSelectorTestData))
+  , TestCase (do assertEqual "manual tests of parserComplexSelector"                   "" (parserComplexSelectorTest parserComplexSelectorTestManualDataBasic))
+  , TestCase (do assertEqual "manual tests of parserSelectorList"                      "" (parseListOfSelectorsTest parseListOfSelectorsTestManualData))
   ]
 
 
