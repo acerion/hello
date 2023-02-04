@@ -25,6 +25,8 @@ import Test.HUnit
 
 
 
+
+-- Based on one of assert functions from HUnit documentation.
 assertSuccess :: String -> [T.Text] -> Assertion
 assertSuccess description result =
   unless (null result) (assertFailure msg)

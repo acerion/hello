@@ -88,6 +88,10 @@ plt.plot(dates, total,    color='silver',   label='Total')
 
 
 
+# Parts of this code were taken from
+# https://stackoverflow.com/questions/24943991/change-grid-interval-and-specify-tick-labels-in-matplotlib
+# or similar sources.
+
 
 plt.draw()
 
