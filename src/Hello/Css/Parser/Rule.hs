@@ -46,11 +46,6 @@ module Hello.Css.Parser.Rule
     ignoreBlock
   , ignoreStatement
 
-  , CssRule (..)
-  , CssParsedStyleRule (..)
-
-  , getTopCompound
-
   , parseStyleRule
   , parseElementStyleAttribute
 
@@ -64,13 +59,12 @@ where
 
 import Control.Applicative (Alternative(..))
 import qualified Data.Text as T
---import Debug.Trace
+-- import Debug.Trace
 
-import Hello.Chain
 import Hello.Css.Parser.Declaration
 import Hello.Css.Parser.Selector
+import Hello.Css.Rule
 import Hello.Css.Tokenizer
-import Hello.Css.Selector
 import Hello.Utils.Parser
 
 
@@ -179,49 +173,6 @@ parseAllDeclarations :: ((CssParser, CssToken), CssDeclarationSets) -> ((CssPars
 parseAllDeclarations input@((_, CssTokEnd), _)             = input
 parseAllDeclarations input@((_, CssTokBraceCurlyClose), _) = input
 parseAllDeclarations input                                 = parseAllDeclarations . parseSingleDeclarationWrapper $ input
-
-
-
-
-data CssRule = CssRule {
-    complexSelector :: CssCachedComplexSelector
-  , declarationSet  :: CssDeclarationSet
-  , specificity     :: Int
-  , position        :: Int
-  } deriving (Eq)
-
-
-instance Show CssRule where
-  show (CssRule cs ds s p) = "Rule {" ++  show cs ++ "\n" ++
-                                          show ds ++ "\n" ++
-                             "spec = " ++ show s  ++ "\n" ++
-                             "pos = "  ++ show p  ++ "}\n"
-
-
-
-
--- Get top compound selector
-getTopCompound :: CssRule -> CssCompoundSelector
-getTopCompound rule = chainGetFirstDatum . chain . complexSelector $ rule
-
-
-
-
--- A helper data type
---
--- https://www.w3.org/TR/css-syntax-3/#style-rules
---
--- "A style rule is a qualified rule that associates a selector list with a
--- list of property declarations and possibly a list of nested rules."
-data CssParsedStyleRule = CssParsedStyleRule
-  { -- "The prelude of the qualified rule is parsed as a <selector-list>. If
-    -- this returns failure, the entire style rule is invalid."
-    prelude :: [CssParsedComplexSelector]
-
-    -- "The content of the qualified rule’s block is parsed as a style
-    -- block’s contents."
-  , content :: CssDeclarationSets
-  } deriving (Show, Eq)
 
 
 
