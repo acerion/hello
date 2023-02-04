@@ -36,12 +36,11 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 module Hello.Css.Parser.Selector
   (
-    readSelectorList
+    parserSelectorList
 
   -- Just for unit tests.
   , parserCompoundSelector
   , parserComplexSelector
-  , parserSelectorList
   )
 where
 
@@ -52,7 +51,6 @@ import Control.Applicative
 import qualified Data.Text as T
 --import Debug.Trace
 
-import Hello.Chain
 import Hello.Css.Tokenizer
 import Hello.Css.Selector
 import Hello.Html.Tag
@@ -76,16 +74,6 @@ setSubclassSelector compound subSel =
 
 
 
--- TODO: this function has missing cases for pattern matching.
-listToChain :: [SelectorWrapper] -> Chain CssCompoundSelector CssCombinator
-listToChain [WrapCompound compound] = Last compound
-listToChain (WrapCompound compound:WrapCombinator combi:xs) = Chain compound combi (listToChain xs)
---listToChain [] = (Last defaultCssCompoundSelector)
-
-
-
-
-
 -- https://www.w3.org/TR/selectors-4/#structure: "A complex selector is a
 -- sequence of one or more compound selectors separated by combinators."
 --
@@ -100,14 +88,14 @@ listToChain (WrapCompound compound:WrapCombinator combi:xs) = Chain compound com
 -- runParser parserComplexSelector (nextToken . defaultParser $ "a    >   head + a")
 --
 -- HASKELL FEATURE: APPLICATIVE FUNCTOR
-parserComplexSelector :: Parser (CssParser, CssToken) CssComplexSelector'
+parserComplexSelector :: Parser (CssParser, CssToken) CssParsedComplexSelector
 parserComplexSelector = ((:) <$> parserFirstCompound <*> fmap concat (many parserCombinatorAndCompound))
   where
     -- A first compound selector in a complex selector may be preceded with spaces.
     parserFirstCompound :: Parser (CssParser, CssToken) SelectorWrapper
     parserFirstCompound = many parserTokenWhitespace *> parserCompoundSelector
 
-    parserCombinatorAndCompound :: Parser (CssParser, CssToken) CssComplexSelector'
+    parserCombinatorAndCompound :: Parser (CssParser, CssToken) CssParsedComplexSelector
     parserCombinatorAndCompound = (( \ a b -> [a, b]) <$> parserCombinator <*> parserCompoundSelector)
 
 
@@ -210,15 +198,6 @@ parserSeparatedList parserValue parserSeparator = (:) <$> parserValue <*> many (
 -- https://www.w3.org/TR/selectors-4/#grouping: "If just one of these
 -- selectors were invalid, the entire selector list would be invalid."
 --
--- Unit-tested: yes, but with issues
-parserSelectorList :: Parser (CssParser, CssToken) [CssComplexSelector']
-parserSelectorList = parserSeparatedList parserComplexSelector parserSeparator
-  where
-    parserSeparator = (many parserTokenWhitespace) *> parserTokenComma <* (many parserTokenWhitespace)
-
-
-
-
 -- Parse entire list of selectors that are separated with comma.
 -- Function name is matching CSS Selectors Level 4 terminology.
 --
@@ -233,22 +212,12 @@ parserSelectorList = parserSeparatedList parserComplexSelector parserSeparator
 --
 -- TODO: dump whole ruleset in case of parse error as required by CSS 2.1
 -- however make sure we don't dump it if only dillo fails to parse valid CSS.
-readSelectorList :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe [CssCachedComplexSelector])
-readSelectorList pat = case runParser parserSelectorList pat of
-                           Just (pat', list) -> (pat', Just $ fmap (\ x -> defaultComplexSelector { chain = listToChain . reverse $ x } ) list)
-                           Nothing           -> (pat, Nothing)
-
-
-
-{-
-readSelectorList2 :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe [CssCachedComplexSelector])
-readSelectorList2 pat = parseSelectors' pat []
+--
+-- Unit-tested: yes, but with issues
+parserSelectorList :: Parser (CssParser, CssToken) [CssParsedComplexSelector]
+parserSelectorList = parserSeparatedList parserComplexSelector parserSeparator
   where
-    parseSelectors' pat' acc =
-      case parseComplexSelector pat' of
-        ((parser, token), Just selector) -> case token of
-                                              CssTokComma -> parseSelectors' (nextToken parser) (acc ++ [selector])
-                                              _           -> ((parser, token), Just $ acc ++ [selector])
-        _                                -> (pat', Just acc)
--}
+    parserSeparator = (many parserTokenWhitespace) *> parserTokenComma <* (many parserTokenWhitespace)
+
+
 

@@ -179,7 +179,7 @@ parserComplexSelectorTest (x:xs) = if expectedResult /= result
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
-parseListOfSelectorsTestManualData :: [(T.Text, Maybe ((CssParser, CssToken), [CssComplexSelector']))]
+parseListOfSelectorsTestManualData :: [(T.Text, Maybe ((CssParser, CssToken), [CssParsedComplexSelector]))]
 parseListOfSelectorsTestManualData =
   [
 
@@ -238,7 +238,7 @@ parseListOfSelectorsTestManualData =
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-parseListOfSelectorsTest :: [(T.Text, Maybe ((CssParser, CssToken), [CssComplexSelector']))] -> T.Text
+parseListOfSelectorsTest :: [(T.Text, Maybe ((CssParser, CssToken), [CssParsedComplexSelector]))] -> T.Text
 parseListOfSelectorsTest []     = ""
 parseListOfSelectorsTest (x:xs) = if expectedResult /= result
                                   then T.pack ("remainder before = " ++ T.unpack remainderBefore ++ ", result = " ++ show result)

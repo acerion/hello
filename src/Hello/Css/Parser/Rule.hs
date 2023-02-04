@@ -216,7 +216,7 @@ getTopCompound rule = chainGetFirstDatum . chain . complexSelector $ rule
 data CssParsedStyleRule = CssParsedStyleRule
   { -- "The prelude of the qualified rule is parsed as a <selector-list>. If
     -- this returns failure, the entire style rule is invalid."
-    prelude :: [CssCachedComplexSelector]
+    prelude :: [CssParsedComplexSelector]
 
     -- "The content of the qualified rule’s block is parsed as a style
     -- block’s contents."
@@ -246,11 +246,21 @@ data CssParsedStyleRule = CssParsedStyleRule
 --
 -- Unit-tested: yes
 parseStyleRule :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssParsedStyleRule)
-parseStyleRule pat = case readSelectorList pat of
-                       (pat', Nothing)           -> (pat', Nothing)
-                       (pat', Just selectorList) -> case readDeclarationsBlockWithError pat' of
-                                                      (pat'', Just declSets) -> (pat'', Just $ CssParsedStyleRule selectorList declSets)
-                                                      (pat'', Nothing)       -> (pat'', Nothing)
+parseStyleRule pat = case runParser parserStyleRule pat of
+                        Nothing -> (consumeRestOfCurlyBlock pat, Nothing) -- Error recovery, skip invalid rule.
+                        Just (pat', parsedStyleRule) -> (pat', Just parsedStyleRule)
+
+
+
+
+
+-- Parser of style rule: a list of complex selectors followed by {} block
+-- with declarations.
+parserStyleRule :: Parser (CssParser, CssToken) CssParsedStyleRule
+parserStyleRule = Parser $ \ pat -> do
+  (pat', selectorList) <- runParser parserSelectorList pat
+  (pat'', declSets)    <- runParser parserDeclarationBlock pat'
+  pure (pat'', CssParsedStyleRule { prelude = selectorList, content = declSets })
 
 
 
@@ -288,8 +298,8 @@ readDeclarations input@((_, token), _) =
 -- readDeclarationsBlock (nextToken $ defaultParser "{} p.v")
 -- readDeclarationsBlock (nextToken $ defaultParser "{color: rgb(0, 100, 0)} p.v")
 -- readDeclarationsBlock (nextToken $ defaultParser " { color:rgb(0, 100, 0) !important} p.v")
-readDeclarationsBlock :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssDeclarationSets)
-readDeclarationsBlock = runParser $ parserOpeningBrace *> parserDeclarations <* parserClosingBrace
+parserDeclarationBlock :: Parser (CssParser, CssToken) CssDeclarationSets
+parserDeclarationBlock = parserOpeningBrace *> parserDeclarations <* parserClosingBrace
   where
     parserOpeningBrace :: Parser (CssParser, CssToken) CssToken
     parserOpeningBrace = Parser $ \ pat ->
@@ -322,21 +332,4 @@ readDeclarationsBlock = runParser $ parserOpeningBrace *> parserDeclarations <* 
     parserDeclarations = Parser $ \ pat ->
       case readDeclarations (pat, (defaultCssDeclarationSet, defaultCssDeclarationSet)) of
         (pat', declSets) -> Just (pat', declSets)
-
-
-
-
--- Read a {} block with declarations. On success return the declaration sets.
--- On parse error do a recovery and move parser to end of invalid block.
---
--- :m +Hello.Css.Parser.Declaration
--- :m +Hello.Css.Tokenizer
--- :m +Hello.Css.Declaration
---
--- readDeclarationsBlockWithError  (nextToken $ defaultParser " { color:rgb(0, 100, 0) !important } p.now ")   -- success
--- readDeclarationsBlockWithError  (nextToken $ defaultParser " { color:rgb(0, 100, 0) !importan } p.now ")    -- failure (invalid input)
-readDeclarationsBlockWithError :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssDeclarationSets)
-readDeclarationsBlockWithError pat = case readDeclarationsBlock pat of
-                                       Just (pat', declSets) -> (pat', Just declSets)
-                                       Nothing               -> (consumeRestOfCurlyBlock pat, Nothing)
 

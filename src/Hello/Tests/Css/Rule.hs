@@ -31,6 +31,7 @@ import Hello.Css.Parser.Rule
 import Hello.Css.Parser.Selector
 import Hello.Css.Selector
 import Hello.Html.Tag
+import Hello.Utils.Parser
 
 
 
@@ -86,13 +87,13 @@ getTopCompoundTest (x:xs) = if expectedCompound /= cpd
     remainderIn  = fst x
     expectedCompound = snd x
 
-    (_, selectorList) = readSelectorList (nextToken . defaultParser $ remainderIn)
-    cpd = case selectorList of
-            Just l  -> getTopCompound CssRule { complexSelector = head l
-                                              , declarationSet  = defaultCssDeclarationSet
-                                              , specificity     = 0
-                                              , position        = 0
-                                              }
+    result = runParser parserSelectorList (nextToken . defaultParser $ remainderIn)
+    cpd = case result of
+            Just (_, l) -> getTopCompound CssRule { complexSelector = mkCachedComplexSelector . head $ l
+                                                  , declarationSet  = defaultCssDeclarationSet
+                                                  , specificity     = 0
+                                                  , position        = 0
+                                                  }
             Nothing -> defaultCssCompoundSelector
 
 

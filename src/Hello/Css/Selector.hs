@@ -62,13 +62,16 @@ module Hello.Css.Selector
   , CssComplexSelector
 
   , SelectorWrapper (..)
-  , CssComplexSelector'
+  , CssParsedComplexSelector
 
   , CssCombinator (..)
 
   , styleSheetElementCount -- TODO: this constant doesn't belong to this module
 
   , selectorSpecificity
+
+  , listToChain
+  , mkCachedComplexSelector
   )
 where
 
@@ -279,7 +282,7 @@ data SelectorWrapper
 
 
 
-type CssComplexSelector' = [SelectorWrapper]
+type CssParsedComplexSelector = [SelectorWrapper]
 
 
 
@@ -308,3 +311,19 @@ compoundSelectorSpecificity compound = fromId compound + fromClass compound + fr
     fromClass cpd       = (length . selectorClass $ cpd) `shiftL` 10
     fromPseudoClass cpd = if not . null . selectorPseudoClass $ cpd then 1 `shiftL` 10 else 0 -- Remember that C/C++ code can use only first pseudo code.
     fromElement cpd     = if compoundHasUniversalType cpd then 0 else 1
+
+
+
+
+-- TODO: this function has missing cases for pattern matching.
+listToChain :: [SelectorWrapper] -> Chain CssCompoundSelector CssCombinator
+listToChain [WrapCompound compound] = Last compound
+listToChain (WrapCompound compound:WrapCombinator combi:xs) = Chain compound combi (listToChain xs)
+--listToChain [] = (Last defaultCssCompoundSelector)
+
+
+
+
+mkCachedComplexSelector :: [SelectorWrapper] -> CssCachedComplexSelector
+mkCachedComplexSelector parsed = defaultComplexSelector { chain = listToChain . reverse $ parsed }
+

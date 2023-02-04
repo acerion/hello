@@ -393,7 +393,12 @@ rulesetToRulesWithOrigin (parser, token) = case parseStyleRule (parser, token) o
                                              (pat', Nothing)        -> (pat', [])
                                              (pat', Just parsedStyleRule) -> (pat', rulesWithOrigin)
                                                where
-                                                 rulesWithOrigin = makeRulePairs (prelude parsedStyleRule) (content parsedStyleRule) (cssOrigin parser) []
+                                                 rulesWithOrigin = makeRulePairs cachedSelectors (content parsedStyleRule) (cssOrigin parser) []
+
+                                                 -- Notice that only at this stage of parsing we use defaultComplexSelector to
+                                                 -- turn nice lists of compound-selectors+combinators into lists of cached
+                                                 -- complex selectors.
+                                                 cachedSelectors = fmap mkCachedComplexSelector (prelude parsedStyleRule)
 
 
 
