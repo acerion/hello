@@ -47,7 +47,7 @@ module Hello.Css.ParserHelpers
 
   , mkParserEnum
   , interpretTokensAsMultiEnum
-  , interpretTokensAsLength
+  , mkParserLength
   , interpretTokensAsInteger
   , interpretTokensAsColor
   , interpretTokensAsBgPosition
@@ -193,18 +193,20 @@ interpretTokensAsColor _ _                                     = Nothing
 
 -- allowUnitlessDistance: are distance values without unit (e.g. "1.0", as
 -- opposed to "1.0px") allowed/accepted for this property value?
-interpretTokensAsLength :: Bool -> (CssDistance -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
-interpretTokensAsLength allowUnitlessDistance distanceValueCtor (parser, token) =
-  case tokens of
-    [CssTokDim cssNum ident] -> Just ((newParser, newToken), distanceValueCtor (unitValue cssNum ident))
-    [CssTokPerc cssNum]      -> Just ((newParser, newToken), distanceValueCtor (percentValue cssNum))
-    [CssTokNum cssNum]       -> case ((newParser, newToken), unitlessValue cssNum) of
-                                  ((p2, t2), Just i) -> Just ((p2, t2), distanceValueCtor i)
-                                  (_,       Nothing) -> Nothing
-    _                        -> Nothing
-
+mkParserLength :: Bool -> Parser (CssParser, CssToken) CssDistance
+mkParserLength allowUnitlessDistance = Parser $ \ pat -> fn allowUnitlessDistance pat
   where
-    ((newParser, newToken), tokens) = takeLengthTokens (parser, token)
+    fn :: Bool -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssDistance)
+    fn allowUnitless (parser, token) =
+      case tokens of
+        [CssTokDim cssNum ident] -> Just ((newParser, newToken), (unitValue cssNum ident))
+        [CssTokPerc cssNum]      -> Just ((newParser, newToken), (percentValue cssNum))
+        [CssTokNum cssNum]       -> case ((newParser, newToken), unitlessValue cssNum allowUnitless) of
+                                      ((p2, t2), Just i) -> Just ((p2, t2), i)
+                                      (_,       Nothing) -> Nothing
+        _                        -> Nothing
+        where
+          ((newParser, newToken), tokens) = takeLengthTokens (parser, token)
 
     percentValue :: CssNum -> CssDistance
     percentValue cssNum = distance
@@ -218,16 +220,16 @@ interpretTokensAsLength allowUnitlessDistance distanceValueCtor (parser, token) 
         fval = cssNumToFloat cssNum
         distance = lengthValueToDistance fval (T.toLower unitString)
 
-    unitlessValue :: CssNum -> Maybe CssDistance
+    unitlessValue :: CssNum -> Bool -> Maybe CssDistance
     -- Allow numbers without unit only for 0 or LengthPercentNumber.
     -- TODO: why?
     --
     -- TODO: original code allowed a value to be unitless if value type was
     -- CssValueTypeLengthPercentNumber or value was 0.0. Do we need to
     -- restore the condition on value type, or can we use the boolean flag?
-    unitlessValue cssNum = if allowUnitlessDistance || fval == 0.0
-                           then Just distance
-                           else Nothing
+    unitlessValue cssNum allow = if allow || fval == 0.0
+                                 then Just distance
+                                 else Nothing
       where
         fval = cssNumToFloat cssNum
         distance = CssNumericNone fval

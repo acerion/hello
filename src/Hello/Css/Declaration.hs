@@ -1038,9 +1038,9 @@ data CssValueBorderSpacing
 
 
 makeCssPropertyBorderSpacing :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderSpacing pat = (fmap . fmap) CssPropertyBorderSpacing (parser pat)
+makeCssPropertyBorderSpacing pat = (fmap . fmap) (CssPropertyBorderSpacing . CssValueBorderSpacingDistance) (runParser parser pat)
   where
-    parser = interpretTokensAsLength False CssValueBorderSpacingDistance
+    parser = mkParserLength False
 
 
 
@@ -1232,7 +1232,7 @@ parseTokensAsBorderWidthValue pat = runParser parserValueBorderWidth pat
 
 parserValueBorderWidth :: Parser (CssParser, CssToken) CssValueBorderWidth
 parserValueBorderWidth = mkParserEnum cssValueBorderWidthDict
-                         <|> Parser (interpretTokensAsLength False CssValueBorderWidthDistance)
+                         <|> fmap CssValueBorderWidthDistance (mkParserLength False)
 
 
 
@@ -1675,7 +1675,7 @@ makeCssPropertyFontSize pat = (fmap . fmap) CssPropertyFontSize (runParser parse
   where
     parser = mkParserEnum cssValueFontSizeDict
              -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of font size?
-             <|> Parser (interpretTokensAsLength False CssValueFontSizeDistance)
+             <|> fmap CssValueFontSizeDistance (mkParserLength False)
 
 
 
@@ -1815,10 +1815,9 @@ data CssValueHeight
 
 -- TODO: CSS2.2 says: "Negative values for 'height' are illegal.". Implement this.
 makeCssPropertyHeight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyHeight pat = (fmap . fmap) CssPropertyHeight (runParser parser pat)
+makeCssPropertyHeight pat = (fmap . fmap) (CssPropertyHeight . CssValueHeightDistance) (runParser parser pat)
   where
-    parser = Parser (interpretTokensAsLength False CssValueHeightDistance)
-             <|> fmap CssValueHeightDistance parserDistanceAuto
+    parser = mkParserLength False <|> parserDistanceAuto
 
 
 
@@ -1862,7 +1861,7 @@ makeCssPropertyLetterSpacing :: (CssParser, CssToken) -> Maybe ((CssParser, CssT
 makeCssPropertyLetterSpacing pat = (fmap . fmap) CssPropertyLetterSpacing (runParser parser pat)
   where
     parser = mkParserEnum cssValueLetterSpacingDict
-             <|> Parser (interpretTokensAsLength False CssValueLetterSpacingDistance)
+             <|> fmap CssValueLetterSpacingDistance (mkParserLength False)
 
 
 
@@ -1896,7 +1895,7 @@ makeCssPropertyLineHeight pat = (fmap . fmap) CssPropertyLineHeight (runParser p
              -- True: Original dillo code allowed unitless numeric values for
              -- zero and for values of type "length/percent/number". Line
              -- height was one of the properties that had this type.
-             <|> Parser (interpretTokensAsLength True CssValueLineHeightDistance)
+             <|> fmap CssValueLineHeightDistance (mkParserLength True)
 
 
 
@@ -2174,9 +2173,9 @@ makeCssPropertyMarginX propCtor pat = (fmap . fmap) propCtor (parser pat)
 
 
 
+
 marginValueParser :: Parser (CssParser, CssToken) CssValueMarginX
-marginValueParser = Parser (interpretTokensAsLength False CssValueMarginXDistance)
-                    <|> fmap CssValueMarginXDistance parserDistanceAuto
+marginValueParser = fmap CssValueMarginXDistance (mkParserLength False <|> parserDistanceAuto)
 
 
 
@@ -2307,7 +2306,7 @@ parseTokensAsPaddingValue pat = runParser paddingValueParser pat
 
  -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
 paddingValueParser :: Parser (CssParser, CssToken) CssValuePaddingX
-paddingValueParser = Parser $ interpretTokensAsLength False CssValuePaddingX
+paddingValueParser = fmap CssValuePaddingX (mkParserLength False)
 
 
 
@@ -2444,9 +2443,9 @@ data CssValueTextIndent
 
 
 makeCssPropertyTextIndent :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyTextIndent pat = (fmap . fmap) CssPropertyTextIndent (parser pat)
+makeCssPropertyTextIndent pat = (fmap . fmap) (CssPropertyTextIndent . CssValueTextIndentDistance) (runParser parser pat)
   where
-    parser = interpretTokensAsLength False CssValueTextIndentDistance
+    parser = mkParserLength False
 
 
 
@@ -2628,10 +2627,9 @@ data CssValueWidth
 
 -- TODO: CSS2.2 says: "Negative values for 'width' are illegal.". Implement this.
 makeCssPropertyWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyWidth pat = (fmap . fmap) CssPropertyWidth (runParser parser pat)
+makeCssPropertyWidth pat = (fmap . fmap) (CssPropertyWidth . CssValueWidthDistance) (runParser parser pat)
   where
-    parser = Parser (interpretTokensAsLength False CssValueWidthDistance)
-             <|> fmap CssValueWidthDistance parserDistanceAuto
+    parser = mkParserLength False <|> parserDistanceAuto
 
 
 
@@ -2663,7 +2661,7 @@ makeCssPropertyWordSpacing :: (CssParser, CssToken) -> Maybe ((CssParser, CssTok
 makeCssPropertyWordSpacing pat = (fmap . fmap) CssPropertyWordSpacing (runParser parser pat)
   where
     parser = mkParserEnum cssValueWordSpacingDict
-             <|> Parser (interpretTokensAsLength False CssValueWordSpacingDistance)
+             <|> fmap CssValueWordSpacingDistance (mkParserLength False)
 
 
 
