@@ -50,7 +50,7 @@ module Hello.Css.Parser.Rule
   , parseElementStyleAttribute
 
   -- These are exported only for tests
-  , readDeclarations
+  , parseAllDeclarations
   )
 where
 
@@ -162,13 +162,23 @@ parseElementStyleAttribute _baseUrl cssStyleAttribute declSets = declSets'
 
 
 
--- TODO: this looks like a duplicate of readDeclarations.
---
--- :m +Hello.Css.Parser.Declaration
--- :m +Hello.Css.Tokenizer
--- :m +Hello.Css.Declaration
---
--- parseAllDeclarations  (nextToken . defaultParserInBlock $ "border-top-color: #000001; border-right-color: #000002; border-bottom-color: #000003 !important; border-left-color: #000004;", (defaultCssDeclarationSet, defaultCssDeclarationSet))
+{-
+Read declarations that are within a {} block.
+
+The function expects some empty/initial/default declaration sets as input.
+
+The function is not dealing with opening or closing brace.
+
+Unit-tested: yes
+
+:m +Hello.Css.Parser.Declaration
+:m +Hello.Css.Tokenizer
+:m +Hello.Css.Declaration
+:m +Hello.Css.Parser.Rule
+:set prompt >
+
+parseAllDeclarations  (nextToken . defaultParserInBlock $ "border-top-color: #000001; border-right-color: #000002; border-bottom-color: #000003 !important; border-left-color: #000004;", (defaultCssDeclarationSet, defaultCssDeclarationSet))
+-}
 parseAllDeclarations :: ((CssParser, CssToken), CssDeclarationSets) -> ((CssParser, CssToken), CssDeclarationSets)
 parseAllDeclarations input@((_, CssTokEnd), _)             = input
 parseAllDeclarations input@((_, CssTokBraceCurlyClose), _) = input
@@ -204,7 +214,6 @@ parseStyleRule pat = case runParser parserStyleRule pat of
 
 
 
-
 -- Parser of style rule: a list of complex selectors followed by {} block
 -- with declarations.
 parserStyleRule :: Parser (CssParser, CssToken) CssParsedStyleRule
@@ -216,39 +225,15 @@ parserStyleRule = Parser $ \ pat -> do
 
 
 
--- Read declarations that are within a {} block.
---
--- The function expects some empty/initial/default declaration sets as input.
---
--- The function is not dealing with opening or closing brace.
---
--- TODO: this looks like a duplicate of parseAllDeclarations
---
--- :m +Hello.Css.Parser.Declaration
--- :m +Hello.Css.Tokenizer
--- :m +Hello.Css.Declaration
--- readDeclarations (nextToken . defaultParserInBlock $ "border-top-color: #000001; border-right-color: #000002; border-bottom-color: #000003 !important; border-left-color: #000004", (defaultCssDeclarationSet, defaultCssDeclarationSet))
---
--- Unit-tested: yes
-readDeclarations :: ((CssParser, CssToken), CssDeclarationSets) -> ((CssParser, CssToken), CssDeclarationSets)
-readDeclarations input@((_, token), _) =
-  case token of
-    CssTokEnd             -> input
-    CssTokBraceCurlyClose -> input
-    _                     -> readDeclarations . parseSingleDeclarationWrapper $ input
-
-
-
-
 -- Read a {} block with declarations.
 --
 -- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
 --
--- readDeclarationsBlock (nextToken $ defaultParser "{} p.v")
--- readDeclarationsBlock (nextToken $ defaultParser "{color: rgb(0, 100, 0)} p.v")
--- readDeclarationsBlock (nextToken $ defaultParser " { color:rgb(0, 100, 0) !important} p.v")
+-- runParser parserDeclarationBlock (nextToken $ defaultParser "{} p.v")
+-- runParser parserDeclarationBlock (nextToken $ defaultParser "{color: rgb(0, 100, 0)} p.v")
+-- runParser parserDeclarationBlock (nextToken $ defaultParser " { color:rgb(0, 100, 0) !important} p.v")
 parserDeclarationBlock :: Parser (CssParser, CssToken) CssDeclarationSets
 parserDeclarationBlock = parserOpeningBrace *> parserDeclarations <* parserClosingBrace
   where
@@ -281,6 +266,6 @@ parserDeclarationBlock = parserOpeningBrace *> parserDeclarations <* parserClosi
     -- return empty CssDeclarationSets.
     parserDeclarations :: Parser (CssParser, CssToken) CssDeclarationSets
     parserDeclarations = Parser $ \ pat ->
-      case readDeclarations (pat, (defaultCssDeclarationSet, defaultCssDeclarationSet)) of
+      case parseAllDeclarations (pat, (defaultCssDeclarationSet, defaultCssDeclarationSet)) of
         (pat', declSets) -> Just (pat', declSets)
 

@@ -58,8 +58,8 @@ data ReadDeclarationsData = ReadDeclarationsData
 
 
 
-readDeclarationsTestData :: [ReadDeclarationsData]
-readDeclarationsTestData =
+parseAllDeclarationsTestData :: [ReadDeclarationsData]
+parseAllDeclarationsTestData =
   [
     -- Single declaration. No spaces or semicolons at beginning/end of declaration.
     ReadDeclarationsData { remainderInDs       = "color: #abab30}"
@@ -237,16 +237,16 @@ readDeclarationsTestData =
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-readDeclarationsTestFunction :: [ReadDeclarationsData] -> T.Text
-readDeclarationsTestFunction []     = ""
-readDeclarationsTestFunction (x:xs) = if expectedDeclSets x /= parsedDeclSets || tokenExpectedDs x /= token' || remainderExpectedDs x /= remainder parser'
-                                      then T.pack . show . remainderInDs $ x
-                                      else readDeclarationsTestFunction xs
+parseAllDeclarationsTestFunction :: [ReadDeclarationsData] -> T.Text
+parseAllDeclarationsTestFunction []     = ""
+parseAllDeclarationsTestFunction (x:xs) = if expectedDeclSets x /= parsedDeclSets || tokenExpectedDs x /= token' || remainderExpectedDs x /= remainder parser'
+                                          then T.pack . show . remainderInDs $ x
+                                          else parseAllDeclarationsTestFunction xs
   where
     -- The tested function parses contents of {} block, so we have to use here defaultParserInBlock
     -- nextToken is used to kick-start a parser.
     pat = nextToken . defaultParserInBlock . remainderInDs $ x
-    ((parser', token'), parsedDeclSets) = readDeclarations (pat, (defaultCssDeclarationSet, defaultCssDeclarationSet))
+    ((parser', token'), parsedDeclSets) = parseAllDeclarations (pat, (defaultCssDeclarationSet, defaultCssDeclarationSet))
 
 
 
@@ -507,8 +507,8 @@ testCases = [
   -- If some error is found, test function returns some data (e.g. non-empty
   -- string or test index) which can help identify which test failed.
      TestCase (do
-                  assertEqual "manual tests of readDeclarations" "" (readDeclarationsTestFunction readDeclarationsTestData)
-                  assertEqual "manual tests of parseStyleRule" ""   (parseStyleRuleTestFunction parseStyleRuleTestData))
+                  assertEqual "manual tests of parseAllDeclarations" "" (parseAllDeclarationsTestFunction parseAllDeclarationsTestData)
+                  assertEqual "manual tests of parseStyleRule"       "" (parseStyleRuleTestFunction parseStyleRuleTestData))
   ]
 
 
