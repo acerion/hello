@@ -1331,9 +1331,9 @@ data CssValueContent
 
 
 makeCssPropertyContent :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyContent pat = (fmap . fmap) CssPropertyContent (parser pat)
+makeCssPropertyContent pat = (fmap . fmap) (CssPropertyContent . CssValueContent) (runParser parser pat)
   where
-    parser = interpretTokensAsString CssValueContent
+    parser = parserTokenStringValue
 
 
 

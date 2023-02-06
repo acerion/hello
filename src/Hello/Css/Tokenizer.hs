@@ -93,6 +93,8 @@ module Hello.Css.Tokenizer
   , parserTokenBraceCurlyOpen
   , parserTokenBraceCurlyClose
   , parserTokenDelim
+  , parserTokenString
+  , parserTokenStringValue
   , parserTokenWhitespace
   , parserTokenEnd
   )
@@ -808,7 +810,6 @@ splitAtCommaToken (x:xs)       []      = splitAtCommaToken xs [[x]]
 
 
 
-
 parserTokenIdentAny :: Parser (CssParser, CssToken) CssToken
 parserTokenIdentAny = Parser $ \ (parser, token) -> case token of
                                                       CssTokIdent _ -> Just (nextToken parser, token)
@@ -878,6 +879,23 @@ parserTokenDelim :: Char -> Parser (CssParser, CssToken) CssToken
 parserTokenDelim delim = Parser $ \ (parser, token) -> case token of
                                                          CssTokDelim d | d == delim -> Just (nextToken parser, token)
                                                                        | otherwise  -> Nothing
+                                                         _             -> Nothing
+
+
+
+
+parserTokenString :: Parser (CssParser, CssToken) CssToken
+parserTokenString = Parser $ \ (parser, token) -> case token of
+                                                    CssTokStr _ -> Just (nextToken parser, token)
+                                                    _           -> Nothing
+
+
+
+
+-- Parse a String token. If success, return string stored in the token.
+parserTokenStringValue :: Parser (CssParser, CssToken) T.Text
+parserTokenStringValue = Parser $ \ (parser, token) -> case token of
+                                                         CssTokStr str -> Just (nextToken parser, str)
                                                          _             -> Nothing
 
 

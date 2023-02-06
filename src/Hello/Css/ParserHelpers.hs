@@ -54,7 +54,6 @@ module Hello.Css.ParserHelpers
   , interpretTokensAsStringList
   , interpretTokensAsURI
   , parserDistanceAuto
-  , interpretTokensAsString
   )
 where
 
@@ -555,19 +554,6 @@ in higher layer?
 -}
 parserDistanceAuto :: Parser (CssParser, CssToken) CssDistance
 parserDistanceAuto = fmap (const CssDistanceAuto) (parserTokenIdent "auto")
-
-
-
-
-
--- Interpret current token as "string" value
---
--- In case of "string" value there is no need to consume more than current
--- token to build the String, but for consistency with other similar
--- functions the function is still called "tokenS as".
-interpretTokensAsString :: (T.Text -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
-interpretTokensAsString stringCtor (p, CssTokStr s) = Just (nextToken p,stringCtor s)
-interpretTokensAsString _ _                         = Nothing
 
 
 
