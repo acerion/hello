@@ -53,7 +53,7 @@ module Hello.Css.ParserHelpers
   , interpretTokensAsBgPosition
   , interpretTokensAsStringList
   , interpretTokensAsURI
-  , interpretTokensAsAuto
+  , parserDistanceAuto
   , interpretTokensAsString
   )
 where
@@ -545,22 +545,16 @@ interpretTokensAsStringList stringListCtor pat = if L.null list
 
 
 
--- Interpret current token as "auto" value (value of type CssDistanceAuto).
---
--- In case of "auto" value there is no need to consume more than current
--- token to build the Auto, but for consistency with other similar functions
--- the function is still called "tokenS as".
---
--- The tests show that the function will interpret "auto italic" as
--- CssDistanceAuto, but this is problematic because "italic" doesn't seem to
--- be something expected after "auto". Should we reject such input string
--- here, or in higher layer?
-interpretTokensAsAuto :: (CssDistance -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
-interpretTokensAsAuto distanceValueCtor (parser, CssTokIdent sym) | T.toLower sym == "auto" = Just (nextToken parser
-                                                                                                   , distanceValueCtor CssDistanceAuto
-                                                                                                   )
-                                                                      | otherwise           = Nothing
-interpretTokensAsAuto _ _                                                                   = Nothing
+{-
+Try to parse current token as CssDistanceAuto value
+
+TODO: the tests show that the function will interpret "auto italic" as
+CssDistanceAuto, but this is problematic because "italic" doesn't seem to be
+something expected after "auto". Should we reject such input string here, or
+in higher layer?
+-}
+parserDistanceAuto :: Parser (CssParser, CssToken) CssDistance
+parserDistanceAuto = fmap (const CssDistanceAuto) (parserTokenIdent "auto")
 
 
 

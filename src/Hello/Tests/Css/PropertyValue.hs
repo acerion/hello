@@ -372,7 +372,7 @@ multiEnumTestData =
 
 
 -- --------------------------------------------------------------------------
--- Tests of interpretTokensAsAuto
+-- Tests of parserDistanceAuto
 -- --------------------------------------------------------------------------
 
 
@@ -392,35 +392,35 @@ data AutoTestValue = AutoTestValueCtor CssDistance
 -- first example is "auto something;". This doesn't look like a string that
 -- should be successfully parsed as "auto". Should we reject an "auto
 -- something" string as something that can't be parsed as "auto"?
-autoTestData :: [TestData AutoTestValue]
-autoTestData =
+parserDistanceAutoTestData :: [TestDataP CssDistance]
+parserDistanceAutoTestData =
   [
     -- Success case. Current token is "auto".
     --
     -- Declaration value ends with ';' here. Tokenizer will take the char but
     -- tested function will keep it as current token.
-    TestData { testedFunction = interpretTokensAsAuto AutoTestValueCtor
-             , inputPat       =       (defaultParserInBlock "something; other", CssTokIdent "auto")
-             , expectedResult = Just ((defaultParserInBlock "; other",          CssTokIdent "something"), AutoTestValueCtor CssDistanceAuto)
-             }
+    TestDataP { testedFunctionP = parserDistanceAuto
+              , inputPatP       =       (defaultParserInBlock "something; other", CssTokIdent "auto")
+              , expectedResultP = Just ((defaultParserInBlock "; other",          CssTokIdent "something"), CssDistanceAuto)
+              }
 
     -- Failure case. Current token is not "auto".
-  , TestData { testedFunction = interpretTokensAsAuto AutoTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other", CssTokIdent "italic")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserDistanceAuto
+              , inputPatP       = (defaultParserInBlock "something; other", CssTokIdent "italic")
+              , expectedResultP = Nothing
+              }
 
     -- Failure case. Current token is definitely not "auto".
-  , TestData { testedFunction = interpretTokensAsAuto AutoTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other", CssTokBraceCurlyClose)
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserDistanceAuto
+              , inputPatP       = (defaultParserInBlock "something; other", CssTokBraceCurlyClose)
+              , expectedResultP = Nothing
+              }
 
     -- Failure case. Current token is definitely not "auto".
-  , TestData { testedFunction = interpretTokensAsAuto AutoTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other", CssTokDelim '@')
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserDistanceAuto
+              , inputPatP       = (defaultParserInBlock "something; other", CssTokDelim '@')
+              , expectedResultP = Nothing
+              }
   ]
 
 
@@ -708,7 +708,7 @@ testCases =
   [
     TestCase (do assertEqual "manual tests of mkParserEnum"                       "" (testFunctionP mkParserEnumTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsMultiEnum"         "" (testFunction multiEnumTestData))
-  , TestCase (do assertEqual "manual tests of interpretTokensAsAuto"              "" (testFunction autoTestData))
+  , TestCase (do assertEqual "manual tests of parserDistanceAuto"                 "" (testFunctionP parserDistanceAutoTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsColor (value)"     "" (testFunction colorTestData1))
   , TestCase (do assertEqual "manual tests of interpretTokensAsColor (rgb)"       "" (testFunction colorTestData2))
   , TestCase (do assertEqual "manual tests of interpretTokensAsStringList"        "" (testFunction stringListTestData))

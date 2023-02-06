@@ -1818,7 +1818,7 @@ makeCssPropertyHeight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), 
 makeCssPropertyHeight pat = (fmap . fmap) CssPropertyHeight (runParser parser pat)
   where
     parser = Parser (interpretTokensAsLength False CssValueHeightDistance)
-             <|> Parser (interpretTokensAsAuto CssValueHeightDistance)
+             <|> fmap CssValueHeightDistance parserDistanceAuto
 
 
 
@@ -2176,7 +2176,7 @@ makeCssPropertyMarginX propCtor pat = (fmap . fmap) propCtor (parser pat)
 
 marginValueParser :: Parser (CssParser, CssToken) CssValueMarginX
 marginValueParser = Parser (interpretTokensAsLength False CssValueMarginXDistance)
-                    <|> Parser (interpretTokensAsAuto CssValueMarginXDistance)
+                    <|> fmap CssValueMarginXDistance parserDistanceAuto
 
 
 
@@ -2631,7 +2631,7 @@ makeCssPropertyWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), C
 makeCssPropertyWidth pat = (fmap . fmap) CssPropertyWidth (runParser parser pat)
   where
     parser = Parser (interpretTokensAsLength False CssValueWidthDistance)
-             <|> Parser (interpretTokensAsAuto CssValueWidthDistance)
+             <|> fmap CssValueWidthDistance parserDistanceAuto
 
 
 
