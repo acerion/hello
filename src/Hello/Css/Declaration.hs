@@ -783,7 +783,7 @@ ctorCssPropertyBorderWidth pat = parse1234 parser pat CssPropertyBorderWidth Css
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parser :: Parser (CssParser, CssToken) [CssValueBorderWidth]
-    parser = some (many ignoreSpace *> parserValueBorderWidth <* many ignoreSpace)
+    parser = some (many parserTokenWhitespace *> parserValueBorderWidth <* many parserTokenWhitespace)
 
 
 
@@ -814,7 +814,7 @@ ctorCssPropertyBorderColor pat = parse1234 parser pat CssPropertyBorderColor Css
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parser :: Parser (CssParser, CssToken) [CssValueBorderColor]
-    parser = some (many ignoreSpace *> parserValueBorderColor <* many ignoreSpace)
+    parser = some (many parserTokenWhitespace *> parserValueBorderColor <* many parserTokenWhitespace)
 
 
 
@@ -845,7 +845,7 @@ ctorCssPropertyBorderStyle pat = parse1234 parser pat CssPropertyBorderStyle Css
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parser :: Parser (CssParser, CssToken) [CssValueBorderStyle]
-    parser = some (many ignoreSpace *> parserValueBorderStyle <* many ignoreSpace)
+    parser = some (many parserTokenWhitespace *> parserValueBorderStyle <* many parserTokenWhitespace)
 
 
 
@@ -2142,7 +2142,7 @@ makeCssPropertyMargin pat = parse1234 parser pat CssPropertyMargin CssValueMargi
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parser :: Parser (CssParser, CssToken) [CssValueMarginX]
-    parser = some (many ignoreSpace *> marginValueParser <* many ignoreSpace)
+    parser = some (many parserTokenWhitespace *> marginValueParser <* many parserTokenWhitespace)
 
 
 
@@ -2268,7 +2268,7 @@ makeCssPropertyPadding pat = parse1234 parser pat CssPropertyPadding CssValuePad
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parser :: Parser (CssParser, CssToken) [CssValuePaddingX]
-    parser = some (many ignoreSpace *> paddingValueParser <* many ignoreSpace)
+    parser = some (many parserTokenWhitespace *> paddingValueParser <* many parserTokenWhitespace)
 
 
 
@@ -2831,23 +2831,6 @@ parseDeclarationMultiple patArg propCtors = L.foldl f (patArg, []) propCtors
                               Just (pat', decl) -> (pat', acc ++ [decl])
                               Nothing           -> (pat, acc)
 -}
-
-
-
-
--- I know that result of the parser will be ignored because it is used in
--- conjunction with *> or <* operators. But the "ignore" in the name should
--- stress that this parser can't be used in conjunction with operators other
--- than these two. The parser returns a constant dummy value that must not be
--- passed to next steps.
-ignoreSpace :: Parser (CssParser, CssToken) ()
-ignoreSpace = Parser $ \ (p, t) -> case (p, t) of
-                                           -- The fact that I'm using () in
-                                           -- returned value doesn't really
-                                           -- matter since it will be ignored
-                                           -- anyway.
-                                           (p', CssTokWS) -> Just (nextToken p', ())
-                                           _              -> Nothing
 
 
 
