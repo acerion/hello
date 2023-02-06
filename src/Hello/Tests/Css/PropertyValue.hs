@@ -31,6 +31,7 @@ import Test.HUnit
 import Hello.Css.Distance
 import Hello.Css.ParserHelpers
 import Hello.Css.Tokenizer
+import Hello.Utils.Parser
 
 
 
@@ -46,6 +47,16 @@ data TestData propValueT = TestData
   { inputPat       :: (CssParser, CssToken) -- initial parser+token
   , expectedResult :: Maybe ((CssParser, CssToken), propValueT)
   , testedFunction :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), propValueT)
+  }
+
+
+
+
+-- Test data for code testing parsers.
+data TestDataP v = TestDataP
+  { inputPatP       :: (CssParser, CssToken) -- initial parser+token
+  , expectedResultP :: Maybe ((CssParser, CssToken), v)
+  , testedFunctionP :: Parser (CssParser, CssToken) v
   }
 
 
@@ -82,8 +93,39 @@ testFunction (x:xs) = if not (success result (expectedResult x))
 
 
 
+-- On success return empty string. On failure return string showing
+-- approximately where the problem is.
+--
+testFunctionP :: (Show propValueT, Eq propValueT) => [TestDataP propValueT] -> T.Text
+testFunctionP []     = ""
+testFunctionP (x:xs) = if not (success result (expectedResultP x))
+                       then T.pack ("Got: " ++ show result ++ ", Expected: " ++ show (expectedResultP x))
+                       else testFunctionP xs
+  where
+    result = runParser (testedFunctionP x) (inputPatP x)
+
+    -- See if test succeeded, i.e. if first argument (actual result of
+    -- running a tested function) is equal to second argument (expected
+    -- result of running a test).
+    --
+    -- When comparing parsers, this function compares only remainders because
+    -- getting other fields of parsers right would require additional setup
+    -- in test data.
+    success :: (Show propValueT, Eq propValueT) => Maybe ((CssParser, CssToken), propValueT) -> Maybe ((CssParser, CssToken), propValueT) -> Bool
+    -- This first case is a success because we expected Nothing and tested
+    -- function returned Nothing, so everything went according to
+    -- expecations.
+    success Nothing Nothing = True
+    success (Just (pat1, val1)) (Just (pat2, val2)) = (remainder . fst $ pat1) == (remainder . fst $ pat2) -- Parsers
+                                                      && snd pat1 == snd pat2                              -- Tokens
+                                                      && val1 == val2                                      -- Parsed values
+    success _ _             = False
+
+
+
+
 -- --------------------------------------------------------------------------
--- Tests of interpretTokensAsEnum
+-- Tests of mkParserEnum
 -- --------------------------------------------------------------------------
 
 
@@ -117,50 +159,50 @@ enumTestDict = [ ("first",    EnumTestDataFirst)
 
 -- TODO: add tests of strings with capital letters after you verify expected
 -- behaviour in CSS spec.
-enumTestData :: [TestData EnumTestData]
-enumTestData =
+mkParserEnumTestData :: [TestDataP EnumTestData]
+mkParserEnumTestData =
   [
     -- Success case. First element on the list matches.
-    TestData { testedFunction = interpretTokensAsEnum enumTestDict
-             , inputPat       =       (defaultParserInBlock "!important;", CssTokIdent "first")
-             , expectedResult = Just ((defaultParserInBlock "important;" , CssTokDelim '!'), EnumTestDataFirst)
-             }
+    TestDataP { testedFunctionP = mkParserEnum enumTestDict
+              , inputPatP       =       (defaultParserInBlock "!important;", CssTokIdent "first")
+              , expectedResultP = Just ((defaultParserInBlock "important;" , CssTokDelim '!'), EnumTestDataFirst)
+              }
 
     -- Success case. Middle element on the list matches.
-  , TestData { testedFunction = interpretTokensAsEnum enumTestDict
-             , inputPat       =       (defaultParserInBlock "!important;", CssTokIdent "third")
-             , expectedResult = Just ((defaultParserInBlock "important;",  CssTokDelim '!'), EnumTestDataThird)
-             }
+  , TestDataP { testedFunctionP = mkParserEnum enumTestDict
+              , inputPatP       =       (defaultParserInBlock "!important;", CssTokIdent "third")
+              , expectedResultP = Just ((defaultParserInBlock "important;",  CssTokDelim '!'), EnumTestDataThird)
+              }
 
     -- Success case. Last element on the list matches.
-  , TestData { testedFunction = interpretTokensAsEnum enumTestDict
-             , inputPat       =       (defaultParserInBlock "!important;", CssTokIdent "fifth")
-             , expectedResult = Just ((defaultParserInBlock "important;",  CssTokDelim '!'), EnumTestDataFifth)
-             }
+  , TestDataP { testedFunctionP = mkParserEnum enumTestDict
+              , inputPatP       =       (defaultParserInBlock "!important;", CssTokIdent "fifth")
+              , expectedResultP = Just ((defaultParserInBlock "important;",  CssTokDelim '!'), EnumTestDataFifth)
+              }
 
     -- Failure case: token not matching a dict. This may happen if input
     -- document supports newer CSS standard, and the implementation
     -- implements older CSS standard.
-  , TestData { testedFunction = interpretTokensAsEnum enumTestDict
-             , inputPat       = (defaultParserInBlock "!important;", CssTokIdent "eight")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = mkParserEnum enumTestDict
+              , inputPatP       = (defaultParserInBlock "!important;", CssTokIdent "eight")
+              , expectedResultP = Nothing
+              }
 
     -- Failure case: empty dict. Not going to happen in practice because that
     -- would be a coding error that would be caught by other tests, and would
     -- require a deliberate omission of dictionary in parser code. Such
     -- situation will not be triggered by incoming CSS data. But still this
     -- is an interesting case worth testing.
-  , TestData { testedFunction = interpretTokensAsEnum []
-             , inputPat       = (defaultParserInBlock "!important;", CssTokIdent "first")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = mkParserEnum []
+              , inputPatP       = (defaultParserInBlock "!important;", CssTokIdent "first")
+              , expectedResultP = Nothing
+              }
 
     -- Atypical data: empty string in token.
-  , TestData { testedFunction = interpretTokensAsEnum enumTestDict
-             , inputPat       = (defaultParserInBlock "!important;", CssTokIdent "")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = mkParserEnum enumTestDict
+              , inputPatP       = (defaultParserInBlock "!important;", CssTokIdent "")
+              , expectedResultP = Nothing
+              }
   ]
 
 
@@ -664,7 +706,7 @@ integerTestData =
 testCases :: [Test]
 testCases =
   [
-    TestCase (do assertEqual "manual tests of interpretTokensAsEnum"              "" (testFunction enumTestData))
+    TestCase (do assertEqual "manual tests of mkParserEnum"                       "" (testFunctionP mkParserEnumTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsMultiEnum"         "" (testFunction multiEnumTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsAuto"              "" (testFunction autoTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsColor (value)"     "" (testFunction colorTestData1))

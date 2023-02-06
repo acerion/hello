@@ -45,7 +45,7 @@ module Hello.Css.ParserHelpers
   , takeLengthTokens
   , lengthValueToDistance
 
-  , interpretTokensAsEnum
+  , mkParserEnum
   , interpretTokensAsMultiEnum
   , interpretTokensAsLength
   , interpretTokensAsInteger
@@ -70,6 +70,7 @@ import Data.Text as T
 import Hello.Colors
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
+import Hello.Utils.Parser
 
 
 
@@ -151,25 +152,20 @@ rgbFunctionToColor p1 = let
 
 
 
--- See if current 'Ident' token has one of allowed values and return a
--- corresponding Haskell enum value.
+-- Make a parser that parses current 'Ident' token using a provided dictionary.
+--
+-- The parser checks if current 'Ident' token has one of allowed values and
+-- returns a corresponding Haskell enum value.
 --
 -- The mapping between string identifiers and Haskell enums is specified by
 -- 'dict'.
---
--- In case of enum value there is no need to consume more than current token
--- to recognize the enum, but for consistency with other similar functions
--- the function is still called "tokenS as".
-interpretTokensAsEnum :: [(T.Text, value)] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
-interpretTokensAsEnum dict (parser, CssTokIdent sym) =
-  case L.lookup sym' dict of
-    Just propValue -> Just (nextToken parser, propValue)
-    Nothing        -> Nothing
-  where
-    sym' = T.toLower sym  -- TODO: should we use toLower when putting string in token or can we use it here?
-interpretTokensAsEnum _ _ = Nothing
-                                   -- TODO: is this the right place to reject everything else other than CssTokIdent?
-                                   -- Shouldn't we do it somewhere else?
+mkParserEnum :: [(T.Text, value)] -> Parser (CssParser, CssToken) value
+mkParserEnum dict = Parser $ \ pat -> do
+  (pat', ident) <- runParser parserTokenIdentValue pat
+  propValue     <- L.lookup (T.toLower ident) dict -- TODO: should we use toLower when putting string in token or can we use it here?
+  pure (pat', propValue)
+  -- TODO: is this the right place to reject everything else other than CssTokIdent?
+  -- Shouldn't we do it somewhere else?
 
 
 

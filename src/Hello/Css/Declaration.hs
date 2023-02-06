@@ -485,7 +485,7 @@ makeCssPropertyBackgroundAttachment pat = (fmap . fmap) CssPropertyBackgroundAtt
 
 
 parserValueBackgroundAttachment :: Parser (CssParser, CssToken) CssValueBackgroundAttachment
-parserValueBackgroundAttachment = Parser $ interpretTokensAsEnum cssValueBackgroundAttachmentDict
+parserValueBackgroundAttachment = mkParserEnum cssValueBackgroundAttachmentDict
 
 
 
@@ -559,7 +559,7 @@ makeCssPropertyBackgroundColor pat = (fmap . fmap) CssPropertyBackgroundColor (c
 
 
 paserValueBackgroundColor :: Parser (CssParser, CssToken) CssValueBackgroundColor
-paserValueBackgroundColor = Parser (interpretTokensAsEnum cssValueBackgroundColorDict)
+paserValueBackgroundColor = mkParserEnum cssValueBackgroundColorDict
                             <|> Parser (interpretTokensAsColor CssValueBackgroundColorColor)
 
 
@@ -713,7 +713,7 @@ makeCssPropertyBackgroundRepeat pat = (fmap . fmap) CssPropertyBackgroundRepeat 
 
 
 parserValueBackgroundStyle :: Parser (CssParser, CssToken) CssValueBackgroundRepeat
-parserValueBackgroundStyle = Parser $ interpretTokensAsEnum cssValueBackgroundRepeatDict
+parserValueBackgroundStyle = mkParserEnum cssValueBackgroundRepeatDict
 
 
 
@@ -1016,9 +1016,9 @@ cssValueBorderCollapseDict = [ ("separate",   CssValueBorderCollapseSeparate)
 
 
 makeCssPropertyBorderCollapse :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderCollapse pat = (fmap . fmap) CssPropertyBorderCollapse (parser pat)
+makeCssPropertyBorderCollapse pat = (fmap . fmap) CssPropertyBorderCollapse (runParser parser pat)
   where
-    parser = interpretTokensAsEnum cssValueBorderCollapseDict
+    parser = mkParserEnum cssValueBorderCollapseDict
 
 
 
@@ -1079,7 +1079,7 @@ parseTokensAsBorderColorValue pat = runParser parserValueBorderColor pat
 
 
 parserValueBorderColor :: Parser (CssParser, CssToken) CssValueBorderColor
-parserValueBorderColor = Parser (interpretTokensAsEnum cssValueBorderColorDict)
+parserValueBorderColor = mkParserEnum cssValueBorderColorDict
                          <|> Parser (interpretTokensAsColor CssValueBorderColor)
 
 
@@ -1167,7 +1167,7 @@ parseTokensAsBorderStyleValue pat = runParser parserValueBorderStyle pat
 
 
 parserValueBorderStyle :: Parser (CssParser, CssToken) CssValueBorderStyle
-parserValueBorderStyle = Parser $ interpretTokensAsEnum cssValueBorderStyleDict
+parserValueBorderStyle = mkParserEnum cssValueBorderStyleDict
 
 
 
@@ -1231,7 +1231,7 @@ parseTokensAsBorderWidthValue pat = runParser parserValueBorderWidth pat
 
 
 parserValueBorderWidth :: Parser (CssParser, CssToken) CssValueBorderWidth
-parserValueBorderWidth = Parser (interpretTokensAsEnum cssValueBorderWidthDict)
+parserValueBorderWidth = mkParserEnum cssValueBorderWidthDict
                          <|> Parser (interpretTokensAsLength False CssValueBorderWidthDistance)
 
 
@@ -1307,7 +1307,7 @@ cssValueColorDict = [ ("inherit", CssValueColorInherit)
 makeCssPropertyColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyColor pat = (fmap . fmap) CssPropertyColor (runParser parser pat)
   where
-    parser = Parser (interpretTokensAsEnum cssValueColorDict)
+    parser = mkParserEnum cssValueColorDict
              <|> Parser (interpretTokensAsColor CssValueColor)
 
 
@@ -1403,10 +1403,9 @@ cssValueCursorDict = [ ("crosshair", CssValueCursorCrosshair)
 
 
 makeCssPropertyCursor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyCursor pat = (fmap . fmap) CssPropertyCursor (parser pat)
+makeCssPropertyCursor pat = (fmap . fmap) CssPropertyCursor (runParser parser pat)
   where
-    parser = interpretTokensAsEnum cssValueCursorDict
-
+    parser = mkParserEnum cssValueCursorDict
 
 
 
@@ -1466,9 +1465,9 @@ cssValueDisplayDict = [ ("block",              CssValueDisplayBlock)
 
 
 makeCssPropertyDisplay :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyDisplay pat = (fmap . fmap) CssPropertyDisplay (parser pat)
+makeCssPropertyDisplay pat = (fmap . fmap) CssPropertyDisplay (runParser parser pat)
   where
-    parser = interpretTokensAsEnum cssValueDisplayDict
+    parser = mkParserEnum cssValueDisplayDict
 
 
 
@@ -1599,17 +1598,9 @@ lineHeight2 :: CssPropertyParser
 lineHeight2 pat = shortcutWrapper makeCssPropertyHeight pat -- TODO: define correctly
 
 fontEnum2 :: CssPropertyParser
-fontEnum2 pat = case parseEnum cssValueFontDict pat of
+fontEnum2 pat = case runParser (mkParserEnum cssValueFontDict) pat of
                   Just (pat', _) -> (pat', Just []) -- TODO correctly handle enum values
                   Nothing        -> (pat, Nothing)
-
-
-
-
-parseEnum :: [(T.Text, b)] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), b)
-parseEnum dictionary pat = parser pat
-  where
-    parser = interpretTokensAsEnum dictionary
 
 
 
@@ -1682,7 +1673,7 @@ cssValueFontSizeDict = [ ("xx-small", CssValueFontSizeXXSmall)
 makeCssPropertyFontSize :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyFontSize pat = (fmap . fmap) CssPropertyFontSize (runParser parser pat)
   where
-    parser = Parser (interpretTokensAsEnum cssValueFontSizeDict)
+    parser = mkParserEnum cssValueFontSizeDict
              -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of font size?
              <|> Parser (interpretTokensAsLength False CssValueFontSizeDistance)
 
@@ -1731,9 +1722,9 @@ cssValueFontStyleDict = [ ("normal",  CssValueFontStyleNormal)
 
 
 makeCssPropertyFontStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontStyle pat = (fmap . fmap) CssPropertyFontStyle (parser pat)
+makeCssPropertyFontStyle pat = (fmap . fmap) CssPropertyFontStyle (runParser parser pat)
   where
-    parser = interpretTokensAsEnum cssValueFontStyleDict
+    parser = mkParserEnum cssValueFontStyleDict
 
 
 
@@ -1762,9 +1753,9 @@ cssValueFontVariantDict = [ ("normal",  CssValueFontVariantNormal)
 
 
 makeCssPropertyFontVariant :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontVariant pat = (fmap . fmap) CssPropertyFontVariant (parser pat)
+makeCssPropertyFontVariant pat = (fmap . fmap) CssPropertyFontVariant (runParser parser pat)
   where
-    parser = interpretTokensAsEnum cssValueFontVariantDict
+    parser = mkParserEnum cssValueFontVariantDict
 
 
 
@@ -1801,7 +1792,7 @@ cssValueFontWeightDict = [ ("normal",  CssValueFontWeightNormal)
 makeCssPropertyFontWeight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyFontWeight pat = (fmap . fmap) CssPropertyFontWeight (runParser parser pat)
   where
-    parser = Parser (interpretTokensAsEnum cssValueFontWeightDict)
+    parser = mkParserEnum cssValueFontWeightDict
              <|> Parser (interpretTokensAsInteger CssValueFontWeightInt (100, 900))
 
 
@@ -1870,7 +1861,7 @@ cssValueLetterSpacingDict = [ ("normal",    CssValueLetterSpacingNormal)
 makeCssPropertyLetterSpacing :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyLetterSpacing pat = (fmap . fmap) CssPropertyLetterSpacing (runParser parser pat)
   where
-    parser = Parser (interpretTokensAsEnum cssValueLetterSpacingDict)
+    parser = mkParserEnum cssValueLetterSpacingDict
              <|> Parser (interpretTokensAsLength False CssValueLetterSpacingDistance)
 
 
@@ -1901,7 +1892,7 @@ cssValueLineHeightDict = [ ("normal",    CssValueLineHeightNormal)
 makeCssPropertyLineHeight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyLineHeight pat = (fmap . fmap) CssPropertyLineHeight (runParser parser pat)
   where
-    parser = Parser (interpretTokensAsEnum cssValueLineHeightDict)
+    parser = mkParserEnum cssValueLineHeightDict
              -- True: Original dillo code allowed unitless numeric values for
              -- zero and for values of type "length/percent/number". Line
              -- height was one of the properties that had this type.
@@ -2037,7 +2028,7 @@ ctorValueListStylePosition pat = runParser parserValueListStylePosition pat
 
 
 parserValueListStylePosition :: Parser (CssParser, CssToken) CssValueListStylePosition
-parserValueListStylePosition = Parser $ interpretTokensAsEnum cssValueListStylePositionDict
+parserValueListStylePosition = mkParserEnum cssValueListStylePositionDict
 
 
 
@@ -2121,7 +2112,7 @@ ctorValueListStyleType pat = runParser parserValueListStyleType pat
 
 
 parserValueListStyleType :: Parser (CssParser, CssToken) CssValueListStyleType
-parserValueListStyleType = Parser $ interpretTokensAsEnum cssValueListStyleTypeDict
+parserValueListStyleType = mkParserEnum cssValueListStyleTypeDict
 
 
 
@@ -2393,9 +2384,9 @@ cssValueTextAlignDict = [ ("left",    CssValueTextAlignLeft)
 
 
 makeCssPropertyTextAlign :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyTextAlign pat = (fmap . fmap) CssPropertyTextAlign (parser pat)
+makeCssPropertyTextAlign pat = (fmap . fmap) CssPropertyTextAlign (runParser parser pat)
   where
-    parser = interpretTokensAsEnum cssValueTextAlignDict
+    parser = mkParserEnum cssValueTextAlignDict
 
 
 
@@ -2501,9 +2492,9 @@ cssValueTextTransformDict = [ ("none",       CssValueTextTransformNone)
 
 
 makeCssPropertyTextTransform :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyTextTransform pat = (fmap . fmap) CssPropertyTextTransform (parser pat)
+makeCssPropertyTextTransform pat = (fmap . fmap) CssPropertyTextTransform (runParser parser pat)
   where
-    parser = interpretTokensAsEnum cssValueTextTransformDict
+    parser = mkParserEnum cssValueTextTransformDict
 
 
 
@@ -2563,9 +2554,9 @@ cssValueVerticalAlignDict = [ ("top",         CssValueVerticalAlignTop)
 
 
 makeCssPropertyVerticalAlign :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyVerticalAlign pat = (fmap . fmap) CssPropertyVerticalAlign (parser pat)
+makeCssPropertyVerticalAlign pat = (fmap . fmap) CssPropertyVerticalAlign (runParser parser pat)
   where
-    parser = interpretTokensAsEnum cssValueVerticalAlignDict
+    parser = mkParserEnum cssValueVerticalAlignDict
 
 
 
@@ -2613,9 +2604,9 @@ cssValueWhitespaceDict = [ ("normal",   CssValueWhitespaceNormal)
 
 
 makeCssPropertyWhitespace :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyWhitespace pat = (fmap . fmap) CssPropertyWhitespace (parser pat)
+makeCssPropertyWhitespace pat = (fmap . fmap) CssPropertyWhitespace (runParser parser pat)
   where
-    parser = interpretTokensAsEnum cssValueWhitespaceDict
+    parser = mkParserEnum cssValueWhitespaceDict
 
 
 
@@ -2671,7 +2662,7 @@ cssValueWordSpacingDict = [ ("normal",    CssValueWordSpacingNormal)
 makeCssPropertyWordSpacing :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyWordSpacing pat = (fmap . fmap) CssPropertyWordSpacing (runParser parser pat)
   where
-    parser = Parser (interpretTokensAsEnum cssValueWordSpacingDict)
+    parser = mkParserEnum cssValueWordSpacingDict
              <|> Parser (interpretTokensAsLength False CssValueWordSpacingDistance)
 
 

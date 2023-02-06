@@ -86,6 +86,7 @@ module Hello.Css.Tokenizer
 
   , parserTokenIdentAny
   , parserTokenIdent
+  , parserTokenIdentValue
   , parserTokenColon
   , parserTokenComma
   , parserTokenSemicolon
@@ -821,6 +822,15 @@ parserTokenIdent ident = Parser $ \ (parser, token) -> case token of
                                                          CssTokIdent i | i == ident -> Just (nextToken parser, token)
                                                                        | otherwise  -> Nothing
                                                          _             -> Nothing
+
+
+
+
+-- Parse an Ident token. If success, return string stored in the token.
+parserTokenIdentValue :: Parser (CssParser, CssToken) T.Text
+parserTokenIdentValue = Parser $ \ (parser, token) -> case token of
+                                                        CssTokIdent str -> Just (nextToken parser, str)
+                                                        _               -> Nothing
 
 
 
