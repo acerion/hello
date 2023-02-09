@@ -184,13 +184,6 @@ finalizeCompound ss pat = Just (pat, WrapCompound compound)
 
 
 
-parserSeparatedList :: Parser (CssParser, CssToken) value -> Parser (CssParser, CssToken) separator -> Parser (CssParser, CssToken) [value]
-parserSeparatedList parserValue parserSeparator = (:) <$> parserValue <*> many (parserSeparator *> parserValue)
-                                                  <|> pure []
-
-
-
-
 -- Parser of list of complex selectors separated with comma.
 --
 -- https://www.w3.org/TR/selectors-4/#list-of-simple-selectors

@@ -23,6 +23,8 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 module Hello.Utils.Parser
   (
     Parser (..)
+
+  , parserSeparatedList
   )
 where
 
@@ -148,5 +150,13 @@ instance Monad (Parser state) where
                                -- something more with it.
                                Just (state', value) -> runParser (fn value) state'
                                Nothing              -> Nothing
+
+
+
+
+-- Parse a list of values separated by separator.
+parserSeparatedList :: Parser state value -> Parser state separator -> Parser state [value]
+parserSeparatedList parserValue parserSeparator = (:) <$> parserValue <*> many (parserSeparator *> parserValue)
+                                                  <|> pure []
 
 

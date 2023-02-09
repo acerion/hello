@@ -1649,13 +1649,6 @@ makeCssPropertyFontFamily pat = (fmap . fmap) (CssPropertyFontFamily . CssValueF
 
 
 
-parserSeparatedList :: Parser (CssParser, CssToken) value -> Parser (CssParser, CssToken) separator -> Parser (CssParser, CssToken) [value]
-parserSeparatedList parserValue parserSeparator = (:) <$> parserValue <*> many (parserSeparator *> parserValue)
-                                                  <|> pure []
-
-
-
-
 -- ------------------------------------------------
 -- Font size (font-size)
 -- https://www.w3.org/TR/CSS22/fonts.html#propdef-font-size
