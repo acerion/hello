@@ -336,8 +336,8 @@ tokenizerTestRunner inB (x:xs) = if expectedToken /= t2 || expectedRemainder /= 
     expectedToken     = triplet2nd x
     expectedRemainder = triplet3rd x
     (p2, t2)          = if inB
-                        then nextToken . defaultParserInBlock $ initialRemainder
-                        else nextToken . defaultParser $ initialRemainder
+                        then startTokenizer . defaultParserInBlock $ initialRemainder
+                        else startTokenizer . defaultParser $ initialRemainder
 
     showFailedCase _ =    "Initial remainder = "  ++ show initialRemainder ++ "; "
                        ++ "Expected remainder = " ++ show expectedRemainder ++ "; "

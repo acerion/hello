@@ -283,8 +283,8 @@ parseImportantNotPresent pat@(_, t) = case runParser parser pat of
 -- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
--- parseImportant ((nextToken . defaultParser $ "!important;"), defaultDeclaration)
--- parseImportant ((nextToken . defaultParser $ "!important }"), defaultDeclaration)
+-- parseImportant ((startTokenizer . defaultParser $ "!important;"), defaultDeclaration)
+-- parseImportant ((startTokenizer . defaultParser $ "!important }"), defaultDeclaration)
 parseImportant :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
 parseImportant (pat, decl) | Just (pat', _) <- parseImportantNotPresent pat = Just (pat', decl)
                            | Just (pat', _) <- parseImportantPresent pat    = Just (pat', decl { important = True })
@@ -402,10 +402,10 @@ parseSingleDeclarationWrapper (pat, declSets) = (pat', declSets')
 -- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
--- parseDeclarationStart ((nextToken . defaultParser $ " ; color: red"), defaultDeclaration)
--- parseDeclarationStart ((nextToken . defaultParser $ "  color: red"), defaultDeclaration)
--- parseDeclarationStart ((nextToken . defaultParserInBlock $ "   ; color: red"), defaultDeclaration)
--- parseDeclarationStart ((nextToken . defaultParser $ "    } a.prop >"), defaultDeclaration)
+-- parseDeclarationStart ((startTokenizer . defaultParser $ " ; color: red"), defaultDeclaration)
+-- parseDeclarationStart ((startTokenizer . defaultParser $ "  color: red"), defaultDeclaration)
+-- parseDeclarationStart ((startTokenizer . defaultParserInBlock $ "   ; color: red"), defaultDeclaration)
+-- parseDeclarationStart ((startTokenizer . defaultParser $ "    } a.prop >"), defaultDeclaration)
 parseDeclarationStart :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
 parseDeclarationStart (pat, decl) = case runParser (many (parserTokenWhitespace <|> parserTokenSemicolon)) pat of
                                       Just (pat', _) -> Just (pat', decl)    -- Some space tokens have been consumed.
@@ -422,10 +422,10 @@ parseDeclarationStart (pat, decl) = case runParser (many (parserTokenWhitespace 
 -- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
--- parseDeclarationEnd ((nextToken . defaultParser $ " ; color: red"), defaultDeclaration)
--- parseDeclarationEnd ((nextToken . defaultParser $ "  color: red"), defaultDeclaration)
--- parseDeclarationEnd ((nextToken . defaultParserInBlock $ "   ; color: red"), defaultDeclaration)
--- parseDeclarationEnd ((nextToken . defaultParser $ "    } a.prop >"), defaultDeclaration)
+-- parseDeclarationEnd ((startTokenizer . defaultParser $ " ; color: red"), defaultDeclaration)
+-- parseDeclarationEnd ((startTokenizer . defaultParser $ "  color: red"), defaultDeclaration)
+-- parseDeclarationEnd ((startTokenizer . defaultParserInBlock $ "   ; color: red"), defaultDeclaration)
+-- parseDeclarationEnd ((startTokenizer . defaultParser $ "    } a.prop >"), defaultDeclaration)
 parseDeclarationEnd :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
 parseDeclarationEnd (pat, decl) = case runParser (many parserTokenWhitespace) pat of
                                     Just (pat', _) -> Just (pat', decl)    -- Some space tokens have been consumed.

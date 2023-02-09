@@ -58,6 +58,7 @@ module Hello.Css.Tokenizer
   , defaultParserInBlock
   , defaultParserEmpty
   , nextToken
+  , startTokenizer
   , takeIdentToken
 
   , CssToken (..)
@@ -249,6 +250,13 @@ nextToken parserArg = (updatedParser{bufOffset = increasedBufOffset parserArg}, 
                                (p, Just t)  -> (p, t)
                                (p, Nothing) -> (p, CssTokNone)
     increasedBufOffset parser = bufOffset parser + (T.length . remainder $ parser) - (T.length . remainder $ updatedParser)
+
+
+
+
+-- Function used to kick-off a tokenization process, turning an initial tokenizer into (tokenizer, token) pair.
+startTokenizer :: CssParser -> (CssParser, CssToken)
+startTokenizer = nextToken
 
 
 

@@ -51,14 +51,14 @@ parsePropertyTestData =
   [
     -- Success case: simple property
     ParsePropertyData { inRemainderP = "color: red}"
-                      , expectedP    = Just ( nextToken . defaultParserInBlock $ "}"
+                      , expectedP    = Just ( startTokenizer . defaultParserInBlock $ "}"
                                             , defaultDeclaration { property = CssPropertyColor (CssValueColor 0xff0000) }
                                             )
                       }
 
     -- Success case: without closing brace
   , ParsePropertyData { inRemainderP = "color: red"
-                      , expectedP    = Just ( nextToken . defaultParserInBlock $ ""
+                      , expectedP    = Just ( startTokenizer . defaultParserInBlock $ ""
                                             , defaultDeclaration { property = CssPropertyColor (CssValueColor 0xff0000) }
                                             )
                       }
@@ -68,7 +68,7 @@ parsePropertyTestData =
     -- TODO: should the spaces at the beginning and at the end of this string
     -- be parsed by parseProperty or by a function that calls parseProperty?
   , ParsePropertyData { inRemainderP = " \t\t\n color \t   \n : \t \n \t   red \t\n \n   }"
-                      , expectedP    = Just ( nextToken . defaultParserInBlock $ "}"
+                      , expectedP    = Just ( startTokenizer . defaultParserInBlock $ "}"
                                             , defaultDeclaration { property = CssPropertyColor (CssValueColor 0xff0000) }
                                             )
                       }
@@ -119,8 +119,8 @@ parsePropertyTestFunction (x:xs) = if not $ resultsEqual (expectedP x) parsed
                                    else parsePropertyTestFunction xs
   where
     -- The tested function parses contents of {} block, so we have to use
-    -- here defaultParserInBlock nextToken is used to kick-start a parser.
-    pat = nextToken . defaultParserInBlock . inRemainderP $ x
+    -- here defaultParserInBlock startTokenizer is used to kick-start a parser.
+    pat = startTokenizer . defaultParserInBlock . inRemainderP $ x
     parsed = parseProperty (pat, defaultDeclaration)
 
     -- We can't just compare expected with parsed because a parser that we
@@ -1460,7 +1460,7 @@ parseSingleDeclarationTest (x:xs) = if expectedDeclarations /= declarations
     -- This tests parses a declaration. Declaration is inside of {} block.
     -- Therefore construct a parser that has recognized that it is inside a
     -- block.
-    pat = nextToken . defaultParserInBlock $ remd
+    pat = startTokenizer . defaultParserInBlock $ remd
 
 
 

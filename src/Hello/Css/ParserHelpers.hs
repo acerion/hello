@@ -86,7 +86,7 @@ Closing paren is consumed, but not added to output list.
 :m +Hello.Utils.Parser
 :m +Hello.Css.ParserHelpers
 :set prompt >
-consumeRgbFunctionTokens ((nextToken . defaultParser $ "100, 100, 100 )"))
+consumeRgbFunctionTokens ((startTokenizer . defaultParser $ "100, 100, 100 )"))
 -}
 consumeRgbFunctionTokens :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), [CssToken])
 consumeRgbFunctionTokens pat = runParser (rgb <* parserFunctionTrailer) pat

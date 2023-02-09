@@ -96,7 +96,7 @@ parserCompoundSelectorTest xs = foldr f [] xs
       where
         inputRemainder = fst x
         expected       = snd x
-        result = runParser parserCompoundSelector (nextToken . defaultParser $ inputRemainder)
+        result = runParser parserCompoundSelector (startTokenizer . defaultParser $ inputRemainder)
         errMsg = T.pack ("\n*** input remainder = " ++ show inputRemainder ++ "\n*** expected = " ++ show expected ++ "\n*** result =   " ++ show result)
 
 
@@ -162,7 +162,7 @@ parserComplexSelectorTest (x:xs) = if expectedResult /= result
     remainderBefore  = fst x
     expectedResult   = snd x
 
-    result = case runParser parserComplexSelector (nextToken . defaultParser $ remainderBefore) of
+    result = case runParser parserComplexSelector (startTokenizer . defaultParser $ remainderBefore) of
                Just (_, [])   -> Nothing
                Just (pat', l) -> Just (pat', l)
                _              -> Nothing
@@ -246,7 +246,7 @@ parseListOfSelectorsTest (x:xs) = if expectedResult /= result
   where
     remainderBefore  = fst x
     expectedResult   = snd x
-    result = runParser parserSelectorList (nextToken . defaultParser $ remainderBefore)
+    result = runParser parserSelectorList (startTokenizer . defaultParser $ remainderBefore)
 
 
 

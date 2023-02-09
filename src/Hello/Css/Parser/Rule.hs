@@ -143,7 +143,7 @@ parseElementStyleAttribute :: T.Text -> T.Text -> CssDeclarationSets -> CssDecla
 parseElementStyleAttribute _baseUrl cssStyleAttribute declSets = declSets'
   where
     ((_p2, _t2), declSets') = parseAllDeclarations ((p1, t1), declSets)
-    (p1, t1) = nextToken parser -- Kick-off the parsing
+    (p1, t1) = startTokenizer parser -- Kick-off the parsing
 
     {-
       TODO: in original C++ code the parser was initialized like this:
@@ -177,7 +177,7 @@ Unit-tested: yes
 :m +Hello.Css.Parser.Rule
 :set prompt >
 
-parseAllDeclarations  (nextToken . defaultParserInBlock $ "border-top-color: #000001; border-right-color: #000002; border-bottom-color: #000003 !important; border-left-color: #000004;", (defaultCssDeclarationSet, defaultCssDeclarationSet))
+parseAllDeclarations  (startTokenizer . defaultParserInBlock $ "border-top-color: #000001; border-right-color: #000002; border-bottom-color: #000003 !important; border-left-color: #000004;", (defaultCssDeclarationSet, defaultCssDeclarationSet))
 -}
 parseAllDeclarations :: ((CssParser, CssToken), CssDeclarationSets) -> ((CssParser, CssToken), CssDeclarationSets)
 parseAllDeclarations input@((_, CssTokEnd), _)             = input
@@ -203,7 +203,7 @@ parseAllDeclarations input                                 = parseAllDeclaration
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
 --
--- parseStyleRule (nextToken $ defaultParser "body {color:red ; background-color: #ffff00;line-height: normal h1{color:blue} h2{color: #001122} h3 {color : #998877;}")
+-- parseStyleRule (startTokenizer $ defaultParser "body {color:red ; background-color: #ffff00;line-height: normal h1{color:blue} h2{color: #001122} h3 {color : #998877;}")
 --
 -- Unit-tested: yes
 parseStyleRule :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssParsedStyleRule)
@@ -231,9 +231,9 @@ parserStyleRule = Parser $ \ pat -> do
 -- :m +Hello.Css.Tokenizer
 -- :m +Hello.Css.Declaration
 --
--- runParser parserDeclarationBlock (nextToken $ defaultParser "{} p.v")
--- runParser parserDeclarationBlock (nextToken $ defaultParser "{color: rgb(0, 100, 0)} p.v")
--- runParser parserDeclarationBlock (nextToken $ defaultParser " { color:rgb(0, 100, 0) !important} p.v")
+-- runParser parserDeclarationBlock (startTokenizer $ defaultParser "{} p.v")
+-- runParser parserDeclarationBlock (startTokenizer $ defaultParser "{color: rgb(0, 100, 0)} p.v")
+-- runParser parserDeclarationBlock (startTokenizer $ defaultParser " { color:rgb(0, 100, 0) !important} p.v")
 parserDeclarationBlock :: Parser (CssParser, CssToken) CssDeclarationSets
 parserDeclarationBlock = parserOpeningBrace *> parserDeclarations <* parserClosingBrace
   where

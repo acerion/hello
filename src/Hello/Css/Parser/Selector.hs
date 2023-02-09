@@ -84,8 +84,8 @@ setSubclassSelector compound subSel =
 -- :m +Hello.Utils.Parser
 -- :m +Hello.Css.Parser.Selector
 --
--- runParser parserComplexSelector (nextToken . defaultParser $ "b    >   head")
--- runParser parserComplexSelector (nextToken . defaultParser $ "a    >   head + a")
+-- runParser parserComplexSelector (startTokenizer . defaultParser $ "b    >   head")
+-- runParser parserComplexSelector (startTokenizer . defaultParser $ "a    >   head + a")
 --
 -- HASKELL FEATURE: APPLICATIVE FUNCTOR
 parserComplexSelector :: Parser (CssParser, CssToken) CssParsedComplexSelector
@@ -105,7 +105,7 @@ parserComplexSelector = ((:) <$> parserFirstCompound <*> fmap concat (many parse
 -- :m +Hello.Utils.Parser
 -- :m +Hello.Css.Parser.Selector
 --
--- runParser parserCombinator  (nextToken . defaultParser $ "    >   head")
+-- runParser parserCombinator  (startTokenizer . defaultParser $ "    >   head")
 parserCombinator :: Parser (CssParser, CssToken) SelectorWrapper
 parserCombinator = Parser $ \ pat -> parseCombinator pat
 

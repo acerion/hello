@@ -110,11 +110,9 @@ parse4321trblMarginSuccess ValuesAndUnitsNN { v = values, u = units } = expected
   where
     (_pat', outDeclarations) = parseSingleDeclaration pat
 
-    pat    = nextToken parser
-
     -- 'Margin' property is inside of {} block, so use 'in block' constructor.
     -- This will simulate a parser that parsed its way into {} block.
-    parser = defaultParserInBlock input
+    pat = startTokenizer . defaultParserInBlock $ input
     (input, expected) = buildSuccessRow "margin" units values
 
     -- For debugging only

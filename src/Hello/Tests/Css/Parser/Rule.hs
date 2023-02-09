@@ -244,8 +244,8 @@ parseAllDeclarationsTestFunction (x:xs) = if expectedDeclSets x /= parsedDeclSet
                                           else parseAllDeclarationsTestFunction xs
   where
     -- The tested function parses contents of {} block, so we have to use here defaultParserInBlock
-    -- nextToken is used to kick-start a parser.
-    pat = nextToken . defaultParserInBlock . remainderInDs $ x
+    -- startTokenizer is used to kick-start a parser.
+    pat = startTokenizer . defaultParserInBlock . remainderInDs $ x
     ((parser', token'), parsedDeclSets) = parseAllDeclarations (pat, (defaultCssDeclarationSet, defaultCssDeclarationSet))
 
 
@@ -497,7 +497,7 @@ parseStyleRuleTestFunction (x:xs) = if resultExpected x /= result || tokenExpect
                                     else parseStyleRuleTestFunction xs
   where
     parser = defaultParser . remainderIn $ x
-    ((parser', token'), result) = parseStyleRule (nextToken parser)
+    ((parser', token'), result) = parseStyleRule (startTokenizer parser)
 
 
 
