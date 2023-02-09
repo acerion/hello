@@ -126,3 +126,27 @@ instance Alternative (Parser state) where
 
 
 
+
+instance Monad (Parser state) where
+
+  -- (>>=) :: m a      -> (a -> m b)      -> m b
+  -- (>>=) :: Parser a -> (a -> Parser b) -> Parser b
+  parser >>= fn = Parser $ \ state ->
+                             -- We need to extract the "a" value that sits
+                             -- inside of "Parser state"/"m a". We do this by
+                             -- executing the parser.
+                             case runParser parser state of
+                               -- Now we run the (a -> m b) function. Notice
+                               -- that we run it only on "value". "value" == "a".
+                               --
+                               -- Probably to not lose information from
+                               -- "state'", we combine "(fn value)" and
+                               -- "state'" in one expression.
+                               --
+                               -- Compiler doesn't allow us to return just
+                               -- the result of "(fn value)", we have to do
+                               -- something more with it.
+                               Just (state', value) -> runParser (fn value) state'
+                               Nothing              -> Nothing
+
+
