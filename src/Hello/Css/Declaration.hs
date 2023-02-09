@@ -1815,7 +1815,7 @@ makeCssPropertyFontWeight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToke
 makeCssPropertyFontWeight pat = (fmap . fmap) CssPropertyFontWeight (runParser parser pat)
   where
     parser = mkParserEnum cssValueFontWeightDict
-             <|> Parser (interpretTokensAsInteger CssValueFontWeightInt (100, 900))
+             <|> fmap CssValueFontWeightInt (mkParserRangeInteger (100, 900))
 
 
 

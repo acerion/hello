@@ -30,6 +30,7 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase #-}
 
 
 
@@ -47,7 +48,7 @@ module Hello.Css.ParserHelpers
   , mkParserEnum
   , interpretTokensAsMultiEnum
   , mkParserLength
-  , interpretTokensAsInteger
+  , mkParserRangeInteger
   , parserColor
   , interpretTokensAsBgPosition
   , interpretTokensAsURI
@@ -253,11 +254,13 @@ mkParserLength allowUnitlessDistance = Parser $ \ pat -> fn allowUnitlessDistanc
 --
 -- (Int, Int): Lower and upper value (inclusive) of allowed integer values.
 -- Used to parse e.g. font weight.
-interpretTokensAsInteger :: (Int -> a) -> (Int, Int) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), a)
-interpretTokensAsInteger integerValueCtor integersRange (parser, CssTokNum (CssNumI i)) = if i >= fst integersRange && i <= snd integersRange
-                                                                                          then Just (nextToken parser, integerValueCtor i)
-                                                                                          else Nothing
-interpretTokensAsInteger _ _ _                                                          = Nothing
+--
+-- HASKELL FEATURE: LAMBDA CASE
+mkParserRangeInteger :: (Int, Int) -> Parser (CssParser, CssToken) Int
+mkParserRangeInteger integersRange = Parser $ \ case
+  (parser, CssTokNum (CssNumI i)) | i >= fst integersRange && i <= snd integersRange -> Just (nextToken parser, i)
+                                  | otherwise                                        -> Nothing
+  _                               -> Nothing
 
 
 

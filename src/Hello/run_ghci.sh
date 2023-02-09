@@ -1,5 +1,5 @@
 ghci -fobject-code \
-     -XOverloadedStrings \
+     -XOverloadedStrings -XLambdaCase \
      ./*.hs \
      ./Css/*.hs \
      ./Css/Parser/*.hs \

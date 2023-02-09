@@ -579,61 +579,54 @@ colorTestData2 =
 
 
 -- --------------------------------------------------------------------------
--- Tests of interpretTokensAsInteger
+-- Tests of mkParserRangeInteger
 -- --------------------------------------------------------------------------
 
 
 
 
--- An artifical value ctor for value of some artifical CSS property.
-data IntegerTestType = IntegerTestCtor Int
-  deriving (Eq, Show)
-
-
-
-
-integerTestData :: [TestData IntegerTestType]
-integerTestData =
+rangeIntegerTestData :: [TestDataP Int]
+rangeIntegerTestData =
   [
     -- Success case. Numeric token with value within range.
-    TestData { testedFunction = interpretTokensAsInteger IntegerTestCtor (0, 900)
-             , inputPat       =       (defaultParserInBlock"!important", CssTokNum . CssNumI $ 9)
-             , expectedResult = Just ((defaultParserInBlock "important", CssTokDelim '!'), IntegerTestCtor 9)
-             }
+    TestDataP { testedFunctionP = mkParserRangeInteger (0, 900)
+              , inputPatP       =       (defaultParserInBlock"!important", CssTokNum . CssNumI $ 9)
+              , expectedResultP = Just ((defaultParserInBlock "important", CssTokDelim '!'), 9)
+              }
 
     -- Success case. Numeric token with value within range.
-  , TestData { testedFunction = interpretTokensAsInteger IntegerTestCtor (-200, 900)
-             , inputPat       =       (defaultParserInBlock "!important", CssTokNum . CssNumI $ -150)
-             , expectedResult = Just ((defaultParserInBlock "important", CssTokDelim '!'), IntegerTestCtor (-150))
-             }
+  , TestDataP { testedFunctionP = mkParserRangeInteger (-200, 900)
+              , inputPatP       =       (defaultParserInBlock "!important", CssTokNum . CssNumI $ -150)
+              , expectedResultP = Just ((defaultParserInBlock "important", CssTokDelim '!'), (-150))
+              }
 
     -- Success case. Numeric token with value that is equal to lower bound of
     -- range.
-  , TestData { testedFunction = interpretTokensAsInteger IntegerTestCtor (0, 900)
-             , inputPat       =       (defaultParserInBlock "!important", CssTokNum . CssNumI $ 0)
-             , expectedResult = Just ((defaultParserInBlock "important",  CssTokDelim '!'), IntegerTestCtor 0)
-             }
+  , TestDataP { testedFunctionP = mkParserRangeInteger (0, 900)
+              , inputPatP       =       (defaultParserInBlock "!important", CssTokNum . CssNumI $ 0)
+              , expectedResultP = Just ((defaultParserInBlock "important",  CssTokDelim '!'), 0)
+              }
 
     -- Success case. Numeric token with value that is equal to upper bound of
     -- range.
-  , TestData { testedFunction = interpretTokensAsInteger IntegerTestCtor (0, 900)
-             , inputPat       =       (defaultParserInBlock "!important", CssTokNum . CssNumI $ 900)
-             , expectedResult = Just ((defaultParserInBlock "important",  CssTokDelim '!'), IntegerTestCtor 900)
-             }
+  , TestDataP { testedFunctionP = mkParserRangeInteger (0, 900)
+              , inputPatP       =       (defaultParserInBlock "!important", CssTokNum . CssNumI $ 900)
+              , expectedResultP = Just ((defaultParserInBlock "important",  CssTokDelim '!'), 900)
+              }
 
     -- Failure case. Numeric token with value that is below lower bound of
     -- range.
-  , TestData { testedFunction = interpretTokensAsInteger IntegerTestCtor (100, 900)
-             , inputPat       = (defaultParserInBlock "!important", CssTokNum . CssNumI $ 99)
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = mkParserRangeInteger (100, 900)
+              , inputPatP       = (defaultParserInBlock "!important", CssTokNum . CssNumI $ 99)
+              , expectedResultP = Nothing
+              }
 
     -- Failure case. Numeric token with value that is above lower bound of
     -- range.
-  , TestData { testedFunction = interpretTokensAsInteger IntegerTestCtor (0, 900)
-             , inputPat       = (defaultParserInBlock "!important", CssTokNum . CssNumI $ 901)
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = mkParserRangeInteger (0, 900)
+              , inputPatP       = (defaultParserInBlock "!important", CssTokNum . CssNumI $ 901)
+              , expectedResultP = Nothing
+              }
   ]
 
 
@@ -654,7 +647,7 @@ testCases =
   , TestCase (do assertEqual "manual tests of parserDistanceAuto"                 "" (testFunctionP parserDistanceAutoTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsColor (value)"     "" (testFunctionP colorTestData1))
   , TestCase (do assertEqual "manual tests of interpretTokensAsColor (rgb)"       "" (testFunctionP colorTestData2))
-  , TestCase (do assertEqual "manual tests of interpretTokensAsInteger"           "" (testFunction integerTestData))
+  , TestCase (do assertEqual "manual tests of mkParserRangeInteger"               "" (testFunctionP rangeIntegerTestData))
   ]
 
 
