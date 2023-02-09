@@ -138,6 +138,7 @@ module Hello.Css.Declaration
   , makeCssPropertyFloat
 
   , ctorCssPropertyFont
+  , makeCssPropertyFont
   , makeCssPropertyFontFamily
   , makeCssPropertyFontSize
   , makeCssPropertyFontSizeAdjust
@@ -1550,7 +1551,14 @@ ctorCssPropertyFont pat = case makeCssPropertyFont pat of
 
 
 
-
+{-
+:m +Hello.Css.Tokenizer
+:m +Hello.Css.Declaration
+:m +Hello.Utils.Parser
+:m +Hello.Css.ParserHelpers
+:set prompt >
+makeCssPropertyFont ((startTokenizer . defaultParser $ "8px serif"))
+-}
 makeCssPropertyFont :: (CssParser, CssToken) -> ((CssParser, CssToken), [CssProperty])
 makeCssPropertyFont patArg = case runRecipe patArg of
                                (pat', Just acc) -> (pat', acc)
@@ -1561,7 +1569,7 @@ makeCssPropertyFont patArg = case runRecipe patArg of
                                                                                 , multiplierOnce fontSize2
                                                                                 -- TODO: there should be a parser for "/" token here (a combination of "/" and height).
                                                                                 , multiplierZeroOrOnce lineHeight2
-                                                                                , multiplierOnce fontFamily2
+                                                                                , fontFamily2
                                                                                 ])
                                          , multiplierOnce fontEnum2
                                          ] pat
@@ -1605,7 +1613,10 @@ fontEnum2 pat = case runParser (mkParserEnum cssValueFontDict) pat of
 
 
 -- ------------------------------------------------
--- Font family (font-family)
+-- Font family ("font-family")
+--
+-- https://drafts.csswg.org/css-fonts-3/#propdef-font-family
+-- [ <family-name> | <generic-family> ] #
 -- ------------------------------------------------
 
 
@@ -1618,10 +1629,29 @@ data CssValueFontFamily
 
 
 
+{-
+:m +Hello.Css.Tokenizer
+:m +Hello.Css.Declaration
+:m +Hello.Utils.Parser
+:m +Hello.Css.ParserHelpers
+:set prompt >
+makeCssPropertyFontFamily ((startTokenizer . defaultParser $ "serif"))
+makeCssPropertyFontFamily ((startTokenizer . defaultParser $ "\"serif\""))
+makeCssPropertyFontFamily ((startTokenizer . defaultParser $ "serif, \"hello\""))
+-}
 makeCssPropertyFontFamily :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontFamily pat = (fmap . fmap) CssPropertyFontFamily (parser pat)
+makeCssPropertyFontFamily pat = (fmap . fmap) (CssPropertyFontFamily . CssValueFontFamilyList) (runParser parserStringList pat)
   where
-    parser = interpretTokensAsStringList CssValueFontFamilyList
+    parserStringList = parserSeparatedList value sep
+    value = parserTokenIdentValue <|> parserTokenStringValue
+    sep = many parserTokenWhitespace *> parserTokenComma <* many parserTokenWhitespace
+
+
+
+
+parserSeparatedList :: Parser (CssParser, CssToken) value -> Parser (CssParser, CssToken) separator -> Parser (CssParser, CssToken) [value]
+parserSeparatedList parserValue parserSeparator = (:) <$> parserValue <*> many (parserSeparator *> parserValue)
+                                                  <|> pure []
 
 
 

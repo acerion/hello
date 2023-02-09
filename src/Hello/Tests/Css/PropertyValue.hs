@@ -579,57 +579,6 @@ colorTestData2 =
 
 
 -- --------------------------------------------------------------------------
--- Tests of interpretTokensAsStringList
--- --------------------------------------------------------------------------
-
-
-
-
--- An artifical value ctor for value of some artifical CSS property.
-data StringListTestType = StringListTestCtor [T.Text]
-  deriving (Eq, Show)
-
-
-
-
-stringListTestData :: [TestData StringListTestType]
-stringListTestData =
-  [
-
-    -- Success case.
-    TestData { testedFunction = interpretTokensAsStringList StringListTestCtor
-             , inputPat       =       (defaultParserInBlock ",tuesday, wednesday , thursday; next-property", CssTokIdent "monday")
-             , expectedResult = Just ((defaultParserInBlock " next-property",                                CssTokSemicolon), StringListTestCtor ["monday", "tuesday", "wednesday", "thursday"])
-             }
-
-    -- Success case.
-  , TestData { testedFunction = interpretTokensAsStringList StringListTestCtor
-             , inputPat       =       (defaultParserInBlock "; next-property", CssTokIdent "monday")
-             , expectedResult = Just ((defaultParserInBlock " next-property",  CssTokSemicolon), StringListTestCtor ["monday"])
-             }
-
-    -- Failure case.
-    --
-    -- Hash token won't be interpreted as valid token for a list, and none of
-    -- following tokens will.
-  , TestData { testedFunction = interpretTokensAsStringList StringListTestCtor
-             , inputPat       = (defaultParserInBlock "tuesday; next-property", CssTokHash CssHashId "monday")
-             , expectedResult = Nothing
-             }
-
-    -- Failure case.
-    --
-    -- Numeric values in input text should also lead to invalid parsing.
-  , TestData { testedFunction = interpretTokensAsStringList StringListTestCtor
-             , inputPat       = (defaultParserInBlock "tuesday, 99redbaloons, wednesday; next-property", CssTokIdent "monday")
-             , expectedResult = Nothing
-             }
-  ]
-
-
-
-
--- --------------------------------------------------------------------------
 -- Tests of interpretTokensAsInteger
 -- --------------------------------------------------------------------------
 
@@ -705,7 +654,6 @@ testCases =
   , TestCase (do assertEqual "manual tests of parserDistanceAuto"                 "" (testFunctionP parserDistanceAutoTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsColor (value)"     "" (testFunctionP colorTestData1))
   , TestCase (do assertEqual "manual tests of interpretTokensAsColor (rgb)"       "" (testFunctionP colorTestData2))
-  , TestCase (do assertEqual "manual tests of interpretTokensAsStringList"        "" (testFunction stringListTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsInteger"           "" (testFunction integerTestData))
   ]
 

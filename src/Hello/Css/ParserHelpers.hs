@@ -50,7 +50,6 @@ module Hello.Css.ParserHelpers
   , interpretTokensAsInteger
   , parserColor
   , interpretTokensAsBgPosition
-  , interpretTokensAsStringList
   , interpretTokensAsURI
   , parserDistanceAuto
   )
@@ -501,51 +500,6 @@ consumeFunctionBody p1 acc = case nextToken p1 of
                                (p2, t2@CssTokParenClose) -> (nextToken p2, L.reverse (t2:acc))
                                (p2, CssTokEnd)           -> (nextToken p2, L.reverse acc) -- TODO: this is a parse error, handle the error
                                (p2, t2)                  -> consumeFunctionBody p2 (t2:acc)
-
-
-
-
--- Interpret current CssTokIdent/CssTokStr token (and possibly more following
--- CssTokIdent and CssTokStr tokens) as list of strings. The tokens should be
--- separated by comma tokens. Returned value is a string of items separated
--- by commas.
---
--- TODO: how we should handle list separated by spaces instead of commas? How
--- should we handle multiple consecutive commas?
---
--- TODO: all tokens in property's value should be
--- strings/symbols/commas/spaces. There can be no other tokens (e.g. numeric
--- or hash). Such declaration should be rejected:
--- 'font-family: "URW Gothic L", "Courier New", monospace, 90mph'
--- Rationale: behaviour of FF and Chromium.
---
--- Read comma-separated list of items, e.g. font family names. The items can
--- be strings with spaces, therefore the function consumes both CssTokIdent and
--- CssTokStr tokens. TODO: test the code for list of symbols separated by
--- space or comma.
-tokensAsValueStringList :: (CssParser, CssToken) -> ((CssParser, CssToken), [T.Text])
-tokensAsValueStringList pat = (pat', L.reverse list)
-  where
-    (pat', list) = asList pat []
-
-    asList :: (CssParser, CssToken) -> [T.Text] -> ((CssParser, CssToken), [T.Text])
-    asList (p, CssTokIdent sym) acc         = asList (nextToken p) (sym:acc)
-    asList (p, CssTokStr str) acc           = asList (nextToken p) (str:acc)
-    asList (p, CssTokComma) acc             = asList (nextToken p) acc
-    asList (p, t@CssTokSemicolon) acc       = ((p, t), acc)
-    asList (p, t@CssTokBraceCurlyClose) acc = ((p, t), acc)
-    asList (p, t@CssTokEnd) acc             = ((p, t), acc)
-    asList (_, _) _                         = (pat, []) -- TODO: this implmentation does not allow for final "!important" token.
-
-
-
-
-interpretTokensAsStringList :: ([T.Text] -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
-interpretTokensAsStringList stringListCtor pat = if L.null list
-                                                 then Nothing
-                                                 else Just (pat', stringListCtor list)
-  where
-    (pat', list) = tokensAsValueStringList pat
 
 
 
