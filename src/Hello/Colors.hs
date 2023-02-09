@@ -39,6 +39,8 @@ module Hello.Colors
   , colorsVisitedColor
   , colorsDistance2
   , colorsDistance3
+
+  , Color
   )
 where
 
@@ -51,6 +53,11 @@ import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Read as T.R
 import qualified Data.Vector as V
+
+
+
+
+type Color = Int
 
 
 

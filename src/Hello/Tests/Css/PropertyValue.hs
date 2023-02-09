@@ -28,6 +28,7 @@ import qualified Data.Text as T
 
 import Test.HUnit
 
+import Hello.Colors
 import Hello.Css.Distance
 import Hello.Css.ParserHelpers
 import Hello.Css.Tokenizer
@@ -427,158 +428,151 @@ parserDistanceAutoTestData =
 
 
 -- --------------------------------------------------------------------------
--- Tests of interpretTokensAsColor
+-- Tests of parserColor
 -- --------------------------------------------------------------------------
 
 
 
 
--- An artifical value ctor for value of some artifical CSS property.
-data ColorTestValue = ColorTestValueCtor Int
-  deriving (Eq, Show)
-
-
-
-
-colorTestData1 :: [TestData ColorTestValue]
+colorTestData1 :: [TestDataP Color]
 colorTestData1 =
   [
     -- Success case. Color as hex.
-    TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       =       (defaultParserInBlock "something; other1", CssTokHash CssHashId "fb5")  -- fb5 interpreted as rgb should be expanded to rrggbb in form of ffbb55
-             , expectedResult = Just ((defaultParserInBlock "; other1",          CssTokIdent "something"), ColorTestValueCtor 0xffbb55)
-             }
+    TestDataP { testedFunctionP = parserColor
+              , inputPatP       =       (defaultParserInBlock "something; other1", CssTokHash CssHashId "fb5")  -- fb5 interpreted as rgb should be expanded to rrggbb in form of ffbb55
+              , expectedResultP = Just ((defaultParserInBlock "; other1",          CssTokIdent "something"), 0xffbb55)
+              }
 
     -- Success case. Color as hex.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       =       (defaultParserInBlock "something; other2", CssTokHash CssHashId "12de56")
-             , expectedResult = Just ((defaultParserInBlock "; other2",         CssTokIdent "something"), ColorTestValueCtor 0x12de56)
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       =       (defaultParserInBlock "something; other2", CssTokHash CssHashId "12de56")
+              , expectedResultP = Just ((defaultParserInBlock "; other2",         CssTokIdent "something"), 0x12de56)
+              }
 
     -- Success case. Color as hex. Capital letters in hex string.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       =       (defaultParserInBlock "something; other3", CssTokHash CssHashId "12DE5A")
-             , expectedResult = Just ((defaultParserInBlock "; other3",          CssTokIdent "something"), ColorTestValueCtor 0x12de5A)
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       =       (defaultParserInBlock "something; other3", CssTokHash CssHashId "12DE5A")
+              , expectedResultP = Just ((defaultParserInBlock "; other3",          CssTokIdent "something"), 0x12de5A)
+              }
 
     -- Success case. Color as name.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       =       (defaultParserInBlock "something; other4", CssTokIdent "red")
-             , expectedResult = Just ((defaultParserInBlock "; other4",          CssTokIdent "something"), ColorTestValueCtor 0xff0000)
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       =       (defaultParserInBlock "something; other4", CssTokIdent "red")
+              , expectedResultP = Just ((defaultParserInBlock "; other4",          CssTokIdent "something"), 0xff0000)
+              }
 
     -- Success case. Color as less frequently used name.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       =       (defaultParserInBlock "something; other5", CssTokIdent "antiquewhite")
-             , expectedResult = Just ((defaultParserInBlock "; other5",          CssTokIdent "something"), ColorTestValueCtor 0xfaebd7)
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       =       (defaultParserInBlock "something; other5", CssTokIdent "antiquewhite")
+              , expectedResultP = Just ((defaultParserInBlock "; other5",          CssTokIdent "something"), 0xfaebd7)
+              }
 
     -- Failure case. Name is not a proper color name.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other6", CssTokIdent "czerwony")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       = (defaultParserInBlock "something; other6", CssTokIdent "czerwony")
+              , expectedResultP = Nothing
+              }
 
     -- Failure, hash is not a hex-digit string.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other7", CssTokHash CssHashId "ident")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       = (defaultParserInBlock "something; other7", CssTokHash CssHashId "ident")
+              , expectedResultP = Nothing
+              }
 
     -- Failure, hash has incorrect count of digits (should be either 3 or 6).
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other8", CssTokHash CssHashId "a")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       = (defaultParserInBlock "something; other8", CssTokHash CssHashId "a")
+              , expectedResultP = Nothing
+              }
 
     -- Failure, hash has incorrect count of digits (should be either 3 or 6).
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other9", CssTokHash CssHashId "ab")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       = (defaultParserInBlock "something; other9", CssTokHash CssHashId "ab")
+              , expectedResultP = Nothing
+              }
 
     -- Success, just a sanity check.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       =       (defaultParserInBlock "something; other10", CssTokHash CssHashId "abc")
-             , expectedResult = Just ((defaultParserInBlock "; other10",          CssTokIdent "something"), ColorTestValueCtor 0xaabbcc)
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       =       (defaultParserInBlock "something; other10", CssTokHash CssHashId "abc")
+              , expectedResultP = Just ((defaultParserInBlock "; other10",          CssTokIdent "something"), 0xaabbcc)
+              }
 
     -- Failure, hash has incorrect count of digits (should be either 3 or 6).
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other11", CssTokHash CssHashId "abcd")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       = (defaultParserInBlock "something; other11", CssTokHash CssHashId "abcd")
+              , expectedResultP = Nothing
+              }
 
     -- Failure, hash has incorrect count of digits (should be either 3 or 6).
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other12", CssTokHash CssHashId "abcde")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       = (defaultParserInBlock "something; other12", CssTokHash CssHashId "abcde")
+              , expectedResultP = Nothing
+              }
 
     -- Success, just a sanity check.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       =       (defaultParserInBlock "something; other13", CssTokHash CssHashId "abcdef")
-             , expectedResult = Just ((defaultParserInBlock "; other13",          CssTokIdent "something"), ColorTestValueCtor 0xabcdef)
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       =       (defaultParserInBlock "something; other13", CssTokHash CssHashId "abcdef")
+              , expectedResultP = Just ((defaultParserInBlock "; other13",          CssTokIdent "something"), 0xabcdef)
+              }
 
     -- Failure, empty hash string.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other14", CssTokHash CssHashId "")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       = (defaultParserInBlock "something; other14", CssTokHash CssHashId "")
+              , expectedResultP = Nothing
+              }
 
     -- Failure. Empty ident string.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other15", CssTokIdent "")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       = (defaultParserInBlock "something; other15", CssTokIdent "")
+              , expectedResultP = Nothing
+              }
 
     -- Failure. Unexpected current token type.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other16", CssTokDelim '@')
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       = (defaultParserInBlock "something; other16", CssTokDelim '@')
+              , expectedResultP = Nothing
+              }
 
   -- Failure. Unexpected current token type.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       = (defaultParserInBlock "something; other17", CssTokPerc . CssNumF $ 50.0)
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       = (defaultParserInBlock "something; other17", CssTokPerc . CssNumF $ 50.0)
+              , expectedResultP = Nothing
+              }
   ]
 
 
 
 
 -- Input data is a rgb function
-colorTestData2 :: [TestData ColorTestValue]
+colorTestData2 :: [TestDataP Color]
 colorTestData2 =
   [
     -- Success case. Color as rgb function.
-    TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       =       (defaultParserInBlock "15,50,200); next-property1",        CssTokFunc "rgb")
-             , expectedResult = Just ((defaultParserInBlock " next-property1", CssTokSemicolon), ColorTestValueCtor 0x0f32c8)
-             }
+    TestDataP { testedFunctionP = parserColor
+              , inputPatP       =       (defaultParserInBlock "15,50,200); next-property1",        CssTokFunc "rgb")
+              , expectedResultP = Just ((defaultParserInBlock " next-property1", CssTokSemicolon), 0x0f32c8)
+              }
 
     -- Success case. Color as rgb function, with percentages.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       =       (defaultParserInBlock "90%,20%,0%); next-property2",       CssTokFunc "rgb")
-             , expectedResult = Just ((defaultParserInBlock " next-property2", CssTokSemicolon), ColorTestValueCtor 0xe63300)
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       =       (defaultParserInBlock "90%,20%,0%); next-property2",       CssTokFunc "rgb")
+              , expectedResultP = Just ((defaultParserInBlock " next-property2", CssTokSemicolon), 0xe63300)
+              }
 
     -- Success case. Color as rgb function, with percentages.
     --
     -- Percentage values over 100% or under 0% should be clipped (in this
     -- case to 100%,0%,15%).
-  , TestData  { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       =       (defaultParserInBlock "120%,-20%,15%); next-property3", CssTokFunc "rgb")
-             , expectedResult = Just ((defaultParserInBlock " next-property3",                CssTokSemicolon), ColorTestValueCtor 0xff0026)
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       =       (defaultParserInBlock "120%,-20%,15%); next-property3", CssTokFunc "rgb")
+              , expectedResultP = Just ((defaultParserInBlock " next-property3",                CssTokSemicolon), 0xff0026)
+              }
 
     -- Failure. Mix of dimensionless values and percentages should be rejected.
-  , TestData { testedFunction = interpretTokensAsColor ColorTestValueCtor
-             , inputPat       = (defaultParserInBlock "90%,20,0%); next-property4", CssTokFunc "rgb")
-             , expectedResult = Nothing
-             }
+  , TestDataP { testedFunctionP = parserColor
+              , inputPatP       = (defaultParserInBlock "90%,20,0%); next-property4", CssTokFunc "rgb")
+              , expectedResultP = Nothing
+              }
   ]
 
 
@@ -709,8 +703,8 @@ testCases =
     TestCase (do assertEqual "manual tests of mkParserEnum"                       "" (testFunctionP mkParserEnumTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsMultiEnum"         "" (testFunction multiEnumTestData))
   , TestCase (do assertEqual "manual tests of parserDistanceAuto"                 "" (testFunctionP parserDistanceAutoTestData))
-  , TestCase (do assertEqual "manual tests of interpretTokensAsColor (value)"     "" (testFunction colorTestData1))
-  , TestCase (do assertEqual "manual tests of interpretTokensAsColor (rgb)"       "" (testFunction colorTestData2))
+  , TestCase (do assertEqual "manual tests of interpretTokensAsColor (value)"     "" (testFunctionP colorTestData1))
+  , TestCase (do assertEqual "manual tests of interpretTokensAsColor (rgb)"       "" (testFunctionP colorTestData2))
   , TestCase (do assertEqual "manual tests of interpretTokensAsStringList"        "" (testFunction stringListTestData))
   , TestCase (do assertEqual "manual tests of interpretTokensAsInteger"           "" (testFunction integerTestData))
   ]

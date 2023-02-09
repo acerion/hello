@@ -84,12 +84,16 @@ module Hello.Css.Tokenizer
 
   , splitAtCommaToken
 
+  , parserTokenNum
+  , parserTokenPerc
   , parserTokenIdentAny
   , parserTokenIdent
   , parserTokenIdentValue
   , parserTokenColon
   , parserTokenComma
   , parserTokenSemicolon
+  , parserTokenParenOpen
+  , parserTokenParenClose
   , parserTokenBraceCurlyOpen
   , parserTokenBraceCurlyClose
   , parserTokenDelim
@@ -810,6 +814,30 @@ splitAtCommaToken (x:xs)       []      = splitAtCommaToken xs [[x]]
 
 
 
+satisfy :: (CssParser, CssToken) -> CssToken -> Maybe ((CssParser, CssToken), CssToken)
+satisfy (parser, token) needed = if token == needed
+                                 then Just (nextToken parser, token)
+                                 else Nothing
+
+
+
+
+parserTokenNum :: Parser (CssParser, CssToken) CssToken
+parserTokenNum = Parser $ \ (parser, token) -> case token of
+                                                 CssTokNum _ -> Just (nextToken parser, token)
+                                                 _           -> Nothing
+
+
+
+
+parserTokenPerc :: Parser (CssParser, CssToken) CssToken
+parserTokenPerc = Parser $ \ (parser, token) -> case token of
+                                                  CssTokPerc _ -> Just (nextToken parser, token)
+                                                  _            -> Nothing
+
+
+
+
 parserTokenIdentAny :: Parser (CssParser, CssToken) CssToken
 parserTokenIdentAny = Parser $ \ (parser, token) -> case token of
                                                       CssTokIdent _ -> Just (nextToken parser, token)
@@ -855,6 +883,17 @@ parserTokenSemicolon :: Parser (CssParser, CssToken) CssToken
 parserTokenSemicolon = Parser $ \ (parser, token) -> case token of
                                                        CssTokSemicolon -> Just (nextToken parser, token)
                                                        _               -> Nothing
+
+
+
+parserTokenParenOpen :: Parser (CssParser, CssToken) CssToken
+parserTokenParenOpen = Parser $ \ pat -> satisfy pat CssTokParenOpen
+
+
+
+
+parserTokenParenClose :: Parser (CssParser, CssToken) CssToken
+parserTokenParenClose = Parser $ \ pat -> satisfy pat CssTokParenClose
 
 
 
@@ -913,11 +952,6 @@ parserTokenEnd :: Parser (CssParser, CssToken) CssToken
 parserTokenEnd = Parser $ \ (parser, token) -> case token of
                                                  CssTokEnd -> Just (nextToken parser, token)
                                                  _         -> Nothing
-
-
-
-
-
 
 
 

@@ -36,8 +36,7 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 module Hello.Css.ParserHelpers
   (
-    consumeFunctionTokens
-  , interpretRgbFunctionTokens
+    interpretRgbFunctionTokens
   , rgbFunctionToColor
   , parseUrl
   , consumeFunctionBody
@@ -49,7 +48,7 @@ module Hello.Css.ParserHelpers
   , interpretTokensAsMultiEnum
   , mkParserLength
   , interpretTokensAsInteger
-  , interpretTokensAsColor
+  , parserColor
   , interpretTokensAsBgPosition
   , interpretTokensAsStringList
   , interpretTokensAsURI
@@ -60,11 +59,13 @@ where
 
 
 
+import Control.Applicative (Alternative(..), many)
 import Data.Bits
 import Data.List as L
 import Data.Map as M
 import Data.Maybe
 import Data.Text as T
+-- import Debug.Trace
 
 import Hello.Colors
 import Hello.Css.Distance
@@ -74,26 +75,26 @@ import Hello.Utils.Parser
 
 
 
--- Take all tokens (after initial "function-name(" tokens) that belong to
--- function's body. Closing paren is added to output list (if it was present
--- in input stream) - with the closing paren you can recognize if the body is
--- complete.
---
--- https://www.w3.org/TR/css-syntax-3/#consume-function
---
--- If `limit` is non-zero, take up to `limit` tokens (excluding closing
--- paren). This is a safety feature to avoid problems with malformed input.
-consumeFunctionTokens :: Int -> CssParser -> ((CssParser, CssToken), [CssToken])
-consumeFunctionTokens limit parser = (pat', L.reverse tokens)
-  where
-    (pat', tokens) = takeNext (nextToken parser) []
+{-
+Consume body of "rgb(" function. Return list of tokens representing r/g/b/
+component values of a color.
 
-    takeNext :: (CssParser, CssToken) -> [CssToken] -> ((CssParser, CssToken), [CssToken])
-    takeNext (p2, t2@CssTokParenClose) list = (nextToken p2, t2:list) -- Add closing paren to result, it will be used to check if function body is valid.
-    takeNext (p2, CssTokEnd) list           = ((p2, CssTokEnd), list) -- https://www.w3.org/TR/css-syntax-3/#consume-function: "This is a parse error".
-    takeNext (p2, t2) list                  = if limit > 0 && L.length list >= limit
-                                              then ((p2, t2), list)
-                                              else takeNext (nextToken p2) (t2:list)
+Closing paren is consumed, but not added to output list.
+
+-- https://www.w3.org/TR/css-syntax-3/#consume-function:
+:m +Hello.Css.Tokenizer
+:m +Hello.Utils.Parser
+:m +Hello.Css.ParserHelpers
+:set prompt >
+consumeRgbFunctionTokens ((nextToken . defaultParser $ "100, 100, 100 )"))
+-}
+consumeRgbFunctionTokens :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), [CssToken])
+consumeRgbFunctionTokens pat = runParser (rgb <* parserFunctionTrailer) pat
+  where
+    rgb = (:) <$> parserRgbItem <*> (sequence (L.replicate 2 (parserWsComma *> parserRgbItem))) <|> pure []
+    parserFunctionTrailer = many parserTokenWhitespace <* parserTokenParenClose
+    parserRgbItem = many parserTokenWhitespace *> (parserTokenPerc <|> parserTokenNum)
+    parserWsComma = many parserTokenWhitespace *> parserTokenComma <* many parserTokenWhitespace
 
 
 
@@ -112,41 +113,43 @@ interpretRgbFunctionTokens :: [CssToken] -> Maybe (Int, Int, Int, Bool)
 interpretRgbFunctionTokens tokens =
   case tokens of
     -- "either three integer values or three percentage values" in https://www.w3.org/TR/css-color-3/
-    [CssTokPerc (CssNumI r), CssTokComma, CssTokPerc (CssNumI g), CssTokComma, CssTokPerc (CssNumI b), CssTokParenClose] -> Just (r, g, b, True)
-    [CssTokNum (CssNumI r),  CssTokComma, CssTokNum (CssNumI g),  CssTokComma, CssTokNum (CssNumI b),  CssTokParenClose] -> Just (r, g, b, False)
-    _                                                                                                                    -> Nothing
+    [CssTokPerc (CssNumI r), CssTokPerc (CssNumI g), CssTokPerc (CssNumI b)] -> Just (r, g, b, True)
+    [CssTokNum (CssNumI r),  CssTokNum (CssNumI g),  CssTokNum (CssNumI b) ] -> Just (r, g, b, False)
+    _                                                                        -> Nothing
 
 
 
 
 -- Return integer representing a color. The color is built from body of "rgb"
 -- function.
-rgbFunctionToColor :: CssParser -> ((CssParser, CssToken), Maybe Int)
-rgbFunctionToColor p1 = let
-  consumeRgbFunctionTokens = consumeFunctionTokens 5 -- 5 == count of tokens in "10%,20%,30%)", excluding closing paren.
-  ((p2, t2), tokens) = consumeRgbFunctionTokens p1
-  in
-    case interpretRgbFunctionTokens tokens of
-      Nothing                            -> ((p2, t2), Nothing)
-      Just (red, green, blue, isPercent) -> ((p2, t2), Just color)
-        where
-          color = (r `shiftL` 16) .|. (g `shiftL` 8) .|. b
-          r = toColorComponent isPercent (fromIntegral red)
-          g = toColorComponent isPercent (fromIntegral green)
-          b = toColorComponent isPercent (fromIntegral blue)
+rgbFunctionToColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), Color)
+rgbFunctionToColor pat =
+  consumeRgbFunctionTokens pat
+  >>= (\ (pat', tokens) -> interpretRgbFunctionTokens tokens
+        >>= (\ (r, g, b, isPercent) -> Just (pat', rgbToColor r g b isPercent)))
 
-          -- Convert given float (which may or may not be a percentage) into
-          -- an integer in range 0x00-0xFF.
-          toColorComponent :: Bool -> Float -> Int
-          toColorComponent True  = clipFF . round . (\x -> (x * 255.0) / 100.0)
-          toColorComponent False = clipFF . round
 
-          -- Ensure that given integer is in range 0x00-0xFF. Clip values that
-          -- are outside of this range.
-          clipFF :: Int -> Int
-          clipFF x | x > 0xFF  = 0xFF
-                   | x < 0     = 0
-                   | otherwise = x
+
+
+rgbToColor :: Int -> Int -> Int -> Bool -> Color
+rgbToColor red green blue isPercent = (r `shiftL` 16) .|. (g `shiftL` 8) .|. b
+  where
+    r = toColorComponent isPercent red
+    g = toColorComponent isPercent green
+    b = toColorComponent isPercent blue
+
+    -- Convert given color integer (which may or may not be a percentage)
+    -- into an integer in range 0x00-0xFF.
+    toColorComponent :: Bool -> Int -> Int
+    toColorComponent True  = clipFF . round . (\ (x :: Float) -> (x * 255.0) / 100.0) . fromIntegral
+    toColorComponent False = clipFF
+
+    -- Ensure that given integer is in range 0x00-0xFF. Clip values that
+    -- are outside of this range.
+    clipFF :: Int -> Int
+    clipFF x | x > 0xFF  = 0xFF
+             | x < 0     = 0
+             | otherwise = x
 
 
 
@@ -176,17 +179,18 @@ mkParserEnum dict = Parser $ \ pat -> do
 -- tokens. If current token is e.g. "rgb(" function, then the function should
 -- (TODO) take as many tokens as necessary to build, parse and convert the
 -- function into color value.
-interpretTokensAsColor :: (Int -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
-interpretTokensAsColor colorValueCtor3 (p1, CssTokHash _ str)  = case colorsHexStringToColor str of
-                                                                   Just c  -> Just (nextToken p1, colorValueCtor3 c)
-                                                                   Nothing -> Nothing
-interpretTokensAsColor colorValueCtor3 (p1, CssTokFunc "rgb")  = case rgbFunctionToColor p1 of
-                                                                    (pat', Just c) -> Just (pat', colorValueCtor3 c)
-                                                                    (_, Nothing)   -> Nothing
-interpretTokensAsColor colorValueCtor3 (p1, CssTokIdent ident) = case colorsStringToColor ident of
-                                                                   Just c  -> Just (nextToken p1, colorValueCtor3 c)
-                                                                   Nothing -> Nothing
-interpretTokensAsColor _ _                                     = Nothing
+parserColor :: Parser (CssParser, CssToken) Color
+parserColor = Parser $ \ pat -> fn pat
+  where
+    fn :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), Color)
+    fn (p1, CssTokHash _ str)  = case colorsHexStringToColor str of
+                                   Just c  -> Just (nextToken p1, c)
+                                   Nothing -> Nothing
+    fn (p1, CssTokFunc "rgb")  = rgbFunctionToColor . nextToken $ p1
+    fn (p1, CssTokIdent ident) = case colorsStringToColor ident of
+                                   Just c  -> Just (nextToken p1, c)
+                                   Nothing -> Nothing
+    fn _                       = Nothing
 
 
 

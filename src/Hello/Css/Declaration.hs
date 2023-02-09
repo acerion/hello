@@ -560,7 +560,7 @@ makeCssPropertyBackgroundColor pat = (fmap . fmap) CssPropertyBackgroundColor (c
 
 paserValueBackgroundColor :: Parser (CssParser, CssToken) CssValueBackgroundColor
 paserValueBackgroundColor = mkParserEnum cssValueBackgroundColorDict
-                            <|> Parser (interpretTokensAsColor CssValueBackgroundColorColor)
+                            <|> fmap CssValueBackgroundColorColor parserColor
 
 
 
@@ -1080,7 +1080,7 @@ parseTokensAsBorderColorValue pat = runParser parserValueBorderColor pat
 
 parserValueBorderColor :: Parser (CssParser, CssToken) CssValueBorderColor
 parserValueBorderColor = mkParserEnum cssValueBorderColorDict
-                         <|> Parser (interpretTokensAsColor CssValueBorderColor)
+                         <|> fmap CssValueBorderColor parserColor
 
 
 
@@ -1307,8 +1307,7 @@ cssValueColorDict = [ ("inherit", CssValueColorInherit)
 makeCssPropertyColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 makeCssPropertyColor pat = (fmap . fmap) CssPropertyColor (runParser parser pat)
   where
-    parser = mkParserEnum cssValueColorDict
-             <|> Parser (interpretTokensAsColor CssValueColor)
+    parser = mkParserEnum cssValueColorDict <|> fmap CssValueColor parserColor
 
 
 
