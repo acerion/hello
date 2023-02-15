@@ -780,25 +780,27 @@ parseSingleDeclarationTestData =
 
 
 
-{- TODO: re-emable
+
     -- CSS2.2: [ [ <'font-style'> || <'font-variant'> || <'font-weight'> ]? <'font-size'> [ / <'line-height'> ]? <'font-family'> ]
     --         | caption | icon | menu | message-box | small-caption | status-bar | inherit
-  , ("font: italic small-caps 8px serif",       Just CssDeclaration { property = CssPropertyFont
-                                                                      $ CssValueFont [ CssPropertyFontStyle CssValueFontStyleItalic
-                                                                                     , CssPropertyFontVariant CssValueFontVariantSmallCaps
-                                                                                     , CssPropertyFontSize $ CssValueFontSizeDistance $ CssDistanceAbsPx 8.0
-                                                                                     , CssPropertyFontFamily $ CssValueFontFamilyList ["serif"]
-                                                                                     ]
+  , ("font: italic small-caps 8px serif",       Just CssDeclaration { property = CssPropertyFont (CssValueFontRecord' defaultCssValueFontRecord
+                                                                                                  { fontValueStyle   = CssValueFontStyleItalic
+                                                                                                  , fontValueVariant = CssValueFontVariantSmallCaps
+                                                                                                  , fontValueSize    = CssValueFontSizeDistance $ CssDistanceAbsPx 8.0
+                                                                                                  , fontValueFamily  = CssValueFontFamilyList ["serif"]
+                                                                                                  }
+                                                                                                 )
                                                                     , important = False
                                                                     }
     )
--}
+
 
     -- Absolute required minimum: font-size and font-family
-  , ("font: 8px monospace",                     Just CssDeclaration { property = CssPropertyFont
-                                                                      $ CssValueFont [ CssPropertyFontSize $ CssValueFontSizeDistance $ CssDistanceAbsPx 8.0
-                                                                                     , CssPropertyFontFamily $ CssValueFontFamilyList ["monospace"]
-                                                                                     ]
+  , ("font: 8px monospace",                     Just CssDeclaration { property = CssPropertyFont (CssValueFontRecord' defaultCssValueFontRecord
+                                                                                                  { fontValueSize   = CssValueFontSizeDistance $ CssDistanceAbsPx 8.0
+                                                                                                  , fontValueFamily = CssValueFontFamilyList ["monospace"]
+                                                                                                  }
+                                                                                                 )
                                                                     , important = False
                                                                     }
     )

@@ -133,7 +133,7 @@ cssPropertyCtors = M.fromList [
    --, ("empty-cells",            Nothing)
    --, ("float",                  Nothing)
 
-   , ("font",                   ctorCssPropertyFont)
+   , ("font",                   makeCssPropertyFont)
    , ("font-family",            makeCssPropertyFontFamily)
    , ("font-size",              makeCssPropertyFontSize)
    --, ("font-size-adjust",       Nothing)

@@ -20,15 +20,30 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 
 
+{-# LANGUAGE ScopedTypeVariables #-}
+
+
+
+
 module Hello.Css.Parser.Combinators
   (
     MyParser
   , combinatorExactlyOne
   , combinatorAllInOrder
   , combinatorOneOrMoreUnordered
-  , combinatorOneOrMoreUnordered2
   , multiplierZeroOrOnce
   , multiplierOnce
+
+  , rewrap
+
+  , combinatorOneOrMoreUnorderedB
+  , combinatorAllInOrderB
+  , multiplierZeroOrOnceB
+  , multiplierOnceB
+  , combinatorExactlyOneB
+  , parserA
+  , parserB
+  , parserC
   )
 where
 
@@ -37,7 +52,11 @@ where
 
 --import Debug.Trace
 
+import qualified Data.Text as T
 import Data.List as L
+import Data.Maybe
+
+import Hello.Utils.Parser
 
 
 
@@ -106,31 +125,6 @@ combinatorAllInOrder functions pat = if countOfNonEmpty == L.length functions
   where
     countOfNonEmpty        = L.length accumulators
     (outPat, accumulators) = runFunctions functions (pat, [])
-
-
-
-
--- Run all parsers, not necessarily in specified order
---
--- Return success (Just accumulator of all successes) if at least one of the parsers succeeded (returned some accumulator).
--- Return failure (Nothing) if all parsers failed (returned Nothing).
---
--- TODO: the "unordered" part is not being implemented. The values that
--- aren't in specific order aren't parsed correctly. Currently the only
--- accepted order is the one dictated by order of parser functions.
---
--- https://www.w3.org/TR/css-values-3/#component-combinators
--- "A double bar (||) separates two or more options: one or more of them must occur, in any order."
-combinatorOneOrMoreUnordered :: [MyParser p a] -> p -> (p, Maybe [a])
-combinatorOneOrMoreUnordered functions pat = if successes >= 1
-                                             then (outPat, Just $ L.concat accumulators)
-                                             else (pat, Nothing)
-
-  where
-    successes = L.length accumulators
-    (outPat, accumulators) = runFunctions functions (pat, [])
-
-
 
 
 
@@ -263,6 +257,169 @@ runFunctions []     (pat, accumulators) = (pat, accumulators)
 
 
 
+parserA :: Parser T.Text (String -> String)
+parserA = Parser $ \ text -> case T.uncons text of
+                               Just (c, remd) | c == 'a' -> Just (remd, (:) 'a')
+                                              | otherwise -> Nothing
+                               Nothing -> Nothing
+
+
+parserB :: Parser T.Text (String -> String)
+parserB = Parser $ \ text -> case T.uncons text of
+                               Just (c, remd) | c == 'b' -> Just (remd, (:) 'b')
+                                              | otherwise -> Nothing
+                               Nothing -> Nothing
+
+
+parserC :: Parser T.Text (String -> String)
+parserC = Parser $ \ text -> case T.uncons text of
+                               Just (c, remd) | c == 'c' -> Just (remd, (:) 'c')
+                                              | otherwise -> Nothing
+                               Nothing -> Nothing
+
+
+{-
+:m +Hello.Utils.Parser
+:m +Data.Maybe
+:m +Data.Text
+:m +Hello.Css.Parser.Combinators
+:set prompt >
+
+(fmap . fmap) (\ f -> f "") (runParser (combinatorOneOrMoreUnorderedB [parserB, parserA]) "ab")
+-}
+combinatorOneOrMoreUnorderedB :: [Parser state (a -> a)] -> Parser state (a -> a)
+combinatorOneOrMoreUnorderedB parsers = Parser $ \ state ->
+  case tryParsersUnordered' state parsers stash fs 0 of
+    ((state', fs'), i) | i >= 1    -> Just (state', fs')
+                       | otherwise -> Nothing
+  where
+    stash = [] -- Stash for parsers, necessary for algo of running parsers unordered.
+    fs    = id -- Accumulator of functions. 'id' is an empty element for function composition.
+
+
+
+
+{-
+:m +Hello.Utils.Parser
+:m +Data.Maybe
+:m +Data.Text
+:m +Hello.Css.Parser.Combinators
+:set prompt >
+
+(fmap . fmap) (\ f -> f "") (runParser (combinatorAllInOrderB [parserA, parserB]) "abC")
+-}
+combinatorAllInOrderB :: [Parser state (a -> a)] -> Parser state (a -> a)
+combinatorAllInOrderB parsers = Parser $ \ state -> runAllParsers parsers state id
+
+
+
+
+-- Run all parsers from given list. Each parser is ran with state updated by
+-- previous parsers' calls. All parsers must succeed.
+runAllParsers :: [Parser state (a -> a)] -> state -> (a -> a) -> Maybe (state, (a -> a))
+runAllParsers (parser:parsers) state fs = case runParser parser state of
+                                            Just (state', f) -> runAllParsers parsers state' (fs . f)
+                                            Nothing          -> Nothing
+runAllParsers []               state fs = Just (state, fs)
+
+
+
+
+{-
+:m +Hello.Utils.Parser
+:m +Data.Maybe
+:m +Data.Text
+:m +Hello.Css.Parser.Combinators
+:set prompt >
+
+(fmap . fmap) (\ f -> f "") (runParser (multiplierZeroOrOnceB (combinatorAllInOrderB [parserB, parserA])) "ab")
+-}
+multiplierZeroOrOnceB ::  (Show state) => Parser state (a -> a) -> Parser state (a -> a)
+multiplierZeroOrOnceB parser = Parser $ \ pat -> multiplierB lower upper parser pat
+  where
+    -- Range of expected successes (inclusive).
+    lower = 0
+    upper = 1
+
+
+
+
+multiplierOnceB ::  (Show state) => Parser state (a -> a) -> Parser state (a -> a)
+multiplierOnceB parser = Parser $ \ pat -> multiplierB lower upper parser pat
+  where
+    -- Range of expected successes (inclusive).
+    lower = 1
+    upper = 1
+
+
+
+multiplierB ::  (Show state) => Int -> Int -> Parser state (a -> a) -> state -> Maybe (state, (a -> a))
+multiplierB lower upper parser pat | n >= lower && n <= upper = Just (pat'', fs')
+                                   | otherwise                = Nothing
+
+  where
+    fs = id
+    (pat'', fs', n) = callUntilFailB parser pat fs 0 hardLimit
+
+    -- https://www.w3.org/TR/css-values-3/#component-multipliers spec
+    -- indicates that implementation must support "at least 20 repetitions"
+    -- in case of "X or more" multipliers. Therefore the hardcoded upper
+    -- limit is "20".
+    --
+    -- TODO: write tests for "one or more" multiplier that would show that
+    -- the hard limit is observed by this function.
+    --
+    -- TODO: the function must implement this requirement from the spec: "If
+    -- a property value contains more than the supported number of
+    -- repetitions, the declaration must be ignored as if it were invalid.".
+    hardLimit | upper >= 0 = upper + 1
+              | otherwise  = 20
+
+
+
+
+-- Call given function (either a parser or a combinator) multiple times.
+-- When the function fails to take a parser-specific expression, return
+-- accumulated result of all of the calls that succeeded.
+callUntilFailB :: (Show state) => Parser state (a -> a) -> state -> (a -> a) -> Int -> Int -> (state, (a -> a), Int)
+callUntilFailB parser pat fs i limit = case runParser parser pat of
+                                         Just (pat', f)  -> callUntilFailB parser pat' (f . fs) (i + 1) limit
+                                         Nothing         -> (pat, fs, i)
+
+
+
+
+-- Run all parsers in given order
+--
+-- Return success (Just accumulator) if exactly one of them succeeds.
+-- Return failure (Nothing) if zero, two or more of them succeed.
+--
+-- https://www.w3.org/TR/css-values-3/#component-combinators
+-- "A bar (|) separates two or more alternatives: exactly one of them must occur."
+--
+-- Unit tested? Yes.
+{-
+:m +Hello.Utils.Parser
+:m +Data.Maybe
+:m +Data.Text
+:m +Hello.Css.Parser.Combinators
+:set prompt >
+
+(fmap . fmap) (\ f -> f "") (runParser (combinatorExactlyOneB [parserB, parserA]) "ad")
+-}
+combinatorExactlyOneB :: [Parser p (a -> a)] -> Parser p (a -> a)
+combinatorExactlyOneB parsers = Parser $ \ state -> case fmap (try state) parsers of
+                                                      mapped -> if (L.length . catMaybes $ mapped) == 1 -- Only one of parsers succeeded and returned some Just
+                                                                then Just (head . catMaybes $ mapped)
+                                                                else Nothing
+  where
+    -- Run a single parser from list of parsers. Notice that each parser from
+    -- input 'parsers' list is executed with the same input state.
+    try patArg parser = runParser parser patArg
+
+
+
+
 -- Apply given parser functions to given state unil none of them matches.
 -- Parsers save result in given input acc.
 --
@@ -277,11 +434,22 @@ runFunctions []     (pat, accumulators) = (pat, accumulators)
 --
 -- Return Just (new state, modified acc) on success.
 -- Return Nothing on failure.
-combinatorOneOrMoreUnordered2 :: acc -> [state -> acc -> Maybe (state, acc)] -> state -> Maybe (state, acc)
-combinatorOneOrMoreUnordered2 acc fs state | i > 0     = Just stateAndAcc
-                                           | otherwise = Nothing
+combinatorOneOrMoreUnordered :: acc -> [acc -> Parser state acc] -> state -> Maybe (state, acc)
+combinatorOneOrMoreUnordered acc fs state | i > 0     = Just stateAndAcc
+                                          | otherwise = Nothing
   where
     (stateAndAcc, i) = tryParsersUnordered state fs [] acc 0
+
+
+
+
+-- Rewrap combinator that returns new-type value (Maybe (state, value)) into
+-- combinator that returns old-style value (state, Maybe value).
+rewrap :: ([f] -> [a -> b] -> state -> (Maybe (state, value))) -> [a -> b] -> state -> (state, Maybe value)
+rewrap combinator fns pat = case combinator [] fns pat of
+                              Just (pat', acc) -> (pat', Just acc)
+                              Nothing          -> (pat, Nothing)
+
 
 
 
@@ -295,15 +463,26 @@ combinatorOneOrMoreUnordered2 acc fs state | i > 0     = Just stateAndAcc
 --
 -- Also the Int type allows me to see how many parsers exactly have succeeded
 -- and create different functions, e.g. "zero or more".
-tryParsersUnordered :: state -> [state -> acc -> Maybe (state, acc)] -> [state -> acc -> Maybe (state, acc)] -> acc -> Int -> ((state, acc), Int)
+tryParsersUnordered :: state -> [acc -> Parser state acc] -> [acc -> Parser state acc] -> acc -> Int -> ((state, acc), Int)
 tryParsersUnordered state (f:fs) stash acc i =
-  case f state acc of
+  case runParser (f acc) state of
     -- On sucessful parse discard current parser, and re-generate list of parsers to be used in next cycle.
     -- On failed parse move current parser to 'for later' list, and retry with shortened list of current parsers.
     Just (state', acc') -> tryParsersUnordered state' (fs ++ stash) []        acc' (i + 1)
     Nothing             -> tryParsersUnordered state  fs            (f:stash) acc  i
 tryParsersUnordered state []        _  acc i = ((state, acc), i)
 
+
+
+
+tryParsersUnordered' :: state -> [Parser state (a -> a)] -> [Parser state (a -> a)] -> (a -> a) -> Int -> ((state, (a -> a)), Int)
+tryParsersUnordered' state (parser:parsers) stash fs i =
+  case runParser parser state of
+    -- On sucessful parse discard current parser, and re-generate list of parsers to be used in next cycle.
+    -- On failed parse move current parser to 'for later' list, and retry with shortened list of current parsers.
+    Just (state', f) -> tryParsersUnordered' state' (parsers ++ stash) []               (f . fs) (i + 1)
+    Nothing          -> tryParsersUnordered' state  parsers            (parser:stash)    fs       i
+tryParsersUnordered' state []                  _  fs i = ((state, fs), i)
 
 
 

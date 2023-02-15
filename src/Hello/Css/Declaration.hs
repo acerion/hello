@@ -59,6 +59,7 @@ module Hello.Css.Declaration
   , CssValueCursor (..)
 
   , CssValueFont (..)
+  , CssValueFontRecord (..)
   , CssValueFontFamily (..)
   , CssValueFontSize (..)
   , CssValueFontStyle (..)
@@ -137,7 +138,6 @@ module Hello.Css.Declaration
   , makeCssPropertyEmptyCells
   , makeCssPropertyFloat
 
-  , ctorCssPropertyFont
   , makeCssPropertyFont
   , makeCssPropertyFontFamily
   , makeCssPropertyFontSize
@@ -197,6 +197,8 @@ module Hello.Css.Declaration
   , defaultBorderTRBLWidth
   , defaultBorderTRBLStyle
   , defaultBorderTRBLColor
+  , defaultCssValueFont
+  , defaultCssValueFontRecord
 
   , initialValueBackground
 
@@ -205,6 +207,8 @@ module Hello.Css.Declaration
   , initialValueListStyleImage
 
   , PropertyCtor
+
+  , parserValueFontFamily
   )
 where
 
@@ -233,7 +237,7 @@ type PropertyCtor = (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssPr
 
 
 -- TODO: this is too similar to PropertyCtor
-type CssPropertyParser = MyParser (CssParser, CssToken) CssProperty
+--type CssPropertyParser = MyParser (CssParser, CssToken) CssProperty
 
 
 
@@ -434,19 +438,19 @@ initialValueBackground = CssValueBackground
 
 
 ctorCssPropertyBackground :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBackground pat = (fmap . fmap) CssPropertyBackground (combinatorOneOrMoreUnordered2 initialValueBackground fs pat)
+ctorCssPropertyBackground pat = (fmap . fmap) CssPropertyBackground (combinatorOneOrMoreUnordered initialValueBackground fs pat)
   where
     fs = [fnColor, fnImage, fnPosition, fnRepeatStyle, fnAttachment]
 
-    fnColor :: (CssParser, CssToken) -> CssValueBackground -> Maybe ((CssParser, CssToken), CssValueBackground)
-    fnColor pat' acc       = fmap (\ x -> acc { backgroundColor = x }) <$> ctorValueBackgroundColor pat'
-    fnImage pat' acc       = fmap (\ x -> acc { backgroundImage = x }) <$> ctorValueBackgroundImage pat'
-    fnPosition pat' acc    = fmap (\ x -> acc { backgroundPosition = x }) <$> ctorValueBackgroundPosition pat'
-    fnRepeatStyle pat' acc = fmap (\ x -> acc { backgroundRepeatStyle = x }) <$> ctorValueBackgroundStyle pat'
-    fnAttachment pat' acc  = fmap (\ x -> acc { backgroundAttachment = x }) <$> ctorValueBackgroundAttachment pat'
+    fnColor :: CssValueBackground -> Parser (CssParser, CssToken) CssValueBackground
+    fnColor acc       = Parser $ \ pat' -> fmap (\ x -> acc { backgroundColor = x }) <$> ctorValueBackgroundColor pat'
+    fnImage acc       = Parser $ \ pat' -> fmap (\ x -> acc { backgroundImage = x }) <$> ctorValueBackgroundImage pat'
+    fnPosition acc    = Parser $ \ pat' -> fmap (\ x -> acc { backgroundPosition = x }) <$> ctorValueBackgroundPosition pat'
+    fnRepeatStyle acc = Parser $ \ pat' -> fmap (\ x -> acc { backgroundRepeatStyle = x }) <$> ctorValueBackgroundStyle pat'
+    fnAttachment acc  = Parser $ \ pat' -> fmap (\ x -> acc { backgroundAttachment = x }) <$> ctorValueBackgroundAttachment pat'
 {-
-    fnOrigin pat' acc      = fmap (\ x -> acc { backgroundOrigin = x }) <$> ctorValueBackgroundOrigin pat'
-    fnClip pat' acc        = fmap (\ x -> acc { backgroundClip = x }) <$> ctorValueBackgroundClip pat'
+    fnOrigin acc      = Parser $ \ pat' -> fmap (\ x -> acc { backgroundOrigin = x }) <$> ctorValueBackgroundOrigin pat'
+    fnClip acc        = Parser $ \ pat' -> fmap (\ x -> acc { backgroundClip = x }) <$> ctorValueBackgroundClip pat'
 -}
 
 
@@ -748,7 +752,7 @@ data CssValueBorder = CssValueBorder
 -- Parse "{ border = X Y Z }" CSS declaration. The simple trio of values
 -- should be expanded to full list of non-shortcu properties by style engine.
 ctorCssPropertyBorder :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBorder pat = (fmap . fmap) CssPropertyBorder (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
+ctorCssPropertyBorder pat = (fmap . fmap) CssPropertyBorder (combinatorOneOrMoreUnordered defaultValueBorderTRBL fs pat)
   where
     fs = [ parseBorderWidthValue
          , parseBorderStyleValue
@@ -900,7 +904,7 @@ defaultBorderTRBLColor = cssValueCurrentColor
 
 -- Parser of "border-top" property.
 makeCssPropertyBorderTop :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderTop pat = (fmap . fmap) CssPropertyBorderTop (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
+makeCssPropertyBorderTop pat = (fmap . fmap) CssPropertyBorderTop (combinatorOneOrMoreUnordered defaultValueBorderTRBL fs pat)
   where
     fs = [ parseBorderWidthValue
          , parseBorderStyleValue
@@ -910,19 +914,20 @@ makeCssPropertyBorderTop pat = (fmap . fmap) CssPropertyBorderTop (combinatorOne
 
 
 
-parseBorderWidthValue :: (CssParser, CssToken) -> CssValueBorderTRBL -> Maybe ((CssParser, CssToken), CssValueBorderTRBL)
-parseBorderWidthValue pat acc = fmap (\ x -> acc { borderTRBLWidth = x }) <$> parseTokensAsBorderWidthValue pat
+parseBorderWidthValue :: CssValueBorderTRBL -> Parser (CssParser, CssToken) CssValueBorderTRBL
+parseBorderWidthValue acc = Parser $ \ pat -> fmap (\ x -> acc { borderTRBLWidth = x }) <$> parseTokensAsBorderWidthValue pat
 
 
 
 
-parseBorderStyleValue :: (CssParser, CssToken) -> CssValueBorderTRBL -> Maybe ((CssParser, CssToken), CssValueBorderTRBL)
-parseBorderStyleValue pat acc = fmap (\ x -> acc { borderTRBLStyle = x }) <$> parseTokensAsBorderStyleValue pat
+parseBorderStyleValue :: CssValueBorderTRBL -> Parser (CssParser, CssToken) CssValueBorderTRBL
+parseBorderStyleValue acc = Parser $ \ pat -> fmap (\ x -> acc { borderTRBLStyle = x }) <$> parseTokensAsBorderStyleValue pat
 
 
 
-parseBorderColorValue :: (CssParser, CssToken) -> CssValueBorderTRBL -> Maybe ((CssParser, CssToken), CssValueBorderTRBL)
-parseBorderColorValue pat acc = fmap (\ x -> acc { borderTRBLColor = x }) <$> parseTokensAsBorderColorValue pat
+
+parseBorderColorValue :: CssValueBorderTRBL -> Parser (CssParser, CssToken) CssValueBorderTRBL
+parseBorderColorValue acc = Parser $ \ pat -> fmap (\ x -> acc { borderTRBLColor = x }) <$> parseTokensAsBorderColorValue pat
 
 
 
@@ -939,7 +944,7 @@ parseBorderColorValue pat acc = fmap (\ x -> acc { borderTRBLColor = x }) <$> pa
 
 -- Parser of "border-right" property.
 makeCssPropertyBorderRight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderRight pat = (fmap . fmap) CssPropertyBorderRight (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
+makeCssPropertyBorderRight pat = (fmap . fmap) CssPropertyBorderRight (combinatorOneOrMoreUnordered defaultValueBorderTRBL fs pat)
   where
     fs = [ parseBorderWidthValue
          , parseBorderStyleValue
@@ -961,7 +966,7 @@ makeCssPropertyBorderRight pat = (fmap . fmap) CssPropertyBorderRight (combinato
 
 -- Parser of "border-bottom" property.
 makeCssPropertyBorderBottom :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderBottom pat = (fmap . fmap) CssPropertyBorderBottom (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
+makeCssPropertyBorderBottom pat = (fmap . fmap) CssPropertyBorderBottom (combinatorOneOrMoreUnordered defaultValueBorderTRBL fs pat)
   where
     fs = [ parseBorderWidthValue
          , parseBorderStyleValue
@@ -983,7 +988,7 @@ makeCssPropertyBorderBottom pat = (fmap . fmap) CssPropertyBorderBottom (combina
 
 -- Parser of "border-left" property.
 makeCssPropertyBorderLeft :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderLeft pat = (fmap . fmap) CssPropertyBorderLeft (combinatorOneOrMoreUnordered2 defaultValueBorderTRBL fs pat)
+makeCssPropertyBorderLeft pat = (fmap . fmap) CssPropertyBorderLeft (combinatorOneOrMoreUnordered defaultValueBorderTRBL fs pat)
   where
     fs = [ parseBorderWidthValue
          , parseBorderStyleValue
@@ -1505,14 +1510,35 @@ makeCssPropertyFloat v = CssPropertyFloat v
 
 
 
--- Value of the "font" shortcut property contains non-shortcut font-*
--- properties.
---
--- TODO: use a proper record with font properties as type of CssValueFont.
--- Rewrite parsing of value tokens: parser should put the parsed tokens into
--- the record.
-data CssValueFont = CssValueFont [CssProperty]
-  deriving (Data, Eq, Show)
+data CssValueFont
+  = CssValueFontRecord' CssValueFontRecord
+  | CssValueFontEnum' CssValueFontEnum
+  deriving (Eq, Show, Data)
+
+defaultCssValueFont :: CssValueFont
+defaultCssValueFont = CssValueFontRecord' defaultCssValueFontRecord
+
+
+
+
+-- TODO: we are probably missing line-spacing value here, check the CSS spec.
+data CssValueFontRecord = CssValueFontRecord
+  { fontValueStyle       :: CssValueFontStyle
+  , fontValueVariant     :: CssValueFontVariant
+  , fontValueWeight      :: CssValueFontWeight
+  , fontValueSize        :: CssValueFontSize
+  , fontValueFamily      :: CssValueFontFamily
+  } deriving (Eq, Show, Data)
+
+
+defaultCssValueFontRecord :: CssValueFontRecord
+defaultCssValueFontRecord = CssValueFontRecord
+  { fontValueStyle   = CssValueFontStyleNormal
+  , fontValueVariant = CssValueFontVariantNormal
+  , fontValueWeight  = CssValueFontWeightNormal
+  , fontValueSize    = CssValueFontSizeMedium
+  , fontValueFamily  = CssValueFontFamilyList ["serif"]
+  }
 
 
 
@@ -1543,6 +1569,7 @@ cssValueFontDict = [ ("caption",          CssValueFontCaption)
 
 
 
+{-
 ctorCssPropertyFont :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 ctorCssPropertyFont pat = case makeCssPropertyFont pat of
                             (pat', list@(_:_)) -> Just (pat', CssPropertyFont $ CssValueFont list)
@@ -1565,7 +1592,7 @@ makeCssPropertyFont patArg = case runRecipe patArg of
                                (_, Nothing)     -> (patArg, [])
   where
     -- This recipe is reflecting the grammar (?) from CSS2.2 spec.
-    runRecipe pat = combinatorExactlyOne [ multiplierOnce (combinatorAllInOrder [ multiplierZeroOrOnce (combinatorOneOrMoreUnordered [fontStyle2, fontVariant2, fontWeight2])
+    runRecipe pat = combinatorExactlyOne [ multiplierOnce (combinatorAllInOrder [ multiplierZeroOrOnce (rewrap combinatorOneOrMoreUnordered [fontStyle2, fontVariant2, fontWeight2])
                                                                                 , multiplierOnce fontSize2
                                                                                 -- TODO: there should be a parser for "/" token here (a combination of "/" and height).
                                                                                 , multiplierZeroOrOnce lineHeight2
@@ -1573,26 +1600,104 @@ makeCssPropertyFont patArg = case runRecipe patArg of
                                                                                 ])
                                          , multiplierOnce fontEnum2
                                          ] pat
+-}
+
+
+{-
+:m +Hello.Css.Tokenizer
+:m +Hello.Css.Declaration
+:m +Hello.Utils.Parser
+:m +Hello.Css.ParserHelpers
+:set prompt >
+makeCssPropertyFont ((startTokenizer . defaultParser $ "8px serif"))
+-}
+makeCssPropertyFont :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+makeCssPropertyFont patArg = case runParser parser patArg of
+                               Just (pat', fs) -> Just (pat', CssPropertyFont (fs defaultCssValueFont))
+                               Nothing         -> Nothing
+
+  -- style: italic
+  -- variant: small-caps
+  -- weight: bolder
+  -- font size: 12px
+  -- font family: serif
+
+  where
+    parser = combinatorExactlyOneB [ multiplierOnceB (combinatorAllInOrderB [ multiplierZeroOrOnceB (combinatorOneOrMoreUnorderedB [parserFontStyle, parserFontVariant, parserFontWeight])
+                                                                            , multiplierOnceB parserFontSize
+                                                                              -- TODO: there should be a parser for "/" token here (a combination of "/" and height).
+                                                                            -- , multiplierZeroOrOnceB lineHeight2 TODO: re-enable
+                                                                            , multiplierOnceB parserFontFamily
+                                                                            ])
+                                   , multiplierOnceB parserFontEnum
+                                   ]
 
 
 
-
+{-
 shortcutWrapper :: ((CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)) -> (CssParser, CssToken) -> ((CssParser, CssToken), Maybe [CssProperty])
 shortcutWrapper ctor pat = case ctor pat of
                              Just (pat', prop) -> (pat', Just [prop])
                              Nothing           -> (pat, Nothing)
+-}
+
+
+
+parserFontStyle :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
+parserFontStyle = mkParser (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueStyle = x }) (many parserTokenWhitespace *> parserValueFontStyle)
+
+parserFontVariant :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
+parserFontVariant = mkParser (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueVariant = x }) (many parserTokenWhitespace *> parserValueFontVariant)
+
+parserFontWeight :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
+parserFontWeight = mkParser (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueWeight = x }) (many parserTokenWhitespace *> parserValueFontWeight)
+
+parserFontSize :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
+parserFontSize = mkParser (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueSize = x }) (many parserTokenWhitespace *> parserValueFontSize)
+
+parserFontFamily :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
+parserFontFamily = mkParser (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueFamily = x }) (many parserTokenWhitespace *> parserValueFontFamily)
+
+parserFontEnum :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
+parserFontEnum = mkParser enumFn (many parserTokenWhitespace *> parserValueFontEnum)
+enumFn :: CssValueFontEnum -> CssValueFont -> CssValueFont
+enumFn enum _font = (CssValueFontEnum' enum)
+
+parserValueFontEnum :: Parser (CssParser, CssToken) CssValueFontEnum
+parserValueFontEnum = mkParserEnum cssValueFontDict
+
+
+
+{-
+-- Update given compound value (record, accumulator) by calling a list of
+-- functions. The functions should be closures generated by value parsers.
+-- Each call of the function from the list updates single piece of the
+-- compound value.
+applyFunctions :: acc -> [acc -> acc] -> acc
+applyFunctions value = Prelude.foldr (\ f acc -> f acc) value
+-}
+
+
+
+-- Second arg is a parser that can parse a value of some property (e.g. font-size).
+-- First arg is a function that can update "font-size" field of "font" record with parsed value.
+-- This entire function turns "state to value" parser into "state to update-function" parser.
+mkParser :: (value -> acc -> acc) -> (Parser (CssParser, CssToken) value) -> Parser (CssParser, CssToken) (acc -> acc)
+mkParser updateAccWithValue parser = Parser $ \ pat -> (fmap . fmap) updateAccWithValue (runParser parser pat)
 
 
 
 
-fontStyle2 :: CssPropertyParser
-fontStyle2 pat = shortcutWrapper makeCssPropertyFontStyle pat
+{-
+fontStyle2 :: [CssProperty] -> Parser (CssParser, CssToken) [CssProperty]
+fontStyle2 acc = Parser $ \ pat -> (fmap . fmap) (\ x -> acc ++ [x]) (makeCssPropertyFontStyle pat)
 
-fontVariant2 :: CssPropertyParser
-fontVariant2 pat = shortcutWrapper makeCssPropertyFontVariant pat
+fontVariant2 :: [CssProperty] -> Parser (CssParser, CssToken) [CssProperty]
+fontVariant2 acc = Parser $ \ pat -> (fmap . fmap) (\ x -> acc ++ [x]) (makeCssPropertyFontVariant pat)
 
-fontWeight2 :: CssPropertyParser
-fontWeight2 pat = shortcutWrapper makeCssPropertyFontWeight pat
+fontWeight2 :: [CssProperty] -> Parser (CssParser, CssToken) [CssProperty]
+fontWeight2 acc = Parser $ \ pat -> (fmap . fmap) (\ x -> acc ++ [x]) (makeCssPropertyFontWeight pat)
+
 
 -- TODO: "line-height" is not processed here.
 fontSize2 :: CssPropertyParser
@@ -1608,6 +1713,8 @@ fontEnum2 :: CssPropertyParser
 fontEnum2 pat = case runParser (mkParserEnum cssValueFontDict) pat of
                   Just (pat', _) -> (pat', Just []) -- TODO correctly handle enum values
                   Nothing        -> (pat, Nothing)
+
+-}
 
 
 
@@ -1640,7 +1747,20 @@ makeCssPropertyFontFamily ((startTokenizer . defaultParser $ "\"serif\""))
 makeCssPropertyFontFamily ((startTokenizer . defaultParser $ "serif, \"hello\""))
 -}
 makeCssPropertyFontFamily :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontFamily pat = (fmap . fmap) (CssPropertyFontFamily . CssValueFontFamilyList) (runParser parserStringList pat)
+makeCssPropertyFontFamily pat = (fmap . fmap) CssPropertyFontFamily (runParser parserValueFontFamily pat)
+
+
+
+
+-- FIXME: parserStringList is tricky. It returns emtpy list for failure, but
+-- the empty list may be treated by callers as a sign of success. Therefore
+-- callers must look for empty list as a sign of failure. TODO: check other
+-- places that use parserStringList to see if the other places make this mistake.
+parserValueFontFamily :: Parser (CssParser, CssToken) CssValueFontFamily
+parserValueFontFamily = Parser $ \ pat -> case runParser parserStringList pat of
+                                            Just (_pat', []) -> Nothing
+                                            Just (pat', xs)  -> Just (pat', CssValueFontFamilyList xs)
+                                            Nothing          -> Nothing
   where
     parserStringList = parserSeparatedList value sep
     value = parserTokenIdentValue <|> parserTokenStringValue
@@ -1693,11 +1813,15 @@ cssValueFontSizeDict = [ ("xx-small", CssValueFontSizeXXSmall)
 
 
 makeCssPropertyFontSize :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontSize pat = (fmap . fmap) CssPropertyFontSize (runParser parser pat)
-  where
-    parser = mkParserEnum cssValueFontSizeDict
-             -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of font size?
-             <|> fmap CssValueFontSizeDistance (mkParserLength False)
+makeCssPropertyFontSize pat = (fmap . fmap) CssPropertyFontSize (runParser parserValueFontSize pat)
+
+
+
+
+parserValueFontSize :: Parser (CssParser, CssToken) CssValueFontSize
+parserValueFontSize = mkParserEnum cssValueFontSizeDict
+                      -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of font size?
+                      <|> fmap CssValueFontSizeDistance (mkParserLength False)
 
 
 
@@ -1744,9 +1868,13 @@ cssValueFontStyleDict = [ ("normal",  CssValueFontStyleNormal)
 
 
 makeCssPropertyFontStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontStyle pat = (fmap . fmap) CssPropertyFontStyle (runParser parser pat)
-  where
-    parser = mkParserEnum cssValueFontStyleDict
+makeCssPropertyFontStyle pat = (fmap . fmap) CssPropertyFontStyle (runParser parserValueFontStyle pat)
+
+
+
+
+parserValueFontStyle :: Parser (CssParser, CssToken) CssValueFontStyle
+parserValueFontStyle = mkParserEnum cssValueFontStyleDict
 
 
 
@@ -1775,9 +1903,13 @@ cssValueFontVariantDict = [ ("normal",  CssValueFontVariantNormal)
 
 
 makeCssPropertyFontVariant :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontVariant pat = (fmap . fmap) CssPropertyFontVariant (runParser parser pat)
-  where
-    parser = mkParserEnum cssValueFontVariantDict
+makeCssPropertyFontVariant pat = (fmap . fmap) CssPropertyFontVariant (runParser parserValueFontVariant pat)
+
+
+
+
+parserValueFontVariant :: Parser (CssParser, CssToken) CssValueFontVariant
+parserValueFontVariant = mkParserEnum cssValueFontVariantDict
 
 
 
@@ -1812,10 +1944,14 @@ cssValueFontWeightDict = [ ("normal",  CssValueFontWeightNormal)
 
 
 makeCssPropertyFontWeight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontWeight pat = (fmap . fmap) CssPropertyFontWeight (runParser parser pat)
-  where
-    parser = mkParserEnum cssValueFontWeightDict
-             <|> fmap CssValueFontWeightInt (mkParserRangeInteger (100, 900))
+makeCssPropertyFontWeight pat = (fmap . fmap) CssPropertyFontWeight (runParser parserValueFontWeight pat)
+
+
+
+
+parserValueFontWeight :: Parser (CssParser, CssToken) CssValueFontWeight
+parserValueFontWeight = mkParserEnum cssValueFontWeightDict
+                        <|> fmap CssValueFontWeightInt (mkParserRangeInteger (100, 900))
 
 
 
@@ -1955,14 +2091,14 @@ initialValueListStyle = CssValueListStyle initialValueListStyleType initialValue
 
 -- Parser of "list-style" property.
 ctorCssPropertyListStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyListStyle pat = (fmap . fmap) CssPropertyListStyle (combinatorOneOrMoreUnordered2 initialValueListStyle fs pat)
+ctorCssPropertyListStyle pat = (fmap . fmap) CssPropertyListStyle (combinatorOneOrMoreUnordered initialValueListStyle fs pat)
   where
     fs = [fnType, fnPosition, fnImage]
 
-    fnType :: (CssParser, CssToken) -> CssValueListStyle -> Maybe ((CssParser, CssToken), CssValueListStyle)
-    fnType pat' acc     = fmap (\ x -> acc { listStyleType = x }) <$> ctorValueListStyleType pat'
-    fnPosition pat' acc = fmap (\ x -> acc { listStylePosition = x }) <$> ctorValueListStylePosition pat'
-    fnImage pat' acc    = fmap (\ x -> acc { listStyleImage = x }) <$> ctorValueListStyleImage pat'
+    fnType :: CssValueListStyle -> Parser (CssParser, CssToken) CssValueListStyle
+    fnType acc      = Parser $ \ pat' -> fmap (\ x -> acc { listStyleType = x }) <$> ctorValueListStyleType pat'
+    fnPosition acc  = Parser $ \ pat' -> fmap (\ x -> acc { listStylePosition = x }) <$> ctorValueListStylePosition pat'
+    fnImage acc     = Parser $ \ pat' -> fmap (\ x -> acc { listStyleImage = x }) <$> ctorValueListStyleImage pat'
 
 
 
