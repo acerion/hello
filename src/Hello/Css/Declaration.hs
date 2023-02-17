@@ -236,11 +236,6 @@ import Hello.Utils.Parser
 type PropertyCtor = (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
 
 
--- TODO: this is too similar to PropertyCtor
---type CssPropertyParser = MyParser (CssParser, CssToken) CssProperty
-
-
-
 
 
 -- https://www.w3.org/TR/css-syntax-3/#declaration: "Conceptually,
@@ -1592,13 +1587,13 @@ makeCssPropertyFont patArg = case runParser parser patArg of
   -- font family: serif
 
   where
-    parser = combinatorExactlyOne [ multiplierOnceB (combinatorAllInOrder [ multiplierZeroOrOnceB (combinatorOneOrMoreUnordered [parserFontStyle, parserFontVariant, parserFontWeight])
-                                                                          , multiplierOnceB parserFontSize
-                                                                            -- TODO: there should be a parser for "/" token here (a combination of "/" and height).
-                                                                            -- , multiplierZeroOrOnceB lineHeight2 TODO: re-enable
-                                                                          , multiplierOnceB parserFontFamily
-                                                                          ])
-                                  , multiplierOnceB parserFontEnum
+    parser = combinatorExactlyOne [ multiplierOnce (combinatorAllInOrder [ multiplierZeroOrOnce (combinatorOneOrMoreUnordered [parserFontStyle, parserFontVariant, parserFontWeight])
+                                                                         , multiplierOnce parserFontSize
+                                                                           -- TODO: there should be a parser for "/" token here (a combination of "/" and height).
+                                                                           -- , multiplierZeroOrOnce lineHeight2 TODO: re-enable
+                                                                         , multiplierOnce parserFontFamily
+                                                                         ])
+                                  , multiplierOnce parserFontEnum
                                   ]
 
 

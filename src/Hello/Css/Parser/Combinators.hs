@@ -27,18 +27,19 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 module Hello.Css.Parser.Combinators
   (
-    MyParser
-  , multiplierZeroOrOnce
+    multiplierZeroOrOnce
   , multiplierOnce
 
-  , multiplierZeroOrOnceB
-  , multiplierOnceB
   , combinatorOneOrMoreUnordered
   , combinatorAllInOrder
   , combinatorExactlyOne
+
+  -- These are only for testing combinators/parsers in ghci.
+  {-
   , parserA
   , parserB
   , parserC
+  -}
   )
 where
 
@@ -47,7 +48,7 @@ where
 
 --import Debug.Trace
 
-import qualified Data.Text as T
+--import qualified Data.Text as T
 import Data.List as L
 import Data.Maybe
 
@@ -75,114 +76,7 @@ and exceptions.
 
 
 
--- I think that due to [], this is not a canonical form of parser function.
--- But it works for me now.
-type MyParser p a = p -> (p, Maybe [a])
-
-
-
-
--- Multiplier: run given parser (function) multiple times as long as the
--- parser is able to successfully take a parser-specific expression. See how
--- many times the parser was executed successfully (how many consecutive
--- parser-specific expressions were consumed successfully).
---
--- An universal multiplier function that can be used by more specialized
--- multipliers.
---
--- First two arguments specify count of successful calls of parser, as a
--- range. If given parser function successfully takes N consecutive
--- expressions, and N is between lower and upper (inclusive), then multiplier
--- succeeds.
---
--- If 'upper' is (-1) then (in theory) there is no upper limit on count of
--- successes (count of times the parser will be called to get next matching
--- expression). In practice the count of successful calls will be limited to
--- some hardcoded value to avoid infinite loop on malformed or malicious
--- input.
-multiplier :: Int -> Int -> MyParser p a -> p -> (p, Maybe [a])
-multiplier lower upper function pat | len >= lower && len <= upper = (pat'', Just . L.concat $ result)
-                                    | otherwise                    = (pat, Nothing)
-  where
-    (pat'', result) = callUntilFail function pat [] hardLimit
-    len = L.length result
-
-    -- https://www.w3.org/TR/css-values-3/#component-multipliers spec
-    -- indicates that implementation must support "at least 20 repetitions"
-    -- in case of "X or more" multipliers. Therefore the hardcoded upper
-    -- limit is "20".
-    --
-    -- TODO: write tests for "one or more" multiplier that would show that
-    -- the hard limit is observed by this function.
-    --
-    -- TODO: the function must implement this requirement from the spec: "If
-    -- a property value contains more than the supported number of
-    -- repetitions, the declaration must be ignored as if it were invalid.".
-    hardLimit | upper >= 0 = upper + 1
-              | otherwise  = 20
-
-    -- Call given function (either a parser or a combinator) multiple times.
-    -- When the function fails to take a parser-specific expression, return
-    -- accumulated result of all of the calls that succeeded.
-    callUntilFail :: MyParser p a -> p -> [[a]] -> Int -> (p, [[a]])
-    callUntilFail fun patArg accs limit = case fun patArg of
-                                            (pat', Just acc') | L.length accs > limit -> (pat', accs)
-                                                              | otherwise             -> callUntilFail fun pat' (accs ++ [acc']) limit
-                                            (_, Nothing)                              -> (patArg, accs)
-
-
-
-
--- Multiplier: run given parser (function) multiple times as long as the
--- parser is able to successfully take a parser-specific expression. See how
--- many times the parser was executed successfully (how many consecutive
--- parser-specific expressions were consumed successfully).
---
--- Return 'Just acc' in property accumulator if count of successes is
--- correct: is either zero or one. If count of successes is higher than one,
--- return failure (Nothing).
---
--- https://www.w3.org/TR/css-values-3/#component-multipliers
--- "A question mark (?) indicates that the preceding type, word, or group is
--- optional (occurs zero or one times)."
---
--- Unit tested? Yes.
-multiplierZeroOrOnce :: MyParser p a -> p -> (p, Maybe [a])
-multiplierZeroOrOnce = multiplier lower upper
-  where
-    -- Range of expected successes (inclusive).
-    lower = 0
-    upper = 1
-
-
-
-
--- Multiplier: run given parser (function) multiple times as long as the
--- parser is able to successfully take a parser-specific expression. See how
--- many times the parser was executed successfully (how many consecutive
--- parser-specific expressions were consumed successfully).
---
--- Return 'Just acc' in property accumulator if count of successes (count of
--- successfuly taken expressions) is correct: is exactly one. If count of
--- successes is lower or higher than one, return failure (Nothing).
---
--- This multiplier is not described in CSS spec
--- (https://www.w3.org/TR/css-values-3/#component-multipliers), so maybe
--- after all it's not necessary, but for some reason I thought that it would
--- be convenient to explicitly indicate that some expressions in input CSS
--- should appear exactly once. TODO: check if we really need this multiplier.
---
--- Unit tested? Yes.
-multiplierOnce :: MyParser p a -> p -> (p, Maybe [a])
-multiplierOnce = multiplier lower upper
-  where
-    -- Range of expected successes (inclusive).
-    lower = 1
-    upper = 1
-
-
-
-
+{-
 parserA :: Parser T.Text (String -> String)
 parserA = Parser $ \ text -> case T.uncons text of
                                Just (c, remd) | c == 'a' -> Just (remd, (:) 'a')
@@ -202,6 +96,8 @@ parserC = Parser $ \ text -> case T.uncons text of
                                Just (c, remd) | c == 'c' -> Just (remd, (:) 'c')
                                               | otherwise -> Nothing
                                Nothing -> Nothing
+-}
+
 
 
 
@@ -274,7 +170,20 @@ runAllParsers []               state fs = Just (state, fs)
 
 
 
-
+-- Multiplier: run given parser (function) multiple times as long as the
+-- parser is able to successfully take a parser-specific expression. See how
+-- many times the parser was executed successfully (how many consecutive
+-- parser-specific expressions were consumed successfully).
+--
+-- Return 'Just acc' in property accumulator if count of successes is
+-- correct: is either zero or one. If count of successes is higher than one,
+-- return failure (Nothing).
+--
+-- https://www.w3.org/TR/css-values-3/#component-multipliers
+-- "A question mark (?) indicates that the preceding type, word, or group is
+-- optional (occurs zero or one times)."
+--
+-- Unit tested? Yes.
 {-
 :m +Hello.Utils.Parser
 :m +Data.Maybe
@@ -282,10 +191,10 @@ runAllParsers []               state fs = Just (state, fs)
 :m +Hello.Css.Parser.Combinators
 :set prompt >
 
-(fmap . fmap) (\ f -> f "") (runParser (multiplierZeroOrOnceB (combinatorAllInOrder [parserB, parserA])) "ab")
+(fmap . fmap) (\ f -> f "") (runParser (multiplierZeroOrOnce (combinatorAllInOrder [parserB, parserA])) "ab")
 -}
-multiplierZeroOrOnceB ::  (Show state) => Parser state (a -> a) -> Parser state (a -> a)
-multiplierZeroOrOnceB parser = Parser $ \ pat -> multiplierB lower upper parser pat
+multiplierZeroOrOnce ::  (Show state) => Parser state (a -> a) -> Parser state (a -> a)
+multiplierZeroOrOnce parser = Parser $ \ pat -> multiplier lower upper parser pat
   where
     -- Range of expected successes (inclusive).
     lower = 0
@@ -293,9 +202,24 @@ multiplierZeroOrOnceB parser = Parser $ \ pat -> multiplierB lower upper parser 
 
 
 
-
-multiplierOnceB ::  (Show state) => Parser state (a -> a) -> Parser state (a -> a)
-multiplierOnceB parser = Parser $ \ pat -> multiplierB lower upper parser pat
+-- Multiplier: run given parser (function) multiple times as long as the
+-- parser is able to successfully take a parser-specific expression. See how
+-- many times the parser was executed successfully (how many consecutive
+-- parser-specific expressions were consumed successfully).
+--
+-- Return 'Just acc' in property accumulator if count of successes (count of
+-- successfuly taken expressions) is correct: is exactly one. If count of
+-- successes is lower or higher than one, return failure (Nothing).
+--
+-- This multiplier is not described in CSS spec
+-- (https://www.w3.org/TR/css-values-3/#component-multipliers), so maybe
+-- after all it's not necessary, but for some reason I thought that it would
+-- be convenient to explicitly indicate that some expressions in input CSS
+-- should appear exactly once. TODO: check if we really need this multiplier.
+--
+-- Unit tested? Yes.
+multiplierOnce ::  (Show state) => Parser state (a -> a) -> Parser state (a -> a)
+multiplierOnce parser = Parser $ \ pat -> multiplier lower upper parser pat
   where
     -- Range of expected successes (inclusive).
     lower = 1
@@ -303,13 +227,32 @@ multiplierOnceB parser = Parser $ \ pat -> multiplierB lower upper parser pat
 
 
 
-multiplierB ::  (Show state) => Int -> Int -> Parser state (a -> a) -> state -> Maybe (state, (a -> a))
-multiplierB lower upper parser pat | n >= lower && n <= upper = Just (pat'', fs')
-                                   | otherwise                = Nothing
+
+-- Multiplier: run given parser (function) multiple times as long as the
+-- parser is able to successfully take a parser-specific expression. See how
+-- many times the parser was executed successfully (how many consecutive
+-- parser-specific expressions were consumed successfully).
+--
+-- An universal multiplier function that can be used by more specialized
+-- multipliers.
+--
+-- First two arguments specify count of successful calls of parser, as a
+-- range. If given parser function successfully takes N consecutive
+-- expressions, and N is between lower and upper (inclusive), then multiplier
+-- succeeds.
+--
+-- If 'upper' is (-1) then (in theory) there is no upper limit on count of
+-- successes (count of times the parser will be called to get next matching
+-- expression). In practice the count of successful calls will be limited to
+-- some hardcoded value to avoid infinite loop on malformed or malicious
+-- input.
+multiplier ::  (Show state) => Int -> Int -> Parser state (a -> a) -> state -> Maybe (state, (a -> a))
+multiplier lower upper parser pat | n >= lower && n <= upper = Just (pat'', fs')
+                                  | otherwise                = Nothing
 
   where
     fs = id
-    (pat'', fs', n) = callUntilFailB parser pat fs 0 hardLimit
+    (pat'', fs', n) = callUntilFail parser pat fs 0 hardLimit
 
     -- https://www.w3.org/TR/css-values-3/#component-multipliers spec
     -- indicates that implementation must support "at least 20 repetitions"
@@ -331,10 +274,10 @@ multiplierB lower upper parser pat | n >= lower && n <= upper = Just (pat'', fs'
 -- Call given function (either a parser or a combinator) multiple times.
 -- When the function fails to take a parser-specific expression, return
 -- accumulated result of all of the calls that succeeded.
-callUntilFailB :: (Show state) => Parser state (a -> a) -> state -> (a -> a) -> Int -> Int -> (state, (a -> a), Int)
-callUntilFailB parser pat fs i limit = case runParser parser pat of
-                                         Just (pat', f)  -> callUntilFailB parser pat' (f . fs) (i + 1) limit
-                                         Nothing         -> (pat, fs, i)
+callUntilFail :: (Show state) => Parser state (a -> a) -> state -> (a -> a) -> Int -> Int -> (state, (a -> a), Int)
+callUntilFail parser pat fs i limit = case runParser parser pat of
+                                        Just (pat', f)  -> callUntilFail parser pat' (f . fs) (i + 1) limit
+                                        Nothing         -> (pat, fs, i)
 
 
 

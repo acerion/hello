@@ -16,7 +16,6 @@ may be different than a license for whole "Hello" package.
 module Hello.Tests.Css.Parser.Combinators
   (
     testsCssParserCombinators
-  , takeChar
   )
 where
 
@@ -43,41 +42,15 @@ import Hello.Utils.Parser
 
 
 
--- Simple parser taking input string and trying to match a character.
-type TestParser = MyParser T.Text Char
-type Multiplier =  MyParser T.Text Char  -> T.Text -> (T.Text, Maybe [Char])
+type Multiplier = Parser T.Text (T.Text -> T.Text) -> Parser T.Text (T.Text -> T.Text)
 
-
-
-
--- Parser function to be specialized with specific characters.
-takeChar :: Char -> TestParser
-takeChar char text = case T.uncons text of
-                       Just (c, remd) | c == char -> (remd, Just [c])
-                                      | otherwise -> (text, Nothing)
-                       Nothing                    -> (text, Nothing)
-
-
-
-
--- Finally our parsers that try to take/match specific character from input.
-takeA :: TestParser
-takeA = takeChar 'a'
-
-{-
-takeB :: TestParser
-takeB = takeChar 'b'
-
-takeC :: TestParser
-takeC = takeChar 'c'
--}
 
 
 
 data MultiplierTestData = MultiplierTestData
-  { childItems2       :: TestParser
+  { childItems2       :: Parser T.Text (T.Text -> T.Text)
   , input2            :: T.Text
-  , expectedOutput2   :: (T.Text, Maybe [Char])
+  , expectedOutput2   :: Maybe (T.Text, T.Text)
   }
 
 
@@ -92,7 +65,19 @@ multiplierTestFunction multiplier (x:xs) = if not success
                                            else multiplierTestFunction multiplier xs
   where
     success = output == expectedOutput2 x
-    output = multiplier (childItems2 x) (input2 x)
+
+    multipliedParser :: Parser T.Text (T.Text -> T.Text)
+    multipliedParser = multiplier (childItems2 x)
+
+    -- Running combined parser gives us some Maybe.
+    parsingResult :: Maybe (T.Text, T.Text -> T.Text)
+    parsingResult = runParser multipliedParser (input2 x)
+
+    -- The output from combined parser contains a series of closures. Let's
+    -- execute them to get Maybe (T.Text, T.Text). "" is a null/empty/initial
+    -- element for the closures.
+    output :: Maybe (T.Text, T.Text)
+    output = (fmap . fmap) (flip ($) "") parsingResult
 
 
 
@@ -455,50 +440,50 @@ multiplierZeroOrOnceTestData =
     -- A parser doesn't have matching data in input (will be able to take
     -- zero 'a' tokens), so we have a parser that matches zero times. But
     -- zero matches is ok, and tested multiplier succeeds.
-    MultiplierTestData { childItems2 = takeA,               input2 = "",    expectedOutput2 = ("",    Just []) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "o",   expectedOutput2 = ("o",   Just []) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "oh",  expectedOutput2 = ("oh",  Just []) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "oa",  expectedOutput2 = ("oa",  Just []) }
+    MultiplierTestData { childItems2 = parserCharA,               input2 = "",    expectedOutput2 = Just ("",    "") }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "o",   expectedOutput2 = Just ("o",   "") }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "oh",  expectedOutput2 = Just ("oh",  "") }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "oa",  expectedOutput2 = Just ("oa",  "") }
 
     -- A parser has single matching data in input (will be able to
     -- successfully take just one 'a' token), so we have a parser that
     -- matches once. One match is enough to have multiplier that returns
     -- success.
-  , MultiplierTestData { childItems2 = takeA,               input2 = "a",   expectedOutput2 = ("",    Just ['a']) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "ab",  expectedOutput2 = ("b",   Just ['a']) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "abc", expectedOutput2 = ("bc",  Just ['a']) }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "a",   expectedOutput2 = Just ("",    "a") }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "ab",  expectedOutput2 = Just ("b",   "a") }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "abc", expectedOutput2 = Just ("bc",  "a") }
 
     -- A set of parsers (a combinator) succeeds zero times, but this is
     -- enough for tested multiplier to return success.
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "",    expectedOutput2 = ("",       Just []) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "a",   expectedOutput2 = ("a",      Just []) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "ab",  expectedOutput2 = ("ab",     Just []) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "acb", expectedOutput2 = ("acb",    Just []) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "xyz", expectedOutput2 = ("xyz",    Just []) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "",    expectedOutput2 = Just ("",       "") }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "a",   expectedOutput2 = Just ("a",      "") }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "ab",  expectedOutput2 = Just ("ab",     "") }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "acb", expectedOutput2 = Just ("acb",    "") }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "xyz", expectedOutput2 = Just ("xyz",    "") }
 
     -- A set of parsers (a combinator) is successfully applied once (only
     -- one/first application of the set was successful). This means that
     -- multiplier succeeded in applying the set of parsers once. This means
     -- that multiplier can return success.
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abc",   expectedOutput2 = ("",     Just ['a', 'b', 'c']) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcd",  expectedOutput2 = ("d",    Just ['a', 'b', 'c']) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcab", expectedOutput2 = ("ab",   Just ['a', 'b', 'c']) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcxy", expectedOutput2 = ("xy",   Just ['a', 'b', 'c']) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abc",   expectedOutput2 = Just ("",     "abc") }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abcd",  expectedOutput2 = Just ("d",    "abc") }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abcab", expectedOutput2 = Just ("ab",   "abc") }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abcxy", expectedOutput2 = Just ("xy",   "abc") }
 
     -- A set of parsers (a combinator) is successfully applied once (only
     -- one/first application of the set was successful). This means that
     -- multiplier succeeded in applying the set of parsers once. This means
     -- that multiplier can return success.
-  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "eXY",   expectedOutput2 = ("XY",   Just ['e']) }
-  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efXY",  expectedOutput2 = ("XY",   Just ['e', 'f']) }
-  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efgXY", expectedOutput2 = ("XY",   Just ['e', 'f', 'g']) }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [parserCharA, parserCharB, parserCharC],   input2 = "aXY",   expectedOutput2 = Just ("XY",   "a") }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [parserCharA, parserCharB, parserCharC],   input2 = "abXY",  expectedOutput2 = Just ("XY",   "ab") }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [parserCharA, parserCharB, parserCharC],   input2 = "abcXY", expectedOutput2 = Just ("XY",   "abc") }
 
 
     -- A set of parsers (a combinator) is successfully applied zero times
     -- (zero applications of the set was successful). This means that
     -- multiplier succeeded in applying the set of parsers zero times. This
     -- means that this particular multiplier can return success.
-  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "XYZ",   expectedOutput2 = ("XYZ",   Just []) }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [parserCharA, parserCharB, parserCharC],   input2 = "XYZ",   expectedOutput2 = Just ("XYZ",   "") }
 
 
 
@@ -510,22 +495,22 @@ multiplierZeroOrOnceTestData =
     -- able to take two or more 'a' tokens). Two or more matches of a parser
     -- is too much for the tested multiplier, and the tested multiplier must
     -- return failure.
-  , MultiplierTestData { childItems2 = takeA,               input2 = "aa",   expectedOutput2 = ("aa",  Nothing) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "aaa",  expectedOutput2 = ("aaa", Nothing) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "aab",  expectedOutput2 = ("aab", Nothing) }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "aa",   expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "aaa",  expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "aab",  expectedOutput2 = Nothing }
 
     -- A set of parsers (a combinator) succeeds two times, but this is too
     -- much for tested multiplier.
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabc",   expectedOutput2 = ("abcabc",   Nothing) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabcd",  expectedOutput2 = ("abcabcd",  Nothing) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abcabc",   expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abcabcd",  expectedOutput2 = Nothing }
 
     -- A set of parsers (a combinator) is successfully applied twice (two
     -- applications of the set were successful). This means that multiplier
     -- failed in applying the set of parsers just once. This means that
     -- multiplier cannot return success.
-  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "eeWZ",     expectedOutput2 = ("eeWZ",     Nothing) }
-  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efefWZ",   expectedOutput2 = ("efefWZ",   Nothing) }
-  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efgefgWZ", expectedOutput2 = ("efgefgWZ", Nothing) }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [parserCharA, parserCharB, parserCharC],   input2 = "aaWZ",     expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [parserCharA, parserCharB, parserCharC],   input2 = "abafWZ",   expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [parserCharA, parserCharB, parserCharC],   input2 = "abcabcWZ", expectedOutput2 = Nothing }
   ]
 
 
@@ -546,18 +531,18 @@ multiplierOnceTestData =
     -- successfully take just one 'a' token), so we have a parser that
     -- matches once. One match is just what is needed to have multiplier that
     -- returns success.
-    MultiplierTestData { childItems2 = takeA,               input2 = "a",   expectedOutput2 = ("",    Just ['a']) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "ab",  expectedOutput2 = ("b",   Just ['a']) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "abc", expectedOutput2 = ("bc",  Just ['a']) }
+    MultiplierTestData { childItems2 = parserCharA,               input2 = "a",   expectedOutput2 = Just ("",    "a") }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "ab",  expectedOutput2 = Just ("b",   "a") }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "abc", expectedOutput2 = Just ("bc",  "a") }
 
     -- A set of parsers (a combinator) is successfully applied once (only
     -- one/first application of the set was successful). This means that
     -- multiplier succeeded in applying the set of parsers once. This means
     -- that multiplier can return success.
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abc",   expectedOutput2 = ("",     Just ['a', 'b', 'c']) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcd",  expectedOutput2 = ("d",    Just ['a', 'b', 'c']) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcab", expectedOutput2 = ("ab",   Just ['a', 'b', 'c']) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcxy", expectedOutput2 = ("xy",   Just ['a', 'b', 'c']) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abc",   expectedOutput2 = Just ("",     "abc") }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abcd",  expectedOutput2 = Just ("d",    "abc") }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abcab", expectedOutput2 = Just ("ab",   "abc") }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abcxy", expectedOutput2 = Just ("xy",   "abc") }
 
 
 
@@ -567,36 +552,36 @@ multiplierOnceTestData =
     -- A parser doesn't have matching data in input (will be able to take
     -- zero 'a' tokens), so we have a parser that matches zero times. Zero
     -- matches is too little for this multiplier to succeed.
-  , MultiplierTestData { childItems2 = takeA,               input2 = "",    expectedOutput2 = ("",    Nothing) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "o",   expectedOutput2 = ("o",   Nothing) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "oh",  expectedOutput2 = ("oh",  Nothing) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "oa",  expectedOutput2 = ("oa",  Nothing) }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "",    expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "o",   expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "oh",  expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "oa",  expectedOutput2 = Nothing }
 
     -- A set of parsers (a combinator) succeeds zero times. Zero matches is
     -- too little for this multiplier to succeed.
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "",    expectedOutput2 = ("",       Nothing) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "a",   expectedOutput2 = ("a",      Nothing) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "ab",  expectedOutput2 = ("ab",     Nothing) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "acb", expectedOutput2 = ("acb",    Nothing) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "xyz", expectedOutput2 = ("xyz",    Nothing) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "",    expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "a",   expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "ab",  expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "acb", expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "xyz", expectedOutput2 = Nothing }
 
     -- A parser has two or more matching pieces of data in input (will be
     -- able to take two or more 'a' tokens). Two or more matches of a parser
     -- is too much for the tested multiplier, and the tested multiplier must
     -- return failure.
-  , MultiplierTestData { childItems2 = takeA,               input2 = "aa",   expectedOutput2 = ("aa",  Nothing) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "aaa",  expectedOutput2 = ("aaa", Nothing) }
-  , MultiplierTestData { childItems2 = takeA,               input2 = "aab",  expectedOutput2 = ("aab", Nothing) }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "aa",   expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "aaa",  expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = parserCharA,               input2 = "aab",  expectedOutput2 = Nothing }
 
     -- A set of parsers (a combinator) succeeds two times, but this is too
     -- much for tested multiplier.
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabc",   expectedOutput2 = ("abcabc",   Nothing) }
-  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabcd",  expectedOutput2 = ("abcabcd",  Nothing) }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abcabc",   expectedOutput2 = Nothing }
+  , MultiplierTestData { childItems2 = combinatorAllInOrder [parserCharA, parserCharB, parserCharC],   input2 = "abcabcd",  expectedOutput2 = Nothing }
 
     -- A set of parsers (a combinator) is successfully applied zero times
     -- (none of applications of the set were successful). This means that the
     -- multipier didn't succeed once and so it cannot return success.
-  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "XYZ",   expectedOutput2 = ("XYZ",   Nothing) }
+  , MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [parserCharA, parserCharB, parserCharC],   input2 = "XYZ",   expectedOutput2 = Nothing }
   ]
 
 
