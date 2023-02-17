@@ -435,22 +435,24 @@ initialValueBackground = CssValueBackground
 
 
 
-
-
 ctorCssPropertyBackground :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBackground pat = (fmap . fmap) CssPropertyBackground (combinatorOneOrMoreUnordered initialValueBackground fs pat)
+ctorCssPropertyBackground pat = (fmap . fmap) CssPropertyBackground (propertyValue pat)
   where
-    fs = [fnColor, fnImage, fnPosition, fnRepeatStyle, fnAttachment]
+    -- Run the combined parsers, get closures ("fs") returned by the parsers,
+    -- and run the closures on initial value of property.
+    propertyValue pat' = (fmap . fmap) (\ fs -> fs initialValueBackground) (runParser (combinatorOneOrMoreUnordered parsers) pat')
+    parsers = [ parserBgColor, parserBgImage, parserBgPosition, parserBgRepeatStyle, parserBgAttachment ]
 
-    fnColor :: CssValueBackground -> Parser (CssParser, CssToken) CssValueBackground
-    fnColor acc       = Parser $ \ pat' -> fmap (\ x -> acc { backgroundColor = x }) <$> ctorValueBackgroundColor pat'
-    fnImage acc       = Parser $ \ pat' -> fmap (\ x -> acc { backgroundImage = x }) <$> ctorValueBackgroundImage pat'
-    fnPosition acc    = Parser $ \ pat' -> fmap (\ x -> acc { backgroundPosition = x }) <$> ctorValueBackgroundPosition pat'
-    fnRepeatStyle acc = Parser $ \ pat' -> fmap (\ x -> acc { backgroundRepeatStyle = x }) <$> ctorValueBackgroundStyle pat'
-    fnAttachment acc  = Parser $ \ pat' -> fmap (\ x -> acc { backgroundAttachment = x }) <$> ctorValueBackgroundAttachment pat'
+    -- TODO: sooner or later we will need to add here "many parserTokenWhitespace *>" in front of "parserValueBackground*".
+    parserBgColor :: Parser (CssParser, CssToken) (CssValueBackground -> CssValueBackground)
+    parserBgColor       = mkParser (\ value acc -> acc { backgroundColor = value }) parserValueBackgroundColor
+    parserBgImage       = mkParser (\ value acc -> acc { backgroundImage = value }) parserValueBackgroundImage
+    parserBgPosition    = mkParser (\ value acc -> acc { backgroundPosition = value }) parserValueBackgroundPosition
+    parserBgRepeatStyle = mkParser (\ value acc -> acc { backgroundRepeatStyle = value }) parserValueBackgroundStyle
+    parserBgAttachment  = mkParser (\ value acc -> acc { backgroundAttachment = value }) parserValueBackgroundAttachment
 {-
-    fnOrigin acc      = Parser $ \ pat' -> fmap (\ x -> acc { backgroundOrigin = x }) <$> ctorValueBackgroundOrigin pat'
-    fnClip acc        = Parser $ \ pat' -> fmap (\ x -> acc { backgroundClip = x }) <$> ctorValueBackgroundClip pat'
+    parserBgOrigin      = mkParser (\ value acc -> acc { backgroundOrigin = value }) <$> parserValueBackgroundOrigin pat'
+    parserBgClip        = mkParser (\ value acc -> acc { backgroundClip = value }) <$> ctorValueBackgroundClip pat'
 -}
 
 
@@ -484,19 +486,13 @@ cssValueBackgroundAttachmentDict = [ ("scroll",  CssValueBackgroundAttachmentScr
 
 
 makeCssPropertyBackgroundAttachment :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundAttachment pat = (fmap . fmap) CssPropertyBackgroundAttachment (ctorValueBackgroundAttachment pat)
+makeCssPropertyBackgroundAttachment pat = (fmap . fmap) CssPropertyBackgroundAttachment (runParser parserValueBackgroundAttachment pat)
 
 
 
 
 parserValueBackgroundAttachment :: Parser (CssParser, CssToken) CssValueBackgroundAttachment
 parserValueBackgroundAttachment = mkParserEnum cssValueBackgroundAttachmentDict
-
-
-
-
-ctorValueBackgroundAttachment :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBackgroundAttachment)
-ctorValueBackgroundAttachment pat = runParser parserValueBackgroundAttachment pat
 
 
 
@@ -523,8 +519,8 @@ _initialValueBackgroundClip = CssValueBackgroundClipBorderBox
 
 
 -- TODO: implement
-_ctorValueBackgroundClip :: (CssParser, CssToken) -> Maybe (CssParser, CssToken)
-_ctorValueBackgroundClip _pat = Nothing
+_parserValueBackgroundClip :: Parser (CssParser, CssToken) CssValueBackgroundClip
+_parserValueBackgroundClip = Parser $ \ _ -> Nothing
 
 
 
@@ -558,20 +554,14 @@ cssValueBackgroundColorDict = [ ("inherit",    CssValueBackgroundColorInherit)
 
 
 makeCssPropertyBackgroundColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundColor pat = (fmap . fmap) CssPropertyBackgroundColor (ctorValueBackgroundColor pat)
+makeCssPropertyBackgroundColor pat = (fmap . fmap) CssPropertyBackgroundColor (runParser parserValueBackgroundColor pat)
 
 
 
 
-paserValueBackgroundColor :: Parser (CssParser, CssToken) CssValueBackgroundColor
-paserValueBackgroundColor = mkParserEnum cssValueBackgroundColorDict
-                            <|> fmap CssValueBackgroundColorColor parserColor
-
-
-
-
-ctorValueBackgroundColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBackgroundColor)
-ctorValueBackgroundColor pat = runParser paserValueBackgroundColor pat
+parserValueBackgroundColor :: Parser (CssParser, CssToken) CssValueBackgroundColor
+parserValueBackgroundColor = mkParserEnum cssValueBackgroundColorDict
+                             <|> fmap CssValueBackgroundColorColor parserColor
 
 
 
@@ -596,19 +586,13 @@ initialValueBackgroundImage = CssValueBackgroundImageUri ""
 
 
 makeCssPropertyBackgroundImage :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundImage pat = (fmap . fmap) CssPropertyBackgroundImage (ctorValueBackgroundImage pat)
+makeCssPropertyBackgroundImage pat = (fmap . fmap) CssPropertyBackgroundImage (runParser parserValueBackgroundImage pat)
 
 
 
 
 parserValueBackgroundImage :: Parser (CssParser, CssToken) CssValueBackgroundImage
 parserValueBackgroundImage = Parser $ interpretTokensAsURI CssValueBackgroundImageUri
-
-
-
-
-ctorValueBackgroundImage :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBackgroundImage)
-ctorValueBackgroundImage pat = runParser parserValueBackgroundImage pat
 
 
 
@@ -636,8 +620,8 @@ _initialValueBackgroundOrigin = CssValueBackgroundOriginPaddingBox
 
 
 -- TODO: implement
-_ctorValueBackgroundOrigin ::  (CssParser, CssToken) -> Maybe (CssParser, CssToken)
-_ctorValueBackgroundOrigin _pat = Nothing
+_parserValueBackgroundOrigin :: Parser (CssParser, CssToken) CssValueBackgroundOrigin
+_parserValueBackgroundOrigin = Parser $ \ _ -> Nothing
 
 
 
@@ -662,19 +646,13 @@ initialValueBackgroundPosition = CssValueBackgroundPositionXY 0 0
 
 
 makeCssPropertyBackgroundPosition :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundPosition pat = (fmap . fmap) CssPropertyBackgroundPosition (ctorValueBackgroundPosition pat)
+makeCssPropertyBackgroundPosition pat = (fmap . fmap) CssPropertyBackgroundPosition (runParser parserValueBackgroundPosition pat)
 
 
 
 
 parserValueBackgroundPosition :: Parser (CssParser, CssToken) CssValueBackgroundPosition
 parserValueBackgroundPosition = Parser $ interpretTokensAsBgPosition CssValueBackgroundPositionXY
-
-
-
-
-ctorValueBackgroundPosition :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBackgroundPosition)
-ctorValueBackgroundPosition pat = runParser parserValueBackgroundPosition pat
 
 
 
@@ -712,19 +690,13 @@ cssValueBackgroundRepeatDict = [ ("repeat",     CssValueBackgroundRepeatRepeat)
 
 
 makeCssPropertyBackgroundRepeat :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundRepeat pat = (fmap . fmap) CssPropertyBackgroundRepeat (ctorValueBackgroundStyle pat)
+makeCssPropertyBackgroundRepeat pat = (fmap . fmap) CssPropertyBackgroundRepeat (runParser parserValueBackgroundStyle pat)
 
 
 
 
 parserValueBackgroundStyle :: Parser (CssParser, CssToken) CssValueBackgroundRepeat
 parserValueBackgroundStyle = mkParserEnum cssValueBackgroundRepeatDict
-
-
-
-
-ctorValueBackgroundStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBackgroundRepeat)
-ctorValueBackgroundStyle pat = runParser parserValueBackgroundStyle pat
 
 
 
@@ -752,12 +724,12 @@ data CssValueBorder = CssValueBorder
 -- Parse "{ border = X Y Z }" CSS declaration. The simple trio of values
 -- should be expanded to full list of non-shortcu properties by style engine.
 ctorCssPropertyBorder :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBorder pat = (fmap . fmap) CssPropertyBorder (combinatorOneOrMoreUnordered defaultValueBorderTRBL fs pat)
+ctorCssPropertyBorder pat = (fmap . fmap) CssPropertyBorder (propertyValue pat)
   where
-    fs = [ parseBorderWidthValue
-         , parseBorderStyleValue
-         , parseBorderColorValue
-         ]
+    -- Run the combined parsers, get closures ("fs") returned by the parsers,
+    -- and run the closures on initial value of property.
+    propertyValue pat' = (fmap . fmap) (\ fs -> fs defaultValueBorderTRBL) (runParser (combinatorOneOrMoreUnordered parsers) pat')
+    parsers = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
 
 
 
@@ -904,30 +876,30 @@ defaultBorderTRBLColor = cssValueCurrentColor
 
 -- Parser of "border-top" property.
 makeCssPropertyBorderTop :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderTop pat = (fmap . fmap) CssPropertyBorderTop (combinatorOneOrMoreUnordered defaultValueBorderTRBL fs pat)
+makeCssPropertyBorderTop pat = (fmap . fmap) CssPropertyBorderTop (propertyValue pat)
   where
-    fs = [ parseBorderWidthValue
-         , parseBorderStyleValue
-         , parseBorderColorValue
-         ]
+    -- Run the combined parsers, get closures ("fs") returned by the parsers,
+    -- and run the closures on initial value of property.
+    propertyValue pat' = (fmap . fmap) (\ fs -> fs defaultValueBorderTRBL) (runParser (combinatorOneOrMoreUnordered parsers) pat')
+    parsers = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
 
 
 
 
-parseBorderWidthValue :: CssValueBorderTRBL -> Parser (CssParser, CssToken) CssValueBorderTRBL
-parseBorderWidthValue acc = Parser $ \ pat -> fmap (\ x -> acc { borderTRBLWidth = x }) <$> parseTokensAsBorderWidthValue pat
+parserBorderWidthValue :: Parser (CssParser, CssToken) (CssValueBorderTRBL -> CssValueBorderTRBL)
+parserBorderWidthValue = mkParser (\ value acc -> acc { borderTRBLWidth = value }) parserValueBorderWidth
 
 
 
 
-parseBorderStyleValue :: CssValueBorderTRBL -> Parser (CssParser, CssToken) CssValueBorderTRBL
-parseBorderStyleValue acc = Parser $ \ pat -> fmap (\ x -> acc { borderTRBLStyle = x }) <$> parseTokensAsBorderStyleValue pat
+parserBorderStyleValue :: Parser (CssParser, CssToken) (CssValueBorderTRBL -> CssValueBorderTRBL)
+parserBorderStyleValue = mkParser (\ value acc -> acc { borderTRBLStyle = value }) parserValueBorderStyle
 
 
 
 
-parseBorderColorValue :: CssValueBorderTRBL -> Parser (CssParser, CssToken) CssValueBorderTRBL
-parseBorderColorValue acc = Parser $ \ pat -> fmap (\ x -> acc { borderTRBLColor = x }) <$> parseTokensAsBorderColorValue pat
+parserBorderColorValue :: Parser (CssParser, CssToken) (CssValueBorderTRBL -> CssValueBorderTRBL)
+parserBorderColorValue = mkParser (\ value acc -> acc { borderTRBLColor = value }) parserValueBorderColor
 
 
 
@@ -944,12 +916,12 @@ parseBorderColorValue acc = Parser $ \ pat -> fmap (\ x -> acc { borderTRBLColor
 
 -- Parser of "border-right" property.
 makeCssPropertyBorderRight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderRight pat = (fmap . fmap) CssPropertyBorderRight (combinatorOneOrMoreUnordered defaultValueBorderTRBL fs pat)
+makeCssPropertyBorderRight pat = (fmap . fmap) CssPropertyBorderRight (propertyValue pat)
   where
-    fs = [ parseBorderWidthValue
-         , parseBorderStyleValue
-         , parseBorderColorValue
-         ]
+    -- Run the combined parsers, get closures ("fs") returned by the parsers,
+    -- and run the closures on initial value of property.
+    propertyValue pat' = (fmap . fmap) (\ fs -> fs defaultValueBorderTRBL) (runParser (combinatorOneOrMoreUnordered parsers) pat')
+    parsers = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
 
 
 
@@ -966,12 +938,12 @@ makeCssPropertyBorderRight pat = (fmap . fmap) CssPropertyBorderRight (combinato
 
 -- Parser of "border-bottom" property.
 makeCssPropertyBorderBottom :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderBottom pat = (fmap . fmap) CssPropertyBorderBottom (combinatorOneOrMoreUnordered defaultValueBorderTRBL fs pat)
+makeCssPropertyBorderBottom pat = (fmap . fmap) CssPropertyBorderBottom (propertyValue pat)
   where
-    fs = [ parseBorderWidthValue
-         , parseBorderStyleValue
-         , parseBorderColorValue
-         ]
+    -- Run the combined parsers, get closures ("fs") returned by the parsers,
+    -- and run the closures on initial value of property.
+    propertyValue pat' = (fmap . fmap) (\ fs -> fs defaultValueBorderTRBL) (runParser (combinatorOneOrMoreUnordered parsers) pat')
+    parsers = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
 
 
 
@@ -988,12 +960,12 @@ makeCssPropertyBorderBottom pat = (fmap . fmap) CssPropertyBorderBottom (combina
 
 -- Parser of "border-left" property.
 makeCssPropertyBorderLeft :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderLeft pat = (fmap . fmap) CssPropertyBorderLeft (combinatorOneOrMoreUnordered defaultValueBorderTRBL fs pat)
+makeCssPropertyBorderLeft pat = (fmap . fmap) CssPropertyBorderLeft (propertyValue pat)
   where
-    fs = [ parseBorderWidthValue
-         , parseBorderStyleValue
-         , parseBorderColorValue
-         ]
+    -- Run the combined parsers, get closures ("fs") returned by the parsers,
+    -- and run the closures on initial value of property.
+    propertyValue pat' = (fmap . fmap) (\ fs -> fs defaultValueBorderTRBL) (runParser (combinatorOneOrMoreUnordered parsers) pat')
+    parsers = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
 
 
 
@@ -1620,7 +1592,7 @@ makeCssPropertyFont patArg = case runParser parser patArg of
   -- font family: serif
 
   where
-    parser = combinatorExactlyOne [ multiplierOnceB (combinatorAllInOrder [ multiplierZeroOrOnceB (combinatorOneOrMoreUnorderedB [parserFontStyle, parserFontVariant, parserFontWeight])
+    parser = combinatorExactlyOne [ multiplierOnceB (combinatorAllInOrder [ multiplierZeroOrOnceB (combinatorOneOrMoreUnordered [parserFontStyle, parserFontVariant, parserFontWeight])
                                                                           , multiplierOnceB parserFontSize
                                                                             -- TODO: there should be a parser for "/" token here (a combination of "/" and height).
                                                                             -- , multiplierZeroOrOnceB lineHeight2 TODO: re-enable
@@ -2088,14 +2060,17 @@ initialValueListStyle = CssValueListStyle initialValueListStyleType initialValue
 
 -- Parser of "list-style" property.
 ctorCssPropertyListStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyListStyle pat = (fmap . fmap) CssPropertyListStyle (combinatorOneOrMoreUnordered initialValueListStyle fs pat)
+ctorCssPropertyListStyle pat = (fmap . fmap) CssPropertyListStyle (propertyValue pat)
   where
-    fs = [fnType, fnPosition, fnImage]
+    -- Run the combined parsers, get closures ("fs") returned by the parsers,
+    -- and run the closures on initial value of property.
+    propertyValue pat' = (fmap . fmap) (\ fs -> fs initialValueListStyle) (runParser (combinatorOneOrMoreUnordered parsers) pat')
+    parsers = [ parserType, parserPosition, parserImage ]
 
-    fnType :: CssValueListStyle -> Parser (CssParser, CssToken) CssValueListStyle
-    fnType acc      = Parser $ \ pat' -> fmap (\ x -> acc { listStyleType = x }) <$> ctorValueListStyleType pat'
-    fnPosition acc  = Parser $ \ pat' -> fmap (\ x -> acc { listStylePosition = x }) <$> ctorValueListStylePosition pat'
-    fnImage acc     = Parser $ \ pat' -> fmap (\ x -> acc { listStyleImage = x }) <$> ctorValueListStyleImage pat'
+    parserType :: Parser (CssParser, CssToken) (CssValueListStyle -> CssValueListStyle)
+    parserType     = mkParser (\ value acc -> acc { listStyleType = value } ) parserValueListStyleType
+    parserPosition = mkParser (\ value acc -> acc { listStylePosition = value } ) parserValueListStylePosition
+    parserImage    = mkParser (\ value acc -> acc { listStyleImage = value } ) parserValueListStyleImage
 
 
 
@@ -2254,13 +2229,7 @@ cssValueListStyleTypeDict = [ ("disc",                 CssValueListStyleTypeDisc
 
 
 ctorCssPropertyListStyleType :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyListStyleType pat = (fmap . fmap) CssPropertyListStyleType (ctorValueListStyleType pat)
-
-
-
-
-ctorValueListStyleType :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueListStyleType)
-ctorValueListStyleType pat = runParser parserValueListStyleType pat
+ctorCssPropertyListStyleType pat = (fmap . fmap) CssPropertyListStyleType (runParser parserValueListStyleType pat)
 
 
 

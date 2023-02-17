@@ -64,50 +64,13 @@ takeChar char text = case T.uncons text of
 takeA :: TestParser
 takeA = takeChar 'a'
 
+{-
 takeB :: TestParser
 takeB = takeChar 'b'
 
 takeC :: TestParser
 takeC = takeChar 'c'
-
-
-
-
-mkParserCharA :: AccA -> Char -> Parser StateA AccA
-mkParserCharA acc char = Parser $ \ txt -> case T.uncons txt of
-                                             Just (c, remd) | c == char -> Just (remd, acc ++ [c])
-                                                            | otherwise -> Nothing
-                                             Nothing -> Nothing
-
-
-
-
-takeE :: AccA -> Parser T.Text AccA
-takeE acc = mkParserCharA acc 'e'
-
-takeF :: AccA -> Parser T.Text AccA
-takeF acc = mkParserCharA acc 'f'
-
-takeG :: AccA -> Parser T.Text AccA
-takeG acc = mkParserCharA acc 'g'
-
-
-
-
-type OutputA = Maybe (StateA, AccA)
-type StateA = T.Text
-type AccA = [Char]
-type CombinatorA   = AccA -> [AccA -> Parser StateA AccA] -> StateA -> OutputA
-type TestedParserA = AccA -> Parser StateA AccA
-
-
-data CombinatorTestDataA = CombinatorTestDataA
-  { inputAccA         :: AccA
-  , parsersA          :: [TestedParserA]
-  , inputStateA       :: StateA
-  , expectedOutputA   :: OutputA
-  }
-
+-}
 
 
 
@@ -122,28 +85,6 @@ data MultiplierTestData = MultiplierTestData
 
 -- On success return empty string. On failure return string showing
 -- approximately where the problem is.
-combinatorTestFunctionA :: CombinatorA -> [CombinatorTestDataA] -> T.Text
-combinatorTestFunctionA _          []     = ""
-combinatorTestFunctionA combinator (x:xs) = if not success
-                                           then T.pack ("Got: " ++ show output ++ ", Expected: " ++ (show expectedOut) ++ "; input = " ++ (show inputState))
-                                           else combinatorTestFunctionA combinator xs
-  where
-    success = output == expectedOut
-
-    inputAcc     = inputAccA x
-    inputParsers = parsersA x
-    inputState   = inputStateA x
-    expectedOut  = expectedOutputA x
-
-    output :: Maybe (T.Text, [Char])
-    output = combinator inputAcc inputParsers inputState
-
-
-
-
-
--- On success return empty string. On failure return string showing
--- approximately where the problem is.
 multiplierTestFunction :: Multiplier -> [MultiplierTestData] -> T.Text
 multiplierTestFunction _ []       = ""
 multiplierTestFunction multiplier (x:xs) = if not success
@@ -152,6 +93,84 @@ multiplierTestFunction multiplier (x:xs) = if not success
   where
     success = output == expectedOutput2 x
     output = multiplier (childItems2 x) (input2 x)
+
+
+
+
+type FnParser = Parser T.Text (T.Text -> T.Text)
+
+
+
+
+-- Make a parser that returns a closure with a parsed value.
+mkParserChar :: Char -> Parser T.Text (T.Text -> T.Text)
+mkParserChar char = Parser $ \ txt -> case T.uncons txt of
+                                        Just (c, remd) | c == char -> Just (remd, flip T.snoc c)
+                                                       | otherwise -> Nothing
+                                        Nothing -> Nothing
+
+
+
+
+parserCharA :: Parser T.Text (T.Text -> T.Text)
+parserCharA = mkParserChar 'a'
+
+
+
+
+parserCharB :: Parser T.Text (T.Text -> T.Text)
+parserCharB = mkParserChar 'b'
+
+
+
+parserCharC :: Parser T.Text (T.Text -> T.Text)
+parserCharC = mkParserChar 'c'
+
+
+
+
+-- Parser matching any char.
+parserCharAny :: Parser T.Text (T.Text -> T.Text)
+parserCharAny = Parser $ \ txt -> case T.uncons txt of
+                                    Just (_, remd) -> Just (remd, id)
+                                    Nothing        -> Nothing
+
+
+
+
+data CombinatorTestDataFn = CombinatorTestDataFn
+  { parsersFn          :: [Parser T.Text (T.Text -> T.Text)]
+  , inputStateFn       :: T.Text
+  , expectedOutputFn   :: Maybe (T.Text, T.Text) -- Remainder + Parsed value
+  }
+
+
+
+
+-- On success return empty string. On failure return string showing
+-- approximately where the problem is.
+combinatorTestFunctionFn :: ([FnParser] -> FnParser) -> [CombinatorTestDataFn] -> T.Text
+combinatorTestFunctionFn _          []     = ""
+
+combinatorTestFunctionFn combinator (x:xs) = if not success
+                                             then T.pack ("Got: " ++ show output ++ ", Expected: " ++ (show . expectedOutputFn $ x) ++ "; input = " ++ (show . inputStateFn $ x))
+                                             else combinatorTestFunctionFn combinator xs
+  where
+    success = output == expectedOutputFn x
+
+    -- Parser combinator produces a parser.
+    combinedParsers :: Parser T.Text (T.Text -> T.Text)
+    combinedParsers = combinator (parsersFn x)
+
+    -- Running combined parser gives us some Maybe.
+    parsingResult :: Maybe (T.Text, T.Text -> T.Text)
+    parsingResult = runParser combinedParsers (inputStateFn x)
+
+    -- The output from combined parser contains a series of closures. Let's
+    -- execute them to get Maybe (T.Text, T.Text). "" is a null/empty/initial
+    -- element for the closures.
+    output :: Maybe (T.Text, T.Text)
+    output = (fmap . fmap) (flip ($) "") parsingResult
 
 
 
@@ -426,98 +445,6 @@ combinatorAllInOrderTestData =
 
 
 
--- We expect here that tested combinator will return some 'Just' when one or
--- more parsers from CombinatorTestData::parsers succeeds. Valid sets of
--- input tokens may have various orders of the tokens, so the parsers
--- themselves may be called in various order (in order different from the
--- order of appearance on the list).
---
--- TODO: the "unordered" part of the combinator is not implemented yet. Once
--- it is, expand the tests to cover the expanded functionality.
-combinatorOneOrMoreUnorderedTestData :: [CombinatorTestDataA]
-combinatorOneOrMoreUnorderedTestData =
-  [
-    -- Success cases
-
-    -- There is only one parser, and this parser has matching data in input, so we have a success.
-    CombinatorTestDataA { inputAccA = [], parsersA = [takeE],               inputStateA = "e",   expectedOutputA = Just ("", ['e']) }
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE],               inputStateA = "ef",  expectedOutputA = Just ("f", ['e']) }
-
-    -- Two parsers, both of them succeed.
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE, takeF],        inputStateA = "ef",  expectedOutputA = Just ("", ['e', 'f']) }
-
-    -- Two parsers in reverse order, both of them succeed (because the combinator is called "unordered").
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeF, takeE],        inputStateA = "ef",  expectedOutputA = Just ("", ['e', 'f']) }
-
-    -- Two parsers, both of them succeed.
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE, takeF],        inputStateA = "efg", expectedOutputA = Just ("g", ['e', 'f']) }
-
-    -- Two parsers, both of them succeed.
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE, takeF],        inputStateA = "efv", expectedOutputA = Just ("v", ['e', 'f']) }
-
-    -- All three parsers succeed, each of them taking their letter.
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE, takeF, takeG], inputStateA = "efg", expectedOutputA = Just ("", ['e', 'f', 'g']) }
-
-    -- All three parsers succeed, each of them taking their letter. The
-    -- combinators are in random order, but they all succeed because the
-    -- combinator is called "unordered".
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeF, takeG, takeE], inputStateA = "efg", expectedOutputA = Just ("", ['e', 'f', 'g']) }
-
-    -- First parser succeed, second and third fails. One out of three successful parsers is enough.
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE, takeF, takeG], inputStateA = "eVT", expectedOutputA = Just ("VT", ['e']) }
-
-    -- One of the parsers will succeed. "unordered" combinator will try to
-    -- match them agains first input token ("e") until one of parsers
-    -- succeeds or the combinator runs out of parsers to try.
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeF, takeG, takeE], inputStateA = "eVT", expectedOutputA = Just ("VT", ['e']) }
-
-    -- First two parsers succeed, third fails. Two out of three successful parsers is enough.
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE, takeF, takeG], inputStateA = "efT", expectedOutputA = Just ("T", ['e', 'f']) }
-
-
-  -- First two parsers succeed, third fails. Two out of three successful parsers is enough.
-  -- This time also check if output of combinator is property appended to non-empty input acc.
-  , CombinatorTestDataA { inputAccA = ['1', '2', '3']
-                        ,parsersA = [takeE, takeF, takeG], inputStateA = "efT", expectedOutputA = Just ("T", ['1', '2', '3', 'e', 'f']) }
-
-
-
-    -- Failure cases
-
-    -- Two parsers. None of parsers succeed (there is no token in input that
-    -- could be taken by any of the parsers).
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE, takeF],        inputStateA = "two", expectedOutputA = Nothing }
-
-    -- Three parsers. None of parsers succeed (there is no token in input
-    -- that could be taken by any of the parsers).
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE, takeF, takeG], inputStateA = "ztq", expectedOutputA = Nothing }
-
-    -- There are zero parsers to run. This means that we can't meet the
-    -- requirement of "one or more" successful parses.
-  , CombinatorTestDataA { inputAccA = [], parsersA = [],                    inputStateA = "efg", expectedOutputA = Nothing }
-
-    -- There is only one parser, but this parser doesn't have matching data in input, so we have zero matching parsers.
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE],               inputStateA = "",    expectedOutputA = Nothing }
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE],               inputStateA = "o",   expectedOutputA = Nothing }
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE],               inputStateA = "oh",  expectedOutputA = Nothing }
-
-    -- Input string is empty, so none of parsers succeed. Zero is not "one or more".
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE, takeF, takeG], inputStateA = "",    expectedOutputA = Nothing }
-
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE],               inputStateA = "oe",  expectedOutputA = Nothing }
-
-    -- First parser fails, but the second and third would succeed. But they will never be called.
-  , CombinatorTestDataA { inputAccA = [], parsersA = [takeE, takeF, takeG], inputStateA = "1fg", expectedOutputA = Nothing }
-  ]
-
-
-
-
-{- -------------------------------------------------------------------------- -}
-
-
-
-
 -- We expect here that tested multiplier will return some 'Just' for zero
 -- succeeses or one success.
 multiplierZeroOrOnceTestData :: [MultiplierTestData]
@@ -562,16 +489,16 @@ multiplierZeroOrOnceTestData =
     -- one/first application of the set was successful). This means that
     -- multiplier succeeded in applying the set of parsers once. This means
     -- that multiplier can return success.
-  , MultiplierTestData { childItems2 = rewrap combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "eXY",   expectedOutput2 = ("XY",   Just ['e']) }
-  , MultiplierTestData { childItems2 = rewrap combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efXY",  expectedOutput2 = ("XY",   Just ['e', 'f']) }
-  , MultiplierTestData { childItems2 = rewrap combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efgXY", expectedOutput2 = ("XY",   Just ['e', 'f', 'g']) }
+  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "eXY",   expectedOutput2 = ("XY",   Just ['e']) }
+  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efXY",  expectedOutput2 = ("XY",   Just ['e', 'f']) }
+  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efgXY", expectedOutput2 = ("XY",   Just ['e', 'f', 'g']) }
 
 
     -- A set of parsers (a combinator) is successfully applied zero times
     -- (zero applications of the set was successful). This means that
     -- multiplier succeeded in applying the set of parsers zero times. This
     -- means that this particular multiplier can return success.
-  , MultiplierTestData { childItems2 = rewrap combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "XYZ",   expectedOutput2 = ("XYZ",   Just []) }
+  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "XYZ",   expectedOutput2 = ("XYZ",   Just []) }
 
 
 
@@ -596,9 +523,9 @@ multiplierZeroOrOnceTestData =
     -- applications of the set were successful). This means that multiplier
     -- failed in applying the set of parsers just once. This means that
     -- multiplier cannot return success.
-  , MultiplierTestData { childItems2 = rewrap combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "eeWZ",     expectedOutput2 = ("eeWZ",     Nothing) }
-  , MultiplierTestData { childItems2 = rewrap combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efefWZ",   expectedOutput2 = ("efefWZ",   Nothing) }
-  , MultiplierTestData { childItems2 = rewrap combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efgefgWZ", expectedOutput2 = ("efgefgWZ", Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "eeWZ",     expectedOutput2 = ("eeWZ",     Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efefWZ",   expectedOutput2 = ("efefWZ",   Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "efgefgWZ", expectedOutput2 = ("efgefgWZ", Nothing) }
   ]
 
 
@@ -669,94 +596,13 @@ multiplierOnceTestData =
     -- A set of parsers (a combinator) is successfully applied zero times
     -- (none of applications of the set were successful). This means that the
     -- multipier didn't succeed once and so it cannot return success.
-  , MultiplierTestData { childItems2 = rewrap combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "XYZ",   expectedOutput2 = ("XYZ",   Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorOneOrMoreUnordered [takeE, takeF, takeG],   input2 = "XYZ",   expectedOutput2 = ("XYZ",   Nothing) }
   ]
 
 
 
 
 {- -------------------------------------------------------------------------- -}
-
-
-
-
-type FnParser = Parser T.Text (T.Text -> T.Text)
-
-
-
-
--- Make a parser that returns a closure with a parsed value.
-mkParserChar :: Char -> Parser T.Text (T.Text -> T.Text)
-mkParserChar char = Parser $ \ txt -> case T.uncons txt of
-                                        Just (c, remd) | c == char -> Just (remd, flip T.snoc c)
-                                                       | otherwise -> Nothing
-                                        Nothing -> Nothing
-
-
-
-
-parserCharA :: Parser T.Text (T.Text -> T.Text)
-parserCharA = mkParserChar 'a'
-
-
-
-
-parserCharB :: Parser T.Text (T.Text -> T.Text)
-parserCharB = mkParserChar 'b'
-
-
-
-parserCharC :: Parser T.Text (T.Text -> T.Text)
-parserCharC = mkParserChar 'c'
-
-
-
-
--- Parser matching any char.
-parserCharAny :: Parser T.Text (T.Text -> T.Text)
-parserCharAny = Parser $ \ txt -> case T.uncons txt of
-                                    Just (_, remd) -> Just (remd, id)
-                                    Nothing        -> Nothing
-
-
-
-
-
-data CombinatorTestDataFn = CombinatorTestDataFn
-  { parsersFn          :: [Parser T.Text (T.Text -> T.Text)]
-  , inputStateFn       :: T.Text
-  , expectedOutputFn   :: Maybe (T.Text, T.Text) -- Remainder + Parsed value
-  }
-
-
-
-
--- On success return empty string. On failure return string showing
--- approximately where the problem is.
-combinatorTestFunctionFn :: ([FnParser] -> FnParser) -> [CombinatorTestDataFn] -> T.Text
-combinatorTestFunctionFn _          []     = ""
-
-combinatorTestFunctionFn combinator (x:xs) = if not success
-                                             then T.pack ("Got: " ++ show output ++ ", Expected: " ++ (show . expectedOutputFn $ x) ++ "; input = " ++ (show . inputStateFn $ x))
-                                             else combinatorTestFunctionFn combinator xs
-  where
-    success = output == expectedOutputFn x
-
-    -- Parser combinator produces a parser.
-    combinedParsers :: Parser T.Text (T.Text -> T.Text)
-    combinedParsers = combinator (parsersFn x)
-
-    -- Running combined parser gives us some Maybe.
-    parsingResult :: Maybe (T.Text, T.Text -> T.Text)
-    parsingResult = runParser combinedParsers (inputStateFn x)
-
-    -- The output from combined parser contains a series of closures. Let's
-    -- execute them to get Maybe (T.Text, T.Text). "" is a null/empty/initial
-    -- element for the closures.
-    output :: Maybe (T.Text, T.Text)
-    output = (fmap . fmap) (flip ($) "") parsingResult
-
-
 
 
 -- We expect here that tested combinator will return some 'Just' only when a
@@ -913,15 +759,12 @@ combinatorOneOrMoreUnorderedFnTestData =
 testCases :: [Test]
 testCases =
   [
-
-    TestCase (do assertEqual "manual tests of combinatorOneOrMoreUnordered"      "" (combinatorTestFunctionA combinatorOneOrMoreUnordered combinatorOneOrMoreUnorderedTestData))
-
-  , TestCase (do assertEqual "manual tests of multiplierZeroOrOnce"              "" (multiplierTestFunction multiplierZeroOrOnce multiplierZeroOrOnceTestData))
+    TestCase (do assertEqual "manual tests of multiplierZeroOrOnce"              "" (multiplierTestFunction multiplierZeroOrOnce multiplierZeroOrOnceTestData))
   , TestCase (do assertEqual "manual tests of multiplierOnce"                    "" (multiplierTestFunction multiplierOnce       multiplierOnceTestData))
 
   , TestCase (do assertEqual "manual tests of combinatorAllInOrder"              "" (combinatorTestFunctionFn combinatorAllInOrder combinatorAllInOrderTestData))
   , TestCase (do assertEqual "manual tests of combinatorExactlyOne"              "" (combinatorTestFunctionFn combinatorExactlyOne combinatorExactlyOneTestData))
-  , TestCase (do assertEqual "manual tests of combinatorOneOrMoreUnorderedB"     "" (combinatorTestFunctionFn combinatorOneOrMoreUnorderedB combinatorOneOrMoreUnorderedFnTestData))
+  , TestCase (do assertEqual "manual tests of combinatorOneOrMoreUnordered"      "" (combinatorTestFunctionFn combinatorOneOrMoreUnordered combinatorOneOrMoreUnorderedFnTestData))
   ]
 
 

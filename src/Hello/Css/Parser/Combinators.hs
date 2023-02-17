@@ -28,15 +28,12 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 module Hello.Css.Parser.Combinators
   (
     MyParser
-  , combinatorOneOrMoreUnordered
   , multiplierZeroOrOnce
   , multiplierOnce
 
-  , rewrap
-
   , multiplierZeroOrOnceB
   , multiplierOnceB
-  , combinatorOneOrMoreUnorderedB
+  , combinatorOneOrMoreUnordered
   , combinatorAllInOrder
   , combinatorExactlyOne
   , parserA
@@ -207,6 +204,21 @@ parserC = Parser $ \ text -> case T.uncons text of
                                Nothing -> Nothing
 
 
+
+-- Apply given parser functions to given state unil none of them matches.
+-- Parsers save result in given input acc.
+--
+-- Succeed if one or more of the parser functions succeeded and has taken
+-- some input from front of state.
+-- Fail if none of parser functions succeeded in taking any input from front of state.
+--
+-- Each parser is discarded after successful application. Function tries
+-- until all parsers are discarded after their succeses, or until first
+-- parser fails. Parser is discarded because it has been already successfully
+-- used once, and can't be used for a second time.
+--
+-- Return Just (new state, modified acc) on success.
+-- Return Nothing on failure.
 {-
 :m +Hello.Utils.Parser
 :m +Data.Maybe
@@ -214,11 +226,11 @@ parserC = Parser $ \ text -> case T.uncons text of
 :m +Hello.Css.Parser.Combinators
 :set prompt >
 
-(fmap . fmap) (\ f -> f "") (runParser (combinatorOneOrMoreUnorderedB [parserB, parserA]) "ab")
+(fmap . fmap) (\ f -> f "") (runParser (combinatorOneOrMoreUnordered [parserB, parserA]) "ab")
 -}
-combinatorOneOrMoreUnorderedB :: [Parser state (a -> a)] -> Parser state (a -> a)
-combinatorOneOrMoreUnorderedB parsers = Parser $ \ state ->
-  case tryParsersUnordered' state parsers stash fs 0 of
+combinatorOneOrMoreUnordered :: [Parser state (a -> a)] -> Parser state (a -> a)
+combinatorOneOrMoreUnordered parsers = Parser $ \ state ->
+  case tryParsersUnordered state parsers stash fs 0 of
     ((state', fs'), i) | i >= 1    -> Just (state', fs')
                        | otherwise -> Nothing
   where
@@ -358,68 +370,13 @@ combinatorExactlyOne parsers = Parser $ \ state -> case fmap (try state) parsers
 
 
 
--- Apply given parser functions to given state unil none of them matches.
--- Parsers save result in given input acc.
---
--- Succeed if one or more of the parser functions succeeded and has taken
--- some input from front of state.
--- Fail if none of parser functions succeeded in taking any input from front of state.
---
--- Each parser is discarded after successful application. Function tries
--- until all parsers are discarded after their succeses, or until first
--- parser fails. Parser is discarded because it has been already successfully
--- used once, and can't be used for a second time.
---
--- Return Just (new state, modified acc) on success.
--- Return Nothing on failure.
-combinatorOneOrMoreUnordered :: acc -> [acc -> Parser state acc] -> state -> Maybe (state, acc)
-combinatorOneOrMoreUnordered acc fs state | i > 0     = Just stateAndAcc
-                                          | otherwise = Nothing
-  where
-    (stateAndAcc, i) = tryParsersUnordered state fs [] acc 0
-
-
-
-
--- Rewrap combinator that returns new-type value (Maybe (state, value)) into
--- combinator that returns old-style value (state, Maybe value).
-rewrap :: ([f] -> [a -> b] -> state -> (Maybe (state, value))) -> [a -> b] -> state -> (state, Maybe value)
-rewrap combinator fns pat = case combinator [] fns pat of
-                              Just (pat', acc) -> (pat', Just acc)
-                              Nothing          -> (pat, Nothing)
-
-
-
-
-
--- This function is using Int argument: a counter of successes. This is to
--- know if 'one or more' parsers have succeeded.
---
--- Without it I would have compare the input and output accumulator to see if
--- any parser has modified it, and not all accumulator types will implement
--- Eq class.
---
--- Also the Int type allows me to see how many parsers exactly have succeeded
--- and create different functions, e.g. "zero or more".
-tryParsersUnordered :: state -> [acc -> Parser state acc] -> [acc -> Parser state acc] -> acc -> Int -> ((state, acc), Int)
-tryParsersUnordered state (f:fs) stash acc i =
-  case runParser (f acc) state of
-    -- On sucessful parse discard current parser, and re-generate list of parsers to be used in next cycle.
-    -- On failed parse move current parser to 'for later' list, and retry with shortened list of current parsers.
-    Just (state', acc') -> tryParsersUnordered state' (fs ++ stash) []        acc' (i + 1)
-    Nothing             -> tryParsersUnordered state  fs            (f:stash) acc  i
-tryParsersUnordered state []        _  acc i = ((state, acc), i)
-
-
-
-
-tryParsersUnordered' :: state -> [Parser state (a -> a)] -> [Parser state (a -> a)] -> (a -> a) -> Int -> ((state, (a -> a)), Int)
-tryParsersUnordered' state (parser:parsers) stash fs i =
+tryParsersUnordered :: state -> [Parser state (a -> a)] -> [Parser state (a -> a)] -> (a -> a) -> Int -> ((state, (a -> a)), Int)
+tryParsersUnordered state (parser:parsers) stash fs i =
   case runParser parser state of
     -- On sucessful parse discard current parser, and re-generate list of parsers to be used in next cycle.
     -- On failed parse move current parser to 'for later' list, and retry with shortened list of current parsers.
-    Just (state', f) -> tryParsersUnordered' state' (parsers ++ stash) []               (f . fs) (i + 1)
-    Nothing          -> tryParsersUnordered' state  parsers            (parser:stash)    fs       i
-tryParsersUnordered' state []                  _  fs i = ((state, fs), i)
+    Just (state', f) -> tryParsersUnordered state' (parsers ++ stash) []               (f . fs) (i + 1)
+    Nothing          -> tryParsersUnordered state  parsers            (parser:stash)    fs       i
+tryParsersUnordered state []                  _  fs i = ((state, fs), i)
 
 
