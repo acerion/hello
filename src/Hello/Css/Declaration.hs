@@ -1494,7 +1494,7 @@ makeCssPropertyFloat v = CssPropertyFloat v
 
 
 -- ------------------------------------------------
--- Font (font)
+-- Font ("font")
 -- This is a shorthand property.
 -- https://www.w3.org/TR/CSS22/fonts.html#font-shorthand
 -- https://www.w3.org/TR/css-fonts-3/#font-prop
@@ -1502,9 +1502,6 @@ makeCssPropertyFloat v = CssPropertyFloat v
 -- CSS2.2: [ [ <'font-style'> || <'font-variant'> || <'font-weight'> ]? <'font-size'> [ / <'line-height'> ]? <'font-family'> ]
 --         | caption | icon | menu | message-box | small-caption | status-bar | inherit
 --
--- FIXME: this implementation doesn't follow a standard because it doesn't
--- first set all properties to their default values. The implementation
--- returns only those values that are explicitly set in CSS string.
 -- ------------------------------------------------
 
 
@@ -1623,14 +1620,14 @@ makeCssPropertyFont patArg = case runParser parser patArg of
   -- font family: serif
 
   where
-    parser = combinatorExactlyOneB [ multiplierOnceB (combinatorAllInOrderB [ multiplierZeroOrOnceB (combinatorOneOrMoreUnorderedB [parserFontStyle, parserFontVariant, parserFontWeight])
-                                                                            , multiplierOnceB parserFontSize
-                                                                              -- TODO: there should be a parser for "/" token here (a combination of "/" and height).
+    parser = combinatorExactlyOne [ multiplierOnceB (combinatorAllInOrder [ multiplierZeroOrOnceB (combinatorOneOrMoreUnorderedB [parserFontStyle, parserFontVariant, parserFontWeight])
+                                                                          , multiplierOnceB parserFontSize
+                                                                            -- TODO: there should be a parser for "/" token here (a combination of "/" and height).
                                                                             -- , multiplierZeroOrOnceB lineHeight2 TODO: re-enable
-                                                                            , multiplierOnceB parserFontFamily
-                                                                            ])
-                                   , multiplierOnceB parserFontEnum
-                                   ]
+                                                                          , multiplierOnceB parserFontFamily
+                                                                          ])
+                                  , multiplierOnceB parserFontEnum
+                                  ]
 
 
 

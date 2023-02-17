@@ -28,19 +28,17 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 module Hello.Css.Parser.Combinators
   (
     MyParser
-  , combinatorExactlyOne
-  , combinatorAllInOrder
   , combinatorOneOrMoreUnordered
   , multiplierZeroOrOnce
   , multiplierOnce
 
   , rewrap
 
-  , combinatorOneOrMoreUnorderedB
-  , combinatorAllInOrderB
   , multiplierZeroOrOnceB
   , multiplierOnceB
-  , combinatorExactlyOneB
+  , combinatorOneOrMoreUnorderedB
+  , combinatorAllInOrder
+  , combinatorExactlyOne
   , parserA
   , parserB
   , parserC
@@ -83,48 +81,6 @@ and exceptions.
 -- I think that due to [], this is not a canonical form of parser function.
 -- But it works for me now.
 type MyParser p a = p -> (p, Maybe [a])
-
-
-
-
--- Run all parsers in given order
---
--- Return success (Just accumulator) if exactly one of them succeeds.
--- Return failure (Nothing) if zero, two or more of them succeed.
---
--- https://www.w3.org/TR/css-values-3/#component-combinators
--- "A bar (|) separates two or more alternatives: exactly one of them must occur."
---
--- Unit tested? Yes.
-combinatorExactlyOne :: [MyParser p a] -> p -> (p, Maybe [a])
-combinatorExactlyOne fs pat = if countOfNonEmpty == 1
-                              then (outPat, Just $ L.concat accumulators)
-                              else (pat, Nothing)
-
-  where
-    countOfNonEmpty = L.length $ L.filter (not . L.null) accumulators
-    (outPat, accumulators) = runFunctions fs (pat, [])
-
-
-
-
--- Run all parsers in given order
---
--- Return success (Just accumulator) if all of the parsers succeeded (returned some accumulator).
--- Return failure (Nothing) if one or more of parsers failed (returned Nothing).
---
--- https://www.w3.org/TR/css-values-3/#component-combinators
--- "Juxtaposing components means that all of them must occur, in the given order."
---
--- Unit tested? Yes.
-combinatorAllInOrder :: [MyParser p a] -> p -> (p, Maybe [a])
-combinatorAllInOrder functions pat = if countOfNonEmpty == L.length functions
-                                     then (outPat, Just $ L.concat accumulators)
-                                     else (pat, Nothing)
-
-  where
-    countOfNonEmpty        = L.length accumulators
-    (outPat, accumulators) = runFunctions functions (pat, [])
 
 
 
@@ -230,33 +186,6 @@ multiplierOnce = multiplier lower upper
 
 
 
-{-
-concatAccs :: Maybe [a] -> [[a]] -> [a]
-concatAccs mAcc accumulators = case mAcc of
-                                 Just acc -> acc ++ L.concat accumulators
-                                 Nothing  -> []  ++ L.concat accumulators
-
-
-
-
-concatAcc :: Maybe [a] -> [a] -> [a]
-concatAcc mAcc acc = case mAcc of
-                       Just acc' -> acc' ++ acc
-                       Nothing   -> []   ++ acc
--}
-
-
-
-runFunctions :: [MyParser p a] -> (p, [[a]]) -> (p, [[a]])
-runFunctions (f:fs) (pat, accumulators) = runFunctions fs (pat', acc')
-  where (pat', acc') = case f pat of
-                         (pat'', Just acc'') -> (pat'', accumulators ++ [acc''])
-                         (_, Nothing)        -> (pat,   accumulators)
-runFunctions []     (pat, accumulators) = (pat, accumulators)
-
-
-
-
 parserA :: Parser T.Text (String -> String)
 parserA = Parser $ \ text -> case T.uncons text of
                                Just (c, remd) | c == 'a' -> Just (remd, (:) 'a')
@@ -299,6 +228,15 @@ combinatorOneOrMoreUnorderedB parsers = Parser $ \ state ->
 
 
 
+-- Run all parsers in given order
+--
+-- Return success (Just accumulator) if all of the parsers succeeded (returned some accumulator).
+-- Return failure (Nothing) if one or more of parsers failed (returned Nothing).
+--
+-- https://www.w3.org/TR/css-values-3/#component-combinators
+-- "Juxtaposing components means that all of them must occur, in the given order."
+--
+-- Unit tested? Yes.
 {-
 :m +Hello.Utils.Parser
 :m +Data.Maybe
@@ -306,10 +244,10 @@ combinatorOneOrMoreUnorderedB parsers = Parser $ \ state ->
 :m +Hello.Css.Parser.Combinators
 :set prompt >
 
-(fmap . fmap) (\ f -> f "") (runParser (combinatorAllInOrderB [parserA, parserB]) "abC")
+(fmap . fmap) (\ f -> f "") (runParser (combinatorAllInOrder [parserA, parserB]) "abC")
 -}
-combinatorAllInOrderB :: [Parser state (a -> a)] -> Parser state (a -> a)
-combinatorAllInOrderB parsers = Parser $ \ state -> runAllParsers parsers state id
+combinatorAllInOrder :: [Parser state (a -> a)] -> Parser state (a -> a)
+combinatorAllInOrder parsers = Parser $ \ state -> runAllParsers parsers state id
 
 
 
@@ -318,7 +256,7 @@ combinatorAllInOrderB parsers = Parser $ \ state -> runAllParsers parsers state 
 -- previous parsers' calls. All parsers must succeed.
 runAllParsers :: [Parser state (a -> a)] -> state -> (a -> a) -> Maybe (state, (a -> a))
 runAllParsers (parser:parsers) state fs = case runParser parser state of
-                                            Just (state', f) -> runAllParsers parsers state' (fs . f)
+                                            Just (state', f) -> runAllParsers parsers state' (f . fs)
                                             Nothing          -> Nothing
 runAllParsers []               state fs = Just (state, fs)
 
@@ -332,7 +270,7 @@ runAllParsers []               state fs = Just (state, fs)
 :m +Hello.Css.Parser.Combinators
 :set prompt >
 
-(fmap . fmap) (\ f -> f "") (runParser (multiplierZeroOrOnceB (combinatorAllInOrderB [parserB, parserA])) "ab")
+(fmap . fmap) (\ f -> f "") (runParser (multiplierZeroOrOnceB (combinatorAllInOrder [parserB, parserA])) "ab")
 -}
 multiplierZeroOrOnceB ::  (Show state) => Parser state (a -> a) -> Parser state (a -> a)
 multiplierZeroOrOnceB parser = Parser $ \ pat -> multiplierB lower upper parser pat
@@ -405,13 +343,13 @@ callUntilFailB parser pat fs i limit = case runParser parser pat of
 :m +Hello.Css.Parser.Combinators
 :set prompt >
 
-(fmap . fmap) (\ f -> f "") (runParser (combinatorExactlyOneB [parserB, parserA]) "ad")
+(fmap . fmap) (\ f -> f "") (runParser (combinatorExactlyOne [parserB, parserA]) "ad")
 -}
-combinatorExactlyOneB :: [Parser p (a -> a)] -> Parser p (a -> a)
-combinatorExactlyOneB parsers = Parser $ \ state -> case fmap (try state) parsers of
-                                                      mapped -> if (L.length . catMaybes $ mapped) == 1 -- Only one of parsers succeeded and returned some Just
-                                                                then Just (head . catMaybes $ mapped)
-                                                                else Nothing
+combinatorExactlyOne :: [Parser p (a -> a)] -> Parser p (a -> a)
+combinatorExactlyOne parsers = Parser $ \ state -> case fmap (try state) parsers of
+                                                     mapped -> if (L.length . catMaybes $ mapped) == 1 -- Only one of parsers succeeded and returned some Just
+                                                               then Just (head . catMaybes $ mapped)
+                                                               else Nothing
   where
     -- Run a single parser from list of parsers. Notice that each parser from
     -- input 'parsers' list is executed with the same input state.
@@ -483,7 +421,5 @@ tryParsersUnordered' state (parser:parsers) stash fs i =
     Just (state', f) -> tryParsersUnordered' state' (parsers ++ stash) []               (f . fs) (i + 1)
     Nothing          -> tryParsersUnordered' state  parsers            (parser:stash)    fs       i
 tryParsersUnordered' state []                  _  fs i = ((state, fs), i)
-
-
 
 

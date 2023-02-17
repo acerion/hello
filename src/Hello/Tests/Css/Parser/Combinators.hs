@@ -45,7 +45,6 @@ import Hello.Utils.Parser
 
 -- Simple parser taking input string and trying to match a character.
 type TestParser = MyParser T.Text Char
-type Combinator = [MyParser T.Text Char] -> T.Text -> (T.Text, Maybe [Char])
 type Multiplier =  MyParser T.Text Char  -> T.Text -> (T.Text, Maybe [Char])
 
 
@@ -95,14 +94,6 @@ takeG acc = mkParserCharA acc 'g'
 
 
 
-data CombinatorTestData = CombinatorTestData
-  { parsers          :: [TestParser]
-  , input            :: T.Text
-  , expectedOutput   :: (T.Text, Maybe [Char])
-  }
-
-
-
 type OutputA = Maybe (StateA, AccA)
 type StateA = T.Text
 type AccA = [Char]
@@ -125,20 +116,6 @@ data MultiplierTestData = MultiplierTestData
   , input2            :: T.Text
   , expectedOutput2   :: (T.Text, Maybe [Char])
   }
-
-
-
-
--- On success return empty string. On failure return string showing
--- approximately where the problem is.
-combinatorTestFunction :: Combinator -> [CombinatorTestData] -> T.Text
-combinatorTestFunction _          []     = ""
-combinatorTestFunction combinator (x:xs) = if not success
-                                           then T.pack ("Got: " ++ show output ++ ", Expected: " ++ (show . expectedOutput $ x) ++ "; input = " ++ (show . input $ x))
-                                           else combinatorTestFunction combinator xs
-  where
-    success = output == expectedOutput x
-    output = combinator (parsers x) (input x)
 
 
 
@@ -188,68 +165,123 @@ multiplierTestFunction multiplier (x:xs) = if not success
 -- single (one) parser from CombinatorTestData::parsers succeeds. When zero or
 -- two or three parsers succeed, then the tested combinator should return
 -- Nothing.
-combinatorExactlyOneTestData :: [CombinatorTestData]
+--
+-- https://www.w3.org/TR/css-values-4/#component-combinators:
+-- "A bar (|) separates two or more alternatives: exactly one of them must occur."
+--
+-- My assumption here is that all parses are tried agains head of input - all
+-- N of them on the same head of the same input. If exactly one of them
+-- succeeds for the head of the same input, then it's success. Otherwise it's
+-- failure.
+combinatorExactlyOneTestData :: [CombinatorTestDataFn]
 combinatorExactlyOneTestData =
   [
     -- Success cases
 
-    -- There is only one parser, and this parser has matching data in input, so we have a success.
-    CombinatorTestData { parsers = [takeA],               input = "a",   expectedOutput = ("", Just ['a']) }
-  , CombinatorTestData { parsers = [takeA],               input = "ab",  expectedOutput = ("b", Just ['a']) }
+    -- I'm not sure if for 'alternative' combinator it makes sense to create
+    -- a test case, but here it goes.
+    CombinatorTestDataFn { inputStateFn     = "a"
+                         , parsersFn        = [parserCharA]
+                         , expectedOutputFn = Just ("", "a") }
+  , CombinatorTestDataFn { inputStateFn     = "ab"
+                         , parsersFn        = [parserCharA]
+                         , expectedOutputFn = Just ("b", "a") }
 
-    -- Two parsers, only first parser succeeds: it matches the first letter.
-  , CombinatorTestData { parsers = [takeA, takeB],        input = "atb", expectedOutput = ("tb", Just ['a']) }
+    -- Only one of the two given parsers will succeed for given input.
+  , CombinatorTestDataFn { inputStateFn     = "atb"
+                         , parsersFn        = [parserCharA, parserCharB]
+                         , expectedOutputFn = Just ("tb", "a") }
 
-    -- Only first parser succeeds: it matches the first letter.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "a12", expectedOutput = ("12", Just ['a']) }
+    -- Only one of the two given parsers will succeed for given input.
+  , CombinatorTestDataFn { inputStateFn     = "atb"
+                         , parsersFn        = [parserCharB, parserCharA]
+                         , expectedOutputFn = Just ("tb", "a") }
 
-    -- Only second parser succeeds: it matches the first letter.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "btq", expectedOutput = ("tq", Just ['b']) }
+    -- Only one of the three given parsers will succeed for given input.
+  , CombinatorTestDataFn { inputStateFn     = "a12"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Just ("12", "a") }
 
-    -- Only third parser succeeds: it matches the first letter.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "c~+", expectedOutput = ("~+", Just ['c']) }
+    -- Only one of the two given parsers will succeed for given input.
+  , CombinatorTestDataFn { inputStateFn     = "btq"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Just ("tq", "b") }
 
-    -- All the letters are there in the input, but in wrong order, and only the third parser succeeds.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "cab", expectedOutput = ("ab", Just ['c']) }
+    -- Only one of the three given parsers will succeed for given input.
+  , CombinatorTestDataFn { inputStateFn     = "c~+"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Just ("~+", "c") }
 
-    -- There is only one letter in input data, and it is successfully parsed.
-    -- The other two parsers will fail.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "a",   expectedOutput = ("", Just ['a']) }
+    -- Only one of the three parsers will succeed for given input.
+  , CombinatorTestDataFn { inputStateFn     = "cab"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Just ("ab", "c") }
+
+    -- Only one of the three given parsers will succeed for given input.
+  , CombinatorTestDataFn { inputStateFn     = "a"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Just ("", "a") }
 
 
 
     -- Failure cases
 
-    -- There are zero parsers to run, so there cannot be one parser to succeed.
-  , CombinatorTestData { parsers = [], input = "abc", expectedOutput = ("abc", Nothing) }
+    -- I'm not sure if for 'alternative' combinator it makes sense to create
+    -- a test case, but here it goes.
 
-    -- There is only one parser, but this parser doesn't have matching data in input, so we have zero matching parsers.
-  , CombinatorTestData { parsers = [takeA],               input = "o",   expectedOutput = ("o", Nothing) }
-  , CombinatorTestData { parsers = [takeA],               input = "oh",  expectedOutput = ("oh", Nothing) }
+    -- There are zero parsersFn to run, so there cannot be one parser to succeed.
+  , CombinatorTestDataFn { inputStateFn     = "abc"
+                         , parsersFn        = []
+                         , expectedOutputFn = Nothing }
+    -- There is only one parser, but this parser doesn't have matching data
+    -- in inputStateFn, so we have zero matching parsersFn.
+  , CombinatorTestDataFn { inputStateFn     = "o"
+                         , parsersFn        = [parserCharA]
+                         , expectedOutputFn = Nothing }
+  , CombinatorTestDataFn { inputStateFn     = "oh"
+                         , parsersFn        = [parserCharA]
+                         , expectedOutputFn = Nothing }
+
 
     -- Two parsers, both succeed. Two successful parsers is too much.
-  , CombinatorTestData { parsers = [takeA, takeB],        input = "abe", expectedOutput = ("abe", Nothing) }
+  , CombinatorTestDataFn { inputStateFn     = "a"
+                         , parsersFn        = [parserCharA, parserCharA]
+                         , expectedOutputFn = Nothing }
 
     -- Two parsers, none of them succeed. Zero successes is not "exactly one".
-  , CombinatorTestData { parsers = [takeA, takeB],        input = "two", expectedOutput = ("two", Nothing) }
+  , CombinatorTestDataFn { inputStateFn     = "two"
+                         , parsersFn        = [parserCharA, parserCharB]
+                         , expectedOutputFn = Nothing }
 
     -- All three parsers succeed, each of them taking their letter. Three successful parsers is too much.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "abc", expectedOutput = ("abc", Nothing) }
+  , CombinatorTestDataFn { inputStateFn     = "abc"
+                         , parsersFn        = [parserCharA, parserCharA, parserCharA]
+                         , expectedOutputFn = Nothing }
 
-    -- First two parsers succeed, third fails. Two successful parsers is too much.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "abT", expectedOutput = ("abT", Nothing) }
+    -- Both parsers would succeed.
+  , CombinatorTestDataFn { inputStateFn     = "abc"
+                         , parsersFn        = [parserCharA, parserCharAny]
+                         , expectedOutputFn = Nothing }
 
-    -- First succeeds, second fails, but the third again succeeds. Two successful parsers is too much.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "acX", expectedOutput = ("acX", Nothing) }
+    -- First and third parser would succeed. Two successful parsers is too much.
+  , CombinatorTestDataFn { inputStateFn     = "abT"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharA],
+                           expectedOutputFn = Nothing }
 
     -- First parser fails, but the second and third succeed. Two successful parsers is too much.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "1bc", expectedOutput = ("1bc", Nothing) }
+  , CombinatorTestDataFn { inputStateFn     = "1bc"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
 
-    -- None of acceptable letters are in input data, so zero tests pass. Zero is not "exactly one".
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "xyz", expectedOutput = ("xyz", Nothing) }
+    -- None of acceptable letters are in inputStateFn data, so zero tests pass. Zero is not "exactly one".
+  , CombinatorTestDataFn { inputStateFn     = "xyz"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
 
-    -- Input string is empty, so none of parsers succeed. Zero is not "exactly one".
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "",    expectedOutput = ("", Nothing) }
+    -- InputStateFn string is empty, so none of parsersFn succeed. Zero is not "exactly one".
+  , CombinatorTestDataFn { inputStateFn     = ""
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
   ]
 
 
@@ -262,86 +294,128 @@ combinatorExactlyOneTestData =
 
 
 -- We expect here that tested combinator will return some 'Just' only when a
--- single (one) parser from CombinatorTestData::parsers succeeds. When zero or
--- two or three parsers succeed, then the tested combinator should return
+-- single (one) parser from CombinatorTestDataFn::parsersFn succeeds. When zero or
+-- two or three parsersFn succeed, then the tested combinator should return
 -- Nothing.
-combinatorAllInOrderTestData :: [CombinatorTestData]
+combinatorAllInOrderTestData :: [CombinatorTestDataFn]
 combinatorAllInOrderTestData =
   [
     -- Success cases
 
-    -- There is only one parser, and this parser has matching data in input, so we have a success.
-    CombinatorTestData { parsers = [takeA],               input = "a",   expectedOutput = ("", Just ['a']) }
-  , CombinatorTestData { parsers = [takeA],               input = "ab",  expectedOutput = ("b", Just ['a']) }
+    -- There is only one parser, and this parser has matching data in inputStateFn, so we have a success.
+    CombinatorTestDataFn { inputStateFn     = "a"
+                         , parsersFn        = [parserCharA]
+                         , expectedOutputFn = Just ("", "a") }
+  , CombinatorTestDataFn { inputStateFn     = "ab"
+                         , parsersFn        = [parserCharA]
+                         , expectedOutputFn = Just ("b", "a") }
 
     -- Two parsers, both of them succeed.
-  , CombinatorTestData { parsers = [takeA, takeB],        input = "ab",  expectedOutput = ("", Just ['a', 'b']) }
+  , CombinatorTestDataFn { inputStateFn     = "ab"
+                         , parsersFn        = [parserCharA, parserCharB]
+                         , expectedOutputFn = Just ("", "ab") }
 
     -- Two parsers, both of them succeed.
-  , CombinatorTestData { parsers = [takeA, takeB],        input = "abc", expectedOutput = ("c", Just ['a', 'b']) }
+  , CombinatorTestDataFn { inputStateFn     = "abc"
+                         , parsersFn        = [parserCharA, parserCharB]
+                         , expectedOutputFn = Just ("c", "ab") }
 
     -- Two parsers, both of them succeed.
-  , CombinatorTestData { parsers = [takeA, takeB],        input = "abe", expectedOutput = ("e", Just ['a', 'b']) }
+  , CombinatorTestDataFn { inputStateFn     = "abe"
+                         , parsersFn        = [parserCharA, parserCharB]
+                         , expectedOutputFn = Just ("e", "ab") }
 
     -- All three parsers succeed, each of them taking their letter.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "abc", expectedOutput = ("", Just ['a', 'b', 'c']) }
+  , CombinatorTestDataFn { inputStateFn     = "abc"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Just ("", "abc") }
 
 
 
     -- Failure cases
 
-    -- Two parsers. There are matching letters in input string for both of
-    -- them, but they are separated by a letter that won't be taken by any of
-    -- the two parsers.
-  , CombinatorTestData { parsers = [takeA, takeB],        input = "acb", expectedOutput = ("acb", Nothing) }
+    -- Two parsersFn. There are matching letters in inputStateFn string for both of
+    -- them, but they are separated by a letter that won't be parserCharn by any of
+    -- the two parsersFn.
+  , CombinatorTestDataFn { inputStateFn     = "acb"
+                         , parsersFn        = [parserCharA, parserCharB]
+                         , expectedOutputFn = Nothing }
 
     -- Only first parser succeeds: it matches the first letter. But the other
     -- two don't match, so no success overall.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "a12", expectedOutput = ("a12", Nothing) }
+  , CombinatorTestDataFn { inputStateFn     = "a12"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
 
   -- Only second parser would succeed, but the other two don't match, so no success overall.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "btq", expectedOutput = ("btq", Nothing) }
+  , CombinatorTestDataFn { inputStateFn     = "btq"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
 
     -- Only third parser would succeed, but the other two don't match, so no success overall.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "c~+", expectedOutput = ("c~+", Nothing) }
+  , CombinatorTestDataFn { inputStateFn     = "c~+"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
 
-    -- All the letters are there in the input, but in wrong order.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "cab", expectedOutput = ("cab", Nothing) }
+    -- All the letters are there in the inputStateFn, but in wrong order.
+  , CombinatorTestDataFn { inputStateFn     = "cab"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
 
-    -- There is only one letter in input data, and it is successfully parsed.
-    -- The other two parsers will fail, so overall it's a fail.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "a",   expectedOutput = ("a", Nothing) }
+    -- There is only one letter in inputStateFn data, and it is successfully parsed.
+    -- The other two parsersFn will fail, so overall it's a fail.
+  , CombinatorTestDataFn { inputStateFn     = "a"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
 
   {-
-    -- There are zero parsers to run. On one hand there are no parsers that
+    -- There are zero parsersFn to run. On one hand there are no parsersFn that
     -- could fail, but on the other hand there is not a single parser that
     -- would return some accumulator.
     --
-    -- TODO: tested function returns ("abc", Just []). What to do?
-  , CombinatorTestData { parsers = [],                    input = "abc", expectedOutput = ("abc", Nothing) }
+    -- TODO: how this case should behave?
+  , CombinatorTestDataFn { inputStateFn = "abc", parsersFn = [], expectedOutputFn = ("abc", Nothing) }
   -}
 
 
-    -- There is only one parser, but this parser doesn't have matching data in input, so we have zero matching parsers.
-  , CombinatorTestData { parsers = [takeA],               input = "",    expectedOutput = ("", Nothing) }
-  , CombinatorTestData { parsers = [takeA],               input = "o",   expectedOutput = ("o", Nothing) }
-  , CombinatorTestData { parsers = [takeA],               input = "oh",  expectedOutput = ("oh", Nothing) }
-  , CombinatorTestData { parsers = [takeA],               input = "oa",  expectedOutput = ("oa", Nothing) }
+    -- There is only one parser, but this parser doesn't have matching data in inputStateFn, so we have zero matching parsersFn.
+  , CombinatorTestDataFn { inputStateFn     = ""
+                         , parsersFn        = [parserCharA]
+                         , expectedOutputFn = Nothing }
+  , CombinatorTestDataFn { inputStateFn     = "o"
+                         , parsersFn        = [parserCharA]
+                         , expectedOutputFn = Nothing }
+  , CombinatorTestDataFn { inputStateFn     = "oh"
+                         , parsersFn        = [parserCharA]
+                         , expectedOutputFn = Nothing }
+  , CombinatorTestDataFn { inputStateFn     = "oa"
+                         , parsersFn        = [parserCharA]
+                         , expectedOutputFn = Nothing }
 
-    -- Two parsers, none of them has matching letter.
-  , CombinatorTestData { parsers = [takeA, takeB],        input = "two", expectedOutput = ("two", Nothing) }
+    -- Two parsersFn, none of them has matching letter.
+  , CombinatorTestDataFn { inputStateFn     = "two"
+                         , parsersFn        = [parserCharA, parserCharB]
+                         , expectedOutputFn = Nothing }
 
-    -- Three parsers, none of them has matching letter.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "xyz", expectedOutput = ("xyz", Nothing) }
+    -- Three parsersFn, none of them has matching letter.
+  , CombinatorTestDataFn { inputStateFn     = "xyz"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
 
-    -- First two parsers succeed, third fails. Two out of three successful parsers is not enough.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "abT", expectedOutput = ("abT", Nothing) }
+    -- First two parsersFn succeed, third fails. Two out of three successful parsersFn is not enough.
+  , CombinatorTestDataFn { inputStateFn     = "abT"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
 
     -- First parser fails, but the second and third would succeed. But they will never be called.
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "1bc", expectedOutput = ("1bc", Nothing) }
+  , CombinatorTestDataFn { inputStateFn     = "1bc"
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
 
-    -- Input string is empty, so none of parsers succeed. Zero is not "exactly one".
-  , CombinatorTestData { parsers = [takeA, takeB, takeC], input = "",    expectedOutput = ("", Nothing) }
+    -- InputStateFn string is empty, so none of parsersFn succeed. Zero is not "exactly one".
+  , CombinatorTestDataFn { inputStateFn     = ""
+                         , parsersFn        = [parserCharA, parserCharB, parserCharC]
+                         , expectedOutputFn = Nothing }
   ]
 
 
@@ -469,20 +543,20 @@ multiplierZeroOrOnceTestData =
 
     -- A set of parsers (a combinator) succeeds zero times, but this is
     -- enough for tested multiplier to return success.
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "",    expectedOutput2 = ("",       Just []) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "a",   expectedOutput2 = ("a",      Just []) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "ab",  expectedOutput2 = ("ab",     Just []) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "acb", expectedOutput2 = ("acb",    Just []) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "xyz", expectedOutput2 = ("xyz",    Just []) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "",    expectedOutput2 = ("",       Just []) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "a",   expectedOutput2 = ("a",      Just []) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "ab",  expectedOutput2 = ("ab",     Just []) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "acb", expectedOutput2 = ("acb",    Just []) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "xyz", expectedOutput2 = ("xyz",    Just []) }
 
     -- A set of parsers (a combinator) is successfully applied once (only
     -- one/first application of the set was successful). This means that
     -- multiplier succeeded in applying the set of parsers once. This means
     -- that multiplier can return success.
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abc",   expectedOutput2 = ("",     Just ['a', 'b', 'c']) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcd",  expectedOutput2 = ("d",    Just ['a', 'b', 'c']) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcab", expectedOutput2 = ("ab",   Just ['a', 'b', 'c']) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcxy", expectedOutput2 = ("xy",   Just ['a', 'b', 'c']) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abc",   expectedOutput2 = ("",     Just ['a', 'b', 'c']) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcd",  expectedOutput2 = ("d",    Just ['a', 'b', 'c']) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcab", expectedOutput2 = ("ab",   Just ['a', 'b', 'c']) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcxy", expectedOutput2 = ("xy",   Just ['a', 'b', 'c']) }
 
     -- A set of parsers (a combinator) is successfully applied once (only
     -- one/first application of the set was successful). This means that
@@ -515,8 +589,8 @@ multiplierZeroOrOnceTestData =
 
     -- A set of parsers (a combinator) succeeds two times, but this is too
     -- much for tested multiplier.
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabc",   expectedOutput2 = ("abcabc",   Nothing) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabcd",  expectedOutput2 = ("abcabcd",  Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabc",   expectedOutput2 = ("abcabc",   Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabcd",  expectedOutput2 = ("abcabcd",  Nothing) }
 
     -- A set of parsers (a combinator) is successfully applied twice (two
     -- applications of the set were successful). This means that multiplier
@@ -553,10 +627,10 @@ multiplierOnceTestData =
     -- one/first application of the set was successful). This means that
     -- multiplier succeeded in applying the set of parsers once. This means
     -- that multiplier can return success.
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abc",   expectedOutput2 = ("",     Just ['a', 'b', 'c']) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcd",  expectedOutput2 = ("d",    Just ['a', 'b', 'c']) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcab", expectedOutput2 = ("ab",   Just ['a', 'b', 'c']) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcxy", expectedOutput2 = ("xy",   Just ['a', 'b', 'c']) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abc",   expectedOutput2 = ("",     Just ['a', 'b', 'c']) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcd",  expectedOutput2 = ("d",    Just ['a', 'b', 'c']) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcab", expectedOutput2 = ("ab",   Just ['a', 'b', 'c']) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcxy", expectedOutput2 = ("xy",   Just ['a', 'b', 'c']) }
 
 
 
@@ -573,11 +647,11 @@ multiplierOnceTestData =
 
     -- A set of parsers (a combinator) succeeds zero times. Zero matches is
     -- too little for this multiplier to succeed.
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "",    expectedOutput2 = ("",       Nothing) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "a",   expectedOutput2 = ("a",      Nothing) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "ab",  expectedOutput2 = ("ab",     Nothing) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "acb", expectedOutput2 = ("acb",    Nothing) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "xyz", expectedOutput2 = ("xyz",    Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "",    expectedOutput2 = ("",       Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "a",   expectedOutput2 = ("a",      Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "ab",  expectedOutput2 = ("ab",     Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "acb", expectedOutput2 = ("acb",    Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "xyz", expectedOutput2 = ("xyz",    Nothing) }
 
     -- A parser has two or more matching pieces of data in input (will be
     -- able to take two or more 'a' tokens). Two or more matches of a parser
@@ -589,8 +663,8 @@ multiplierOnceTestData =
 
     -- A set of parsers (a combinator) succeeds two times, but this is too
     -- much for tested multiplier.
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabc",   expectedOutput2 = ("abcabc",   Nothing) }
-  , MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabcd",  expectedOutput2 = ("abcabcd",  Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabc",   expectedOutput2 = ("abcabc",   Nothing) }
+  --, MultiplierTestData { childItems2 = combinatorAllInOrder [takeA, takeB, takeC],   input2 = "abcabcd",  expectedOutput2 = ("abcabcd",  Nothing) }
 
     -- A set of parsers (a combinator) is successfully applied zero times
     -- (none of applications of the set were successful). This means that the
@@ -634,6 +708,15 @@ parserCharB = mkParserChar 'b'
 
 parserCharC :: Parser T.Text (T.Text -> T.Text)
 parserCharC = mkParserChar 'c'
+
+
+
+
+-- Parser matching any char.
+parserCharAny :: Parser T.Text (T.Text -> T.Text)
+parserCharAny = Parser $ \ txt -> case T.uncons txt of
+                                    Just (_, remd) -> Just (remd, id)
+                                    Nothing        -> Nothing
 
 
 
@@ -830,14 +913,15 @@ combinatorOneOrMoreUnorderedFnTestData =
 testCases :: [Test]
 testCases =
   [
-    TestCase (do assertEqual "manual tests of combinatorExactlyOne"              "" (combinatorTestFunction combinatorExactlyOne         combinatorExactlyOneTestData))
-  , TestCase (do assertEqual "manual tests of combinatorAllInOrder"              "" (combinatorTestFunction combinatorAllInOrder         combinatorAllInOrderTestData))
-  , TestCase (do assertEqual "manual tests of combinatorOneOrMoreUnordered"      "" (combinatorTestFunctionA combinatorOneOrMoreUnordered combinatorOneOrMoreUnorderedTestData))
+
+    TestCase (do assertEqual "manual tests of combinatorOneOrMoreUnordered"      "" (combinatorTestFunctionA combinatorOneOrMoreUnordered combinatorOneOrMoreUnorderedTestData))
 
   , TestCase (do assertEqual "manual tests of multiplierZeroOrOnce"              "" (multiplierTestFunction multiplierZeroOrOnce multiplierZeroOrOnceTestData))
   , TestCase (do assertEqual "manual tests of multiplierOnce"                    "" (multiplierTestFunction multiplierOnce       multiplierOnceTestData))
 
-  , TestCase (do assertEqual "manual tests of combinatorOneOrMoreUnorderedFn"     "" (combinatorTestFunctionFn combinatorOneOrMoreUnorderedB       combinatorOneOrMoreUnorderedFnTestData))
+  , TestCase (do assertEqual "manual tests of combinatorAllInOrder"              "" (combinatorTestFunctionFn combinatorAllInOrder combinatorAllInOrderTestData))
+  , TestCase (do assertEqual "manual tests of combinatorExactlyOne"              "" (combinatorTestFunctionFn combinatorExactlyOne combinatorExactlyOneTestData))
+  , TestCase (do assertEqual "manual tests of combinatorOneOrMoreUnorderedB"     "" (combinatorTestFunctionFn combinatorOneOrMoreUnorderedB combinatorOneOrMoreUnorderedFnTestData))
   ]
 
 
