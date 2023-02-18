@@ -747,7 +747,7 @@ data CssValueBorderWidth' = CssValueBorderWidth'
 
 
 parserPropertyBorderWidth :: Parser (CssParser, CssToken) CssProperty
-parserPropertyBorderWidth = Parser $ \ pat -> parse1234 parserValue pat CssPropertyBorderWidth CssValueBorderWidth'
+parserPropertyBorderWidth = CssPropertyBorderWidth <$> (mkParser1234 parserValue CssValueBorderWidth')
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parserValue :: Parser (CssParser, CssToken) [CssValueBorderWidth]
@@ -778,7 +778,7 @@ data CssValueBorderColor' = CssValueBorderColor'
 
 
 parserPropertyBorderColor :: Parser (CssParser, CssToken) CssProperty
-parserPropertyBorderColor = Parser $ \ pat -> parse1234 parserValue pat CssPropertyBorderColor CssValueBorderColor'
+parserPropertyBorderColor = CssPropertyBorderColor <$> (mkParser1234 parserValue CssValueBorderColor')
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parserValue :: Parser (CssParser, CssToken) [CssValueBorderColor]
@@ -809,7 +809,7 @@ data CssValueBorderStyle' = CssValueBorderStyle'
 
 
 parserPropertyBorderStyle :: Parser (CssParser, CssToken) CssProperty
-parserPropertyBorderStyle = Parser $ \ pat -> parse1234 parserValue pat CssPropertyBorderStyle CssValueBorderStyle'
+parserPropertyBorderStyle = CssPropertyBorderStyle <$> (mkParser1234 parserValue CssValueBorderStyle')
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parserValue :: Parser (CssParser, CssToken) [CssValueBorderStyle]
@@ -2122,7 +2122,7 @@ data CssValueMargin = CssValueMargin
 
 
 parserPropertyMargin :: Parser (CssParser, CssToken) CssProperty
-parserPropertyMargin = Parser $ \ pat -> parse1234 parserValue pat CssPropertyMargin CssValueMargin
+parserPropertyMargin = CssPropertyMargin <$> (mkParser1234 parserValue CssValueMargin)
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parserValue :: Parser (CssParser, CssToken) [CssValueMarginX]
@@ -2234,7 +2234,7 @@ data CssValuePadding = CssValuePadding
 
 
 parserPropertyPadding :: Parser (CssParser, CssToken) CssProperty
-parserPropertyPadding = Parser $ \ pat -> parse1234 parserValue pat CssPropertyPadding CssValuePadding
+parserPropertyPadding = CssPropertyPadding <$> (mkParser1234 parserValue CssValuePadding)
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
     parserValue :: Parser (CssParser, CssToken) [CssValuePaddingX]
@@ -2789,23 +2789,23 @@ parseDeclarationMultiple patArg propCtors = L.foldl f (patArg, []) propCtors
 
 
 
--- Parse 1, 2, 3 or 4 component values, where the component values are
--- specifying values for all sides of a box at once, or for t-b, r-l sides,
--- or for t, r-l, b sides, or for top, right, bottom, left sides.
+-- Make a parser that parses 1, 2, 3 or 4 component values, where the component values are
+-- specifying values for all sides of a box at once, or for (top-bottom)/(right-left) sides,
+-- or for top/(right-left)/bottom sides, or for top/right/bottom/left sides.
 --
 -- See this part of CSS spec
 -- (https://drafts.csswg.org/css-backgrounds-3/#propdef-border-style): "If
 -- there is only one component value, it applies to all sides. If there are
 -- two values, the top and bottom are set to the first value and the right
 -- and left are set to the second [...]"
-parse1234 :: Parser state [v] -> state -> (val -> prop) -> (v -> v -> v -> v -> val) -> Maybe (state, prop)
-parse1234 parser pat propCtor valueCtor =
-  case runParser parser pat of
-    Just (pat', [top, right, bottom, left]) -> Just (pat', propCtor $ valueCtor top right bottom left)
-    Just (pat', [top, rl, bottom])          -> Just (pat', propCtor $ valueCtor top rl    bottom rl)
-    Just (pat', [tb, rl])                   -> Just (pat', propCtor $ valueCtor tb  rl    tb     rl)
-    Just (pat', [v])                        -> Just (pat', propCtor $ valueCtor v   v     v      v)
-    _                                       -> Nothing
+mkParser1234 :: Parser input [compo] -> (compo -> compo -> compo -> compo -> value) -> Parser input value
+mkParser1234 parser componenetsToValue = Parser $ \ input ->
+  case runParser parser input of
+    Just (input', [top, right, bottom, left]) -> Just (input', componenetsToValue top right bottom left)
+    Just (input', [top, rl, bottom])          -> Just (input', componenetsToValue top rl    bottom rl)
+    Just (input', [tb, rl])                   -> Just (input', componenetsToValue tb  rl    tb     rl)
+    Just (input', [v])                        -> Just (input', componenetsToValue v   v     v      v)
+    _                                         -> Nothing
 
 
 
