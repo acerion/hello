@@ -34,7 +34,6 @@ Copyright assignment from css.cc:
 module Hello.Css.Parser.Property
   (
     CssProperty (..)
-  , CssDeclaration (..)
 
   , CssValueBackground (..)
   , CssValueBackgroundAttachment (..)
@@ -193,7 +192,6 @@ module Hello.Css.Parser.Property
   , parserPropertyZIndex
   , parserPropertyInvalid
 
-  , defaultDeclaration
   , defaultBorderTRBLWidth
   , defaultBorderTRBLStyle
   , defaultBorderTRBLColor
@@ -234,32 +232,6 @@ import Hello.Utils.Parser
 
 
 type ParserProperty = Parser (CssParser, CssToken) CssProperty
-
-
-
-
--- https://www.w3.org/TR/css-syntax-3/#declaration: "Conceptually,
--- declarations are a particular instance of associating a property or
--- descriptor name with a value. Syntactically, a declaration has a name, a
--- value consisting of a list of component values, and an important flag
--- which is initially unset."
---
--- Also https://www.w3.org/TR/css-syntax-3/#syntax-description: "Declarations
--- are separated by semicolons." (this is useful to know when parsing a
--- declaration).
-data CssDeclaration = CssDeclaration
-  { property  :: CssProperty
-  , important :: Bool
-  } deriving (Show, Eq)
-
-
-
-
-defaultDeclaration :: CssDeclaration
-defaultDeclaration = CssDeclaration
-  { property  = CssPropertyInvalid -- TODO: somewhere there is a code that does not set property2 field.
-  , important = False
-  }
 
 
 

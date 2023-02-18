@@ -71,6 +71,7 @@ import qualified Data.Map as M
 import qualified Data.Sequence as S
 --import Debug.Trace
 
+import Hello.Css.Declaration
 import Hello.Css.Tokenizer
 import Hello.Css.Parser.Property
 import Hello.Utils.Parser

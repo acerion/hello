@@ -65,6 +65,7 @@ import qualified Data.Sequence as S
 import qualified Data.Text as T
 --import Debug.Trace
 
+import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Parser.Declaration
 import Hello.Css.Parser.Property

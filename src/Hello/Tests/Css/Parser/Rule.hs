@@ -25,6 +25,7 @@ import qualified Data.Sequence as S
 import Test.HUnit
 --import Debug.Trace
 
+import Hello.Css.Declaration
 import Hello.Css.Tokenizer
 import Hello.Css.Parser.Declaration
 import Hello.Css.Parser.Rule
