@@ -24,10 +24,10 @@ import qualified Data.Text as T
 import Test.HUnit
 --import Debug.Trace
 
-import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
 import Hello.Css.Parser.Declaration
+import Hello.Css.Parser.Property
 
 
 

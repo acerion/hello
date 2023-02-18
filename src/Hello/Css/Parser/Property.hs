@@ -31,7 +31,7 @@ Copyright assignment from css.cc:
 
 
 
-module Hello.Css.Declaration
+module Hello.Css.Parser.Property
   (
     CssProperty (..)
   , CssDeclaration (..)
@@ -1516,7 +1516,7 @@ ctorCssPropertyFont pat = case makeCssPropertyFont pat of
 
 {-
 :m +Hello.Css.Tokenizer
-:m +Hello.Css.Declaration
+:m +Hello.Css.Parser.Property
 :m +Hello.Utils.Parser
 :m +Hello.Css.ParserHelpers
 :set prompt >
@@ -1541,7 +1541,7 @@ makeCssPropertyFont patArg = case runRecipe patArg of
 
 {-
 :m +Hello.Css.Tokenizer
-:m +Hello.Css.Declaration
+:m +Hello.Css.Parser.Property
 :m +Hello.Utils.Parser
 :m +Hello.Css.ParserHelpers
 :set prompt >
@@ -1683,7 +1683,7 @@ data CssValueFontFamily
 
 {-
 :m +Hello.Css.Tokenizer
-:m +Hello.Css.Declaration
+:m +Hello.Css.Parser.Property
 :m +Hello.Utils.Parser
 :m +Hello.Css.ParserHelpers
 :set prompt >

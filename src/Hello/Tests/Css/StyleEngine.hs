@@ -24,9 +24,9 @@ import qualified Data.Text as T
 import qualified Data.Sequence as S
 import Test.HUnit
 
-import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Parser.Declaration
+import Hello.Css.Parser.Property
 import Hello.Css.StyleEngine
 
 import Hello.Display

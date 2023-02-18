@@ -173,7 +173,7 @@ Unit-tested: yes
 
 :m +Hello.Css.Parser.Declaration
 :m +Hello.Css.Tokenizer
-:m +Hello.Css.Declaration
+:m +Hello.Css.Parser.Property
 :m +Hello.Css.Parser.Rule
 :set prompt >
 
@@ -201,7 +201,7 @@ parseAllDeclarations input                                 = parseAllDeclaration
 --
 -- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
--- :m +Hello.Css.Declaration
+-- :m +Hello.Css.Parser.Property
 --
 -- parseStyleRule (startTokenizer $ defaultParser "body {color:red ; background-color: #ffff00;line-height: normal h1{color:blue} h2{color: #001122} h3 {color : #998877;}")
 --
@@ -229,7 +229,7 @@ parserStyleRule = Parser $ \ pat -> do
 --
 -- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
--- :m +Hello.Css.Declaration
+-- :m +Hello.Css.Parser.Property
 --
 -- runParser parserDeclarationBlock (startTokenizer $ defaultParser "{} p.v")
 -- runParser parserDeclarationBlock (startTokenizer $ defaultParser "{color: rgb(0, 100, 0)} p.v")

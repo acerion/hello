@@ -71,8 +71,8 @@ import qualified Data.Map as M
 import qualified Data.Sequence as S
 --import Debug.Trace
 
-import Hello.Css.Declaration
 import Hello.Css.Tokenizer
+import Hello.Css.Parser.Property
 import Hello.Utils.Parser
 
 
@@ -282,7 +282,7 @@ parseImportantNotPresent pat@(_, t) = case runParser parser pat of
 --
 -- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
--- :m +Hello.Css.Declaration
+-- :m +Hello.Css.Parser.Property
 -- parseImportant ((startTokenizer . defaultParser $ "!important;"), defaultDeclaration)
 -- parseImportant ((startTokenizer . defaultParser $ "!important }"), defaultDeclaration)
 parseImportant :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
@@ -401,7 +401,7 @@ parseSingleDeclarationWrapper (pat, declSets) = (pat', declSets')
 --
 -- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
--- :m +Hello.Css.Declaration
+-- :m +Hello.Css.Parser.Property
 -- parseDeclarationStart ((startTokenizer . defaultParser $ " ; color: red"), defaultDeclaration)
 -- parseDeclarationStart ((startTokenizer . defaultParser $ "  color: red"), defaultDeclaration)
 -- parseDeclarationStart ((startTokenizer . defaultParserInBlock $ "   ; color: red"), defaultDeclaration)
@@ -421,7 +421,7 @@ parseDeclarationStart (pat, decl) = case runParser (many (parserTokenWhitespace 
 --
 -- :m +Hello.Css.Parser.Declaration
 -- :m +Hello.Css.Tokenizer
--- :m +Hello.Css.Declaration
+-- :m +Hello.Css.Parser.Property
 -- parseDeclarationEnd ((startTokenizer . defaultParser $ " ; color: red"), defaultDeclaration)
 -- parseDeclarationEnd ((startTokenizer . defaultParser $ "  color: red"), defaultDeclaration)
 -- parseDeclarationEnd ((startTokenizer . defaultParserInBlock $ "   ; color: red"), defaultDeclaration)
