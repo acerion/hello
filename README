@@ -63,3 +63,8 @@ make
 make install prefix=$HOME/$hello_rootdir
 LD_LIBRARY_PATH=$HOME/$hello_rootdir/lib ~/$hello_rootdir/bin/hello
 
+
+
+
+![](code_stats.png "Recent-ish output of code_stats.py")
+
