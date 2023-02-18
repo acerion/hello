@@ -89,109 +89,109 @@ module Hello.Css.Declaration
   , CssValueXLink (..)
   , CssValueXTooltip (..)
 
-  , ctorCssPropertyBackground
-  , makeCssPropertyBackgroundAttachment
-  , makeCssPropertyBackgroundColor
-  , makeCssPropertyBackgroundImage
-  , makeCssPropertyBackgroundPosition
-  , makeCssPropertyBackgroundRepeat
+  , parserPropertyBackground
+  , parserPropertyBackgroundAttachment
+  , parserPropertyBackgroundColor
+  , parserPropertyBackgroundImage
+  , parserPropertyBackgroundPosition
+  , parserPropertyBackgroundRepeat
 
-  , ctorCssPropertyBorder
-  , ctorCssPropertyBorderColor
-  , ctorCssPropertyBorderWidth
-  , ctorCssPropertyBorderStyle
+  , parserPropertyBorder
+  , parserPropertyBorderColor
+  , parserPropertyBorderWidth
+  , parserPropertyBorderStyle
 
-  , makeCssPropertyBorderTop
-  , makeCssPropertyBorderRight
-  , makeCssPropertyBorderBottom
-  , makeCssPropertyBorderLeft
+  , parserPropertyBorderTop
+  , parserPropertyBorderRight
+  , parserPropertyBorderBottom
+  , parserPropertyBorderLeft
 
-  , makeCssPropertyBorderCollapse
-  , makeCssPropertyBorderSpacing
+  , parserPropertyBorderCollapse
+  , parserPropertyBorderSpacing
 
-  , makeCssPropertyBorderTopColor
-  , makeCssPropertyBorderRightColor
-  , makeCssPropertyBorderBottomColor
-  , makeCssPropertyBorderLeftColor
+  , parserPropertyBorderTopColor
+  , parserPropertyBorderRightColor
+  , parserPropertyBorderBottomColor
+  , parserPropertyBorderLeftColor
 
-  , makeCssPropertyBorderTopStyle
-  , makeCssPropertyBorderRightStyle
-  , makeCssPropertyBorderBottomStyle
-  , makeCssPropertyBorderLeftStyle
+  , parserPropertyBorderTopStyle
+  , parserPropertyBorderRightStyle
+  , parserPropertyBorderBottomStyle
+  , parserPropertyBorderLeftStyle
 
-  , makeCssPropertyBorderTopWidth
-  , makeCssPropertyBorderRightWidth
-  , makeCssPropertyBorderBottomWidth
-  , makeCssPropertyBorderLeftWidth
+  , parserPropertyBorderTopWidth
+  , parserPropertyBorderRightWidth
+  , parserPropertyBorderBottomWidth
+  , parserPropertyBorderLeftWidth
 
-  , makeCssPropertyBottom
-  , makeCssPropertyCaptionSide
-  , makeCssPropertyClear
-  , makeCssPropertyClip
-  , makeCssPropertyColor
-  , makeCssPropertyContent
-  , makeCssPropertyCounterIncrement
-  , makeCssPropertyCounterReset
-  , makeCssPropertyCursor
-  , makeCssPropertyDirection
-  , makeCssPropertyDisplay
-  , makeCssPropertyEmptyCells
-  , makeCssPropertyFloat
+  , parserPropertyBottom
+  , parserPropertyCaptionSide
+  , parserPropertyClear
+  , parserPropertyClip
+  , parserPropertyColor
+  , parserPropertyContent
+  , parserPropertyCounterIncrement
+  , parserPropertyCounterReset
+  , parserPropertyCursor
+  , parserPropertyDirection
+  , parserPropertyDisplay
+  , parserPropertyEmptyCells
+  , parserPropertyFloat
 
-  , makeCssPropertyFont
-  , makeCssPropertyFontFamily
-  , makeCssPropertyFontSize
-  , makeCssPropertyFontSizeAdjust
-  , makeCssPropertyFontStretch
-  , makeCssPropertyFontStyle
-  , makeCssPropertyFontVariant
-  , makeCssPropertyFontWeight
+  , parserPropertyFont
+  , parserPropertyFontFamily
+  , parserPropertyFontSize
+  , parserPropertyFontSizeAdjust
+  , parserPropertyFontStretch
+  , parserPropertyFontStyle
+  , parserPropertyFontVariant
+  , parserPropertyFontWeight
 
-  , makeCssPropertyHeight
-  , makeCssPropertyLeft
-  , makeCssPropertyLetterSpacing
-  , makeCssPropertyLineHeight
-  , ctorCssPropertyListStyle
-  , ctorCssPropertyListStyleImage
-  , ctorCssPropertyListStylePosition
-  , ctorCssPropertyListStyleType
-  , makeCssPropertyMargin
-  , makeCssPropertyMarginBottom
-  , makeCssPropertyMarginLeft
-  , makeCssPropertyMarginRight
-  , makeCssPropertyMarginTop
-  , makeCssPropertyMarkerOffset
-  , makeCssPropertyMarks
-  , makeCssPropertyMaxHeight
-  , makeCssPropertyMaxWidth
-  , makeCssPropertyMinHeight
-  , makeCssPropertyMinWidth
-  , makeCssPropertyOutlineColor
-  , makeCssPropertyOutlineStyle
-  , makeCssPropertyOutlineWidth
-  , makeCssPropertyOverflow
-  , makeCssPropertyPadding
-  , makeCssPropertyPaddingBottom
-  , makeCssPropertyPaddingLeft
-  , makeCssPropertyPaddingRight
-  , makeCssPropertyPaddingTop
-  , makeCssPropertyPosition
-  , makeCssPropertyQuotes
-  , makeCssPropertyRight
-  , makeCssPropertyTextAlign
-  , makeCssPropertyTextDecoration
-  , makeCssPropertyTextIndent
-  , makeCssPropertyTextShadow
-  , makeCssPropertyTextTransform
-  , makeCssPropertyTop
-  , makeCssPropertyUnicodeBiDi
-  , makeCssPropertyVerticalAlign
-  , makeCssPropertyVisibility
-  , makeCssPropertyWhitespace
-  , makeCssPropertyWidth
-  , makeCssPropertyWordSpacing
-  , makeCssPropertyZIndex
-  , makeCssPropertyInvalid
+  , parserPropertyHeight
+  , parserPropertyLeft
+  , parserPropertyLetterSpacing
+  , parserPropertyLineHeight
+  , parserPropertyListStyle
+  , parserPropertyListStyleImage
+  , parserPropertyListStylePosition
+  , parserPropertyListStyleType
+  , parserPropertyMargin
+  , parserPropertyMarginBottom
+  , parserPropertyMarginLeft
+  , parserPropertyMarginRight
+  , parserPropertyMarginTop
+  , parserPropertyMarkerOffset
+  , parserPropertyMarks
+  , parserPropertyMaxHeight
+  , parserPropertyMaxWidth
+  , parserPropertyMinHeight
+  , parserPropertyMinWidth
+  , parserPropertyOutlineColor
+  , parserPropertyOutlineStyle
+  , parserPropertyOutlineWidth
+  , parserPropertyOverflow
+  , parserPropertyPadding
+  , parserPropertyPaddingBottom
+  , parserPropertyPaddingLeft
+  , parserPropertyPaddingRight
+  , parserPropertyPaddingTop
+  , parserPropertyPosition
+  , parserPropertyQuotes
+  , parserPropertyRight
+  , parserPropertyTextAlign
+  , parserPropertyTextDecoration
+  , parserPropertyTextIndent
+  , parserPropertyTextShadow
+  , parserPropertyTextTransform
+  , parserPropertyTop
+  , parserPropertyUnicodeBiDi
+  , parserPropertyVerticalAlign
+  , parserPropertyVisibility
+  , parserPropertyWhitespace
+  , parserPropertyWidth
+  , parserPropertyWordSpacing
+  , parserPropertyZIndex
+  , parserPropertyInvalid
 
   , defaultDeclaration
   , defaultBorderTRBLWidth
@@ -206,7 +206,7 @@ module Hello.Css.Declaration
   , initialValueListStylePosition
   , initialValueListStyleImage
 
-  , PropertyCtor
+  , ParserProperty
 
   , parserValueFontFamily
   )
@@ -233,7 +233,7 @@ import Hello.Utils.Parser
 
 
 
-type PropertyCtor = (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
+type ParserProperty = Parser (CssParser, CssToken) CssProperty
 
 
 
@@ -430,13 +430,13 @@ initialValueBackground = CssValueBackground
 
 
 
-ctorCssPropertyBackground :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBackground pat = (fmap . fmap) CssPropertyBackground (propertyValue pat)
+parserPropertyBackground :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBackground = CssPropertyBackground <$> parserValue
   where
     -- Run the combined parsers, get closures ("fs") returned by the parsers,
     -- and run the closures on initial value of property.
-    propertyValue pat' = (fmap . fmap) (\ fs -> fs initialValueBackground) (runParser (combinatorOneOrMoreUnordered parsers) pat')
-    parsers = [ parserBgColor, parserBgImage, parserBgPosition, parserBgRepeatStyle, parserBgAttachment ]
+    parserValue = fmap (\ fs -> fs initialValueBackground) (combinatorOneOrMoreUnordered parsers)
+    parsers     = [ parserBgColor, parserBgImage, parserBgPosition, parserBgRepeatStyle, parserBgAttachment ]
 
     -- TODO: sooner or later we will need to add here "many parserTokenWhitespace *>" in front of "parserValueBackground*".
     parserBgColor :: Parser (CssParser, CssToken) (CssValueBackground -> CssValueBackground)
@@ -480,8 +480,8 @@ cssValueBackgroundAttachmentDict = [ ("scroll",  CssValueBackgroundAttachmentScr
 
 
 
-makeCssPropertyBackgroundAttachment :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundAttachment pat = (fmap . fmap) CssPropertyBackgroundAttachment (runParser parserValueBackgroundAttachment pat)
+parserPropertyBackgroundAttachment :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBackgroundAttachment = CssPropertyBackgroundAttachment <$> parserValueBackgroundAttachment
 
 
 
@@ -548,8 +548,8 @@ cssValueBackgroundColorDict = [ ("inherit",    CssValueBackgroundColorInherit)
 
 
 
-makeCssPropertyBackgroundColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundColor pat = (fmap . fmap) CssPropertyBackgroundColor (runParser parserValueBackgroundColor pat)
+parserPropertyBackgroundColor :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBackgroundColor = CssPropertyBackgroundColor <$> parserValueBackgroundColor
 
 
 
@@ -580,8 +580,8 @@ initialValueBackgroundImage = CssValueBackgroundImageUri ""
 
 
 
-makeCssPropertyBackgroundImage :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundImage pat = (fmap . fmap) CssPropertyBackgroundImage (runParser parserValueBackgroundImage pat)
+parserPropertyBackgroundImage :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBackgroundImage = CssPropertyBackgroundImage <$> parserValueBackgroundImage
 
 
 
@@ -640,8 +640,8 @@ initialValueBackgroundPosition = CssValueBackgroundPositionXY 0 0
 
 
 
-makeCssPropertyBackgroundPosition :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundPosition pat = (fmap . fmap) CssPropertyBackgroundPosition (runParser parserValueBackgroundPosition pat)
+parserPropertyBackgroundPosition :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBackgroundPosition = CssPropertyBackgroundPosition <$> parserValueBackgroundPosition
 
 
 
@@ -684,8 +684,8 @@ cssValueBackgroundRepeatDict = [ ("repeat",     CssValueBackgroundRepeatRepeat)
 
 
 
-makeCssPropertyBackgroundRepeat :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBackgroundRepeat pat = (fmap . fmap) CssPropertyBackgroundRepeat (runParser parserValueBackgroundStyle pat)
+parserPropertyBackgroundRepeat :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBackgroundRepeat = CssPropertyBackgroundRepeat <$> parserValueBackgroundStyle
 
 
 
@@ -718,13 +718,13 @@ data CssValueBorder = CssValueBorder
 
 -- Parse "{ border = X Y Z }" CSS declaration. The simple trio of values
 -- should be expanded to full list of non-shortcu properties by style engine.
-ctorCssPropertyBorder :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBorder pat = (fmap . fmap) CssPropertyBorder (propertyValue pat)
+parserPropertyBorder :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorder = CssPropertyBorder <$> parserValue
   where
     -- Run the combined parsers, get closures ("fs") returned by the parsers,
     -- and run the closures on initial value of property.
-    propertyValue pat' = (fmap . fmap) (\ fs -> fs defaultValueBorderTRBL) (runParser (combinatorOneOrMoreUnordered parsers) pat')
-    parsers = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
+    parserValue = fmap (\ fs -> fs defaultValueBorderTRBL) (combinatorOneOrMoreUnordered parsers)
+    parsers     = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
 
 
 
@@ -750,12 +750,12 @@ data CssValueBorderWidth' = CssValueBorderWidth'
 
 
 
-ctorCssPropertyBorderWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBorderWidth pat = parse1234 parser pat CssPropertyBorderWidth CssValueBorderWidth'
+parserPropertyBorderWidth :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderWidth = Parser $ \ pat -> parse1234 parserValue pat CssPropertyBorderWidth CssValueBorderWidth'
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
-    parser :: Parser (CssParser, CssToken) [CssValueBorderWidth]
-    parser = some (many parserTokenWhitespace *> parserValueBorderWidth <* many parserTokenWhitespace)
+    parserValue :: Parser (CssParser, CssToken) [CssValueBorderWidth]
+    parserValue = some (many parserTokenWhitespace *> parserValueBorderWidth <* many parserTokenWhitespace)
 
 
 
@@ -781,12 +781,12 @@ data CssValueBorderColor' = CssValueBorderColor'
 
 
 
-ctorCssPropertyBorderColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBorderColor pat = parse1234 parser pat CssPropertyBorderColor CssValueBorderColor'
+parserPropertyBorderColor :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderColor = Parser $ \ pat -> parse1234 parserValue pat CssPropertyBorderColor CssValueBorderColor'
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
-    parser :: Parser (CssParser, CssToken) [CssValueBorderColor]
-    parser = some (many parserTokenWhitespace *> parserValueBorderColor <* many parserTokenWhitespace)
+    parserValue :: Parser (CssParser, CssToken) [CssValueBorderColor]
+    parserValue = some (many parserTokenWhitespace *> parserValueBorderColor <* many parserTokenWhitespace)
 
 
 
@@ -812,12 +812,12 @@ data CssValueBorderStyle' = CssValueBorderStyle'
 
 
 
-ctorCssPropertyBorderStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyBorderStyle pat = parse1234 parser pat CssPropertyBorderStyle CssValueBorderStyle'
+parserPropertyBorderStyle :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderStyle = Parser $ \ pat -> parse1234 parserValue pat CssPropertyBorderStyle CssValueBorderStyle'
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
-    parser :: Parser (CssParser, CssToken) [CssValueBorderStyle]
-    parser = some (many parserTokenWhitespace *> parserValueBorderStyle <* many parserTokenWhitespace)
+    parserValue :: Parser (CssParser, CssToken) [CssValueBorderStyle]
+    parserValue = some (many parserTokenWhitespace *> parserValueBorderStyle <* many parserTokenWhitespace)
 
 
 
@@ -870,13 +870,13 @@ defaultBorderTRBLColor = cssValueCurrentColor
 
 
 -- Parser of "border-top" property.
-makeCssPropertyBorderTop :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderTop pat = (fmap . fmap) CssPropertyBorderTop (propertyValue pat)
+parserPropertyBorderTop :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderTop = CssPropertyBorderTop <$> parserValue
   where
     -- Run the combined parsers, get closures ("fs") returned by the parsers,
     -- and run the closures on initial value of property.
-    propertyValue pat' = (fmap . fmap) (\ fs -> fs defaultValueBorderTRBL) (runParser (combinatorOneOrMoreUnordered parsers) pat')
-    parsers = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
+    parserValue = fmap (\ fs -> fs defaultValueBorderTRBL) (combinatorOneOrMoreUnordered parsers)
+    parsers     = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
 
 
 
@@ -910,13 +910,13 @@ parserBorderColorValue = mkParser (\ value acc -> acc { borderTRBLColor = value 
 
 
 -- Parser of "border-right" property.
-makeCssPropertyBorderRight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderRight pat = (fmap . fmap) CssPropertyBorderRight (propertyValue pat)
+parserPropertyBorderRight :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderRight = CssPropertyBorderRight <$> parserValue
   where
     -- Run the combined parsers, get closures ("fs") returned by the parsers,
     -- and run the closures on initial value of property.
-    propertyValue pat' = (fmap . fmap) (\ fs -> fs defaultValueBorderTRBL) (runParser (combinatorOneOrMoreUnordered parsers) pat')
-    parsers = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
+    parserValue = fmap (\ fs -> fs defaultValueBorderTRBL) (combinatorOneOrMoreUnordered parsers)
+    parsers     = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
 
 
 
@@ -932,13 +932,13 @@ makeCssPropertyBorderRight pat = (fmap . fmap) CssPropertyBorderRight (propertyV
 
 
 -- Parser of "border-bottom" property.
-makeCssPropertyBorderBottom :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderBottom pat = (fmap . fmap) CssPropertyBorderBottom (propertyValue pat)
+parserPropertyBorderBottom :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderBottom = CssPropertyBorderBottom <$> parserValue
   where
     -- Run the combined parsers, get closures ("fs") returned by the parsers,
     -- and run the closures on initial value of property.
-    propertyValue pat' = (fmap . fmap) (\ fs -> fs defaultValueBorderTRBL) (runParser (combinatorOneOrMoreUnordered parsers) pat')
-    parsers = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
+    parserValue = fmap (\ fs -> fs defaultValueBorderTRBL) (combinatorOneOrMoreUnordered parsers)
+    parsers     = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
 
 
 
@@ -954,13 +954,13 @@ makeCssPropertyBorderBottom pat = (fmap . fmap) CssPropertyBorderBottom (propert
 
 
 -- Parser of "border-left" property.
-makeCssPropertyBorderLeft :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderLeft pat = (fmap . fmap) CssPropertyBorderLeft (propertyValue pat)
+parserPropertyBorderLeft :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderLeft = CssPropertyBorderLeft <$> parserValue
   where
     -- Run the combined parsers, get closures ("fs") returned by the parsers,
     -- and run the closures on initial value of property.
-    propertyValue pat' = (fmap . fmap) (\ fs -> fs defaultValueBorderTRBL) (runParser (combinatorOneOrMoreUnordered parsers) pat')
-    parsers = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
+    parserValue = fmap (\ fs -> fs defaultValueBorderTRBL) (combinatorOneOrMoreUnordered parsers)
+    parsers     = [ parserBorderWidthValue, parserBorderStyleValue, parserBorderColorValue ]
 
 
 
@@ -988,10 +988,10 @@ cssValueBorderCollapseDict = [ ("separate",   CssValueBorderCollapseSeparate)
 
 
 
-makeCssPropertyBorderCollapse :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderCollapse pat = (fmap . fmap) CssPropertyBorderCollapse (runParser parser pat)
+parserPropertyBorderCollapse :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderCollapse = CssPropertyBorderCollapse <$> parserValue
   where
-    parser = mkParserEnum cssValueBorderCollapseDict
+    parserValue = mkParserEnum cssValueBorderCollapseDict
 
 
 
@@ -1010,10 +1010,10 @@ data CssValueBorderSpacing
 
 
 
-makeCssPropertyBorderSpacing :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderSpacing pat = (fmap . fmap) (CssPropertyBorderSpacing . CssValueBorderSpacingDistance) (runParser parser pat)
+parserPropertyBorderSpacing :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderSpacing = (CssPropertyBorderSpacing . CssValueBorderSpacingDistance) <$> parserValue
   where
-    parser = mkParserLength False
+    parserValue = mkParserLength False
 
 
 
@@ -1045,12 +1045,6 @@ cssValueBorderColorDict = [ ("transparent", CssValueBorderColorTransparent)
 
 
 
-parseTokensAsBorderColorValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBorderColor)
-parseTokensAsBorderColorValue pat = runParser parserValueBorderColor pat
-
-
-
-
 parserValueBorderColor :: Parser (CssParser, CssToken) CssValueBorderColor
 parserValueBorderColor = mkParserEnum cssValueBorderColorDict
                          <|> fmap CssValueBorderColor parserColor
@@ -1058,34 +1052,26 @@ parserValueBorderColor = mkParserEnum cssValueBorderColorDict
 
 
 
-makeCssPropertyBorderXColor :: (CssValueBorderColor -> CssProperty) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderXColor propCtor pat = (fmap . fmap) propCtor (parser pat)
-  where
-    parser = parseTokensAsBorderColorValue
+parserPropertyBorderTopColor :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderTopColor = CssPropertyBorderTopColor <$> parserValueBorderColor
 
 
 
 
-makeCssPropertyBorderTopColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderTopColor = makeCssPropertyBorderXColor CssPropertyBorderTopColor
+parserPropertyBorderRightColor :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderRightColor = CssPropertyBorderRightColor <$> parserValueBorderColor
 
 
 
 
-makeCssPropertyBorderRightColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderRightColor = makeCssPropertyBorderXColor CssPropertyBorderRightColor
+parserPropertyBorderBottomColor :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderBottomColor = CssPropertyBorderBottomColor <$> parserValueBorderColor
 
 
 
 
-makeCssPropertyBorderBottomColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderBottomColor = makeCssPropertyBorderXColor CssPropertyBorderBottomColor
-
-
-
-
-makeCssPropertyBorderLeftColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderLeftColor = makeCssPropertyBorderXColor CssPropertyBorderLeftColor
+parserPropertyBorderLeftColor :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderLeftColor = CssPropertyBorderLeftColor <$> parserValueBorderColor
 
 
 
@@ -1133,37 +1119,23 @@ cssValueBorderStyleDict = [ ("none",     CssValueBorderStyleNone)
 
 
 
-parseTokensAsBorderStyleValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueBorderStyle)
-parseTokensAsBorderStyleValue pat = runParser parserValueBorderStyle pat
-
-
-
-
 parserValueBorderStyle :: Parser (CssParser, CssToken) CssValueBorderStyle
 parserValueBorderStyle = mkParserEnum cssValueBorderStyleDict
 
 
 
 
-makeCssPropertyBorderXStyle :: (CssValueBorderStyle -> CssProperty) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderXStyle propCtor pat = (fmap . fmap) propCtor (parser pat)
-  where
-    parser = parseTokensAsBorderStyleValue
+parserPropertyBorderTopStyle :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderTopStyle = CssPropertyBorderTopStyle <$> parserValueBorderStyle
 
+parserPropertyBorderRightStyle :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderRightStyle = CssPropertyBorderRightStyle <$> parserValueBorderStyle
 
+parserPropertyBorderBottomStyle :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderBottomStyle = CssPropertyBorderBottomStyle <$> parserValueBorderStyle
 
-
-makeCssPropertyBorderTopStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderTopStyle = makeCssPropertyBorderXStyle CssPropertyBorderTopStyle
-
-makeCssPropertyBorderRightStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderRightStyle = makeCssPropertyBorderXStyle CssPropertyBorderRightStyle
-
-makeCssPropertyBorderBottomStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderBottomStyle = makeCssPropertyBorderXStyle CssPropertyBorderBottomStyle
-
-makeCssPropertyBorderLeftStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderLeftStyle = makeCssPropertyBorderXStyle CssPropertyBorderLeftStyle
+parserPropertyBorderLeftStyle :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderLeftStyle = CssPropertyBorderLeftStyle <$> parserValueBorderStyle
 
 
 
@@ -1218,17 +1190,17 @@ makeCssPropertyBorderXWidth propCtor pat = (fmap . fmap) propCtor (parser pat)
 
 
 
-makeCssPropertyBorderTopWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderTopWidth = makeCssPropertyBorderXWidth CssPropertyBorderTopWidth
+parserPropertyBorderTopWidth :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderTopWidth = Parser $ \ pat -> makeCssPropertyBorderXWidth CssPropertyBorderTopWidth pat
 
-makeCssPropertyBorderRightWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderRightWidth = makeCssPropertyBorderXWidth CssPropertyBorderRightWidth
+parserPropertyBorderRightWidth :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderRightWidth = Parser $ \ pat -> makeCssPropertyBorderXWidth CssPropertyBorderRightWidth pat
 
-makeCssPropertyBorderBottomWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderBottomWidth = makeCssPropertyBorderXWidth CssPropertyBorderBottomWidth
+parserPropertyBorderBottomWidth :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderBottomWidth = Parser $ \ pat -> makeCssPropertyBorderXWidth CssPropertyBorderBottomWidth pat
 
-makeCssPropertyBorderLeftWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyBorderLeftWidth = makeCssPropertyBorderXWidth CssPropertyBorderLeftWidth
+parserPropertyBorderLeftWidth :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBorderLeftWidth = Parser $ \ pat -> makeCssPropertyBorderXWidth CssPropertyBorderLeftWidth pat
 
 
 
@@ -1240,17 +1212,17 @@ makeCssPropertyBorderLeftWidth = makeCssPropertyBorderXWidth CssPropertyBorderLe
 
 
 
-makeCssPropertyBottom :: CssValue -> CssProperty
-makeCssPropertyBottom v = CssPropertyBottom v
+parserPropertyBottom :: CssValue -> CssProperty
+parserPropertyBottom v = CssPropertyBottom v
 
-makeCssPropertyCaptionSide :: CssValue -> CssProperty
-makeCssPropertyCaptionSide v = CssPropertyCaptionSide v
+parserPropertyCaptionSide :: CssValue -> CssProperty
+parserPropertyCaptionSide v = CssPropertyCaptionSide v
 
-makeCssPropertyClear :: CssValue -> CssProperty
-makeCssPropertyClear v = CssPropertyClear v
+parserPropertyClear :: CssValue -> CssProperty
+parserPropertyClear v = CssPropertyClear v
 
-makeCssPropertyClip :: CssValue -> CssProperty
-makeCssPropertyClip v = CssPropertyClip v
+parserPropertyClip :: CssValue -> CssProperty
+parserPropertyClip v = CssPropertyClip v
 
 
 
@@ -1277,10 +1249,10 @@ cssValueColorDict = [ ("inherit", CssValueColorInherit)
 
 
 
-makeCssPropertyColor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyColor pat = (fmap . fmap) CssPropertyColor (runParser parser pat)
+parserPropertyColor :: Parser (CssParser, CssToken) CssProperty
+parserPropertyColor = CssPropertyColor <$> parserValue
   where
-    parser = mkParserEnum cssValueColorDict <|> fmap CssValueColor parserColor
+    parserValue = mkParserEnum cssValueColorDict <|> fmap CssValueColor parserColor
 
 
 
@@ -1302,10 +1274,10 @@ data CssValueContent
 
 
 
-makeCssPropertyContent :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyContent pat = (fmap . fmap) (CssPropertyContent . CssValueContent) (runParser parser pat)
+parserPropertyContent :: Parser (CssParser, CssToken) CssProperty
+parserPropertyContent = (CssPropertyContent . CssValueContent) <$> parserValue
   where
-    parser = parserTokenStringValue
+    parserValue = parserTokenStringValue
 
 
 
@@ -1317,11 +1289,11 @@ makeCssPropertyContent pat = (fmap . fmap) (CssPropertyContent . CssValueContent
 
 
 
-makeCssPropertyCounterIncrement :: CssValue -> CssProperty
-makeCssPropertyCounterIncrement v = CssPropertyCounterIncrement v
+parserPropertyCounterIncrement :: CssValue -> CssProperty
+parserPropertyCounterIncrement v = CssPropertyCounterIncrement v
 
-makeCssPropertyCounterReset :: CssValue -> CssProperty
-makeCssPropertyCounterReset v = CssPropertyCounterReset v
+parserPropertyCounterReset :: CssValue -> CssProperty
+parserPropertyCounterReset v = CssPropertyCounterReset v
 
 
 
@@ -1374,10 +1346,10 @@ cssValueCursorDict = [ ("crosshair", CssValueCursorCrosshair)
 
 
 
-makeCssPropertyCursor :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyCursor pat = (fmap . fmap) CssPropertyCursor (runParser parser pat)
+parserPropertyCursor :: Parser (CssParser, CssToken) CssProperty
+parserPropertyCursor = CssPropertyCursor <$> parserValue
   where
-    parser = mkParserEnum cssValueCursorDict
+    parserValue = mkParserEnum cssValueCursorDict
 
 
 
@@ -1389,8 +1361,8 @@ makeCssPropertyCursor pat = (fmap . fmap) CssPropertyCursor (runParser parser pa
 
 
 
-makeCssPropertyDirection :: CssValue -> CssProperty
-makeCssPropertyDirection v = CssPropertyDirection v
+parserPropertyDirection :: CssValue -> CssProperty
+parserPropertyDirection v = CssPropertyDirection v
 
 
 
@@ -1436,10 +1408,10 @@ cssValueDisplayDict = [ ("block",              CssValueDisplayBlock)
 
 
 
-makeCssPropertyDisplay :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyDisplay pat = (fmap . fmap) CssPropertyDisplay (runParser parser pat)
+parserPropertyDisplay :: Parser (CssParser, CssToken) CssProperty
+parserPropertyDisplay = CssPropertyDisplay <$> parserValue
   where
-    parser = mkParserEnum cssValueDisplayDict
+    parserValue = mkParserEnum cssValueDisplayDict
 
 
 
@@ -1451,11 +1423,11 @@ makeCssPropertyDisplay pat = (fmap . fmap) CssPropertyDisplay (runParser parser 
 
 
 
-makeCssPropertyEmptyCells :: CssValue -> CssProperty
-makeCssPropertyEmptyCells v = CssPropertyEmptyCells v
+parserPropertyEmptyCells :: CssValue -> CssProperty
+parserPropertyEmptyCells v = CssPropertyEmptyCells v
 
-makeCssPropertyFloat :: CssValue -> CssProperty
-makeCssPropertyFloat v = CssPropertyFloat v
+parserPropertyFloat :: CssValue -> CssProperty
+parserPropertyFloat v = CssPropertyFloat v
 
 
 
@@ -1573,12 +1545,12 @@ makeCssPropertyFont patArg = case runRecipe patArg of
 :m +Hello.Utils.Parser
 :m +Hello.Css.ParserHelpers
 :set prompt >
-makeCssPropertyFont ((startTokenizer . defaultParser $ "8px serif"))
+parserPropertyFont ((startTokenizer . defaultParser $ "8px serif"))
 -}
-makeCssPropertyFont :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFont patArg = case runParser parser patArg of
-                               Just (pat', fs) -> Just (pat', CssPropertyFont (fs defaultCssValueFont))
-                               Nothing         -> Nothing
+parserPropertyFont :: Parser (CssParser, CssToken) CssProperty
+parserPropertyFont = Parser $ \ pat -> case runParser parserValue pat of
+                                         Just (pat', fs) -> Just (pat', CssPropertyFont (fs defaultCssValueFont))
+                                         Nothing         -> Nothing
 
   -- style: italic
   -- variant: small-caps
@@ -1587,14 +1559,14 @@ makeCssPropertyFont patArg = case runParser parser patArg of
   -- font family: serif
 
   where
-    parser = combinatorExactlyOne [ multiplierOnce (combinatorAllInOrder [ multiplierZeroOrOnce (combinatorOneOrMoreUnordered [parserFontStyle, parserFontVariant, parserFontWeight])
-                                                                         , multiplierOnce parserFontSize
-                                                                           -- TODO: there should be a parser for "/" token here (a combination of "/" and height).
-                                                                           -- , multiplierZeroOrOnce lineHeight2 TODO: re-enable
-                                                                         , multiplierOnce parserFontFamily
-                                                                         ])
-                                  , multiplierOnce parserFontEnum
-                                  ]
+    parserValue = combinatorExactlyOne [ multiplierOnce (combinatorAllInOrder [ multiplierZeroOrOnce (combinatorOneOrMoreUnordered [parserFontStyle, parserFontVariant, parserFontWeight])
+                                                                              , multiplierOnce parserFontSize
+                                                                              -- TODO: there should be a parser for "/" token here (a combination of "/" and height).
+                                                                              -- , multiplierZeroOrOnce lineHeight2 TODO: re-enable
+                                                                              , multiplierOnce parserFontFamily
+                                                                              ])
+                                       , multiplierOnce parserFontEnum
+                                       ]
 
 
 
@@ -1706,12 +1678,12 @@ data CssValueFontFamily
 :m +Hello.Utils.Parser
 :m +Hello.Css.ParserHelpers
 :set prompt >
-makeCssPropertyFontFamily ((startTokenizer . defaultParser $ "serif"))
-makeCssPropertyFontFamily ((startTokenizer . defaultParser $ "\"serif\""))
-makeCssPropertyFontFamily ((startTokenizer . defaultParser $ "serif, \"hello\""))
+parserPropertyFontFamily ((startTokenizer . defaultParser $ "serif"))
+parserPropertyFontFamily ((startTokenizer . defaultParser $ "\"serif\""))
+parserPropertyFontFamily ((startTokenizer . defaultParser $ "serif, \"hello\""))
 -}
-makeCssPropertyFontFamily :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontFamily pat = (fmap . fmap) CssPropertyFontFamily (runParser parserValueFontFamily pat)
+parserPropertyFontFamily :: Parser (CssParser, CssToken) CssProperty
+parserPropertyFontFamily = CssPropertyFontFamily <$> parserValueFontFamily
 
 
 
@@ -1776,8 +1748,8 @@ cssValueFontSizeDict = [ ("xx-small", CssValueFontSizeXXSmall)
 
 
 
-makeCssPropertyFontSize :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontSize pat = (fmap . fmap) CssPropertyFontSize (runParser parserValueFontSize pat)
+parserPropertyFontSize :: Parser (CssParser, CssToken) CssProperty
+parserPropertyFontSize = CssPropertyFontSize <$> parserValueFontSize
 
 
 
@@ -1797,11 +1769,11 @@ parserValueFontSize = mkParserEnum cssValueFontSizeDict
 
 
 
-makeCssPropertyFontSizeAdjust :: CssValue -> CssProperty
-makeCssPropertyFontSizeAdjust v = CssPropertyFontSizeAdjust v
+parserPropertyFontSizeAdjust :: CssValue -> CssProperty
+parserPropertyFontSizeAdjust v = CssPropertyFontSizeAdjust v
 
-makeCssPropertyFontStretch :: CssValue -> CssProperty
-makeCssPropertyFontStretch v = CssPropertyFontStretch v
+parserPropertyFontStretch :: CssValue -> CssProperty
+parserPropertyFontStretch v = CssPropertyFontStretch v
 
 
 
@@ -1831,8 +1803,8 @@ cssValueFontStyleDict = [ ("normal",  CssValueFontStyleNormal)
 
 
 
-makeCssPropertyFontStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontStyle pat = (fmap . fmap) CssPropertyFontStyle (runParser parserValueFontStyle pat)
+parserPropertyFontStyle :: Parser (CssParser, CssToken) CssProperty
+parserPropertyFontStyle = CssPropertyFontStyle <$> parserValueFontStyle
 
 
 
@@ -1866,8 +1838,8 @@ cssValueFontVariantDict = [ ("normal",  CssValueFontVariantNormal)
 
 
 
-makeCssPropertyFontVariant :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontVariant pat = (fmap . fmap) CssPropertyFontVariant (runParser parserValueFontVariant pat)
+parserPropertyFontVariant :: Parser (CssParser, CssToken) CssProperty
+parserPropertyFontVariant = CssPropertyFontVariant <$> parserValueFontVariant
 
 
 
@@ -1907,8 +1879,8 @@ cssValueFontWeightDict = [ ("normal",  CssValueFontWeightNormal)
 
 
 
-makeCssPropertyFontWeight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyFontWeight pat = (fmap . fmap) CssPropertyFontWeight (runParser parserValueFontWeight pat)
+parserPropertyFontWeight :: Parser (CssParser, CssToken) CssProperty
+parserPropertyFontWeight = CssPropertyFontWeight <$> parserValueFontWeight
 
 
 
@@ -1936,10 +1908,10 @@ data CssValueHeight
 
 
 -- TODO: CSS2.2 says: "Negative values for 'height' are illegal.". Implement this.
-makeCssPropertyHeight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyHeight pat = (fmap . fmap) (CssPropertyHeight . CssValueHeightDistance) (runParser parser pat)
+parserPropertyHeight :: Parser (CssParser, CssToken) CssProperty
+parserPropertyHeight = (CssPropertyHeight . CssValueHeightDistance) <$> parserValue
   where
-    parser = mkParserLength False <|> parserDistanceAuto
+    parserValue = mkParserLength False <|> parserDistanceAuto
 
 
 
@@ -1951,8 +1923,8 @@ makeCssPropertyHeight pat = (fmap . fmap) (CssPropertyHeight . CssValueHeightDis
 
 
 
-makeCssPropertyLeft :: CssValue -> CssProperty
-makeCssPropertyLeft v = CssPropertyLeft v
+parserPropertyLeft :: CssValue -> CssProperty
+parserPropertyLeft v = CssPropertyLeft v
 
 
 
@@ -1979,11 +1951,11 @@ cssValueLetterSpacingDict = [ ("normal",    CssValueLetterSpacingNormal)
 
 
 
-makeCssPropertyLetterSpacing :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyLetterSpacing pat = (fmap . fmap) CssPropertyLetterSpacing (runParser parser pat)
+parserPropertyLetterSpacing :: Parser (CssParser, CssToken) CssProperty
+parserPropertyLetterSpacing = CssPropertyLetterSpacing <$> parserValue
   where
-    parser = mkParserEnum cssValueLetterSpacingDict
-             <|> fmap CssValueLetterSpacingDistance (mkParserLength False)
+    parserValue = mkParserEnum cssValueLetterSpacingDict
+                  <|> fmap CssValueLetterSpacingDistance (mkParserLength False)
 
 
 
@@ -2010,14 +1982,14 @@ cssValueLineHeightDict = [ ("normal",    CssValueLineHeightNormal)
 
 
 
-makeCssPropertyLineHeight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyLineHeight pat = (fmap . fmap) CssPropertyLineHeight (runParser parser pat)
+parserPropertyLineHeight :: Parser (CssParser, CssToken) CssProperty
+parserPropertyLineHeight = CssPropertyLineHeight <$> parserValue
   where
-    parser = mkParserEnum cssValueLineHeightDict
-             -- True: Original dillo code allowed unitless numeric values for
-             -- zero and for values of type "length/percent/number". Line
-             -- height was one of the properties that had this type.
-             <|> fmap CssValueLineHeightDistance (mkParserLength True)
+    parserValue = mkParserEnum cssValueLineHeightDict
+                  -- True: Original dillo code allowed unitless numeric values for
+                  -- zero and for values of type "length/percent/number". Line
+                  -- height was one of the properties that had this type.
+                  <|> fmap CssValueLineHeightDistance (mkParserLength True)
 
 
 
@@ -2054,12 +2026,12 @@ initialValueListStyle = CssValueListStyle initialValueListStyleType initialValue
 
 
 -- Parser of "list-style" property.
-ctorCssPropertyListStyle :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyListStyle pat = (fmap . fmap) CssPropertyListStyle (propertyValue pat)
+parserPropertyListStyle :: Parser (CssParser, CssToken) CssProperty
+parserPropertyListStyle = CssPropertyListStyle <$> parserValue
   where
     -- Run the combined parsers, get closures ("fs") returned by the parsers,
     -- and run the closures on initial value of property.
-    propertyValue pat' = (fmap . fmap) (\ fs -> fs initialValueListStyle) (runParser (combinatorOneOrMoreUnordered parsers) pat')
+    parserValue = fmap (\ fs -> fs initialValueListStyle) (combinatorOneOrMoreUnordered parsers)
     parsers = [ parserType, parserPosition, parserImage ]
 
     parserType :: Parser (CssParser, CssToken) (CssValueListStyle -> CssValueListStyle)
@@ -2092,14 +2064,8 @@ initialValueListStyleImage = CssValueListStyleImageNone
 
 
 
-ctorCssPropertyListStyleImage :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyListStyleImage pat = (fmap . fmap) CssPropertyListStyleImage (ctorValueListStyleImage pat)
-
-
-
-
-ctorValueListStyleImage :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueListStyleImage)
-ctorValueListStyleImage pat = runParser parserValueListStyleImage pat
+parserPropertyListStyleImage :: Parser (CssParser, CssToken) CssProperty
+parserPropertyListStyleImage = CssPropertyListStyleImage <$> parserValueListStyleImage
 
 
 
@@ -2139,14 +2105,8 @@ cssValueListStylePositionDict = [ ("inside",               CssValueListStylePosi
 
 
 
-ctorCssPropertyListStylePosition :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyListStylePosition pat = (fmap . fmap) CssPropertyListStylePosition (ctorValueListStylePosition pat)
-
-
-
-
-ctorValueListStylePosition :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueListStylePosition)
-ctorValueListStylePosition pat = runParser parserValueListStylePosition pat
+parserPropertyListStylePosition :: Parser (CssParser, CssToken) CssProperty
+parserPropertyListStylePosition = CssPropertyListStylePosition <$> parserValueListStylePosition
 
 
 
@@ -2223,8 +2183,8 @@ cssValueListStyleTypeDict = [ ("disc",                 CssValueListStyleTypeDisc
 
 
 
-ctorCssPropertyListStyleType :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-ctorCssPropertyListStyleType pat = (fmap . fmap) CssPropertyListStyleType (runParser parserValueListStyleType pat)
+parserPropertyListStyleType :: Parser (CssParser, CssToken) CssProperty
+parserPropertyListStyleType = CssPropertyListStyleType <$> parserValueListStyleType
 
 
 
@@ -2255,12 +2215,12 @@ data CssValueMargin = CssValueMargin
 
 
 
-makeCssPropertyMargin :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyMargin pat = parse1234 parser pat CssPropertyMargin CssValueMargin
+parserPropertyMargin :: Parser (CssParser, CssToken) CssProperty
+parserPropertyMargin = Parser $ \ pat -> parse1234 parserValue pat CssPropertyMargin CssValueMargin
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
-    parser :: Parser (CssParser, CssToken) [CssValueMarginX]
-    parser = some (many parserTokenWhitespace *> marginValueParser <* many parserTokenWhitespace)
+    parserValue :: Parser (CssParser, CssToken) [CssValueMarginX]
+    parserValue = some (many parserTokenWhitespace *> parserValueMargin <* many parserTokenWhitespace)
 
 
 
@@ -2285,37 +2245,23 @@ data CssValueMarginX
 
 
 
-makeCssPropertyMarginX :: (CssValueMarginX -> CssProperty) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyMarginX propCtor pat = (fmap . fmap) propCtor (parser pat)
-  where
-    parser = parseTokensAsMarginValue
+parserValueMargin :: Parser (CssParser, CssToken) CssValueMarginX
+parserValueMargin = fmap CssValueMarginXDistance (mkParserLength False <|> parserDistanceAuto)
 
 
 
 
-marginValueParser :: Parser (CssParser, CssToken) CssValueMarginX
-marginValueParser = fmap CssValueMarginXDistance (mkParserLength False <|> parserDistanceAuto)
+parserPropertyMarginTop :: Parser (CssParser, CssToken) CssProperty
+parserPropertyMarginTop = CssPropertyMarginTop <$> parserValueMargin
 
+parserPropertyMarginRight :: Parser (CssParser, CssToken) CssProperty
+parserPropertyMarginRight = CssPropertyMarginRight <$> parserValueMargin
 
+parserPropertyMarginBottom :: Parser (CssParser, CssToken) CssProperty
+parserPropertyMarginBottom = CssPropertyMarginBottom <$> parserValueMargin
 
-
-parseTokensAsMarginValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValueMarginX)
-parseTokensAsMarginValue pat = runParser marginValueParser pat
-
-
-
-
-makeCssPropertyMarginTop :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyMarginTop = makeCssPropertyMarginX CssPropertyMarginTop
-
-makeCssPropertyMarginRight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyMarginRight = makeCssPropertyMarginX CssPropertyMarginRight
-
-makeCssPropertyMarginBottom :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyMarginBottom = makeCssPropertyMarginX CssPropertyMarginBottom
-
-makeCssPropertyMarginLeft :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyMarginLeft = makeCssPropertyMarginX CssPropertyMarginLeft
+parserPropertyMarginLeft :: Parser (CssParser, CssToken) CssProperty
+parserPropertyMarginLeft = CssPropertyMarginLeft <$> parserValueMargin
 
 
 
@@ -2327,35 +2273,35 @@ makeCssPropertyMarginLeft = makeCssPropertyMarginX CssPropertyMarginLeft
 
 
 
-makeCssPropertyMarkerOffset :: CssValue -> CssProperty
-makeCssPropertyMarkerOffset v = CssPropertyMarkerOffset v
+parserPropertyMarkerOffset :: CssValue -> CssProperty
+parserPropertyMarkerOffset v = CssPropertyMarkerOffset v
 
-makeCssPropertyMarks :: CssValue -> CssProperty
-makeCssPropertyMarks v = CssPropertyMarks v
+parserPropertyMarks :: CssValue -> CssProperty
+parserPropertyMarks v = CssPropertyMarks v
 
-makeCssPropertyMaxHeight :: CssValue -> CssProperty
-makeCssPropertyMaxHeight v = CssPropertyMaxHeight v
+parserPropertyMaxHeight :: CssValue -> CssProperty
+parserPropertyMaxHeight v = CssPropertyMaxHeight v
 
-makeCssPropertyMaxWidth :: CssValue -> CssProperty
-makeCssPropertyMaxWidth v = CssPropertyMaxWidth v
+parserPropertyMaxWidth :: CssValue -> CssProperty
+parserPropertyMaxWidth v = CssPropertyMaxWidth v
 
-makeCssPropertyMinHeight :: CssValue -> CssProperty
-makeCssPropertyMinHeight v = CssPropertyMinHeight v
+parserPropertyMinHeight :: CssValue -> CssProperty
+parserPropertyMinHeight v = CssPropertyMinHeight v
 
-makeCssPropertyMinWidth :: CssValue -> CssProperty
-makeCssPropertyMinWidth v = CssPropertyMinWidth v
+parserPropertyMinWidth :: CssValue -> CssProperty
+parserPropertyMinWidth v = CssPropertyMinWidth v
 
-makeCssPropertyOutlineColor :: CssValue -> CssProperty
-makeCssPropertyOutlineColor v = CssPropertyOutlineColor v
+parserPropertyOutlineColor :: CssValue -> CssProperty
+parserPropertyOutlineColor v = CssPropertyOutlineColor v
 
-makeCssPropertyOutlineStyle :: CssValue -> CssProperty
-makeCssPropertyOutlineStyle v = CssPropertyOutlineStyle v
+parserPropertyOutlineStyle :: CssValue -> CssProperty
+parserPropertyOutlineStyle v = CssPropertyOutlineStyle v
 
-makeCssPropertyOutlineWidth :: CssValue -> CssProperty
-makeCssPropertyOutlineWidth v = CssPropertyOutlineWidth v
+parserPropertyOutlineWidth :: CssValue -> CssProperty
+parserPropertyOutlineWidth v = CssPropertyOutlineWidth v
 
-makeCssPropertyOverflow :: CssValue -> CssProperty
-makeCssPropertyOverflow v = CssPropertyOverflow v
+parserPropertyOverflow :: CssValue -> CssProperty
+parserPropertyOverflow v = CssPropertyOverflow v
 
 
 
@@ -2381,12 +2327,12 @@ data CssValuePadding = CssValuePadding
 
 
 
-makeCssPropertyPadding :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyPadding pat = parse1234 parser pat CssPropertyPadding CssValuePadding
+parserPropertyPadding :: Parser (CssParser, CssToken) CssProperty
+parserPropertyPadding = Parser $ \ pat -> parse1234 parserValue pat CssPropertyPadding CssValuePadding
   where
     -- TODO: check if we should use 'many' or 'some' for space parsers.
-    parser :: Parser (CssParser, CssToken) [CssValuePaddingX]
-    parser = some (many parserTokenWhitespace *> paddingValueParser <* many parserTokenWhitespace)
+    parserValue :: Parser (CssParser, CssToken) [CssValuePaddingX]
+    parserValue = some (many parserTokenWhitespace *> parserValuePadding <* many parserTokenWhitespace)
 
 
 
@@ -2409,39 +2355,24 @@ data CssValuePaddingX
 
 
 
-makeCssPropertyPaddingX :: (CssValuePaddingX -> CssProperty) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyPaddingX propCtor pat = (fmap . fmap) propCtor (parser pat)
-  where
-    parser = parseTokensAsPaddingValue
-
-
-
-
-parseTokensAsPaddingValue :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssValuePaddingX)
-parseTokensAsPaddingValue pat = runParser paddingValueParser pat
-
-
-
-
  -- TODO: do we allow "1.0" (i.e. without unit) to be a valid value of padding?
-paddingValueParser :: Parser (CssParser, CssToken) CssValuePaddingX
-paddingValueParser = fmap CssValuePaddingX (mkParserLength False)
+parserValuePadding :: Parser (CssParser, CssToken) CssValuePaddingX
+parserValuePadding = fmap CssValuePaddingX (mkParserLength False)
 
 
 
 
-makeCssPropertyPaddingTop :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyPaddingTop    = makeCssPropertyPaddingX CssPropertyPaddingTop
+parserPropertyPaddingTop :: Parser (CssParser, CssToken) CssProperty
+parserPropertyPaddingTop = CssPropertyPaddingTop <$> parserValuePadding
 
-makeCssPropertyPaddingRight :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyPaddingRight = makeCssPropertyPaddingX CssPropertyPaddingRight
+parserPropertyPaddingRight :: Parser (CssParser, CssToken) CssProperty
+parserPropertyPaddingRight = CssPropertyPaddingRight <$> parserValuePadding
 
-makeCssPropertyPaddingBottom :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyPaddingBottom = makeCssPropertyPaddingX CssPropertyPaddingBottom
+parserPropertyPaddingBottom :: Parser (CssParser, CssToken) CssProperty
+parserPropertyPaddingBottom = CssPropertyPaddingBottom <$> parserValuePadding
 
-makeCssPropertyPaddingLeft :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyPaddingLeft = makeCssPropertyPaddingX CssPropertyPaddingLeft
-
+parserPropertyPaddingLeft :: Parser (CssParser, CssToken) CssProperty
+parserPropertyPaddingLeft = CssPropertyPaddingLeft <$> parserValuePadding
 
 
 
@@ -2453,20 +2384,20 @@ makeCssPropertyPaddingLeft = makeCssPropertyPaddingX CssPropertyPaddingLeft
 
 
 
-makeCssPropertyPosition :: CssValue -> CssProperty
-makeCssPropertyPosition v = CssPropertyPosition v
+parserPropertyPosition :: CssValue -> CssProperty
+parserPropertyPosition v = CssPropertyPosition v
 
 
 
 
-makeCssPropertyQuotes :: CssValue -> CssProperty
-makeCssPropertyQuotes v = CssPropertyQuotes v
+parserPropertyQuotes :: CssValue -> CssProperty
+parserPropertyQuotes v = CssPropertyQuotes v
 
 
 
 
-makeCssPropertyRight :: CssValue -> CssProperty
-makeCssPropertyRight v = CssPropertyRight v
+parserPropertyRight :: CssValue -> CssProperty
+parserPropertyRight v = CssPropertyRight v
 
 
 
@@ -2501,10 +2432,10 @@ cssValueTextAlignDict = [ ("left",    CssValueTextAlignLeft)
 
 
 
-makeCssPropertyTextAlign :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyTextAlign pat = (fmap . fmap) CssPropertyTextAlign (runParser parser pat)
+parserPropertyTextAlign :: Parser (CssParser, CssToken) CssProperty
+parserPropertyTextAlign = CssPropertyTextAlign <$> parserValue
   where
-    parser = mkParserEnum cssValueTextAlignDict
+    parserValue = mkParserEnum cssValueTextAlignDict
 
 
 
@@ -2539,10 +2470,10 @@ cssValueTextDecorationDict = [ ("underline",     CssValueTextDecorationUnderline
 
 
 
-makeCssPropertyTextDecoration :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyTextDecoration pat = (fmap . fmap) CssPropertyTextDecoration (parser pat)
+parserPropertyTextDecoration :: Parser (CssParser, CssToken) CssProperty
+parserPropertyTextDecoration = CssPropertyTextDecoration <$> parserValue
   where
-    parser = interpretTokensAsMultiEnum cssValueTextDecorationDict
+    parserValue = Parser $ \ pat -> interpretTokensAsMultiEnum cssValueTextDecorationDict pat
 
 
 
@@ -2561,10 +2492,10 @@ data CssValueTextIndent
 
 
 
-makeCssPropertyTextIndent :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyTextIndent pat = (fmap . fmap) (CssPropertyTextIndent . CssValueTextIndentDistance) (runParser parser pat)
+parserPropertyTextIndent :: Parser (CssParser, CssToken) CssProperty
+parserPropertyTextIndent = (CssPropertyTextIndent . CssValueTextIndentDistance) <$> parserValue
   where
-    parser = mkParserLength False
+    parserValue = mkParserLength False
 
 
 
@@ -2576,8 +2507,8 @@ makeCssPropertyTextIndent pat = (fmap . fmap) (CssPropertyTextIndent . CssValueT
 
 
 
-makeCssPropertyTextShadow :: CssValue -> CssProperty
-makeCssPropertyTextShadow v = CssPropertyTextShadow v
+parserPropertyTextShadow :: CssValue -> CssProperty
+parserPropertyTextShadow v = CssPropertyTextShadow v
 
 
 
@@ -2609,10 +2540,10 @@ cssValueTextTransformDict = [ ("none",       CssValueTextTransformNone)
 
 
 
-makeCssPropertyTextTransform :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyTextTransform pat = (fmap . fmap) CssPropertyTextTransform (runParser parser pat)
+parserPropertyTextTransform :: Parser (CssParser, CssToken) CssProperty
+parserPropertyTextTransform = CssPropertyTextTransform <$> parserValue
   where
-    parser = mkParserEnum cssValueTextTransformDict
+    parserValue = mkParserEnum cssValueTextTransformDict
 
 
 
@@ -2624,13 +2555,13 @@ makeCssPropertyTextTransform pat = (fmap . fmap) CssPropertyTextTransform (runPa
 
 
 
-makeCssPropertyTop :: CssValue -> CssProperty
-makeCssPropertyTop v = CssPropertyTop v
+parserPropertyTop :: CssValue -> CssProperty
+parserPropertyTop v = CssPropertyTop v
 
 
 
-makeCssPropertyUnicodeBiDi :: CssValue -> CssProperty
-makeCssPropertyUnicodeBiDi v = CssPropertyUnicodeBiDi v
+parserPropertyUnicodeBiDi :: CssValue -> CssProperty
+parserPropertyUnicodeBiDi v = CssPropertyUnicodeBiDi v
 
 
 
@@ -2671,10 +2602,10 @@ cssValueVerticalAlignDict = [ ("top",         CssValueVerticalAlignTop)
 
 
 
-makeCssPropertyVerticalAlign :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyVerticalAlign pat = (fmap . fmap) CssPropertyVerticalAlign (runParser parser pat)
+parserPropertyVerticalAlign :: Parser (CssParser, CssToken) CssProperty
+parserPropertyVerticalAlign = CssPropertyVerticalAlign <$> parserValue
   where
-    parser = mkParserEnum cssValueVerticalAlignDict
+    parserValue = mkParserEnum cssValueVerticalAlignDict
 
 
 
@@ -2686,8 +2617,8 @@ makeCssPropertyVerticalAlign pat = (fmap . fmap) CssPropertyVerticalAlign (runPa
 
 
 
-makeCssPropertyVisibility :: CssValue -> CssProperty
-makeCssPropertyVisibility v = CssPropertyVisibility v
+parserPropertyVisibility :: CssValue -> CssProperty
+parserPropertyVisibility v = CssPropertyVisibility v
 
 
 
@@ -2721,10 +2652,10 @@ cssValueWhitespaceDict = [ ("normal",   CssValueWhitespaceNormal)
 
 
 
-makeCssPropertyWhitespace :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyWhitespace pat = (fmap . fmap) CssPropertyWhitespace (runParser parser pat)
+parserPropertyWhitespace :: Parser (CssParser, CssToken) CssProperty
+parserPropertyWhitespace = CssPropertyWhitespace <$> parserValue
   where
-    parser = mkParserEnum cssValueWhitespaceDict
+    parserValue = mkParserEnum cssValueWhitespaceDict
 
 
 
@@ -2745,10 +2676,10 @@ data CssValueWidth
 
 
 -- TODO: CSS2.2 says: "Negative values for 'width' are illegal.". Implement this.
-makeCssPropertyWidth :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyWidth pat = (fmap . fmap) (CssPropertyWidth . CssValueWidthDistance) (runParser parser pat)
+parserPropertyWidth :: Parser (CssParser, CssToken) CssProperty
+parserPropertyWidth = (CssPropertyWidth . CssValueWidthDistance) <$> parserValue
   where
-    parser = mkParserLength False <|> parserDistanceAuto
+    parserValue = mkParserLength False <|> parserDistanceAuto
 
 
 
@@ -2776,11 +2707,11 @@ cssValueWordSpacingDict = [ ("normal",    CssValueWordSpacingNormal)
 
 
 
-makeCssPropertyWordSpacing :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssProperty)
-makeCssPropertyWordSpacing pat = (fmap . fmap) CssPropertyWordSpacing (runParser parser pat)
+parserPropertyWordSpacing :: Parser (CssParser, CssToken) CssProperty
+parserPropertyWordSpacing = CssPropertyWordSpacing <$> parserValue
   where
-    parser = mkParserEnum cssValueWordSpacingDict
-             <|> fmap CssValueWordSpacingDistance (mkParserLength False)
+    parserValue = mkParserEnum cssValueWordSpacingDict
+                  <|> fmap CssValueWordSpacingDistance (mkParserLength False)
 
 
 
@@ -2792,8 +2723,8 @@ makeCssPropertyWordSpacing pat = (fmap . fmap) CssPropertyWordSpacing (runParser
 
 
 
-makeCssPropertyZIndex :: CssValue -> CssProperty
-makeCssPropertyZIndex v = CssPropertyZIndex v
+parserPropertyZIndex :: CssValue -> CssProperty
+parserPropertyZIndex v = CssPropertyZIndex v
 
 
 
@@ -2923,8 +2854,8 @@ data CssValueXTooltip
 
 
 
-makeCssPropertyInvalid :: CssValue -> CssProperty
-makeCssPropertyInvalid _ = CssPropertyInvalid
+parserPropertyInvalid :: CssValue -> CssProperty
+parserPropertyInvalid _ = CssPropertyInvalid
 
 
 
@@ -2941,7 +2872,7 @@ makeCssPropertyInvalid _ = CssPropertyInvalid
 -- The example in CSS2.2 for "background" property suggests that values in
 -- input CSS string may appear in any order. This function should be able to
 -- handle this situation.
-parseDeclarationMultiple :: (CssParser, CssToken) -> [PropertyCtor] -> ((CssParser, CssToken), [CssProperty])
+parseDeclarationMultiple :: (CssParser, CssToken) -> [ParserProperty] -> ((CssParser, CssToken), [CssProperty])
 parseDeclarationMultiple patArg propCtors = L.foldl f (patArg, []) propCtors
   where
     f (pat, acc) propCtor = case propCtor pat of

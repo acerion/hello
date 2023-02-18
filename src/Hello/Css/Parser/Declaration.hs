@@ -81,81 +81,81 @@ import Hello.Utils.Parser
 -- Mapping between name of property and a constructor of the property.
 --
 -- Only a subset of CSS2.2 properties is supported by this implementation.
-cssPropertyCtors :: M.Map T.Text PropertyCtor
-cssPropertyCtors = M.fromList [
-     ("background",             ctorCssPropertyBackground)
-   , ("background-attachment",  makeCssPropertyBackgroundAttachment)
-   , ("background-color",       makeCssPropertyBackgroundColor)
-   , ("background-image",       makeCssPropertyBackgroundImage)
-   , ("background-position",    makeCssPropertyBackgroundPosition)
-   , ("background-repeat",      makeCssPropertyBackgroundRepeat)
+cssPropertyParsers :: M.Map T.Text ParserProperty
+cssPropertyParsers = M.fromList [
+     ("background",             parserPropertyBackground)
+   , ("background-attachment",  parserPropertyBackgroundAttachment)
+   , ("background-color",       parserPropertyBackgroundColor)
+   , ("background-image",       parserPropertyBackgroundImage)
+   , ("background-position",    parserPropertyBackgroundPosition)
+   , ("background-repeat",      parserPropertyBackgroundRepeat)
 
-   , ("border",                 ctorCssPropertyBorder)
+   , ("border",                 parserPropertyBorder)
 
-   , ("border-collapse",        makeCssPropertyBorderCollapse)
-   , ("border-spacing",         makeCssPropertyBorderSpacing)
+   , ("border-collapse",        parserPropertyBorderCollapse)
+   , ("border-spacing",         parserPropertyBorderSpacing)
 
-   , ("border-top",             makeCssPropertyBorderTop)
-   , ("border-right",           makeCssPropertyBorderRight)
-   , ("border-bottom",          makeCssPropertyBorderBottom)
-   , ("border-left",            makeCssPropertyBorderLeft)
+   , ("border-top",             parserPropertyBorderTop)
+   , ("border-right",           parserPropertyBorderRight)
+   , ("border-bottom",          parserPropertyBorderBottom)
+   , ("border-left",            parserPropertyBorderLeft)
 
-   , ("border-color",           ctorCssPropertyBorderColor)
-   , ("border-style",           ctorCssPropertyBorderStyle)
-   , ("border-width",           ctorCssPropertyBorderWidth)
+   , ("border-color",           parserPropertyBorderColor)
+   , ("border-style",           parserPropertyBorderStyle)
+   , ("border-width",           parserPropertyBorderWidth)
 
-   , ("border-top-color",       makeCssPropertyBorderTopColor)
-   , ("border-right-color",     makeCssPropertyBorderRightColor)
-   , ("border-bottom-color",    makeCssPropertyBorderBottomColor)
-   , ("border-left-color",      makeCssPropertyBorderLeftColor)
+   , ("border-top-color",       parserPropertyBorderTopColor)
+   , ("border-right-color",     parserPropertyBorderRightColor)
+   , ("border-bottom-color",    parserPropertyBorderBottomColor)
+   , ("border-left-color",      parserPropertyBorderLeftColor)
 
-   , ("border-top-style",       makeCssPropertyBorderTopStyle)
-   , ("border-right-style",     makeCssPropertyBorderRightStyle)
-   , ("border-bottom-style",    makeCssPropertyBorderBottomStyle)
-   , ("border-left-style",      makeCssPropertyBorderLeftStyle)
+   , ("border-top-style",       parserPropertyBorderTopStyle)
+   , ("border-right-style",     parserPropertyBorderRightStyle)
+   , ("border-bottom-style",    parserPropertyBorderBottomStyle)
+   , ("border-left-style",      parserPropertyBorderLeftStyle)
 
-   , ("border-top-width",       makeCssPropertyBorderTopWidth)
-   , ("border-right-width",     makeCssPropertyBorderRightWidth)
-   , ("border-bottom-width",    makeCssPropertyBorderBottomWidth)
-   , ("border-left-width",      makeCssPropertyBorderLeftWidth)
+   , ("border-top-width",       parserPropertyBorderTopWidth)
+   , ("border-right-width",     parserPropertyBorderRightWidth)
+   , ("border-bottom-width",    parserPropertyBorderBottomWidth)
+   , ("border-left-width",      parserPropertyBorderLeftWidth)
 
    --, ("bottom",                 Nothing)
    --, ("caption-side",           Nothing)
    --, ("clear",                  Nothing)
    --, ("clip",                   Nothing)
-   , ("color",                  makeCssPropertyColor)
-   , ("content",                makeCssPropertyContent)
+   , ("color",                  parserPropertyColor)
+   , ("content",                parserPropertyContent)
    --, ("counter-increment",      Nothing)
    --, ("counter-reset",          Nothing)
-   , ("cursor",                 makeCssPropertyCursor)
+   , ("cursor",                 parserPropertyCursor)
    --, ("direction",              Nothing)
-   , ("display",                makeCssPropertyDisplay)
+   , ("display",                parserPropertyDisplay)
    --, ("empty-cells",            Nothing)
    --, ("float",                  Nothing)
 
-   , ("font",                   makeCssPropertyFont)
-   , ("font-family",            makeCssPropertyFontFamily)
-   , ("font-size",              makeCssPropertyFontSize)
+   , ("font",                   parserPropertyFont)
+   , ("font-family",            parserPropertyFontFamily)
+   , ("font-size",              parserPropertyFontSize)
    --, ("font-size-adjust",       Nothing)
    --, ("font-stretch",           Nothing)
-   , ("font-style",             makeCssPropertyFontStyle)
-   , ("font-variant",           makeCssPropertyFontVariant)
-   , ("font-weight",            makeCssPropertyFontWeight)
-   , ("height",                 makeCssPropertyHeight)
+   , ("font-style",             parserPropertyFontStyle)
+   , ("font-variant",           parserPropertyFontVariant)
+   , ("font-weight",            parserPropertyFontWeight)
+   , ("height",                 parserPropertyHeight)
    --, ("left",                   Nothing)
-   , ("letter-spacing",         makeCssPropertyLetterSpacing)
-   , ("line-height",            makeCssPropertyLineHeight)
+   , ("letter-spacing",         parserPropertyLetterSpacing)
+   , ("line-height",            parserPropertyLineHeight)
 
-   , ("list-style",             ctorCssPropertyListStyle)
-   , ("list-style-image",       ctorCssPropertyListStyleImage)
-   , ("list-style-position",    ctorCssPropertyListStylePosition)
-   , ("list-style-type",        ctorCssPropertyListStyleType)
+   , ("list-style",             parserPropertyListStyle)
+   , ("list-style-image",       parserPropertyListStyleImage)
+   , ("list-style-position",    parserPropertyListStylePosition)
+   , ("list-style-type",        parserPropertyListStyleType)
 
-   , ("margin",                 makeCssPropertyMargin)
-   , ("margin-top",             makeCssPropertyMarginTop)
-   , ("margin-right",           makeCssPropertyMarginRight)
-   , ("margin-bottom",          makeCssPropertyMarginBottom)
-   , ("margin-left",            makeCssPropertyMarginLeft)
+   , ("margin",                 parserPropertyMargin)
+   , ("margin-top",             parserPropertyMarginTop)
+   , ("margin-right",           parserPropertyMarginRight)
+   , ("margin-bottom",          parserPropertyMarginBottom)
+   , ("margin-left",            parserPropertyMarginLeft)
 
    --, ("marker-offset",          Nothing)
    --, ("marks",                  Nothing)
@@ -167,28 +167,28 @@ cssPropertyCtors = M.fromList [
    --, ("outline-style",          Nothing)
    --, ("outline-width",          Nothing)
    --, ("overflow",               Nothing)
-   , ("padding",                makeCssPropertyPadding)
-   , ("padding-bottom",         makeCssPropertyPaddingBottom)
-   , ("padding-left",           makeCssPropertyPaddingLeft)
-   , ("padding-right",          makeCssPropertyPaddingRight)
-   , ("padding-top",            makeCssPropertyPaddingTop)
+   , ("padding",                parserPropertyPadding)
+   , ("padding-bottom",         parserPropertyPaddingBottom)
+   , ("padding-left",           parserPropertyPaddingLeft)
+   , ("padding-right",          parserPropertyPaddingRight)
+   , ("padding-top",            parserPropertyPaddingTop)
    --, ("position",               Nothing)
    --, ("quotes",                 Nothing)
    --, ("right",                  Nothing)
-   , ("text-align",             makeCssPropertyTextAlign)
-   , ("text-decoration",        makeCssPropertyTextDecoration)
-   , ("text-indent",            makeCssPropertyTextIndent)
+   , ("text-align",             parserPropertyTextAlign)
+   , ("text-decoration",        parserPropertyTextDecoration)
+   , ("text-indent",            parserPropertyTextIndent)
    --, ("text-shadow",            Nothing)
-   , ("text-transform",         makeCssPropertyTextTransform)
+   , ("text-transform",         parserPropertyTextTransform)
    --, ("top",                    Nothing)
    --, ("unicode-bidi",           Nothing)
-   , ("vertical-align",         makeCssPropertyVerticalAlign)
+   , ("vertical-align",         parserPropertyVerticalAlign)
    --, ("visibility",             Nothing)
-   , ("white-space",            makeCssPropertyWhitespace)
-   , ("width",                  makeCssPropertyWidth)
-   , ("word-spacing",           makeCssPropertyWordSpacing)
+   , ("white-space",            parserPropertyWhitespace)
+   , ("width",                  parserPropertyWidth)
+   , ("word-spacing",           parserPropertyWordSpacing)
    --, ("z-index",                Nothing)
-   ] :: M.Map T.Text PropertyCtor
+   ] :: M.Map T.Text ParserProperty
 
 
 
@@ -198,8 +198,8 @@ cssPropertyCtors = M.fromList [
 -- and the property's value.
 --
 -- TODO: case-insensitive search?
-getPropertyCtorByName :: T.Text -> Maybe PropertyCtor
-getPropertyCtorByName propertyName = M.lookup propertyName cssPropertyCtors
+getPropertyParserByName :: T.Text -> Maybe ParserProperty
+getPropertyParserByName propertyName = M.lookup propertyName cssPropertyParsers
 
 
 
@@ -344,8 +344,8 @@ takePropertyName state = case runParser (parserTokenIdentAny <* parserTokenColon
 parseProperty :: ((CssParser, CssToken), CssDeclaration) -> Maybe ((CssParser, CssToken), CssDeclaration)
 parseProperty (pat, _) = takePropertyName pat
                          -- HASKELL FEATURE: BIND
-                         >>= (\ (pat', name) -> getPropertyCtorByName name
-                               >>= (\ propertyCtor -> propertyCtor pat'
+                         >>= (\ (pat', name) -> getPropertyParserByName name
+                               >>= (\ parserProperty -> runParser parserProperty pat'
                                      >>= (\ (pat'', prop) -> Just (pat'', defaultDeclaration { property = prop }))))
 
 
