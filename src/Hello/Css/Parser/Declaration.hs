@@ -48,13 +48,6 @@ module Hello.Css.Parser.Declaration
   (
     parseSingleDeclarationWrapper
 
-  , declarationsSetUpdateOrAdd
-  , declarationsSetAppend
-
-  , CssDeclarationSet (..)
-  , CssDeclarationSets
-  , defaultCssDeclarationSet
-
   -- Exported only for tests
   , parseProperty
   , parseSingleDeclaration
@@ -65,10 +58,8 @@ where
 
 
 import Control.Applicative (Alternative(..))
-import Data.Data (toConstr)
 import qualified Data.Text as T
 import qualified Data.Map as M
-import qualified Data.Sequence as S
 --import Debug.Trace
 
 import Hello.Css.Declaration
@@ -294,26 +285,6 @@ parseImportant (pat, decl) | Just (pat', _) <- parseImportantNotPresent pat = Ju
 
 
 
--- The isSafe flag compilcates this data type. I have to declare a new "Set"
--- type that is a wrapper around list of declarations + that one boolean
--- flag.
-data CssDeclarationSet = CssDeclarationSet
-  { isSafe :: Bool
-  , items  :: S.Seq CssDeclaration
-  } deriving (Show, Eq)
-
-
-
-
-defaultCssDeclarationSet :: CssDeclarationSet
-defaultCssDeclarationSet = CssDeclarationSet
-  { isSafe = True
-  , items  = S.fromList []
-  }
-
-
-
-
 -- The input to the function is (parser { rem = ": value" }, TokIdent
 -- "name"). The function confirms that current token is an ident, that it is
 -- followed by colon name, and returns updated parser + the property's name.
@@ -452,53 +423,6 @@ seekEndOfDeclaration pair@(_, CssTokBraceCurlyClose) = pair -- '}' is not a
  -- too. TODO: evaluate if this is a good idea.
 seekEndOfDeclaration (parser, CssTokSemicolon)       = nextToken parser
 seekEndOfDeclaration (parser, _)                     = seekEndOfDeclaration . nextToken $ parser
-
-
-
-
-declarationsSetUpdateOrAdd :: CssDeclarationSet -> CssDeclaration -> CssDeclarationSet
-declarationsSetUpdateOrAdd declSet decl =
-  case S.findIndexL predicate ix of
-    Just idx -> CssDeclarationSet {items = S.update idx decl ix, isSafe = newSafe declSet decl}
-    Nothing  -> CssDeclarationSet {items = ix S.|> decl,         isSafe = newSafe declSet decl}
-  where
-    -- Use 'toConstr' to compare constructors, but values without passed to constructors.
-    -- https://stackoverflow.com/questions/47861648/a-general-way-of-comparing-constructors-of-two-terms-in-haskell
-    predicate :: CssDeclaration -> Bool
-    predicate x = (toConstr . property $ x) == (toConstr . property $ decl)
-
-    ix = items declSet
-
-    -- TODO: 'background image' can be also set in value of
-    -- CssPropertyBackground property. Expand the function to cover that case
-    -- too.
-    newSafe :: CssDeclarationSet -> CssDeclaration -> Bool
-    newSafe declSet' decl' = isSafe declSet' && case property decl' of
-                                                  CssPropertyDisplay _         -> False
-                                                  CssPropertyBackgroundImage _ -> False
-                                                  _                            -> True
-
-
-
-
-{-
-Merge values from incoming into target, return result of merging
-
-I can't use a concatenation operator because the merging is not that
-simple: it has to use declarationsSetUpdateOrAdd function.
--}
-declarationsSetAppend :: CssDeclarationSet -> CssDeclarationSet -> CssDeclarationSet
-declarationsSetAppend target incoming = if S.null . items $ incoming
-                                        then target
-                                        else declarationsSetAppend (declarationsSetUpdateOrAdd target iHead) iTail
-  where
-    iHead = S.index (items incoming) 0
-    iTail = incoming {items = S.drop 1 (items incoming)}
-
-
-
-
-type CssDeclarationSets = (CssDeclarationSet, CssDeclarationSet)
 
 
 

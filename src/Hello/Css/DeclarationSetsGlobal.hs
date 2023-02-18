@@ -43,8 +43,7 @@ import Prelude
 import Data.IORef
 import System.IO.Unsafe
 
-import Hello.Css.Parser.Declaration
-
+import Hello.Css.Declaration
 import Hello.GlobalContainer
 
 

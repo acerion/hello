@@ -43,27 +43,19 @@ import qualified Data.Text.Encoding as T.E
 
 import System.IO
 
-
 --import Debug.Trace
 
 import Hello.Html.Doctree
---import Hello.Html.DoctreeNode
---import Hello.Utils
-
 import Hello.Css.Cascade
 import Hello.Css.ContextGlobal
+import Hello.Css.Declaration
 import Hello.Css.DeclarationSetsGlobal
 import Hello.Css.MatchCache
-import Hello.Css.Parser.Declaration
 import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
 import Hello.Css.UserAgentStyle
-
 import Hello.Ffi.Css.Doctree
---import Hello.Ffi.Css.MatchCache
 import Hello.Ffi.Css.Parser
---import Hello.Ffi.Css.StyleSheet
---import Hello.Ffi.Utils
 
 
 

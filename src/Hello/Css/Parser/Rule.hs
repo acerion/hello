@@ -61,6 +61,7 @@ import Control.Applicative (Alternative(..))
 import qualified Data.Text as T
 -- import Debug.Trace
 
+import Hello.Css.Declaration
 import Hello.Css.Parser.Declaration
 import Hello.Css.Parser.Selector
 import Hello.Css.Rule

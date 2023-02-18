@@ -39,8 +39,7 @@ where
 
 
 
-
-import Hello.Css.Parser.Declaration
+import Hello.Css.Declaration
 
 
 

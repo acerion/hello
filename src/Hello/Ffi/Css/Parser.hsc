@@ -48,15 +48,11 @@ import Foreign.C.String
 import Foreign.C.Types
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
---import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
---import qualified Data.Sequence as S
---import qualified Data.Foldable as Foldable
---import Control.Applicative
 import Debug.Trace
 
+import Hello.Css.Declaration
 import Hello.Css.DeclarationSetsGlobal
-import Hello.Css.Parser.Declaration
 import Hello.Css.Parser.Rule
 import Hello.Css.Tokenizer
 

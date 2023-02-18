@@ -54,7 +54,7 @@ where
 -- import Debug.Trace
 
 import Hello.Chain
-import Hello.Css.Parser.Declaration
+import Hello.Css.Declaration
 import Hello.Css.Selector
 
 
