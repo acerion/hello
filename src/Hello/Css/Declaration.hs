@@ -440,14 +440,14 @@ parserPropertyBackground = CssPropertyBackground <$> parserValue
 
     -- TODO: sooner or later we will need to add here "many parserTokenWhitespace *>" in front of "parserValueBackground*".
     parserBgColor :: Parser (CssParser, CssToken) (CssValueBackground -> CssValueBackground)
-    parserBgColor       = mkParser (\ value acc -> acc { backgroundColor = value }) parserValueBackgroundColor
-    parserBgImage       = mkParser (\ value acc -> acc { backgroundImage = value }) parserValueBackgroundImage
-    parserBgPosition    = mkParser (\ value acc -> acc { backgroundPosition = value }) parserValueBackgroundPosition
-    parserBgRepeatStyle = mkParser (\ value acc -> acc { backgroundRepeatStyle = value }) parserValueBackgroundStyle
-    parserBgAttachment  = mkParser (\ value acc -> acc { backgroundAttachment = value }) parserValueBackgroundAttachment
+    parserBgColor       = insertClosure (\ value acc -> acc { backgroundColor = value }) parserValueBackgroundColor
+    parserBgImage       = insertClosure (\ value acc -> acc { backgroundImage = value }) parserValueBackgroundImage
+    parserBgPosition    = insertClosure (\ value acc -> acc { backgroundPosition = value }) parserValueBackgroundPosition
+    parserBgRepeatStyle = insertClosure (\ value acc -> acc { backgroundRepeatStyle = value }) parserValueBackgroundStyle
+    parserBgAttachment  = insertClosure (\ value acc -> acc { backgroundAttachment = value }) parserValueBackgroundAttachment
 {-
-    parserBgOrigin      = mkParser (\ value acc -> acc { backgroundOrigin = value }) <$> parserValueBackgroundOrigin pat'
-    parserBgClip        = mkParser (\ value acc -> acc { backgroundClip = value }) <$> ctorValueBackgroundClip pat'
+    parserBgOrigin      = insertClosure (\ value acc -> acc { backgroundOrigin = value }) <$> parserValueBackgroundOrigin pat'
+    parserBgClip        = insertClosure (\ value acc -> acc { backgroundClip = value }) <$> ctorValueBackgroundClip pat'
 -}
 
 
@@ -882,19 +882,19 @@ parserPropertyBorderTop = CssPropertyBorderTop <$> parserValue
 
 
 parserBorderWidthValue :: Parser (CssParser, CssToken) (CssValueBorderTRBL -> CssValueBorderTRBL)
-parserBorderWidthValue = mkParser (\ value acc -> acc { borderTRBLWidth = value }) parserValueBorderWidth
+parserBorderWidthValue = insertClosure (\ value acc -> acc { borderTRBLWidth = value }) parserValueBorderWidth
 
 
 
 
 parserBorderStyleValue :: Parser (CssParser, CssToken) (CssValueBorderTRBL -> CssValueBorderTRBL)
-parserBorderStyleValue = mkParser (\ value acc -> acc { borderTRBLStyle = value }) parserValueBorderStyle
+parserBorderStyleValue = insertClosure (\ value acc -> acc { borderTRBLStyle = value }) parserValueBorderStyle
 
 
 
 
 parserBorderColorValue :: Parser (CssParser, CssToken) (CssValueBorderTRBL -> CssValueBorderTRBL)
-parserBorderColorValue = mkParser (\ value acc -> acc { borderTRBLColor = value }) parserValueBorderColor
+parserBorderColorValue = insertClosure (\ value acc -> acc { borderTRBLColor = value }) parserValueBorderColor
 
 
 
@@ -1580,22 +1580,23 @@ shortcutWrapper ctor pat = case ctor pat of
 
 
 parserFontStyle :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
-parserFontStyle = mkParser (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueStyle = x }) (many parserTokenWhitespace *> parserValueFontStyle)
+parserFontStyle = insertClosure (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueStyle = x }) (many parserTokenWhitespace *> parserValueFontStyle)
 
 parserFontVariant :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
-parserFontVariant = mkParser (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueVariant = x }) (many parserTokenWhitespace *> parserValueFontVariant)
+parserFontVariant = insertClosure (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueVariant = x }) (many parserTokenWhitespace *> parserValueFontVariant)
 
 parserFontWeight :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
-parserFontWeight = mkParser (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueWeight = x }) (many parserTokenWhitespace *> parserValueFontWeight)
+parserFontWeight = insertClosure (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueWeight = x }) (many parserTokenWhitespace *> parserValueFontWeight)
 
 parserFontSize :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
-parserFontSize = mkParser (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueSize = x }) (many parserTokenWhitespace *> parserValueFontSize)
+parserFontSize = insertClosure (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueSize = x }) (many parserTokenWhitespace *> parserValueFontSize)
 
 parserFontFamily :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
-parserFontFamily = mkParser (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueFamily = x }) (many parserTokenWhitespace *> parserValueFontFamily)
+parserFontFamily = insertClosure (\ x (CssValueFontRecord' acc) -> CssValueFontRecord' acc { fontValueFamily = x }) (many parserTokenWhitespace *> parserValueFontFamily)
 
 parserFontEnum :: Parser (CssParser, CssToken) (CssValueFont -> CssValueFont)
-parserFontEnum = mkParser enumFn (many parserTokenWhitespace *> parserValueFontEnum)
+parserFontEnum = insertClosure enumFn (many parserTokenWhitespace *> parserValueFontEnum)
+
 enumFn :: CssValueFontEnum -> CssValueFont -> CssValueFont
 enumFn enum _font = (CssValueFontEnum' enum)
 
@@ -1615,11 +1616,19 @@ applyFunctions value = Prelude.foldr (\ f acc -> f acc) value
 
 
 
--- Second arg is a parser that can parse a value of some property (e.g. font-size).
--- First arg is a function that can update "font-size" field of "font" record with parsed value.
--- This entire function turns "state to value" parser into "state to update-function" parser.
-mkParser :: (value -> acc -> acc) -> (Parser (CssParser, CssToken) value) -> Parser (CssParser, CssToken) (acc -> acc)
-mkParser updateAccWithValue parser = Parser $ \ pat -> (fmap . fmap) updateAccWithValue (runParser parser pat)
+-- Second arg is a parser that can parse a value of some property (e.g.
+-- font-size).
+--
+-- First arg is a function that can update given accumulator (a record or a
+-- list) with a value returned by a parser.
+--
+-- This entire function turns "state to value" parser into "state to
+-- update-function" parser.
+--
+-- This is just a simple fmap, so it's not really necessary, but I wanted to
+-- give the operation a name and to have a place for some comments.
+insertClosure :: (value -> acc -> acc) -> (Parser (CssParser, CssToken) value) -> Parser (CssParser, CssToken) (acc -> acc)
+insertClosure updateAccWithValue parser = updateAccWithValue <$> parser
 
 
 
@@ -2035,9 +2044,9 @@ parserPropertyListStyle = CssPropertyListStyle <$> parserValue
     parsers = [ parserType, parserPosition, parserImage ]
 
     parserType :: Parser (CssParser, CssToken) (CssValueListStyle -> CssValueListStyle)
-    parserType     = mkParser (\ value acc -> acc { listStyleType = value } ) parserValueListStyleType
-    parserPosition = mkParser (\ value acc -> acc { listStylePosition = value } ) parserValueListStylePosition
-    parserImage    = mkParser (\ value acc -> acc { listStyleImage = value } ) parserValueListStyleImage
+    parserType     = insertClosure (\ value acc -> acc { listStyleType = value } ) parserValueListStyleType
+    parserPosition = insertClosure (\ value acc -> acc { listStylePosition = value } ) parserValueListStylePosition
+    parserImage    = insertClosure (\ value acc -> acc { listStyleImage = value } ) parserValueListStyleImage
 
 
 
