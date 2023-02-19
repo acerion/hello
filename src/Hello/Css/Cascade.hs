@@ -44,6 +44,10 @@ https://www.w3.org/TR/CSS22/cascade.html#cascade
 module Hello.Css.Cascade
   (
     cssContextApplyCssContext
+
+    -- Exported only for unit tests.
+  , MatchingRules (..)
+  , cssGetMinSpecState
   )
 where
 
@@ -73,6 +77,9 @@ import Hello.Utils
 
 
 -- (minSpec, minPos, minSpecIndex)
+-- First:
+-- Second: minSpecRulePosition, rule's "position" attribute.
+-- Third: matchingRulesListIdx, Index to specific [CssRule] list in MatchingRulesGroup
 type CssSpecificityState = (Int, Int, Int)
 
 -- The data structure with nested lists is a copy of solution from C, where
@@ -95,19 +102,19 @@ data MatchingRules = MatchingRules
 
 
 minSpecificityForRulesLists :: MatchingRulesGroup -> MatchingRulesIndices -> Int -> CssSpecificityState -> CssSpecificityState
-minSpecificityForRulesLists (rl:rls) (ruleIdx:rix) rulesListIdx state = minSpecificityForRulesLists rls rix (rulesListIdx + 1) state2
+minSpecificityForRulesLists (rl:rls) (ruleIdx:rix) matchingRulesListIdx state = minSpecificityForRulesLists rls rix (matchingRulesListIdx + 1) state2
   where
-    state2 = minSpecificityForRulesList rl ruleIdx rulesListIdx state
-minSpecificityForRulesLists _        _             _            state = state
+    state2 = minSpecificityForRulesList rl ruleIdx matchingRulesListIdx state
+minSpecificityForRulesLists _        _             _                    state = state
 
 
 
 
 minSpecificityForRulesList :: [CssRule] -> Int -> Int -> CssSpecificityState -> CssSpecificityState
-minSpecificityForRulesList rulesList ruleIdx rulesListIdx state =
+minSpecificityForRulesList rulesList ruleIdx matchingRulesListIdx state =
   if length rulesList <= ruleIdx
   then state
-  else minSpecificityForRule rule rulesListIdx state
+  else minSpecificityForRule rule matchingRulesListIdx state
   where
     rule = rulesList !! ruleIdx
 
@@ -118,11 +125,11 @@ minSpecificityForRulesList rulesList ruleIdx rulesListIdx state =
 -- https://www.w3.org/TR/css-cascade-3/#cascade-specificity
 -- says "The declaration with the highest specificity wins."
 minSpecificityForRule :: CssRule -> Int -> CssSpecificityState -> CssSpecificityState
-minSpecificityForRule rule rulesListIdx state =
-  if (specificity rule < minSpec) || (specificity rule == minSpec && position rule < minPos)
-  then (specificity rule, position rule, rulesListIdx) -- update state with index of rules with lowest specificity
-  else (minSpec, minPos, minSpecIndex)
-  where (minSpec, minPos, minSpecIndex) = state
+minSpecificityForRule rule matchingRulesListIdx state =
+  if (specificity rule < minSpec) || (specificity rule == minSpec && position rule < minSpecRulePosition)
+  then (specificity rule, position rule, matchingRulesListIdx) -- update state with index of rules with lowest specificity
+  else state
+  where (minSpec, minSpecRulePosition, _) = state
 
 
 
@@ -140,6 +147,9 @@ applyCssRule cachedDeclSet doctree dtn rule =
 
 
 
+{-
+Unit-tested: yes (but only dumb tests intended to catch some changes in behaviour)
+-}
 cssGetMinSpecState :: MatchingRules -> CssSpecificityState
 cssGetMinSpecState matchingRules = minSpecificityForRulesLists (rules matchingRules) (indices matchingRules) 0 (minSpec, minPos, minSpecIndex)
   where
@@ -152,12 +162,15 @@ cssGetMinSpecState matchingRules = minSpecificityForRulesLists (rules matchingRu
 
 
 
-
-getSomeRule :: MatchingRules -> Int -> CssRule
-getSomeRule matchingRules minSpecIndex = rulesList !! idx
+-- "least specific" probably means "with lowest specificity".
+--
+-- The function is called in applyMatchingRules, and the comment for that
+-- function says about applying rules with *ascending* specificity.
+getLeastSpecificRule :: MatchingRules -> Int -> CssRule
+getLeastSpecificRule matchingRules matchingRulesListIdx = rulesList !! idx
   where
-    rulesList = rules matchingRules !! minSpecIndex
-    idx       = indices matchingRules !! minSpecIndex
+    rulesList = rules matchingRules !! matchingRulesListIdx
+    idx       = indices matchingRules !! matchingRulesListIdx
 
 
 
@@ -177,18 +190,29 @@ applyMatchingRules :: Handle -> MatchingRules -> Doctree -> DoctreeNode -> CssCa
 applyMatchingRules fHandle matchingRules doctree dtn cachedDeclSet = do
   let state = cssGetMinSpecState matchingRules
 
+  -- TODO: uncomment this line and observe value of tree's top node num. It's
+  -- constantly increasing, as if the function was called with constantly
+  -- updated doctree, each time a new element is added to the doctree. This
+  -- may be a great waste of resources: to call matching function on
+  -- constantly updated doctree.
+  --putStrLn ("Is topNodeNum increasing? " ++ (show . topNodeNum $ doctree))
+
   let debugString1 = "minSpec = " ++ (show . triplet1st $ state) ++ ", minPos = " ++ (show . triplet2nd $ state) ++ ", minSpecIndex = " ++ (show . triplet3rd $ state) ++ "\n"
   hPutStr fHandle debugString1
 
-  let minSpecIndex = triplet3rd state
-  if minSpecIndex >= 0
+  let matchingRulesListIdx = triplet3rd state
+  if matchingRulesListIdx >= 0
     then
     do
-      let rule = getSomeRule matchingRules minSpecIndex
+      -- This is a rule that over many iterations of this function has
+      -- increasing ("ascending") specificity. The rule is passed to
+      -- applyCssRule which can update declarations with lower specificity
+      -- (from initial iterations) with declarations with higher specificity.
+      let rule = getLeastSpecificRule matchingRules matchingRulesListIdx
 
       let cachedDeclSet' = applyCssRule cachedDeclSet doctree dtn rule
 
-      let matchingRules' = matchingRules { indices = updateMatchingRulesIndices (indices matchingRules) minSpecIndex }
+      let matchingRules' = matchingRules { indices = updateMatchingRulesIndices (indices matchingRules) matchingRulesListIdx }
 
       let debugString2 = show (fst cachedDeclSet') ++ "\n"
       hPutStr fHandle debugString2

@@ -23,6 +23,7 @@ import Hello.Tests.Cookies
 
 import Hello.Tests.Gif
 
+import Hello.Tests.Css.Cascade
 import Hello.Tests.Css.Css
 import Hello.Tests.Css.DeclarationSet
 import Hello.Tests.Css.Parser
@@ -53,8 +54,9 @@ testFunctions = [ testsChain
                 , testsCookies
                 , testsGif
                 -- , testsGif2 -- Disabled because of failure described in top-level comment in TestsGif2.hs
-                , testsCssCss
 
+                , testsCssCascade
+                , testsCssCss
                 , testsCssComplexSelector
                 , testsCssDeclarationSet
                 , testsCssParser
