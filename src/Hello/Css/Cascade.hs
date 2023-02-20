@@ -44,21 +44,15 @@ https://www.w3.org/TR/CSS22/cascade.html#cascade
 module Hello.Css.Cascade
   (
     cssContextApplyCssContext
-
-    -- Exported only for unit tests.
-  , MatchingRules (..)
-  , cssGetMinSpecState
   )
 where
 
 
 
 
-import Data.Bits
 import qualified Data.List as L
 import qualified Data.Map as M
 import qualified Data.Text as T
-import qualified Data.Vector as V
 --import Debug.Trace
 
 import System.IO
@@ -71,65 +65,11 @@ import Hello.Css.StyleSheet
 import Hello.Css.SelectorMatch
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
-import Hello.Utils
 
 
 
 
--- (minSpec, minPos, minSpecIndex)
--- First:
--- Second: minSpecRulePosition, rule's "position" attribute.
--- Third: matchingRulesListIdx, Index to specific [CssRule] list in MatchingRulesGroup
-type CssSpecificityState = (Int, Int, Int)
-
--- The data structure with nested lists is a copy of solution from C, where
--- we had an array of pointers to lists of rules. Perhaps we don't really
--- need the list of lists, and all matching rules can be put into a single
--- list?
-type MatchingRulesIndices = [Int]
-type MatchingRulesGroup   = [[CssRule]]
-
-
-
-
-data MatchingRules = MatchingRules
-  {
-    rules   :: MatchingRulesGroup
-  , indices :: MatchingRulesIndices
-  } deriving (Show)
-
-
-
-
-minSpecificityForRulesLists :: MatchingRulesGroup -> MatchingRulesIndices -> Int -> CssSpecificityState -> CssSpecificityState
-minSpecificityForRulesLists (rl:rls) (ruleIdx:rix) matchingRulesListIdx state = minSpecificityForRulesLists rls rix (matchingRulesListIdx + 1) state2
-  where
-    state2 = minSpecificityForRulesList rl ruleIdx matchingRulesListIdx state
-minSpecificityForRulesLists _        _             _                    state = state
-
-
-
-
-minSpecificityForRulesList :: [CssRule] -> Int -> Int -> CssSpecificityState -> CssSpecificityState
-minSpecificityForRulesList rulesList ruleIdx matchingRulesListIdx state =
-  if length rulesList <= ruleIdx
-  then state
-  else minSpecificityForRule rule matchingRulesListIdx state
-  where
-    rule = rulesList !! ruleIdx
-
-
-
-
--- This function is calculating minimal specificity of a rule, but this document:
--- https://www.w3.org/TR/css-cascade-3/#cascade-specificity
--- says "The declaration with the highest specificity wins."
-minSpecificityForRule :: CssRule -> Int -> CssSpecificityState -> CssSpecificityState
-minSpecificityForRule rule matchingRulesListIdx state =
-  if (specificity rule < minSpec) || (specificity rule == minSpec && position rule < minSpecRulePosition)
-  then (specificity rule, position rule, matchingRulesListIdx) -- update state with index of rules with lowest specificity
-  else state
-  where (minSpec, minSpecRulePosition, _) = state
+type MatchingRules = [CssRule]
 
 
 
@@ -139,41 +79,6 @@ applyCssRule declSet doctree dtn rule =
   if complexSelectorMatches (complexSelector rule) doctree dtn
   then declarationsSetAppend declSet (declarationSet rule)
   else declSet
-
-
-
-{-
-Unit-tested: yes (but only dumb tests intended to catch some changes in behaviour)
--}
-cssGetMinSpecState :: MatchingRules -> CssSpecificityState
-cssGetMinSpecState matchingRules = minSpecificityForRulesLists (rules matchingRules) (indices matchingRules) 0 (minSpec, minPos, minSpecIndex)
-  where
-    -- Get maximal value of integer as a starting value. This function will be
-    -- looking for a minimum. TODO: why shifting by 30 and not 31?
-    minSpec :: Int = 1 `shift` 30;
-    minPos  :: Int = 1 `shift` 30;
-
-    minSpecIndex = -1
-
-
-
--- "least specific" probably means "with lowest specificity".
---
--- The function is called in applyMatchingRules, and the comment for that
--- function says about applying rules with *ascending* specificity.
-getLeastSpecificRule :: MatchingRules -> Int -> CssRule
-getLeastSpecificRule matchingRules matchingRulesListIdx = rulesList !! idx
-  where
-    rulesList = rules matchingRules !! matchingRulesListIdx
-    idx       = indices matchingRules !! matchingRulesListIdx
-
-
-
-
-updateMatchingRulesIndices :: [Int] -> Int -> [Int]
-updateMatchingRulesIndices matchingRulesIndices minSpecIndex = listReplaceElem matchingRulesIndices (oldElem + 1) minSpecIndex
-  where
-    oldElem = matchingRulesIndices !! minSpecIndex
 
 
 
@@ -191,7 +96,7 @@ applyMatchingRules fHandle matchingRules doctree dtn declSet = do
   -- constantly updated doctree.
   --putStrLn ("Is topNodeNum increasing? " ++ (show . topNodeNum $ doctree))
 
-  let sortedRules = L.sortBy compareRules (concat . rules $ matchingRules)
+  let sortedRules = L.sortBy compareRules matchingRules
 
   let declSet' = foldr (\ rule ds -> applyCssRule ds doctree dtn rule) declSet sortedRules
 
@@ -225,16 +130,7 @@ compareRules r1 r2 | (specificity r1) < (specificity r2) = GT
 -- the stylesheet that match at the given node in the document tree.
 cssStyleSheetApplyStyleSheet :: Handle -> CssStyleSheet -> CssDeclarationSet -> Doctree -> DoctreeNode -> IO CssDeclarationSet
 cssStyleSheetApplyStyleSheet fHandle styleSheet declSet doctree dtn = do
-
-  let matchingRules = MatchingRules
-        {
-          rules = buildMatchingRulesGroupForDtn styleSheet dtn
-
-          -- 'indices' is a list of indices for sub-listss in 'rules'. It
-          -- should have the same length as 'rules' list.
-        , indices = replicate (L.length . rules $ matchingRules) 0
-        }
-
+  let matchingRules = buildMatchingRulesForDtn styleSheet dtn
   applyMatchingRules fHandle matchingRules doctree dtn declSet
 
 
@@ -252,8 +148,8 @@ cssStyleSheetApplyStyleSheet fHandle styleSheet declSet doctree dtn = do
 --
 -- So this function pre-selects rules, and full matching of complex selectors
 -- is done elsewhere (in complexSelectorMatches*?).
-buildMatchingRulesGroupForDtn :: CssStyleSheet -> DoctreeNode -> MatchingRulesGroup
-buildMatchingRulesGroupForDtn styleSheet dtn = reverse rulesLists
+buildMatchingRulesForDtn :: CssStyleSheet -> DoctreeNode -> MatchingRules
+buildMatchingRulesForDtn styleSheet dtn = concat rulesLists
   where
     rulesLists = byAnyElement . byElementId . byClass . bySelId $ []
 
