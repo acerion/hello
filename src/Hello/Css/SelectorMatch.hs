@@ -100,7 +100,7 @@ matchCombinatorAndRemainder CssCombinatorAdjacentSibling complex dtn doctree mc 
 findMatchingParentAndFollowers  :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> Int -> (Bool, CssMatchCache)
 findMatchingParentAndFollowers _       Nothing    _       mc _                 _           = (False, mc)
 findMatchingParentAndFollowers complex (Just dtn) doctree mc dtnNumForCompound cacheOffset =
-  if uniqueNum dtn > dtnNumForCompound
+  if True -- uniqueNum dtn > dtnNumForCompound -- TODO: restore?
   then case complexSelectorMatches' complex (Just dtn) doctree mc cacheOffset of
          -- This dtn node matched innermost Compound of Complex, and the rest
          -- of tree matched remainder of Complex.

@@ -134,15 +134,15 @@ minSpecificityForRule rule matchingRulesListIdx state =
 
 
 
-applyCssRule :: CssCachedDeclarationSet -> Doctree -> DoctreeNode -> CssRule -> CssCachedDeclarationSet
-applyCssRule cachedDeclSet doctree dtn rule =
+applyCssRule :: CssDeclarationSet -> Doctree -> DoctreeNode -> CssRule -> CssDeclarationSet
+applyCssRule declSet doctree dtn rule =
   if match
-  then (targetDeclSet', matchCache2)
-  else (fst cachedDeclSet,  matchCache2)
+  then declSet'
+  else declSet
 
   where
-    targetDeclSet'       = declarationsSetAppend (fst cachedDeclSet) (declarationSet rule)
-    (match, matchCache2) = complexSelectorMatches (complexSelector rule) doctree dtn (snd cachedDeclSet)
+    declSet'   = declarationsSetAppend declSet (declarationSet rule)
+    (match, _) = complexSelectorMatches (complexSelector rule) doctree dtn (matchCacheFromList [])
 
 
 
@@ -186,8 +186,8 @@ updateMatchingRulesIndices matchingRulesIndices minSpecIndex = listReplaceElem m
 -- Apply potentially matching rules from matchingRules with ascending
 -- specificity. If specificity is equal, rules are applied in order of
 -- appearance. Each matchingRules is sorted already.
-applyMatchingRules :: Handle -> MatchingRules -> Doctree -> DoctreeNode -> CssCachedDeclarationSet -> IO CssCachedDeclarationSet
-applyMatchingRules fHandle matchingRules doctree dtn cachedDeclSet = do
+applyMatchingRules :: Handle -> MatchingRules -> Doctree -> DoctreeNode -> CssDeclarationSet -> IO CssDeclarationSet
+applyMatchingRules fHandle matchingRules doctree dtn declSet = do
 
   -- TODO: uncomment this line and observe value of tree's top node num. It's
   -- constantly increasing, as if the function was called with constantly
@@ -198,16 +198,16 @@ applyMatchingRules fHandle matchingRules doctree dtn cachedDeclSet = do
 
   let sortedRules = L.sortBy compareRules (concat . rules $ matchingRules)
 
-  let cachedDeclSet' = foldr (\ rule ds -> applyCssRule ds doctree dtn rule) cachedDeclSet sortedRules
+  let declSet' = foldr (\ rule ds -> applyCssRule ds doctree dtn rule) declSet sortedRules
 
   let debugString1 = "dtn = " ++ (show dtn) ++ "\n\n"
   hPutStr fHandle debugString1
   let debugString2 = "sorted rules = " ++ (show sortedRules) ++ "\n\n"
   hPutStr fHandle debugString2
-  let debugString3 = "updated declSet = " ++ (show cachedDeclSet') ++ "\n\n\n\n\n"
+  let debugString3 = "updated declSet = " ++ (show declSet') ++ "\n\n\n\n\n"
   hPutStr fHandle debugString3
 
-  return cachedDeclSet'
+  return declSet'
 
 
 
@@ -228,8 +228,8 @@ compareRules r1 r2 | (specificity r1) < (specificity r2) = GT
 --
 -- The declarations (list property+value) are set as defined by the rules in
 -- the stylesheet that match at the given node in the document tree.
-cssStyleSheetApplyStyleSheet :: Handle -> CssStyleSheet -> CssCachedDeclarationSet -> Doctree -> DoctreeNode -> IO CssCachedDeclarationSet
-cssStyleSheetApplyStyleSheet fHandle styleSheet cachedDeclSet doctree dtn = do
+cssStyleSheetApplyStyleSheet :: Handle -> CssStyleSheet -> CssDeclarationSet -> Doctree -> DoctreeNode -> IO CssDeclarationSet
+cssStyleSheetApplyStyleSheet fHandle styleSheet declSet doctree dtn = do
 
   let matchingRules = MatchingRules
         {
@@ -240,7 +240,7 @@ cssStyleSheetApplyStyleSheet fHandle styleSheet cachedDeclSet doctree dtn = do
         , indices = replicate (L.length . rules $ matchingRules) 0
         }
 
-  applyMatchingRules fHandle matchingRules doctree dtn cachedDeclSet
+  applyMatchingRules fHandle matchingRules doctree dtn declSet
 
 
 
@@ -321,18 +321,6 @@ buildMatchingRulesGroupForDtn styleSheet dtn = reverse rulesLists
 
 
 
-type CssCachedDeclarationSet = (CssDeclarationSet, CssMatchCache)
-
-
-
-
-declarationsSetAppend' :: (CssDeclarationSet, CssMatchCache) -> CssDeclarationSet -> (CssDeclarationSet, CssMatchCache)
-declarationsSetAppend' (targetDs, cache) ds = (declarationsSetAppend targetDs ds, cache)
-
-
-
-
-
 -- Apply a CSS context to a property list.
 --
 -- The stylesheets in the context are applied one after the other in the
@@ -342,23 +330,25 @@ declarationsSetAppend' (targetDs, cache) ds = (declarationsSetAppend targetDs ds
 cssContextApplyCssContext :: Handle -> CssContext -> Doctree -> DoctreeNode -> StyleNode -> IO (CssDeclarationSet, CssMatchCache)
 cssContextApplyCssContext fHandle context doctree dtn styleNode = do
 
-  let cachedDeclSet1 = (defaultCssDeclarationSet, matchCache context)
+  let declSet1 = defaultCssDeclarationSet -- TODO: remove matchCache from context
 
-  cachedDeclSet2 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserAgent) cachedDeclSet1 doctree dtn
+  declSet2 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserAgent) declSet1 doctree dtn
 
-  cachedDeclSet3 <- cssStyleSheetApplyStyleSheet fHandle(getSheet context CssPrimaryUser) cachedDeclSet2 doctree dtn
+  declSet3 <- cssStyleSheetApplyStyleSheet fHandle(getSheet context CssPrimaryUser) declSet2 doctree dtn
 
-  let cachedDeclSet4 = declarationsSetAppend' cachedDeclSet3 (nonCssDeclSet styleNode)
+  let declSet4 = declarationsSetAppend declSet3 (nonCssDeclSet styleNode)
 
-  cachedDeclSet5 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryAuthor) cachedDeclSet4 doctree dtn
+  declSet5 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryAuthor) declSet4 doctree dtn
 
-  let cachedDeclSet6 = declarationsSetAppend' cachedDeclSet5 (mainDeclSet styleNode)
+  let declSet6 = declarationsSetAppend declSet5 (mainDeclSet styleNode)
 
-  cachedDeclSet7 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryAuthorImportant) cachedDeclSet6 doctree dtn
+  declSet7 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryAuthorImportant) declSet6 doctree dtn
 
-  let cachedDeclSet8 = declarationsSetAppend' cachedDeclSet7 (importantDeclSet styleNode)
+  let declSet8 = declarationsSetAppend declSet7 (importantDeclSet styleNode)
 
-  cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserImportant) cachedDeclSet8 doctree dtn
+  declSet9 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserImportant) declSet8 doctree dtn
+
+  return (declSet9, matchCacheFromList [])
 
 
 
