@@ -136,14 +136,9 @@ minSpecificityForRule rule matchingRulesListIdx state =
 
 applyCssRule :: CssDeclarationSet -> Doctree -> DoctreeNode -> CssRule -> CssDeclarationSet
 applyCssRule declSet doctree dtn rule =
-  if match
-  then declSet'
+  if complexSelectorMatches (complexSelector rule) doctree dtn
+  then declarationsSetAppend declSet (declarationSet rule)
   else declSet
-
-  where
-    declSet'   = declarationsSetAppend declSet (declarationSet rule)
-    (match, _) = complexSelectorMatches (complexSelector rule) doctree dtn (matchCacheFromList [])
-
 
 
 

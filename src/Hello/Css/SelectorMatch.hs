@@ -57,7 +57,7 @@ import qualified Data.Text as T
 --import Debug.Trace
 
 import Hello.Chain
-import Hello.Css.MatchCache
+--import Hello.Css.MatchCache
 import Hello.Css.Selector
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
@@ -65,51 +65,51 @@ import Hello.Html.DoctreeNode
 
 
 
-complexSelectorMatches :: CssCachedComplexSelector -> Doctree -> DoctreeNode -> CssMatchCache -> (Bool, CssMatchCache)
-complexSelectorMatches cachedComplexSelector doctree dtn matchCache = (isMatch, matchCache2)
+complexSelectorMatches :: CssCachedComplexSelector -> Doctree -> DoctreeNode -> Bool
+complexSelectorMatches cachedComplexSelector doctree dtn = isMatch
   where
-    (isMatch, matchCache2) = complexSelectorMatches' (chain cachedComplexSelector) (Just dtn) doctree matchCache cacheOffset
-    cacheOffset            = matchCacheOffset cachedComplexSelector
+    isMatch     = complexSelectorMatches' (chain cachedComplexSelector) (Just dtn) doctree
+    -- cacheOffset = matchCacheOffset cachedComplexSelector -- TODO: get rid of 'cached complex selector'
 
 
 
 
-complexSelectorMatches' :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
-complexSelectorMatches' _                                     Nothing    _       mc _           = (False, mc)
-complexSelectorMatches' (Last compound)                       (Just dtn) _       mc _           = (compoundSelectorMatches compound dtn, mc)
-complexSelectorMatches' (Chain compound combinator remainder) (Just dtn) doctree mc cacheOffset =
+complexSelectorMatches' :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> Bool
+complexSelectorMatches' _                                     Nothing    _       = False
+complexSelectorMatches' (Last compound)                       (Just dtn) _       = compoundSelectorMatches compound dtn
+complexSelectorMatches' (Chain compound combinator remainder) (Just dtn) doctree =
   if compoundSelectorMatches compound dtn
-  then matchCombinatorAndRemainder combinator remainder dtn doctree mc cacheOffset
-  else (False, mc)
+  then matchCombinatorAndRemainder combinator remainder dtn doctree
+  else False
 
 
 
 
 -- Test whether a pair of <combinator> + <remainder of complex selector>
 -- matches a doctree.
-matchCombinatorAndRemainder :: CssCombinator -> CssComplexSelector -> DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
-matchCombinatorAndRemainder CssCombinatorDescendant      complex dtn doctree mc cacheOffset = matchDescendant         complex (getDtnParent doctree dtn)  doctree mc cacheOffset
-matchCombinatorAndRemainder CssCombinatorChild           complex dtn doctree mc cacheOffset = complexSelectorMatches' complex (getDtnParent doctree dtn)  doctree mc cacheOffset
-matchCombinatorAndRemainder CssCombinatorAdjacentSibling complex dtn doctree mc cacheOffset = complexSelectorMatches' complex (getDtnSibling doctree dtn) doctree mc cacheOffset
+matchCombinatorAndRemainder :: CssCombinator -> CssComplexSelector -> DoctreeNode -> Doctree -> Bool
+matchCombinatorAndRemainder CssCombinatorDescendant      complex dtn doctree = matchDescendant         complex (getDtnParent doctree dtn)  doctree
+matchCombinatorAndRemainder CssCombinatorChild           complex dtn doctree = complexSelectorMatches' complex (getDtnParent doctree dtn)  doctree
+matchCombinatorAndRemainder CssCombinatorAdjacentSibling complex dtn doctree = complexSelectorMatches' complex (getDtnSibling doctree dtn) doctree
 
 
 
 
 -- Go upwards of DocTree looking for a matching parent (because of Descendant
 -- combinator), and then try to match remainder of Complex Selector.
-findMatchingParentAndFollowers  :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> Int -> (Bool, CssMatchCache)
-findMatchingParentAndFollowers _       Nothing    _       mc _                 _           = (False, mc)
-findMatchingParentAndFollowers complex (Just dtn) doctree mc dtnNumForCompound cacheOffset =
+findMatchingParentAndFollowers  :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> Bool
+findMatchingParentAndFollowers _       Nothing    _       = False
+findMatchingParentAndFollowers complex (Just dtn) doctree =
   if True -- uniqueNum dtn > dtnNumForCompound -- TODO: restore?
-  then case complexSelectorMatches' complex (Just dtn) doctree mc cacheOffset of
+  then case complexSelectorMatches' complex (Just dtn) doctree of
          -- This dtn node matched innermost Compound of Complex, and the rest
          -- of tree matched remainder of Complex.
-         (True, mc2)  -> (True, mc2)
+         True  -> True
          -- Go up the tree searching for another candidate node that would
          -- match the innermost Compound of Complex (and the rest of tree
          -- would also match the remainder of Complex).
-         (False, mc2) -> findMatchingParentAndFollowers complex parentDtn doctree mc2 dtnNumForCompound cacheOffset
-  else (False, mc)
+         False -> findMatchingParentAndFollowers complex parentDtn doctree
+  else False
 
   where
     parentDtn = getDtnParent doctree dtn
@@ -121,18 +121,13 @@ findMatchingParentAndFollowers complex (Just dtn) doctree mc dtnNumForCompound c
 -- Parent of some other node). If this fails, try to match agains parent, and
 -- grandparent, until you find a match. On success, try to match remainder of
 -- Complex against remainder of tree.
-matchDescendant :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> CssMatchCache -> Int -> (Bool, CssMatchCache)
-matchDescendant complex mDtn doctree mc cacheOffset =
-  case findMatchingParentAndFollowers complex mDtn doctree mc dtnNumForCompound cacheOffset of
-    (True, mc2)  -> (True, mc2)
-    (False, mc2) -> case mDtn of
-                      Nothing  -> (False, mc2)
-                      Just dtn -> (False, matchCacheSetItem mc2 (uniqueNum dtn) compoundOffset)
-  where
-    compoundIdx       = chainDatumLength complex - 1
-    compoundOffset    = cacheOffset + compoundIdx
-    dtnNumForCompound = matchCacheGetItem mc compoundOffset
-
+matchDescendant :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> Bool
+matchDescendant complex mDtn doctree =
+  case findMatchingParentAndFollowers complex mDtn doctree of
+    True  -> True
+    False -> case mDtn of
+               Nothing  -> False
+               Just dtn -> False
 
 
 
