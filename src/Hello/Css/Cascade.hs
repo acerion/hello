@@ -188,7 +188,6 @@ updateMatchingRulesIndices matchingRulesIndices minSpecIndex = listReplaceElem m
 -- appearance. Each matchingRules is sorted already.
 applyMatchingRules :: Handle -> MatchingRules -> Doctree -> DoctreeNode -> CssCachedDeclarationSet -> IO CssCachedDeclarationSet
 applyMatchingRules fHandle matchingRules doctree dtn cachedDeclSet = do
-  let state = cssGetMinSpecState matchingRules
 
   -- TODO: uncomment this line and observe value of tree's top node num. It's
   -- constantly increasing, as if the function was called with constantly
@@ -197,30 +196,30 @@ applyMatchingRules fHandle matchingRules doctree dtn cachedDeclSet = do
   -- constantly updated doctree.
   --putStrLn ("Is topNodeNum increasing? " ++ (show . topNodeNum $ doctree))
 
-  let debugString1 = "minSpec = " ++ (show . triplet1st $ state) ++ ", minPos = " ++ (show . triplet2nd $ state) ++ ", minSpecIndex = " ++ (show . triplet3rd $ state) ++ "\n"
+  let sortedRules = L.sortBy compareRules (concat . rules $ matchingRules)
+
+  let cachedDeclSet' = foldr (\ rule ds -> applyCssRule ds doctree dtn rule) cachedDeclSet sortedRules
+
+  let debugString1 = "dtn = " ++ (show dtn) ++ "\n\n"
   hPutStr fHandle debugString1
+  let debugString2 = "sorted rules = " ++ (show sortedRules) ++ "\n\n"
+  hPutStr fHandle debugString2
+  let debugString3 = "updated declSet = " ++ (show cachedDeclSet') ++ "\n\n\n\n\n"
+  hPutStr fHandle debugString3
 
-  let matchingRulesListIdx = triplet3rd state
-  if matchingRulesListIdx >= 0
-    then
-    do
-      -- This is a rule that over many iterations of this function has
-      -- increasing ("ascending") specificity. The rule is passed to
-      -- applyCssRule which can update declarations with lower specificity
-      -- (from initial iterations) with declarations with higher specificity.
-      let rule = getLeastSpecificRule matchingRules matchingRulesListIdx
+  return cachedDeclSet'
 
-      let cachedDeclSet' = applyCssRule cachedDeclSet doctree dtn rule
 
-      let matchingRules' = matchingRules { indices = updateMatchingRulesIndices (indices matchingRules) matchingRulesListIdx }
 
-      let debugString2 = show (fst cachedDeclSet') ++ "\n"
-      hPutStr fHandle debugString2
-      let debugString3 = show (V.fromList . indices $ matchingRules') ++ "\n"
-      hPutStr fHandle debugString3
 
-      applyMatchingRules fHandle matchingRules' doctree dtn cachedDeclSet'
-    else return cachedDeclSet
+-- TODO: check if all the conditions are included, and whether they are used
+-- for calculations correctly.
+compareRules :: CssRule -> CssRule -> Ordering
+compareRules r1 r2 | (specificity r1) < (specificity r2) = GT
+                   | (specificity r1) > (specificity r2) = LT
+                   | (position r1)    < (position r2)    = GT
+                   | (position r1)    > (position r2)    = LT
+                   | otherwise                           = EQ
 
 
 
