@@ -23,21 +23,13 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 module Hello.Ffi.Css.MatchCache
   (
-    FfiCssMatchCache (..)
-  , peekPtrCssMatchCache
-  , pokeCssMatchCache
   )
 where
 
 
 
 
-import Prelude
-import Foreign
-import Foreign.C.Types
 --import Debug.Trace
-
-import Hello.Css.MatchCache
 
 
 
@@ -46,7 +38,7 @@ import Hello.Css.MatchCache
 
 
 
-
+{-
 data FfiCssMatchCache = FfiCssMatchCache {
     cCacheItems     :: Ptr CInt
   , cCacheItemsSize :: CInt
@@ -100,7 +92,7 @@ pokeCssMatchCache ptrStructMatchCache cache = do
 
 
 
-{-
+
 -- TODO: This function seems to just allocate a new vector of (-1) elements.
 -- So far I haven't seen this function update a vector of some non-(-1)
 -- elements by adding (-1)s at the end.

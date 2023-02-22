@@ -47,15 +47,11 @@ module Hello.Css.StyleSheet
 
   , CssRulesMap
 
-  , CssMatchCache
-
   , CssContext (..)
   , defaultCssContext
   , cssContextAddRule
   , getSheet
   , setSheet
-  , increaseMatchCacheSize
-
 
   , parseRuleset
   , rulesetToRulesWithOrigin
@@ -82,7 +78,6 @@ import Hello.Css.Tokenizer
 import Hello.Css.Parser.Rule
 import Hello.Css.Rule
 import Hello.Css.Selector
-import Hello.Css.MatchCache
 import Hello.Css.MediaQuery
 import Hello.Utils
 
@@ -226,7 +221,6 @@ defaultStyleSheets = CssStyleSheets
 
 data CssContext = CssContext {
     sheets       :: CssStyleSheets
-  , matchCache   :: CssMatchCache
   , rulePosition :: Int
   } deriving (Show)
 
@@ -235,7 +229,6 @@ data CssContext = CssContext {
 
 defaultCssContext :: CssContext
 defaultCssContext = CssContext { sheets       = defaultStyleSheets
-                               , matchCache   = matchCacheFromList []
                                , rulePosition = 0
                                }
 
@@ -274,8 +267,8 @@ cssRuleIsSafe rule = (not . cssComplexSelectorHasPseudoClass . complexSelector $
 -- Does any compound selector in given complex selector have non-empty list
 -- of pseudo class simple selectors? Remember that C/C++ code can use only
 -- first pseudo class.
-cssComplexSelectorHasPseudoClass :: CssCachedComplexSelector -> Bool
-cssComplexSelectorHasPseudoClass complex = chainAnyDatum (not . null . selectorPseudoClass) (chain complex)
+cssComplexSelectorHasPseudoClass :: CssComplexSelector -> Bool
+cssComplexSelectorHasPseudoClass complex = chainAnyDatum (not . null . selectorPseudoClass) complex
 
 
 
@@ -293,20 +286,13 @@ cssContextAddRule context sheetSelector rule  =
   -- is not being added (in "then" branch)?
   if (sheetSelector == CssPrimaryAuthor || sheetSelector == CssPrimaryAuthorImportant) && (not . cssRuleIsSafe $ rule)
   then trace "[WW] Ignoring unsafe author style that might reveal browsing history" (context{rulePosition = rulePosition context + 1})
-  else cssContextAddRule' . ruleSetOffsetAndPosition $ (context, sheetSelector, rule)
+  else cssContextAddRule' . ruleSetPosition $ (context, sheetSelector, rule)
 
 
 
 
-ruleSetOffsetAndPosition :: (CssContext, CssSheetSelector, CssRule) -> (CssContext, CssSheetSelector, CssRule)
-ruleSetOffsetAndPosition (context, ss, rule) = ( context
-                                               , ss
-                                               , rule { complexSelector = newComplexSelector . complexSelector $ rule
-                                                      , position = rulePosition context
-                                                      }
-                                               )
-  where
-    newComplexSelector cplxSel = cplxSel { matchCacheOffset = matchCacheSize . matchCache $ context}
+ruleSetPosition :: (CssContext, CssSheetSelector, CssRule) -> (CssContext, CssSheetSelector, CssRule)
+ruleSetPosition (context, ss, rule) = (context, ss, rule { position = rulePosition context })
 
 
 
@@ -315,12 +301,10 @@ ruleSetOffsetAndPosition (context, ss, rule) = ( context
 -- selected by 'sheetSelector' argument.
 cssContextAddRule' :: (CssContext, CssSheetSelector, CssRule) -> CssContext
 cssContextAddRule' (context, sheetSelector, rule) = context { sheets       = updateSheet (sheets context) sheetSelector updatedSheet
-                                                            , matchCache   = matchCacheIncreaseBy (matchCache context) delta
                                                             , rulePosition = rulePosition context + 1
                                                             }
   where
     updatedSheet = insertRuleToStyleSheet (getSheet context sheetSelector) rule
-    delta        = chainDatumLength . chain . complexSelector $ rule
 
 
 
@@ -348,13 +332,7 @@ setSheet selector sheet context = case selector of
 
 
 
-increaseMatchCacheSize :: Int -> CssContext -> CssContext
-increaseMatchCacheSize size context = context { matchCache = matchCacheIncreaseTo (matchCache context) size }
-
-
-
-
-makeRulePairs :: [CssCachedComplexSelector] -> CssDeclarationSets -> CssOrigin -> [(CssRule, CssSheetSelector)] -> [(CssRule, CssSheetSelector)]
+makeRulePairs :: [CssComplexSelector] -> CssDeclarationSets -> CssOrigin -> [(CssRule, CssSheetSelector)] -> [(CssRule, CssSheetSelector)]
 makeRulePairs []     _        _      acc = reverse acc
 makeRulePairs (x:xs) declSets origin acc =
   -- The case expression is now very complicated, but at least I'm avoiding
@@ -376,7 +354,7 @@ makeRulePairs (x:xs) declSets origin acc =
         ruleImp = ruleCtor x (snd declSets)
         ruleCtor cplxSel decls = CssRule { complexSelector = cplxSel
                                          , declarationSet  = decls
-                                         , specificity     = selectorSpecificity . chain $ cplxSel
+                                         , specificity     = selectorSpecificity cplxSel
                                          , position        = 0 -- Position of a rule will be set at the moment of inserting the rule to CSS context
                                          }
         addRegular   = not . S.null . items . fst $ declSets  -- Should add a regular rule to accumulator?
@@ -394,12 +372,12 @@ rulesetToRulesWithOrigin (parser, token) = case parseStyleRule (parser, token) o
                                              (pat', Nothing)        -> (pat', [])
                                              (pat', Just parsedStyleRule) -> (pat', rulesWithOrigin)
                                                where
-                                                 rulesWithOrigin = makeRulePairs cachedSelectors (content parsedStyleRule) (cssOrigin parser) []
+                                                 rulesWithOrigin = makeRulePairs selectors (content parsedStyleRule) (cssOrigin parser) []
 
-                                                 -- Notice that only at this stage of parsing we use defaultComplexSelector to
-                                                 -- turn nice lists of compound-selectors+combinators into lists of cached
+                                                 -- Notice that only at this stage of parsing we turn lists of
+                                                 -- compound-selectors+combinators into lists of true
                                                  -- complex selectors.
-                                                 cachedSelectors = fmap mkCachedComplexSelector (prelude parsedStyleRule)
+                                                 selectors = fmap mkComplexSelector (prelude parsedStyleRule)
 
 
 

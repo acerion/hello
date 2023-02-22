@@ -58,7 +58,6 @@ import qualified Data.Text as T
 import System.IO
 
 import Hello.Css.Declaration
-import Hello.Css.MatchCache
 import Hello.Css.Rule
 import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
@@ -218,10 +217,10 @@ buildMatchingRulesForDtn styleSheet dtn = concat rulesLists
 -- ordering defined by CSS 2.1. Stylesheets that are applied later can
 -- overwrite properties set by previous stylesheets. This allows e.g. user
 -- styles to overwrite author styles.
-cssContextApplyCssContext :: Handle -> CssContext -> Doctree -> DoctreeNode -> StyleNode -> IO (CssDeclarationSet, CssMatchCache)
+cssContextApplyCssContext :: Handle -> CssContext -> Doctree -> DoctreeNode -> StyleNode -> IO CssDeclarationSet
 cssContextApplyCssContext fHandle context doctree dtn styleNode = do
 
-  let declSet1 = defaultCssDeclarationSet -- TODO: remove matchCache from context
+  let declSet1 = defaultCssDeclarationSet
 
   declSet2 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserAgent) declSet1 doctree dtn
 
@@ -237,9 +236,7 @@ cssContextApplyCssContext fHandle context doctree dtn styleNode = do
 
   let declSet8 = declarationsSetAppend declSet7 (importantDeclSet styleNode)
 
-  declSet9 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserImportant) declSet8 doctree dtn
-
-  return (declSet9, matchCacheFromList [])
+  cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserImportant) declSet8 doctree dtn
 
 
 

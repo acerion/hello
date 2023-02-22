@@ -57,7 +57,6 @@ import qualified Data.Text as T
 --import Debug.Trace
 
 import Hello.Chain
---import Hello.Css.MatchCache
 import Hello.Css.Selector
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
@@ -65,11 +64,8 @@ import Hello.Html.DoctreeNode
 
 
 
-complexSelectorMatches :: CssCachedComplexSelector -> Doctree -> DoctreeNode -> Bool
-complexSelectorMatches cachedComplexSelector doctree dtn = isMatch
-  where
-    isMatch     = complexSelectorMatches' (chain cachedComplexSelector) (Just dtn) doctree
-    -- cacheOffset = matchCacheOffset cachedComplexSelector -- TODO: get rid of 'cached complex selector'
+complexSelectorMatches :: CssComplexSelector -> Doctree -> DoctreeNode -> Bool
+complexSelectorMatches complexSelector doctree dtn = complexSelectorMatches' complexSelector (Just dtn) doctree
 
 
 
@@ -139,7 +135,6 @@ Right now this is a naive re-write of simple_selector_matches() C function.
 
 TODO: in C++ code the string comparisons were case-insensitive.
 -}
-
 compoundSelectorMatches :: CssCompoundSelector -> DoctreeNode -> Bool
 compoundSelectorMatches compound dtn = compoundSelectorMatches' compound dtn == CssCompoundSelectorMatch
 

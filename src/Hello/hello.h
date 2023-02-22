@@ -352,11 +352,12 @@ typedef enum {
    CSS_ORIGIN_AUTHOR,
 } CssOrigin;
 
+/*
 typedef struct c_css_match_cache_t {
    int c_cache_items[2000]; // For soylentnews.net it's over 1000.
    int c_cache_items_size;
 } c_css_match_cache_t;
-
+*/
 
 
 

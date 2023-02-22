@@ -61,7 +61,7 @@ import Hello.Css.Selector
 
 
 data CssRule = CssRule {
-    complexSelector :: CssCachedComplexSelector
+    complexSelector :: CssComplexSelector
   , declarationSet  :: CssDeclarationSet
   , specificity     :: Int
   , position        :: Int
@@ -69,8 +69,9 @@ data CssRule = CssRule {
 
 
 instance Show CssRule where
-  show (CssRule cs ds s p) = "Rule {" ++  show cs ++ "\n" ++
-                                          show ds ++ "\n" ++
+  show (CssRule cs ds s p) = "Rule { " ++
+                             "complexSelector = " ++ show cs ++ "\n" ++
+                             "declSet = "         ++ show ds ++ "\n" ++
                              "spec = " ++ show s  ++ "\n" ++
                              "pos = "  ++ show p  ++ "}\n"
 
@@ -79,7 +80,7 @@ instance Show CssRule where
 
 -- Get top compound selector
 getTopCompound :: CssRule -> CssCompoundSelector
-getTopCompound rule = chainGetFirstDatum . chain . complexSelector $ rule
+getTopCompound rule = chainGetFirstDatum . complexSelector $ rule
 
 
 

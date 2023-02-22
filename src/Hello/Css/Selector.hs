@@ -56,9 +56,6 @@ module Hello.Css.Selector
 
   , CssSubclassSelector (..)
 
-  , CssCachedComplexSelector (..)
-  , defaultComplexSelector
-
   , CssComplexSelector
 
   , SelectorWrapper (..)
@@ -71,7 +68,7 @@ module Hello.Css.Selector
   , selectorSpecificity
 
   , listToChain
-  , mkCachedComplexSelector
+  , mkComplexSelector
   )
 where
 
@@ -111,14 +108,6 @@ data CssCompoundSelector = CssCompoundSelector
   , selectorClass       :: [T.Text]        -- https://www.w3.org/TR/selectors-4/#class-selector
   , selectorTagName     :: CssTypeSelector -- https://www.w3.org/TR/selectors-4/#type-selectors
                                            -- TODO: add https://www.w3.org/TR/selectors-4/#attribute-selector
-  } deriving (Show, Eq)
-
-
-
-
-data CssCachedComplexSelector = CssCachedComplexSelector {
-    matchCacheOffset :: Int
-  , chain            :: CssComplexSelector
   } deriving (Show, Eq)
 
 
@@ -256,14 +245,6 @@ defaultCssCompoundSelector = CssCompoundSelector
 
 
 
-defaultComplexSelector :: CssCachedComplexSelector
-defaultComplexSelector = CssCachedComplexSelector {
-    matchCacheOffset = -1
-  , chain            = Last defaultCssCompoundSelector
-  }
-
-
-
 
 -- https://www.w3.org/TR/selectors-4/#structure: "A complex selector is a
 -- sequence of one or more compound selectors separated by combinators."
@@ -324,6 +305,6 @@ listToChain (WrapCompound compound:WrapCombinator combi:xs) = Chain compound com
 
 
 
-mkCachedComplexSelector :: [SelectorWrapper] -> CssCachedComplexSelector
-mkCachedComplexSelector parsed = defaultComplexSelector { chain = listToChain . reverse $ parsed }
+mkComplexSelector :: [SelectorWrapper] -> CssComplexSelector
+mkComplexSelector parsed = listToChain . reverse $ parsed
 

@@ -50,7 +50,6 @@ import Hello.Css.Cascade
 import Hello.Css.ContextGlobal
 import Hello.Css.Declaration
 import Hello.Css.DeclarationSetsGlobal
-import Hello.Css.MatchCache
 import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
 import Hello.Css.UserAgentStyle
@@ -149,17 +148,10 @@ ffiCssContextCtor = do
   ref     <- fmap fromIntegral globalContextCtor
   context <- globalContextGet ref
 
-  -- Since this new context will contain a sheet with 'primary user agent'
-  -- style sheet, the context must have its match cache increased to be large
-  -- enough for matching rules form the 'primary user agent' style sheet.
-  --
-  -- TODO: why do we need to put -1?
-  let requiredMatchCacheSize = (matchCacheSize . matchCache $ userAgentContext) - 1
-
   -- Put the (most probably non-empty) User Agent Sheet in the newly created
   -- context (it has been created with globalContextCtor on top of this
   -- function).
-  let context' = (setSheet CssPrimaryUserAgent userAgentStyleSheet) . (increaseMatchCacheSize requiredMatchCacheSize) $ context
+  let context' = (setSheet CssPrimaryUserAgent userAgentStyleSheet) $ context
   globalContextUpdate ref context'
 
   -- This is a constructor, so return a reference to newly created context.
@@ -223,12 +215,9 @@ ffiCssContextApplyCssContext cRef cDoctreeRef cDtnNum cMainDeclSetRef cImportant
                                , nonCssDeclSet    = nonCssDeclSetIn
                                }
 
-  (mergedDeclSet, matchCache') <- cssContextApplyCssContext fHandle context doctree dtn styleNode
+  mergedDeclSet <- cssContextApplyCssContext fHandle context doctree dtn styleNode
 
   declSetRef <- globalDeclarationSetPut mergedDeclSet
-
-  let context2 = context { matchCache = matchCache' }
-  globalContextUpdate ref context2 -- { matchCache = matchCache' }
 
   hClose fHandle
 
