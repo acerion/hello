@@ -64,13 +64,16 @@ int a_Web_dispatch_by_type (const char *Type, DilloWeb *Web,
    if (Web->flags & WEB_RootUrl) {
       /* We have RootUrl! */
 
+      DwLength len1;
+      DwLength len2;
+      ffiCreatePercentageDwLength(&len1, 0);
+      ffiCreatePercentageDwLength(&len2, 0);
       style::Color *bgColor = style::Color::create (layout, prefs.bg_color);
       Web->bgColor = bgColor->getColor ();
       layout->setBgColor (bgColor);
       layout->setBgImage (NULL, style::BACKGROUND_REPEAT,
                           style::BACKGROUND_ATTACHMENT_SCROLL,
-                          style::createPercentageDwLength (0),
-                          style::createPercentageDwLength (0));
+                          len1, len2);
 
       /* Set a style for the widget */
       StyleEngine styleEngine (layout, Web->url, Web->url);

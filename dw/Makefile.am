@@ -33,6 +33,9 @@ libDw_core_a_SOURCES = \
 	widget.cc \
 	widget.hh
 
+libDw_core_a_LIBADD = \
+	$(top_builddir)/src/Hello/libhello.so
+
 libDw_fltk_a_SOURCES = \
 	fltkcomplexbutton.cc \
 	fltkcomplexbutton.hh \
@@ -77,5 +80,9 @@ libDw_widgets_a_SOURCES = \
 	textblock_iterator.cc \
 	textblock_linebreaking.cc \
 	textblock.hh
+
+libDw_widgets_a_LIBADD = \
+	$(top_builddir)/src/Hello/libhello.so
+
 
 EXTRA_DIST = preview.xbm

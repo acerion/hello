@@ -43,10 +43,8 @@ extern "C" {
  * <ul>
  * <li> dw::core::style::isAbsoluteDwLength
  * <li> dw::core::style::isPercentageDwLength
- * <li> dw::core::style::isRelativeDwLength
  * <li> dw::core::style::getAbsoluteDwLengthValue
  * <li> dw::core::style::getPercentageDwLengthValue
- * <li> dw::core::style::getRelativeDwLengthValue
  * </ul>
  *
  * "auto" lengths are represented as dw::core::style::LENGTH_AUTO.
@@ -54,7 +52,7 @@ extern "C" {
 typedef struct {
    double dw_length_value;
    int dw_length_type;
-   int dw_length_hash;
+   //int dw_length_hash;
 } DwLength;
 
 
@@ -471,7 +469,16 @@ int ffiInheritNonCssHints(int parent_non_css_decl_set_ref, int non_css_decl_set_
 
 void ffiCreatePercentageDwLength(DwLength * length, double v);
 void ffiCreateAbsoluteDwLength(DwLength * length, int v);
+void ffiCreateAutoDwLength(DwLength * length);
 
+bool ffiIsAutoDwLength(DwLength * length);
+bool ffiIsAbsoluteDwLength(DwLength * length);
+bool ffiIsPercentageDwLength(DwLength * length);
+
+int ffiGetAbsoluteDwLengthValue(DwLength * length);
+double ffiGetPercentageDwLengthValue(DwLength * length);
+
+int ffiGetDwLengthHash(DwLength * length);
 
 
 #ifdef __cplusplus

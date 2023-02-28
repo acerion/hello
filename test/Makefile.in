@@ -141,17 +141,20 @@ am_dw_image_background_OBJECTS = dw_image_background.$(OBJEXT)
 dw_image_background_OBJECTS = $(am_dw_image_background_OBJECTS)
 dw_image_background_DEPENDENCIES = $(top_builddir)/dw/libDw-widgets.a \
 	$(top_builddir)/dw/libDw-fltk.a \
-	$(top_builddir)/dw/libDw-core.a $(top_builddir)/lout/liblout.a
+	$(top_builddir)/dw/libDw-core.a $(top_builddir)/lout/liblout.a \
+	$(top_builddir)/src/Hello/libhello.so
 am_dw_images_scaled_OBJECTS = dw_images_scaled.$(OBJEXT)
 dw_images_scaled_OBJECTS = $(am_dw_images_scaled_OBJECTS)
 dw_images_scaled_DEPENDENCIES = $(top_builddir)/dw/libDw-widgets.a \
 	$(top_builddir)/dw/libDw-fltk.a \
-	$(top_builddir)/dw/libDw-core.a $(top_builddir)/lout/liblout.a
+	$(top_builddir)/dw/libDw-core.a $(top_builddir)/lout/liblout.a \
+	$(top_builddir)/src/Hello/libhello.so
 am_dw_images_scaled2_OBJECTS = dw_images_scaled2.$(OBJEXT)
 dw_images_scaled2_OBJECTS = $(am_dw_images_scaled2_OBJECTS)
 dw_images_scaled2_DEPENDENCIES = $(top_builddir)/dw/libDw-widgets.a \
 	$(top_builddir)/dw/libDw-fltk.a \
-	$(top_builddir)/dw/libDw-core.a $(top_builddir)/lout/liblout.a
+	$(top_builddir)/dw/libDw-core.a $(top_builddir)/lout/liblout.a \
+	$(top_builddir)/src/Hello/libhello.so
 am_dw_images_simple_OBJECTS = dw_images_simple.$(OBJEXT)
 dw_images_simple_OBJECTS = $(am_dw_images_simple_OBJECTS)
 dw_images_simple_DEPENDENCIES = $(top_builddir)/dw/libDw-widgets.a \
@@ -491,6 +494,7 @@ dw_image_background_LDADD = \
 	$(top_builddir)/dw/libDw-fltk.a \
 	$(top_builddir)/dw/libDw-core.a \
 	$(top_builddir)/lout/liblout.a \
+	$(top_builddir)/src/Hello/libhello.so \
 	@LIBFLTK_LIBS@ @LIBX11_LIBS@
 
 dw_images_simple_SOURCES = dw_images_simple.cc
@@ -507,6 +511,7 @@ dw_images_scaled_LDADD = \
 	$(top_builddir)/dw/libDw-fltk.a \
 	$(top_builddir)/dw/libDw-core.a \
 	$(top_builddir)/lout/liblout.a \
+	$(top_builddir)/src/Hello/libhello.so \
 	@LIBFLTK_LIBS@ @LIBX11_LIBS@
 
 dw_images_scaled2_SOURCES = dw_images_scaled2.cc
@@ -515,6 +520,7 @@ dw_images_scaled2_LDADD = \
 	$(top_builddir)/dw/libDw-fltk.a \
 	$(top_builddir)/dw/libDw-core.a \
 	$(top_builddir)/lout/liblout.a \
+	$(top_builddir)/src/Hello/libhello.so \
 	@LIBFLTK_LIBS@ @LIBX11_LIBS@
 
 dw_lists_SOURCES = dw_lists.cc

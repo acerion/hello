@@ -115,11 +115,15 @@ int main(int argc, char **argv)
    FltkViewport *viewport = new FltkViewport (0, 0, 200, 300);
    layout->attachView (viewport);
 
+   DwLength len;
+   ffiCreatePercentageDwLength(&len, 0.5);
+   DwLength len_integer;
+   ffiCreateAbsoluteDwLength(&len_integer, 30);
    image1 = StyleImage::create ();
    image1->connectDeletion (&isdr);
    layout->setBgImage (image1, BACKGROUND_REPEAT_Y,
-                       BACKGROUND_ATTACHMENT_SCROLL, createPercentageDwLength (0.5),
-                       createAbsoluteDwLength (30));
+                       BACKGROUND_ATTACHMENT_SCROLL,
+                       len, len_integer);
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
@@ -156,8 +160,8 @@ int main(int argc, char **argv)
    image2 = styleAttrs.backgroundImage = StyleImage::create ();
    image2->connectDeletion (&isdr);
    styleAttrs.backgroundRepeat = BACKGROUND_REPEAT;
-   styleAttrs.backgroundPositionX = createPercentageDwLength (0);
-   styleAttrs.backgroundPositionY = createPercentageDwLength (0);
+   ffiCreatePercentageDwLength(&styleAttrs.backgroundPositionX, 0);
+   ffiCreatePercentageDwLength(&styleAttrs.backgroundPositionY, 0);
    Style *wordStyleBg = Style::create (&styleAttrs);
 
    for(int i = 1; i <= 1; i++) {

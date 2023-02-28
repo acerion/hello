@@ -23,6 +23,7 @@
 #include "../lout/msg.h"
 #include "../lout/misc.hh"
 #include "../lout/debug.hh"
+#include "../src/Hello/hello.h"
 
 namespace dw {
 
@@ -171,18 +172,18 @@ Image::~Image()
 void Image::sizeRequestImpl (core::Requisition *requisition)
 {
    if (buffer) {
-      if (dw::core::style::isAutoLength(getStyle ()->height) &&
-          core::style::isAbsoluteDwLength (getStyle ()->width) &&
+      if (ffiIsAutoDwLength(&(getStyle ()->height)) &&
+          ffiIsAbsoluteDwLength (&getStyle ()->width) &&
           buffer->getRootWidth () > 0) {
          // preserve aspect ratio when only width is given
-         requisition->width = core::style::getAbsoluteDwLengthValue(getStyle ()->width);
+         requisition->width = ffiGetAbsoluteDwLengthValue(&getStyle ()->width);
          requisition->ascent = buffer->getRootHeight () *
                                requisition->width / buffer->getRootWidth ();
-      } else if (dw::core::style::isAutoLength(getStyle ()->width) &&
-                 core::style::isAbsoluteDwLength (getStyle ()->height) &&
+      } else if (ffiIsAutoDwLength(&(getStyle ()->width)) &&
+                 ffiIsAbsoluteDwLength (&(getStyle ()->height)) &&
                  buffer->getRootHeight () > 0) {
          // preserve aspect ratio when only height is given
-         requisition->ascent = core::style::getAbsoluteDwLengthValue(getStyle ()->height);
+         requisition->ascent = ffiGetAbsoluteDwLengthValue(&getStyle ()->height);
          requisition->width = buffer->getRootWidth () *
                                requisition->ascent / buffer->getRootHeight ();
       } else {

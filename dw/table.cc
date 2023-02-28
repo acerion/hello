@@ -24,6 +24,7 @@
 #include "../lout/msg.h"
 #include "../lout/misc.hh"
 #include "../lout/debug.hh"
+#include "../src/Hello/hello.h"
 
 using namespace lout;
 
@@ -138,13 +139,13 @@ void Table::getExtremesImpl (core::Extremes *extremes)
       extremes->minWidth += colExtremes->getRef(col)->minWidth;
       extremes->maxWidth += colExtremes->getRef(col)->maxWidth;
    }
-   if (core::style::isAbsoluteDwLength (getStyle()->width)) {
+   if (ffiIsAbsoluteDwLength (&getStyle()->width)) {
       extremes->minWidth =
          misc::max (extremes->minWidth,
-                    core::style::getAbsoluteDwLengthValue(getStyle()->width));
+                    ffiGetAbsoluteDwLengthValue(&getStyle()->width));
       extremes->maxWidth =
          misc::max (extremes->maxWidth,
-                    core::style::getAbsoluteDwLengthValue(getStyle()->width));
+                    ffiGetAbsoluteDwLengthValue(&getStyle()->width));
    }
 
    _MSG(" Table::getExtremesImpl, {%d, %d} numCols=%d\n",
@@ -496,9 +497,9 @@ void Table::forceCalcCellSizes ()
    // Will also call calcColumnExtremes(), when needed.
    getExtremes (&extremes);
 
-   if (core::style::isAbsoluteDwLength (getStyle()->width)) {
-      totalWidth = core::style::getAbsoluteDwLengthValue (getStyle()->width);
-   } else if (core::style::isPercentageDwLength (getStyle()->width)) {
+   if (ffiIsAbsoluteDwLength (&getStyle()->width)) {
+      totalWidth = ffiGetAbsoluteDwLengthValue (&getStyle()->width);
+   } else if (ffiIsPercentageDwLength (&getStyle()->width)) {
       /*
        * If the width is > 100%, we use 100%, this prevents ugly
        * results. (May be changed in future, when a more powerful
@@ -508,7 +509,7 @@ void Table::forceCalcCellSizes ()
       totalWidth =
          misc::min (core::style::multiplyWithPercentageDwLength(availWidth, getStyle()->width),
                     availWidth);
-   } else if (dw::core::style::isAutoLength(getStyle()->width)) {
+   } else if (ffiIsAutoDwLength(&getStyle()->width)) {
       totalWidth = availWidth;
       forceTotalWidth = 0;
    }
@@ -664,7 +665,7 @@ void Table::forceCalcColumnExtremes ()
       colExtremes->getRef(col)->maxWidth = 0;
 
       DwLength length;
-      length = dw::core::style::createAutoLength();
+      ffiCreateAutoDwLength(&length);
       colPercents->set(col, length);
 
       for (int row = 0; row < numRows; row++) {
@@ -678,10 +679,10 @@ void Table::forceCalcColumnExtremes ()
             pbm = (numCols + 1) * getStyle()->hBorderSpacing
                   + children->get(n)->cell.widget->getStyle()->boxDiffWidth ();
             children->get(n)->cell.widget->getExtremes (&cellExtremes);
-            if (core::style::isAbsoluteDwLength (width)) {
+            if (ffiIsAbsoluteDwLength (&width)) {
                // Fixed lengths include table padding, border and margin.
                cellMinW = cellExtremes.minWidth;
-               cellMaxW = misc::max (cellMinW, core::style::getAbsoluteDwLengthValue(width) - pbm);
+               cellMaxW = misc::max (cellMinW, ffiGetAbsoluteDwLengthValue(&width) - pbm);
             } else {
                cellMinW = cellExtremes.minWidth;
                cellMaxW = cellExtremes.maxWidth;
@@ -701,12 +702,13 @@ void Table::forceCalcColumnExtremes ()
                              cellMaxW));
 
             // Also fill the colPercents array in this pass
-            if (core::style::isPercentageDwLength (width)) {
+            if (ffiIsPercentageDwLength (&width)) {
                hasColPercent = 1;
-               if (dw::core::style::isAutoLength(colPercents->get(col))) {
+               DwLength len = colPercents->get(col);
+               if (ffiIsAutoDwLength(&len)) {
                   colPercents->set(col, width);
                }
-            } else if (core::style::isAbsoluteDwLength (width)) {
+            } else if (ffiIsAbsoluteDwLength (&width)) {
                // We treat LEN_ABS as a special case of LEN_AUTO.
                /*
                 * if (colPercents->get(col) == LEN_AUTO)
@@ -734,10 +736,10 @@ void Table::forceCalcColumnExtremes ()
       pbm = (numCols + 1) * getStyle()->hBorderSpacing
             + children->get(n)->cell.widget->getStyle()->boxDiffWidth ();
       children->get(n)->cell.widget->getExtremes (&cellExtremes);
-      if (core::style::isAbsoluteDwLength (width)) {
+      if (ffiIsAbsoluteDwLength (&width)) {
          // Fixed lengths include table padding, border and margin.
          cellMinW = cellExtremes.minWidth;
-         cellMaxW = misc::max(cellMinW, core::style::getAbsoluteDwLengthValue(width) - pbm);
+         cellMaxW = misc::max(cellMinW, ffiGetAbsoluteDwLengthValue(&width) - pbm);
       } else {
          cellMinW = cellExtremes.minWidth;
          cellMaxW = cellExtremes.maxWidth;
@@ -777,8 +779,9 @@ void Table::forceCalcColumnExtremes ()
       int availSpanMinW = spanMinW;
       float cumSpanPercent = 0.0f;
       for (int i = col; i < col + cs; ++i) {
-         if (core::style::isPercentageDwLength (colPercents->get(i))) {
-            cumSpanPercent += core::style::getPercentageDwLengthValue(colPercents->get(i));
+         DwLength len = colPercents->get(i);
+         if (ffiIsPercentageDwLength (&len)) {
+            cumSpanPercent += ffiGetPercentageDwLengthValue(&len);
             ++spanHasColPercent;
          } else
             availSpanMinW -= colExtremes->getRef(i)->minWidth;
@@ -803,12 +806,13 @@ void Table::forceCalcColumnExtremes ()
             curExtraW -= d_w;
             curAppW -= d_a;
          } else {
-            if (core::style::isPercentageDwLength (colPercents->get(i))) {
+            DwLength len = colPercents->get(i);
+            if (ffiIsPercentageDwLength (&len)) {
                // multiplyWithPercentageDwLength would cause rounding errors,
-               // therefore the deprecated way, using getPercentageDwLengthValue:
+               // therefore the deprecated way, using ffiGetPercentageDwLengthValue:
                wMin = misc::max (colExtremes->getRef(i)->minWidth,
                                  (int)(availSpanMinW *
-                                       core::style::getPercentageDwLengthValue(colPercents->get (i))
+                                       ffiGetPercentageDwLengthValue(&len)
                                        / cumSpanPercent));
                colExtremes->getRef(i)->minWidth = wMin;
             }
@@ -858,11 +862,13 @@ void Table::apportion2 (int totalWidth, int forceTotalWidth)
 #endif
    int minAutoWidth = 0, maxAutoWidth = 0, availAutoWidth = totalWidth;
    for (int col = 0; col < numCols; col++) {
-      if (core::style::isAbsoluteDwLength (colPercents->get(col))) {
+      DwLength len = colPercents->get(col);
+      if (ffiIsAbsoluteDwLength (&len)) {
          // set absolute lengths
          setColWidth (col, colExtremes->get(col).minWidth);
       }
-      if (dw::core::style::isAutoLength(colPercents->get(col))) {
+      len = colPercents->get(col);
+      if (ffiIsAutoDwLength(&len)) {
          maxAutoWidth += colExtremes->get(col).maxWidth;
          minAutoWidth += colExtremes->get(col).minWidth;
       } else
@@ -889,7 +895,8 @@ void Table::apportion2 (int totalWidth, int forceTotalWidth)
            col, colExtremes->getRef(col)->minWidth,
            colExtremes->get(col).maxWidth);
 
-      if (!dw::core::style::isAutoLength(colPercents->get(col))) {
+      DwLength len = colPercents->get(col);
+      if (!ffiIsAutoDwLength(&len)) {
          continue;
       }
 
@@ -926,7 +933,7 @@ void Table::apportion2 (int totalWidth, int forceTotalWidth)
 
 void Table::apportion_percentages2(int totalWidth, int forceTotalWidth)
 {
-   int hasTablePercent = core::style::isPercentageDwLength (getStyle()->width) ? 1 : 0;
+   int hasTablePercent = ffiIsPercentageDwLength (&getStyle()->width) ? 1 : 0;
 
    if (colExtremes->size() == 0 || (!hasTablePercent && !hasColPercent))
       return;
@@ -947,7 +954,8 @@ void Table::apportion_percentages2(int totalWidth, int forceTotalWidth)
       // It has only a table-wide percentage. Apportion non-absolute widths.
       int sumMaxWidth = 0, perAvailWidth = totalWidth;
       for (int col = 0; col < numCols; col++) {
-         if (core::style::isAbsoluteDwLength (colPercents->get(col)))
+         DwLength len = colPercents->get(col);
+         if (ffiIsAbsoluteDwLength (&len))
             perAvailWidth -= colExtremes->getRef(col)->maxWidth;
          else
             sumMaxWidth += colExtremes->getRef(col)->maxWidth;
@@ -958,7 +966,8 @@ void Table::apportion_percentages2(int totalWidth, int forceTotalWidth)
 
       for (int col = 0; col < numCols; col++) {
          int max_wi = colExtremes->getRef(col)->maxWidth, new_wi;
-         if (!core::style::isAbsoluteDwLength (colPercents->get(col))) {
+         DwLength len = colPercents->get(col);
+         if (!ffiIsAbsoluteDwLength (&len)) {
             new_wi =
                misc::max (colExtremes->getRef(col)->minWidth,
                           (int)((float)max_wi * perAvailWidth/sumMaxWidth));
@@ -983,12 +992,14 @@ void Table::apportion_percentages2(int totalWidth, int forceTotalWidth)
       int hasAutoCol = 0;
       int sumMinWidth = 0, sumMaxWidth = 0, sumMinNonPer = 0, sumMaxNonPer = 0;
       for (int col = 0; col < numCols; col++) {
-         if (core::style::isPercentageDwLength (colPercents->get(col))) {
-            cumPercent += core::style::getPercentageDwLengthValue(colPercents->get(col));
+         DwLength len = colPercents->get(col);
+         if (ffiIsPercentageDwLength (&len)) {
+            cumPercent += ffiGetPercentageDwLengthValue(&len);
          } else {
             sumMinNonPer += colExtremes->getRef(col)->minWidth;
             sumMaxNonPer += colExtremes->getRef(col)->maxWidth;
-            if (dw::core::style::isAutoLength(colPercents->get(col))) {
+            DwLength len2 = colPercents->get(col);
+            if (ffiIsAutoDwLength(&len2)) {
                hasAutoCol++;
             }
          }
@@ -1005,10 +1016,11 @@ void Table::apportion_percentages2(int totalWidth, int forceTotalWidth)
             // only percentage columns, or cumPercent < 100% => restrict width
             int totW = (int)(sumMaxNonPer / (1.0f - cumPercent));
             for (int col = 0; col < numCols; col++) {
+               DwLength len = colPercents->get(col);
                totW = misc::max
                   (totW,
                    (int)(colExtremes->getRef(col)->maxWidth
-                         / core::style::getPercentageDwLengthValue(colPercents->get(col))));
+                         / ffiGetPercentageDwLengthValue(&len)));
             }
             totalWidth = misc::min (totW, totalWidth);
          }
@@ -1034,7 +1046,8 @@ void Table::apportion_percentages2(int totalWidth, int forceTotalWidth)
 
       for (int col = 0; col < numCols; col++) {
          int colMinWidth = colExtremes->getRef(col)->minWidth;
-         if (core::style::isPercentageDwLength (colPercents->get(col))) {
+         DwLength len = colPercents->get(col);
+         if (ffiIsPercentageDwLength (&len)) {
             int w = core::style::multiplyWithPercentageDwLength (workingWidth, colPercents->get(col));
             if (w < colMinWidth)
                w = colMinWidth;
@@ -1070,7 +1083,8 @@ void Table::apportion_percentages2(int totalWidth, int forceTotalWidth)
             // We'll honor totalWidth by expanding the percentage cols.
             int extraWidth = totalWidth - curPerWidth - sumMinNonPer;
             for (int col = 0; col < numCols; col++) {
-               if (core::style::isPercentageDwLength (colPercents->get(col))) {
+               DwLength len = colPercents->get(col);
+               if (ffiIsPercentageDwLength (&len)) {
                   // This could cause rounding errors:
                   //
                   // int d =
@@ -1080,7 +1094,7 @@ void Table::apportion_percentages2(int totalWidth, int forceTotalWidth)
                   // Thus the "old" way:
                   int d =
                      (int)(extraWidth *
-                           core::style::getPercentageDwLengthValue(colPercents->get(col))
+                           ffiGetPercentageDwLengthValue(&len)
                            / cumPercent);
                   setColWidth (col, colWidths->get(col) + d);
                }
@@ -1098,7 +1112,7 @@ void Table::apportion_percentages2(int totalWidth, int forceTotalWidth)
 #ifdef DBG
       MSG("APP_P, percent={");
       for (int col = 0; col < numCols; col++)
-         MSG("%f ", core::dw::getPercentageDwLengthValue(colPercents->get(col)));
+         MSG("%f ", ffiGetPercentageDwLengthValue(colPercents->get(col)));
       MSG("}\n");
       MSG("APP_P, result ={ ");
       for (int col = 0; col < numCols; col++)

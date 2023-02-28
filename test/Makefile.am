@@ -74,6 +74,7 @@ dw_image_background_LDADD = \
 	$(top_builddir)/dw/libDw-fltk.a \
 	$(top_builddir)/dw/libDw-core.a \
 	$(top_builddir)/lout/liblout.a \
+	$(top_builddir)/src/Hello/libhello.so \
 	@LIBFLTK_LIBS@ @LIBX11_LIBS@
 
 dw_images_simple_SOURCES = dw_images_simple.cc
@@ -90,6 +91,7 @@ dw_images_scaled_LDADD = \
 	$(top_builddir)/dw/libDw-fltk.a \
 	$(top_builddir)/dw/libDw-core.a \
 	$(top_builddir)/lout/liblout.a \
+	$(top_builddir)/src/Hello/libhello.so \
 	@LIBFLTK_LIBS@ @LIBX11_LIBS@
 
 dw_images_scaled2_SOURCES = dw_images_scaled2.cc
@@ -98,6 +100,7 @@ dw_images_scaled2_LDADD = \
 	$(top_builddir)/dw/libDw-fltk.a \
 	$(top_builddir)/dw/libDw-core.a \
 	$(top_builddir)/lout/liblout.a \
+	$(top_builddir)/src/Hello/libhello.so \
 	@LIBFLTK_LIBS@ @LIBX11_LIBS@
 
 dw_lists_SOURCES = dw_lists.cc

@@ -107,7 +107,7 @@ am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
 am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libDw_core_a_AR = $(AR) $(ARFLAGS)
-libDw_core_a_LIBADD =
+libDw_core_a_DEPENDENCIES = $(top_builddir)/src/Hello/libhello.so
 am_libDw_core_a_OBJECTS = findtext.$(OBJEXT) imgrenderer.$(OBJEXT) \
 	iterator.$(OBJEXT) layout.$(OBJEXT) selection.$(OBJEXT) \
 	style.$(OBJEXT) types.$(OBJEXT) ui.$(OBJEXT) widget.$(OBJEXT)
@@ -125,7 +125,7 @@ am_libDw_fltk_a_OBJECTS = libDw_fltk_a-fltkcomplexbutton.$(OBJEXT) \
 	libDw_fltk_a-fltkviewport.$(OBJEXT)
 libDw_fltk_a_OBJECTS = $(am_libDw_fltk_a_OBJECTS)
 libDw_widgets_a_AR = $(AR) $(ARFLAGS)
-libDw_widgets_a_LIBADD =
+libDw_widgets_a_DEPENDENCIES = $(top_builddir)/src/Hello/libhello.so
 am_libDw_widgets_a_OBJECTS = alignedtextblock.$(OBJEXT) \
 	bullet.$(OBJEXT) hyphenator.$(OBJEXT) image.$(OBJEXT) \
 	listitem.$(OBJEXT) ruler.$(OBJEXT) table.$(OBJEXT) \
@@ -381,6 +381,9 @@ libDw_core_a_SOURCES = \
 	widget.cc \
 	widget.hh
 
+libDw_core_a_LIBADD = \
+	$(top_builddir)/src/Hello/libhello.so
+
 libDw_fltk_a_SOURCES = \
 	fltkcomplexbutton.cc \
 	fltkcomplexbutton.hh \
@@ -424,6 +427,9 @@ libDw_widgets_a_SOURCES = \
 	textblock_iterator.cc \
 	textblock_linebreaking.cc \
 	textblock.hh
+
+libDw_widgets_a_LIBADD = \
+	$(top_builddir)/src/Hello/libhello.so
 
 EXTRA_DIST = preview.xbm
 all: all-am

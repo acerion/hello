@@ -27,6 +27,7 @@
 
 #include "core.hh"
 #include "../lout/msg.h"
+#include "../src/Hello/hello.h"
 
 using namespace lout;
 
@@ -72,12 +73,12 @@ void StyleAttrs::initValues ()
    backgroundImage = NULL;
    backgroundRepeat = BACKGROUND_REPEAT;
    backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
-   backgroundPositionX = createPercentageDwLength (0);
-   backgroundPositionY = createPercentageDwLength (0);
-   width = createAutoLength();
-   height = createAutoLength();
-   lineHeight = createAutoLength();
-   textIndent = createAutoLength();
+   ffiCreatePercentageDwLength(&backgroundPositionX, 0);
+   ffiCreatePercentageDwLength(&backgroundPositionY, 0);
+   ffiCreateAutoDwLength(&width);
+   ffiCreateAutoDwLength(&height);
+   ffiCreateAutoDwLength(&lineHeight);
+   ffiCreateAutoDwLength(&textIndent);
    styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
@@ -107,10 +108,10 @@ void StyleAttrs::resetValues ()
    backgroundImage = NULL;
    backgroundRepeat = BACKGROUND_REPEAT;
    backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
-   backgroundPositionX = createPercentageDwLength (0);
-   backgroundPositionY = createPercentageDwLength (0);
-   width = createAutoLength();
-   height = createAutoLength();
+   ffiCreatePercentageDwLength(&backgroundPositionX, 0);
+   ffiCreatePercentageDwLength(&backgroundPositionY, 0);
+   ffiCreateAutoDwLength(&width);
+   ffiCreateAutoDwLength(&height);
 
    styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
@@ -152,8 +153,8 @@ bool StyleAttrs::equals (object::Object *other) {
        backgroundImage == otherAttrs->backgroundImage &&
        backgroundRepeat == otherAttrs->backgroundRepeat &&
        backgroundAttachment == otherAttrs->backgroundAttachment &&
-       backgroundPositionX.dw_length_hash == otherAttrs->backgroundPositionX.dw_length_hash &&
-       backgroundPositionY.dw_length_hash == otherAttrs->backgroundPositionY.dw_length_hash &&
+       ffiGetDwLengthHash(&backgroundPositionX) == ffiGetDwLengthHash(&otherAttrs->backgroundPositionX) &&
+       ffiGetDwLengthHash(&backgroundPositionY) == ffiGetDwLengthHash(&otherAttrs->backgroundPositionY) &&
        textAlign == otherAttrs->textAlign &&
        verticalAlign == otherAttrs->verticalAlign &&
        textAlignChar == otherAttrs->textAlignChar &&
@@ -161,10 +162,10 @@ bool StyleAttrs::equals (object::Object *other) {
        hBorderSpacing == otherAttrs->hBorderSpacing &&
        vBorderSpacing == otherAttrs->vBorderSpacing &&
        wordSpacing == otherAttrs->wordSpacing &&
-       width.dw_length_hash == otherAttrs->width.dw_length_hash &&
-       height.dw_length_hash == otherAttrs->height.dw_length_hash &&
-       lineHeight.dw_length_hash == otherAttrs->lineHeight.dw_length_hash &&
-       textIndent.dw_length_hash == otherAttrs->textIndent.dw_length_hash &&
+       ffiGetDwLengthHash(&width) == ffiGetDwLengthHash(&otherAttrs->width) &&
+       ffiGetDwLengthHash(&height) == ffiGetDwLengthHash(&otherAttrs->height) &&
+       ffiGetDwLengthHash(&lineHeight) == ffiGetDwLengthHash(&otherAttrs->lineHeight) &&
+       ffiGetDwLengthHash(&textIndent) == ffiGetDwLengthHash(&otherAttrs->textIndent) &&
 
        styleMarginEquals(&this->margin, &otherAttrs->margin) &&
        borderWidthEquals(&this->borderWidth, &otherAttrs->borderWidth) &&
@@ -199,8 +200,8 @@ int StyleAttrs::hashValue () {
       (intptr_t) backgroundImage +
       backgroundRepeat +
       backgroundAttachment +
-      backgroundPositionX.dw_length_hash +
-      backgroundPositionY.dw_length_hash +
+      ffiGetDwLengthHash(&backgroundPositionX) +
+      ffiGetDwLengthHash(&backgroundPositionY) +
       textAlign +
       verticalAlign +
       textAlignChar +
@@ -208,10 +209,10 @@ int StyleAttrs::hashValue () {
       hBorderSpacing +
       vBorderSpacing +
       wordSpacing +
-      width.dw_length_hash +
-      height.dw_length_hash +
-      lineHeight.dw_length_hash +
-      textIndent.dw_length_hash +
+      ffiGetDwLengthHash(&width) +
+      ffiGetDwLengthHash(&height) +
+      ffiGetDwLengthHash(&lineHeight) +
+      ffiGetDwLengthHash(&textIndent) +
       styleMarginHashValue(&this->margin) +
       borderWidthHashValue(&this->borderWidth) +
       stylePaddingHashValue(&this->padding) +
@@ -689,13 +690,25 @@ BackgroundAttachment
 DwLength StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionX ()
 {
    Style *style = getStyle ();
-   return style ? style->backgroundPositionX : createPercentageDwLength (0);
+   if (style) {
+      return style->backgroundPositionX;
+   } else {
+      DwLength len;
+      ffiCreatePercentageDwLength(&len, 0);
+      return len;
+   }
 }
 
 DwLength StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionY ()
 {
    Style *style = getStyle ();
-   return style ? style->backgroundPositionY : createPercentageDwLength (0);
+   if (style) {
+      return style->backgroundPositionY;
+   } else {
+      DwLength len;
+      ffiCreatePercentageDwLength(&len, 0);
+      return len;
+   }
 }
 
 // ----------------------------------------------------------------------
@@ -1291,13 +1304,13 @@ void calcBackgroundRelatedValues (StyleImage *backgroundImage,
       backgroundRepeat == BACKGROUND_REPEAT_Y;
 
    *origX = xRef +
-      (isPercentageDwLength (backgroundPositionX) ?
+      (ffiIsPercentageDwLength (&backgroundPositionX) ?
        multiplyWithPercentageDwLength (widthRef - imgWidth, backgroundPositionX) :
-       getAbsoluteDwLengthValue(backgroundPositionX));
+       ffiGetAbsoluteDwLengthValue(&backgroundPositionX));
    *origY = yRef +
-      (isPercentageDwLength (backgroundPositionY) ?
+      (ffiIsPercentageDwLength (&backgroundPositionY) ?
        multiplyWithPercentageDwLength (heightRef - imgHeight, backgroundPositionY) :
-       getAbsoluteDwLengthValue(backgroundPositionY));
+       ffiGetAbsoluteDwLengthValue(&backgroundPositionY));
 
    *tileX1 = xDraw < *origX ?
       - (*origX - xDraw + imgWidth - 1) / imgWidth :

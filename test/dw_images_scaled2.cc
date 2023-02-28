@@ -27,6 +27,7 @@
 #include "../dw/fltkviewport.hh"
 #include "../dw/textblock.hh"
 #include "../dw/image.hh"
+#include "../src/Hello/hello.h"
 
 using namespace dw;
 using namespace dw::core;
@@ -64,7 +65,7 @@ static void imageDrawTimeout (void *data)
    }
 
    if(imgRow < 200)
-      Fl::repeat_timeout (0.5, imageDrawTimeout, NULL);
+      Fl::repeat_timeout (0.01, imageDrawTimeout, NULL);
 }
 
 int main(int argc, char **argv)
@@ -115,8 +116,8 @@ int main(int argc, char **argv)
    styleAttrs.setBorderStyle (BORDER_SOLID);
    stylePaddingSetVal(&styleAttrs.padding, 1);
    styleAttrs.backgroundColor = NULL;
-   styleAttrs.width = createPercentageDwLength (0.25);
-   styleAttrs.height = createPercentageDwLength (0.25);
+   ffiCreatePercentageDwLength(&styleAttrs.width, 0.25);
+   ffiCreatePercentageDwLength(&styleAttrs.height, 0.25);
 
    Style *imageStyle1 = Style::create (&styleAttrs);
    image1 = new dw::Image ("A longer ALT Text to demonstrate clipping.");
@@ -125,8 +126,8 @@ int main(int argc, char **argv)
 
    textblock->addParbreak (10, wordStyle);
 
-   styleAttrs.width = createAutoLength();
-   styleAttrs.height = createAutoLength();
+   ffiCreateAutoDwLength(&styleAttrs.width);
+   ffiCreateAutoDwLength(&styleAttrs.height);
 
    Style *imageStyle2 = Style::create (&styleAttrs);
    image2 = new dw::Image ("A longer ALT Text to demonstrate clipping.");

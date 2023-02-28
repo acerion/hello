@@ -36,6 +36,19 @@ module Hello.Dw.DwLength
   , createPercentageDwLength
   , createAbsoluteDwLength
   , createAutoDwLength
+
+  , isPercentageDwLength
+  , isAbsoluteDwLength
+  , isAutoDwLength
+
+  , getPercentageDwLengthValue
+  , getAbsoluteDwLengthValue
+
+  , getDwLengthHash
+
+  , dwTypePerc
+  , dwTypeAbs
+  , dwTypeAuto
   )
 where
 
@@ -49,50 +62,103 @@ import Hello.Utils
 
 
 
-data DwLength = DwLength
-  {
-    dwLengthValue :: Double
-  , dwLengthType  :: Int
-  , dwLengthHash  :: Int
-  } deriving (Show)
+-- Magic values
+dwTypePerc :: Int
+dwTypePerc = 2
+
+dwTypeAbs :: Int
+dwTypeAbs = 1
+
+dwTypeAuto :: Int
+dwTypeAuto = 0
+
+
+
+
+data DwLength
+  = DwLengthPercentage Double
+  | DwLengthAbsolute Int
+  | DwLengthAuto
+  deriving (Show)
 
 
 
 
 -- Returns a percentage, v is relative to 1, not to 100.
 createPercentageDwLength :: Double -> DwLength
-createPercentageDwLength value = DwLength {
-    dwLengthValue = value
-  , dwLengthType  = 2
-  , dwLengthHash  = (iValue .&. complement 3) .|. 2
-  }
-  where
-    -- TODO: this is a strange code made to properly encode a double value
-    -- into integer hash. Be careful with it.
-    shifted    :: Int    = 1 `shiftL` 18
-    multiplied :: Double = value * realToFrac shifted
-    iValue     :: Int    = roundInt . realToFrac $ multiplied
+createPercentageDwLength value = DwLengthPercentage value
 
 
 
 
 -- Returns a length of n pixels
 createAbsoluteDwLength :: Int -> DwLength
-createAbsoluteDwLength value = DwLength {
-    dwLengthValue = fromIntegral value -- TODO: probably bad conversion from int to float
-  , dwLengthType  = 1
-  , dwLengthHash  = (value `shiftL` 2) .|. 1
-  }
+createAbsoluteDwLength value = DwLengthAbsolute . fromIntegral $ value
 
 
 
 
 createAutoDwLength :: DwLength
-createAutoDwLength = DwLength {
-    dwLengthValue = 0.0
-  , dwLengthType  = 0
-  , dwLengthHash  = 0
-  }
+createAutoDwLength = DwLengthAuto
 
 
+
+
+-- Returns true if l is a percentage.
+isPercentageDwLength :: DwLength -> Bool
+isPercentageDwLength (DwLengthPercentage _) = True
+isPercentageDwLength _                      = False
+
+
+
+
+-- Returns true if l is an absolute length.
+isAbsoluteDwLength :: DwLength -> Bool
+isAbsoluteDwLength (DwLengthAbsolute _) = True
+isAbsoluteDwLength _                    = False
+
+
+
+
+-- Returns true if l is an auto length.
+isAutoDwLength :: DwLength -> Bool
+isAutoDwLength DwLengthAuto = True
+isAutoDwLength _            = False
+
+
+
+
+-- Returns the value of a percentage, relative to 1, as a double.
+--
+-- When possible, do not use this function directly; it may be removed soon.
+-- Instead, use multiplyWithPercentageDwLength or
+-- multiplyWithPercentageDwLengthRounded.
+getPercentageDwLengthValue :: DwLength -> Maybe Double
+getPercentageDwLengthValue (DwLengthPercentage v) = Just v
+getPercentageDwLengthValue _                      = Nothing
+
+
+
+
+-- Returns the value of a length in pixels, as an integer
+getAbsoluteDwLengthValue :: DwLength -> Maybe Int
+getAbsoluteDwLengthValue (DwLengthAbsolute v) = Just v
+getAbsoluteDwLengthValue _                    = Nothing
+
+
+
+
+getDwLengthHash :: DwLength -> Int
+getDwLengthHash (DwLengthPercentage v) = hashPerc
+  where
+    hashPerc = (iValue .&. complement 3) .|. dwTypePerc
+    shifted    :: Int    = 1 `shiftL` 18
+    multiplied :: Double = v * realToFrac shifted
+    iValue     :: Int    = roundInt . realToFrac $ multiplied
+getDwLengthHash (DwLengthAbsolute v) = hashAbsolute
+  where
+    hashAbsolute = (v `shiftL` 2) .|. dwTypeAbs
+getDwLengthHash DwLengthAuto = hashAuto
+  where
+    hashAuto = dwTypeAuto
 

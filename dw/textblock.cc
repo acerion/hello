@@ -379,19 +379,18 @@ void Textblock::getWordExtremes (Word *word, core::Extremes *extremes)
       if (word->content.widget->usesHints ())
          word->content.widget->getExtremes (extremes);
       else {
-         if (core::style::isPercentageDwLength
-             (word->content.widget->getStyle()->width)) {
+         if (ffiIsPercentageDwLength(&word->content.widget->getStyle()->width)) {
             extremes->minWidth = 0;
             if (word->content.widget->hasContents ())
                extremes->maxWidth = 1000000;
             else
                extremes->maxWidth = 0;
-         } else if (core::style::isAbsoluteDwLength
-                    (word->content.widget->getStyle()->width)) {
+         } else if (ffiIsAbsoluteDwLength
+                    (&word->content.widget->getStyle()->width)) {
             /* Fixed lengths are only applied to the content, so we have to
              * add padding, border and margin. */
             extremes->minWidth = extremes->maxWidth =
-               core::style::getAbsoluteDwLengthValue(word->content.widget->getStyle()->width)
+               ffiGetAbsoluteDwLengthValue(&word->content.widget->getStyle()->width)
                + word->style->boxDiffWidth ();
          } else
             word->content.widget->getExtremes (extremes);
@@ -899,32 +898,33 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
       widget->setDescent (availDescent);
       widget->sizeRequest (size);
    } else {
-      if (dw::core::style::isAutoLength(wstyle->width) || dw::core::style::isAutoLength(wstyle->height)) {
+      if (ffiIsAutoDwLength(&wstyle->width) || ffiIsAutoDwLength(&wstyle->height)) {
          widget->sizeRequest (&requisition);
       }
 
-      if (dw::core::style::isAutoLength(wstyle->width)) {
+      if (ffiIsAutoDwLength(&wstyle->width)) {
          size->width = requisition.width;
-      } else if (core::style::isAbsoluteDwLength (wstyle->width)) {
+      } else if (ffiIsAbsoluteDwLength (&wstyle->width)) {
          /* Fixed lengths are only applied to the content, so we have to
           * add padding, border and margin. */
-         size->width = core::style::getAbsoluteDwLengthValue(wstyle->width) + wstyle->boxDiffWidth ();
+         size->width = ffiGetAbsoluteDwLengthValue(&wstyle->width) + wstyle->boxDiffWidth ();
       } else {
          size->width = core::style::multiplyWithPercentageDwLength (availWidth, wstyle->width);
       }
 
-      if (dw::core::style::isAutoLength(wstyle->height)) {
+      if (ffiIsAutoDwLength(&wstyle->height)) {
          size->ascent = requisition.ascent;
          size->descent = requisition.descent;
-      } else if (core::style::isAbsoluteDwLength (wstyle->height)) {
+      } else if (ffiIsAbsoluteDwLength (&wstyle->height)) {
          /* Fixed lengths are only applied to the content, so we have to
           * add padding, border and margin. */
-         size->ascent = core::style::getAbsoluteDwLengthValue(wstyle->height) + wstyle->boxDiffHeight ();
+         size->ascent = ffiGetAbsoluteDwLengthValue(&wstyle->height) + wstyle->boxDiffHeight ();
          size->descent = 0;
       } else {
-         DwLength length = dw::core::style::createPercentageDwLength(availAscent);
+         DwLength length;
+         ffiCreatePercentageDwLength(&length, availAscent);
          size->ascent = core::style::multiplyWithPercentageDwLength (wstyle->height.dw_length_value, length);
-         length = dw::core::style::createPercentageDwLength(availDescent);
+         ffiCreatePercentageDwLength(&length, availDescent);
          size->descent = core::style::multiplyWithPercentageDwLength (wstyle->height.dw_length_value, length);
       }
    }
@@ -1629,7 +1629,7 @@ void Textblock::calcTextSize (const char *text, size_t len,
     * For absolute/percentage, line height is relative to font size, which
     * is (irritatingly) smaller than ascent+descent.
     */
-   if (!dw::core::style::isAutoLength(style->lineHeight)) {
+   if (!ffiIsAutoDwLength(&style->lineHeight)) {
       int height, leading;
       float factor = style->font->font_attrs.size;
 
@@ -1643,8 +1643,8 @@ void Textblock::calcTextSize (const char *text, size_t len,
        * AUTO? Apparently.) Once all block elements make Textblocks or
        * something, this can be handled.
        */
-      if (core::style::isAbsoluteDwLength (style->lineHeight)) {
-         height = core::style::getAbsoluteDwLengthValue(style->lineHeight);
+      if (ffiIsAbsoluteDwLength (&style->lineHeight)) {
+         height = ffiGetAbsoluteDwLengthValue(&style->lineHeight);
       } else {
          height = core::style::multiplyWithPercentageDwLengthRounded (style->font->font_attrs.size, style->lineHeight);
       }

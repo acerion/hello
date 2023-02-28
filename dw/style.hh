@@ -116,10 +116,8 @@ namespace core {
  * <ul>
  * <li> dw::core::style::isAbsoluteDwLength
  * <li> dw::core::style::isPercentageDwLength
- * <li> dw::core::style::isRelativeDwLength
  * <li> dw::core::style::getAbsoluteDwLengthValue
  * <li> dw::core::style::getPercentageDwLengthValue
- * <li> dw::core::style::getRelativeDwLengthValue
  * </ul>
  *
  *
@@ -350,84 +348,13 @@ enum WhiteSpace {
    WHITE_SPACE_PRE_LINE,
 };
 
-
-/** \brief Returns a length of \em n pixels. */
-// Notice that this function is already re-implemented in Haskell with ffiCreateAutoDwLength()
-inline DwLength createAutoLength(void)
-{
-   DwLength l = {};
-   l.dw_length_value = 0.0;
-   l.dw_length_type = 0;
-   l.dw_length_hash = 0;
-   return l;
-}
-
-/** \brief Returns a length of \em n pixels. */
-// Notice that this function is already re-implemented in Haskell with ffiCreateAbsoluteDwLength.
-inline DwLength createAbsoluteDwLength(int n)
-{
-   DwLength l = {};
-   l.dw_length_value = (double) n;
-   l.dw_length_type = 1;
-   l.dw_length_hash = (n << 2) | 1;
-   return l;
-}
-
-/** \brief Returns a percentage, \em v is relative to 1, not to 100. */
-// Notice that this function is already re-implemented in Haskell with ffiCreatePercentageDwLength.
-inline DwLength createPercentageDwLength(double v)
-{
-   DwLength l = {};
-   l.dw_length_value = v;
-   l.dw_length_type = 2;
-   l.dw_length_hash = ((int)(v * (1 << 18)) & ~3) | 2;
-   return l;
-}
-
-inline bool isAutoLength(DwLength l) { return l.dw_length_type == 0; }
-
-/** \brief Returns true if \em l is an absolute length. */
-inline bool isAbsoluteDwLength(DwLength l) { return l.dw_length_type == 1; }
-
-/** \brief Returns true if \em l is a percentage. */
-inline bool isPercentageDwLength(DwLength l) { return l.dw_length_type == 2; }
-
-/** \brief Returns true if \em l is a relative length. */
-inline bool isRelativeDwLength(DwLength l) { return l.dw_length_type == 3; }
-
-/** \brief Returns the value of a length in pixels, as an integer. */
-inline int getAbsoluteDwLengthValue(DwLength l)
-{
-   return (int) l.dw_length_value;
-}
-
-/** \brief Returns the value of a percentage, relative to 1, as a double.
- *
- * When possible, do not use this function directly; it may be removed
- * soon. Instead, use multiplyWithPercentageDwLength or multiplyWithPercentageDwLengthRounded.
- */
-inline double getPercentageDwLengthValue(DwLength l)
-{
-   return l.dw_length_value;
-}
-
-/** \brief Returns the value of a relative length, as a float.
- *
- * When possible, do not use this function directly; it may be removed
- * soon.
- */
-inline double getRelativeDwLengthValue(DwLength l)
-{
-   return l.dw_length_value;
-}
-
 /**
  * \brief Multiply an int with a percentage length, returning int.
  *
- * Use this instead of getPercentageDwLengthValue, when possible.
+ * Use this instead of ffiGetPercentageDwLengthValue, when possible.
  */
 inline int multiplyWithPercentageDwLength(int x, DwLength l) {
-   return x * getPercentageDwLengthValue(l);
+   return x * ffiGetPercentageDwLengthValue(&l);
 }
 
 /**
@@ -437,14 +364,8 @@ inline int multiplyWithPercentageDwLength(int x, DwLength l) {
  * (This function exists for backward compatibility.)
  */
 inline int multiplyWithPercentageDwLengthRounded (int x, DwLength l) {
-   return lout::misc::roundInt (x * getPercentageDwLengthValue(l));
+   return lout::misc::roundInt (x * ffiGetPercentageDwLengthValue(&l));
 }
-
-inline int multiplyWithRelativeDwLength(int x, DwLength l)
-{
-   return x * getRelativeDwLengthValue(l);
-}
-
 
 enum {
    /** \brief Represents "auto" lengths. */

@@ -56,8 +56,16 @@ import Hello.Dw.DwLength
 
 foreign export ccall "ffiCreatePercentageDwLength" ffiCreatePercentageDwLength :: Ptr FfiDwLength -> CDouble -> IO ()
 foreign export ccall "ffiCreateAbsoluteDwLength" ffiCreateAbsoluteDwLength :: Ptr FfiDwLength -> CInt -> IO ()
+foreign export ccall "ffiCreateAutoDwLength" ffiCreateAutoDwLength :: Ptr FfiDwLength -> IO ()
 
+foreign export ccall "ffiIsAutoDwLength" ffiIsAutoDwLength :: Ptr FfiDwLength -> IO Bool
+foreign export ccall "ffiIsAbsoluteDwLength" ffiIsAbsoluteDwLength :: Ptr FfiDwLength -> IO Bool
+foreign export ccall "ffiIsPercentageDwLength" ffiIsPercentageDwLength :: Ptr FfiDwLength -> IO Bool
 
+foreign export ccall "ffiGetAbsoluteDwLengthValue" ffiGetAbsoluteDwLengthValue :: Ptr FfiDwLength -> IO CInt
+foreign export ccall "ffiGetPercentageDwLengthValue" ffiGetPercentageDwLengthValue :: Ptr FfiDwLength -> IO CDouble
+
+foreign export ccall "ffiGetDwLengthHash" ffiGetDwLengthHash :: Ptr FfiDwLength -> IO CInt
 
 
 #include "../../hello.h"
@@ -69,7 +77,6 @@ data FfiDwLength = FfiDwLength
   {
     cDwLengthValue :: CDouble
   , cDwLengthType  :: CInt
-  , cDwLengthHash  :: CInt
   } deriving (Show)
 
 
@@ -79,16 +86,16 @@ instance Storable FfiDwLength where
   sizeOf    _ = #{size DwLength}
   alignment _ = #{alignment DwLength}
 
-  poke ptr (FfiDwLength v t h) = do
+  poke ptr (FfiDwLength v t) = do
     #{poke DwLength, dw_length_value} ptr v
     #{poke DwLength, dw_length_type}  ptr t
-    #{poke DwLength, dw_length_hash}  ptr h
+    -- #{poke DwLength, dw_length_hash}  ptr h
 
   peek ptr = do
     v <- #{peek DwLength, dw_length_value} ptr
     t <- #{peek DwLength, dw_length_type}  ptr
-    h <- #{peek DwLength, dw_length_hash}  ptr
-    return (FfiDwLength v t h)
+    -- h <- #{peek DwLength, dw_length_hash}  ptr
+    return (FfiDwLength v t)
 
 
 
@@ -96,23 +103,22 @@ instance Storable FfiDwLength where
 peekDwLength :: Ptr FfiDwLength -> IO DwLength
 peekDwLength ptrStructDwLength = do
   ffiLength <- peek ptrStructDwLength
-  return DwLength
-    {
-      dwLengthValue = coerce . cDwLengthValue $ ffiLength
-    , dwLengthType  = fromIntegral . cDwLengthType  $ ffiLength
-    , dwLengthHash  = fromIntegral . cDwLengthHash  $ ffiLength
-    }
+  let dwLengthType = fromIntegral . cDwLengthType $ ffiLength
+  let len | dwLengthType == dwTypePerc = DwLengthPercentage (coerce . cDwLengthValue $ ffiLength)
+          | dwLengthType == dwTypeAbs  = DwLengthAbsolute (floor . cDwLengthValue $ ffiLength)
+          | otherwise                  = DwLengthAuto
+  return len
 
 
 
 
 pokeDwLength :: DwLength -> Ptr FfiDwLength -> IO ()
 pokeDwLength len ptrStructDwLength = do
-  let v = coerce . dwLengthValue $ len
-  let t = fromIntegral . dwLengthType  $ len
-  let h = fromIntegral . dwLengthHash  $ len
-
-  poke ptrStructDwLength $ FfiDwLength v t h
+  let ffiLen = case len of
+                 DwLengthPercentage v -> FfiDwLength (coerce v)       (fromIntegral dwTypePerc)
+                 DwLengthAbsolute v   -> FfiDwLength (fromIntegral v) (fromIntegral dwTypeAbs)
+                 _                    -> FfiDwLength 0                (fromIntegral dwTypeAuto)
+  poke ptrStructDwLength ffiLen
 
 
 
@@ -143,4 +149,55 @@ ffiCreateAutoDwLength ptrStructDwLength = do
   pokeDwLength len ptrStructDwLength
   return ()
 
+
+
+
+ffiIsAutoDwLength :: Ptr FfiDwLength -> IO Bool
+ffiIsAutoDwLength ptrStructDwLength = do
+  len <- peekDwLength ptrStructDwLength
+  return . isAutoDwLength $ len
+
+
+
+
+ffiIsAbsoluteDwLength :: Ptr FfiDwLength -> IO Bool
+ffiIsAbsoluteDwLength ptrStructDwLength = do
+  len <- peekDwLength ptrStructDwLength
+  return . isAbsoluteDwLength $ len
+
+
+
+
+ffiIsPercentageDwLength :: Ptr FfiDwLength -> IO Bool
+ffiIsPercentageDwLength ptrStructDwLength = do
+  len <- peekDwLength ptrStructDwLength
+  return . isPercentageDwLength $ len
+
+
+
+
+ffiGetAbsoluteDwLengthValue :: Ptr FfiDwLength -> IO CInt
+ffiGetAbsoluteDwLengthValue ptrStructDwLength = do
+  len <- peekDwLength ptrStructDwLength
+  return . fromIntegral $ (case getAbsoluteDwLengthValue len of
+                             Just v  -> v
+                             Nothing -> 0)
+
+
+
+
+ffiGetPercentageDwLengthValue :: Ptr FfiDwLength -> IO CDouble
+ffiGetPercentageDwLengthValue ptrStructDwLength = do
+  len <- peekDwLength ptrStructDwLength
+  return . coerce $ (case getPercentageDwLengthValue len of
+                       Just v  -> v
+                       Nothing -> 0.0)
+
+
+
+
+ffiGetDwLengthHash :: Ptr FfiDwLength -> IO CInt
+ffiGetDwLengthHash ptrStructDwLength = do
+  len <- peekDwLength ptrStructDwLength
+  return . fromIntegral . getDwLengthHash $ len
 
