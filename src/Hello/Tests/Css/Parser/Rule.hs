@@ -33,6 +33,8 @@ import Hello.Css.Selector
 import Hello.Html.Tag
 import Hello.Css.Parser.Property
 
+import qualified Hello.Tests.Utils.Hunit as H.H
+
 
 
 
@@ -422,6 +424,31 @@ parseStyleRuleTestData =
                          }
                        }
 
+
+
+
+{- TODO: enable the case and fix problem leading to its failure
+    -- One case that forced me to do some long debugging.
+  , ParseStyleRuleData {
+      -- remainderIn       =  "a { text-decoration:overline }p {margin: 0.5em 0}"
+      remainderIn       =  T.unlines [ "a { text-decoration:overline }"
+                                     , "p {margin: 0.5em 0}"
+                                     ]
+
+                       , remainderExpected = " {margin: 0.5em 0}"
+                       , tokenExpected     = CssTokIdent "p"
+                       , resultExpected    = Just CssParsedStyleRule
+                         { prelude = [[ WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "a"} ]]
+                         , content = ( defaultCssDeclarationSet { items =
+                                                                    S.fromList [ CssDeclaration { property = CssPropertyTextDecoration [ CssValueTextDecorationOverline ], important = False }
+                                                                               ]
+                                                                }
+                                     , defaultCssDeclarationSet )
+                         }
+                       }
+-}
+
+
     -- Failure case: missing opening brace. The invalid rule will be skipped.
   , ParseStyleRuleData { remainderIn       = "body color:#386ccc ; background-color: #ffff00;line-height: normal}h1{color:blue}"
                        , remainderExpected = "{color:blue}"
@@ -490,25 +517,34 @@ parseStyleRuleTestData =
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-parseStyleRuleTestFunction :: [ParseStyleRuleData] -> T.Text
-parseStyleRuleTestFunction []     = ""
+parseStyleRuleTestFunction :: [ParseStyleRuleData] -> [T.Text]
+parseStyleRuleTestFunction []     = []
 parseStyleRuleTestFunction (x:xs) = if resultExpected x /= result || tokenExpected x /= token' || remainderExpected x /= remainder parser'
-                                    then remainderIn x -- T.pack . show $ parsedStyleRule
+                                    -- then remainderIn x -- T.pack . show $ parsedStyleRule
+                                    then [errMsg]
                                     else parseStyleRuleTestFunction xs
   where
     parser = defaultParser . remainderIn $ x
     ((parser', token'), result) = parseStyleRule (startTokenizer parser)
+    errMsg = T.pack . unwords $
+      [ "\n*** resultExpected    = " ++ (show . resultExpected $ x)
+      , "\n*** result            = " ++ (show result)
+      , "\n*** tokenExpected     = " ++ (show . tokenExpected $ x)
+      , "\n*** token             = " ++ (show token')
+      , "\n*** remainderExpected = " ++ (show . remainderExpected $ x)
+      , "\n*** remainder         = " ++ (show . remainder $ parser')
+      ]
 
 
 
 
 testCases :: [Test]
-testCases = [
-  -- If some error is found, test function returns some data (e.g. non-empty
-  -- string or test index) which can help identify which test failed.
-     TestCase (do
-                  assertEqual "manual tests of parseAllDeclarations" "" (parseAllDeclarationsTestFunction parseAllDeclarationsTestData)
-                  assertEqual "manual tests of parseStyleRule"       "" (parseStyleRuleTestFunction parseStyleRuleTestData))
+testCases =
+  [
+    -- If some error is found, test function returns some data (e.g. non-empty
+    -- string or test index) which can help identify which test failed.
+    TestCase (do assertEqual "manual tests of parseAllDeclarations"    "" (parseAllDeclarationsTestFunction parseAllDeclarationsTestData))
+  , TestCase (do H.H.assertSuccess "manual tests of parseStyleRule"      (parseStyleRuleTestFunction parseStyleRuleTestData))
   ]
 
 
