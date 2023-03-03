@@ -181,6 +181,8 @@ typedef struct c_font_attrs_t {
 
 
 typedef struct c_style_attrs_t {
+        int c_style_attrs_ref; // Handle of Haskell object, to be used in C++ code.
+
         c_font_attrs_t * c_font_attrs;
 
         int c_border_collapse;
@@ -190,13 +192,9 @@ typedef struct c_style_attrs_t {
         c_style_margin_t * c_margin;
         c_style_padding_t * c_padding;
 
-        int c_text_align;
-        int c_text_decoration;
         DwLength * c_text_indent;
-        int c_text_transform;
 
-        int c_vertical_align;
-        int c_white_space;
+        int c_vertical_align; // Copied to StyleAttrs::c_attrs
 
         DwLength * c_width;
         DwLength * c_height;
@@ -208,7 +206,6 @@ typedef struct c_style_attrs_t {
         int c_display;
         int c_color;
         int c_background_color;
-        int c_cursor;
 
         int c_h_border_spacing;
         int c_v_border_spacing;
@@ -222,6 +219,25 @@ typedef struct c_style_attrs_t {
         int c_x_img;
         char * c_x_tooltip; /* TODO: what is the limit of size of this buffer? */
 } c_style_attrs_t;
+
+int ffiStyleAttrsCtor(void);
+void ffiStyleAttrsInitValues(int ref);
+bool ffiStyleAttrsEqual(int ref1, int ref2);
+int ffiStyleAttrsHashValue(int ref);
+void ffiStyleAttrsCopy(int refTo, int refFrom);
+void ffiStyleAttrsReset(int ref);
+
+int ffiStyleAttrsTextAlign(int ref);
+
+int ffiStyleAttrsTextDecoration(int ref);
+void ffiStyleAttrsSetTextDecoration(int ref, int val);
+
+int ffiStyleAttrsTextTransform(int ref);
+
+int ffiStyleAttrsCursor(int ref);
+void ffiStyleAttrsSetCursor(int ref, int val);
+
+int ffiStyleAttrsWhiteSpace(int ref);
 
 
 
@@ -460,6 +476,10 @@ void ffiStyleEngineSetElementPseudoClass(int doc_tree_ref, const char * element_
 
 
 void ffiStyleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * prefs, float dpiX, float dpiY, c_style_attrs_t * parent_style_attrs, c_style_attrs_t * style_attrs);
+
+
+void ffiStyleEngineGetWordStyle0(int refTo, int refFrom);
+void ffiStyleEnginePreprocessAttrs(int refTo, int refFrom, bool inheritBackgroundColor);
 
 
 

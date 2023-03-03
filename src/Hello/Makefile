@@ -16,6 +16,7 @@ all:
 	hsc2hs ./Ffi/Dw/DwLength.hsc
 	hsc2hs ./Ffi/Dw/FontAttrs.hsc
 	hsc2hs ./Ffi/Dw/Style.hsc
+	hsc2hs ./Ffi/Dw/StyleAttrsGlobal.hsc
 	hsc2hs ./Ffi/Gif.hsc
 	hsc2hs ./Ffi/Html/Attribute.hsc
 	hsc2hs ./Ffi/Html/Doctype.hsc
@@ -63,6 +64,7 @@ clean:
 	rm -f ./Ffi/Dw/DwLength.hs
 	rm -f ./Ffi/Dw/FontAttrs.hs
 	rm -f ./Ffi/Dw/Style.hs
+	rm -f ./Ffi/Dw/StyleAttrsGlobal.hs
 	rm -f ./Ffi/Gif.hs
 	rm -f ./Ffi/Html/Attribute.hs
 	rm -f ./Ffi/Html/Doctype.hs

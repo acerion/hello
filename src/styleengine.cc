@@ -342,7 +342,7 @@ void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
       attrs->backgroundAttachment = parentNode->style->backgroundAttachment;
       attrs->backgroundPositionX  = parentNode->style->backgroundPositionX;
       attrs->backgroundPositionY  = parentNode->style->backgroundPositionY;
-      attrs->verticalAlign        = parentNode->style->verticalAlign;
+      attrs->c_attrs.c_vertical_align        = parentNode->style->c_attrs.c_vertical_align;
    }
    attrs->borderColor.top = (Color *) -1;
    attrs->borderColor.bottom = (Color *) -1;
@@ -460,12 +460,9 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
       style_attrs->c_font_attrs->name = strdup(attrs->font->font_attrs.name);
    }
 
-   style_attrs->c_text_align      = attrs->textAlign;
-   style_attrs->c_text_decoration = attrs->textDecoration;
+   ffiStyleAttrsCopy(style_attrs->c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
    *(style_attrs->c_text_indent)  = attrs->textIndent;
-   style_attrs->c_text_transform  = attrs->textTransform;
-   style_attrs->c_vertical_align  = attrs->verticalAlign;
-   style_attrs->c_white_space     = attrs->whiteSpace;
+   style_attrs->c_vertical_align  = attrs->c_attrs.c_vertical_align;
    *(style_attrs->c_width)        = attrs->width;
    *(style_attrs->c_height)       = attrs->height;
    *(style_attrs->c_line_height)  = attrs->lineHeight;
@@ -473,7 +470,6 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
    style_attrs->c_list_style_type     = attrs->listStyleType;
 
    style_attrs->c_display     = attrs->display;
-   style_attrs->c_cursor      = attrs->cursor;
    style_attrs->c_h_border_spacing      = attrs->hBorderSpacing;
    style_attrs->c_v_border_spacing      = attrs->vBorderSpacing;
    style_attrs->c_word_spacing          = attrs->wordSpacing;
@@ -497,13 +493,10 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    attrs->margin  = *(style_attrs->c_margin);
    attrs->padding = *(style_attrs->c_padding);
 
-   attrs->textAlign      = style_attrs->c_text_align;
-   attrs->textDecoration = style_attrs->c_text_decoration;
+   ffiStyleAttrsCopy(attrs->c_attrs.c_style_attrs_ref, style_attrs->c_style_attrs_ref);
    attrs->textIndent     = *(style_attrs->c_text_indent);
-   attrs->textTransform  = style_attrs->c_text_transform;
 
-   attrs->verticalAlign = style_attrs->c_vertical_align;
-   attrs->whiteSpace    = style_attrs->c_white_space;
+   attrs->c_attrs.c_vertical_align = style_attrs->c_vertical_align;
    attrs->width  = *(style_attrs->c_width);
    attrs->height = *(style_attrs->c_height);
    attrs->lineHeight = *(style_attrs->c_line_height);
@@ -528,7 +521,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
          attrs->backgroundColor = Color::create(layout, prefs.white_bg_replacement);
       }
    }
-   attrs->cursor            = style_attrs->c_cursor;
    attrs->hBorderSpacing    = style_attrs->c_h_border_spacing;
    attrs->vBorderSpacing    = style_attrs->c_v_border_spacing;
    attrs->wordSpacing       = style_attrs->c_word_spacing;
@@ -575,14 +567,34 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    c_style_attrs_t * style_attrs = c_style_attrs_calloc();
    c_style_attrs_init(style_attrs);
    c_style_attrs_copy_from(style_attrs, attrs);
+   style_attrs->c_style_attrs_ref = attrs->c_attrs.c_style_attrs_ref;
 
    c_style_attrs_t * parent_style_attrs = c_style_attrs_calloc();
    c_style_attrs_init(parent_style_attrs);
    c_style_attrs_copy_from(parent_style_attrs, parentAttrs);
+   parent_style_attrs->c_style_attrs_ref = parentAttrs->c_attrs.c_style_attrs_ref;
 
    gettimeofday(&g_apply_do_start, NULL);
 
+#if 0
+   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: parentAttrs: %d, attrs: %d\n", parentAttrs->c_attrs.c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
+   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: parent_style_attrs: %d, style_attrs: %d\n", parent_style_attrs->c_style_attrs_ref, style_attrs->c_style_attrs_ref);
+   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: decoration in parentAttrs: %d, decoration in attrs: %d\n", ffiStyleAttrsTextDecoration(parentAttrs->c_attrs.c_style_attrs_ref), ffiStyleAttrsTextDecoration(attrs->c_attrs.c_style_attrs_ref));
+   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: decoration in parent_style_attrs: %d, decoration in style_attrs: %d\n", ffiStyleAttrsTextDecoration(parent_style_attrs->c_style_attrs_ref), ffiStyleAttrsTextDecoration(style_attrs->c_style_attrs_ref));
+#endif
+
+
    ffiStyleEngineApplyStyleToGivenNode(merged_decl_set_ref, &prefs.preferences, layout->dpiX(), layout->dpiY(), parent_style_attrs, style_attrs);
+
+
+#if 0
+   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: parentAttrs: %d, attrs: %d\n", parentAttrs->c_attrs.c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
+   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: parent_style_attrs: %d, style_attrs: %d\n", parent_style_attrs->c_style_attrs_ref, style_attrs->c_style_attrs_ref);
+
+   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: decoration in parentAttrs: %d, decoration in attrs: %d\n", ffiStyleAttrsTextDecoration(parentAttrs->c_attrs.c_style_attrs_ref), ffiStyleAttrsTextDecoration(attrs->c_attrs.c_style_attrs_ref));
+   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: decoration in parent_style_attrs: %d, decoration in style_attrs: %d\n", ffiStyleAttrsTextDecoration(parent_style_attrs->c_style_attrs_ref), ffiStyleAttrsTextDecoration(style_attrs->c_style_attrs_ref));
+#endif
+   
 
    gettimeofday(&g_apply_do_stop, NULL);
    struct timeval diff = {};
@@ -591,6 +603,7 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    fprintf(stderr, "[II] Total apply-do time increased to %ld:%06ld\n", g_apply_do_acc.tv_sec, g_apply_do_acc.tv_usec);
 
    c_style_attrs_copy_to(attrs, style_attrs, this->layout);
+   attrs->c_attrs.c_style_attrs_ref = style_attrs->c_style_attrs_ref;
    c_style_attrs_dealloc(&style_attrs);
 
    c_style_attrs_dealloc(&parent_style_attrs);
@@ -660,6 +673,7 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw)
    // function, they are then used to create new style of current node when
    // the "attrs" are passed to "Style::create(&attrs)".
    StyleAttrs styleAttrs = parentStyleAttrs;
+   styleAttrs.c_attrs.c_style_attrs_ref = ffiStyleAttrsCtor();
 
    // Ensure that StyleEngine::style0() has not been called before for
    // this element.
@@ -716,7 +730,7 @@ Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
       attrs.backgroundPositionY  = getStyle (bw)->backgroundPositionY;
    }
 
-   attrs.verticalAlign = getStyle(bw)->verticalAlign;
+   attrs.c_attrs.c_vertical_align = getStyle(bw)->c_attrs.c_vertical_align;
 
    node->wordStyle = Style::create(&attrs);
    return node->wordStyle;

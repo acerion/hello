@@ -23,6 +23,7 @@
 #include "../lout/misc.hh"
 #include "../lout/unicode.hh"
 #include "../lout/debug.hh"
+#include "../src/Hello/hello.h"
 
 #include <stdio.h>
 #include <math.h>
@@ -674,12 +675,12 @@ bool Textblock::motionNotifyImpl (core::EventMotion *event)
 
       // cursor from word or widget style
       if (word == NULL) {
-         setCursor ((dw::core::style::Cursor) getStyle()->cursor);
+         setCursor ((dw::core::style::Cursor) ffiStyleAttrsCursor(getStyle()->c_attrs.c_style_attrs_ref));
          hoverLink = -1;
          hoverTooltip = NULL;
       } else {
          core::style::Style *style = inSpace ? word->spaceStyle : word->style;
-         setCursor ((dw::core::style::Cursor) style->cursor);
+         setCursor ((dw::core::style::Cursor) ffiStyleAttrsCursor(style->c_attrs.c_style_attrs_ref));
          hoverLink = style->x_link;
          hoverTooltip = style->x_tooltip;
       }
@@ -944,15 +945,15 @@ void Textblock::decorateText(core::View *view, core::style::Style *style,
    int y, height;
 
    height = 1 + style->font->font_attrs.xHeight / 12;
-   if (style->textDecoration & core::style::TEXT_DECORATION_UNDERLINE) {
+   if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref) & core::style::TEXT_DECORATION_UNDERLINE) {
       y = yBase + style->font->descent / 3;
       view->drawRectangle (style->color, shading, true, x, y, width, height);
    }
-   if (style->textDecoration & core::style::TEXT_DECORATION_OVERLINE) {
+   if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref) & core::style::TEXT_DECORATION_OVERLINE) {
       y = yBase - style->font->ascent;
       view->drawRectangle (style->color, shading, true, x, y, width, height);
    }
-   if (style->textDecoration & core::style::TEXT_DECORATION_LINE_THROUGH) {
+   if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref) & core::style::TEXT_DECORATION_LINE_THROUGH) {
       y = yBase + (style->font->descent - style->font->ascent) / 2 +
           style->font->descent / 4;
       view->drawRectangle (style->color, shading, true, x, y, width, height);
@@ -975,7 +976,7 @@ void Textblock::drawText(core::View *view, core::style::Style *style,
    if (len > 0) {
       char *str = NULL;
 
-      switch (style->textTransform) {
+      switch (ffiStyleAttrsTextTransform(style->c_attrs.c_style_attrs_ref)) {
          case core::style::TEXT_TRANSFORM_NONE:
          default:
             break;
@@ -1096,9 +1097,9 @@ void Textblock::drawWord0 (int wordIndex1, int wordIndex2,
    int yWorldBase;
 
    /* Adjust the text baseline if the word is <SUP>-ed or <SUB>-ed. */
-   if (style->verticalAlign == core::style::VALIGN_SUB)
+   if (style->c_attrs.c_vertical_align == core::style::VALIGN_SUB)
       yWidgetBase += style->font->ascent / 3;
-   else if (style->verticalAlign == core::style::VALIGN_SUPER) {
+   else if (style->c_attrs.c_vertical_align == core::style::VALIGN_SUPER) {
       yWidgetBase -= style->font->ascent / 2;
    }
    yWorldBase = yWidgetBase + allocation.y;
@@ -1108,7 +1109,7 @@ void Textblock::drawWord0 (int wordIndex1, int wordIndex2,
    drawText (view, style, core::style::Color::SHADING_NORMAL, xWorld,
              yWorldBase, text, 0, strlen (text), isStartTotal, isEndTotal);
 
-   if (style->textDecoration)
+   if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref))
       decorateText(view, style, core::style::Color::SHADING_NORMAL, xWorld,
                    yWorldBase, totalWidth);
 
@@ -1180,7 +1181,7 @@ void Textblock::drawWord0 (int wordIndex1, int wordIndex2,
                       isStartTotal && firstCharIdx == 0,
                       isEndTotal && lastCharIdx == wordLen);
 
-            if (style->textDecoration)
+            if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref))
                decorateText(view, style, core::style::Color::SHADING_INVERSE,
                             xStart, yWorldBase, width);
          }
@@ -1201,9 +1202,9 @@ void Textblock::drawSpace(int wordIndex, core::View *view,
    bool highlight = false;
 
    /* Adjust the space baseline if it is <SUP>-ed or <SUB>-ed */
-   if (style->verticalAlign == core::style::VALIGN_SUB)
+   if (style->c_attrs.c_vertical_align == core::style::VALIGN_SUB)
       yWidgetBase += style->font->ascent / 3;
-   else if (style->verticalAlign == core::style::VALIGN_SUPER) {
+   else if (style->c_attrs.c_vertical_align == core::style::VALIGN_SUPER) {
       yWidgetBase -= style->font->ascent / 2;
    }
    yWorldBase = allocation.y + yWidgetBase;
@@ -1226,7 +1227,7 @@ void Textblock::drawSpace(int wordIndex, core::View *view,
          yWorldBase - style->font->ascent, word->effSpace,
          style->font->ascent + style->font->descent);
    }
-   if (style->textDecoration) {
+   if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref)) {
       core::style::Color::Shading shading = highlight ?
          core::style::Color::SHADING_INVERSE :
          core::style::Color::SHADING_NORMAL;
@@ -1562,7 +1563,7 @@ int Textblock::textWidth(const char *text, int start, int len,
    if (len > 0) {
       char *str = NULL;
 
-      switch (style->textTransform) {
+      switch (ffiStyleAttrsTextTransform(style->c_attrs.c_style_attrs_ref)) {
          case core::style::TEXT_TRANSFORM_NONE:
          default:
             ret = layout->textWidth(style->font, text+start, len);
@@ -1657,10 +1658,10 @@ void Textblock::calcTextSize (const char *text, size_t len,
    /* In case of a sub or super script we increase the word's height and
     * potentially the line's height.
     */
-   if (style->verticalAlign == core::style::VALIGN_SUB) {
+   if (style->c_attrs.c_vertical_align == core::style::VALIGN_SUB) {
       int requiredDescent = style->font->descent + style->font->ascent / 3;
       size->descent = misc::max (size->descent, requiredDescent);
-   } else if (style->verticalAlign == core::style::VALIGN_SUPER) {
+   } else if (style->c_attrs.c_vertical_align == core::style::VALIGN_SUPER) {
       int requiredAscent = style->font->ascent + style->font->ascent / 2;
       size->ascent = misc::max (size->ascent, requiredAscent);
    }
@@ -2111,7 +2112,7 @@ void Textblock::setBreakOption (Word *word, core::style::Style *style,
 
 bool Textblock::isBreakAllowed (Word *word)
 {
-   switch (word->style->whiteSpace) {
+   switch (ffiStyleAttrsWhiteSpace(word->style->c_attrs.c_style_attrs_ref)) {
    case core::style::WHITE_SPACE_NORMAL:
    case core::style::WHITE_SPACE_PRE_LINE:
    case core::style::WHITE_SPACE_PRE_WRAP:

@@ -52,6 +52,7 @@ import Hello.Css.StyleEngine
 
 import Hello.Display
 import Hello.Dw.Style
+import Hello.Dw.StyleAttrsGlobal
 
 import Hello.Ffi.Css.Distance
 import Hello.Ffi.Dw.Style
@@ -340,6 +341,9 @@ ffiStyleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiXArg dpi
   let styleAttrs' = styleEngineApplyStyleToGivenNode declSet prefs display parentStyleAttrs styleAttrs
 
   pokeStyleAttrs styleAttrs' ptrStructStyleAttrs
+
+  -- We changed style attrs, let's update them in our global storage too.
+  globalStyleAttrsUpdate (styleAttrsRef styleAttrs') styleAttrs'
 
   return ()
 

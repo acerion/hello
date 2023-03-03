@@ -428,7 +428,7 @@ static void Html_tag_content_table_cell(DilloHtml *html,
       /* TODO: check errors? */
       if ((attr_value = html_attribute_get_value(tag, tagsize, "rowspan")))
          rowspan = MAX(1, strtol (attr_value, NULL, 10));
-      if (html->styleEngine->getStyle (html->bw)->textAlign == TEXT_ALIGN_STRING)
+      if (ffiStyleAttrsTextAlign(html->styleEngine->getStyle (html->bw)->c_attrs.c_style_attrs_ref) == TEXT_ALIGN_STRING)
          col_tb = new dw::TableCell(TopOfParsingStack(html)->table_context.table_widget->getCellRef(), prefs.limit_text_width);
       else
          col_tb = new Textblock (prefs.limit_text_width);

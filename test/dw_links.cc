@@ -26,6 +26,7 @@
 #include "../dw/fltkcore.hh"
 #include "../dw/fltkviewport.hh"
 #include "../dw/textblock.hh"
+#include "../src/Hello/hello.h"
 
 using namespace dw;
 using namespace dw::core;
@@ -111,13 +112,13 @@ int main(int argc, char **argv)
 
    styleMarginSetVal(&styleAttrs.margin, 0);
    styleAttrs.backgroundColor = NULL;
-   styleAttrs.cursor = CURSOR_TEXT;
+   ffiStyleAttrsSetCursor(styleAttrs.c_attrs.c_style_attrs_ref, CURSOR_TEXT);
 
    Style *wordStyle = Style::create (&styleAttrs);
 
    styleAttrs.color = Color::create (layout, 0x0000ff);
-   styleAttrs.textDecoration = TEXT_DECORATION_UNDERLINE;
-   styleAttrs.cursor = CURSOR_POINTER;
+   ffiStyleAttrsSetTextDecoration(styleAttrs.c_attrs.c_style_attrs_ref, TEXT_DECORATION_UNDERLINE);
+   ffiStyleAttrsSetCursor(styleAttrs.c_attrs.c_style_attrs_ref, CURSOR_POINTER);
 
    for(int i = 1; i <= 10; i++) {
       char buf[4];

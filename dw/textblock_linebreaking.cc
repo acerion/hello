@@ -24,6 +24,7 @@
 #include "hyphenator.hh"
 #include "../lout/msg.h"
 #include "../lout/misc.hh"
+#include "../src/Hello/hello.h"
 
 #include <stdio.h>
 #include <math.h>
@@ -974,12 +975,12 @@ void Textblock::accumulateWordForLine (int lineIndex, int wordIndex)
    line->boxDescent = misc::max (line->boxDescent, word->size.descent);
 
    int len = word->style->font->ascent;
-   if (word->style->verticalAlign == core::style::VALIGN_SUPER)
+   if (word->style->c_attrs.c_vertical_align == core::style::VALIGN_SUPER)
       len += len / 2;
    line->contentAscent = misc::max (line->contentAscent, len);
          
    len = word->style->font->descent;
-   if (word->style->verticalAlign == core::style::VALIGN_SUB)
+   if (word->style->c_attrs.c_vertical_align == core::style::VALIGN_SUB)
       len += word->style->font->ascent / 3;
    line->contentDescent = misc::max (line->contentDescent, len);
 
@@ -1141,7 +1142,7 @@ void Textblock::alignLine (int lineIndex)
       words->getRef(i)->origSpace = words->getRef(i)->effSpace;
 
    if (firstWord->content.type != core::Content::BREAK) {
-      switch (firstWord->style->textAlign) {
+      switch (ffiStyleAttrsTextAlign(firstWord->style->c_attrs.c_style_attrs_ref)) {
       case core::style::TEXT_ALIGN_LEFT:
       case core::style::TEXT_ALIGN_STRING:   /* handled elsewhere (in the
                                               * future)? */
@@ -1289,7 +1290,7 @@ void Textblock::removeTemporaryLines ()
 
 int Textblock::getSpaceShrinkability(struct Word *word)
 {
-   if (word->spaceStyle->textAlign == core::style::TEXT_ALIGN_JUSTIFY)
+   if (ffiStyleAttrsTextAlign(word->spaceStyle->c_attrs.c_style_attrs_ref) == core::style::TEXT_ALIGN_JUSTIFY)
       return word->origSpace / 3;
    else
       return 0;
@@ -1297,7 +1298,7 @@ int Textblock::getSpaceShrinkability(struct Word *word)
 
 int Textblock::getSpaceStretchability(struct Word *word)
 {
-   if (word->spaceStyle->textAlign == core::style::TEXT_ALIGN_JUSTIFY)
+   if (ffiStyleAttrsTextAlign(word->spaceStyle->c_attrs.c_style_attrs_ref) == core::style::TEXT_ALIGN_JUSTIFY)
       return word->origSpace / 2;
    else
       return 0;
@@ -1312,7 +1313,7 @@ int Textblock::getLineShrinkability(Word *lastWord)
 
 int Textblock::getLineStretchability(Word *lastWord)
 {
-   if (lastWord->spaceStyle->textAlign == core::style::TEXT_ALIGN_JUSTIFY)
+   if (ffiStyleAttrsTextAlign(lastWord->spaceStyle->c_attrs.c_style_attrs_ref) == core::style::TEXT_ALIGN_JUSTIFY)
       return 0;
    else
       return stretchabilityFactor * (lastWord->maxAscent

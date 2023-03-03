@@ -58,17 +58,16 @@ static void calcBackgroundRelatedValues (StyleImage *backgroundImage,
 
 void StyleAttrs::initValues ()
 {
+   ffiStyleAttrsInitValues(this->c_attrs.c_style_attrs_ref);
+
    x_link = -1;
    x_lang[0] = x_lang[1] = 0;
    x_img = -1;
    x_tooltip = NULL;
-   textDecoration = TEXT_DECORATION_NONE;
-   textAlign = TEXT_ALIGN_LEFT;
    textAlignChar = '.';
-   textTransform = TEXT_TRANSFORM_NONE;
    listStylePosition = LIST_STYLE_POSITION_OUTSIDE;
    listStyleType = LIST_STYLE_TYPE_DISC;
-   verticalAlign = VALIGN_BASELINE;
+   this->c_attrs.c_vertical_align = VALIGN_BASELINE;
    backgroundColor = NULL;
    backgroundImage = NULL;
    backgroundRepeat = BACKGROUND_REPEAT;
@@ -90,8 +89,6 @@ void StyleAttrs::initValues ()
    wordSpacing = 0;
 
    display = DISPLAY_INLINE;
-   whiteSpace = WHITE_SPACE_NORMAL;
-   cursor = CURSOR_DEFAULT;
 }
 
 /**
@@ -102,7 +99,7 @@ void StyleAttrs::resetValues ()
 {
    x_img = -1;
 
-   verticalAlign = VALIGN_BASELINE;
+   this->c_attrs.c_vertical_align = VALIGN_BASELINE;
    textAlignChar = '.';
    backgroundColor = NULL;
    backgroundImage = NULL;
@@ -146,8 +143,9 @@ bool StyleAttrs::equals (object::Object *other) {
    StyleAttrs *otherAttrs = (StyleAttrs *) other;
 
    return this == otherAttrs ||
-      (font == otherAttrs->font &&
-       textDecoration == otherAttrs->textDecoration &&
+      (ffiStyleAttrsEqual(this->c_attrs.c_style_attrs_ref, otherAttrs->c_attrs.c_style_attrs_ref) &&
+
+       font == otherAttrs->font &&
        color == otherAttrs->color &&
        backgroundColor == otherAttrs->backgroundColor &&
        backgroundImage == otherAttrs->backgroundImage &&
@@ -155,10 +153,8 @@ bool StyleAttrs::equals (object::Object *other) {
        backgroundAttachment == otherAttrs->backgroundAttachment &&
        ffiGetDwLengthHash(&backgroundPositionX) == ffiGetDwLengthHash(&otherAttrs->backgroundPositionX) &&
        ffiGetDwLengthHash(&backgroundPositionY) == ffiGetDwLengthHash(&otherAttrs->backgroundPositionY) &&
-       textAlign == otherAttrs->textAlign &&
-       verticalAlign == otherAttrs->verticalAlign &&
+       this->c_attrs.c_vertical_align == otherAttrs->c_attrs.c_vertical_align &&
        textAlignChar == otherAttrs->textAlignChar &&
-       textTransform == otherAttrs->textTransform &&
        hBorderSpacing == otherAttrs->hBorderSpacing &&
        vBorderSpacing == otherAttrs->vBorderSpacing &&
        wordSpacing == otherAttrs->wordSpacing &&
@@ -181,10 +177,8 @@ bool StyleAttrs::equals (object::Object *other) {
        borderStyle.bottom == otherAttrs->borderStyle.bottom &&
        borderStyle.left == otherAttrs->borderStyle.left &&
        display == otherAttrs->display &&
-       whiteSpace == otherAttrs->whiteSpace &&
        listStylePosition == otherAttrs->listStylePosition &&
        listStyleType == otherAttrs->listStyleType &&
-       cursor == otherAttrs->cursor &&
        x_link == otherAttrs->x_link &&
        x_lang[0] == otherAttrs->x_lang[0] &&
        x_lang[1] == otherAttrs->x_lang[1] &&
@@ -193,8 +187,8 @@ bool StyleAttrs::equals (object::Object *other) {
 }
 
 int StyleAttrs::hashValue () {
-   return (intptr_t) font +
-      textDecoration +
+   return ffiStyleAttrsHashValue(this->c_attrs.c_style_attrs_ref) +
+      (intptr_t) font +
       (intptr_t) color +
       (intptr_t) backgroundColor +
       (intptr_t) backgroundImage +
@@ -202,10 +196,8 @@ int StyleAttrs::hashValue () {
       backgroundAttachment +
       ffiGetDwLengthHash(&backgroundPositionX) +
       ffiGetDwLengthHash(&backgroundPositionY) +
-      textAlign +
-      verticalAlign +
+      this->c_attrs.c_vertical_align +
       textAlignChar +
-      textTransform +
       hBorderSpacing +
       vBorderSpacing +
       wordSpacing +
@@ -226,10 +218,8 @@ int StyleAttrs::hashValue () {
       borderStyle.bottom +
       borderStyle.left +
       display +
-      whiteSpace +
       listStylePosition +
       listStyleType +
-      cursor +
       x_link +
       x_lang[0] + x_lang[1] +
       x_img +
@@ -308,8 +298,8 @@ Style::~Style ()
 
 void Style::copyAttrs (StyleAttrs *attrs)
 {
+   ffiStyleAttrsCopy(this->c_attrs.c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
    font = attrs->font;
-   textDecoration = attrs->textDecoration;
    color = attrs->color;
    backgroundColor = attrs->backgroundColor;
    backgroundImage = attrs->backgroundImage;
@@ -317,10 +307,8 @@ void Style::copyAttrs (StyleAttrs *attrs)
    backgroundAttachment = attrs->backgroundAttachment;
    backgroundPositionX = attrs->backgroundPositionX;
    backgroundPositionY = attrs->backgroundPositionY;
-   textAlign = attrs->textAlign;
-   verticalAlign = attrs->verticalAlign;
+   this->c_attrs.c_vertical_align = attrs->c_attrs.c_vertical_align;
    textAlignChar = attrs->textAlignChar;
-   textTransform = attrs->textTransform;
    hBorderSpacing = attrs->hBorderSpacing;
    vBorderSpacing = attrs->vBorderSpacing;
    wordSpacing = attrs->wordSpacing;
@@ -335,10 +323,8 @@ void Style::copyAttrs (StyleAttrs *attrs)
    borderColor = attrs->borderColor;
    borderStyle = attrs->borderStyle;
    display = attrs->display;
-   whiteSpace = attrs->whiteSpace;
    listStylePosition = attrs->listStylePosition;
    listStyleType = attrs->listStyleType;
-   cursor = attrs->cursor;
    x_link = attrs->x_link;
    x_lang[0] = attrs->x_lang[0];
    x_lang[1] = attrs->x_lang[1];

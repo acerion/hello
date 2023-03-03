@@ -407,7 +407,14 @@ class StyleImage;
 class StyleAttrs : public lout::object::Object
 {
 public:
+   StyleAttrs()
+   {
+      this->c_attrs.c_style_attrs_ref = ffiStyleAttrsCtor();
+   }
+
    Font *font;
+
+   c_style_attrs_t c_attrs {};
 
    StyleImage *backgroundImage;
    BackgroundRepeat backgroundRepeat;
@@ -423,12 +430,8 @@ public:
    struct { Color *top = nullptr, *right = nullptr, *bottom = nullptr, *left = nullptr; } borderColor;
    c_style_margin_t margin;
    c_style_padding_t padding;
-   int textAlign; // TODO: use TextAlignType type
-   int textDecoration; /* No TextDecoration because of problems converting TextDecoration <-> int */
    DwLength textIndent;
-   int textTransform; // TODO: use TextTransform type
-   int verticalAlign;  // TODO: use VAlignType
-   int whiteSpace; // TODO: use WhiteSpace
+   // int verticalAlign;  // TODO: use VAlignType
    DwLength width;
    DwLength height;
    DwLength lineHeight;
@@ -437,7 +440,6 @@ public:
    int display; // TODO: use DisplayType type
    Color * color = nullptr;
    Color * backgroundColor = nullptr;
-   int cursor; // TODO: use Cursor type
    int hBorderSpacing;
    int vBorderSpacing;
    int wordSpacing;

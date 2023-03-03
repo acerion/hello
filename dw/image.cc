@@ -304,7 +304,7 @@ bool Image::motionNotifyImpl (core::EventMotion *event)
             currLink = newLink;
             clicking = false;
             /* \todo Using MAP/AREA styles would probably be best */
-            setCursor(newLink == -1 ? ((dw::core::style::Cursor) getStyle()->cursor) : core::style::CURSOR_POINTER);
+            setCursor(newLink == -1 ? ((dw::core::style::Cursor) ffiStyleAttrsCursor(getStyle()->c_attrs.c_style_attrs_ref)) : core::style::CURSOR_POINTER);
             (void) layout->emitLinkEnter (this, newLink, -1, -1, -1);
          }
       } else if (isMap && currLink != -1) {

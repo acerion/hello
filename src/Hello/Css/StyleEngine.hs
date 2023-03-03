@@ -43,7 +43,6 @@ module Hello.Css.StyleEngine
 
   , styleEngineComputeBorderWidth
 
-  , styleEngineSetStyle
   , styleEngineApplyStyleToGivenNode
 
   , styleEngineCalculateDwLength
@@ -63,7 +62,8 @@ import Data.Bits
 import Data.Maybe
 import qualified Data.Sequence as S
 import qualified Data.Text as T
---import Debug.Trace
+import Data.Word
+-- import Debug.Trace
 
 import Hello.Css.Declaration
 import Hello.Css.Distance
@@ -480,7 +480,12 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssPropertyPaddingLeft declValue   -> styleAttrs { stylePadding = (stylePadding styleAttrs) { stylePaddingLeft   = getPadding declValue fontAttrs display }}
 
     CssPropertyTextAlign declValue     -> styleAttrs { styleTextAlign      = getTextAlign declValue }
-    CssPropertyTextDecoration declValue -> styleAttrs { styleTextDecoration = getTextDecoration declValue (styleTextDecoration styleAttrs) }
+
+    -- FIXME: Second arg to getTextDecoration should be an empty initial value 0x00.
+    -- Write unit tests that catch this error and fix the code (use correct arg).
+    -- CssPropertyTextDecoration declValue -> styleAttrs { styleTextDecoration = getTextDecoration declValue (styleTextDecoration styleAttrs) }
+    CssPropertyTextDecoration declValue -> styleAttrs { styleTextDecoration = getTextDecoration declValue 0x00 }
+
     CssPropertyTextIndent declValue    -> styleAttrs { styleTextIndent     = getTextIndent declValue fontAttrs display }
     CssPropertyTextTransform declValue -> styleAttrs { styleTextTransform  = getTextTransform declValue }
     CssPropertyVerticalAlign value     -> styleAttrs { styleVerticalAlign  = getVerticalAlign value }
@@ -632,7 +637,7 @@ getTextAlign declValue = fromEnum declValue
 
 
 -- TODO: this function could probably be rewritten as a fold.
-getTextDecoration :: [CssValueTextDecoration] -> Int -> Int
+getTextDecoration :: [CssValueTextDecoration] -> Word32 -> Word32
 getTextDecoration []     decoration = decoration
 getTextDecoration (x:xs) decoration = decoration .|. getBit x .|. getTextDecoration xs decoration
   where

@@ -953,7 +953,7 @@ static void Html_process_space(DilloHtml *html, const char *space,
    } else {
       if (SGML_SPCDEL) {
          /* SGML_SPCDEL ignores white space immediately after an open tag */
-      } else if (html->styleEngine->getWordStyle (html->bw)->whiteSpace == WHITE_SPACE_PRE_LINE) {
+      } else if (ffiStyleAttrsWhiteSpace(html->styleEngine->getWordStyle (html->bw)->c_attrs.c_style_attrs_ref) == WHITE_SPACE_PRE_LINE) {
          Html_process_space_pre_line(html, space, spacesize);
       } else {
          Html2TextBlock(html)->addSpace(html->styleEngine->getWordStyle (html->bw));
@@ -3589,8 +3589,8 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       if (TopOfParsingStack(html)->parse_mode == DILLO_HTML_PARSE_MODE_VERBATIM) {
          /* don't change anything */
       } else if (TopOfParsingStack(html)->parse_mode != DILLO_HTML_PARSE_MODE_PRE &&
-          (html->styleEngine->getStyle (html->bw)->whiteSpace == WHITE_SPACE_PRE ||
-           html->styleEngine->getStyle (html->bw)->whiteSpace == WHITE_SPACE_PRE_WRAP)) {
+                 (ffiStyleAttrsWhiteSpace(html->styleEngine->getStyle (html->bw)->c_attrs.c_style_attrs_ref) == WHITE_SPACE_PRE ||
+                  ffiStyleAttrsWhiteSpace(html->styleEngine->getStyle (html->bw)->c_attrs.c_style_attrs_ref) == WHITE_SPACE_PRE_WRAP)) {
          TopOfParsingStack(html)->parse_mode = DILLO_HTML_PARSE_MODE_PRE;
          html->pre_column = 0;
          html->PreFirstChar = true;
