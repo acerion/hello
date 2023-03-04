@@ -90,9 +90,6 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    this->baseUrl = baseUrl ? a_Url_dup(baseUrl) : NULL;
    importDepth = 0;
 
-   stackPush ();
-   StyleNode *n = &styleNodesStack[styleNodesStackSize - 1];
-
    /* Create a dummy font, attribute, and tag for the bottom of the stack. */
    font_attrs.font_attrs.name = prefs.preferences.font_sans_serif;
    font_attrs.font_attrs.size = roundInt(14 * prefs.preferences.font_factor);
@@ -110,7 +107,8 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    style_attrs.color = Color::create (layout, 0);
    style_attrs.backgroundColor = Color::create (layout, prefs.bg_color);
 
-   n->style = Style::create (&style_attrs);
+   stackPushEmptyNode();
+   styleNodesStack[styleNodesStackSize - 1].style = Style::create (&style_attrs);
 }
 
 StyleEngine::~StyleEngine () {
@@ -126,7 +124,7 @@ StyleEngine::~StyleEngine () {
    delete doc_tree_ptr;
 }
 
-void StyleEngine::stackPush () {
+void StyleEngine::stackPushEmptyNode () {
    static const StyleNode emptyNode = {
       .declLists = { -1, -1, -1 },
       .style = NULL,
@@ -162,8 +160,8 @@ void StyleEngine::stackPop () {
 void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    getStyle (bw); // ensure that style of current node is computed
 
-   stackPush ();
-   StyleNode *n = &styleNodesStack[styleNodesStackSize - 1];
+   stackPushEmptyNode();
+   StyleNode *n = getCurrentNode(this);
 
    n->doctreeNodeIdx = doctreePushNode(this->doc_tree_ptr, html_element_idx);
    //n->doctreeNodeIdx = ffiDoctreePushNode(this->doc_tree_ref, html_element_idx);
@@ -553,8 +551,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
  */
 void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentAttrs, StyleAttrs * attrs, int merged_decl_set_ref, BrowserWindow *bw)
 {
-   Font * parentFont = styleNodesStack[styleNodeIndex - 1].style->font;
-
    // TODO: this should be set from style_attrs calculated by
    // ffiStyleEngineApplyStyleToGivenNode for CSS_PROPERTY_BACKGROUND_IMAGE
    // property.
@@ -658,10 +654,8 @@ Style * StyleEngine::getBackgroundStyle (BrowserWindow *bw) {
  * HTML elements and the declListNonCss that have been set.
  * This method is private. Call style() to get a current style object.
  */
-Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw)
+Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
 {
-   int styleNodeIndex = some_idx;
-
    StyleAttrs parentStyleAttrs = *styleNodesStack[styleNodeIndex - 1].style;
 
    // Here "attrs" are the style attributes of previous/parent node, but
@@ -713,7 +707,7 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw)
    return styleNodesStack[styleNodeIndex].style;
 }
 
-Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
+Style * StyleEngine::makeWordStyle(BrowserWindow *bw) {
    StyleAttrs attrs = *getStyle (bw);
    attrs.resetValues ();
 
@@ -741,8 +735,8 @@ Style * StyleEngine::getWordStyle0 (BrowserWindow *bw) {
  * Note that restyle() does not change any styles in the widget tree.
  */
 void StyleEngine::restyle (BrowserWindow *bw) {
-   for (int some_idx = 1; some_idx < styleNodesStackSize; some_idx++) {
-      StyleNode *n = &styleNodesStack[some_idx];
+   for (int styleNodeIndex = 1; styleNodeIndex < styleNodesStackSize; styleNodeIndex++) {
+      StyleNode *n = &styleNodesStack[styleNodeIndex];
       if (n->style) {
          n->style->unref ();
          n->style = NULL;
@@ -756,7 +750,7 @@ void StyleEngine::restyle (BrowserWindow *bw) {
          n->backgroundStyle = NULL;
       }
 
-      getStyle0 (some_idx, bw);
+      makeStyle(styleNodeIndex, bw);
    }
 }
 

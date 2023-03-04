@@ -64,13 +64,14 @@ public:
       int importDepth;
       DilloUrl *pageUrl, *baseUrl;
 
-      void stackPush ();
+      void stackPushEmptyNode ();
       void stackPop ();
 
       void buildUserStyle(int context_ref);
 
-      dw::core::style::Style *getStyle0 (int some_idx, BrowserWindow *bw);
-      dw::core::style::Style *getWordStyle0 (BrowserWindow *bw);
+      /* Make new style, put it in stack at given index. */
+      dw::core::style::Style * makeStyle(int styleNodeIndex, BrowserWindow *bw);
+      dw::core::style::Style * makeWordStyle(BrowserWindow *bw);
 
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
@@ -117,7 +118,7 @@ public:
          if (s)
             return s;
          else
-            return getStyle0(styleNodesStackSize - 1, bw);
+            return makeStyle(styleNodesStackSize - 1, bw);
       };
 
       inline dw::core::style::Style *getWordStyle (BrowserWindow *bw) {
@@ -126,7 +127,7 @@ public:
          if (s)
             return s;
          else
-            return getWordStyle0 (bw);
+            return makeWordStyle(bw);
       };
 };
 
