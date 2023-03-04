@@ -246,9 +246,9 @@ defaultStyleAttrs = StyleAttrs
   , styleVBorderSpacing    = 0
   , styleWordSpacing       = 0
 
-  , styleXLink             = 0
+  , styleXLink             = -1
   , styleXLang             = ""
-  , styleXImg              = 0
+  , styleXImg              = -1
   , styleXTooltip          = ""
   }
 
@@ -277,6 +277,8 @@ styleAttrsEqual sa1 sa2 = and $ fmap (\ field -> field sa1 == field sa2)
                           , styleWhiteSpace
                           , styleListStylePosition
                           , styleListStyleType
+                          , styleXLink
+                          , styleXImg
                           ]
 
 
@@ -290,6 +292,8 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + styleWhiteSpace sa
                          + styleListStylePosition sa
                          + styleListStyleType sa
+                         + styleXLink sa
+                         + styleXImg sa
 
 
 
@@ -302,12 +306,15 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleWhiteSpace     = styleWhiteSpace from
                             , styleListStylePosition = styleListStylePosition from
                             , styleListStyleType  = styleListStyleType from
+                            , styleXLink          = styleXLink from
+                            , styleXImg           = styleXImg from
                             }
 
 
 
 
--- This function doesn't do anything yet. It's not called anywhere.
 styleAttrsReset :: StyleAttrs -> StyleAttrs
 styleAttrsReset attrs = attrs
+  { styleXImg           = -1
+  }
 

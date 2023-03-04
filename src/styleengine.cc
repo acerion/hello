@@ -470,13 +470,13 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
    style_attrs->c_v_border_spacing      = attrs->vBorderSpacing;
    style_attrs->c_word_spacing          = attrs->wordSpacing;
 
-   style_attrs->c_x_link    = attrs->x_link;
    memcpy(style_attrs->c_x_lang, attrs->x_lang, sizeof (style_attrs->c_x_lang));
-   style_attrs->c_x_img     = attrs->x_img;
 }
 
 void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw::core::Layout * layout)
 {
+   ffiStyleAttrsCopy(attrs->c_attrs.c_style_attrs_ref, style_attrs->c_style_attrs_ref);
+
    attrs->borderCollapse = style_attrs->c_border_collapse;
    attrs->borderWidth = *(style_attrs->c_border_width);
    attrs->borderStyle = *(style_attrs->c_border_style);
@@ -489,7 +489,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    attrs->margin  = *(style_attrs->c_margin);
    attrs->padding = *(style_attrs->c_padding);
 
-   ffiStyleAttrsCopy(attrs->c_attrs.c_style_attrs_ref, style_attrs->c_style_attrs_ref);
    attrs->textIndent     = *(style_attrs->c_text_indent);
 
    attrs->c_attrs.c_vertical_align = style_attrs->c_vertical_align;
@@ -519,9 +518,7 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    attrs->vBorderSpacing    = style_attrs->c_v_border_spacing;
    attrs->wordSpacing       = style_attrs->c_word_spacing;
 
-   attrs->x_link            = style_attrs->c_x_link;
    memcpy(attrs->x_lang, style_attrs->c_x_lang, sizeof (attrs->x_lang));
-   attrs->x_img             = style_attrs->c_x_img;
    if (style_attrs->c_x_tooltip) {
       attrs->x_tooltip = Tooltip::create(layout, style_attrs->c_x_tooltip);
       // Here we should free() style_attrs->c_x_tooltip, but it has been

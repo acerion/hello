@@ -137,7 +137,7 @@ int main(int argc, char **argv)
          textblock->addSpace(wordStyle);
       }
 
-      styleAttrs.x_link = i;
+      ffiStyleAttrsSetXLink(ffiStyleAttrsXLink(styleAttrs.c_attrs.c_style_attrs_ref), i);
       Style *linkStyle = Style::create (&styleAttrs);
 
       for(int j = 0; words2[j]; j++) {

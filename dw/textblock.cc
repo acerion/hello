@@ -681,7 +681,7 @@ bool Textblock::motionNotifyImpl (core::EventMotion *event)
       } else {
          core::style::Style *style = inSpace ? word->spaceStyle : word->style;
          setCursor ((dw::core::style::Cursor) ffiStyleAttrsCursor(style->c_attrs.c_style_attrs_ref));
-         hoverLink = style->x_link;
+         hoverLink = ffiStyleAttrsXLink(style->c_attrs.c_style_attrs_ref);
          hoverTooltip = style->x_tooltip;
       }
 
@@ -788,14 +788,14 @@ bool Textblock::sendSelectionEvent (core::SelectionState::EventType eventType,
                           yWidgetBase + word->spaceStyle->font->descent) &&
                          (event->yWidget >
                           yWidgetBase - word->spaceStyle->font->ascent)) {
-                        link = word->spaceStyle->x_link;
-                        fprintf(stderr, "selection event for x_link %d\n", word->spaceStyle->x_link);
+                        link = ffiStyleAttrsXLink(word->spaceStyle->c_attrs.c_style_attrs_ref);
+                        fprintf(stderr, "selection event for x_link %d\n", ffiStyleAttrsXLink(word->spaceStyle->c_attrs.c_style_attrs_ref));
                      }
                   } else {
                      if (event->yWidget <= yWidgetBase + word->size.descent &&
                          event->yWidget > yWidgetBase - word->size.ascent) {
-                        link = word->style->x_link;
-                        fprintf(stderr, "selection event for x_link %d\n", word->style->x_link);
+                        link = ffiStyleAttrsXLink(word->style->c_attrs.c_style_attrs_ref);
+                        fprintf(stderr, "selection event for x_link %d\n", ffiStyleAttrsXLink(word->style->c_attrs.c_style_attrs_ref));
                      }
                      if (word->content.type == core::Content::TEXT) {
                         int glyphX = wordStartX;
@@ -2323,7 +2323,7 @@ void Textblock::changeLinkColor (int link, int newColor)
       for (wordIdx = line->firstWord; wordIdx <= line->lastWord; wordIdx++){
          Word *word = words->getRef(wordIdx);
 
-         if (word->style->x_link == link) {
+         if (ffiStyleAttrsXLink(word->style->c_attrs.c_style_attrs_ref) == link) {
             core::style::StyleAttrs styleAttrs;
 
             switch (word->content.type) {

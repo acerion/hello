@@ -251,7 +251,7 @@ void Image::sizeAllocateImpl (core::Allocation *allocation)
 void Image::enterNotifyImpl (core::EventCrossing *event)
 {
    // BUG: this is wrong for image maps, but the cursor position is unknown.
-   currLink = getStyle()->x_link;
+   currLink = ffiStyleAttrsXLink(getStyle()->c_attrs.c_style_attrs_ref);
 
    if (currLink != -1) {
       (void) layout->emitLinkEnter (this, currLink, -1, -1, -1);
@@ -320,9 +320,9 @@ bool Image::buttonPressImpl (core::EventButton *event)
    bool ret = false;
 
    currLink = mapList ? mapList->link(mapKey,contentX(event),contentY(event)) :
-      getStyle()->x_link;
+      ffiStyleAttrsXLink(getStyle()->c_attrs.c_style_attrs_ref);
    if (event->button == 3){
-      (void)layout->emitLinkPress(this, currLink, getStyle()->x_img, -1, -1,
+      (void)layout->emitLinkPress(this, currLink, ffiStyleAttrsXImg(getStyle()->c_attrs.c_style_attrs_ref), -1, -1,
                                   event);
       ret = true;
    } else if (event->button == 1 || currLink != -1){
@@ -334,14 +334,14 @@ bool Image::buttonPressImpl (core::EventButton *event)
 
 bool Image::buttonReleaseImpl (core::EventButton *event)
 {
-   fprintf(stderr, "button release event for x_img = %d\n", getStyle()->x_img);
+   fprintf(stderr, "button release event for x_img = %d\n", ffiStyleAttrsXImg(getStyle()->c_attrs.c_style_attrs_ref));
    currLink = mapList ? mapList->link(mapKey,contentX(event),contentY(event)) :
-      getStyle()->x_link;
+      ffiStyleAttrsXLink(getStyle()->c_attrs.c_style_attrs_ref);
    if (clicking) {
       int x = isMap ? contentX(event) : -1;
       int y = isMap ? contentY(event) : -1;
       clicking = false;
-      layout->emitLinkClick (this, currLink, getStyle()->x_img, x, y, event);
+      layout->emitLinkClick (this, currLink, ffiStyleAttrsXImg(getStyle()->c_attrs.c_style_attrs_ref), x, y, event);
       return true;
    }
    return false;

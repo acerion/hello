@@ -1953,7 +1953,7 @@ static void Html_tag_content_img(DilloHtml *html, const char *tag, int tagsize)
    if (html_attribute_get_value(tag, tagsize, "ismap")) {
       dwi->setIsMap();
       _MSG("  Html_tag_open_img: server-side map (ISMAP)\n");
-   } else if (html->styleEngine->getStyle (html->bw)->x_link != -1 &&
+   } else if (ffiStyleAttrsXLink(html->styleEngine->getStyle (html->bw)->c_attrs.c_style_attrs_ref) != -1 &&
               usemap_url == NULL) {
       /* For simple links, we have to suppress the "image_pressed" signal.
        * This is overridden for USEMAP images. */

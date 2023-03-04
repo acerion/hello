@@ -60,9 +60,7 @@ void StyleAttrs::initValues ()
 {
    ffiStyleAttrsInitValues(this->c_attrs.c_style_attrs_ref);
 
-   x_link = -1;
    x_lang[0] = x_lang[1] = 0;
-   x_img = -1;
    x_tooltip = NULL;
    textAlignChar = '.';
    this->c_attrs.c_vertical_align = VALIGN_BASELINE;
@@ -95,7 +93,7 @@ void StyleAttrs::initValues ()
  */
 void StyleAttrs::resetValues ()
 {
-   x_img = -1;
+   ffiStyleAttrsReset(this->c_attrs.c_style_attrs_ref);
 
    this->c_attrs.c_vertical_align = VALIGN_BASELINE;
    textAlignChar = '.';
@@ -175,10 +173,8 @@ bool StyleAttrs::equals (object::Object *other) {
        borderStyle.bottom == otherAttrs->borderStyle.bottom &&
        borderStyle.left == otherAttrs->borderStyle.left &&
        display == otherAttrs->display &&
-       x_link == otherAttrs->x_link &&
        x_lang[0] == otherAttrs->x_lang[0] &&
        x_lang[1] == otherAttrs->x_lang[1] &&
-       x_img == otherAttrs->x_img &&
        x_tooltip == otherAttrs->x_tooltip);
 }
 
@@ -214,9 +210,7 @@ int StyleAttrs::hashValue () {
       borderStyle.bottom +
       borderStyle.left +
       display +
-      x_link +
       x_lang[0] + x_lang[1] +
-      x_img +
       (intptr_t) x_tooltip;
 }
 
@@ -317,10 +311,8 @@ void Style::copyAttrs (StyleAttrs *attrs)
    borderColor = attrs->borderColor;
    borderStyle = attrs->borderStyle;
    display = attrs->display;
-   x_link = attrs->x_link;
    x_lang[0] = attrs->x_lang[0];
    x_lang[1] = attrs->x_lang[1];
-   x_img = attrs->x_img;
    x_tooltip = attrs->x_tooltip;
 }
 

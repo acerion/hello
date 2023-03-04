@@ -409,9 +409,7 @@ data FfiStyleAttrs = FfiStyleAttrs
   , iHBorderSpacing            :: CInt
   , iVBorderSpacing            :: CInt
   , iWordSpacing               :: CInt
-  , iXLink                     :: CInt
   , ptrCharXLang               :: Ptr CChar -- buffer of specified size.
-  , iXImg                      :: CInt
   , ptrCharXTooltip            :: Ptr CChar -- pointer to to-be-allocated memory
   } deriving (Show)
 
@@ -442,17 +440,15 @@ instance Storable FfiStyleAttrs where
     hBorderSpacing     <- #{peek c_style_attrs_t, c_h_border_spacing}     ptr
     vBorderSpacing     <- #{peek c_style_attrs_t, c_v_border_spacing}     ptr
     wordSpacing        <- #{peek c_style_attrs_t, c_word_spacing}         ptr
-    xLink              <- #{peek c_style_attrs_t, c_x_link}               ptr
     let xLang = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_style_attrs_t, c_x_lang}) ptr
-    xImg               <- #{peek c_style_attrs_t, c_x_img}                ptr
     xTooltip           <- #{peek c_style_attrs_t, c_x_tooltip}            ptr
 
-    return (FfiStyleAttrs ref fontAttrs borderCollapse borderStyle borderWidth borderColor margin padding textIndent verticalAlign width height lineHeight display color backgroundColor hBorderSpacing vBorderSpacing wordSpacing xLink xLang xImg xTooltip)
+    return (FfiStyleAttrs ref fontAttrs borderCollapse borderStyle borderWidth borderColor margin padding textIndent verticalAlign width height lineHeight display color backgroundColor hBorderSpacing vBorderSpacing wordSpacing xLang xTooltip)
 
 
 
 
-  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderCollapse cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextIndent cVerticalAlign cWidth cHeight cLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing cXLink _cXLang cXImg cXTooltip) = do
+  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderCollapse cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextIndent cVerticalAlign cWidth cHeight cLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing _cXLang cXTooltip) = do
 
     #{poke c_style_attrs_t, c_style_attrs_ref} ptr cStyleAttrsRef
     #{poke c_style_attrs_t, c_font_attrs}      ptr cFontAttrs
@@ -473,9 +469,7 @@ instance Storable FfiStyleAttrs where
     #{poke c_style_attrs_t, c_h_border_spacing}     ptr cHBorderSpacing
     #{poke c_style_attrs_t, c_v_border_spacing}     ptr cVBorderSpacing
     #{poke c_style_attrs_t, c_word_spacing}         ptr cWordSpacing
-    #{poke c_style_attrs_t, c_x_link}               ptr cXLink
     -- #{poke c_style_attrs_t, c_x_lang}               ptr cXLang -- Poking of this field is done in pokeStyleAttrs
-    #{poke c_style_attrs_t, c_x_img}                ptr cXImg
     #{poke c_style_attrs_t, c_x_tooltip}            ptr cXTooltip
 
 
@@ -534,9 +528,9 @@ peekStyleAttrs ptrStructStyleAttrs = do
     , styleHBorderSpacing         = fromIntegral . iHBorderSpacing $ ffiAttrs
     , styleVBorderSpacing         = fromIntegral . iVBorderSpacing $ ffiAttrs
     , styleWordSpacing            = fromIntegral . iWordSpacing $ ffiAttrs
-    , styleXLink                  = fromIntegral . iXLink $ ffiAttrs
+    , styleXLink                  = styleXLink gAttrs
     , styleXLang                  = xLang
-    , styleXImg                   = fromIntegral . iXImg $ ffiAttrs
+    , styleXImg                   = styleXImg gAttrs
     , styleXTooltip               = xTooltip
     }
 
@@ -598,8 +592,6 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let cVBorderSpacing :: CInt = fromIntegral . styleVBorderSpacing $ attrs
   let cWordSpacing    :: CInt = fromIntegral . styleWordSpacing $ attrs
 
-  let cXLink          :: CInt = fromIntegral . styleXLink $ attrs
-
   let bufXLang :: Ptr CChar = ptrCharXLang ffiStyleAttrs
   -- "((c_style_attrs_t *)0)->c_x_lang" is a C trick that happens to work with hsc2hs.
   pokeCharBuffer bufXLang #{size ((c_style_attrs_t *)0)->c_x_lang} (styleXLang attrs)
@@ -607,10 +599,9 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   -- has been already done in two lines above.
   let cXLang = nullPtr
 
-  let cXImg :: CInt = fromIntegral . styleXImg $ attrs
   cXTooltip :: Ptr CChar <- allocAndPokeCString . styleXTooltip $ attrs -- TODO: this allocates memory that is not freed anywhere
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs cBorderCollapse pBorderStyle pBorderWidth pBorderColor pMargin pPadding pTextIndent cVerticalAlign pWidth pHeight pLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing cXLink cXLang cXImg cXTooltip
+  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs cBorderCollapse pBorderStyle pBorderWidth pBorderColor pMargin pPadding pTextIndent cVerticalAlign pWidth pHeight pLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing cXLang cXTooltip
 
 
 

@@ -75,6 +75,9 @@ foreign export ccall "ffiStyleAttrsWhiteSpace" ffiStyleAttrsWhiteSpace :: CInt -
 foreign export ccall "ffiStyleAttrsListStylePosition" ffiStyleAttrsListStylePosition :: CInt -> IO CInt
 foreign export ccall "ffiStyleAttrsListStyleType" ffiStyleAttrsListStyleType :: CInt -> IO CInt
 
+foreign export ccall "ffiStyleAttrsXLink" ffiStyleAttrsXLink :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsSetXLink" ffiStyleAttrsSetXLink :: CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleAttrsXImg" ffiStyleAttrsXImg :: CInt -> IO CInt
 
 
 
@@ -214,6 +217,36 @@ ffiStyleAttrsListStyleType cRef = do
   let ref = fromIntegral cRef
   attrs <- globalStyleAttrsGet ref
   return . fromIntegral . styleListStyleType $ attrs
+
+
+
+
+ffiStyleAttrsXLink :: CInt -> IO CInt
+ffiStyleAttrsXLink cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleXLink $ attrs
+
+
+
+
+ffiStyleAttrsSetXLink :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetXLink cRef cVal = do
+  let ref = fromIntegral cRef
+  let val = fromIntegral cVal
+  old <- globalStyleAttrsGet ref
+  let new = old { styleXLink = val }
+  globalStyleAttrsUpdate ref new
+  return ()
+
+
+
+
+ffiStyleAttrsXImg :: CInt -> IO CInt
+ffiStyleAttrsXImg cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleXImg $ attrs
 
 
 
