@@ -311,7 +311,9 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
       collapseTableAttrs.hBorderSpacing = 0;
       collapseTableAttrs.vBorderSpacing = 0;
       collapseTableAttrs.borderColor = collapseCellAttrs.borderColor;
-      collapseTableAttrs.borderStyle = collapseCellAttrs.borderStyle;
+
+      ffiStyleAttrsSetCollapseTableAttrs(collapseTableAttrs.c_attrs.c_style_attrs_ref, collapseCellAttrs.c_attrs.c_style_attrs_ref);
+
       /* CSS2 17.6.2: table does not have padding (in collapsing mode) */
       stylePaddingSetVal(&collapseTableAttrs.padding, 0);
       collapseStyle = Style::create(&collapseTableAttrs);
@@ -433,7 +435,7 @@ static void Html_tag_content_table_cell(DilloHtml *html,
       else
          col_tb = new Textblock (prefs.limit_text_width);
 
-      if (html->styleEngine->getStyle(html->bw)->borderCollapse == BORDER_MODEL_COLLAPSE){
+      if (ffiStyleAttrsBorderCollapse(html->styleEngine->getStyle(html->bw)->c_attrs.c_style_attrs_ref) == BORDER_MODEL_COLLAPSE){
          Html_set_collapsing_border_model(html, col_tb);
       } else {
          Html_set_separate_border_model(html, col_tb);

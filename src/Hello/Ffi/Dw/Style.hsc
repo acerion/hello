@@ -392,7 +392,6 @@ data FfiStyleAttrs = FfiStyleAttrs
   {
     iStyleAttrsRef             :: CInt
   , ptrStructFontAttrs         :: Ptr FfiFontAttrs
-  , iBorderCollapse            :: CInt
   , ptrStructStyleBorderStyle  :: Ptr FfiStyleBorderStyle
   , ptrStructStyleBorderWidth  :: Ptr FfiStyleBorderWidth
   , ptrStructStyleBorderColor  :: Ptr FfiStyleBorderColor
@@ -423,7 +422,6 @@ instance Storable FfiStyleAttrs where
   peek ptr = do
     ref              <- #{peek c_style_attrs_t, c_style_attrs_ref}   ptr
     fontAttrs        <- #{peek c_style_attrs_t, c_font_attrs}        ptr
-    borderCollapse   <- #{peek c_style_attrs_t, c_border_collapse}   ptr
     borderStyle      <- #{peek c_style_attrs_t, c_border_style}      ptr
     borderWidth      <- #{peek c_style_attrs_t, c_border_width}      ptr
     borderColor      <- #{peek c_style_attrs_t, c_border_color}      ptr
@@ -443,16 +441,15 @@ instance Storable FfiStyleAttrs where
     let xLang = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_style_attrs_t, c_x_lang}) ptr
     xTooltip           <- #{peek c_style_attrs_t, c_x_tooltip}            ptr
 
-    return (FfiStyleAttrs ref fontAttrs borderCollapse borderStyle borderWidth borderColor margin padding textIndent verticalAlign width height lineHeight display color backgroundColor hBorderSpacing vBorderSpacing wordSpacing xLang xTooltip)
+    return (FfiStyleAttrs ref fontAttrs borderStyle borderWidth borderColor margin padding textIndent verticalAlign width height lineHeight display color backgroundColor hBorderSpacing vBorderSpacing wordSpacing xLang xTooltip)
 
 
 
 
-  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderCollapse cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextIndent cVerticalAlign cWidth cHeight cLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing _cXLang cXTooltip) = do
+  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextIndent cVerticalAlign cWidth cHeight cLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing _cXLang cXTooltip) = do
 
     #{poke c_style_attrs_t, c_style_attrs_ref} ptr cStyleAttrsRef
     #{poke c_style_attrs_t, c_font_attrs}      ptr cFontAttrs
-    #{poke c_style_attrs_t, c_border_collapse} ptr cBorderCollapse
     #{poke c_style_attrs_t, c_border_style}    ptr cBorderStyle
     #{poke c_style_attrs_t, c_border_width}    ptr cBorderWidth
     #{poke c_style_attrs_t, c_border_color}    ptr cBorderColor
@@ -499,7 +496,7 @@ peekStyleAttrs ptrStructStyleAttrs = do
   let attrs = defaultStyleAttrs {
       styleAttrsRef    = styleAttrsRef gAttrs
     , styleFontAttrs   = fontAttrs
-    , styleBorderCollapse = fromIntegral . iBorderCollapse $ ffiAttrs
+    , styleBorderCollapse = styleBorderCollapse gAttrs
     , styleBorderStyle = borderStyle
     , styleBorderWidth = borderWidth
     , styleBorderColor = borderColor
@@ -547,8 +544,6 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   -- pointer-members, I will be able to poke them with values passed through
   -- 'attrs'.
   ffiStyleAttrs :: FfiStyleAttrs <- peek ptrStructStyleAttrs
-
-  let cBorderCollapse :: CInt = fromIntegral . styleBorderCollapse $ attrs
 
   -- getAccess to member-pointers, and then poke them
   let pFontAttrs :: Ptr FfiFontAttrs = ptrStructFontAttrs ffiStyleAttrs
@@ -601,7 +596,7 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
 
   cXTooltip :: Ptr CChar <- allocAndPokeCString . styleXTooltip $ attrs -- TODO: this allocates memory that is not freed anywhere
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs cBorderCollapse pBorderStyle pBorderWidth pBorderColor pMargin pPadding pTextIndent cVerticalAlign pWidth pHeight pLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing cXLang cXTooltip
+  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderStyle pBorderWidth pBorderColor pMargin pPadding pTextIndent cVerticalAlign pWidth pHeight pLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing cXLang cXTooltip
 
 
 

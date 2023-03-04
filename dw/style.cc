@@ -77,7 +77,6 @@ void StyleAttrs::initValues ()
    styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
-   borderCollapse = BORDER_MODEL_SEPARATE;
    setBorderColor (NULL);
    setBorderStyle (BORDER_NONE);
    hBorderSpacing = 0;
@@ -163,7 +162,6 @@ bool StyleAttrs::equals (object::Object *other) {
        borderWidthEquals(&this->borderWidth, &otherAttrs->borderWidth) &&
        stylePaddingEquals(&this->padding, &otherAttrs->padding) &&
 
-       borderCollapse == otherAttrs->borderCollapse &&
        borderColor.top == otherAttrs->borderColor.top &&
        borderColor.right == otherAttrs->borderColor.right &&
        borderColor.bottom == otherAttrs->borderColor.bottom &&
@@ -200,7 +198,6 @@ int StyleAttrs::hashValue () {
       styleMarginHashValue(&this->margin) +
       borderWidthHashValue(&this->borderWidth) +
       stylePaddingHashValue(&this->padding) +
-      borderCollapse +
       (intptr_t) borderColor.top +
       (intptr_t) borderColor.right +
       (intptr_t) borderColor.bottom +
@@ -307,7 +304,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    margin = attrs->margin;
    borderWidth = attrs->borderWidth;
    padding = attrs->padding;
-   borderCollapse = attrs->borderCollapse;
    borderColor = attrs->borderColor;
    borderStyle = attrs->borderStyle;
    display = attrs->display;

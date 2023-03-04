@@ -185,7 +185,6 @@ typedef struct c_style_attrs_t {
 
         c_font_attrs_t * c_font_attrs;
 
-        int c_border_collapse;
         c_border_style_t * c_border_style;
         c_border_width_t * c_border_width;
         c_border_color_t * c_border_color;
@@ -240,6 +239,10 @@ int ffiStyleAttrsListStyleType(int ref);
 int ffiStyleAttrsXLink(int ref);
 void ffiStyleAttrsSetXLink(int ref, int val);
 int ffiStyleAttrsXImg(int ref);
+
+int ffiStyleAttrsBorderCollapse(int ref);
+
+void ffiStyleAttrsSetCollapseTableAttrs(int refTable, int refCell);
 
 
 

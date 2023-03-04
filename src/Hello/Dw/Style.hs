@@ -46,6 +46,8 @@ module Hello.Dw.Style
   , styleAttrsHashValue
   , styleAttrsCopy
   , styleAttrsReset
+
+  , styleAttrsSetCollapseTableAttrs
   )
 where
 
@@ -178,7 +180,7 @@ data StyleAttrs = StyleAttrs
   {
     styleAttrsRef          :: Int
   , styleFontAttrs         :: FontAttrs
-  , styleBorderCollapse    :: Int
+  , styleBorderCollapse    :: Int -- TODO: use BorderCollapse type
   , styleBorderStyle       :: StyleBorderStyle
   , styleBorderWidth       :: StyleBorderWidth
   , styleBorderColor       :: StyleBorderColor
@@ -262,7 +264,8 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleCursor         = 1  -- CURSOR_DEFAULT == 1
                              , styleWhiteSpace     = 0  -- WHITE_SPACE_NORMAL = 0
                              , styleListStylePosition = 1 -- LIST_STYLE_POSITION_OUTSIDE == 1
-                             , styleListStyleType  = 0   -- LIST_STYLE_TYPE_DISC == 0
+                             , styleListStyleType  = 0    -- LIST_STYLE_TYPE_DISC == 0
+                             , styleBorderCollapse = 0    -- BORDER_MODEL_SEPARATE == 0;
                              }
 
 
@@ -279,6 +282,7 @@ styleAttrsEqual sa1 sa2 = and $ fmap (\ field -> field sa1 == field sa2)
                           , styleListStyleType
                           , styleXLink
                           , styleXImg
+                          , styleBorderCollapse
                           ]
 
 
@@ -294,6 +298,7 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + styleListStyleType sa
                          + styleXLink sa
                          + styleXImg sa
+                         + styleBorderCollapse sa
 
 
 
@@ -308,6 +313,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleListStyleType  = styleListStyleType from
                             , styleXLink          = styleXLink from
                             , styleXImg           = styleXImg from
+                            , styleBorderCollapse = styleBorderCollapse from
                             }
 
 
@@ -317,4 +323,12 @@ styleAttrsReset :: StyleAttrs -> StyleAttrs
 styleAttrsReset attrs = attrs
   { styleXImg           = -1
   }
+
+
+
+
+styleAttrsSetCollapseTableAttrs :: StyleAttrs -> StyleAttrs -> StyleAttrs
+styleAttrsSetCollapseTableAttrs attrsTable attrsCell =
+  attrsTable { styleBorderStyle = styleBorderStyle attrsCell }
+
 

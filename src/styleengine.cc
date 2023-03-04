@@ -433,7 +433,8 @@ void c_style_attrs_init(c_style_attrs_t * style_attrs)
 
 void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
 {
-   style_attrs->c_border_collapse = attrs->borderCollapse;
+   ffiStyleAttrsCopy(style_attrs->c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
+
    *(style_attrs->c_border_width) = attrs->borderWidth;
    *(style_attrs->c_border_style) = attrs->borderStyle;
 
@@ -458,7 +459,6 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
       style_attrs->c_font_attrs->name = strdup(attrs->font->font_attrs.name);
    }
 
-   ffiStyleAttrsCopy(style_attrs->c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
    *(style_attrs->c_text_indent)  = attrs->textIndent;
    style_attrs->c_vertical_align  = attrs->c_attrs.c_vertical_align;
    *(style_attrs->c_width)        = attrs->width;
@@ -477,7 +477,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
 {
    ffiStyleAttrsCopy(attrs->c_attrs.c_style_attrs_ref, style_attrs->c_style_attrs_ref);
 
-   attrs->borderCollapse = style_attrs->c_border_collapse;
    attrs->borderWidth = *(style_attrs->c_border_width);
    attrs->borderStyle = *(style_attrs->c_border_style);
 

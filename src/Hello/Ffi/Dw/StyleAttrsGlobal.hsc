@@ -79,6 +79,11 @@ foreign export ccall "ffiStyleAttrsXLink" ffiStyleAttrsXLink :: CInt -> IO CInt
 foreign export ccall "ffiStyleAttrsSetXLink" ffiStyleAttrsSetXLink :: CInt -> CInt -> IO ()
 foreign export ccall "ffiStyleAttrsXImg" ffiStyleAttrsXImg :: CInt -> IO CInt
 
+foreign export ccall "ffiStyleAttrsBorderCollapse" ffiStyleAttrsBorderCollapse :: CInt -> IO CInt
+
+foreign export ccall "ffiStyleAttrsSetCollapseTableAttrs" ffiStyleAttrsSetCollapseTableAttrs :: CInt -> CInt -> IO ()
+
+
 
 
 ffiStyleAttrsCtor :: IO CInt
@@ -247,6 +252,15 @@ ffiStyleAttrsXImg cRef = do
   let ref = fromIntegral cRef
   attrs <- globalStyleAttrsGet ref
   return . fromIntegral . styleXImg $ attrs
+
+
+
+
+ffiStyleAttrsBorderCollapse :: CInt -> IO CInt
+ffiStyleAttrsBorderCollapse cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleBorderCollapse $ attrs
 
 
 
