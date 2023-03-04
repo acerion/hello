@@ -72,6 +72,9 @@ foreign export ccall "ffiStyleAttrsSetCursor" ffiStyleAttrsSetCursor :: CInt -> 
 
 foreign export ccall "ffiStyleAttrsWhiteSpace" ffiStyleAttrsWhiteSpace :: CInt -> IO CInt
 
+foreign export ccall "ffiStyleAttrsListStylePosition" ffiStyleAttrsListStylePosition :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsListStyleType" ffiStyleAttrsListStyleType :: CInt -> IO CInt
+
 
 
 
@@ -193,6 +196,24 @@ ffiStyleAttrsWhiteSpace cRef = do
   let ref = fromIntegral cRef
   attrs <- globalStyleAttrsGet ref
   return . fromIntegral . styleWhiteSpace $ attrs
+
+
+
+
+ffiStyleAttrsListStylePosition :: CInt -> IO CInt
+ffiStyleAttrsListStylePosition cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleListStylePosition $ attrs
+
+
+
+
+ffiStyleAttrsListStyleType :: CInt -> IO CInt
+ffiStyleAttrsListStyleType cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleListStyleType $ attrs
 
 
 

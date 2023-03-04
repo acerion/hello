@@ -466,8 +466,6 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
    *(style_attrs->c_width)        = attrs->width;
    *(style_attrs->c_height)       = attrs->height;
    *(style_attrs->c_line_height)  = attrs->lineHeight;
-   style_attrs->c_list_style_position = attrs->listStylePosition;
-   style_attrs->c_list_style_type     = attrs->listStyleType;
 
    style_attrs->c_display     = attrs->display;
    style_attrs->c_h_border_spacing      = attrs->hBorderSpacing;
@@ -500,8 +498,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    attrs->width  = *(style_attrs->c_width);
    attrs->height = *(style_attrs->c_height);
    attrs->lineHeight = *(style_attrs->c_line_height);
-   attrs->listStylePosition = style_attrs->c_list_style_position;
-   attrs->listStyleType     = style_attrs->c_list_style_type;
    attrs->display           = style_attrs->c_display;
    if (style_attrs->c_color != -1) {
       // -1 is a special initial value set on top of this function
@@ -579,8 +575,8 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
 #if 0
    fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: parentAttrs: %d, attrs: %d\n", parentAttrs->c_attrs.c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
    fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: parent_style_attrs: %d, style_attrs: %d\n", parent_style_attrs->c_style_attrs_ref, style_attrs->c_style_attrs_ref);
-   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: decoration in parentAttrs: %d, decoration in attrs: %d\n", ffiStyleAttrsTextDecoration(parentAttrs->c_attrs.c_style_attrs_ref), ffiStyleAttrsTextDecoration(attrs->c_attrs.c_style_attrs_ref));
-   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: decoration in parent_style_attrs: %d, decoration in style_attrs: %d\n", ffiStyleAttrsTextDecoration(parent_style_attrs->c_style_attrs_ref), ffiStyleAttrsTextDecoration(style_attrs->c_style_attrs_ref));
+   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parentAttrs: %d, VALUE in attrs: %d\n", ffiStyleAttrsListStyleType(parentAttrs->c_attrs.c_style_attrs_ref), ffiStyleAttrsListStyleType(attrs->c_attrs.c_style_attrs_ref));
+   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parent_style_attrs: %d, VALUE in style_attrs: %d\n", ffiStyleAttrsListStyleType(parent_style_attrs->c_style_attrs_ref), ffiStyleAttrsListStyleType(style_attrs->c_style_attrs_ref));
 #endif
 
 
@@ -591,8 +587,8 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: parentAttrs: %d, attrs: %d\n", parentAttrs->c_attrs.c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
    fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: parent_style_attrs: %d, style_attrs: %d\n", parent_style_attrs->c_style_attrs_ref, style_attrs->c_style_attrs_ref);
 
-   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: decoration in parentAttrs: %d, decoration in attrs: %d\n", ffiStyleAttrsTextDecoration(parentAttrs->c_attrs.c_style_attrs_ref), ffiStyleAttrsTextDecoration(attrs->c_attrs.c_style_attrs_ref));
-   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: decoration in parent_style_attrs: %d, decoration in style_attrs: %d\n", ffiStyleAttrsTextDecoration(parent_style_attrs->c_style_attrs_ref), ffiStyleAttrsTextDecoration(style_attrs->c_style_attrs_ref));
+   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parentAttrs: %d, VALUE in attrs: %d\n", ffiStyleAttrsListStyleType(parentAttrs->c_attrs.c_style_attrs_ref), ffiStyleAttrsListStyleType(attrs->c_attrs.c_style_attrs_ref));
+   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parent_style_attrs: %d, VALUE in style_attrs: %d\n", ffiStyleAttrsListStyleType(parent_style_attrs->c_style_attrs_ref), ffiStyleAttrsListStyleType(style_attrs->c_style_attrs_ref));
 #endif
    
 
@@ -674,6 +670,7 @@ Style * StyleEngine::getStyle0(int some_idx, BrowserWindow *bw)
    // the "attrs" are passed to "Style::create(&attrs)".
    StyleAttrs styleAttrs = parentStyleAttrs;
    styleAttrs.c_attrs.c_style_attrs_ref = ffiStyleAttrsCtor();
+   ffiStyleAttrsCopy(styleAttrs.c_attrs.c_style_attrs_ref, parentStyleAttrs.c_attrs.c_style_attrs_ref);
 
    // Ensure that StyleEngine::style0() has not been called before for
    // this element.

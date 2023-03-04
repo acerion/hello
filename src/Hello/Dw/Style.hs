@@ -193,8 +193,8 @@ data StyleAttrs = StyleAttrs
   , styleWidth             :: DwLength
   , styleHeight            :: DwLength
   , styleLineHeight        :: DwLength
-  , styleListStylePosition :: Int
-  , styleListStyleType     :: Int
+  , styleListStylePosition :: Int  -- TODO: use ListStylePosition
+  , styleListStyleType     :: Int  -- TODO: use ListStyleType
   , styleDisplay           :: Int
   , styleColor             :: Int -- TODO: change the type to Color
   , styleBackgroundColor   :: Int -- TODO: change the type to Color
@@ -261,6 +261,8 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleTextTransform  = 0  -- TEXT_TRANSFORM_NONE == 0
                              , styleCursor         = 1  -- CURSOR_DEFAULT == 1
                              , styleWhiteSpace     = 0  -- WHITE_SPACE_NORMAL = 0
+                             , styleListStylePosition = 1 -- LIST_STYLE_POSITION_OUTSIDE == 1
+                             , styleListStyleType  = 0   -- LIST_STYLE_TYPE_DISC == 0
                              }
 
 
@@ -273,6 +275,8 @@ styleAttrsEqual sa1 sa2 = and $ fmap (\ field -> field sa1 == field sa2)
                           , styleTextTransform
                           , styleCursor
                           , styleWhiteSpace
+                          , styleListStylePosition
+                          , styleListStyleType
                           ]
 
 
@@ -284,6 +288,8 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + styleTextTransform sa
                          + styleCursor sa
                          + styleWhiteSpace sa
+                         + styleListStylePosition sa
+                         + styleListStyleType sa
 
 
 
@@ -294,6 +300,8 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleTextTransform  = styleTextTransform from
                             , styleCursor         = styleCursor from
                             , styleWhiteSpace     = styleWhiteSpace from
+                            , styleListStylePosition = styleListStylePosition from
+                            , styleListStyleType  = styleListStyleType from
                             }
 
 

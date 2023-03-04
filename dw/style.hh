@@ -435,8 +435,6 @@ public:
    DwLength width;
    DwLength height;
    DwLength lineHeight;
-   int listStylePosition; // TODO: use ListStylePosition
-   int listStyleType; // TODO: use ListStyleType
    int display; // TODO: use DisplayType type
    Color * color = nullptr;
    Color * backgroundColor = nullptr;

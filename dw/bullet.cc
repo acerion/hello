@@ -45,7 +45,7 @@ void Bullet::draw (core::View *view, core::Rectangle *area)
    x = allocation.x;
    y = allocation.y + allocation.ascent - getStyle()->font->font_attrs.xHeight;
 
-   switch (getStyle()->listStyleType) {
+   switch (ffiStyleAttrsListStyleType(getStyle()->c_attrs.c_style_attrs_ref)) {
    case core::style::LIST_STYLE_TYPE_SQUARE:
       view->drawRectangle (getStyle()->color,
                            core::style::Color::SHADING_NORMAL,

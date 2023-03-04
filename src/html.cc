@@ -2577,7 +2577,7 @@ static void Html_tag_open_li(DilloHtml *html, const char *tag, int tagsize)
    /* Get our parent tag's variables (used as state storage) */
    list_number = &html->stack->getRef(html->stack->size()-2)->list_number;
 
-   if (style->listStyleType >= LIST_STYLE_TYPE_DECIMAL) {
+   if (ffiStyleAttrsListStyleType(style->c_attrs.c_style_attrs_ref) >= LIST_STYLE_TYPE_DECIMAL) {
       // ordered
       if ((attr_value = html_attribute_get_value(tag, tagsize, "value")) &&
           (*list_number = strtol(attr_value, NULL, 10)) < 0) {
@@ -3485,11 +3485,11 @@ static void Html_display_listitem(DilloHtml *html)
    *ref_list_item = list_item;
    TopOfParsingStack(html)->textblock = html->dw = list_item;
 
-   if (style->listStyleType == LIST_STYLE_TYPE_NONE) {
+   if (ffiStyleAttrsListStyleType(style->c_attrs.c_style_attrs_ref) == LIST_STYLE_TYPE_NONE) {
       // none
-   } else if (style->listStyleType >= LIST_STYLE_TYPE_DECIMAL) {
+   } else if (ffiStyleAttrsListStyleType(style->c_attrs.c_style_attrs_ref) >= LIST_STYLE_TYPE_DECIMAL) {
       // ordered
-      numtostr((*list_number)++, buf, 16, (dw::core::style::ListStyleType) style->listStyleType);
+      numtostr((*list_number)++, buf, 16, (dw::core::style::ListStyleType) ffiStyleAttrsListStyleType(style->c_attrs.c_style_attrs_ref));
       list_item->initWithText (buf, wordStyle);
    } else {
       // unordered

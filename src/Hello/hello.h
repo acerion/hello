@@ -200,9 +200,6 @@ typedef struct c_style_attrs_t {
         DwLength * c_height;
         DwLength * c_line_height;
 
-        int c_list_style_position;
-        int c_list_style_type;
-
         int c_display;
         int c_color;
         int c_background_color;
@@ -238,6 +235,9 @@ int ffiStyleAttrsCursor(int ref);
 void ffiStyleAttrsSetCursor(int ref, int val);
 
 int ffiStyleAttrsWhiteSpace(int ref);
+
+int ffiStyleAttrsListStylePosition(int ref);
+int ffiStyleAttrsListStyleType(int ref);
 
 
 

@@ -65,8 +65,6 @@ void StyleAttrs::initValues ()
    x_img = -1;
    x_tooltip = NULL;
    textAlignChar = '.';
-   listStylePosition = LIST_STYLE_POSITION_OUTSIDE;
-   listStyleType = LIST_STYLE_TYPE_DISC;
    this->c_attrs.c_vertical_align = VALIGN_BASELINE;
    backgroundColor = NULL;
    backgroundImage = NULL;
@@ -177,8 +175,6 @@ bool StyleAttrs::equals (object::Object *other) {
        borderStyle.bottom == otherAttrs->borderStyle.bottom &&
        borderStyle.left == otherAttrs->borderStyle.left &&
        display == otherAttrs->display &&
-       listStylePosition == otherAttrs->listStylePosition &&
-       listStyleType == otherAttrs->listStyleType &&
        x_link == otherAttrs->x_link &&
        x_lang[0] == otherAttrs->x_lang[0] &&
        x_lang[1] == otherAttrs->x_lang[1] &&
@@ -218,8 +214,6 @@ int StyleAttrs::hashValue () {
       borderStyle.bottom +
       borderStyle.left +
       display +
-      listStylePosition +
-      listStyleType +
       x_link +
       x_lang[0] + x_lang[1] +
       x_img +
@@ -323,8 +317,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    borderColor = attrs->borderColor;
    borderStyle = attrs->borderStyle;
    display = attrs->display;
-   listStylePosition = attrs->listStylePosition;
-   listStyleType = attrs->listStyleType;
    x_link = attrs->x_link;
    x_lang[0] = attrs->x_lang[0];
    x_lang[1] = attrs->x_lang[1];
