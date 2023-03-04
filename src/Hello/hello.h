@@ -56,15 +56,6 @@ typedef struct {
 } DwLength;
 
 
-
-typedef struct {
-        int top; // TODO: use BorderStyle type instead of int
-        int right;
-        int bottom;
-        int left;
-} c_border_style_t;
-
-
 // TODO: in dillo the borderWidth variables were of type Box. The comment for
 // Box type was:
 //
@@ -185,7 +176,6 @@ typedef struct c_style_attrs_t {
 
         c_font_attrs_t * c_font_attrs;
 
-        c_border_style_t * c_border_style;
         c_border_width_t * c_border_width;
         c_border_color_t * c_border_color;
         c_style_margin_t * c_margin;
@@ -244,6 +234,11 @@ int ffiStyleAttrsBorderCollapse(int ref);
 
 void ffiStyleAttrsSetCollapseTableAttrs(int refTable, int refCell);
 
+int ffiStyleAttrsBorderStyleTop(int ref);
+int ffiStyleAttrsBorderStyleRight(int ref);
+int ffiStyleAttrsBorderStyleBottom(int ref);
+int ffiStyleAttrsBorderStyleLeft(int ref);
+void ffiStyleAttrsSetBorderStyle(int ref, int val);
 
 
 
@@ -485,6 +480,7 @@ void ffiStyleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * pr
 
 void ffiStyleEngineGetWordStyle0(int refTo, int refFrom);
 void ffiStyleEnginePreprocessAttrs(int refTo, int refFrom, bool inheritBackgroundColor);
+void ffiStyleEnginePostprocessAttrs(int ref);
 
 
 

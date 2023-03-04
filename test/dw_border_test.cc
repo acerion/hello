@@ -50,7 +50,7 @@ int main(int argc, char **argv)
    styleMarginSetVal(&styleAttrs.margin, 5);
    borderWidthSetVal(&styleAttrs.borderWidth, 2);
    styleAttrs.setBorderColor (Color::create (layout, 0xffffff));
-   styleAttrs.setBorderStyle (BORDER_INSET);
+   ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_INSET);
    stylePaddingSetVal(&styleAttrs.padding, 5);
 
    FontAttrs fontAttrs;
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
    styleMarginSetVal(&styleAttrs.margin, 0);
    borderWidthSetVal(&styleAttrs.borderWidth, 1);
    styleAttrs.setBorderColor (Color::create (layout, 0x4040ff));
-   styleAttrs.setBorderStyle (BORDER_SOLID);
+   ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_SOLID);
    stylePaddingSetVal(&styleAttrs.padding, 1);
 
    Style *widgetStyle2 = Style::create (&styleAttrs);

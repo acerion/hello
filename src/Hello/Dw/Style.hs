@@ -48,6 +48,7 @@ module Hello.Dw.Style
   , styleAttrsReset
 
   , styleAttrsSetCollapseTableAttrs
+  , styleAttrsSetBorderStyle
   )
 where
 
@@ -66,16 +67,16 @@ import Hello.Dw.FontAttrs
 
 data StyleBorderStyle = StyleBorderStyle
   {
-    styleBorderStyleTop    :: Int
+    styleBorderStyleTop    :: Int   -- TODO: use BorderStyle type instead of int
   , styleBorderStyleRight  :: Int
   , styleBorderStyleBottom :: Int
   , styleBorderStyleLeft   :: Int
-  } deriving (Show)
+  } deriving (Eq, Show)
 
 defaultStyleBorderStyle :: StyleBorderStyle
 defaultStyleBorderStyle = StyleBorderStyle
   {
-    styleBorderStyleTop    = 0
+    styleBorderStyleTop    = 0 -- BORDER_NONE == 0
   , styleBorderStyleRight  = 0
   , styleBorderStyleBottom = 0
   , styleBorderStyleLeft   = 0
@@ -266,6 +267,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleListStylePosition = 1 -- LIST_STYLE_POSITION_OUTSIDE == 1
                              , styleListStyleType  = 0    -- LIST_STYLE_TYPE_DISC == 0
                              , styleBorderCollapse = 0    -- BORDER_MODEL_SEPARATE == 0;
+                             , styleBorderStyle    = defaultStyleBorderStyle
                              }
 
 
@@ -283,6 +285,10 @@ styleAttrsEqual sa1 sa2 = and $ fmap (\ field -> field sa1 == field sa2)
                           , styleXLink
                           , styleXImg
                           , styleBorderCollapse
+                          , styleBorderStyleTop . styleBorderStyle
+                          , styleBorderStyleRight . styleBorderStyle
+                          , styleBorderStyleBottom . styleBorderStyle
+                          , styleBorderStyleLeft . styleBorderStyle
                           ]
 
 
@@ -299,6 +305,10 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + styleXLink sa
                          + styleXImg sa
                          + styleBorderCollapse sa
+                         * (styleBorderStyleTop . styleBorderStyle $ sa)
+                         * (styleBorderStyleRight . styleBorderStyle $ sa)
+                         * (styleBorderStyleBottom . styleBorderStyle $ sa)
+                         * (styleBorderStyleLeft . styleBorderStyle $ sa)
 
 
 
@@ -314,6 +324,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleXLink          = styleXLink from
                             , styleXImg           = styleXImg from
                             , styleBorderCollapse = styleBorderCollapse from
+                            , styleBorderStyle    = styleBorderStyle from
                             }
 
 
@@ -322,6 +333,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
 styleAttrsReset :: StyleAttrs -> StyleAttrs
 styleAttrsReset attrs = attrs
   { styleXImg           = -1
+  , styleBorderStyle    = defaultStyleBorderStyle
   }
 
 
@@ -331,4 +343,15 @@ styleAttrsSetCollapseTableAttrs :: StyleAttrs -> StyleAttrs -> StyleAttrs
 styleAttrsSetCollapseTableAttrs attrsTable attrsCell =
   attrsTable { styleBorderStyle = styleBorderStyle attrsCell }
 
+
+
+
+styleAttrsSetBorderStyle :: StyleAttrs -> Int -> StyleAttrs
+styleAttrsSetBorderStyle sa val = sa
+  { styleBorderStyle = (styleBorderStyle sa) { styleBorderStyleTop    = val
+                                             , styleBorderStyleRight  = val
+                                             , styleBorderStyleBottom = val
+                                             , styleBorderStyleLeft   = val
+                                             }
+  }
 

@@ -79,6 +79,8 @@ foreign export ccall "ffiStyleEngineSetXTooltipOfNode" ffiStyleEngineSetXTooltip
 foreign export ccall "ffiStyleEngineApplyStyleToGivenNode" ffiStyleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiStyleAttrs -> Ptr FfiStyleAttrs -> IO ()
 foreign export ccall "ffiInheritNonCssHints" ffiInheritNonCssHints :: CInt -> CInt -> IO CInt
 
+foreign export ccall "ffiStyleEnginePostprocessAttrs" ffiStyleEnginePostprocessAttrs :: CInt -> IO ()
+
 
 
 
@@ -386,6 +388,17 @@ cssLengthToDistance lenValue lenType | lenType == cssLengthTypeNone       = CssN
                                      | lenType == cssLengthTypeRelative   = CssNumericRelative lenValue
                                      | lenType == cssLengthTypeAuto       = CssDistanceAuto
                                      | otherwise                          = CssNumericNone 0.0
+
+
+
+
+ffiStyleEnginePostprocessAttrs :: CInt -> IO ()
+ffiStyleEnginePostprocessAttrs _cRef = do
+  --let ref = fromIntegral cRef
+  --old <- globalStyleAttrsGet ref
+  --let new = styleAttrsPostprocess old
+  --globalStyleAttrsUpdate ref new
+  return ()
 
 
 

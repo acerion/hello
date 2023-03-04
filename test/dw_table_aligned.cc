@@ -49,7 +49,7 @@ int main(int argc, char **argv)
    styleAttrs.initValues ();
    styleMarginSetVal(&styleAttrs.margin, 5);
    borderWidthSetVal(&styleAttrs.borderWidth, 1);
-   styleAttrs.setBorderStyle (BORDER_OUTSET);
+   ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_OUTSET);
    styleAttrs.setBorderColor (Color::create (layout, 0x808080));
 
    FontAttrs fontAttrs;
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
    tableStyle->unref();
 
    borderWidthSetVal(&styleAttrs.borderWidth, 1);
-   styleAttrs.setBorderStyle (BORDER_INSET);
+   ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_INSET);
 
    Style *cellStyle = Style::create (&styleAttrs);
 

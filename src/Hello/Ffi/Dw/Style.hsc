@@ -27,11 +27,7 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 module Hello.Ffi.Dw.Style
   (
-    FfiStyleBorderStyle (..)
-  , peekStyleBorderStyle
-  , pokeStyleBorderStyle
-
-  , FfiStyleBorderWidth (..)
+    FfiStyleBorderWidth (..)
   , peekStyleBorderWidth
   , pokeStyleBorderWidth
 
@@ -72,69 +68,6 @@ import Hello.Ffi.Utils
 
 
 
-data FfiStyleBorderStyle = FfiStyleBorderStyle
-  {
-    cStyleBorderStyleTop    :: CInt
-  , cStyleBorderStyleRight  :: CInt
-  , cStyleBorderStyleBottom :: CInt
-  , cStyleBorderStyleLeft   :: CInt
-  } deriving (Show)
-
-
-
-
-instance Storable FfiStyleBorderStyle where
-  sizeOf    _ = #{size c_border_style_t}
-  alignment _ = #{alignment c_border_style_t}
-
-  poke ptr (FfiStyleBorderStyle t r b l) = do
-    #{poke c_border_style_t, top}    ptr t
-    #{poke c_border_style_t, right}  ptr r
-    #{poke c_border_style_t, bottom} ptr b
-    #{poke c_border_style_t, left}   ptr l
-
-
-  peek ptr = do
-    t <- #{peek c_border_style_t, top} ptr
-    r <- #{peek c_border_style_t, right}  ptr
-    b <- #{peek c_border_style_t, bottom} ptr
-    l <- #{peek c_border_style_t, left} ptr
-    return (FfiStyleBorderStyle t r b l)
-
-
-
-
-peekStyleBorderStyle :: Ptr FfiStyleBorderStyle -> IO StyleBorderStyle
-peekStyleBorderStyle ptrStructBorderStyle = do
-  ffiStyle <- peek ptrStructBorderStyle
-  return StyleBorderStyle
-    {
-      styleBorderStyleTop    = fromIntegral . cStyleBorderStyleTop    $ ffiStyle
-    , styleBorderStyleRight  = fromIntegral . cStyleBorderStyleRight  $ ffiStyle
-    , styleBorderStyleBottom = fromIntegral . cStyleBorderStyleBottom $ ffiStyle
-    , styleBorderStyleLeft   = fromIntegral . cStyleBorderStyleLeft   $ ffiStyle
-    }
-
-
-
-
-pokeStyleBorderStyle :: StyleBorderStyle -> Ptr FfiStyleBorderStyle -> IO ()
-pokeStyleBorderStyle style ptrStructBorderStyle = do
-  let top    = fromIntegral . styleBorderStyleTop    $ style
-  let right  = fromIntegral . styleBorderStyleRight  $ style
-  let bottom = fromIntegral . styleBorderStyleBottom $ style
-  let left   = fromIntegral . styleBorderStyleLeft   $ style
-
-  poke ptrStructBorderStyle $ FfiStyleBorderStyle top right bottom left
-
-
-
-
-----------------------------------------
-
-
-
-
 data FfiStyleBorderWidth = FfiStyleBorderWidth
   {
     cStyleBorderWidthTop    :: CInt
@@ -148,21 +81,21 @@ data FfiStyleBorderWidth = FfiStyleBorderWidth
 
 
 instance Storable FfiStyleBorderWidth where
-  sizeOf    _ = #{size c_border_style_t}
-  alignment _ = #{alignment c_border_style_t}
+  sizeOf    _ = #{size c_border_width_t}
+  alignment _ = #{alignment c_border_width_t}
 
   poke ptr (FfiStyleBorderWidth t r b l) = do
-    #{poke c_border_style_t, top}    ptr t
-    #{poke c_border_style_t, right}  ptr r
-    #{poke c_border_style_t, bottom} ptr b
-    #{poke c_border_style_t, left}   ptr l
+    #{poke c_border_width_t, top}    ptr t
+    #{poke c_border_width_t, right}  ptr r
+    #{poke c_border_width_t, bottom} ptr b
+    #{poke c_border_width_t, left}   ptr l
 
 
   peek ptr = do
-    t <- #{peek c_border_style_t, top} ptr
-    r <- #{peek c_border_style_t, right}  ptr
-    b <- #{peek c_border_style_t, bottom} ptr
-    l <- #{peek c_border_style_t, left} ptr
+    t <- #{peek c_border_width_t, top} ptr
+    r <- #{peek c_border_width_t, right}  ptr
+    b <- #{peek c_border_width_t, bottom} ptr
+    l <- #{peek c_border_width_t, left} ptr
     return (FfiStyleBorderWidth t r b l)
 
 
@@ -392,7 +325,6 @@ data FfiStyleAttrs = FfiStyleAttrs
   {
     iStyleAttrsRef             :: CInt
   , ptrStructFontAttrs         :: Ptr FfiFontAttrs
-  , ptrStructStyleBorderStyle  :: Ptr FfiStyleBorderStyle
   , ptrStructStyleBorderWidth  :: Ptr FfiStyleBorderWidth
   , ptrStructStyleBorderColor  :: Ptr FfiStyleBorderColor
   , ptrStructStyleMargin       :: Ptr FfiStyleMargin
@@ -422,7 +354,6 @@ instance Storable FfiStyleAttrs where
   peek ptr = do
     ref              <- #{peek c_style_attrs_t, c_style_attrs_ref}   ptr
     fontAttrs        <- #{peek c_style_attrs_t, c_font_attrs}        ptr
-    borderStyle      <- #{peek c_style_attrs_t, c_border_style}      ptr
     borderWidth      <- #{peek c_style_attrs_t, c_border_width}      ptr
     borderColor      <- #{peek c_style_attrs_t, c_border_color}      ptr
     margin           <- #{peek c_style_attrs_t, c_margin}            ptr
@@ -441,16 +372,15 @@ instance Storable FfiStyleAttrs where
     let xLang = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_style_attrs_t, c_x_lang}) ptr
     xTooltip           <- #{peek c_style_attrs_t, c_x_tooltip}            ptr
 
-    return (FfiStyleAttrs ref fontAttrs borderStyle borderWidth borderColor margin padding textIndent verticalAlign width height lineHeight display color backgroundColor hBorderSpacing vBorderSpacing wordSpacing xLang xTooltip)
+    return (FfiStyleAttrs ref fontAttrs borderWidth borderColor margin padding textIndent verticalAlign width height lineHeight display color backgroundColor hBorderSpacing vBorderSpacing wordSpacing xLang xTooltip)
 
 
 
 
-  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderStyle cBorderWidth cBorderColor cMargin cPadding cTextIndent cVerticalAlign cWidth cHeight cLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing _cXLang cXTooltip) = do
+  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderWidth cBorderColor cMargin cPadding cTextIndent cVerticalAlign cWidth cHeight cLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing _cXLang cXTooltip) = do
 
     #{poke c_style_attrs_t, c_style_attrs_ref} ptr cStyleAttrsRef
     #{poke c_style_attrs_t, c_font_attrs}      ptr cFontAttrs
-    #{poke c_style_attrs_t, c_border_style}    ptr cBorderStyle
     #{poke c_style_attrs_t, c_border_width}    ptr cBorderWidth
     #{poke c_style_attrs_t, c_border_color}    ptr cBorderColor
     #{poke c_style_attrs_t, c_margin}          ptr cMargin
@@ -477,7 +407,6 @@ peekStyleAttrs ptrStructStyleAttrs = do
   ffiAttrs <- peek ptrStructStyleAttrs
 
   fontAttrs   <- peekFontAttrs . ptrStructFontAttrs $ ffiAttrs
-  borderStyle <- peekStyleBorderStyle . ptrStructStyleBorderStyle $ ffiAttrs
   borderWidth <- peekStyleBorderWidth . ptrStructStyleBorderWidth $ ffiAttrs
   borderColor <- peekStyleBorderColor . ptrStructStyleBorderColor $ ffiAttrs
   margin      <- peekStyleMargin . ptrStructStyleMargin $ ffiAttrs
@@ -497,7 +426,7 @@ peekStyleAttrs ptrStructStyleAttrs = do
       styleAttrsRef    = styleAttrsRef gAttrs
     , styleFontAttrs   = fontAttrs
     , styleBorderCollapse = styleBorderCollapse gAttrs
-    , styleBorderStyle = borderStyle
+    , styleBorderStyle = styleBorderStyle gAttrs
     , styleBorderWidth = borderWidth
     , styleBorderColor = borderColor
     , styleMargin      = margin
@@ -549,9 +478,6 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let pFontAttrs :: Ptr FfiFontAttrs = ptrStructFontAttrs ffiStyleAttrs
   pokeFontAttrs (styleFontAttrs attrs) pFontAttrs
 
-  let pBorderStyle :: Ptr FfiStyleBorderStyle = ptrStructStyleBorderStyle ffiStyleAttrs
-  pokeStyleBorderStyle (styleBorderStyle attrs) pBorderStyle
-
   let pBorderWidth :: Ptr FfiStyleBorderWidth = ptrStructStyleBorderWidth ffiStyleAttrs
   pokeStyleBorderWidth (styleBorderWidth attrs) pBorderWidth
 
@@ -596,7 +522,7 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
 
   cXTooltip :: Ptr CChar <- allocAndPokeCString . styleXTooltip $ attrs -- TODO: this allocates memory that is not freed anywhere
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderStyle pBorderWidth pBorderColor pMargin pPadding pTextIndent cVerticalAlign pWidth pHeight pLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing cXLang cXTooltip
+  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderWidth pBorderColor pMargin pPadding pTextIndent cVerticalAlign pWidth pHeight pLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing cXLang cXTooltip
 
 
 

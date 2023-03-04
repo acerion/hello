@@ -425,7 +425,6 @@ public:
    char textAlignChar; /* In future, strings will be supported. */
 
    c_border_width_t borderWidth;
-   c_border_style_t borderStyle;
    struct { Color *top = nullptr, *right = nullptr, *bottom = nullptr, *left = nullptr; } borderColor;
    c_style_margin_t margin;
    c_style_padding_t padding;
@@ -455,9 +454,6 @@ public:
    inline void setBorderColor(Color *val) {
       borderColor.top = borderColor.right = borderColor.bottom
          = borderColor.left = val; }
-   inline void setBorderStyle(BorderStyle val) {
-      borderStyle.top = borderStyle.right = borderStyle.bottom
-         = borderStyle.left = val; }
 
    inline int boxOffsetX ()
    {

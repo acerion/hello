@@ -78,7 +78,6 @@ void StyleAttrs::initValues ()
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
-   setBorderStyle (BORDER_NONE);
    hBorderSpacing = 0;
    vBorderSpacing = 0;
    wordSpacing = 0;
@@ -109,7 +108,6 @@ void StyleAttrs::resetValues ()
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
-   setBorderStyle (BORDER_NONE);
    hBorderSpacing = 0;
    vBorderSpacing = 0;
 
@@ -166,10 +164,6 @@ bool StyleAttrs::equals (object::Object *other) {
        borderColor.right == otherAttrs->borderColor.right &&
        borderColor.bottom == otherAttrs->borderColor.bottom &&
        borderColor.left == otherAttrs->borderColor.left &&
-       borderStyle.top == otherAttrs->borderStyle.top &&
-       borderStyle.right == otherAttrs->borderStyle.right &&
-       borderStyle.bottom == otherAttrs->borderStyle.bottom &&
-       borderStyle.left == otherAttrs->borderStyle.left &&
        display == otherAttrs->display &&
        x_lang[0] == otherAttrs->x_lang[0] &&
        x_lang[1] == otherAttrs->x_lang[1] &&
@@ -202,10 +196,6 @@ int StyleAttrs::hashValue () {
       (intptr_t) borderColor.right +
       (intptr_t) borderColor.bottom +
       (intptr_t) borderColor.left +
-      borderStyle.top +
-      borderStyle.right +
-      borderStyle.bottom +
-      borderStyle.left +
       display +
       x_lang[0] + x_lang[1] +
       (intptr_t) x_tooltip;
@@ -305,7 +295,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    borderWidth = attrs->borderWidth;
    padding = attrs->padding;
    borderColor = attrs->borderColor;
-   borderStyle = attrs->borderStyle;
    display = attrs->display;
    x_lang[0] = attrs->x_lang[0];
    x_lang[1] = attrs->x_lang[1];
@@ -699,7 +688,7 @@ static void drawBorderTop(View *view, Style *style,
    if (!style->borderColor.top || style->borderWidth.top == 0)
       return;
 
-   switch (style->borderStyle.top) {
+   switch (ffiStyleAttrsBorderStyleTop(style->c_attrs.c_style_attrs_ref)) {
    case BORDER_NONE:
    case BORDER_HIDDEN:
       break;
@@ -715,7 +704,7 @@ static void drawBorderTop(View *view, Style *style,
    case BORDER_INSET:
       inset = true;
    case BORDER_OUTSET:
-      if (style->borderStyle.top != BORDER_SOLID)
+      if (ffiStyleAttrsBorderStyleTop(style->c_attrs.c_style_attrs_ref) != BORDER_SOLID)
          shading = (inset) ? Color::SHADING_DARK : Color::SHADING_LIGHT;
 
       if (style->borderWidth.top == 1) {
@@ -796,7 +785,7 @@ static void drawBorderBottom(View *view, Style *style,
    if (!style->borderColor.bottom || style->borderWidth.bottom == 0)
       return;
 
-   switch (style->borderStyle.bottom) {
+   switch (ffiStyleAttrsBorderStyleBottom(style->c_attrs.c_style_attrs_ref)) {
    case BORDER_NONE:
    case BORDER_HIDDEN:
       break;
@@ -812,7 +801,7 @@ static void drawBorderBottom(View *view, Style *style,
    case BORDER_INSET:
       inset = true;
    case BORDER_OUTSET:
-      if (style->borderStyle.bottom != BORDER_SOLID)
+      if (ffiStyleAttrsBorderStyleBottom(style->c_attrs.c_style_attrs_ref) != BORDER_SOLID)
          shading = (inset) ? Color::SHADING_LIGHT : Color::SHADING_DARK;
 
       if (style->borderWidth.bottom == 1) { /* 1 pixel line */
@@ -895,7 +884,7 @@ static void drawBorderLeft(View *view, Style *style,
    if (!style->borderColor.left || style->borderWidth.left == 0)
       return;
 
-   switch (style->borderStyle.left) {
+   switch (ffiStyleAttrsBorderStyleLeft(style->c_attrs.c_style_attrs_ref)) {
    case BORDER_NONE:
    case BORDER_HIDDEN:
       break;
@@ -911,7 +900,7 @@ static void drawBorderLeft(View *view, Style *style,
    case BORDER_INSET:
       inset = true;
    case BORDER_OUTSET:
-      if (style->borderStyle.left != BORDER_SOLID)
+      if (ffiStyleAttrsBorderStyleLeft(style->c_attrs.c_style_attrs_ref) != BORDER_SOLID)
          shading = (inset) ? Color::SHADING_DARK : Color::SHADING_LIGHT;
       if (style->borderWidth.left == 1) { /* 1 pixel line */
          view->drawLine(style->borderColor.left, shading, x1, y1, x2, y2);
@@ -992,7 +981,7 @@ static void drawBorderRight(View *view, Style *style,
    if (!style->borderColor.right || style->borderWidth.right == 0)
       return;
 
-   switch (style->borderStyle.right) {
+   switch (ffiStyleAttrsBorderStyleRight(style->c_attrs.c_style_attrs_ref)) {
    case BORDER_NONE:
    case BORDER_HIDDEN:
       break;
@@ -1008,7 +997,7 @@ static void drawBorderRight(View *view, Style *style,
    case BORDER_INSET:
       inset = true;
    case BORDER_OUTSET:
-      if (style->borderStyle.right != BORDER_SOLID)
+      if (ffiStyleAttrsBorderStyleRight(style->c_attrs.c_style_attrs_ref) != BORDER_SOLID)
          shading = (inset) ? Color::SHADING_LIGHT : Color::SHADING_DARK;
       if (style->borderWidth.right == 1) { /* 1 pixel line */
          view->drawLine(style->borderColor.right, shading, x1, y1, x2, y2);

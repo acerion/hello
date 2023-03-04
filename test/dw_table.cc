@@ -50,7 +50,7 @@ int main(int argc, char **argv)
    styleMarginSetVal(&styleAttrs.margin, 5);
    stylePaddingSetVal(&styleAttrs.padding, 0);
    borderWidthSetVal(&styleAttrs.borderWidth, 1);
-   styleAttrs.setBorderStyle (BORDER_OUTSET);
+   ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_OUTSET);
    styleAttrs.setBorderColor (Color::create (layout, 0xffffff));
    styleAttrs.color = Color::create (layout, 0x000000);
    styleAttrs.backgroundColor = Color::create (layout, 0xffffff);
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
    tableStyle->unref();
 
-   styleAttrs.setBorderStyle (BORDER_INSET);
+   ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_INSET);
    styleAttrs.backgroundColor = NULL;
    styleMarginSetVal(&styleAttrs.margin, 0);
    stylePaddingSetVal(&styleAttrs.padding, 5);

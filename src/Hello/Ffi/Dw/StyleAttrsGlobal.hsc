@@ -83,6 +83,12 @@ foreign export ccall "ffiStyleAttrsBorderCollapse" ffiStyleAttrsBorderCollapse :
 
 foreign export ccall "ffiStyleAttrsSetCollapseTableAttrs" ffiStyleAttrsSetCollapseTableAttrs :: CInt -> CInt -> IO ()
 
+foreign export ccall "ffiStyleAttrsBorderStyleTop" ffiStyleAttrsBorderStyleTop :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsBorderStyleRight" ffiStyleAttrsBorderStyleRight :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsBorderStyleBottom" ffiStyleAttrsBorderStyleBottom :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsBorderStyleLeft" ffiStyleAttrsBorderStyleLeft :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsSetBorderStyle" ffiStyleAttrsSetBorderStyle :: CInt -> CInt -> IO ()
+
 
 
 
@@ -261,6 +267,67 @@ ffiStyleAttrsBorderCollapse cRef = do
   let ref = fromIntegral cRef
   attrs <- globalStyleAttrsGet ref
   return . fromIntegral . styleBorderCollapse $ attrs
+
+
+
+
+ffiStyleAttrsSetCollapseTableAttrs :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetCollapseTableAttrs cRefTable cRefCell = do
+  let refTable = fromIntegral cRefTable
+  let refCell  = fromIntegral cRefCell
+  attrsTable <- globalStyleAttrsGet refTable
+  attrsCell  <- globalStyleAttrsGet refCell
+  let attrs = styleAttrsSetCollapseTableAttrs attrsTable attrsCell
+  globalStyleAttrsUpdate refTable attrs
+  return ()
+
+
+
+
+ffiStyleAttrsBorderStyleTop :: CInt -> IO CInt
+ffiStyleAttrsBorderStyleTop cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleBorderStyleTop . styleBorderStyle $ attrs
+
+
+
+
+ffiStyleAttrsBorderStyleRight :: CInt -> IO CInt
+ffiStyleAttrsBorderStyleRight cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleBorderStyleRight . styleBorderStyle $ attrs
+
+
+
+
+ffiStyleAttrsBorderStyleBottom :: CInt -> IO CInt
+ffiStyleAttrsBorderStyleBottom cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleBorderStyleBottom . styleBorderStyle $ attrs
+
+
+
+
+ffiStyleAttrsBorderStyleLeft :: CInt -> IO CInt
+ffiStyleAttrsBorderStyleLeft cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleBorderStyleLeft . styleBorderStyle $ attrs
+
+
+
+
+ffiStyleAttrsSetBorderStyle :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetBorderStyle cRef cVal = do
+  let ref = fromIntegral cRef
+  let val = fromIntegral cVal
+  old <- globalStyleAttrsGet ref
+  let new = styleAttrsSetBorderStyle old val
+  globalStyleAttrsUpdate ref new
+  return ()
 
 
 

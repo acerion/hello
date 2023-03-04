@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 
    borderWidthSetVal(&styleAttrs.borderWidth, 1);
    styleAttrs.setBorderColor (Color::create (layout, 0x000080));
-   styleAttrs.setBorderStyle (BORDER_SOLID);
+   ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_SOLID);
    stylePaddingSetVal(&styleAttrs.padding, 1);
    styleAttrs.backgroundColor = NULL;
    ffiCreatePercentageDwLength(&styleAttrs.width, 0.25);

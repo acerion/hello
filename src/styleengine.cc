@@ -363,27 +363,28 @@ void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
       attrs->borderColor.left = attrs->color;
    if (attrs->borderColor.right == (Color *) -1)
       attrs->borderColor.right = attrs->color;
+
+   // ffiStyleEnginePostprocessAttrs(attrs->c_attrs.c_style_attrs_ref);
    /* computed value of border-width is 0 if border-style
       is 'none' or 'hidden' */
-   if (attrs->borderStyle.top == BORDER_NONE ||
-       attrs->borderStyle.top == BORDER_HIDDEN)
+   if (ffiStyleAttrsBorderStyleTop(attrs->c_attrs.c_style_attrs_ref) == BORDER_NONE ||
+       ffiStyleAttrsBorderStyleTop(attrs->c_attrs.c_style_attrs_ref) == BORDER_HIDDEN)
       attrs->borderWidth.top = 0;
-   if (attrs->borderStyle.bottom == BORDER_NONE ||
-       attrs->borderStyle.bottom == BORDER_HIDDEN)
-      attrs->borderWidth.bottom = 0;
-   if (attrs->borderStyle.left == BORDER_NONE ||
-       attrs->borderStyle.left == BORDER_HIDDEN)
-      attrs->borderWidth.left = 0;
-   if (attrs->borderStyle.right == BORDER_NONE ||
-       attrs->borderStyle.right == BORDER_HIDDEN)
+   if (ffiStyleAttrsBorderStyleRight(attrs->c_attrs.c_style_attrs_ref) == BORDER_NONE ||
+       ffiStyleAttrsBorderStyleRight(attrs->c_attrs.c_style_attrs_ref) == BORDER_HIDDEN)
       attrs->borderWidth.right = 0;
+   if (ffiStyleAttrsBorderStyleBottom(attrs->c_attrs.c_style_attrs_ref) == BORDER_NONE ||
+       ffiStyleAttrsBorderStyleBottom(attrs->c_attrs.c_style_attrs_ref) == BORDER_HIDDEN)
+      attrs->borderWidth.bottom = 0;
+   if (ffiStyleAttrsBorderStyleLeft(attrs->c_attrs.c_style_attrs_ref) == BORDER_NONE ||
+       ffiStyleAttrsBorderStyleLeft(attrs->c_attrs.c_style_attrs_ref) == BORDER_HIDDEN)
+      attrs->borderWidth.left = 0;
 }
 
 c_style_attrs_t * c_style_attrs_calloc(void)
 {
    c_style_attrs_t * style_attrs = (c_style_attrs_t *) calloc(1, sizeof (c_style_attrs_t));
    style_attrs->c_border_width = (c_border_width_t *) calloc(1, sizeof (c_border_width_t));
-   style_attrs->c_border_style = (c_border_style_t *) calloc(1, sizeof (c_border_style_t));
    style_attrs->c_border_color = (c_border_color_t *) calloc(1, sizeof (c_border_color_t));
    style_attrs->c_margin       = (c_style_margin_t *) calloc(1, sizeof (c_style_margin_t));
    style_attrs->c_padding      = (c_style_padding_t *) calloc(1, sizeof (c_style_padding_t));
@@ -405,7 +406,6 @@ void c_style_attrs_dealloc(c_style_attrs_t ** style_attrs)
       return;
    }
    free((*style_attrs)->c_border_width);
-   free((*style_attrs)->c_border_style);
    free((*style_attrs)->c_border_color);
    free((*style_attrs)->c_margin);
    free((*style_attrs)->c_padding);
@@ -436,7 +436,6 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
    ffiStyleAttrsCopy(style_attrs->c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
 
    *(style_attrs->c_border_width) = attrs->borderWidth;
-   *(style_attrs->c_border_style) = attrs->borderStyle;
 
    if (attrs->borderColor.top != nullptr && attrs->borderColor.top != (Color *) -1) {
       style_attrs->c_border_color->top    = attrs->borderColor.top->color;
@@ -478,7 +477,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    ffiStyleAttrsCopy(attrs->c_attrs.c_style_attrs_ref, style_attrs->c_style_attrs_ref);
 
    attrs->borderWidth = *(style_attrs->c_border_width);
-   attrs->borderStyle = *(style_attrs->c_border_style);
 
    attrs->borderColor.top    = style_attrs->c_border_color->top == -1    ? NULL : Color::create(layout, style_attrs->c_border_color->top);
    attrs->borderColor.right  = style_attrs->c_border_color->right == -1  ? NULL : Color::create(layout, style_attrs->c_border_color->right);
@@ -705,7 +703,8 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
 
 Style * StyleEngine::makeWordStyle(BrowserWindow *bw) {
    StyleAttrs attrs = *getStyle (bw);
-   attrs.resetValues ();
+   // TODO: original code called this function. Retore it?
+   //attrs.resetValues ();
 
    StyleNode * node = getCurrentNode(this);
    if (node->inheritBackgroundColor) {
