@@ -2081,7 +2081,7 @@ void Textblock::fillSpace (int wordNo, core::style::Style *style)
 
       word->content.space = true;
       word->effSpace = word->origSpace = style->font->spaceWidth +
-         style->wordSpacing;
+         ffiStyleAttrsWordSpacing(style->c_attrs.c_style_attrs_ref);
 
       //DBG_OBJ_ARRSET_NUM (this, "words.%d.origSpace", wordIndex,
       //                    word->origSpace);

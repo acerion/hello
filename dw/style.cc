@@ -71,7 +71,6 @@ void StyleAttrs::initValues ()
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
-   wordSpacing = 0;
 }
 
 /**
@@ -124,7 +123,6 @@ bool StyleAttrs::equals (object::Object *other) {
        backgroundRepeat == otherAttrs->backgroundRepeat &&
        backgroundAttachment == otherAttrs->backgroundAttachment &&
        textAlignChar == otherAttrs->textAlignChar &&
-       wordSpacing == otherAttrs->wordSpacing &&
        styleMarginEquals(&this->margin, &otherAttrs->margin) &&
        borderWidthEquals(&this->borderWidth, &otherAttrs->borderWidth) &&
        stylePaddingEquals(&this->padding, &otherAttrs->padding) &&
@@ -147,7 +145,6 @@ int StyleAttrs::hashValue () {
       backgroundRepeat +
       backgroundAttachment +
       textAlignChar +
-      wordSpacing +
       styleMarginHashValue(&this->margin) +
       borderWidthHashValue(&this->borderWidth) +
       stylePaddingHashValue(&this->padding) +
@@ -239,7 +236,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    backgroundRepeat = attrs->backgroundRepeat;
    backgroundAttachment = attrs->backgroundAttachment;
    textAlignChar = attrs->textAlignChar;
-   wordSpacing = attrs->wordSpacing;
    margin = attrs->margin;
    borderWidth = attrs->borderWidth;
    padding = attrs->padding;

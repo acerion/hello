@@ -285,6 +285,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleHorizBorderSpacing  = 0
                              , styleVertBorderSpacing   = 0
                              , styleDisplay             = 1 -- DISPLAY_INLINE == 1
+                             , styleWordSpacing         = 0
                              }
 
 
@@ -314,6 +315,7 @@ styleAttrsEqual sa1 sa2 = and
                           , styleHorizBorderSpacing sa1 == styleHorizBorderSpacing sa2
                           , styleVertBorderSpacing sa1 == styleVertBorderSpacing sa2
                           , styleDisplay sa1 == styleDisplay sa2
+                          , styleWordSpacing sa1 == styleWordSpacing sa2
                           ]
 
 
@@ -344,6 +346,7 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + styleHorizBorderSpacing sa
                          + styleVertBorderSpacing sa
                          + styleDisplay sa
+                         + styleWordSpacing sa
 
 
 
@@ -372,6 +375,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleHorizBorderSpacing = styleHorizBorderSpacing from
                             , styleVertBorderSpacing  = styleVertBorderSpacing from
                             , styleDisplay            = styleDisplay from
+                            , styleWordSpacing        = styleWordSpacing from
                             }
 
 

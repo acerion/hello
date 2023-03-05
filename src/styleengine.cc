@@ -452,8 +452,6 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
       style_attrs->c_font_attrs->name = strdup(attrs->font->font_attrs.name);
    }
 
-   style_attrs->c_word_spacing          = attrs->wordSpacing;
-
    memcpy(style_attrs->c_x_lang, attrs->x_lang, sizeof (style_attrs->c_x_lang));
 }
 
@@ -489,7 +487,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
          attrs->backgroundColor = Color::create(layout, prefs.white_bg_replacement);
       }
    }
-   attrs->wordSpacing       = style_attrs->c_word_spacing;
 
    memcpy(attrs->x_lang, style_attrs->c_x_lang, sizeof (attrs->x_lang));
    if (style_attrs->c_x_tooltip) {

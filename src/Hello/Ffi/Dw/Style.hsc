@@ -330,7 +330,6 @@ data FfiStyleAttrs = FfiStyleAttrs
   , ptrStructStylePadding      :: Ptr FfiStylePadding
   , iColor                     :: CInt
   , iBackgroundColor           :: CInt
-  , iWordSpacing               :: CInt
   , ptrCharXLang               :: Ptr CChar -- buffer of specified size.
   , ptrCharXTooltip            :: Ptr CChar -- pointer to to-be-allocated memory
   } deriving (Show)
@@ -351,16 +350,15 @@ instance Storable FfiStyleAttrs where
     padding          <- #{peek c_style_attrs_t, c_padding}           ptr
     color              <- #{peek c_style_attrs_t, c_color}                ptr
     backgroundColor    <- #{peek c_style_attrs_t, c_background_color}     ptr
-    wordSpacing        <- #{peek c_style_attrs_t, c_word_spacing}         ptr
     let xLang = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_style_attrs_t, c_x_lang}) ptr
     xTooltip           <- #{peek c_style_attrs_t, c_x_tooltip}            ptr
 
-    return (FfiStyleAttrs ref fontAttrs borderWidth borderColor margin padding color backgroundColor wordSpacing xLang xTooltip)
+    return (FfiStyleAttrs ref fontAttrs borderWidth borderColor margin padding color backgroundColor xLang xTooltip)
 
 
 
 
-  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderWidth cBorderColor cMargin cPadding cColor cBackgroundColor cWordSpacing _cXLang cXTooltip) = do
+  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderWidth cBorderColor cMargin cPadding cColor cBackgroundColor _cXLang cXTooltip) = do
 
     #{poke c_style_attrs_t, c_style_attrs_ref} ptr cStyleAttrsRef
     #{poke c_style_attrs_t, c_font_attrs}      ptr cFontAttrs
@@ -370,7 +368,6 @@ instance Storable FfiStyleAttrs where
     #{poke c_style_attrs_t, c_padding}         ptr cPadding
     #{poke c_style_attrs_t, c_color}                ptr cColor
     #{poke c_style_attrs_t, c_background_color}     ptr cBackgroundColor
-    #{poke c_style_attrs_t, c_word_spacing}         ptr cWordSpacing
     -- #{poke c_style_attrs_t, c_x_lang}               ptr cXLang -- Poking of this field is done in pokeStyleAttrs
     #{poke c_style_attrs_t, c_x_tooltip}            ptr cXTooltip
 
@@ -426,7 +423,7 @@ peekStyleAttrs ptrStructStyleAttrs = do
     , styleCursor                 = styleCursor gAttrs
     , styleHorizBorderSpacing     = styleHorizBorderSpacing gAttrs
     , styleVertBorderSpacing      = styleVertBorderSpacing gAttrs
-    , styleWordSpacing            = fromIntegral . iWordSpacing $ ffiAttrs
+    , styleWordSpacing            = styleWordSpacing gAttrs
     , styleXLink                  = styleXLink gAttrs
     , styleXLang                  = xLang
     , styleXImg                   = styleXImg gAttrs
@@ -467,7 +464,6 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
 
   let cColor          :: CInt = fromIntegral . styleColor $ attrs
   let cBackgroundColor :: CInt = fromIntegral . styleBackgroundColor $ attrs
-  let cWordSpacing    :: CInt = fromIntegral . styleWordSpacing $ attrs
 
   let bufXLang :: Ptr CChar = ptrCharXLang ffiStyleAttrs
   -- "((c_style_attrs_t *)0)->c_x_lang" is a C trick that happens to work with hsc2hs.
@@ -478,7 +474,7 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
 
   cXTooltip :: Ptr CChar <- allocAndPokeCString . styleXTooltip $ attrs -- TODO: this allocates memory that is not freed anywhere
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderWidth pBorderColor pMargin pPadding cColor cBackgroundColor cWordSpacing cXLang cXTooltip
+  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderWidth pBorderColor pMargin pPadding cColor cBackgroundColor cXLang cXTooltip
 
 
 
