@@ -181,7 +181,6 @@ typedef struct c_style_attrs_t {
         c_style_margin_t * c_margin;
         c_style_padding_t * c_padding;
 
-        int c_display;
         int c_color;
         int c_background_color;
 
@@ -252,6 +251,10 @@ int ffiStyleAttrsHorizBorderSpacing(int ref);
 int ffiStyleAttrsVertBorderSpacing(int ref);
 void ffiStyleAttrsSetHorizBorderSpacing(int ref, int val);
 void ffiStyleAttrsSetVertBorderSpacing(int ref, int val);
+
+int ffiStyleAttrsDisplay(int ref);
+
+
 
 
 typedef struct c_prefs_t {

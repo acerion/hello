@@ -113,6 +113,7 @@ foreign export ccall "ffiStyleAttrsHorizBorderSpacing" ffiStyleAttrsHorizBorderS
 foreign export ccall "ffiStyleAttrsVertBorderSpacing" ffiStyleAttrsVertBorderSpacing :: CInt -> IO CInt
 foreign export ccall "ffiStyleAttrsSetHorizBorderSpacing" ffiStyleAttrsSetHorizBorderSpacing :: CInt -> CInt -> IO ()
 foreign export ccall "ffiStyleAttrsSetVertBorderSpacing" ffiStyleAttrsSetVertBorderSpacing :: CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleAttrsDisplay" ffiStyleAttrsDisplay :: CInt -> IO CInt
 
 
 
@@ -533,5 +534,16 @@ ffiStyleAttrsSetVertBorderSpacing cRef cVal = do
   let sa' = old { styleVertBorderSpacing = val }
   globalStyleAttrsUpdate ref sa'
   return ()
+
+
+
+
+ffiStyleAttrsDisplay :: CInt -> IO CInt
+ffiStyleAttrsDisplay cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleDisplay $ attrs
+
+
 
 

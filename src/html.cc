@@ -3562,7 +3562,7 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       Tags[new_tag_idx].open (html, tag, tagsize);
 
       if (! TopOfParsingStack(html)->display_none) {
-         switch (html->styleEngine->getStyle (html->bw)->display) {
+         switch (ffiStyleAttrsDisplay(html->styleEngine->getStyle (html->bw)->c_attrs.c_style_attrs_ref)) {
             case DISPLAY_BLOCK:
                Html_display_block(html);
                break;

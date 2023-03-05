@@ -452,7 +452,6 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
       style_attrs->c_font_attrs->name = strdup(attrs->font->font_attrs.name);
    }
 
-   style_attrs->c_display     = attrs->display;
    style_attrs->c_word_spacing          = attrs->wordSpacing;
 
    memcpy(style_attrs->c_x_lang, attrs->x_lang, sizeof (style_attrs->c_x_lang));
@@ -472,7 +471,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    attrs->margin  = *(style_attrs->c_margin);
    attrs->padding = *(style_attrs->c_padding);
 
-   attrs->display           = style_attrs->c_display;
    if (style_attrs->c_color != -1) {
       // -1 is a special initial value set on top of this function
       attrs->color = Color::create(layout, style_attrs->c_color);
@@ -568,12 +566,9 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
 
    c_style_attrs_copy_to(attrs, style_attrs, this->layout);
    attrs->c_attrs.c_style_attrs_ref = style_attrs->c_style_attrs_ref;
-   c_style_attrs_dealloc(&style_attrs);
-
-   c_style_attrs_dealloc(&parent_style_attrs);
 
    /* Handle additional things that were not handled in Haskell. */
-   if (style_attrs->c_display == DISPLAY_NONE) {
+   if (ffiStyleAttrsDisplay(style_attrs->c_style_attrs_ref) == DISPLAY_NONE) {
       styleNodesStack[styleNodeIndex].displayNone = true;
    }
 
@@ -598,6 +593,8 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
                   attrs->backgroundImage->connectDeletion(new StyleImageDeletionReceiver (clientKey));
       }
    }
+   c_style_attrs_dealloc(&style_attrs);
+   c_style_attrs_dealloc(&parent_style_attrs);
    a_Url_free (imgUrl);
 }
 

@@ -72,8 +72,6 @@ void StyleAttrs::initValues ()
    stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
    wordSpacing = 0;
-
-   display = DISPLAY_INLINE;
 }
 
 /**
@@ -93,8 +91,6 @@ void StyleAttrs::resetValues ()
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
-
-   display = DISPLAY_INLINE;
 }
 
 /**
@@ -137,7 +133,6 @@ bool StyleAttrs::equals (object::Object *other) {
        borderColor.right == otherAttrs->borderColor.right &&
        borderColor.bottom == otherAttrs->borderColor.bottom &&
        borderColor.left == otherAttrs->borderColor.left &&
-       display == otherAttrs->display &&
        x_lang[0] == otherAttrs->x_lang[0] &&
        x_lang[1] == otherAttrs->x_lang[1] &&
        x_tooltip == otherAttrs->x_tooltip);
@@ -160,7 +155,6 @@ int StyleAttrs::hashValue () {
       (intptr_t) borderColor.right +
       (intptr_t) borderColor.bottom +
       (intptr_t) borderColor.left +
-      display +
       x_lang[0] + x_lang[1] +
       (intptr_t) x_tooltip;
 }
@@ -250,7 +244,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    borderWidth = attrs->borderWidth;
    padding = attrs->padding;
    borderColor = attrs->borderColor;
-   display = attrs->display;
    x_lang[0] = attrs->x_lang[0];
    x_lang[1] = attrs->x_lang[1];
    x_tooltip = attrs->x_tooltip;

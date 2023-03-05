@@ -426,7 +426,6 @@ public:
    struct { Color *top = nullptr, *right = nullptr, *bottom = nullptr, *left = nullptr; } borderColor;
    c_style_margin_t margin;
    c_style_padding_t padding;
-   int display; // TODO: use DisplayType type
    Color * color = nullptr;
    Color * backgroundColor = nullptr;
    int wordSpacing;

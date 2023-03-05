@@ -199,7 +199,7 @@ data StyleAttrs = StyleAttrs
   , styleLineHeight        :: DwLength
   , styleListStylePosition :: Int  -- TODO: use ListStylePosition
   , styleListStyleType     :: Int  -- TODO: use ListStyleType
-  , styleDisplay           :: Int
+  , styleDisplay           :: Int  -- TODO: use DisplayType type
   , styleColor             :: Int -- TODO: change the type to Color
   , styleBackgroundColor   :: Int -- TODO: change the type to Color
   , styleCursor            :: Int -- TODO: use Cursor type
@@ -245,7 +245,7 @@ defaultStyleAttrs = StyleAttrs
   , styleLineHeight        = createAutoDwLength
   , styleListStylePosition = 0
   , styleListStyleType     = 0
-  , styleDisplay           = 0
+  , styleDisplay           = 1 -- DISPLAY_INLINE == 1
   , styleColor             = 0
   , styleBackgroundColor   = 0
   , styleCursor            = 0
@@ -284,6 +284,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleBgPositionY    = createPercentageDwLength 0
                              , styleHorizBorderSpacing  = 0
                              , styleVertBorderSpacing   = 0
+                             , styleDisplay             = 1 -- DISPLAY_INLINE == 1
                              }
 
 
@@ -312,6 +313,7 @@ styleAttrsEqual sa1 sa2 = and
                           , styleBgPositionY sa1 == styleBgPositionY sa2
                           , styleHorizBorderSpacing sa1 == styleHorizBorderSpacing sa2
                           , styleVertBorderSpacing sa1 == styleVertBorderSpacing sa2
+                          , styleDisplay sa1 == styleDisplay sa2
                           ]
 
 
@@ -341,6 +343,7 @@ styleAttrsHashValue sa = styleTextAlign sa
                          -- + styleBgPositionY sa -- TODO: re-enable
                          + styleHorizBorderSpacing sa
                          + styleVertBorderSpacing sa
+                         + styleDisplay sa
 
 
 
@@ -368,6 +371,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleBgPositionY    = styleBgPositionY from
                             , styleHorizBorderSpacing = styleHorizBorderSpacing from
                             , styleVertBorderSpacing  = styleVertBorderSpacing from
+                            , styleDisplay            = styleDisplay from
                             }
 
 
@@ -384,6 +388,7 @@ styleAttrsReset attrs = attrs
   , styleBgPositionY    = createPercentageDwLength 0
   , styleHorizBorderSpacing  = 0
   , styleVertBorderSpacing   = 0
+  , styleDisplay             = 1 -- DISPLAY_INLINE == 1
   }
 
 
