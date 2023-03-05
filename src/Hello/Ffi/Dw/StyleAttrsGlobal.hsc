@@ -35,12 +35,13 @@ where
 
 import Prelude
 import Foreign.C.Types
+import Foreign
 
 --import Debug.Trace
-import Data.Word
 
 import Hello.Dw.Style
 import Hello.Dw.StyleAttrsGlobal
+import Hello.Ffi.Dw.DwLength
 
 
 
@@ -89,6 +90,12 @@ foreign export ccall "ffiStyleAttrsBorderStyleBottom" ffiStyleAttrsBorderStyleBo
 foreign export ccall "ffiStyleAttrsBorderStyleLeft" ffiStyleAttrsBorderStyleLeft :: CInt -> IO CInt
 foreign export ccall "ffiStyleAttrsSetBorderStyle" ffiStyleAttrsSetBorderStyle :: CInt -> CInt -> IO ()
 
+foreign export ccall "ffiStyleAttrsGetWidth" ffiStyleAttrsGetWidth :: CInt -> Ptr FfiDwLength -> IO ()
+foreign export ccall "ffiStyleAttrsGetHeight" ffiStyleAttrsGetHeight :: CInt -> Ptr FfiDwLength -> IO ()
+
+foreign export ccall "ffiStyleAttrsSetWidth" ffiStyleAttrsSetWidth :: CInt -> Ptr FfiDwLength -> IO ()
+foreign export ccall "ffiStyleAttrsSetHeight" ffiStyleAttrsSetHeight :: CInt -> Ptr FfiDwLength -> IO ()
+
 
 
 
@@ -104,8 +111,8 @@ ffiStyleAttrsInitValues :: CInt -> IO ()
 ffiStyleAttrsInitValues cRef = do
   let ref = fromIntegral cRef
   old <- globalStyleAttrsGet ref
-  let new = styleAttrsInitValues old
-  globalStyleAttrsUpdate ref new
+  let sa' = styleAttrsInitValues old
+  globalStyleAttrsUpdate ref sa'
   return ()
 
 
@@ -167,8 +174,8 @@ ffiStyleAttrsSetTextDecoration cRef val = do
   let ref = fromIntegral cRef
   --let val = fromIntegral cVal
   old <- globalStyleAttrsGet ref
-  let new = old { styleTextDecoration = val }
-  globalStyleAttrsUpdate ref new
+  let sa' = old { styleTextDecoration = val }
+  globalStyleAttrsUpdate ref sa'
   return ()
 
 
@@ -197,8 +204,8 @@ ffiStyleAttrsSetCursor cRef cVal = do
   let ref = fromIntegral cRef
   let val = fromIntegral cVal
   old <- globalStyleAttrsGet ref
-  let new = old { styleCursor = val }
-  globalStyleAttrsUpdate ref new
+  let sa' = old { styleCursor = val }
+  globalStyleAttrsUpdate ref sa'
   return ()
 
 
@@ -246,8 +253,8 @@ ffiStyleAttrsSetXLink cRef cVal = do
   let ref = fromIntegral cRef
   let val = fromIntegral cVal
   old <- globalStyleAttrsGet ref
-  let new = old { styleXLink = val }
-  globalStyleAttrsUpdate ref new
+  let sa' = old { styleXLink = val }
+  globalStyleAttrsUpdate ref sa'
   return ()
 
 
@@ -325,8 +332,8 @@ ffiStyleAttrsSetBorderStyle cRef cVal = do
   let ref = fromIntegral cRef
   let val = fromIntegral cVal
   old <- globalStyleAttrsGet ref
-  let new = styleAttrsSetBorderStyle old val
-  globalStyleAttrsUpdate ref new
+  let sa' = styleAttrsSetBorderStyle old val
+  globalStyleAttrsUpdate ref sa'
   return ()
 
 
@@ -336,7 +343,55 @@ ffiStyleAttrsReset :: CInt -> IO ()
 ffiStyleAttrsReset cRef = do
   let ref = fromIntegral cRef
   old <- globalStyleAttrsGet ref
-  let new = styleAttrsReset old
-  globalStyleAttrsUpdate ref new
+  let sa' = styleAttrsReset old
+  globalStyleAttrsUpdate ref sa'
   return ()
+
+
+
+
+ffiStyleAttrsGetWidth :: CInt -> Ptr FfiDwLength -> IO ()
+ffiStyleAttrsGetWidth cRef ptrStructDwLength = do
+  let ref = fromIntegral cRef
+  sa <- globalStyleAttrsGet ref
+  pokeDwLength (styleWidth sa) ptrStructDwLength
+  return ()
+
+
+
+
+ffiStyleAttrsGetHeight :: CInt -> Ptr FfiDwLength -> IO ()
+ffiStyleAttrsGetHeight cRef ptrStructDwLength = do
+  let ref = fromIntegral cRef
+  sa <- globalStyleAttrsGet ref
+  pokeDwLength (styleHeight sa) ptrStructDwLength
+  return ()
+
+
+
+
+ffiStyleAttrsSetWidth :: CInt -> Ptr FfiDwLength -> IO ()
+ffiStyleAttrsSetWidth cRef ptrStructDwLength = do
+  let ref = fromIntegral cRef
+  sa <- globalStyleAttrsGet ref
+  len <- peekDwLength ptrStructDwLength
+  let sa' = sa { styleWidth = len }
+  globalStyleAttrsUpdate ref sa'
+  return ()
+
+
+
+
+ffiStyleAttrsSetHeight :: CInt -> Ptr FfiDwLength -> IO ()
+ffiStyleAttrsSetHeight cRef ptrStructDwLength = do
+  let ref = fromIntegral cRef
+  sa <- globalStyleAttrsGet ref
+  len <- peekDwLength ptrStructDwLength
+  let sa' = sa { styleHeight = len }
+  globalStyleAttrsUpdate ref sa'
+  return ()
+
+
+
+
 

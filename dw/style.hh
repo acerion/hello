@@ -430,8 +430,6 @@ public:
    c_style_padding_t padding;
    DwLength textIndent;
    // int verticalAlign;  // TODO: use VAlignType
-   DwLength width;
-   DwLength height;
    DwLength lineHeight;
    int display; // TODO: use DisplayType type
    Color * color = nullptr;

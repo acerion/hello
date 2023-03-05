@@ -139,13 +139,16 @@ void Table::getExtremesImpl (core::Extremes *extremes)
       extremes->minWidth += colExtremes->getRef(col)->minWidth;
       extremes->maxWidth += colExtremes->getRef(col)->maxWidth;
    }
-   if (ffiIsAbsoluteDwLength (&getStyle()->width)) {
+   DwLength aWidth = {};
+   ffiStyleAttrsGetWidth(getStyle()->c_attrs.c_style_attrs_ref, &aWidth);
+
+   if (ffiIsAbsoluteDwLength (&aWidth)) {
       extremes->minWidth =
          misc::max (extremes->minWidth,
-                    ffiGetAbsoluteDwLengthValue(&getStyle()->width));
+                    ffiGetAbsoluteDwLengthValue(&aWidth));
       extremes->maxWidth =
          misc::max (extremes->maxWidth,
-                    ffiGetAbsoluteDwLengthValue(&getStyle()->width));
+                    ffiGetAbsoluteDwLengthValue(&aWidth));
    }
 
    _MSG(" Table::getExtremesImpl, {%d, %d} numCols=%d\n",
@@ -497,9 +500,12 @@ void Table::forceCalcCellSizes ()
    // Will also call calcColumnExtremes(), when needed.
    getExtremes (&extremes);
 
-   if (ffiIsAbsoluteDwLength (&getStyle()->width)) {
-      totalWidth = ffiGetAbsoluteDwLengthValue (&getStyle()->width);
-   } else if (ffiIsPercentageDwLength (&getStyle()->width)) {
+   DwLength aWidth = {};
+   ffiStyleAttrsGetWidth(getStyle()->c_attrs.c_style_attrs_ref, &aWidth);
+
+   if (ffiIsAbsoluteDwLength (&aWidth)) {
+      totalWidth = ffiGetAbsoluteDwLengthValue (&aWidth);
+   } else if (ffiIsPercentageDwLength (&aWidth)) {
       /*
        * If the width is > 100%, we use 100%, this prevents ugly
        * results. (May be changed in future, when a more powerful
@@ -507,9 +513,9 @@ void Table::forceCalcCellSizes ()
        * as defined by CSS2.)
        */
       totalWidth =
-         misc::min (core::style::multiplyWithPercentageDwLength(availWidth, getStyle()->width),
+         misc::min (core::style::multiplyWithPercentageDwLength(availWidth, aWidth),
                     availWidth);
-   } else if (ffiIsAutoDwLength(&getStyle()->width)) {
+   } else if (ffiIsAutoDwLength(&aWidth)) {
       totalWidth = availWidth;
       forceTotalWidth = 0;
    }
@@ -675,7 +681,8 @@ void Table::forceCalcColumnExtremes ()
          if (children->get(n)->cell.colspanEff == 1) {
             core::Extremes cellExtremes;
             int cellMinW, cellMaxW, pbm;
-            DwLength width = children->get(n)->cell.widget->getStyle()->width;
+            DwLength width = {};
+            ffiStyleAttrsGetWidth(children->get(n)->cell.widget->getStyle()->c_attrs.c_style_attrs_ref, &width);
             pbm = (numCols + 1) * getStyle()->hBorderSpacing
                   + children->get(n)->cell.widget->getStyle()->boxDiffWidth ();
             children->get(n)->cell.widget->getExtremes (&cellExtremes);
@@ -732,7 +739,8 @@ void Table::forceCalcColumnExtremes ()
       int n = colSpanCells->get(c);
       int col = n % numCols;
       int cs = children->get(n)->cell.colspanEff;
-      DwLength width = children->get(n)->cell.widget->getStyle()->width;
+      DwLength width = {};
+      ffiStyleAttrsGetWidth(children->get(n)->cell.widget->getStyle()->c_attrs.c_style_attrs_ref, &width);
       pbm = (numCols + 1) * getStyle()->hBorderSpacing
             + children->get(n)->cell.widget->getStyle()->boxDiffWidth ();
       children->get(n)->cell.widget->getExtremes (&cellExtremes);
@@ -933,7 +941,9 @@ void Table::apportion2 (int totalWidth, int forceTotalWidth)
 
 void Table::apportion_percentages2(int totalWidth, int forceTotalWidth)
 {
-   int hasTablePercent = ffiIsPercentageDwLength (&getStyle()->width) ? 1 : 0;
+   DwLength aWidth = {};
+   ffiStyleAttrsGetWidth(getStyle()->c_attrs.c_style_attrs_ref, &aWidth);
+   int hasTablePercent = ffiIsPercentageDwLength (&aWidth) ? 1 : 0;
 
    if (colExtremes->size() == 0 || (!hasTablePercent && !hasColPercent))
       return;

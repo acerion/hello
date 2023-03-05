@@ -268,27 +268,28 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleListStyleType  = 0    -- LIST_STYLE_TYPE_DISC == 0
                              , styleBorderCollapse = 0    -- BORDER_MODEL_SEPARATE == 0;
                              , styleBorderStyle    = defaultStyleBorderStyle
+                             , styleWidth          = createAutoDwLength
+                             , styleHeight         = createAutoDwLength
                              }
 
 
 
 
 styleAttrsEqual :: StyleAttrs -> StyleAttrs -> Bool
-styleAttrsEqual sa1 sa2 = and $ fmap (\ field -> field sa1 == field sa2)
-                          [ styleTextAlign
-                          , fromIntegral . styleTextDecoration
-                          , styleTextTransform
-                          , styleCursor
-                          , styleWhiteSpace
-                          , styleListStylePosition
-                          , styleListStyleType
-                          , styleXLink
-                          , styleXImg
-                          , styleBorderCollapse
-                          , styleBorderStyleTop . styleBorderStyle
-                          , styleBorderStyleRight . styleBorderStyle
-                          , styleBorderStyleBottom . styleBorderStyle
-                          , styleBorderStyleLeft . styleBorderStyle
+styleAttrsEqual sa1 sa2 = and
+                          [ styleTextAlign sa1 == styleTextAlign sa2
+                          , styleTextDecoration sa1 == styleTextDecoration sa2
+                          , styleTextTransform sa1 == styleTextTransform sa2
+                          , styleCursor sa1 == styleCursor sa2
+                          , styleWhiteSpace sa1 == styleWhiteSpace sa2
+                          , styleListStylePosition sa1 == styleListStylePosition sa2
+                          , styleListStyleType sa1 == styleListStyleType sa2
+                          , styleXLink sa1 == styleXLink sa2
+                          , styleXImg sa1 == styleXImg sa2
+                          , styleBorderCollapse sa1 == styleBorderCollapse sa2
+                          , styleBorderStyle sa1 == styleBorderStyle sa2
+                          , styleWidth sa1 == styleWidth sa2
+                          , styleHeight sa1 == styleHeight sa2
                           ]
 
 
@@ -305,10 +306,13 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + styleXLink sa
                          + styleXImg sa
                          + styleBorderCollapse sa
-                         * (styleBorderStyleTop . styleBorderStyle $ sa)
-                         * (styleBorderStyleRight . styleBorderStyle $ sa)
-                         * (styleBorderStyleBottom . styleBorderStyle $ sa)
-                         * (styleBorderStyleLeft . styleBorderStyle $ sa)
+                         + (styleBorderStyleTop . styleBorderStyle $ sa)
+                         + (styleBorderStyleRight . styleBorderStyle $ sa)
+                         + (styleBorderStyleBottom . styleBorderStyle $ sa)
+                         + (styleBorderStyleLeft . styleBorderStyle $ sa)
+                         -- + styleWidth sa    -- TODO: re-enable
+                         -- + styleHeight sa   -- TODO: re-enable
+
 
 
 
@@ -325,6 +329,8 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleXImg           = styleXImg from
                             , styleBorderCollapse = styleBorderCollapse from
                             , styleBorderStyle    = styleBorderStyle from
+                            , styleWidth          = styleWidth from
+                            , styleHeight         = styleHeight from
                             }
 
 
@@ -334,6 +340,8 @@ styleAttrsReset :: StyleAttrs -> StyleAttrs
 styleAttrsReset attrs = attrs
   { styleXImg           = -1
   , styleBorderStyle    = defaultStyleBorderStyle
+  , styleWidth          = createAutoDwLength
+  , styleHeight         = createAutoDwLength
   }
 
 

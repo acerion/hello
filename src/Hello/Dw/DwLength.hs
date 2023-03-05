@@ -79,7 +79,7 @@ data DwLength
   = DwLengthPercentage Double
   | DwLengthAbsolute Int
   | DwLengthAuto
-  deriving (Show)
+  deriving (Eq, Show)
 
 
 

@@ -116,8 +116,15 @@ int main(int argc, char **argv)
    ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_SOLID);
    stylePaddingSetVal(&styleAttrs.padding, 1);
    styleAttrs.backgroundColor = NULL;
-   ffiCreatePercentageDwLength(&styleAttrs.width, 0.25);
-   ffiCreatePercentageDwLength(&styleAttrs.height, 0.25);
+   {
+      DwLength aWidth = {};
+      ffiCreatePercentageDwLength(&aWidth, 0.25);
+      ffiStyleAttrsSetWidth(styleAttrs.c_attrs.c_style_attrs_ref, &aWidth);
+
+      DwLength aHeight = {};
+      ffiCreatePercentageDwLength(&aHeight, 0.25);
+      ffiStyleAttrsSetHeight(styleAttrs.c_attrs.c_style_attrs_ref, &aHeight);
+   }
 
    Style *imageStyle1 = Style::create (&styleAttrs);
    image1 = new dw::Image ("A longer ALT Text to demonstrate clipping.");
@@ -126,8 +133,15 @@ int main(int argc, char **argv)
 
    textblock->addParbreak (10, wordStyle);
 
-   ffiCreateAutoDwLength(&styleAttrs.width);
-   ffiCreateAutoDwLength(&styleAttrs.height);
+   {
+      DwLength aWidth = {};
+      ffiCreateAutoDwLength(&aWidth);
+      ffiStyleAttrsSetWidth(styleAttrs.c_attrs.c_style_attrs_ref, &aWidth);
+
+      DwLength aHeight = {};
+      ffiCreateAutoDwLength(&aHeight);
+      ffiStyleAttrsSetHeight(styleAttrs.c_attrs.c_style_attrs_ref, &aHeight);
+   }
 
    Style *imageStyle2 = Style::create (&styleAttrs);
    image2 = new dw::Image ("A longer ALT Text to demonstrate clipping.");

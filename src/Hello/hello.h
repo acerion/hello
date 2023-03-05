@@ -185,8 +185,6 @@ typedef struct c_style_attrs_t {
 
         int c_vertical_align; // Copied to StyleAttrs::c_attrs
 
-        DwLength * c_width;
-        DwLength * c_height;
         DwLength * c_line_height;
 
         int c_display;
@@ -239,6 +237,13 @@ int ffiStyleAttrsBorderStyleRight(int ref);
 int ffiStyleAttrsBorderStyleBottom(int ref);
 int ffiStyleAttrsBorderStyleLeft(int ref);
 void ffiStyleAttrsSetBorderStyle(int ref, int val);
+
+void ffiStyleAttrsGetWidth(int ref, DwLength * len);
+void ffiStyleAttrsGetHeight(int ref, DwLength * len);
+
+int ffiStyleAttrsSetWidth(int ref, DwLength * len);
+int ffiStyleAttrsSetHeight(int ref, DwLength * len);
+
 
 
 

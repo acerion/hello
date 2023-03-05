@@ -331,8 +331,6 @@ data FfiStyleAttrs = FfiStyleAttrs
   , ptrStructStylePadding      :: Ptr FfiStylePadding
   , ptrStructStyleTextIndent   :: Ptr FfiDwLength
   , iVerticalAlign             :: CInt
-  , ptrStructWidth             :: Ptr FfiDwLength
-  , ptrStructHeight            :: Ptr FfiDwLength
   , ptrStructLineHeight        :: Ptr FfiDwLength
   , iDisplay                   :: CInt
   , iColor                     :: CInt
@@ -360,8 +358,6 @@ instance Storable FfiStyleAttrs where
     padding          <- #{peek c_style_attrs_t, c_padding}           ptr
     textIndent       <- #{peek c_style_attrs_t, c_text_indent}       ptr
     verticalAlign    <- #{peek c_style_attrs_t, c_vertical_align}    ptr
-    width            <- #{peek c_style_attrs_t, c_width}             ptr
-    height           <- #{peek c_style_attrs_t, c_height}            ptr
     lineHeight       <- #{peek c_style_attrs_t, c_line_height}       ptr
     display            <- #{peek c_style_attrs_t, c_display}              ptr
     color              <- #{peek c_style_attrs_t, c_color}                ptr
@@ -372,12 +368,12 @@ instance Storable FfiStyleAttrs where
     let xLang = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_style_attrs_t, c_x_lang}) ptr
     xTooltip           <- #{peek c_style_attrs_t, c_x_tooltip}            ptr
 
-    return (FfiStyleAttrs ref fontAttrs borderWidth borderColor margin padding textIndent verticalAlign width height lineHeight display color backgroundColor hBorderSpacing vBorderSpacing wordSpacing xLang xTooltip)
+    return (FfiStyleAttrs ref fontAttrs borderWidth borderColor margin padding textIndent verticalAlign lineHeight display color backgroundColor hBorderSpacing vBorderSpacing wordSpacing xLang xTooltip)
 
 
 
 
-  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderWidth cBorderColor cMargin cPadding cTextIndent cVerticalAlign cWidth cHeight cLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing _cXLang cXTooltip) = do
+  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderWidth cBorderColor cMargin cPadding cTextIndent cVerticalAlign cLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing _cXLang cXTooltip) = do
 
     #{poke c_style_attrs_t, c_style_attrs_ref} ptr cStyleAttrsRef
     #{poke c_style_attrs_t, c_font_attrs}      ptr cFontAttrs
@@ -387,8 +383,6 @@ instance Storable FfiStyleAttrs where
     #{poke c_style_attrs_t, c_padding}         ptr cPadding
     #{poke c_style_attrs_t, c_text_indent}     ptr cTextIndent
     #{poke c_style_attrs_t, c_vertical_align}  ptr cVerticalAlign
-    #{poke c_style_attrs_t, c_width}           ptr cWidth
-    #{poke c_style_attrs_t, c_height}          ptr cHeight
     #{poke c_style_attrs_t, c_line_height}          ptr cLineHeight
     #{poke c_style_attrs_t, c_display}              ptr cDisplay
     #{poke c_style_attrs_t, c_color}                ptr cColor
@@ -413,8 +407,6 @@ peekStyleAttrs ptrStructStyleAttrs = do
   padding     <- peekStylePadding . ptrStructStylePadding $ ffiAttrs
   tIndent     <- peekDwLength . ptrStructStyleTextIndent $ ffiAttrs
 
-  width  <- peekDwLength . ptrStructWidth $ ffiAttrs
-  height <- peekDwLength . ptrStructHeight $ ffiAttrs
   lineHeight <- peekDwLength . ptrStructLineHeight $ ffiAttrs
 
   xLang  <- peekCharBuffer (ptrCharXLang ffiAttrs)
@@ -440,8 +432,8 @@ peekStyleAttrs ptrStructStyleAttrs = do
     , styleVerticalAlign  = fromIntegral . iVerticalAlign $ ffiAttrs
     , styleWhiteSpace     = styleWhiteSpace gAttrs
 
-    , styleWidth          = width
-    , styleHeight         = height
+    , styleWidth          = styleWidth gAttrs
+    , styleHeight         = styleHeight gAttrs
     , styleLineHeight     = lineHeight
 
     , styleListStylePosition      = styleListStylePosition gAttrs
@@ -493,12 +485,6 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let pTextIndent :: Ptr FfiDwLength = ptrStructStyleTextIndent ffiStyleAttrs
   pokeDwLength (styleTextIndent attrs) pTextIndent
 
-  let pWidth :: Ptr FfiDwLength = ptrStructWidth ffiStyleAttrs
-  pokeDwLength (styleWidth attrs) pWidth
-
-  let pHeight :: Ptr FfiDwLength = ptrStructHeight ffiStyleAttrs
-  pokeDwLength (styleHeight attrs) pHeight
-
   let pLineHeight :: Ptr FfiDwLength = ptrStructLineHeight ffiStyleAttrs
   pokeDwLength (styleLineHeight attrs) pLineHeight
 
@@ -522,7 +508,7 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
 
   cXTooltip :: Ptr CChar <- allocAndPokeCString . styleXTooltip $ attrs -- TODO: this allocates memory that is not freed anywhere
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderWidth pBorderColor pMargin pPadding pTextIndent cVerticalAlign pWidth pHeight pLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing cXLang cXTooltip
+  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderWidth pBorderColor pMargin pPadding pTextIndent cVerticalAlign pLineHeight cDisplay cColor cBackgroundColor cHBorderSpacing cVBorderSpacing cWordSpacing cXLang cXTooltip
 
 
 

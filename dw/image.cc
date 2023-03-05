@@ -172,18 +172,23 @@ Image::~Image()
 void Image::sizeRequestImpl (core::Requisition *requisition)
 {
    if (buffer) {
-      if (ffiIsAutoDwLength(&(getStyle ()->height)) &&
-          ffiIsAbsoluteDwLength (&getStyle ()->width) &&
+      DwLength aHeight = {};
+      ffiStyleAttrsGetHeight(getStyle()->c_attrs.c_style_attrs_ref, &aHeight);
+      DwLength aWidth = {};
+      ffiStyleAttrsGetWidth(getStyle()->c_attrs.c_style_attrs_ref, &aWidth);
+
+      if (ffiIsAutoDwLength(&aHeight) &&
+          ffiIsAbsoluteDwLength (&aWidth) &&
           buffer->getRootWidth () > 0) {
          // preserve aspect ratio when only width is given
-         requisition->width = ffiGetAbsoluteDwLengthValue(&getStyle ()->width);
+         requisition->width = ffiGetAbsoluteDwLengthValue(&aWidth);
          requisition->ascent = buffer->getRootHeight () *
                                requisition->width / buffer->getRootWidth ();
-      } else if (ffiIsAutoDwLength(&(getStyle ()->width)) &&
-                 ffiIsAbsoluteDwLength (&(getStyle ()->height)) &&
+      } else if (ffiIsAutoDwLength(&aWidth) &&
+                 ffiIsAbsoluteDwLength (&aHeight) &&
                  buffer->getRootHeight () > 0) {
          // preserve aspect ratio when only height is given
-         requisition->ascent = ffiGetAbsoluteDwLengthValue(&getStyle ()->height);
+         requisition->ascent = ffiGetAbsoluteDwLengthValue(&aHeight);
          requisition->width = buffer->getRootWidth () *
                                requisition->ascent / buffer->getRootHeight ();
       } else {

@@ -70,8 +70,6 @@ void StyleAttrs::initValues ()
    backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
    ffiCreatePercentageDwLength(&backgroundPositionX, 0);
    ffiCreatePercentageDwLength(&backgroundPositionY, 0);
-   ffiCreateAutoDwLength(&width);
-   ffiCreateAutoDwLength(&height);
    ffiCreateAutoDwLength(&lineHeight);
    ffiCreateAutoDwLength(&textIndent);
    styleMarginSetVal(&this->margin, 0);
@@ -101,9 +99,6 @@ void StyleAttrs::resetValues ()
    backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
    ffiCreatePercentageDwLength(&backgroundPositionX, 0);
    ffiCreatePercentageDwLength(&backgroundPositionY, 0);
-   ffiCreateAutoDwLength(&width);
-   ffiCreateAutoDwLength(&height);
-
    styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
@@ -151,8 +146,6 @@ bool StyleAttrs::equals (object::Object *other) {
        hBorderSpacing == otherAttrs->hBorderSpacing &&
        vBorderSpacing == otherAttrs->vBorderSpacing &&
        wordSpacing == otherAttrs->wordSpacing &&
-       ffiGetDwLengthHash(&width) == ffiGetDwLengthHash(&otherAttrs->width) &&
-       ffiGetDwLengthHash(&height) == ffiGetDwLengthHash(&otherAttrs->height) &&
        ffiGetDwLengthHash(&lineHeight) == ffiGetDwLengthHash(&otherAttrs->lineHeight) &&
        ffiGetDwLengthHash(&textIndent) == ffiGetDwLengthHash(&otherAttrs->textIndent) &&
 
@@ -185,8 +178,6 @@ int StyleAttrs::hashValue () {
       hBorderSpacing +
       vBorderSpacing +
       wordSpacing +
-      ffiGetDwLengthHash(&width) +
-      ffiGetDwLengthHash(&height) +
       ffiGetDwLengthHash(&lineHeight) +
       ffiGetDwLengthHash(&textIndent) +
       styleMarginHashValue(&this->margin) +
@@ -287,8 +278,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    hBorderSpacing = attrs->hBorderSpacing;
    vBorderSpacing = attrs->vBorderSpacing;
    wordSpacing = attrs->wordSpacing;
-   width = attrs->width;
-   height = attrs->height;
    lineHeight = attrs->lineHeight;
    textIndent = attrs->textIndent;
    margin = attrs->margin;

@@ -380,18 +380,19 @@ void Textblock::getWordExtremes (Word *word, core::Extremes *extremes)
       if (word->content.widget->usesHints ())
          word->content.widget->getExtremes (extremes);
       else {
-         if (ffiIsPercentageDwLength(&word->content.widget->getStyle()->width)) {
+         DwLength aWidth = {};
+         ffiStyleAttrsGetWidth(word->content.widget->getStyle()->c_attrs.c_style_attrs_ref, &aWidth);
+         if (ffiIsPercentageDwLength(&aWidth)) {
             extremes->minWidth = 0;
             if (word->content.widget->hasContents ())
                extremes->maxWidth = 1000000;
             else
                extremes->maxWidth = 0;
-         } else if (ffiIsAbsoluteDwLength
-                    (&word->content.widget->getStyle()->width)) {
+         } else if (ffiIsAbsoluteDwLength(&aWidth)) {
             /* Fixed lengths are only applied to the content, so we have to
              * add padding, border and margin. */
             extremes->minWidth = extremes->maxWidth =
-               ffiGetAbsoluteDwLengthValue(&word->content.widget->getStyle()->width)
+               ffiGetAbsoluteDwLengthValue(&aWidth)
                + word->style->boxDiffWidth ();
          } else
             word->content.widget->getExtremes (extremes);
@@ -899,34 +900,40 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
       widget->setDescent (availDescent);
       widget->sizeRequest (size);
    } else {
-      if (ffiIsAutoDwLength(&wstyle->width) || ffiIsAutoDwLength(&wstyle->height)) {
+      DwLength aWidth = {};
+      ffiStyleAttrsGetWidth(wstyle->c_attrs.c_style_attrs_ref, &aWidth);
+
+      DwLength aHeight = {};
+      ffiStyleAttrsGetHeight(wstyle->c_attrs.c_style_attrs_ref, &aHeight);
+
+      if (ffiIsAutoDwLength(&aWidth) || ffiIsAutoDwLength(&aHeight)) {
          widget->sizeRequest (&requisition);
       }
 
-      if (ffiIsAutoDwLength(&wstyle->width)) {
+      if (ffiIsAutoDwLength(&aWidth)) {
          size->width = requisition.width;
-      } else if (ffiIsAbsoluteDwLength (&wstyle->width)) {
+      } else if (ffiIsAbsoluteDwLength (&aWidth)) {
          /* Fixed lengths are only applied to the content, so we have to
           * add padding, border and margin. */
-         size->width = ffiGetAbsoluteDwLengthValue(&wstyle->width) + wstyle->boxDiffWidth ();
+         size->width = ffiGetAbsoluteDwLengthValue(&aWidth) + wstyle->boxDiffWidth ();
       } else {
-         size->width = core::style::multiplyWithPercentageDwLength (availWidth, wstyle->width);
+         size->width = core::style::multiplyWithPercentageDwLength (availWidth, aWidth);
       }
 
-      if (ffiIsAutoDwLength(&wstyle->height)) {
+      if (ffiIsAutoDwLength(&aHeight)) {
          size->ascent = requisition.ascent;
          size->descent = requisition.descent;
-      } else if (ffiIsAbsoluteDwLength (&wstyle->height)) {
+      } else if (ffiIsAbsoluteDwLength (&aHeight)) {
          /* Fixed lengths are only applied to the content, so we have to
           * add padding, border and margin. */
-         size->ascent = ffiGetAbsoluteDwLengthValue(&wstyle->height) + wstyle->boxDiffHeight ();
+         size->ascent = ffiGetAbsoluteDwLengthValue(&aHeight) + wstyle->boxDiffHeight ();
          size->descent = 0;
       } else {
          DwLength length;
          ffiCreatePercentageDwLength(&length, availAscent);
-         size->ascent = core::style::multiplyWithPercentageDwLength (wstyle->height.dw_length_value, length);
+         size->ascent = core::style::multiplyWithPercentageDwLength (aHeight.dw_length_value, length);
          ffiCreatePercentageDwLength(&length, availDescent);
-         size->descent = core::style::multiplyWithPercentageDwLength (wstyle->height.dw_length_value, length);
+         size->descent = core::style::multiplyWithPercentageDwLength (aHeight.dw_length_value, length);
       }
    }
 
