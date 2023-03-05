@@ -96,6 +96,8 @@ foreign export ccall "ffiStyleAttrsGetHeight" ffiStyleAttrsGetHeight :: CInt -> 
 foreign export ccall "ffiStyleAttrsSetWidth" ffiStyleAttrsSetWidth :: CInt -> Ptr FfiDwLength -> IO ()
 foreign export ccall "ffiStyleAttrsSetHeight" ffiStyleAttrsSetHeight :: CInt -> Ptr FfiDwLength -> IO ()
 
+foreign export ccall "ffiStyleAttrsGetTextIndent" ffiStyleAttrsGetTextIndent :: CInt -> Ptr FfiDwLength -> IO ()
+
 
 
 
@@ -394,4 +396,10 @@ ffiStyleAttrsSetHeight cRef ptrStructDwLength = do
 
 
 
+ffiStyleAttrsGetTextIndent :: CInt -> Ptr FfiDwLength -> IO ()
+ffiStyleAttrsGetTextIndent cRef ptrStructDwLength = do
+  let ref = fromIntegral cRef
+  sa <- globalStyleAttrsGet ref
+  pokeDwLength (styleTextIndent sa) ptrStructDwLength
+  return ()
 

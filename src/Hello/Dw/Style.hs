@@ -270,6 +270,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleBorderStyle    = defaultStyleBorderStyle
                              , styleWidth          = createAutoDwLength
                              , styleHeight         = createAutoDwLength
+                             , styleTextIndent     = createAutoDwLength
                              }
 
 
@@ -290,6 +291,7 @@ styleAttrsEqual sa1 sa2 = and
                           , styleBorderStyle sa1 == styleBorderStyle sa2
                           , styleWidth sa1 == styleWidth sa2
                           , styleHeight sa1 == styleHeight sa2
+                          , styleTextIndent sa1 == styleTextIndent sa2
                           ]
 
 
@@ -312,6 +314,7 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + (styleBorderStyleLeft . styleBorderStyle $ sa)
                          -- + styleWidth sa    -- TODO: re-enable
                          -- + styleHeight sa   -- TODO: re-enable
+                         -- + styleTextIndent sa -- TODO: re-enable
 
 
 
@@ -331,6 +334,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleBorderStyle    = styleBorderStyle from
                             , styleWidth          = styleWidth from
                             , styleHeight         = styleHeight from
+                            , styleTextIndent     = styleTextIndent from
                             }
 
 

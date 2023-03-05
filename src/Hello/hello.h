@@ -181,7 +181,7 @@ typedef struct c_style_attrs_t {
         c_style_margin_t * c_margin;
         c_style_padding_t * c_padding;
 
-        DwLength * c_text_indent;
+        // DwLength * c_text_indent;
 
         int c_vertical_align; // Copied to StyleAttrs::c_attrs
 
@@ -244,6 +244,7 @@ void ffiStyleAttrsGetHeight(int ref, DwLength * len);
 int ffiStyleAttrsSetWidth(int ref, DwLength * len);
 int ffiStyleAttrsSetHeight(int ref, DwLength * len);
 
+void ffiStyleAttrsGetTextIndent(int ref, DwLength * len);
 
 
 

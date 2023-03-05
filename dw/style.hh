@@ -428,7 +428,7 @@ public:
    struct { Color *top = nullptr, *right = nullptr, *bottom = nullptr, *left = nullptr; } borderColor;
    c_style_margin_t margin;
    c_style_padding_t padding;
-   DwLength textIndent;
+   // DwLength textIndent;
    // int verticalAlign;  // TODO: use VAlignType
    DwLength lineHeight;
    int display; // TODO: use DisplayType type

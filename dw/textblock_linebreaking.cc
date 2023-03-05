@@ -1114,11 +1114,13 @@ void Textblock::initLine1Offset (int wordIndex)
              word->content.widget->blockLevel() == true) {
             /* don't use text-indent when nesting blocks */
          } else {
-            if (ffiIsPercentageDwLength(&getStyle()->textIndent)) {
+            DwLength aTextIndent = {};
+            ffiStyleAttrsGetTextIndent(getStyle()->c_attrs.c_style_attrs_ref, &aTextIndent);
+            if (ffiIsPercentageDwLength(&aTextIndent)) {
                indent = core::style::multiplyWithPercentageDwLengthRounded
-                           (this->availWidth, getStyle()->textIndent);
+                           (this->availWidth, aTextIndent);
             } else {
-               indent = ffiGetAbsoluteDwLengthValue(&getStyle()->textIndent);
+               indent = ffiGetAbsoluteDwLengthValue(&aTextIndent);
             }
          }
          line1OffsetEff = line1Offset + indent;

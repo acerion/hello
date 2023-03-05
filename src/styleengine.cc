@@ -389,7 +389,6 @@ c_style_attrs_t * c_style_attrs_calloc(void)
    style_attrs->c_margin       = (c_style_margin_t *) calloc(1, sizeof (c_style_margin_t));
    style_attrs->c_padding      = (c_style_padding_t *) calloc(1, sizeof (c_style_padding_t));
    style_attrs->c_font_attrs   = (c_font_attrs_t *) calloc(1, sizeof (c_font_attrs_t));
-   style_attrs->c_text_indent  = (DwLength *) calloc(1, sizeof (DwLength));
    style_attrs->c_line_height  = (DwLength *) calloc(1, sizeof (DwLength));
 
    return style_attrs;
@@ -415,7 +414,6 @@ void c_style_attrs_dealloc(c_style_attrs_t ** style_attrs)
    }
 
    free((*style_attrs)->c_font_attrs);
-   free((*style_attrs)->c_text_indent);
    free((*style_attrs));
 }
 
@@ -454,7 +452,6 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
       style_attrs->c_font_attrs->name = strdup(attrs->font->font_attrs.name);
    }
 
-   *(style_attrs->c_text_indent)  = attrs->textIndent;
    style_attrs->c_vertical_align  = attrs->c_attrs.c_vertical_align;
    *(style_attrs->c_line_height)  = attrs->lineHeight;
 
@@ -479,8 +476,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
 
    attrs->margin  = *(style_attrs->c_margin);
    attrs->padding = *(style_attrs->c_padding);
-
-   attrs->textIndent     = *(style_attrs->c_text_indent);
 
    attrs->c_attrs.c_vertical_align = style_attrs->c_vertical_align;
    attrs->lineHeight = *(style_attrs->c_line_height);

@@ -71,7 +71,6 @@ void StyleAttrs::initValues ()
    ffiCreatePercentageDwLength(&backgroundPositionX, 0);
    ffiCreatePercentageDwLength(&backgroundPositionY, 0);
    ffiCreateAutoDwLength(&lineHeight);
-   ffiCreateAutoDwLength(&textIndent);
    styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
@@ -147,7 +146,6 @@ bool StyleAttrs::equals (object::Object *other) {
        vBorderSpacing == otherAttrs->vBorderSpacing &&
        wordSpacing == otherAttrs->wordSpacing &&
        ffiGetDwLengthHash(&lineHeight) == ffiGetDwLengthHash(&otherAttrs->lineHeight) &&
-       ffiGetDwLengthHash(&textIndent) == ffiGetDwLengthHash(&otherAttrs->textIndent) &&
 
        styleMarginEquals(&this->margin, &otherAttrs->margin) &&
        borderWidthEquals(&this->borderWidth, &otherAttrs->borderWidth) &&
@@ -179,7 +177,6 @@ int StyleAttrs::hashValue () {
       vBorderSpacing +
       wordSpacing +
       ffiGetDwLengthHash(&lineHeight) +
-      ffiGetDwLengthHash(&textIndent) +
       styleMarginHashValue(&this->margin) +
       borderWidthHashValue(&this->borderWidth) +
       stylePaddingHashValue(&this->padding) +
@@ -279,7 +276,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    vBorderSpacing = attrs->vBorderSpacing;
    wordSpacing = attrs->wordSpacing;
    lineHeight = attrs->lineHeight;
-   textIndent = attrs->textIndent;
    margin = attrs->margin;
    borderWidth = attrs->borderWidth;
    padding = attrs->padding;
