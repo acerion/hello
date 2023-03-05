@@ -422,7 +422,6 @@ void c_style_attrs_init(c_style_attrs_t * style_attrs)
    // *(style_attrs->c_border_color)     = { -1, -1, -1, -1 }; TODO: uncommenting this line breaks block-quote markings in comments on SoylentNews
    style_attrs->c_color               = -1; // TODO: this probably should be moved to style_attrs' constructor
    style_attrs->c_background_color    = -1; // TODO: this probably should be moved to style_attrs' constructor
-   style_attrs->c_x_tooltip           = nullptr; // TODO: this probably should be moved to style_attrs' constructor
 }
 
 void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
@@ -489,13 +488,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    }
 
    memcpy(attrs->x_lang, style_attrs->c_x_lang, sizeof (attrs->x_lang));
-   if (style_attrs->c_x_tooltip) {
-      attrs->x_tooltip = Tooltip::create(layout, style_attrs->c_x_tooltip);
-      // Here we should free() style_attrs->c_x_tooltip, but it has been
-      // allocated in Haskell so I don't want to dig into freeing of such
-      // pointers. As in other cases where FFI code is leaking memory: this
-      // is only temporary, until all code is moved to Haskell.
-   }
 
    {
       FontAttrs fontAttrs = *attrs->font;

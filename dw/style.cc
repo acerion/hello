@@ -61,7 +61,6 @@ void StyleAttrs::initValues ()
    ffiStyleAttrsInitValues(this->c_attrs.c_style_attrs_ref);
 
    x_lang[0] = x_lang[1] = 0;
-   x_tooltip = NULL;
    textAlignChar = '.';
    backgroundColor = NULL;
    backgroundImage = NULL;
@@ -132,8 +131,7 @@ bool StyleAttrs::equals (object::Object *other) {
        borderColor.bottom == otherAttrs->borderColor.bottom &&
        borderColor.left == otherAttrs->borderColor.left &&
        x_lang[0] == otherAttrs->x_lang[0] &&
-       x_lang[1] == otherAttrs->x_lang[1] &&
-       x_tooltip == otherAttrs->x_tooltip);
+       x_lang[1] == otherAttrs->x_lang[1]);
 }
 
 int StyleAttrs::hashValue () {
@@ -152,8 +150,7 @@ int StyleAttrs::hashValue () {
       (intptr_t) borderColor.right +
       (intptr_t) borderColor.bottom +
       (intptr_t) borderColor.left +
-      x_lang[0] + x_lang[1] +
-      (intptr_t) x_tooltip;
+      x_lang[0] + x_lang[1];
 }
 
 int Style::totalRef = 0;
@@ -193,8 +190,6 @@ Style::Style (StyleAttrs *attrs)
       borderColor.left->ref();
    if (borderColor.right)
       borderColor.right->ref();
-   if (x_tooltip)
-      x_tooltip->ref();
 
    totalRef++;
 }
@@ -217,8 +212,6 @@ Style::~Style ()
       borderColor.left->unref();
    if (borderColor.right)
       borderColor.right->unref();
-   if (x_tooltip)
-      x_tooltip->unref();
 
    styleTable->remove (this);
    totalRef--;
@@ -242,7 +235,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    borderColor = attrs->borderColor;
    x_lang[0] = attrs->x_lang[0];
    x_lang[1] = attrs->x_lang[1];
-   x_tooltip = attrs->x_tooltip;
 }
 
 // ----------------------------------------------------------------------

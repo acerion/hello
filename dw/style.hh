@@ -432,7 +432,6 @@ public:
                       set), or x_lang contains the RFC 1766 country
                       code in lower case letters. (Only two letters
                       allowed, currently.) */
-   Tooltip * x_tooltip;
 
 
    void initValues ();

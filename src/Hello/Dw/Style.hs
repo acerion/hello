@@ -286,6 +286,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleVertBorderSpacing   = 0
                              , styleDisplay             = 1 -- DISPLAY_INLINE == 1
                              , styleWordSpacing         = 0
+                             , styleXTooltip            = ""
                              }
 
 
@@ -316,6 +317,7 @@ styleAttrsEqual sa1 sa2 = and
                           , styleVertBorderSpacing sa1 == styleVertBorderSpacing sa2
                           , styleDisplay sa1 == styleDisplay sa2
                           , styleWordSpacing sa1 == styleWordSpacing sa2
+                          , styleXTooltip sa1 == styleXTooltip sa2
                           ]
 
 
@@ -347,6 +349,7 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + styleVertBorderSpacing sa
                          + styleDisplay sa
                          + styleWordSpacing sa
+                         -- + styleXTooltip sa -- TODO: re-enable
 
 
 
@@ -376,6 +379,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleVertBorderSpacing  = styleVertBorderSpacing from
                             , styleDisplay            = styleDisplay from
                             , styleWordSpacing        = styleWordSpacing from
+                            , styleXTooltip           = styleXTooltip from
                             }
 
 

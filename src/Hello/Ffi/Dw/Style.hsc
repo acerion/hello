@@ -331,7 +331,6 @@ data FfiStyleAttrs = FfiStyleAttrs
   , iColor                     :: CInt
   , iBackgroundColor           :: CInt
   , ptrCharXLang               :: Ptr CChar -- buffer of specified size.
-  , ptrCharXTooltip            :: Ptr CChar -- pointer to to-be-allocated memory
   } deriving (Show)
 
 
@@ -351,14 +350,13 @@ instance Storable FfiStyleAttrs where
     color              <- #{peek c_style_attrs_t, c_color}                ptr
     backgroundColor    <- #{peek c_style_attrs_t, c_background_color}     ptr
     let xLang = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_style_attrs_t, c_x_lang}) ptr
-    xTooltip           <- #{peek c_style_attrs_t, c_x_tooltip}            ptr
 
-    return (FfiStyleAttrs ref fontAttrs borderWidth borderColor margin padding color backgroundColor xLang xTooltip)
-
+    return (FfiStyleAttrs ref fontAttrs borderWidth borderColor margin padding color backgroundColor xLang)
 
 
 
-  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderWidth cBorderColor cMargin cPadding cColor cBackgroundColor _cXLang cXTooltip) = do
+
+  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderWidth cBorderColor cMargin cPadding cColor cBackgroundColor _cXLang) = do
 
     #{poke c_style_attrs_t, c_style_attrs_ref} ptr cStyleAttrsRef
     #{poke c_style_attrs_t, c_font_attrs}      ptr cFontAttrs
@@ -369,7 +367,6 @@ instance Storable FfiStyleAttrs where
     #{poke c_style_attrs_t, c_color}                ptr cColor
     #{poke c_style_attrs_t, c_background_color}     ptr cBackgroundColor
     -- #{poke c_style_attrs_t, c_x_lang}               ptr cXLang -- Poking of this field is done in pokeStyleAttrs
-    #{poke c_style_attrs_t, c_x_tooltip}            ptr cXTooltip
 
 
 
@@ -385,7 +382,6 @@ peekStyleAttrs ptrStructStyleAttrs = do
   padding     <- peekStylePadding . ptrStructStylePadding $ ffiAttrs
 
   xLang  <- peekCharBuffer (ptrCharXLang ffiAttrs)
-  xTooltip  <- peekCharBuffer (ptrCharXTooltip ffiAttrs)
 
   gAttrs <- globalStyleAttrsGet . fromIntegral . iStyleAttrsRef $ ffiAttrs
 
@@ -427,7 +423,7 @@ peekStyleAttrs ptrStructStyleAttrs = do
     , styleXLink                  = styleXLink gAttrs
     , styleXLang                  = xLang
     , styleXImg                   = styleXImg gAttrs
-    , styleXTooltip               = xTooltip
+    , styleXTooltip               = styleXTooltip gAttrs
     }
 
   return attrs
@@ -472,9 +468,7 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   -- has been already done in two lines above.
   let cXLang = nullPtr
 
-  cXTooltip :: Ptr CChar <- allocAndPokeCString . styleXTooltip $ attrs -- TODO: this allocates memory that is not freed anywhere
-
-  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderWidth pBorderColor pMargin pPadding cColor cBackgroundColor cXLang cXTooltip
+  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderWidth pBorderColor pMargin pPadding cColor cBackgroundColor cXLang
 
 
 

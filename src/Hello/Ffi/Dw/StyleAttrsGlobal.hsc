@@ -42,6 +42,7 @@ import Foreign
 import Hello.Dw.Style
 import Hello.Dw.StyleAttrsGlobal
 import Hello.Ffi.Dw.DwLength
+import Hello.Ffi.Utils
 
 
 
@@ -117,6 +118,8 @@ foreign export ccall "ffiStyleAttrsSetVertBorderSpacing" ffiStyleAttrsSetVertBor
 foreign export ccall "ffiStyleAttrsDisplay" ffiStyleAttrsDisplay :: CInt -> IO CInt
 
 foreign export ccall "ffiStyleAttrsWordSpacing" ffiStyleAttrsWordSpacing :: CInt -> IO CInt
+
+foreign export ccall "ffiStyleAttrsXTooltip" ffiStyleAttrsXTooltip :: CInt -> IO (Ptr CChar)
 
 
 
@@ -557,5 +560,12 @@ ffiStyleAttrsWordSpacing cRef = do
   return . fromIntegral . styleWordSpacing $ attrs
 
 
+
+-- Returns a pointer to string allocated on heap.
+ffiStyleAttrsXTooltip :: CInt -> IO (Ptr CChar)
+ffiStyleAttrsXTooltip cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  allocAndPokeCString . styleXTooltip $ attrs
 
 

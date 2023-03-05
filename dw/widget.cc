@@ -659,18 +659,26 @@ bool Widget::motionNotifyImpl (EventMotion *event)
 
 void Widget::enterNotifyImpl (EventCrossing *)
 {
-   core::style::Tooltip *tooltip = getStyle()->x_tooltip;
+   // FIXME: buf is allocated in Haskell, but is not freed anywhere.
+   char * buf = ffiStyleAttrsXTooltip(getStyle()->c_attrs.c_style_attrs_ref);
+   if (buf) {
+      core::style::Tooltip *tooltip = core::style::Tooltip::create(layout, buf); // FIXME: 1. Creating tooltip on each call. 2. Leaking memory.
 
-   if (tooltip)
-      tooltip->onEnter();
+      if (tooltip)
+         tooltip->onEnter();
+   }
 }
 
 void Widget::leaveNotifyImpl (EventCrossing *)
 {
-   core::style::Tooltip *tooltip = getStyle()->x_tooltip;
+   // FIXME: buf is allocated in Haskell, but is not freed anywhere.
+   char * buf = ffiStyleAttrsXTooltip(getStyle()->c_attrs.c_style_attrs_ref);
+   if (buf) {
+      core::style::Tooltip *tooltip = core::style::Tooltip::create(layout, buf); // FIXME: 1. Creating tooltip on each call. 2. Leaking memory.
 
-   if (tooltip)
-      tooltip->onLeave();
+      if (tooltip)
+         tooltip->onLeave();
+   }
 }
 
 void Widget::removeChild (Widget *child)

@@ -683,7 +683,10 @@ bool Textblock::motionNotifyImpl (core::EventMotion *event)
          core::style::Style *style = inSpace ? word->spaceStyle : word->style;
          setCursor ((dw::core::style::Cursor) ffiStyleAttrsCursor(style->c_attrs.c_style_attrs_ref));
          hoverLink = ffiStyleAttrsXLink(style->c_attrs.c_style_attrs_ref);
-         hoverTooltip = style->x_tooltip;
+
+         // FIXME: buf is allocated in Haskell, but is not freed anywhere.
+         char * buf = ffiStyleAttrsXTooltip(style->c_attrs.c_style_attrs_ref);
+         hoverTooltip = core::style::Tooltip::create(layout, buf); // FIXME: 1. Creating tooltip on each call. 2. Leaking memory.
       }
 
       // Show/hide tooltip

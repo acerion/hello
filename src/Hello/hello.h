@@ -188,8 +188,10 @@ typedef struct c_style_attrs_t {
                              set), or x_lang contains the RFC 1766 country
                              code in lower case letters. (Only two letters
                              allowed, currently.) */
-        char * c_x_tooltip; /* TODO: what is the limit of size of this buffer? */
 } c_style_attrs_t;
+
+
+
 
 int ffiStyleAttrsCtor(void);
 void ffiStyleAttrsInitValues(int ref);
@@ -253,6 +255,9 @@ void ffiStyleAttrsSetVertBorderSpacing(int ref, int val);
 int ffiStyleAttrsDisplay(int ref);
 
 int ffiStyleAttrsWordSpacing(int ref);
+
+char * ffiStyleAttrsXTooltip(int ref);
+
 
 
 
