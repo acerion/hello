@@ -975,12 +975,12 @@ void Textblock::accumulateWordForLine (int lineIndex, int wordIndex)
    line->boxDescent = misc::max (line->boxDescent, word->size.descent);
 
    int len = word->style->font->ascent;
-   if (word->style->c_attrs.c_vertical_align == core::style::VALIGN_SUPER)
+   if (ffiStyleAttrsVerticalAlign(word->style->c_attrs.c_style_attrs_ref) == core::style::VALIGN_SUPER)
       len += len / 2;
    line->contentAscent = misc::max (line->contentAscent, len);
          
    len = word->style->font->descent;
-   if (word->style->c_attrs.c_vertical_align == core::style::VALIGN_SUB)
+   if (ffiStyleAttrsVerticalAlign(word->style->c_attrs.c_style_attrs_ref) == core::style::VALIGN_SUB)
       len += word->style->font->ascent / 3;
    line->contentDescent = misc::max (line->contentDescent, len);
 

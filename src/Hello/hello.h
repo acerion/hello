@@ -181,8 +181,6 @@ typedef struct c_style_attrs_t {
         c_style_margin_t * c_margin;
         c_style_padding_t * c_padding;
 
-        int c_vertical_align; // Copied to StyleAttrs::c_attrs
-
         int c_display;
         int c_color;
         int c_background_color;
@@ -206,6 +204,8 @@ void ffiStyleAttrsCopy(int refTo, int refFrom);
 void ffiStyleAttrsReset(int ref);
 
 int ffiStyleAttrsTextAlign(int ref);
+
+int ffiStyleAttrsVerticalAlign(int ref);
 
 int ffiStyleAttrsTextDecoration(int ref);
 void ffiStyleAttrsSetTextDecoration(int ref, int val);
@@ -482,8 +482,8 @@ void ffiStyleEngineSetElementPseudoClass(int doc_tree_ref, const char * element_
 void ffiStyleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * prefs, float dpiX, float dpiY, c_style_attrs_t * parent_style_attrs, c_style_attrs_t * style_attrs);
 
 
-void ffiStyleEngineGetWordStyle0(int refTo, int refFrom);
-void ffiStyleEnginePreprocessAttrs(int refTo, int refFrom, bool inheritBackgroundColor);
+void ffiStyleEngineMakeWordStyle(int refAttrs, int refBwAttrs);
+void ffiStyleEnginePreprocessAttrsInheritBackground(int refTo, int refFrom);
 void ffiStyleEnginePostprocessAttrs(int ref);
 
 

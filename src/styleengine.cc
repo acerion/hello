@@ -333,6 +333,7 @@ void StyleEngine::endElement (int element) {
 void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
    /* workaround for styling of inline elements */
    StyleNode * parentNode = getParentNode(this);
+
    if (parentNode->inheritBackgroundColor) {
       attrs->backgroundColor      = parentNode->style->backgroundColor;
       attrs->backgroundImage      = parentNode->style->backgroundImage;
@@ -340,7 +341,9 @@ void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
       attrs->backgroundAttachment = parentNode->style->backgroundAttachment;
       attrs->backgroundPositionX  = parentNode->style->backgroundPositionX;
       attrs->backgroundPositionY  = parentNode->style->backgroundPositionY;
-      attrs->c_attrs.c_vertical_align        = parentNode->style->c_attrs.c_vertical_align;
+
+      // NOTE: if parentNode->inheritBackgroundColor is false, parentNode->style is NULL.
+      ffiStyleEnginePreprocessAttrsInheritBackground(attrs->c_attrs.c_style_attrs_ref, parentNode->style->c_attrs.c_style_attrs_ref);
    }
    attrs->borderColor.top = (Color *) -1;
    attrs->borderColor.bottom = (Color *) -1;
@@ -451,8 +454,6 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
       style_attrs->c_font_attrs->name = strdup(attrs->font->font_attrs.name);
    }
 
-   style_attrs->c_vertical_align  = attrs->c_attrs.c_vertical_align;
-
    style_attrs->c_display     = attrs->display;
    style_attrs->c_h_border_spacing      = attrs->hBorderSpacing;
    style_attrs->c_v_border_spacing      = attrs->vBorderSpacing;
@@ -475,7 +476,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    attrs->margin  = *(style_attrs->c_margin);
    attrs->padding = *(style_attrs->c_padding);
 
-   attrs->c_attrs.c_vertical_align = style_attrs->c_vertical_align;
    attrs->display           = style_attrs->c_display;
    if (style_attrs->c_color != -1) {
       // -1 is a special initial value set on top of this function
@@ -700,7 +700,7 @@ Style * StyleEngine::makeWordStyle(BrowserWindow *bw) {
       attrs.backgroundPositionY  = getStyle (bw)->backgroundPositionY;
    }
 
-   attrs.c_attrs.c_vertical_align = getStyle(bw)->c_attrs.c_vertical_align;
+   ffiStyleEngineMakeWordStyle(attrs.c_attrs.c_style_attrs_ref, getStyle(bw)->c_attrs.c_style_attrs_ref);
 
    node->wordStyle = Style::create(&attrs);
    return node->wordStyle;

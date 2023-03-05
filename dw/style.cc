@@ -63,7 +63,6 @@ void StyleAttrs::initValues ()
    x_lang[0] = x_lang[1] = 0;
    x_tooltip = NULL;
    textAlignChar = '.';
-   this->c_attrs.c_vertical_align = VALIGN_BASELINE;
    backgroundColor = NULL;
    backgroundImage = NULL;
    backgroundRepeat = BACKGROUND_REPEAT;
@@ -89,7 +88,6 @@ void StyleAttrs::resetValues ()
 {
    ffiStyleAttrsReset(this->c_attrs.c_style_attrs_ref);
 
-   this->c_attrs.c_vertical_align = VALIGN_BASELINE;
    textAlignChar = '.';
    backgroundColor = NULL;
    backgroundImage = NULL;
@@ -139,7 +137,6 @@ bool StyleAttrs::equals (object::Object *other) {
        backgroundAttachment == otherAttrs->backgroundAttachment &&
        ffiGetDwLengthHash(&backgroundPositionX) == ffiGetDwLengthHash(&otherAttrs->backgroundPositionX) &&
        ffiGetDwLengthHash(&backgroundPositionY) == ffiGetDwLengthHash(&otherAttrs->backgroundPositionY) &&
-       this->c_attrs.c_vertical_align == otherAttrs->c_attrs.c_vertical_align &&
        textAlignChar == otherAttrs->textAlignChar &&
        hBorderSpacing == otherAttrs->hBorderSpacing &&
        vBorderSpacing == otherAttrs->vBorderSpacing &&
@@ -168,7 +165,6 @@ int StyleAttrs::hashValue () {
       backgroundAttachment +
       ffiGetDwLengthHash(&backgroundPositionX) +
       ffiGetDwLengthHash(&backgroundPositionY) +
-      this->c_attrs.c_vertical_align +
       textAlignChar +
       hBorderSpacing +
       vBorderSpacing +
@@ -266,7 +262,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    backgroundAttachment = attrs->backgroundAttachment;
    backgroundPositionX = attrs->backgroundPositionX;
    backgroundPositionY = attrs->backgroundPositionY;
-   this->c_attrs.c_vertical_align = attrs->c_attrs.c_vertical_align;
    textAlignChar = attrs->textAlignChar;
    hBorderSpacing = attrs->hBorderSpacing;
    vBorderSpacing = attrs->vBorderSpacing;

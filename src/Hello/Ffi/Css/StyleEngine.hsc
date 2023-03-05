@@ -81,6 +81,10 @@ foreign export ccall "ffiInheritNonCssHints" ffiInheritNonCssHints :: CInt -> CI
 
 foreign export ccall "ffiStyleEnginePostprocessAttrs" ffiStyleEnginePostprocessAttrs :: CInt -> IO ()
 
+foreign export ccall "ffiStyleEngineMakeWordStyle" ffiStyleEngineMakeWordStyle :: CInt -> CInt -> IO ()
+
+foreign export ccall "ffiStyleEnginePreprocessAttrsInheritBackground" ffiStyleEnginePreprocessAttrsInheritBackground :: CInt -> CInt -> IO ()
+
 
 
 
@@ -399,6 +403,32 @@ ffiStyleEnginePostprocessAttrs _cRef = do
   --let new = styleAttrsPostprocess old
   --globalStyleAttrsUpdate ref new
   return ()
+
+
+
+
+ffiStyleEngineMakeWordStyle :: CInt -> CInt -> IO ()
+ffiStyleEngineMakeWordStyle cRefAttrs cRefBwAttrs = do
+  let refAttrs   = fromIntegral cRefAttrs
+  let refBwAttrs = fromIntegral cRefBwAttrs
+  attrs   <- globalStyleAttrsGet refAttrs
+  bwAttrs <- globalStyleAttrsGet refBwAttrs
+  let attrs' = attrs { styleVerticalAlign = styleVerticalAlign bwAttrs }
+  globalStyleAttrsUpdate refAttrs attrs'
+  return ()
+
+
+
+
+ffiStyleEnginePreprocessAttrsInheritBackground :: CInt -> CInt -> IO ()
+ffiStyleEnginePreprocessAttrsInheritBackground cRefTo cRefFrom = do
+    let refTo   = fromIntegral cRefTo
+    let refFrom = fromIntegral cRefFrom
+    to   <- globalStyleAttrsGet refTo
+    from <- globalStyleAttrsGet refFrom
+    let to' = styleEnginePreprocessAttrsInheritBackground to from
+    globalStyleAttrsUpdate refTo to'
+    return ()
 
 
 

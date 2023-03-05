@@ -100,6 +100,8 @@ foreign export ccall "ffiStyleAttrsGetTextIndent" ffiStyleAttrsGetTextIndent :: 
 
 foreign export ccall "ffiStyleAttrsGetLineHeight" ffiStyleAttrsGetLineHeight :: CInt -> Ptr FfiDwLength -> IO ()
 
+foreign export ccall "ffiStyleAttrsVerticalAlign" ffiStyleAttrsVerticalAlign :: CInt -> IO CInt
+
 
 
 
@@ -414,4 +416,14 @@ ffiStyleAttrsGetLineHeight cRef ptrStructDwLength = do
   sa <- globalStyleAttrsGet ref
   pokeDwLength (styleLineHeight sa) ptrStructDwLength
   return ()
+
+
+
+
+ffiStyleAttrsVerticalAlign :: CInt -> IO CInt
+ffiStyleAttrsVerticalAlign cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleVerticalAlign $ attrs
+
 

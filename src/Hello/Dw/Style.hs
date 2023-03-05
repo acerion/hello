@@ -272,6 +272,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleHeight         = createAutoDwLength
                              , styleTextIndent     = createAutoDwLength
                              , styleLineHeight     = createAutoDwLength
+                             , styleVerticalAlign  = 3 -- VALIGN_BASELINE == 3
                              }
 
 
@@ -294,6 +295,7 @@ styleAttrsEqual sa1 sa2 = and
                           , styleHeight sa1 == styleHeight sa2
                           , styleTextIndent sa1 == styleTextIndent sa2
                           , styleLineHeight sa1 == styleLineHeight sa2
+                          , styleVerticalAlign sa1 == styleVerticalAlign sa2
                           ]
 
 
@@ -318,6 +320,7 @@ styleAttrsHashValue sa = styleTextAlign sa
                          -- + styleHeight sa   -- TODO: re-enable
                          -- + styleTextIndent sa -- TODO: re-enable
                          -- + styleLineHeight sa -- TODO: re-enable
+                         + styleVerticalAlign sa
 
 
 
@@ -339,6 +342,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleHeight         = styleHeight from
                             , styleTextIndent     = styleTextIndent from
                             , styleLineHeight     = styleLineHeight from
+                            , styleVerticalAlign  = styleVerticalAlign from
                             }
 
 
@@ -350,6 +354,7 @@ styleAttrsReset attrs = attrs
   , styleBorderStyle    = defaultStyleBorderStyle
   , styleWidth          = createAutoDwLength
   , styleHeight         = createAutoDwLength
+  , styleVerticalAlign  = 3 -- VALIGN_BASELINE == 3
   }
 
 

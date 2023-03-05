@@ -51,6 +51,8 @@ module Hello.Css.StyleEngine
 
   -- Exported only for tests
   , computeAbsoluteLengthValue
+
+  , styleEnginePreprocessAttrsInheritBackground
   )
 where
 
@@ -940,5 +942,11 @@ styleEngineInheritNonCssHints parent mCurrent = inheritedAndCurrent
                             Nothing      -> inherited
     inherited = parent -- "copy constructor"
 
+
+
+
+styleEnginePreprocessAttrsInheritBackground :: StyleAttrs -> StyleAttrs -> StyleAttrs
+styleEnginePreprocessAttrsInheritBackground to from =
+  to { styleVerticalAlign = styleVerticalAlign from }
 
 
