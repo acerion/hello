@@ -102,6 +102,12 @@ foreign export ccall "ffiStyleAttrsGetLineHeight" ffiStyleAttrsGetLineHeight :: 
 
 foreign export ccall "ffiStyleAttrsVerticalAlign" ffiStyleAttrsVerticalAlign :: CInt -> IO CInt
 
+foreign export ccall "ffiStyleAttrsBgPositionX" ffiStyleAttrsBgPositionX :: CInt -> Ptr FfiDwLength -> IO ()
+foreign export ccall "ffiStyleAttrsBgPositionY" ffiStyleAttrsBgPositionY :: CInt -> Ptr FfiDwLength -> IO ()
+
+foreign export ccall "ffiStyleAttrsSetBgPositionX" ffiStyleAttrsSetBgPositionX :: CInt -> Ptr FfiDwLength -> IO ()
+foreign export ccall "ffiStyleAttrsSetBgPositionY" ffiStyleAttrsSetBgPositionY :: CInt -> Ptr FfiDwLength -> IO ()
+
 
 
 
@@ -426,4 +432,47 @@ ffiStyleAttrsVerticalAlign cRef = do
   attrs <- globalStyleAttrsGet ref
   return . fromIntegral . styleVerticalAlign $ attrs
 
+
+
+
+ffiStyleAttrsBgPositionX :: CInt -> Ptr FfiDwLength -> IO ()
+ffiStyleAttrsBgPositionX cRef ptrStructDwLength = do
+  let ref = fromIntegral cRef
+  sa <- globalStyleAttrsGet ref
+  pokeDwLength (styleBgPositionX sa) ptrStructDwLength
+  return ()
+
+
+
+
+ffiStyleAttrsBgPositionY :: CInt -> Ptr FfiDwLength -> IO ()
+ffiStyleAttrsBgPositionY cRef ptrStructDwLength = do
+  let ref = fromIntegral cRef
+  sa <- globalStyleAttrsGet ref
+  pokeDwLength (styleBgPositionY sa) ptrStructDwLength
+  return ()
+
+
+
+
+ffiStyleAttrsSetBgPositionX :: CInt -> Ptr FfiDwLength -> IO ()
+ffiStyleAttrsSetBgPositionX cRef ptrStructDwLength = do
+  let ref = fromIntegral cRef
+  sa <- globalStyleAttrsGet ref
+  len <- peekDwLength ptrStructDwLength
+  let sa' = sa { styleBgPositionX = len }
+  globalStyleAttrsUpdate ref sa'
+  return ()
+
+
+
+
+ffiStyleAttrsSetBgPositionY :: CInt -> Ptr FfiDwLength -> IO ()
+ffiStyleAttrsSetBgPositionY cRef ptrStructDwLength = do
+  let ref = fromIntegral cRef
+  sa <- globalStyleAttrsGet ref
+  len <- peekDwLength ptrStructDwLength
+  let sa' = sa { styleBgPositionY = len }
+  globalStyleAttrsUpdate ref sa'
+  return ()
 

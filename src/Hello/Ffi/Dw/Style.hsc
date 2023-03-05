@@ -423,6 +423,9 @@ peekStyleAttrs ptrStructStyleAttrs = do
     , styleHeight         = styleHeight gAttrs
     , styleLineHeight     = styleLineHeight gAttrs
 
+    , styleBgPositionX = styleBgPositionX gAttrs
+    , styleBgPositionY = styleBgPositionY gAttrs
+
     , styleListStylePosition      = styleListStylePosition gAttrs
     , styleListStyleType          = styleListStyleType gAttrs
 

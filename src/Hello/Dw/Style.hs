@@ -206,6 +206,9 @@ data StyleAttrs = StyleAttrs
   , styleVBorderSpacing    :: Int
   , styleWordSpacing       :: Int
 
+  , styleBgPositionX       :: DwLength -- "left" defined by "0%" etc. (see CSS spec)
+  , styleBgPositionY       :: DwLength -- "top" defined by "0%" etc. (see CSS spec)
+
   , styleXLink             :: Int
   --Either x_lang[0] == x_lang[1] == 0 (no language set), or x_lang contains
   --the RFC 1766 country code in lower case letters. (Only two letters
@@ -248,6 +251,8 @@ defaultStyleAttrs = StyleAttrs
   , styleHBorderSpacing    = 0
   , styleVBorderSpacing    = 0
   , styleWordSpacing       = 0
+  , styleBgPositionX       = createPercentageDwLength 0
+  , styleBgPositionY       = createPercentageDwLength 0
 
   , styleXLink             = -1
   , styleXLang             = ""
@@ -258,6 +263,7 @@ defaultStyleAttrs = StyleAttrs
 
 
 
+-- TODO: doesn't this duplicate defaultStyleAttrs?
 styleAttrsInitValues :: StyleAttrs -> StyleAttrs
 styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleTextDecoration = 0  -- TEXT_DECORATION_NONE == 0
@@ -273,11 +279,14 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleTextIndent     = createAutoDwLength
                              , styleLineHeight     = createAutoDwLength
                              , styleVerticalAlign  = 3 -- VALIGN_BASELINE == 3
+                             , styleBgPositionX    = createPercentageDwLength 0
+                             , styleBgPositionY    = createPercentageDwLength 0
                              }
 
 
 
 
+-- TODO: This all can be simplified through Eq class.
 styleAttrsEqual :: StyleAttrs -> StyleAttrs -> Bool
 styleAttrsEqual sa1 sa2 = and
                           [ styleTextAlign sa1 == styleTextAlign sa2
@@ -296,6 +305,8 @@ styleAttrsEqual sa1 sa2 = and
                           , styleTextIndent sa1 == styleTextIndent sa2
                           , styleLineHeight sa1 == styleLineHeight sa2
                           , styleVerticalAlign sa1 == styleVerticalAlign sa2
+                          , styleBgPositionX sa1 == styleBgPositionX sa2
+                          , styleBgPositionY sa1 == styleBgPositionY sa2
                           ]
 
 
@@ -321,11 +332,14 @@ styleAttrsHashValue sa = styleTextAlign sa
                          -- + styleTextIndent sa -- TODO: re-enable
                          -- + styleLineHeight sa -- TODO: re-enable
                          + styleVerticalAlign sa
+                         -- + styleBgPositionX sa -- TODO: re-enable
+                         -- + styleBgPositionY sa -- TODO: re-enable
 
 
 
 
 
+-- TODO: this can be replaced by simple assignment
 styleAttrsCopy :: StyleAttrs -> StyleAttrs -> StyleAttrs
 styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleTextDecoration = styleTextDecoration from
@@ -343,6 +357,8 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleTextIndent     = styleTextIndent from
                             , styleLineHeight     = styleLineHeight from
                             , styleVerticalAlign  = styleVerticalAlign from
+                            , styleBgPositionX    = styleBgPositionX from
+                            , styleBgPositionY    = styleBgPositionY from
                             }
 
 
@@ -355,6 +371,8 @@ styleAttrsReset attrs = attrs
   , styleWidth          = createAutoDwLength
   , styleHeight         = createAutoDwLength
   , styleVerticalAlign  = 3 -- VALIGN_BASELINE == 3
+  , styleBgPositionX    = createPercentageDwLength 0
+  , styleBgPositionY    = createPercentageDwLength 0
   }
 
 

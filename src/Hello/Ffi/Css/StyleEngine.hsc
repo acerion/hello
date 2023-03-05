@@ -84,6 +84,7 @@ foreign export ccall "ffiStyleEnginePostprocessAttrs" ffiStyleEnginePostprocessA
 foreign export ccall "ffiStyleEngineMakeWordStyle" ffiStyleEngineMakeWordStyle :: CInt -> CInt -> IO ()
 
 foreign export ccall "ffiStyleEnginePreprocessAttrsInheritBackground" ffiStyleEnginePreprocessAttrsInheritBackground :: CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleEngineMakeWordStyleInheritBackground" ffiStyleEngineMakeWordStyleInheritBackground :: CInt -> CInt -> IO ()
 
 
 
@@ -429,6 +430,20 @@ ffiStyleEnginePreprocessAttrsInheritBackground cRefTo cRefFrom = do
     let to' = styleEnginePreprocessAttrsInheritBackground to from
     globalStyleAttrsUpdate refTo to'
     return ()
+
+
+
+
+ffiStyleEngineMakeWordStyleInheritBackground :: CInt -> CInt -> IO ()
+ffiStyleEngineMakeWordStyleInheritBackground cRefTo cRefFrom = do
+    let refTo   = fromIntegral cRefTo
+    let refFrom = fromIntegral cRefFrom
+    to   <- globalStyleAttrsGet refTo
+    from <- globalStyleAttrsGet refFrom
+    let to' = styleEngineMakeWordStyleInheritBackground to from
+    globalStyleAttrsUpdate refTo to'
+    return ()
+
 
 
 

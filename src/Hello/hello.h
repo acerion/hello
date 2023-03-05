@@ -244,6 +244,11 @@ void ffiStyleAttrsGetTextIndent(int ref, DwLength * len);
 
 void ffiStyleAttrsGetLineHeight(int ref, DwLength * len);
 
+void ffiStyleAttrsBgPositionX(int ref, DwLength * len);
+void ffiStyleAttrsBgPositionY(int ref, DwLength * len);
+void ffiStyleAttrsSetBgPositionX(int ref, DwLength * len);
+void ffiStyleAttrsSetBgPositionY(int ref, DwLength * len);
+
 
 
 typedef struct c_prefs_t {
@@ -484,6 +489,7 @@ void ffiStyleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * pr
 
 void ffiStyleEngineMakeWordStyle(int refAttrs, int refBwAttrs);
 void ffiStyleEnginePreprocessAttrsInheritBackground(int refTo, int refFrom);
+void ffiStyleEngineMakeWordStyleInheritBackground(int refTo, int refFrom);
 void ffiStyleEnginePostprocessAttrs(int ref);
 
 

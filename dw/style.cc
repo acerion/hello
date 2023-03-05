@@ -67,8 +67,6 @@ void StyleAttrs::initValues ()
    backgroundImage = NULL;
    backgroundRepeat = BACKGROUND_REPEAT;
    backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
-   ffiCreatePercentageDwLength(&backgroundPositionX, 0);
-   ffiCreatePercentageDwLength(&backgroundPositionY, 0);
    styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
@@ -93,8 +91,6 @@ void StyleAttrs::resetValues ()
    backgroundImage = NULL;
    backgroundRepeat = BACKGROUND_REPEAT;
    backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
-   ffiCreatePercentageDwLength(&backgroundPositionX, 0);
-   ffiCreatePercentageDwLength(&backgroundPositionY, 0);
    styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
@@ -135,8 +131,6 @@ bool StyleAttrs::equals (object::Object *other) {
        backgroundImage == otherAttrs->backgroundImage &&
        backgroundRepeat == otherAttrs->backgroundRepeat &&
        backgroundAttachment == otherAttrs->backgroundAttachment &&
-       ffiGetDwLengthHash(&backgroundPositionX) == ffiGetDwLengthHash(&otherAttrs->backgroundPositionX) &&
-       ffiGetDwLengthHash(&backgroundPositionY) == ffiGetDwLengthHash(&otherAttrs->backgroundPositionY) &&
        textAlignChar == otherAttrs->textAlignChar &&
        hBorderSpacing == otherAttrs->hBorderSpacing &&
        vBorderSpacing == otherAttrs->vBorderSpacing &&
@@ -163,8 +157,6 @@ int StyleAttrs::hashValue () {
       (intptr_t) backgroundImage +
       backgroundRepeat +
       backgroundAttachment +
-      ffiGetDwLengthHash(&backgroundPositionX) +
-      ffiGetDwLengthHash(&backgroundPositionY) +
       textAlignChar +
       hBorderSpacing +
       vBorderSpacing +
@@ -260,8 +252,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    backgroundImage = attrs->backgroundImage;
    backgroundRepeat = attrs->backgroundRepeat;
    backgroundAttachment = attrs->backgroundAttachment;
-   backgroundPositionX = attrs->backgroundPositionX;
-   backgroundPositionY = attrs->backgroundPositionY;
    textAlignChar = attrs->textAlignChar;
    hBorderSpacing = attrs->hBorderSpacing;
    vBorderSpacing = attrs->vBorderSpacing;
@@ -621,7 +611,9 @@ DwLength StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionX ()
 {
    Style *style = getStyle ();
    if (style) {
-      return style->backgroundPositionX;
+      DwLength bgX = {};
+      ffiStyleAttrsBgPositionX(style->c_attrs.c_style_attrs_ref, &bgX);
+      return bgX;
    } else {
       DwLength len;
       ffiCreatePercentageDwLength(&len, 0);
@@ -633,7 +625,9 @@ DwLength StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionY ()
 {
    Style *style = getStyle ();
    if (style) {
-      return style->backgroundPositionY;
+      DwLength bgY = {};
+      ffiStyleAttrsBgPositionY(style->c_attrs.c_style_attrs_ref, &bgY);
+      return bgY;
    } else {
       DwLength len;
       ffiCreatePercentageDwLength(&len, 0);
@@ -1144,15 +1138,19 @@ void drawBackground (View *view, Layout *layout, Rectangle *area,
                                  true, intersection.x, intersection.y,
                                  intersection.width, intersection.height);
 
-         if (bgImage)
+         if (bgImage) {
+            DwLength bgX = {};
+            DwLength bgY = {};
+            ffiStyleAttrsBgPositionX(style->c_attrs.c_style_attrs_ref, &bgX);
+            ffiStyleAttrsBgPositionY(style->c_attrs.c_style_attrs_ref, &bgY);
             drawBackgroundImage (view, style->backgroundImage,
                                  style->backgroundRepeat,
                                  style->backgroundAttachment,
-                                 style->backgroundPositionX,
-                                 style->backgroundPositionY,
+                                 bgX, bgY,
                                  intersection.x, intersection.y,
                                  intersection.width, intersection.height,
                                  xRef, yRef, widthRef, heightRef);
+         }
 
       }
    }

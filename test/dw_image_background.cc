@@ -160,8 +160,17 @@ int main(int argc, char **argv)
    image2 = styleAttrs.backgroundImage = StyleImage::create ();
    image2->connectDeletion (&isdr);
    styleAttrs.backgroundRepeat = BACKGROUND_REPEAT;
-   ffiCreatePercentageDwLength(&styleAttrs.backgroundPositionX, 0);
-   ffiCreatePercentageDwLength(&styleAttrs.backgroundPositionY, 0);
+
+   {
+      DwLength bgX = {};
+      ffiCreatePercentageDwLength(&bgX, 0);
+      ffiStyleAttrsSetBgPositionX(styleAttrs.c_attrs.c_style_attrs_ref, &bgX);
+
+      DwLength bgY = {};
+      ffiCreatePercentageDwLength(&bgY, 0);
+      ffiStyleAttrsSetBgPositionY(styleAttrs.c_attrs.c_style_attrs_ref, &bgY);
+   }
+
    Style *wordStyleBg = Style::create (&styleAttrs);
 
    for(int i = 1; i <= 1; i++) {

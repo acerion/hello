@@ -419,8 +419,6 @@ public:
    StyleImage *backgroundImage;
    BackgroundRepeat backgroundRepeat;
    BackgroundAttachment backgroundAttachment;
-   DwLength backgroundPositionX; // "left" defined by "0%" etc. (see CSS spec)
-   DwLength backgroundPositionY; // "top" defined by "0%" etc. (see CSS spec)
 
    char textAlignChar; /* In future, strings will be supported. */
 
