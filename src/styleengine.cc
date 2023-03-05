@@ -389,7 +389,6 @@ c_style_attrs_t * c_style_attrs_calloc(void)
    style_attrs->c_margin       = (c_style_margin_t *) calloc(1, sizeof (c_style_margin_t));
    style_attrs->c_padding      = (c_style_padding_t *) calloc(1, sizeof (c_style_padding_t));
    style_attrs->c_font_attrs   = (c_font_attrs_t *) calloc(1, sizeof (c_font_attrs_t));
-   style_attrs->c_line_height  = (DwLength *) calloc(1, sizeof (DwLength));
 
    return style_attrs;
 }
@@ -453,7 +452,6 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
    }
 
    style_attrs->c_vertical_align  = attrs->c_attrs.c_vertical_align;
-   *(style_attrs->c_line_height)  = attrs->lineHeight;
 
    style_attrs->c_display     = attrs->display;
    style_attrs->c_h_border_spacing      = attrs->hBorderSpacing;
@@ -478,7 +476,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    attrs->padding = *(style_attrs->c_padding);
 
    attrs->c_attrs.c_vertical_align = style_attrs->c_vertical_align;
-   attrs->lineHeight = *(style_attrs->c_line_height);
    attrs->display           = style_attrs->c_display;
    if (style_attrs->c_color != -1) {
       // -1 is a special initial value set on top of this function

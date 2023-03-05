@@ -70,7 +70,6 @@ void StyleAttrs::initValues ()
    backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
    ffiCreatePercentageDwLength(&backgroundPositionX, 0);
    ffiCreatePercentageDwLength(&backgroundPositionY, 0);
-   ffiCreateAutoDwLength(&lineHeight);
    styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
@@ -145,8 +144,6 @@ bool StyleAttrs::equals (object::Object *other) {
        hBorderSpacing == otherAttrs->hBorderSpacing &&
        vBorderSpacing == otherAttrs->vBorderSpacing &&
        wordSpacing == otherAttrs->wordSpacing &&
-       ffiGetDwLengthHash(&lineHeight) == ffiGetDwLengthHash(&otherAttrs->lineHeight) &&
-
        styleMarginEquals(&this->margin, &otherAttrs->margin) &&
        borderWidthEquals(&this->borderWidth, &otherAttrs->borderWidth) &&
        stylePaddingEquals(&this->padding, &otherAttrs->padding) &&
@@ -176,7 +173,6 @@ int StyleAttrs::hashValue () {
       hBorderSpacing +
       vBorderSpacing +
       wordSpacing +
-      ffiGetDwLengthHash(&lineHeight) +
       styleMarginHashValue(&this->margin) +
       borderWidthHashValue(&this->borderWidth) +
       stylePaddingHashValue(&this->padding) +
@@ -275,7 +271,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    hBorderSpacing = attrs->hBorderSpacing;
    vBorderSpacing = attrs->vBorderSpacing;
    wordSpacing = attrs->wordSpacing;
-   lineHeight = attrs->lineHeight;
    margin = attrs->margin;
    borderWidth = attrs->borderWidth;
    padding = attrs->padding;

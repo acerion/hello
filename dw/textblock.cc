@@ -1637,7 +1637,10 @@ void Textblock::calcTextSize (const char *text, size_t len,
     * For absolute/percentage, line height is relative to font size, which
     * is (irritatingly) smaller than ascent+descent.
     */
-   if (!ffiIsAutoDwLength(&style->lineHeight)) {
+   DwLength aLineHeight = {};
+   ffiStyleAttrsGetLineHeight(style->c_attrs.c_style_attrs_ref, &aLineHeight);
+
+   if (!ffiIsAutoDwLength(&aLineHeight)) {
       int height, leading;
       float factor = style->font->font_attrs.size;
 
@@ -1651,10 +1654,10 @@ void Textblock::calcTextSize (const char *text, size_t len,
        * AUTO? Apparently.) Once all block elements make Textblocks or
        * something, this can be handled.
        */
-      if (ffiIsAbsoluteDwLength (&style->lineHeight)) {
-         height = ffiGetAbsoluteDwLengthValue(&style->lineHeight);
+      if (ffiIsAbsoluteDwLength (&aLineHeight)) {
+         height = ffiGetAbsoluteDwLengthValue(&aLineHeight);
       } else {
-         height = core::style::multiplyWithPercentageDwLengthRounded (style->font->font_attrs.size, style->lineHeight);
+         height = core::style::multiplyWithPercentageDwLengthRounded (style->font->font_attrs.size, aLineHeight);
       }
       leading = height - style->font->font_attrs.size;
 
