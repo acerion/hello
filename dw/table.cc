@@ -112,13 +112,13 @@ void Table::sizeRequestImpl (core::Requisition *requisition)
     * \bug Baselines are not regarded here.
     */
    requisition->width = getStyle()->boxDiffWidth ()
-      + (numCols + 1) * getStyle()->hBorderSpacing;
+      + (numCols + 1) * ffiStyleAttrsHorizBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref);
    for (int col = 0; col < numCols; col++)
       requisition->width += colWidths->get (col);
 
    requisition->ascent =
       getStyle()->boxDiffHeight () + cumHeight->get (numRows)
-      + getStyle()->vBorderSpacing;
+      + ffiStyleAttrsVertBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref);
    requisition->descent = 0;
 
 }
@@ -133,7 +133,7 @@ void Table::getExtremesImpl (core::Extremes *extremes)
    forceCalcColumnExtremes ();
 
    extremes->minWidth = extremes->maxWidth =
-      (numCols + 1) * getStyle()->hBorderSpacing
+      (numCols + 1) * ffiStyleAttrsHorizBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref)
       + getStyle()->boxDiffWidth ();
    for (int col = 0; col < numCols; col++) {
       extremes->minWidth += colExtremes->getRef(col)->minWidth;
@@ -163,10 +163,8 @@ void Table::sizeAllocateImpl (core::Allocation *allocation)
     * \bug Baselines are not regarded here.
     */
 
-   int offy =
-      allocation->y + getStyle()->boxOffsetY () + getStyle()->vBorderSpacing;
-   int x =
-      allocation->x + getStyle()->boxOffsetX () + getStyle()->hBorderSpacing;
+   int offy = allocation->y + getStyle()->boxOffsetY () + ffiStyleAttrsVertBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref);
+   int x =    allocation->x + getStyle()->boxOffsetX () + ffiStyleAttrsHorizBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref);
 
    for (int col = 0; col < numCols; col++) {
       for (int row = 0; row < numRows; row++) {
@@ -174,7 +172,7 @@ void Table::sizeAllocateImpl (core::Allocation *allocation)
          if (childDefined (n)) {
             int width =
                (children->get(n)->cell.colspanEff - 1)
-               * getStyle()->hBorderSpacing;
+               * ffiStyleAttrsHorizBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref);
             for (int i = 0; i < children->get(n)->cell.colspanEff; i++)
                width += colWidths->get (col + i);
 
@@ -189,13 +187,13 @@ void Table::sizeAllocateImpl (core::Allocation *allocation)
             childAllocation.ascent = childRequisition.ascent;
             childAllocation.descent =
                cumHeight->get (row + children->get(n)->cell.rowspan)
-               - cumHeight->get (row) - getStyle()->vBorderSpacing
+               - cumHeight->get (row) - ffiStyleAttrsVertBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref)
                - childRequisition.ascent;
             children->get(n)->cell.widget->sizeAllocate (&childAllocation);
          }
       }
 
-      x += colWidths->get (col) + getStyle()->hBorderSpacing;
+      x += colWidths->get (col) + ffiStyleAttrsHorizBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref);
    }
 }
 
@@ -526,8 +524,8 @@ void Table::forceCalcCellSizes ()
    if (totalWidth < extremes.minWidth)
       totalWidth = extremes.minWidth;
    totalWidth = totalWidth
-                - (numCols + 1) * getStyle()->hBorderSpacing
-                - getStyle()->boxDiffWidth ();
+      - (numCols + 1) * ffiStyleAttrsHorizBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref)
+      - getStyle()->boxDiffWidth ();
 
    _MSG(" totalWidth2 = %d curCol=%d\n", totalWidth,curCol);
 
@@ -556,8 +554,7 @@ void Table::forceCalcCellSizes ()
       for (int col = 0; col < numCols; col++) {
          int n = row * numCols + col;
          if (childDefined (n)) {
-            int width = (children->get(n)->cell.colspanEff - 1)
-                        * getStyle()->hBorderSpacing;
+            int width = (children->get(n)->cell.colspanEff - 1) * ffiStyleAttrsHorizBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref);
             for (int i = 0; i < children->get(n)->cell.colspanEff; i++)
                width += colWidths->get (col + i);
 
@@ -574,8 +571,7 @@ void Table::forceCalcCellSizes ()
          }
       }/*for col*/
 
-      setCumHeight (row + 1,
-         cumHeight->get (row) + rowHeight + getStyle()->vBorderSpacing);
+      setCumHeight (row + 1, cumHeight->get (row) + rowHeight + ffiStyleAttrsVertBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref));
 
    }/*for row*/
 
@@ -593,8 +589,7 @@ void Table::apportionRowSpan ()
       int sumRows = cumHeight->get(row+rs) - cumHeight->get(row);
       core::Requisition childRequisition;
       children->get(n)->cell.widget->sizeRequest (&childRequisition);
-      int spanHeight = childRequisition.ascent + childRequisition.descent
-                       + getStyle()->vBorderSpacing;
+      int spanHeight = childRequisition.ascent + childRequisition.descent + ffiStyleAttrsVertBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref);
       if (sumRows >= spanHeight)
          continue;
 
@@ -683,7 +678,7 @@ void Table::forceCalcColumnExtremes ()
             int cellMinW, cellMaxW, pbm;
             DwLength width = {};
             ffiStyleAttrsGetWidth(children->get(n)->cell.widget->getStyle()->c_attrs.c_style_attrs_ref, &width);
-            pbm = (numCols + 1) * getStyle()->hBorderSpacing
+            pbm = (numCols + 1) * ffiStyleAttrsHorizBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref)
                   + children->get(n)->cell.widget->getStyle()->boxDiffWidth ();
             children->get(n)->cell.widget->getExtremes (&cellExtremes);
             if (ffiIsAbsoluteDwLength (&width)) {
@@ -741,7 +736,7 @@ void Table::forceCalcColumnExtremes ()
       int cs = children->get(n)->cell.colspanEff;
       DwLength width = {};
       ffiStyleAttrsGetWidth(children->get(n)->cell.widget->getStyle()->c_attrs.c_style_attrs_ref, &width);
-      pbm = (numCols + 1) * getStyle()->hBorderSpacing
+      pbm = (numCols + 1) * ffiStyleAttrsHorizBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref)
             + children->get(n)->cell.widget->getStyle()->boxDiffWidth ();
       children->get(n)->cell.widget->getExtremes (&cellExtremes);
       if (ffiIsAbsoluteDwLength (&width)) {
@@ -765,10 +760,8 @@ void Table::forceCalcColumnExtremes ()
          continue;
 
       // Cell size is too small; apportion {min,max} for this colspan.
-      int spanMinW = misc::max (misc::max (cs, minSumCols),
-                                cellMinW - (cs-1) * getStyle()->hBorderSpacing),
-          spanMaxW = misc::max (misc::max (cs, maxSumCols),
-                                cellMaxW - (cs-1) * getStyle()->hBorderSpacing);
+      int spanMinW = misc::max (misc::max (cs, minSumCols), cellMinW - (cs-1) * ffiStyleAttrsHorizBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref));
+      int spanMaxW = misc::max (misc::max (cs, maxSumCols), cellMaxW - (cs-1) * ffiStyleAttrsHorizBorderSpacing(getStyle()->c_attrs.c_style_attrs_ref));
 
       if (minSumCols == 0) {
          // No single cells defined for this span => pre-apportion equally

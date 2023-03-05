@@ -48,6 +48,7 @@ module Hello.Dw.Style
   , styleAttrsReset
 
   , styleAttrsSetCollapseTableAttrs
+  , styleAttrsSetCollapseCellAttrs
   , styleAttrsSetBorderStyle
   )
 where
@@ -202,8 +203,8 @@ data StyleAttrs = StyleAttrs
   , styleColor             :: Int -- TODO: change the type to Color
   , styleBackgroundColor   :: Int -- TODO: change the type to Color
   , styleCursor            :: Int -- TODO: use Cursor type
-  , styleHBorderSpacing    :: Int
-  , styleVBorderSpacing    :: Int
+  , styleHorizBorderSpacing  :: Int
+  , styleVertBorderSpacing   :: Int
   , styleWordSpacing       :: Int
 
   , styleBgPositionX       :: DwLength -- "left" defined by "0%" etc. (see CSS spec)
@@ -248,8 +249,8 @@ defaultStyleAttrs = StyleAttrs
   , styleColor             = 0
   , styleBackgroundColor   = 0
   , styleCursor            = 0
-  , styleHBorderSpacing    = 0
-  , styleVBorderSpacing    = 0
+  , styleHorizBorderSpacing  = 0
+  , styleVertBorderSpacing   = 0
   , styleWordSpacing       = 0
   , styleBgPositionX       = createPercentageDwLength 0
   , styleBgPositionY       = createPercentageDwLength 0
@@ -281,6 +282,8 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleVerticalAlign  = 3 -- VALIGN_BASELINE == 3
                              , styleBgPositionX    = createPercentageDwLength 0
                              , styleBgPositionY    = createPercentageDwLength 0
+                             , styleHorizBorderSpacing  = 0
+                             , styleVertBorderSpacing   = 0
                              }
 
 
@@ -307,6 +310,8 @@ styleAttrsEqual sa1 sa2 = and
                           , styleVerticalAlign sa1 == styleVerticalAlign sa2
                           , styleBgPositionX sa1 == styleBgPositionX sa2
                           , styleBgPositionY sa1 == styleBgPositionY sa2
+                          , styleHorizBorderSpacing sa1 == styleHorizBorderSpacing sa2
+                          , styleVertBorderSpacing sa1 == styleVertBorderSpacing sa2
                           ]
 
 
@@ -334,6 +339,8 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + styleVerticalAlign sa
                          -- + styleBgPositionX sa -- TODO: re-enable
                          -- + styleBgPositionY sa -- TODO: re-enable
+                         + styleHorizBorderSpacing sa
+                         + styleVertBorderSpacing sa
 
 
 
@@ -359,6 +366,8 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleVerticalAlign  = styleVerticalAlign from
                             , styleBgPositionX    = styleBgPositionX from
                             , styleBgPositionY    = styleBgPositionY from
+                            , styleHorizBorderSpacing = styleHorizBorderSpacing from
+                            , styleVertBorderSpacing  = styleVertBorderSpacing from
                             }
 
 
@@ -373,6 +382,8 @@ styleAttrsReset attrs = attrs
   , styleVerticalAlign  = 3 -- VALIGN_BASELINE == 3
   , styleBgPositionX    = createPercentageDwLength 0
   , styleBgPositionY    = createPercentageDwLength 0
+  , styleHorizBorderSpacing  = 0
+  , styleVertBorderSpacing   = 0
   }
 
 
@@ -380,7 +391,20 @@ styleAttrsReset attrs = attrs
 
 styleAttrsSetCollapseTableAttrs :: StyleAttrs -> StyleAttrs -> StyleAttrs
 styleAttrsSetCollapseTableAttrs attrsTable attrsCell =
-  attrsTable { styleBorderStyle = styleBorderStyle attrsCell }
+  attrsTable { styleBorderStyle = styleBorderStyle attrsCell
+             , styleHorizBorderSpacing  = 0
+             , styleVertBorderSpacing   = 0
+             }
+
+
+
+
+
+styleAttrsSetCollapseCellAttrs :: StyleAttrs -> StyleAttrs
+styleAttrsSetCollapseCellAttrs attrs =
+  attrs { styleHorizBorderSpacing  = 0
+        , styleVertBorderSpacing   = 0
+        }
 
 
 

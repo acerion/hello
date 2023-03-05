@@ -71,8 +71,6 @@ void StyleAttrs::initValues ()
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
-   hBorderSpacing = 0;
-   vBorderSpacing = 0;
    wordSpacing = 0;
 
    display = DISPLAY_INLINE;
@@ -95,8 +93,6 @@ void StyleAttrs::resetValues ()
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
-   hBorderSpacing = 0;
-   vBorderSpacing = 0;
 
    display = DISPLAY_INLINE;
 }
@@ -132,8 +128,6 @@ bool StyleAttrs::equals (object::Object *other) {
        backgroundRepeat == otherAttrs->backgroundRepeat &&
        backgroundAttachment == otherAttrs->backgroundAttachment &&
        textAlignChar == otherAttrs->textAlignChar &&
-       hBorderSpacing == otherAttrs->hBorderSpacing &&
-       vBorderSpacing == otherAttrs->vBorderSpacing &&
        wordSpacing == otherAttrs->wordSpacing &&
        styleMarginEquals(&this->margin, &otherAttrs->margin) &&
        borderWidthEquals(&this->borderWidth, &otherAttrs->borderWidth) &&
@@ -158,8 +152,6 @@ int StyleAttrs::hashValue () {
       backgroundRepeat +
       backgroundAttachment +
       textAlignChar +
-      hBorderSpacing +
-      vBorderSpacing +
       wordSpacing +
       styleMarginHashValue(&this->margin) +
       borderWidthHashValue(&this->borderWidth) +
@@ -253,8 +245,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    backgroundRepeat = attrs->backgroundRepeat;
    backgroundAttachment = attrs->backgroundAttachment;
    textAlignChar = attrs->textAlignChar;
-   hBorderSpacing = attrs->hBorderSpacing;
-   vBorderSpacing = attrs->vBorderSpacing;
    wordSpacing = attrs->wordSpacing;
    margin = attrs->margin;
    borderWidth = attrs->borderWidth;

@@ -506,8 +506,8 @@ yet because a full support for them in dillo seems to be missing or broken.
     CssPropertyDisplay value           -> styleAttrs { styleDisplay              = getDisplay value }
     CssPropertyColor value             -> styleAttrs { styleColor                = getColor parentStyleAttrs value }
     CssPropertyCursor value            -> styleAttrs { styleCursor               = getCursor value }
-    CssPropertyBorderSpacing declValue -> styleAttrs { styleHBorderSpacing = getBorderSpacing declValue fontAttrs display,
-                                                          styleVBorderSpacing = getBorderSpacing declValue fontAttrs display }
+    CssPropertyBorderSpacing declValue -> styleAttrs { styleHorizBorderSpacing   = getBorderSpacing declValue fontAttrs display
+                                                     , styleVertBorderSpacing    = getBorderSpacing declValue fontAttrs display }
     CssPropertyWordSpacing declValue   -> styleAttrs { styleWordSpacing    = getWordSpacig declValue fontAttrs display }
     CssPropertyXLink declValue         -> styleAttrs { styleXLink          = getXLink declValue }
     CssPropertyXLang declValue         -> styleAttrs { styleXLang          = getXLang declValue }

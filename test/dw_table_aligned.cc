@@ -63,8 +63,8 @@ int main(int argc, char **argv)
 
    styleAttrs.color = Color::create (layout, 0x000000);
    styleAttrs.backgroundColor = Color::create (layout, 0xa0a0a0);
-   styleAttrs.hBorderSpacing = 5;
-   styleAttrs.vBorderSpacing = 5;
+   ffiStyleAttrsSetHorizBorderSpacing(styleAttrs.c_attrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetVertBorderSpacing(styleAttrs.c_attrs.c_style_attrs_ref, 5);
 
    Style *tableStyle = Style::create (&styleAttrs);
 

@@ -429,8 +429,6 @@ public:
    int display; // TODO: use DisplayType type
    Color * color = nullptr;
    Color * backgroundColor = nullptr;
-   int hBorderSpacing;
-   int vBorderSpacing;
    int wordSpacing;
    char x_lang[2]; /* Either x_lang[0] == x_lang[1] == 0 (no language
                       set), or x_lang contains the RFC 1766 country

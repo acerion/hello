@@ -295,8 +295,7 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
    collapseCellAttrs.borderWidth.top = 0;
    collapseCellAttrs.borderWidth.right = borderWidth;
    collapseCellAttrs.borderWidth.bottom = borderWidth;
-   collapseCellAttrs.hBorderSpacing = 0;
-   collapseCellAttrs.vBorderSpacing = 0;
+   ffiStyleAttrsSetCollapseCellAttrs(collapseCellAttrs.c_attrs.c_style_attrs_ref);
    dw::core::style::Style * collapseStyle = Style::create(&collapseCellAttrs);
    col_tb->setStyle (collapseStyle);
 
@@ -308,8 +307,6 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
       collapseTableAttrs.borderWidth.top = borderWidth;
       collapseTableAttrs.borderWidth.right = 0;
       collapseTableAttrs.borderWidth.bottom = 0;
-      collapseTableAttrs.hBorderSpacing = 0;
-      collapseTableAttrs.vBorderSpacing = 0;
       collapseTableAttrs.borderColor = collapseCellAttrs.borderColor;
 
       ffiStyleAttrsSetCollapseTableAttrs(collapseTableAttrs.c_attrs.c_style_attrs_ref, collapseCellAttrs.c_attrs.c_style_attrs_ref);

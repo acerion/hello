@@ -83,6 +83,7 @@ foreign export ccall "ffiStyleAttrsXImg" ffiStyleAttrsXImg :: CInt -> IO CInt
 foreign export ccall "ffiStyleAttrsBorderCollapse" ffiStyleAttrsBorderCollapse :: CInt -> IO CInt
 
 foreign export ccall "ffiStyleAttrsSetCollapseTableAttrs" ffiStyleAttrsSetCollapseTableAttrs :: CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleAttrsSetCollapseCellAttrs" ffiStyleAttrsSetCollapseCellAttrs :: CInt -> IO ()
 
 foreign export ccall "ffiStyleAttrsBorderStyleTop" ffiStyleAttrsBorderStyleTop :: CInt -> IO CInt
 foreign export ccall "ffiStyleAttrsBorderStyleRight" ffiStyleAttrsBorderStyleRight :: CInt -> IO CInt
@@ -107,6 +108,11 @@ foreign export ccall "ffiStyleAttrsBgPositionY" ffiStyleAttrsBgPositionY :: CInt
 
 foreign export ccall "ffiStyleAttrsSetBgPositionX" ffiStyleAttrsSetBgPositionX :: CInt -> Ptr FfiDwLength -> IO ()
 foreign export ccall "ffiStyleAttrsSetBgPositionY" ffiStyleAttrsSetBgPositionY :: CInt -> Ptr FfiDwLength -> IO ()
+
+foreign export ccall "ffiStyleAttrsHorizBorderSpacing" ffiStyleAttrsHorizBorderSpacing :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsVertBorderSpacing" ffiStyleAttrsVertBorderSpacing :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsSetHorizBorderSpacing" ffiStyleAttrsSetHorizBorderSpacing :: CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleAttrsSetVertBorderSpacing" ffiStyleAttrsSetVertBorderSpacing :: CInt -> CInt -> IO ()
 
 
 
@@ -223,7 +229,6 @@ ffiStyleAttrsSetCursor cRef cVal = do
 
 
 
-
 ffiStyleAttrsWhiteSpace :: CInt -> IO CInt
 ffiStyleAttrsWhiteSpace cRef = do
   let ref = fromIntegral cRef
@@ -298,6 +303,17 @@ ffiStyleAttrsSetCollapseTableAttrs cRefTable cRefCell = do
   attrsCell  <- globalStyleAttrsGet refCell
   let attrs = styleAttrsSetCollapseTableAttrs attrsTable attrsCell
   globalStyleAttrsUpdate refTable attrs
+  return ()
+
+
+
+
+ffiStyleAttrsSetCollapseCellAttrs :: CInt -> IO ()
+ffiStyleAttrsSetCollapseCellAttrs cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  let attrs' = styleAttrsSetCollapseCellAttrs attrs
+  globalStyleAttrsUpdate ref attrs'
   return ()
 
 
@@ -475,4 +491,47 @@ ffiStyleAttrsSetBgPositionY cRef ptrStructDwLength = do
   let sa' = sa { styleBgPositionY = len }
   globalStyleAttrsUpdate ref sa'
   return ()
+
+
+
+
+ffiStyleAttrsHorizBorderSpacing :: CInt -> IO CInt
+ffiStyleAttrsHorizBorderSpacing cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleHorizBorderSpacing $ attrs
+
+
+
+
+ffiStyleAttrsVertBorderSpacing :: CInt -> IO CInt
+ffiStyleAttrsVertBorderSpacing cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleVertBorderSpacing $ attrs
+
+
+
+
+ffiStyleAttrsSetHorizBorderSpacing :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetHorizBorderSpacing cRef cVal = do
+  let ref = fromIntegral cRef
+  let val = fromIntegral cVal
+  old <- globalStyleAttrsGet ref
+  let sa' = old { styleHorizBorderSpacing = val }
+  globalStyleAttrsUpdate ref sa'
+  return ()
+
+
+
+
+ffiStyleAttrsSetVertBorderSpacing :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetVertBorderSpacing cRef cVal = do
+  let ref = fromIntegral cRef
+  let val = fromIntegral cVal
+  old <- globalStyleAttrsGet ref
+  let sa' = old { styleVertBorderSpacing = val }
+  globalStyleAttrsUpdate ref sa'
+  return ()
+
 

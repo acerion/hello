@@ -54,8 +54,8 @@ int main(int argc, char **argv)
    styleAttrs.setBorderColor (Color::create (layout, 0xffffff));
    styleAttrs.color = Color::create (layout, 0x000000);
    styleAttrs.backgroundColor = Color::create (layout, 0xffffff);
-   styleAttrs.hBorderSpacing = 5;
-   styleAttrs.vBorderSpacing = 5;
+   ffiStyleAttrsSetHorizBorderSpacing(styleAttrs.c_attrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetVertBorderSpacing(styleAttrs.c_attrs.c_style_attrs_ref, 5);
 
    FontAttrs fontAttrs;
    fontAttrs.font_attrs.name = "Bitstream Charter";

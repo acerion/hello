@@ -185,8 +185,6 @@ typedef struct c_style_attrs_t {
         int c_color;
         int c_background_color;
 
-        int c_h_border_spacing;
-        int c_v_border_spacing;
         int c_word_spacing;
 
         char c_x_lang[3]; /* Either x_lang[0] == x_lang[1] == 0 (no language
@@ -227,6 +225,7 @@ int ffiStyleAttrsXImg(int ref);
 int ffiStyleAttrsBorderCollapse(int ref);
 
 void ffiStyleAttrsSetCollapseTableAttrs(int refTable, int refCell);
+void ffiStyleAttrsSetCollapseCellAttrs(int ref);
 
 int ffiStyleAttrsBorderStyleTop(int ref);
 int ffiStyleAttrsBorderStyleRight(int ref);
@@ -249,6 +248,10 @@ void ffiStyleAttrsBgPositionY(int ref, DwLength * len);
 void ffiStyleAttrsSetBgPositionX(int ref, DwLength * len);
 void ffiStyleAttrsSetBgPositionY(int ref, DwLength * len);
 
+int ffiStyleAttrsHorizBorderSpacing(int ref);
+int ffiStyleAttrsVertBorderSpacing(int ref);
+void ffiStyleAttrsSetHorizBorderSpacing(int ref, int val);
+void ffiStyleAttrsSetVertBorderSpacing(int ref, int val);
 
 
 typedef struct c_prefs_t {
