@@ -57,7 +57,7 @@ import Hello.Dw.Style
 import Hello.Dw.StyleAttrsGlobal
 
 import Hello.Ffi.Dw.FontAttrs
-import Hello.Ffi.Utils
+--import Hello.Ffi.Utils
 
 
 
@@ -330,7 +330,6 @@ data FfiStyleAttrs = FfiStyleAttrs
   , ptrStructStylePadding      :: Ptr FfiStylePadding
   , iColor                     :: CInt
   , iBackgroundColor           :: CInt
-  , ptrCharXLang               :: Ptr CChar -- buffer of specified size.
   } deriving (Show)
 
 
@@ -349,14 +348,13 @@ instance Storable FfiStyleAttrs where
     padding          <- #{peek c_style_attrs_t, c_padding}           ptr
     color              <- #{peek c_style_attrs_t, c_color}                ptr
     backgroundColor    <- #{peek c_style_attrs_t, c_background_color}     ptr
-    let xLang = (\hsc_ptr -> plusPtr hsc_ptr #{offset c_style_attrs_t, c_x_lang}) ptr
 
-    return (FfiStyleAttrs ref fontAttrs borderWidth borderColor margin padding color backgroundColor xLang)
-
+    return (FfiStyleAttrs ref fontAttrs borderWidth borderColor margin padding color backgroundColor)
 
 
 
-  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderWidth cBorderColor cMargin cPadding cColor cBackgroundColor _cXLang) = do
+
+  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderWidth cBorderColor cMargin cPadding cColor cBackgroundColor) = do
 
     #{poke c_style_attrs_t, c_style_attrs_ref} ptr cStyleAttrsRef
     #{poke c_style_attrs_t, c_font_attrs}      ptr cFontAttrs
@@ -366,7 +364,6 @@ instance Storable FfiStyleAttrs where
     #{poke c_style_attrs_t, c_padding}         ptr cPadding
     #{poke c_style_attrs_t, c_color}                ptr cColor
     #{poke c_style_attrs_t, c_background_color}     ptr cBackgroundColor
-    -- #{poke c_style_attrs_t, c_x_lang}               ptr cXLang -- Poking of this field is done in pokeStyleAttrs
 
 
 
@@ -380,8 +377,6 @@ peekStyleAttrs ptrStructStyleAttrs = do
   borderColor <- peekStyleBorderColor . ptrStructStyleBorderColor $ ffiAttrs
   margin      <- peekStyleMargin . ptrStructStyleMargin $ ffiAttrs
   padding     <- peekStylePadding . ptrStructStylePadding $ ffiAttrs
-
-  xLang  <- peekCharBuffer (ptrCharXLang ffiAttrs)
 
   gAttrs <- globalStyleAttrsGet . fromIntegral . iStyleAttrsRef $ ffiAttrs
 
@@ -421,7 +416,7 @@ peekStyleAttrs ptrStructStyleAttrs = do
     , styleVertBorderSpacing      = styleVertBorderSpacing gAttrs
     , styleWordSpacing            = styleWordSpacing gAttrs
     , styleXLink                  = styleXLink gAttrs
-    , styleXLang                  = xLang
+    , styleXLang                  = styleXLang gAttrs
     , styleXImg                   = styleXImg gAttrs
     , styleXTooltip               = styleXTooltip gAttrs
     }
@@ -461,14 +456,7 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let cColor          :: CInt = fromIntegral . styleColor $ attrs
   let cBackgroundColor :: CInt = fromIntegral . styleBackgroundColor $ attrs
 
-  let bufXLang :: Ptr CChar = ptrCharXLang ffiStyleAttrs
-  -- "((c_style_attrs_t *)0)->c_x_lang" is a C trick that happens to work with hsc2hs.
-  pokeCharBuffer bufXLang #{size ((c_style_attrs_t *)0)->c_x_lang} (styleXLang attrs)
-  -- Dummy arg. 'poke' function won't be poking a field in the struct - it
-  -- has been already done in two lines above.
-  let cXLang = nullPtr
-
-  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderWidth pBorderColor pMargin pPadding cColor cBackgroundColor cXLang
+  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderWidth pBorderColor pMargin pPadding cColor cBackgroundColor
 
 
 

@@ -128,8 +128,7 @@ int main(int argc, char **argv)
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
    styleMarginSetVal(&styleAttrs.margin, 5);
-   styleAttrs.x_lang[0] = 'e';
-   styleAttrs.x_lang[1] = 'n';
+   ffiStyleAttrsSetXLang(styleAttrs.c_attrs.c_style_attrs_ref, 'e', 'n');
 
    FontAttrs fontAttrs;
    fontAttrs.font_attrs.name = "Bitstream Charter";

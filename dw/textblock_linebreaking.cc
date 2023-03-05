@@ -757,9 +757,13 @@ int Textblock::considerHyphenation (int firstIndex, int breakPos)
 
 bool Textblock::isHyphenationCandidate (Word *word)
 {
-   //fprintf(stderr, "is hyphenation candidate: '%s'\n", word->style->x_lang);
+   char lang[2 + 1] = {};
+   ffiStyleAttrsXLang(word->style->c_attrs.c_style_attrs_ref, lang, (int) sizeof (lang));
+
+   //fprintf(stderr, "is hyphenation candidate: lang = '%s'\n", lang);
+
    return (word->flags & Word::CAN_BE_HYPHENATED) &&
-      word->style->x_lang[0] &&
+      lang[0] &&
       isBreakAllowed(word) &&
       word->content.type == core::Content::TEXT &&
       Hyphenator::isHyphenationCandidate (word->content.text);
@@ -865,8 +869,10 @@ void Textblock::correctLastWordExtremes ()
 int Textblock::hyphenateWord (int wordIndex)
 {
    Word *hyphenatedWord = words->getRef(wordIndex);
-   char lang[3] = { hyphenatedWord->style->x_lang[0], 
-                    hyphenatedWord->style->x_lang[1], 0 };
+
+   char lang[2 + 1] = {};
+   ffiStyleAttrsXLang(hyphenatedWord->style->c_attrs.c_style_attrs_ref, lang, (int) sizeof (lang));
+
    Hyphenator *hyphenator = Hyphenator::getHyphenator (lang);
    PRINTF ("[%p]    considering to hyphenate word %d, '%s', in language '%s'\n",
            this, wordIndex, words->getRef(wordIndex)->content.text, lang);

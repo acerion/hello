@@ -60,7 +60,6 @@ void StyleAttrs::initValues ()
 {
    ffiStyleAttrsInitValues(this->c_attrs.c_style_attrs_ref);
 
-   x_lang[0] = x_lang[1] = 0;
    textAlignChar = '.';
    backgroundColor = NULL;
    backgroundImage = NULL;
@@ -129,9 +128,8 @@ bool StyleAttrs::equals (object::Object *other) {
        borderColor.top == otherAttrs->borderColor.top &&
        borderColor.right == otherAttrs->borderColor.right &&
        borderColor.bottom == otherAttrs->borderColor.bottom &&
-       borderColor.left == otherAttrs->borderColor.left &&
-       x_lang[0] == otherAttrs->x_lang[0] &&
-       x_lang[1] == otherAttrs->x_lang[1]);
+       borderColor.left == otherAttrs->borderColor.left
+       );
 }
 
 int StyleAttrs::hashValue () {
@@ -149,8 +147,7 @@ int StyleAttrs::hashValue () {
       (intptr_t) borderColor.top +
       (intptr_t) borderColor.right +
       (intptr_t) borderColor.bottom +
-      (intptr_t) borderColor.left +
-      x_lang[0] + x_lang[1];
+      (intptr_t) borderColor.left;
 }
 
 int Style::totalRef = 0;
@@ -233,8 +230,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    borderWidth = attrs->borderWidth;
    padding = attrs->padding;
    borderColor = attrs->borderColor;
-   x_lang[0] = attrs->x_lang[0];
-   x_lang[1] = attrs->x_lang[1];
 }
 
 // ----------------------------------------------------------------------

@@ -167,18 +167,20 @@ pokeCharBuffer ptr text = pokeArray0 0 ptr cstring
 
 
 
+
 -- Write given ASCII text to pre-allocated char array of given size.
 --
 -- Function can be used to write to e.g. to something like this:
 --
--- char buf[10].
+-- char c_member_buf[10].
 --
 -- The size of the target array (including space for terminating NUL) is
--- passed as third argument. If the buffer is a member of struct, then the
--- size of the buffer can be calculated in 'peek' function with this
--- expression:
+-- passed as third argument. If the 'c_member_buf' buffer is a member of
+-- struct, then the size of the buffer can be calculated in 'peek' function
+-- with this expression:
 --
--- pokeCharBuffer buf #{size ((struct_type_t *)0)->buf} text
+-- let ffiBuf :: Ptr CChar = ...
+-- pokeCharBuffer ffiBuf #{size ((struct_type_t *)0)->c_member_buf} (text :: T.Text)
 --
 -- The function does not allocate memory for output buffer.
 --

@@ -211,10 +211,15 @@ data StyleAttrs = StyleAttrs
   , styleBgPositionY       :: DwLength -- "top" defined by "0%" etc. (see CSS spec)
 
   , styleXLink             :: Int
-  --Either x_lang[0] == x_lang[1] == 0 (no language set), or x_lang contains
-  --the RFC 1766 country code in lower case letters. (Only two letters
-  --allowed, currently.)
+
+  -- Either x_lang[0] == x_lang[1] == 0 (no language set), or x_lang contains
+  -- the RFC 1766 country code in lower case letters. (Only two letters
+  -- allowed, currently.).
+  -- TODO: come up with better data type? Maybe a tuple?
+  --
+  -- See also "is hyphenation candidate" debug in ./dw/textblock_linebreaking.cc
   , styleXLang             :: T.Text
+
   , styleXImg              :: Int
   , styleXTooltip          :: T.Text
 
@@ -287,6 +292,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleDisplay             = 1 -- DISPLAY_INLINE == 1
                              , styleWordSpacing         = 0
                              , styleXTooltip            = ""
+                             , styleXLang               = ""
                              }
 
 
@@ -318,6 +324,7 @@ styleAttrsEqual sa1 sa2 = and
                           , styleDisplay sa1 == styleDisplay sa2
                           , styleWordSpacing sa1 == styleWordSpacing sa2
                           , styleXTooltip sa1 == styleXTooltip sa2
+                          , styleXLang sa1 == styleXLang sa2
                           ]
 
 
@@ -350,6 +357,7 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + styleDisplay sa
                          + styleWordSpacing sa
                          -- + styleXTooltip sa -- TODO: re-enable
+                         -- + styleXLang sa -- TODO: re-enable
 
 
 
@@ -380,6 +388,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleDisplay            = styleDisplay from
                             , styleWordSpacing        = styleWordSpacing from
                             , styleXTooltip           = styleXTooltip from
+                            , styleXLang              = styleXLang from
                             }
 
 

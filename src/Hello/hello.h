@@ -183,11 +183,6 @@ typedef struct c_style_attrs_t {
 
         int c_color;
         int c_background_color;
-
-        char c_x_lang[3]; /* Either x_lang[0] == x_lang[1] == 0 (no language
-                             set), or x_lang contains the RFC 1766 country
-                             code in lower case letters. (Only two letters
-                             allowed, currently.) */
 } c_style_attrs_t;
 
 
@@ -257,6 +252,10 @@ int ffiStyleAttrsDisplay(int ref);
 int ffiStyleAttrsWordSpacing(int ref);
 
 char * ffiStyleAttrsXTooltip(int ref);
+
+void ffiStyleAttrsXLang(int ref, char * buf, int buf_size);
+// This function allows only setting of lang, but doesn't allow clearing it.
+void ffiStyleAttrsSetXLang(int ref, char first, char second);
 
 
 

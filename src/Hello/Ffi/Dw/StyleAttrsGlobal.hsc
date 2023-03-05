@@ -35,9 +35,12 @@ where
 
 import Prelude
 import Foreign.C.Types
+import Foreign.C.String -- castCCharToChar
 import Foreign
 
 --import Debug.Trace
+
+import qualified Data.Text as T
 
 import Hello.Dw.Style
 import Hello.Dw.StyleAttrsGlobal
@@ -120,6 +123,9 @@ foreign export ccall "ffiStyleAttrsDisplay" ffiStyleAttrsDisplay :: CInt -> IO C
 foreign export ccall "ffiStyleAttrsWordSpacing" ffiStyleAttrsWordSpacing :: CInt -> IO CInt
 
 foreign export ccall "ffiStyleAttrsXTooltip" ffiStyleAttrsXTooltip :: CInt -> IO (Ptr CChar)
+
+foreign export ccall "ffiStyleAttrsXLang" ffiStyleAttrsXLang :: CInt -> Ptr CChar -> CInt -> IO ()
+foreign export ccall "ffiStyleAttrsSetXLang" ffiStyleAttrsSetXLang :: CInt -> CChar -> CChar -> IO ()
 
 
 
@@ -568,4 +574,24 @@ ffiStyleAttrsXTooltip cRef = do
   attrs <- globalStyleAttrsGet ref
   allocAndPokeCString . styleXTooltip $ attrs
 
+
+
+
+ffiStyleAttrsXLang :: CInt -> Ptr CChar -> CInt -> IO ()
+ffiStyleAttrsXLang cRef ptrBufLang cBufSize = do
+  let ref     = fromIntegral cRef
+  let bufSize = fromIntegral cBufSize
+  attrs <- globalStyleAttrsGet ref
+  pokeCharBuffer ptrBufLang bufSize (styleXLang attrs)
+
+
+
+
+ffiStyleAttrsSetXLang :: CInt -> CChar -> CChar -> IO ()
+ffiStyleAttrsSetXLang cRef cChar1 cChar2 = do
+  let ref = fromIntegral cRef
+  old <- globalStyleAttrsGet ref
+  let sa' = old { styleXLang = T.pack [castCCharToChar cChar1, castCCharToChar cChar2] }
+  globalStyleAttrsUpdate ref sa'
+  return ()
 
