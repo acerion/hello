@@ -298,24 +298,6 @@ void a_Html_tag_set_align_attr(c_html_doctype_t * doctype, StyleNode * currentNo
       alignType = TEXT_ALIGN_CENTER;
    else if (dStrAsciiCasecmp (align, "justify") == 0)
       alignType = TEXT_ALIGN_JUSTIFY;
-#if 0
-   else if (dStrAsciiCasecmp (align, "char") == 0) {
-      /* TODO: Actually not supported for <p> etc. */
-      v.textAlign = TEXT_ALIGN_STRING;
-      if ((charattr = html_attribute_get_value(tag, tagsize, "char"))) {
-         if (charattr[0] == 0)
-            /* TODO: ALIGN=" ", and even ALIGN="&32;" will reult in
-             * an empty string (don't know whether the latter is
-             * correct, has to be clarified with the specs), so
-             * that for empty strings, " " is assumed. */
-            style_attrs.textAlignChar = ' ';
-         else
-            style_attrs.textAlignChar = charattr[0];
-      } else
-         /* TODO: Examine LANG attr of <html>. */
-         style_attrs.textAlignChar = '.';
-   }
-#endif
 
    cpp_styleEngineSetNonCssHintOfNodeEnum(currentNode, CSS_PROPERTY_TEXT_ALIGN, alignType);
 }

@@ -83,7 +83,6 @@ int main(int argc, char **argv)
    styleMarginSetVal(&styleAttrs.margin, 0);
    styleAttrs.backgroundColor = NULL;
    ffiStyleAttrsSetCursor(styleAttrs.c_attrs.c_style_attrs_ref, CURSOR_TEXT);
-   styleAttrs.textAlignChar = '.';
 
    Style *wordStyle = Style::create (&styleAttrs);
 

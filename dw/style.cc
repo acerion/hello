@@ -60,7 +60,6 @@ void StyleAttrs::initValues ()
 {
    ffiStyleAttrsInitValues(this->c_attrs.c_style_attrs_ref);
 
-   textAlignChar = '.';
    backgroundColor = NULL;
    backgroundImage = NULL;
    styleMarginSetVal(&this->margin, 0);
@@ -77,7 +76,6 @@ void StyleAttrs::resetValues ()
 {
    ffiStyleAttrsReset(this->c_attrs.c_style_attrs_ref);
 
-   textAlignChar = '.';
    backgroundColor = NULL;
    backgroundImage = NULL;
    styleMarginSetVal(&this->margin, 0);
@@ -114,7 +112,6 @@ bool StyleAttrs::equals (object::Object *other) {
        color == otherAttrs->color &&
        backgroundColor == otherAttrs->backgroundColor &&
        backgroundImage == otherAttrs->backgroundImage &&
-       textAlignChar == otherAttrs->textAlignChar &&
        styleMarginEquals(&this->margin, &otherAttrs->margin) &&
        borderWidthEquals(&this->borderWidth, &otherAttrs->borderWidth) &&
        stylePaddingEquals(&this->padding, &otherAttrs->padding) &&
@@ -132,7 +129,6 @@ int StyleAttrs::hashValue () {
       (intptr_t) color +
       (intptr_t) backgroundColor +
       (intptr_t) backgroundImage +
-      textAlignChar +
       styleMarginHashValue(&this->margin) +
       borderWidthHashValue(&this->borderWidth) +
       stylePaddingHashValue(&this->padding) +
@@ -215,7 +211,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    color = attrs->color;
    backgroundColor = attrs->backgroundColor;
    backgroundImage = attrs->backgroundImage;
-   textAlignChar = attrs->textAlignChar;
    margin = attrs->margin;
    borderWidth = attrs->borderWidth;
    padding = attrs->padding;

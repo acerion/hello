@@ -418,8 +418,6 @@ public:
 
    StyleImage *backgroundImage;
 
-   char textAlignChar; /* In future, strings will be supported. */
-
    c_border_width_t borderWidth;
    struct { Color *top = nullptr, *right = nullptr, *bottom = nullptr, *left = nullptr; } borderColor;
    c_style_margin_t margin;

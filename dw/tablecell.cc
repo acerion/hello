@@ -52,21 +52,6 @@ bool TableCell::wordWrap(int wordIndex, bool wrapAll)
 
    bool ret = Textblock::wordWrap (wordIndex, wrapAll);
 
-   if (charWordIndex == -1) {
-      word = words->getRef (wordIndex);
-      if (word->content.type == core::Content::TEXT) {
-         if ((p = strchr (word->content.text,
-                          word->style->textAlignChar))) {
-            charWordIndex = wordIndex;
-            charWordPos = p - word->content.text + 1;
-         } else if (word->style->textAlignChar == ' ' &&
-                    word->content.space) {
-            charWordIndex = wordIndex + 1;
-            charWordPos = 0;
-         }
-      }
-   }
-
    if (wordIndex == charWordIndex)
       updateValue ();
 
