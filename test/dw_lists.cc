@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   styleMarginSetVal(&styleAttrs.margin, 5);
+   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
 
    FontAttrs fontAttrs;
    fontAttrs.font_attrs.name = "Bitstream Charter";
@@ -69,13 +69,13 @@ int main(int argc, char **argv)
 
    widgetStyle->unref();
 
-   styleMarginSetVal(&styleAttrs.margin, 0);
+   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
    styleAttrs.backgroundColor = NULL;
    ffiStyleAttrsSetCursor(styleAttrs.c_attrs.c_style_attrs_ref, CURSOR_TEXT);
 
    Style *wordStyle = Style::create (&styleAttrs);
 
-   styleMarginSetVal(&styleAttrs.margin, 5);
+   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
    stylePaddingSetVal(&styleAttrs.padding, 5);
    styleAttrs.backgroundColor = Color::create (layout, 0xffff40);
    styleAttrs.setBorderColor (Color::create (layout, 0x000000));

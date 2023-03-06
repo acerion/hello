@@ -420,7 +420,6 @@ public:
 
    c_border_width_t borderWidth;
    struct { Color *top = nullptr, *right = nullptr, *bottom = nullptr, *left = nullptr; } borderColor;
-   c_style_margin_t margin;
    c_style_padding_t padding;
    Color * color = nullptr;
    Color * backgroundColor = nullptr;
@@ -436,19 +435,27 @@ public:
 
    inline int boxOffsetX ()
    {
+      c_style_margin_t margin = {};
+      ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
       return margin.left + borderWidth.left + padding.left;
    }
    inline int boxRestWidth ()
    {
+      c_style_margin_t margin = {};
+      ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
       return margin.right + borderWidth.right + padding.right;
    }
    inline int boxDiffWidth () { return boxOffsetX () + boxRestWidth (); }
    inline int boxOffsetY ()
    {
+      c_style_margin_t margin = {};
+      ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
       return margin.top + borderWidth.top + padding.top;
    }
    inline int boxRestHeight ()
    {
+      c_style_margin_t margin = {};
+      ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
       return margin.bottom + borderWidth.bottom + padding.bottom;
    }
    inline int boxDiffHeight () { return boxOffsetY () + boxRestHeight (); }

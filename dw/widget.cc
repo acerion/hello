@@ -414,16 +414,17 @@ void Widget::drawBox (View *view, style::Style *style, Rectangle *area,
    // does not define what here is called "reference area". To make it look
    // smoothly, the widget padding box is used.
 
+   c_style_margin_t margin = {};
+   ffiStyleAttrsMargin(style->c_attrs.c_style_attrs_ref, &margin);
+
    int xPad, yPad, widthPad, heightPad;
    getPaddingArea (&xPad, &yPad, &widthPad, &heightPad);
    style::drawBackground
       (view, layout, &canvasArea,
-       allocation.x + x + style->margin.left + style->borderWidth.left,
-       allocation.y + y + style->margin.top + style->borderWidth.top,
-       width - style->margin.left - style->borderWidth.left
-       - style->margin.right - style->borderWidth.right,
-       height - style->margin.top - style->borderWidth.top
-       - style->margin.bottom - style->borderWidth.bottom,
+       allocation.x + x + margin.left + style->borderWidth.left,
+       allocation.y + y + margin.top + style->borderWidth.top,
+       width -  margin.left - style->borderWidth.left - margin.right -  style->borderWidth.right,
+       height - margin.top -  style->borderWidth.top -  margin.bottom - style->borderWidth.bottom,
        xPad, yPad, widthPad, heightPad, style, inverse, false);
 }
 
@@ -602,12 +603,13 @@ void Widget::scrollTo (HPosition hpos, VPosition vpos,
 void Widget::getPaddingArea (int *xPad, int *yPad, int *widthPad,
                              int *heightPad)
 {
-   *xPad = allocation.x + style->margin.left + style->borderWidth.left;
-   *yPad = allocation.y + style->margin.top + style->borderWidth.top;
-   *widthPad = allocation.width - style->margin.left - style->borderWidth.left
-      - style->margin.right - style->borderWidth.right;
-   *heightPad = getHeight () -  style->margin.top - style->borderWidth.top
-      - style->margin.bottom - style->borderWidth.bottom;
+   c_style_margin_t margin = {};
+   ffiStyleAttrsMargin(style->c_attrs.c_style_attrs_ref, &margin);
+
+   *xPad = allocation.x + margin.left + style->borderWidth.left;
+   *yPad = allocation.y + margin.top + style->borderWidth.top;
+   *widthPad = allocation.width - margin.left - style->borderWidth.left - margin.right -  style->borderWidth.right;
+   *heightPad = getHeight () -    margin.top -  style->borderWidth.top -  margin.bottom - style->borderWidth.bottom;
 }
 
 void Widget::getExtremesImpl (Extremes *extremes)

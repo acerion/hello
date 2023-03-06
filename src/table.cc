@@ -287,10 +287,14 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
 {
    dw::core::style::Style * tableStyle = TopOfParsingStack(html)->table_context.table_widget->getStyle ();
    int borderWidth = html->styleEngine->getStyle (html->bw)->borderWidth.top;
-   int marginWidth = tableStyle->margin.top;
+
+   c_style_margin_t tableStyleMargin = {};
+   ffiStyleAttrsMargin(tableStyle->c_attrs.c_style_attrs_ref, &tableStyleMargin);
+   int marginWidth = tableStyleMargin.top;
+
 
    dw::core::style::StyleAttrs collapseCellAttrs = *(html->styleEngine->getStyle (html->bw));
-   styleMarginSetVal(&collapseCellAttrs.margin, 0);
+   ffiStyleAttrsSetMargin(collapseCellAttrs.c_attrs.c_style_attrs_ref, 0);
    collapseCellAttrs.borderWidth.left = 0;
    collapseCellAttrs.borderWidth.top = 0;
    collapseCellAttrs.borderWidth.right = borderWidth;
@@ -302,7 +306,7 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
    if (Html_table_get_border_model(html) != DILLO_HTML_TABLE_BORDER_COLLAPSE) {
       Html_table_set_border_model(html, DILLO_HTML_TABLE_BORDER_COLLAPSE);
       dw::core::style::StyleAttrs collapseTableAttrs = *tableStyle;
-      styleMarginSetVal(&collapseTableAttrs.margin, marginWidth);
+      ffiStyleAttrsSetMargin(collapseTableAttrs.c_attrs.c_style_attrs_ref, marginWidth);
       collapseTableAttrs.borderWidth.left = borderWidth;
       collapseTableAttrs.borderWidth.top = borderWidth;
       collapseTableAttrs.borderWidth.right = 0;
@@ -326,7 +330,7 @@ static void Html_set_separate_border_model(DilloHtml *html, Widget *col_tb)
 {
    dw::core::style::StyleAttrs separateCellAttrs = *(html->styleEngine->getStyle (html->bw));
    /* CSS2 17.5: Internal table elements do not have margins */
-   styleMarginSetVal(&separateCellAttrs.margin, 0);
+   ffiStyleAttrsSetMargin(separateCellAttrs.c_attrs.c_style_attrs_ref, 0);
    dw::core::style::Style * separateStyle = Style::create(&separateCellAttrs);
    col_tb->setStyle (separateStyle);
 }

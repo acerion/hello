@@ -62,7 +62,6 @@ void StyleAttrs::initValues ()
 
    backgroundColor = NULL;
    backgroundImage = NULL;
-   styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
@@ -78,7 +77,6 @@ void StyleAttrs::resetValues ()
 
    backgroundColor = NULL;
    backgroundImage = NULL;
-   styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
@@ -112,7 +110,6 @@ bool StyleAttrs::equals (object::Object *other) {
        color == otherAttrs->color &&
        backgroundColor == otherAttrs->backgroundColor &&
        backgroundImage == otherAttrs->backgroundImage &&
-       styleMarginEquals(&this->margin, &otherAttrs->margin) &&
        borderWidthEquals(&this->borderWidth, &otherAttrs->borderWidth) &&
        stylePaddingEquals(&this->padding, &otherAttrs->padding) &&
 
@@ -129,7 +126,6 @@ int StyleAttrs::hashValue () {
       (intptr_t) color +
       (intptr_t) backgroundColor +
       (intptr_t) backgroundImage +
-      styleMarginHashValue(&this->margin) +
       borderWidthHashValue(&this->borderWidth) +
       stylePaddingHashValue(&this->padding) +
       (intptr_t) borderColor.top +
@@ -211,7 +207,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    color = attrs->color;
    backgroundColor = attrs->backgroundColor;
    backgroundImage = attrs->backgroundImage;
-   margin = attrs->margin;
    borderWidth = attrs->borderWidth;
    padding = attrs->padding;
    borderColor = attrs->borderColor;
@@ -1001,10 +996,13 @@ void drawBorder (View *view, Layout *layout, Rectangle *area,
    int xb1, yb1, xb2, yb2;
 
    // top left and bottom right point of outer border boundary
-   xb1 = x + style->margin.left;
-   yb1 = y + style->margin.top;
-   xb2 = x + (width > 0 ? width - 1 : 0) - style->margin.right;
-   yb2 = y + (height > 0 ? height - 1 : 0) - style->margin.bottom;
+   c_style_margin_t margin = {};
+   ffiStyleAttrsMargin(style->c_attrs.c_style_attrs_ref, &margin);
+
+   xb1 = x + margin.left;
+   yb1 = y + margin.top;
+   xb2 = x + (width > 0 ? width - 1 : 0) - margin.right;
+   yb2 = y + (height > 0 ? height - 1 : 0) - margin.bottom;
 
    /*
       // top left and bottom right point of inner border boundary

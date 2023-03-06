@@ -107,10 +107,6 @@ typedef struct c_style_margin_t {
         int left;
 } c_style_margin_t;
 
-inline void styleMarginSetVal(c_style_margin_t * m, int val)
-{
-        m->top = m->right = m->bottom = m->left = val;
-}
 inline int styleMarginHashValue(c_style_margin_t * m)
 {
         return m->top + m->right + m->bottom + m->left;
@@ -178,7 +174,6 @@ typedef struct c_style_attrs_t {
 
         c_border_width_t * c_border_width;
         c_border_color_t * c_border_color;
-        c_style_margin_t * c_margin;
         c_style_padding_t * c_padding;
 
         int c_color;
@@ -261,6 +256,10 @@ int ffiStyleAttrsBgRepeat(int ref);
 void ffiStyleAttrsSetBgRepeat(int ref, int val);
 
 int ffiStyleAttrsBgAttachment(int ref);
+
+void ffiStyleAttrsMargin(int ref, c_style_margin_t * margin);
+void ffiStyleAttrsSetMargin(int ref, int val);
+void ffiStyleAttrsSetMargin2(int ref, c_style_margin_t * margin);
 
 
 

@@ -140,7 +140,7 @@ data StyleMargin = StyleMargin
   , styleMarginRight  :: Int
   , styleMarginBottom :: Int
   , styleMarginLeft   :: Int
-  } deriving (Show)
+  } deriving (Eq, Show)
 
 defaultStyleMargin :: StyleMargin
 defaultStyleMargin = StyleMargin
@@ -299,6 +299,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleWordSpacing         = 0
                              , styleXTooltip            = ""
                              , styleXLang               = ""
+                             , styleMargin              = defaultStyleMargin
                              }
 
 
@@ -333,6 +334,7 @@ styleAttrsEqual sa1 sa2 = and
                           , styleXLang sa1 == styleXLang sa2
                           , styleBgRepeat sa1 == styleBgRepeat sa2
                           , styleBgAttachment sa1 == styleBgAttachment sa2
+                          , styleMargin sa1 == styleMargin sa2
                           ]
 
 
@@ -368,6 +370,10 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + styleWordSpacing sa
                          -- + styleXTooltip sa -- TODO: re-enable
                          -- + styleXLang sa -- TODO: re-enable
+                         + (styleMarginTop    . styleMargin $ sa)
+                         + (styleMarginRight  . styleMargin $ sa)
+                         + (styleMarginBottom . styleMargin $ sa)
+                         + (styleMarginLeft   . styleMargin $ sa)
 
 
 
@@ -401,6 +407,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleXTooltip           = styleXTooltip from
                             , styleXLang              = styleXLang from
                             , styleBgAttachment       = styleBgAttachment from
+                            , styleMargin             = styleMargin from
                             }
 
 
@@ -420,6 +427,7 @@ styleAttrsReset attrs = attrs
   , styleHorizBorderSpacing  = 0
   , styleVertBorderSpacing   = 0
   , styleDisplay             = 1 -- DISPLAY_INLINE == 1
+  , styleMargin              = defaultStyleMargin
   }
 
 

@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   styleMarginSetVal(&styleAttrs.margin, 5);
+   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
    ffiStyleAttrsSetXLang(styleAttrs.c_attrs.c_style_attrs_ref, 'e', 'n');
 
    FontAttrs fontAttrs;
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 
    widgetStyle->unref();
 
-   styleMarginSetVal(&styleAttrs.margin, 0);
+   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
    styleAttrs.backgroundColor = NULL;
    styleAttrs.backgroundImage = NULL;
 

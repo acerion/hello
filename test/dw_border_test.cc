@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   styleMarginSetVal(&styleAttrs.margin, 5);
+   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
    borderWidthSetVal(&styleAttrs.borderWidth, 2);
    styleAttrs.setBorderColor (Color::create (layout, 0xffffff));
    ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_INSET);
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
    Style *widgetStyle1 = Style::create (&styleAttrs);
 
    styleAttrs.backgroundColor = Color::create (layout, 0xffff80);
-   styleMarginSetVal(&styleAttrs.margin, 0);
+   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
    borderWidthSetVal(&styleAttrs.borderWidth, 1);
    styleAttrs.setBorderColor (Color::create (layout, 0x4040ff));
    ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_SOLID);

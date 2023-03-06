@@ -45,6 +45,7 @@ import qualified Data.Text as T
 import Hello.Dw.Style
 import Hello.Dw.StyleAttrsGlobal
 import Hello.Ffi.Dw.DwLength
+import Hello.Ffi.Dw.Style
 import Hello.Ffi.Utils
 
 
@@ -131,6 +132,10 @@ foreign export ccall "ffiStyleAttrsBgRepeat" ffiStyleAttrsBgRepeat :: CInt -> IO
 foreign export ccall "ffiStyleAttrsSetBgRepeat" ffiStyleAttrsSetBgRepeat :: CInt -> CInt -> IO ()
 
 foreign export ccall "ffiStyleAttrsBgAttachment" ffiStyleAttrsBgAttachment :: CInt -> IO CInt
+
+foreign export ccall "ffiStyleAttrsMargin" ffiStyleAttrsMargin :: CInt -> Ptr FfiStyleMargin -> IO ()
+foreign export ccall "ffiStyleAttrsSetMargin" ffiStyleAttrsSetMargin :: CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleAttrsSetMargin2" ffiStyleAttrsSetMargin2 :: CInt -> Ptr FfiStyleMargin -> IO ()
 
 
 
@@ -632,4 +637,41 @@ ffiStyleAttrsBgAttachment cRef = do
 
 
 
+
+ffiStyleAttrsMargin :: CInt -> Ptr FfiStyleMargin -> IO ()
+ffiStyleAttrsMargin cRef ptrStruct = do
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
+  pokeStyleMargin (styleMargin attrs) ptrStruct
+  return ()
+
+
+
+
+ffiStyleAttrsSetMargin :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetMargin cRef cVal = do
+  let ref = fromIntegral cRef
+  let val = fromIntegral cVal
+  attrs <- globalStyleAttrsGet ref
+  let attrs' = attrs { styleMargin = StyleMargin
+                       {
+                         styleMarginTop    = val
+                       , styleMarginRight  = val
+                       , styleMarginBottom = val
+                       , styleMarginLeft   = val
+                       }
+                     }
+  globalStyleAttrsUpdate ref attrs'
+  return ()
+
+
+
+
+ffiStyleAttrsSetMargin2 :: CInt -> Ptr FfiStyleMargin -> IO ()
+ffiStyleAttrsSetMargin2 cRef ptrStruct = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  margin <- peekStyleMargin ptrStruct
+  let attrs' = attrs { styleMargin = margin }
+  globalStyleAttrsUpdate ref attrs'
+  return ()
 

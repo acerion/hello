@@ -104,17 +104,19 @@ int main(int argc, char **argv)
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
    styleAttrs.font = dw::core::style::Font::create (layout, &fontAttrs);
-   styleMarginSetVal(&styleAttrs.margin, 10);
+   c_style_margin_t margin = { .top = 10, .right = 10, .bottom = 10, .left = 10 };
+   ffiStyleAttrsSetMargin2(styleAttrs.c_attrs.c_style_attrs_ref, &margin);
    styleAttrs.color = Color::create (layout, 0x000000);
    styleAttrs.backgroundColor = Color::create (layout, 0xffffff);
    Style *topWidgetStyle = Style::create (&styleAttrs);
 
-   styleMarginSetVal(&styleAttrs.margin, 0);
-   styleAttrs.margin.left = 30;
+   margin = { .top = 0, .right = 0, .bottom = 0, .left = 30 };
+   ffiStyleAttrsSetMargin2(styleAttrs.c_attrs.c_style_attrs_ref, &margin);
    styleAttrs.backgroundColor = NULL;
    Style *widgetStyle = Style::create (&styleAttrs);
 
-   styleAttrs.margin.left = 0;
+   margin.left = 0;
+   ffiStyleAttrsSetMargin2(styleAttrs.c_attrs.c_style_attrs_ref, &margin);
    Style *wordStyle = Style::create (&styleAttrs);
 
    Textblock *textblock = new Textblock (false);

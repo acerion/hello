@@ -466,18 +466,19 @@ void Textblock::sizeAllocateImpl (core::Allocation *allocation)
                childAllocation.y = line->top + allocation->y;
             */
 
+            c_style_margin_t margin = {};
+            ffiStyleAttrsMargin(word->content.widget->getStyle()->c_attrs.c_style_attrs_ref, &margin);
+
             /* align=bottom (base line) */
             /* Commented lines break the n2 and n3 test cases at
              * http://www.dillo.org/test/img/ */
             childAllocation.y =
                lineYOffsetCanvasAllocation (line, allocation)
                + (line->boxAscent - word->size.ascent)
-               - word->content.widget->getStyle()->margin.top;
+               - margin.top;
             childAllocation.width = word->size.width;
-            childAllocation.ascent = word->size.ascent
-               + word->content.widget->getStyle()->margin.top;
-            childAllocation.descent = word->size.descent
-               + word->content.widget->getStyle()->margin.bottom;
+            childAllocation.ascent = word->size.ascent + margin.top;
+            childAllocation.descent = word->size.descent + margin.bottom;
 
             oldChildAllocation = word->content.widget->getAllocation();
 
@@ -940,9 +941,12 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
       }
    }
 
+   c_style_margin_t margin = {};
+   ffiStyleAttrsMargin(wstyle->c_attrs.c_style_attrs_ref, &margin);
+
    /* ascent and descent in words do not contain margins. */
-   size->ascent -= wstyle->margin.top;
-   size->descent -= wstyle->margin.bottom;
+   size->ascent -= margin.top;
+   size->descent -= margin.bottom;
 }
 
 /*

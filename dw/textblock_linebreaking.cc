@@ -993,25 +993,30 @@ void Textblock::accumulateWordForLine (int lineIndex, int wordIndex)
    if (word->content.type == core::Content::WIDGET) {
       int collapseMarginTop = 0;
 
+      c_style_margin_t margin = {};
+      ffiStyleAttrsMargin(word->content.widget->getStyle()->c_attrs.c_style_attrs_ref, &margin);
+
       line->marginDescent =
-         misc::max (line->marginDescent,
-                    word->size.descent +
-                    word->content.widget->getStyle()->margin.bottom);
+         misc::max (line->marginDescent, word->size.descent + margin.bottom);
 
       if (lines->size () == 1 &&
           word->content.widget->blockLevel () &&
           getStyle ()->borderWidth.top == 0 &&
           getStyle ()->padding.top == 0) {
+
+         c_style_margin_t margin2 = {};
+         ffiStyleAttrsMargin(getStyle ()->c_attrs.c_style_attrs_ref, &margin2);
+
          // collapse top margins of parent element and its first child
          // see: http://www.w3.org/TR/CSS21/box.html#collapsing-margins
-         collapseMarginTop = getStyle ()->margin.top;
+         collapseMarginTop = margin2.top;
       }
 
       line->boxAscent =
             misc::max (line->boxAscent,
                        word->size.ascent,
                        word->size.ascent
-                       + word->content.widget->getStyle()->margin.top
+                       + margin.top
                        - collapseMarginTop);
 
       word->content.widget->parentRef = lineIndex;
