@@ -288,8 +288,8 @@ dw::core::style::StyleImage *StyleEngine::getBackgroundImage
       StyleNode *n = &styleNodesStack[i];
 
       if (n->style && n->style->backgroundImage) {
-         *bgRepeat     = n->style->backgroundRepeat;
-         *bgAttachment = n->style->backgroundAttachment;
+         *bgRepeat     = (BackgroundRepeat) ffiStyleAttrsBgRepeat(n->style->c_attrs.c_style_attrs_ref);
+         *bgAttachment = (BackgroundAttachment) ffiStyleAttrsBgAttachment(n->style->c_attrs.c_style_attrs_ref);
          ffiStyleAttrsBgPositionX(n->style->c_attrs.c_style_attrs_ref, bgPositionX);
          ffiStyleAttrsBgPositionY(n->style->c_attrs.c_style_attrs_ref, bgPositionY);
          return n->style->backgroundImage;
@@ -337,8 +337,6 @@ void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
    if (parentNode->inheritBackgroundColor) {
       attrs->backgroundColor      = parentNode->style->backgroundColor;
       attrs->backgroundImage      = parentNode->style->backgroundImage;
-      attrs->backgroundRepeat     = parentNode->style->backgroundRepeat;
-      attrs->backgroundAttachment = parentNode->style->backgroundAttachment;
 
       // NOTE: if parentNode->inheritBackgroundColor is false, parentNode->style is NULL.
       ffiStyleEnginePreprocessAttrsInheritBackground(attrs->c_attrs.c_style_attrs_ref, parentNode->style->c_attrs.c_style_attrs_ref);
@@ -670,8 +668,6 @@ Style * StyleEngine::makeWordStyle(BrowserWindow *bw) {
    if (node->inheritBackgroundColor) {
       attrs.backgroundColor      = getStyle (bw)->backgroundColor;
       attrs.backgroundImage      = getStyle (bw)->backgroundImage;
-      attrs.backgroundRepeat     = getStyle (bw)->backgroundRepeat;
-      attrs.backgroundAttachment = getStyle (bw)->backgroundAttachment;
       ffiStyleEngineMakeWordStyleInheritBackground(attrs.c_attrs.c_style_attrs_ref, getStyle(bw)->c_attrs.c_style_attrs_ref);
    }
 

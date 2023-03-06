@@ -127,6 +127,11 @@ foreign export ccall "ffiStyleAttrsXTooltip" ffiStyleAttrsXTooltip :: CInt -> IO
 foreign export ccall "ffiStyleAttrsXLang" ffiStyleAttrsXLang :: CInt -> Ptr CChar -> CInt -> IO ()
 foreign export ccall "ffiStyleAttrsSetXLang" ffiStyleAttrsSetXLang :: CInt -> CChar -> CChar -> IO ()
 
+foreign export ccall "ffiStyleAttrsBgRepeat" ffiStyleAttrsBgRepeat :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsSetBgRepeat" ffiStyleAttrsSetBgRepeat :: CInt -> CInt -> IO ()
+
+foreign export ccall "ffiStyleAttrsBgAttachment" ffiStyleAttrsBgAttachment :: CInt -> IO CInt
+
 
 
 
@@ -594,4 +599,37 @@ ffiStyleAttrsSetXLang cRef cChar1 cChar2 = do
   let sa' = old { styleXLang = T.pack [castCCharToChar cChar1, castCCharToChar cChar2] }
   globalStyleAttrsUpdate ref sa'
   return ()
+
+
+
+
+ffiStyleAttrsBgRepeat :: CInt -> IO CInt
+ffiStyleAttrsBgRepeat cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleBgRepeat $ attrs
+
+
+
+
+ffiStyleAttrsSetBgRepeat :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetBgRepeat cRef cVal = do
+  let ref = fromIntegral cRef
+  let val = fromIntegral cVal
+  old <- globalStyleAttrsGet ref
+  let sa' = old { styleBgRepeat = val }
+  globalStyleAttrsUpdate ref sa'
+  return ()
+
+
+
+
+ffiStyleAttrsBgAttachment :: CInt -> IO CInt
+ffiStyleAttrsBgAttachment cRef = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  return . fromIntegral . styleBgAttachment $ attrs
+
+
+
 

@@ -257,6 +257,11 @@ void ffiStyleAttrsXLang(int ref, char * buf, int buf_size);
 // This function allows only setting of lang, but doesn't allow clearing it.
 void ffiStyleAttrsSetXLang(int ref, char first, char second);
 
+int ffiStyleAttrsBgRepeat(int ref);
+void ffiStyleAttrsSetBgRepeat(int ref, int val);
+
+int ffiStyleAttrsBgAttachment(int ref);
+
 
 
 

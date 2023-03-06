@@ -951,6 +951,8 @@ styleEnginePreprocessAttrsInheritBackground to from =
   to { styleVerticalAlign = styleVerticalAlign from
      , styleBgPositionX   = styleBgPositionX from
      , styleBgPositionY   = styleBgPositionY from
+     , styleBgRepeat      = styleBgRepeat from
+     , styleBgAttachment  = styleBgAttachment from
      }
 
 
@@ -960,6 +962,8 @@ styleEngineMakeWordStyleInheritBackground :: StyleAttrs -> StyleAttrs -> StyleAt
 styleEngineMakeWordStyleInheritBackground to from =
   to { styleBgPositionX   = styleBgPositionX from
      , styleBgPositionY   = styleBgPositionY from
+     , styleBgRepeat      = styleBgRepeat from
+     , styleBgAttachment  = styleBgAttachment from
      }
 
 

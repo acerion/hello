@@ -158,7 +158,7 @@ int main(int argc, char **argv)
 
    image2 = styleAttrs.backgroundImage = StyleImage::create ();
    image2->connectDeletion (&isdr);
-   styleAttrs.backgroundRepeat = BACKGROUND_REPEAT;
+   ffiStyleAttrsSetBgRepeat(styleAttrs.c_attrs.c_style_attrs_ref, BACKGROUND_REPEAT);
 
    {
       DwLength bgX = {};

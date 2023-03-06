@@ -63,8 +63,6 @@ void StyleAttrs::initValues ()
    textAlignChar = '.';
    backgroundColor = NULL;
    backgroundImage = NULL;
-   backgroundRepeat = BACKGROUND_REPEAT;
-   backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
    styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
@@ -82,8 +80,6 @@ void StyleAttrs::resetValues ()
    textAlignChar = '.';
    backgroundColor = NULL;
    backgroundImage = NULL;
-   backgroundRepeat = BACKGROUND_REPEAT;
-   backgroundAttachment = BACKGROUND_ATTACHMENT_SCROLL;
    styleMarginSetVal(&this->margin, 0);
    borderWidthSetVal(&this->borderWidth, 0);
    stylePaddingSetVal(&padding, 0);
@@ -118,8 +114,6 @@ bool StyleAttrs::equals (object::Object *other) {
        color == otherAttrs->color &&
        backgroundColor == otherAttrs->backgroundColor &&
        backgroundImage == otherAttrs->backgroundImage &&
-       backgroundRepeat == otherAttrs->backgroundRepeat &&
-       backgroundAttachment == otherAttrs->backgroundAttachment &&
        textAlignChar == otherAttrs->textAlignChar &&
        styleMarginEquals(&this->margin, &otherAttrs->margin) &&
        borderWidthEquals(&this->borderWidth, &otherAttrs->borderWidth) &&
@@ -138,8 +132,6 @@ int StyleAttrs::hashValue () {
       (intptr_t) color +
       (intptr_t) backgroundColor +
       (intptr_t) backgroundImage +
-      backgroundRepeat +
-      backgroundAttachment +
       textAlignChar +
       styleMarginHashValue(&this->margin) +
       borderWidthHashValue(&this->borderWidth) +
@@ -223,8 +215,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    color = attrs->color;
    backgroundColor = attrs->backgroundColor;
    backgroundImage = attrs->backgroundImage;
-   backgroundRepeat = attrs->backgroundRepeat;
-   backgroundAttachment = attrs->backgroundAttachment;
    textAlignChar = attrs->textAlignChar;
    margin = attrs->margin;
    borderWidth = attrs->borderWidth;
@@ -563,14 +553,14 @@ StyleImage *StyleImage::ExternalWidgetImgRenderer::getBackgroundImage ()
 BackgroundRepeat StyleImage::ExternalWidgetImgRenderer::getBackgroundRepeat ()
 {
    Style *style = getStyle ();
-   return style ? style->backgroundRepeat : BACKGROUND_REPEAT;
+   return style ? (BackgroundRepeat) ffiStyleAttrsBgRepeat(style->c_attrs.c_style_attrs_ref) : BACKGROUND_REPEAT;
 }
 
 BackgroundAttachment
    StyleImage::ExternalWidgetImgRenderer::getBackgroundAttachment ()
 {
    Style *style = getStyle ();
-   return style ? style->backgroundAttachment : BACKGROUND_ATTACHMENT_SCROLL;
+   return style ? (BackgroundAttachment) ffiStyleAttrsBgAttachment(style->c_attrs.c_style_attrs_ref) : BACKGROUND_ATTACHMENT_SCROLL;
 }
 
 DwLength StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionX ()
@@ -1110,8 +1100,8 @@ void drawBackground (View *view, Layout *layout, Rectangle *area,
             ffiStyleAttrsBgPositionX(style->c_attrs.c_style_attrs_ref, &bgX);
             ffiStyleAttrsBgPositionY(style->c_attrs.c_style_attrs_ref, &bgY);
             drawBackgroundImage (view, style->backgroundImage,
-                                 style->backgroundRepeat,
-                                 style->backgroundAttachment,
+                                 (BackgroundRepeat) ffiStyleAttrsBgRepeat(style->c_attrs.c_style_attrs_ref),
+                                 (BackgroundAttachment) ffiStyleAttrsBgAttachment(style->c_attrs.c_style_attrs_ref),
                                  bgX, bgY,
                                  intersection.x, intersection.y,
                                  intersection.width, intersection.height,

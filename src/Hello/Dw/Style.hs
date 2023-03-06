@@ -209,6 +209,8 @@ data StyleAttrs = StyleAttrs
 
   , styleBgPositionX       :: DwLength -- "left" defined by "0%" etc. (see CSS spec)
   , styleBgPositionY       :: DwLength -- "top" defined by "0%" etc. (see CSS spec)
+  , styleBgRepeat          :: Int -- TODO: use BackgroundRepeat
+  , styleBgAttachment      :: Int -- TODO: use BackgroundAttachment
 
   , styleXLink             :: Int
 
@@ -259,6 +261,8 @@ defaultStyleAttrs = StyleAttrs
   , styleWordSpacing       = 0
   , styleBgPositionX       = createPercentageDwLength 0
   , styleBgPositionY       = createPercentageDwLength 0
+  , styleBgRepeat          = 0 -- BACKGROUND_REPEAT == 0
+  , styleBgAttachment      = 0 -- BACKGROUND_ATTACHMENT_SCROLL == 0
 
   , styleXLink             = -1
   , styleXLang             = ""
@@ -287,6 +291,8 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleVerticalAlign  = 3 -- VALIGN_BASELINE == 3
                              , styleBgPositionX    = createPercentageDwLength 0
                              , styleBgPositionY    = createPercentageDwLength 0
+                             , styleBgRepeat       = 0 -- BACKGROUND_REPEAT == 0
+                             , styleBgAttachment   = 0 -- BACKGROUND_ATTACHMENT_SCROLL == 0
                              , styleHorizBorderSpacing  = 0
                              , styleVertBorderSpacing   = 0
                              , styleDisplay             = 1 -- DISPLAY_INLINE == 1
@@ -325,6 +331,8 @@ styleAttrsEqual sa1 sa2 = and
                           , styleWordSpacing sa1 == styleWordSpacing sa2
                           , styleXTooltip sa1 == styleXTooltip sa2
                           , styleXLang sa1 == styleXLang sa2
+                          , styleBgRepeat sa1 == styleBgRepeat sa2
+                          , styleBgAttachment sa1 == styleBgAttachment sa2
                           ]
 
 
@@ -352,6 +360,8 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + styleVerticalAlign sa
                          -- + styleBgPositionX sa -- TODO: re-enable
                          -- + styleBgPositionY sa -- TODO: re-enable
+                         + styleBgRepeat sa
+                         + styleBgAttachment sa
                          + styleHorizBorderSpacing sa
                          + styleVertBorderSpacing sa
                          + styleDisplay sa
@@ -383,12 +393,14 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleVerticalAlign  = styleVerticalAlign from
                             , styleBgPositionX    = styleBgPositionX from
                             , styleBgPositionY    = styleBgPositionY from
+                            , styleBgRepeat       = styleBgRepeat from
                             , styleHorizBorderSpacing = styleHorizBorderSpacing from
                             , styleVertBorderSpacing  = styleVertBorderSpacing from
                             , styleDisplay            = styleDisplay from
                             , styleWordSpacing        = styleWordSpacing from
                             , styleXTooltip           = styleXTooltip from
                             , styleXLang              = styleXLang from
+                            , styleBgAttachment       = styleBgAttachment from
                             }
 
 
@@ -403,6 +415,8 @@ styleAttrsReset attrs = attrs
   , styleVerticalAlign  = 3 -- VALIGN_BASELINE == 3
   , styleBgPositionX    = createPercentageDwLength 0
   , styleBgPositionY    = createPercentageDwLength 0
+  , styleBgRepeat       = 0 -- BACKGROUND_REPEAT == 0
+  , styleBgAttachment   = 0 -- BACKGROUND_ATTACHMENT_SCROLL == 0
   , styleHorizBorderSpacing  = 0
   , styleVertBorderSpacing   = 0
   , styleDisplay             = 1 -- DISPLAY_INLINE == 1

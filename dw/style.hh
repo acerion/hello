@@ -417,8 +417,6 @@ public:
    c_style_attrs_t c_attrs {};
 
    StyleImage *backgroundImage;
-   BackgroundRepeat backgroundRepeat;
-   BackgroundAttachment backgroundAttachment;
 
    char textAlignChar; /* In future, strings will be supported. */
 
