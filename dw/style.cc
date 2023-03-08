@@ -63,7 +63,6 @@ void StyleAttrs::initValues ()
    backgroundColor = NULL;
    backgroundImage = NULL;
    borderWidthSetVal(&this->borderWidth, 0);
-   stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
 }
 
@@ -78,7 +77,6 @@ void StyleAttrs::resetValues ()
    backgroundColor = NULL;
    backgroundImage = NULL;
    borderWidthSetVal(&this->borderWidth, 0);
-   stylePaddingSetVal(&padding, 0);
    setBorderColor (NULL);
 }
 
@@ -111,7 +109,6 @@ bool StyleAttrs::equals (object::Object *other) {
        backgroundColor == otherAttrs->backgroundColor &&
        backgroundImage == otherAttrs->backgroundImage &&
        borderWidthEquals(&this->borderWidth, &otherAttrs->borderWidth) &&
-       stylePaddingEquals(&this->padding, &otherAttrs->padding) &&
 
        borderColor.top == otherAttrs->borderColor.top &&
        borderColor.right == otherAttrs->borderColor.right &&
@@ -127,7 +124,6 @@ int StyleAttrs::hashValue () {
       (intptr_t) backgroundColor +
       (intptr_t) backgroundImage +
       borderWidthHashValue(&this->borderWidth) +
-      stylePaddingHashValue(&this->padding) +
       (intptr_t) borderColor.top +
       (intptr_t) borderColor.right +
       (intptr_t) borderColor.bottom +
@@ -208,7 +204,6 @@ void Style::copyAttrs (StyleAttrs *attrs)
    backgroundColor = attrs->backgroundColor;
    backgroundImage = attrs->backgroundImage;
    borderWidth = attrs->borderWidth;
-   padding = attrs->padding;
    borderColor = attrs->borderColor;
 }
 

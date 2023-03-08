@@ -326,7 +326,6 @@ data FfiStyleAttrs = FfiStyleAttrs
   , ptrStructFontAttrs         :: Ptr FfiFontAttrs
   , ptrStructStyleBorderWidth  :: Ptr FfiStyleBorderWidth
   , ptrStructStyleBorderColor  :: Ptr FfiStyleBorderColor
-  , ptrStructStylePadding      :: Ptr FfiStylePadding
   , iColor                     :: CInt
   , iBackgroundColor           :: CInt
   } deriving (Show)
@@ -343,22 +342,20 @@ instance Storable FfiStyleAttrs where
     fontAttrs        <- #{peek c_style_attrs_t, c_font_attrs}        ptr
     borderWidth      <- #{peek c_style_attrs_t, c_border_width}      ptr
     borderColor      <- #{peek c_style_attrs_t, c_border_color}      ptr
-    padding          <- #{peek c_style_attrs_t, c_padding}           ptr
     color              <- #{peek c_style_attrs_t, c_color}                ptr
     backgroundColor    <- #{peek c_style_attrs_t, c_background_color}     ptr
 
-    return (FfiStyleAttrs ref fontAttrs borderWidth borderColor padding color backgroundColor)
+    return (FfiStyleAttrs ref fontAttrs borderWidth borderColor color backgroundColor)
 
 
 
 
-  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderWidth cBorderColor cPadding cColor cBackgroundColor) = do
+  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderWidth cBorderColor cColor cBackgroundColor) = do
 
     #{poke c_style_attrs_t, c_style_attrs_ref} ptr cStyleAttrsRef
     #{poke c_style_attrs_t, c_font_attrs}      ptr cFontAttrs
     #{poke c_style_attrs_t, c_border_width}    ptr cBorderWidth
     #{poke c_style_attrs_t, c_border_color}    ptr cBorderColor
-    #{poke c_style_attrs_t, c_padding}         ptr cPadding
     #{poke c_style_attrs_t, c_color}                ptr cColor
     #{poke c_style_attrs_t, c_background_color}     ptr cBackgroundColor
 
@@ -372,7 +369,6 @@ peekStyleAttrs ptrStructStyleAttrs = do
   fontAttrs   <- peekFontAttrs . ptrStructFontAttrs $ ffiAttrs
   borderWidth <- peekStyleBorderWidth . ptrStructStyleBorderWidth $ ffiAttrs
   borderColor <- peekStyleBorderColor . ptrStructStyleBorderColor $ ffiAttrs
-  padding     <- peekStylePadding . ptrStructStylePadding $ ffiAttrs
 
   gAttrs <- globalStyleAttrsGet . fromIntegral . iStyleAttrsRef $ ffiAttrs
 
@@ -384,7 +380,7 @@ peekStyleAttrs ptrStructStyleAttrs = do
     , styleBorderWidth = borderWidth
     , styleBorderColor = borderColor
     , styleMargin      = styleMargin gAttrs
-    , stylePadding     = padding
+    , stylePadding     = stylePadding gAttrs
 
     , styleTextAlign      = styleTextAlign gAttrs
     , styleTextDecoration = styleTextDecoration gAttrs
@@ -441,15 +437,12 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let pBorderColor :: Ptr FfiStyleBorderColor = ptrStructStyleBorderColor ffiStyleAttrs
   pokeStyleBorderColor (styleBorderColor attrs) pBorderColor
 
-  let pPadding :: Ptr FfiStylePadding = ptrStructStylePadding ffiStyleAttrs
-  pokeStylePadding (stylePadding attrs) pPadding
-
   let cStyleAttrsRef :: CInt = fromIntegral . styleAttrsRef $ attrs
 
   let cColor          :: CInt = fromIntegral . styleColor $ attrs
   let cBackgroundColor :: CInt = fromIntegral . styleBackgroundColor $ attrs
 
-  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderWidth pBorderColor pPadding cColor cBackgroundColor
+  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderWidth pBorderColor cColor cBackgroundColor
 
 
 

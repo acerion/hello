@@ -174,7 +174,6 @@ typedef struct c_style_attrs_t {
 
         c_border_width_t * c_border_width;
         c_border_color_t * c_border_color;
-        c_style_padding_t * c_padding;
 
         int c_color;
         int c_background_color;
@@ -260,6 +259,9 @@ int ffiStyleAttrsBgAttachment(int ref);
 void ffiStyleAttrsMargin(int ref, c_style_margin_t * margin);
 void ffiStyleAttrsSetMargin(int ref, int val);
 void ffiStyleAttrsSetMargin2(int ref, c_style_margin_t * margin);
+
+void ffiStyleAttrsPadding(int ref, c_style_padding_t * padding);
+void ffiStyleAttrsSetPadding(int ref, int val);
 
 
 

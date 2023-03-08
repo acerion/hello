@@ -385,7 +385,6 @@ c_style_attrs_t * c_style_attrs_calloc(void)
    c_style_attrs_t * style_attrs = (c_style_attrs_t *) calloc(1, sizeof (c_style_attrs_t));
    style_attrs->c_border_width = (c_border_width_t *) calloc(1, sizeof (c_border_width_t));
    style_attrs->c_border_color = (c_border_color_t *) calloc(1, sizeof (c_border_color_t));
-   style_attrs->c_padding      = (c_style_padding_t *) calloc(1, sizeof (c_style_padding_t));
    style_attrs->c_font_attrs   = (c_font_attrs_t *) calloc(1, sizeof (c_font_attrs_t));
 
    return style_attrs;
@@ -401,7 +400,6 @@ void c_style_attrs_dealloc(c_style_attrs_t ** style_attrs)
    }
    free((*style_attrs)->c_border_width);
    free((*style_attrs)->c_border_color);
-   free((*style_attrs)->c_padding);
 
    if ((*style_attrs)->c_font_attrs) {
       if ((*style_attrs)->c_font_attrs->name) {
@@ -439,8 +437,6 @@ void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
       style_attrs->c_border_color->bottom = attrs->borderColor.bottom->color;
    }
 
-   *(style_attrs->c_padding) = attrs->padding;
-
    *(style_attrs->c_font_attrs) = attrs->font->font_attrs;
    if (attrs->font->font_attrs.name) {
       style_attrs->c_font_attrs->name = strdup(attrs->font->font_attrs.name);
@@ -457,8 +453,6 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    attrs->borderColor.right  = style_attrs->c_border_color->right == -1  ? NULL : Color::create(layout, style_attrs->c_border_color->right);
    attrs->borderColor.bottom = style_attrs->c_border_color->bottom == -1 ? NULL : Color::create(layout, style_attrs->c_border_color->bottom);
    attrs->borderColor.left   = style_attrs->c_border_color->left == -1   ? NULL : Color::create(layout, style_attrs->c_border_color->left);
-
-   attrs->padding = *(style_attrs->c_padding);
 
    if (style_attrs->c_color != -1) {
       // -1 is a special initial value set on top of this function

@@ -999,10 +999,13 @@ void Textblock::accumulateWordForLine (int lineIndex, int wordIndex)
       line->marginDescent =
          misc::max (line->marginDescent, word->size.descent + margin.bottom);
 
+      c_style_padding_t padding = {};
+      ffiStyleAttrsPadding(getStyle ()->c_attrs.c_style_attrs_ref, &padding);
+
       if (lines->size () == 1 &&
           word->content.widget->blockLevel () &&
           getStyle ()->borderWidth.top == 0 &&
-          getStyle ()->padding.top == 0) {
+          padding.top == 0) {
 
          c_style_margin_t margin2 = {};
          ffiStyleAttrsMargin(getStyle ()->c_attrs.c_style_attrs_ref, &margin2);

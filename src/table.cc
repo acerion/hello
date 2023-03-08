@@ -315,8 +315,6 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
 
       ffiStyleAttrsSetCollapseTableAttrs(collapseTableAttrs.c_attrs.c_style_attrs_ref, collapseCellAttrs.c_attrs.c_style_attrs_ref);
 
-      /* CSS2 17.6.2: table does not have padding (in collapsing mode) */
-      stylePaddingSetVal(&collapseTableAttrs.padding, 0);
       collapseStyle = Style::create(&collapseTableAttrs);
       TopOfParsingStack(html)->table_context.table_widget->setStyle (collapseStyle);
    }

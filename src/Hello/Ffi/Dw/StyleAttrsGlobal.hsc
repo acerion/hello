@@ -137,6 +137,9 @@ foreign export ccall "ffiStyleAttrsMargin" ffiStyleAttrsMargin :: CInt -> Ptr Ff
 foreign export ccall "ffiStyleAttrsSetMargin" ffiStyleAttrsSetMargin :: CInt -> CInt -> IO ()
 foreign export ccall "ffiStyleAttrsSetMargin2" ffiStyleAttrsSetMargin2 :: CInt -> Ptr FfiStyleMargin -> IO ()
 
+foreign export ccall "ffiStyleAttrsPadding" ffiStyleAttrsPadding :: CInt -> Ptr FfiStylePadding -> IO ()
+foreign export ccall "ffiStyleAttrsSetPadding" ffiStyleAttrsSetPadding :: CInt -> CInt -> IO ()
+
 
 
 
@@ -674,4 +677,33 @@ ffiStyleAttrsSetMargin2 cRef ptrStruct = do
   let attrs' = attrs { styleMargin = margin }
   globalStyleAttrsUpdate ref attrs'
   return ()
+
+
+
+
+ffiStyleAttrsPadding :: CInt -> Ptr FfiStylePadding -> IO ()
+ffiStyleAttrsPadding cRef ptrStruct = do
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
+  pokeStylePadding (stylePadding attrs) ptrStruct
+  return ()
+
+
+
+
+ffiStyleAttrsSetPadding :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetPadding cRef cVal = do
+  let ref = fromIntegral cRef
+  let val = fromIntegral cVal
+  attrs <- globalStyleAttrsGet ref
+  let attrs' = attrs { stylePadding = StylePadding
+                       {
+                         stylePaddingTop    = val
+                       , stylePaddingRight  = val
+                       , stylePaddingBottom = val
+                       , stylePaddingLeft   = val
+                       }
+                     }
+  globalStyleAttrsUpdate ref attrs'
+  return ()
+
 

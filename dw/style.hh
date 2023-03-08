@@ -420,7 +420,6 @@ public:
 
    c_border_width_t borderWidth;
    struct { Color *top = nullptr, *right = nullptr, *bottom = nullptr, *left = nullptr; } borderColor;
-   c_style_padding_t padding;
    Color * color = nullptr;
    Color * backgroundColor = nullptr;
 
@@ -437,12 +436,16 @@ public:
    {
       c_style_margin_t margin = {};
       ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
+      c_style_padding_t padding = {};
+      ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
       return margin.left + borderWidth.left + padding.left;
    }
    inline int boxRestWidth ()
    {
       c_style_margin_t margin = {};
       ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
+      c_style_padding_t padding = {};
+      ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
       return margin.right + borderWidth.right + padding.right;
    }
    inline int boxDiffWidth () { return boxOffsetX () + boxRestWidth (); }
@@ -450,12 +453,16 @@ public:
    {
       c_style_margin_t margin = {};
       ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
+      c_style_padding_t padding = {};
+      ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
       return margin.top + borderWidth.top + padding.top;
    }
    inline int boxRestHeight ()
    {
       c_style_margin_t margin = {};
       ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
+      c_style_padding_t padding = {};
+      ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
       return margin.bottom + borderWidth.bottom + padding.bottom;
    }
    inline int boxDiffHeight () { return boxOffsetY () + boxRestHeight (); }

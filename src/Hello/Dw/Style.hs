@@ -164,7 +164,7 @@ data StylePadding = StylePadding
   , stylePaddingRight  :: Int
   , stylePaddingBottom :: Int
   , stylePaddingLeft   :: Int
-  } deriving (Show)
+  } deriving (Eq, Show)
 
 defaultStylePadding :: StylePadding
 defaultStylePadding = StylePadding
@@ -300,6 +300,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleXTooltip            = ""
                              , styleXLang               = ""
                              , styleMargin              = defaultStyleMargin
+                             , stylePadding             = defaultStylePadding
                              }
 
 
@@ -335,6 +336,7 @@ styleAttrsEqual sa1 sa2 = and
                           , styleBgRepeat sa1 == styleBgRepeat sa2
                           , styleBgAttachment sa1 == styleBgAttachment sa2
                           , styleMargin sa1 == styleMargin sa2
+                          , stylePadding sa1 == stylePadding sa2
                           ]
 
 
@@ -374,6 +376,10 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + (styleMarginRight  . styleMargin $ sa)
                          + (styleMarginBottom . styleMargin $ sa)
                          + (styleMarginLeft   . styleMargin $ sa)
+                         + (stylePaddingTop    . stylePadding $ sa)
+                         + (stylePaddingRight  . stylePadding $ sa)
+                         + (stylePaddingBottom . stylePadding $ sa)
+                         + (stylePaddingLeft   . stylePadding $ sa)
 
 
 
@@ -408,6 +414,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleXLang              = styleXLang from
                             , styleBgAttachment       = styleBgAttachment from
                             , styleMargin             = styleMargin from
+                            , stylePadding            = stylePadding from
                             }
 
 
@@ -428,6 +435,7 @@ styleAttrsReset attrs = attrs
   , styleVertBorderSpacing   = 0
   , styleDisplay             = 1 -- DISPLAY_INLINE == 1
   , styleMargin              = defaultStyleMargin
+  , stylePadding             = defaultStylePadding
   }
 
 
@@ -438,6 +446,14 @@ styleAttrsSetCollapseTableAttrs attrsTable attrsCell =
   attrsTable { styleBorderStyle = styleBorderStyle attrsCell
              , styleHorizBorderSpacing  = 0
              , styleVertBorderSpacing   = 0
+
+               -- /* CSS2 17.6.2: table does not have padding (in collapsing mode) */
+             , stylePadding = StylePadding
+               { stylePaddingTop    = 0
+               , stylePaddingRight  = 0
+               , stylePaddingBottom = 0
+               , stylePaddingLeft   = 0
+               }
              }
 
 

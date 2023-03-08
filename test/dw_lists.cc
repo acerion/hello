@@ -76,7 +76,7 @@ int main(int argc, char **argv)
    Style *wordStyle = Style::create (&styleAttrs);
 
    ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
-   stylePaddingSetVal(&styleAttrs.padding, 5);
+   ffiStyleAttrsSetPadding(styleAttrs.c_attrs.c_style_attrs_ref, 5);
    styleAttrs.backgroundColor = Color::create (layout, 0xffff40);
    styleAttrs.setBorderColor (Color::create (layout, 0x000000));
    ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_SOLID);
