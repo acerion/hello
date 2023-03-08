@@ -96,7 +96,7 @@ data StyleBorderWidth = StyleBorderWidth
   , styleBorderWidthRight  :: Int
   , styleBorderWidthBottom :: Int
   , styleBorderWidthLeft   :: Int
-  } deriving (Show)
+  } deriving (Eq, Show)
 
 defaultStyleBorderWidth :: StyleBorderWidth
 defaultStyleBorderWidth = StyleBorderWidth
@@ -301,6 +301,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleXLang               = ""
                              , styleMargin              = defaultStyleMargin
                              , stylePadding             = defaultStylePadding
+                             , styleBorderWidth         = defaultStyleBorderWidth
                              }
 
 
@@ -337,6 +338,7 @@ styleAttrsEqual sa1 sa2 = and
                           , styleBgAttachment sa1 == styleBgAttachment sa2
                           , styleMargin sa1 == styleMargin sa2
                           , stylePadding sa1 == stylePadding sa2
+                          , styleBorderWidth sa1 == styleBorderWidth sa2
                           ]
 
 
@@ -380,6 +382,10 @@ styleAttrsHashValue sa = styleTextAlign sa
                          + (stylePaddingRight  . stylePadding $ sa)
                          + (stylePaddingBottom . stylePadding $ sa)
                          + (stylePaddingLeft   . stylePadding $ sa)
+                         + (styleBorderWidthTop    . styleBorderWidth $ sa)
+                         + (styleBorderWidthRight  . styleBorderWidth $ sa)
+                         + (styleBorderWidthBottom . styleBorderWidth $ sa)
+                         + (styleBorderWidthLeft   . styleBorderWidth $ sa)
 
 
 
@@ -415,6 +421,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleBgAttachment       = styleBgAttachment from
                             , styleMargin             = styleMargin from
                             , stylePadding            = stylePadding from
+                            , styleBorderWidth        = styleBorderWidth from
                             }
 
 
@@ -436,35 +443,50 @@ styleAttrsReset attrs = attrs
   , styleDisplay             = 1 -- DISPLAY_INLINE == 1
   , styleMargin              = defaultStyleMargin
   , stylePadding             = defaultStylePadding
+  , styleBorderWidth         = defaultStyleBorderWidth
   }
 
 
 
 
-styleAttrsSetCollapseTableAttrs :: StyleAttrs -> StyleAttrs -> StyleAttrs
-styleAttrsSetCollapseTableAttrs attrsTable attrsCell =
-  attrsTable { styleBorderStyle = styleBorderStyle attrsCell
-             , styleHorizBorderSpacing  = 0
-             , styleVertBorderSpacing   = 0
+styleAttrsSetCollapseTableAttrs :: StyleAttrs -> StyleAttrs -> Int -> StyleAttrs
+styleAttrsSetCollapseTableAttrs collapseTableAttrs attrsCell borderWidthTop =
+  collapseTableAttrs { styleBorderStyle = styleBorderStyle attrsCell
+                     , styleHorizBorderSpacing  = 0
+                     , styleVertBorderSpacing   = 0
 
-               -- /* CSS2 17.6.2: table does not have padding (in collapsing mode) */
-             , stylePadding = StylePadding
-               { stylePaddingTop    = 0
-               , stylePaddingRight  = 0
-               , stylePaddingBottom = 0
-               , stylePaddingLeft   = 0
-               }
-             }
+                     -- /* CSS2 17.6.2: table does not have padding (in collapsing mode) */
+                     , stylePadding = StylePadding
+                       { stylePaddingTop    = 0
+                       , stylePaddingRight  = 0
+                       , stylePaddingBottom = 0
+                       , stylePaddingLeft   = 0
+                       }
+
+                     , styleBorderWidth = StyleBorderWidth
+                       { styleBorderWidthTop    = borderWidthTop
+                       , styleBorderWidthRight  = 0
+                       , styleBorderWidthBottom = 0
+                       , styleBorderWidthLeft   = borderWidthTop
+                       }
+                     }
 
 
 
 
 
-styleAttrsSetCollapseCellAttrs :: StyleAttrs -> StyleAttrs
-styleAttrsSetCollapseCellAttrs attrs =
-  attrs { styleHorizBorderSpacing  = 0
-        , styleVertBorderSpacing   = 0
-        }
+styleAttrsSetCollapseCellAttrs :: StyleAttrs -> Int -> StyleAttrs
+styleAttrsSetCollapseCellAttrs collapseCellAttrs borderWidthTop =
+  collapseCellAttrs { styleHorizBorderSpacing  = 0
+                    , styleVertBorderSpacing   = 0
+
+                    , styleBorderWidth = StyleBorderWidth
+                      { styleBorderWidthTop    = 0
+                      , styleBorderWidthRight  = borderWidthTop
+                      , styleBorderWidthBottom = borderWidthTop
+                      , styleBorderWidthLeft   = 0
+                      }
+                    }
 
 
 

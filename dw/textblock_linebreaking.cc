@@ -1002,9 +1002,12 @@ void Textblock::accumulateWordForLine (int lineIndex, int wordIndex)
       c_style_padding_t padding = {};
       ffiStyleAttrsPadding(getStyle ()->c_attrs.c_style_attrs_ref, &padding);
 
+      c_border_width_t borderWidth = {};
+      ffiStyleAttrsBorderWidth(getStyle ()->c_attrs.c_style_attrs_ref, &borderWidth);
+
       if (lines->size () == 1 &&
           word->content.widget->blockLevel () &&
-          getStyle ()->borderWidth.top == 0 &&
+          borderWidth.top == 0 &&
           padding.top == 0) {
 
          c_style_margin_t margin2 = {};

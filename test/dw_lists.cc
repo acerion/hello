@@ -80,7 +80,7 @@ int main(int argc, char **argv)
    styleAttrs.backgroundColor = Color::create (layout, 0xffff40);
    styleAttrs.setBorderColor (Color::create (layout, 0x000000));
    ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_SOLID);
-   borderWidthSetVal(&styleAttrs.borderWidth, 1);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 1);
 
    Style *itemStyle = Style::create (&styleAttrs);
 

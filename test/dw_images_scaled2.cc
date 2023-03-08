@@ -105,13 +105,13 @@ int main(int argc, char **argv)
    widgetStyle->unref();
 
    ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
-   borderWidthSetVal(&styleAttrs.borderWidth, 0);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 0);
    ffiStyleAttrsSetPadding(styleAttrs.c_attrs.c_style_attrs_ref, 0);
    styleAttrs.backgroundColor = NULL;
 
    Style *wordStyle = Style::create (&styleAttrs);
 
-   borderWidthSetVal(&styleAttrs.borderWidth, 1);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 1);
    styleAttrs.setBorderColor (Color::create (layout, 0x000080));
    ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_SOLID);
    ffiStyleAttrsSetPadding(styleAttrs.c_attrs.c_style_attrs_ref, 1);

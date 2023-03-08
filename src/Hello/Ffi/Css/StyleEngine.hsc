@@ -84,6 +84,7 @@ foreign export ccall "ffiStyleEnginePostprocessAttrs" ffiStyleEnginePostprocessA
 foreign export ccall "ffiStyleEngineMakeWordStyle" ffiStyleEngineMakeWordStyle :: CInt -> CInt -> IO ()
 
 foreign export ccall "ffiStyleEnginePreprocessAttrsInheritBackground" ffiStyleEnginePreprocessAttrsInheritBackground :: CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleEnginePreprocessAttrs" ffiStyleEnginePreprocessAttrs :: CInt -> IO ()
 foreign export ccall "ffiStyleEngineMakeWordStyleInheritBackground" ffiStyleEngineMakeWordStyleInheritBackground :: CInt -> CInt -> IO ()
 
 
@@ -398,11 +399,11 @@ cssLengthToDistance lenValue lenType | lenType == cssLengthTypeNone       = CssN
 
 
 ffiStyleEnginePostprocessAttrs :: CInt -> IO ()
-ffiStyleEnginePostprocessAttrs _cRef = do
-  --let ref = fromIntegral cRef
-  --old <- globalStyleAttrsGet ref
-  --let new = styleAttrsPostprocess old
-  --globalStyleAttrsUpdate ref new
+ffiStyleEnginePostprocessAttrs cRef = do
+  let ref = fromIntegral cRef
+  sa <- globalStyleAttrsGet ref
+  let sa' = styleEnginePostprocessAttrs sa
+  globalStyleAttrsUpdate ref sa'
   return ()
 
 
@@ -429,6 +430,17 @@ ffiStyleEnginePreprocessAttrsInheritBackground cRefTo cRefFrom = do
     from <- globalStyleAttrsGet refFrom
     let to' = styleEnginePreprocessAttrsInheritBackground to from
     globalStyleAttrsUpdate refTo to'
+    return ()
+
+
+
+
+ffiStyleEnginePreprocessAttrs :: CInt -> IO ()
+ffiStyleEnginePreprocessAttrs cRef = do
+    let ref   = fromIntegral cRef
+    sa   <- globalStyleAttrsGet ref
+    let sa' = styleEnginePreprocessAttrs sa
+    globalStyleAttrsUpdate ref sa'
     return ()
 
 

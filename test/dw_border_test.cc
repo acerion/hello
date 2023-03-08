@@ -48,7 +48,7 @@ int main(int argc, char **argv)
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
    ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
-   borderWidthSetVal(&styleAttrs.borderWidth, 2);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 2);
    styleAttrs.setBorderColor (Color::create (layout, 0xffffff));
    ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_INSET);
    ffiStyleAttrsSetPadding(styleAttrs.c_attrs.c_style_attrs_ref, 5);
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 
    styleAttrs.backgroundColor = Color::create (layout, 0xffff80);
    ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
-   borderWidthSetVal(&styleAttrs.borderWidth, 1);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 1);
    styleAttrs.setBorderColor (Color::create (layout, 0x4040ff));
    ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_SOLID);
    ffiStyleAttrsSetPadding(styleAttrs.c_attrs.c_style_attrs_ref, 1);
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 
    widgetStyle1->unref();
 
-   borderWidthSetVal(&styleAttrs.borderWidth, 0);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 0);
    ffiStyleAttrsSetPadding(styleAttrs.c_attrs.c_style_attrs_ref, 0);
    styleAttrs.backgroundColor = NULL;
    ffiStyleAttrsSetCursor(styleAttrs.c_attrs.c_style_attrs_ref, CURSOR_TEXT);

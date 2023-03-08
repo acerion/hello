@@ -53,6 +53,8 @@ module Hello.Css.StyleEngine
   , computeAbsoluteLengthValue
 
   , styleEnginePreprocessAttrsInheritBackground
+  , styleEnginePreprocessAttrs
+  , styleEnginePostprocessAttrs
   , styleEngineMakeWordStyleInheritBackground
   )
 where
@@ -953,6 +955,51 @@ styleEnginePreprocessAttrsInheritBackground to from =
      , styleBgPositionY   = styleBgPositionY from
      , styleBgRepeat      = styleBgRepeat from
      , styleBgAttachment  = styleBgAttachment from
+     }
+
+
+
+
+styleEnginePreprocessAttrs :: StyleAttrs -> StyleAttrs
+styleEnginePreprocessAttrs sa =
+  sa { styleBorderWidth = StyleBorderWidth
+       -- Initial value of border-width is 'medium'; TODO: this is
+       -- inconsistent with defaultStyleBorderWidth which uses '0'.
+       { styleBorderWidthTop    = 2
+       , styleBorderWidthRight  = 2
+       , styleBorderWidthBottom = 2
+       , styleBorderWidthLeft   = 2
+       }
+     }
+
+
+
+
+borderNone :: Int
+borderNone = 0 -- BORDER_NONE
+
+borderHidden :: Int
+borderHidden = 1 -- BORDER_HIDDEN
+
+styleEnginePostprocessAttrs :: StyleAttrs -> StyleAttrs
+styleEnginePostprocessAttrs sa =
+  sa { styleBorderWidth = StyleBorderWidth
+
+       -- Computed value of border-width is 0 if border-style is 'none' or
+       -- 'hidden'
+       { styleBorderWidthTop = if (styleBorderStyleTop . styleBorderStyle $ sa) == borderNone || (styleBorderStyleTop . styleBorderStyle $ sa) == borderHidden
+                               then 0
+                               else styleBorderWidthTop . styleBorderWidth $ sa
+       , styleBorderWidthRight = if (styleBorderStyleRight . styleBorderStyle $ sa) == borderNone || (styleBorderStyleRight . styleBorderStyle $ sa) == borderHidden
+                                 then 0
+                                 else styleBorderWidthRight . styleBorderWidth $ sa
+       , styleBorderWidthBottom = if (styleBorderStyleBottom . styleBorderStyle $ sa) == borderNone || (styleBorderStyleBottom . styleBorderStyle $ sa) == borderHidden
+                                  then 0
+                                  else styleBorderWidthBottom . styleBorderWidth $ sa
+       , styleBorderWidthLeft = if (styleBorderStyleLeft . styleBorderStyle $ sa) == borderNone || (styleBorderStyleLeft . styleBorderStyle $ sa) == borderHidden
+                                then 0
+                                else styleBorderWidthLeft . styleBorderWidth $ sa
+       }
      }
 
 

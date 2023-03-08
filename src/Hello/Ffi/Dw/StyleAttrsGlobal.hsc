@@ -87,8 +87,8 @@ foreign export ccall "ffiStyleAttrsXImg" ffiStyleAttrsXImg :: CInt -> IO CInt
 
 foreign export ccall "ffiStyleAttrsBorderCollapse" ffiStyleAttrsBorderCollapse :: CInt -> IO CInt
 
-foreign export ccall "ffiStyleAttrsSetCollapseTableAttrs" ffiStyleAttrsSetCollapseTableAttrs :: CInt -> CInt -> IO ()
-foreign export ccall "ffiStyleAttrsSetCollapseCellAttrs" ffiStyleAttrsSetCollapseCellAttrs :: CInt -> IO ()
+foreign export ccall "ffiStyleAttrsSetCollapseTableAttrs" ffiStyleAttrsSetCollapseTableAttrs :: CInt -> CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleAttrsSetCollapseCellAttrs" ffiStyleAttrsSetCollapseCellAttrs :: CInt -> CInt -> IO ()
 
 foreign export ccall "ffiStyleAttrsBorderStyleTop" ffiStyleAttrsBorderStyleTop :: CInt -> IO CInt
 foreign export ccall "ffiStyleAttrsBorderStyleRight" ffiStyleAttrsBorderStyleRight :: CInt -> IO CInt
@@ -139,6 +139,9 @@ foreign export ccall "ffiStyleAttrsSetMargin2" ffiStyleAttrsSetMargin2 :: CInt -
 
 foreign export ccall "ffiStyleAttrsPadding" ffiStyleAttrsPadding :: CInt -> Ptr FfiStylePadding -> IO ()
 foreign export ccall "ffiStyleAttrsSetPadding" ffiStyleAttrsSetPadding :: CInt -> CInt -> IO ()
+
+foreign export ccall "ffiStyleAttrsBorderWidth" ffiStyleAttrsBorderWidth :: CInt -> Ptr FfiStyleBorderWidth -> IO ()
+foreign export ccall "ffiStyleAttrsSetBorderWidth" ffiStyleAttrsSetBorderWidth :: CInt -> CInt -> IO ()
 
 
 
@@ -321,24 +324,26 @@ ffiStyleAttrsBorderCollapse cRef = do
 
 
 
-ffiStyleAttrsSetCollapseTableAttrs :: CInt -> CInt -> IO ()
-ffiStyleAttrsSetCollapseTableAttrs cRefTable cRefCell = do
+ffiStyleAttrsSetCollapseTableAttrs :: CInt -> CInt -> CInt -> IO ()
+ffiStyleAttrsSetCollapseTableAttrs cRefTable cRefCell cBorderWidthTop = do
   let refTable = fromIntegral cRefTable
   let refCell  = fromIntegral cRefCell
+  let borderWidthTop = fromIntegral cBorderWidthTop
   attrsTable <- globalStyleAttrsGet refTable
   attrsCell  <- globalStyleAttrsGet refCell
-  let attrs = styleAttrsSetCollapseTableAttrs attrsTable attrsCell
+  let attrs = styleAttrsSetCollapseTableAttrs attrsTable attrsCell borderWidthTop
   globalStyleAttrsUpdate refTable attrs
   return ()
 
 
 
 
-ffiStyleAttrsSetCollapseCellAttrs :: CInt -> IO ()
-ffiStyleAttrsSetCollapseCellAttrs cRef = do
+ffiStyleAttrsSetCollapseCellAttrs :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetCollapseCellAttrs cRef cBorderWidthTop = do
   let ref = fromIntegral cRef
+  let borderWidthTop = fromIntegral cBorderWidthTop
   attrs <- globalStyleAttrsGet ref
-  let attrs' = styleAttrsSetCollapseCellAttrs attrs
+  let attrs' = styleAttrsSetCollapseCellAttrs attrs borderWidthTop
   globalStyleAttrsUpdate ref attrs'
   return ()
 
@@ -701,6 +706,34 @@ ffiStyleAttrsSetPadding cRef cVal = do
                        , stylePaddingRight  = val
                        , stylePaddingBottom = val
                        , stylePaddingLeft   = val
+                       }
+                     }
+  globalStyleAttrsUpdate ref attrs'
+  return ()
+
+
+
+
+ffiStyleAttrsBorderWidth :: CInt -> Ptr FfiStyleBorderWidth -> IO ()
+ffiStyleAttrsBorderWidth cRef ptrStruct = do
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
+  pokeStyleBorderWidth (styleBorderWidth attrs) ptrStruct
+  return ()
+
+
+
+
+ffiStyleAttrsSetBorderWidth :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetBorderWidth cRef cVal = do
+  let ref = fromIntegral cRef
+  let val = fromIntegral cVal
+  attrs <- globalStyleAttrsGet ref
+  let attrs' = attrs { styleBorderWidth = StyleBorderWidth
+                       {
+                         styleBorderWidthTop    = val
+                       , styleBorderWidthRight  = val
+                       , styleBorderWidthBottom = val
+                       , styleBorderWidthLeft   = val
                        }
                      }
   globalStyleAttrsUpdate ref attrs'

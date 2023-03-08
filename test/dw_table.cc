@@ -49,7 +49,7 @@ int main(int argc, char **argv)
    styleAttrs.initValues ();
    ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
    ffiStyleAttrsSetPadding(styleAttrs.c_attrs.c_style_attrs_ref, 0);
-   borderWidthSetVal(&styleAttrs.borderWidth, 1);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 1);
    ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_OUTSET);
    styleAttrs.setBorderColor (Color::create (layout, 0xffffff));
    styleAttrs.color = Color::create (layout, 0x000000);
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 
    Style *cellStyle = Style::create (&styleAttrs);
 
-   borderWidthSetVal(&styleAttrs.borderWidth, 0);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 0);
    ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
    ffiStyleAttrsSetCursor(styleAttrs.c_attrs.c_style_attrs_ref, CURSOR_TEXT);
 

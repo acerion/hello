@@ -171,8 +171,6 @@ typedef struct c_style_attrs_t {
         int c_style_attrs_ref; // Handle of Haskell object, to be used in C++ code.
 
         c_font_attrs_t * c_font_attrs;
-
-        c_border_width_t * c_border_width;
         c_border_color_t * c_border_color;
 
         int c_color;
@@ -212,8 +210,8 @@ int ffiStyleAttrsXImg(int ref);
 
 int ffiStyleAttrsBorderCollapse(int ref);
 
-void ffiStyleAttrsSetCollapseTableAttrs(int refTable, int refCell);
-void ffiStyleAttrsSetCollapseCellAttrs(int ref);
+void ffiStyleAttrsSetCollapseTableAttrs(int refTable, int refCell, int borderWidthTop);
+void ffiStyleAttrsSetCollapseCellAttrs(int ref, int borderWidthTop);
 
 int ffiStyleAttrsBorderStyleTop(int ref);
 int ffiStyleAttrsBorderStyleRight(int ref);
@@ -262,6 +260,9 @@ void ffiStyleAttrsSetMargin2(int ref, c_style_margin_t * margin);
 
 void ffiStyleAttrsPadding(int ref, c_style_padding_t * padding);
 void ffiStyleAttrsSetPadding(int ref, int val);
+
+void ffiStyleAttrsBorderWidth(int ref, c_border_width_t * border_width);
+void ffiStyleAttrsSetBorderWidth(int ref, int val);
 
 
 
@@ -504,6 +505,7 @@ void ffiStyleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * pr
 
 void ffiStyleEngineMakeWordStyle(int refAttrs, int refBwAttrs);
 void ffiStyleEnginePreprocessAttrsInheritBackground(int refTo, int refFrom);
+void ffiStyleEnginePreprocessAttrs(int refTo);
 void ffiStyleEngineMakeWordStyleInheritBackground(int refTo, int refFrom);
 void ffiStyleEnginePostprocessAttrs(int ref);
 

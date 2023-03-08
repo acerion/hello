@@ -418,7 +418,6 @@ public:
 
    StyleImage *backgroundImage;
 
-   c_border_width_t borderWidth;
    struct { Color *top = nullptr, *right = nullptr, *bottom = nullptr, *left = nullptr; } borderColor;
    Color * color = nullptr;
    Color * backgroundColor = nullptr;
@@ -438,6 +437,8 @@ public:
       ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
       c_style_padding_t padding = {};
       ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
+      c_border_width_t borderWidth = {};
+      ffiStyleAttrsBorderWidth(this->c_attrs.c_style_attrs_ref, &borderWidth);
       return margin.left + borderWidth.left + padding.left;
    }
    inline int boxRestWidth ()
@@ -446,6 +447,8 @@ public:
       ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
       c_style_padding_t padding = {};
       ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
+      c_border_width_t borderWidth = {};
+      ffiStyleAttrsBorderWidth(this->c_attrs.c_style_attrs_ref, &borderWidth);
       return margin.right + borderWidth.right + padding.right;
    }
    inline int boxDiffWidth () { return boxOffsetX () + boxRestWidth (); }
@@ -455,6 +458,8 @@ public:
       ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
       c_style_padding_t padding = {};
       ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
+      c_border_width_t borderWidth = {};
+      ffiStyleAttrsBorderWidth(this->c_attrs.c_style_attrs_ref, &borderWidth);
       return margin.top + borderWidth.top + padding.top;
    }
    inline int boxRestHeight ()
@@ -463,6 +468,8 @@ public:
       ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
       c_style_padding_t padding = {};
       ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
+      c_border_width_t borderWidth = {};
+      ffiStyleAttrsBorderWidth(this->c_attrs.c_style_attrs_ref, &borderWidth);
       return margin.bottom + borderWidth.bottom + padding.bottom;
    }
    inline int boxDiffHeight () { return boxOffsetY () + boxRestHeight (); }

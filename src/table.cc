@@ -286,7 +286,9 @@ static void Html_table_set_border_model(DilloHtml *html,
 static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
 {
    dw::core::style::Style * tableStyle = TopOfParsingStack(html)->table_context.table_widget->getStyle ();
-   int borderWidth = html->styleEngine->getStyle (html->bw)->borderWidth.top;
+
+   c_border_width_t borderWidth = {};
+   ffiStyleAttrsBorderWidth(html->styleEngine->getStyle (html->bw)->c_attrs.c_style_attrs_ref, &borderWidth);
 
    c_style_margin_t tableStyleMargin = {};
    ffiStyleAttrsMargin(tableStyle->c_attrs.c_style_attrs_ref, &tableStyleMargin);
@@ -295,11 +297,7 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
 
    dw::core::style::StyleAttrs collapseCellAttrs = *(html->styleEngine->getStyle (html->bw));
    ffiStyleAttrsSetMargin(collapseCellAttrs.c_attrs.c_style_attrs_ref, 0);
-   collapseCellAttrs.borderWidth.left = 0;
-   collapseCellAttrs.borderWidth.top = 0;
-   collapseCellAttrs.borderWidth.right = borderWidth;
-   collapseCellAttrs.borderWidth.bottom = borderWidth;
-   ffiStyleAttrsSetCollapseCellAttrs(collapseCellAttrs.c_attrs.c_style_attrs_ref);
+   ffiStyleAttrsSetCollapseCellAttrs(collapseCellAttrs.c_attrs.c_style_attrs_ref, borderWidth.top);
    dw::core::style::Style * collapseStyle = Style::create(&collapseCellAttrs);
    col_tb->setStyle (collapseStyle);
 
@@ -307,13 +305,9 @@ static void Html_set_collapsing_border_model(DilloHtml *html, Widget *col_tb)
       Html_table_set_border_model(html, DILLO_HTML_TABLE_BORDER_COLLAPSE);
       dw::core::style::StyleAttrs collapseTableAttrs = *tableStyle;
       ffiStyleAttrsSetMargin(collapseTableAttrs.c_attrs.c_style_attrs_ref, marginWidth);
-      collapseTableAttrs.borderWidth.left = borderWidth;
-      collapseTableAttrs.borderWidth.top = borderWidth;
-      collapseTableAttrs.borderWidth.right = 0;
-      collapseTableAttrs.borderWidth.bottom = 0;
       collapseTableAttrs.borderColor = collapseCellAttrs.borderColor;
 
-      ffiStyleAttrsSetCollapseTableAttrs(collapseTableAttrs.c_attrs.c_style_attrs_ref, collapseCellAttrs.c_attrs.c_style_attrs_ref);
+      ffiStyleAttrsSetCollapseTableAttrs(collapseTableAttrs.c_attrs.c_style_attrs_ref, collapseCellAttrs.c_attrs.c_style_attrs_ref, borderWidth.top);
 
       collapseStyle = Style::create(&collapseTableAttrs);
       TopOfParsingStack(html)->table_context.table_widget->setStyle (collapseStyle);

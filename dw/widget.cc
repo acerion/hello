@@ -417,14 +417,17 @@ void Widget::drawBox (View *view, style::Style *style, Rectangle *area,
    c_style_margin_t margin = {};
    ffiStyleAttrsMargin(style->c_attrs.c_style_attrs_ref, &margin);
 
+   c_border_width_t borderWidth = {};
+   ffiStyleAttrsBorderWidth(style->c_attrs.c_style_attrs_ref, &borderWidth);
+
    int xPad, yPad, widthPad, heightPad;
    getPaddingArea (&xPad, &yPad, &widthPad, &heightPad);
    style::drawBackground
       (view, layout, &canvasArea,
-       allocation.x + x + margin.left + style->borderWidth.left,
-       allocation.y + y + margin.top + style->borderWidth.top,
-       width -  margin.left - style->borderWidth.left - margin.right -  style->borderWidth.right,
-       height - margin.top -  style->borderWidth.top -  margin.bottom - style->borderWidth.bottom,
+       allocation.x + x + margin.left + borderWidth.left,
+       allocation.y + y + margin.top + borderWidth.top,
+       width -  margin.left - borderWidth.left - margin.right -  borderWidth.right,
+       height - margin.top -  borderWidth.top -  margin.bottom - borderWidth.bottom,
        xPad, yPad, widthPad, heightPad, style, inverse, false);
 }
 
@@ -606,10 +609,13 @@ void Widget::getPaddingArea (int *xPad, int *yPad, int *widthPad,
    c_style_margin_t margin = {};
    ffiStyleAttrsMargin(style->c_attrs.c_style_attrs_ref, &margin);
 
-   *xPad = allocation.x + margin.left + style->borderWidth.left;
-   *yPad = allocation.y + margin.top + style->borderWidth.top;
-   *widthPad = allocation.width - margin.left - style->borderWidth.left - margin.right -  style->borderWidth.right;
-   *heightPad = getHeight () -    margin.top -  style->borderWidth.top -  margin.bottom - style->borderWidth.bottom;
+   c_border_width_t borderWidth = {};
+   ffiStyleAttrsBorderWidth(style->c_attrs.c_style_attrs_ref, &borderWidth);
+
+   *xPad = allocation.x + margin.left + borderWidth.left;
+   *yPad = allocation.y + margin.top + borderWidth.top;
+   *widthPad = allocation.width - margin.left - borderWidth.left - margin.right -  borderWidth.right;
+   *heightPad = getHeight () -    margin.top -  borderWidth.top -  margin.bottom - borderWidth.bottom;
 }
 
 void Widget::getExtremesImpl (Extremes *extremes)
