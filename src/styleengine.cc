@@ -212,16 +212,13 @@ void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
       currentNode->declLists.main_decl_set_ref      = ffiDeclarationSetCtor();
       currentNode->declLists.important_decl_set_ref = ffiDeclarationSetCtor();
 
-      gettimeofday(&g_parse_start, NULL);
+      timer_start(&g_parse_start);
 
       ffiCssParseElementStyleAttribute(baseUrl, cssStyleAttribute, strlen (cssStyleAttribute),
                                        currentNode->declLists.main_decl_set_ref,
                                        currentNode->declLists.important_decl_set_ref);
 
-      gettimeofday(&g_parse_stop, NULL);
-      struct timeval diff = {};
-      timersub(&g_parse_stop, &g_parse_start, &diff);
-      timeradd(&diff, &g_parse_acc, &g_parse_acc);
+      timer_stop(&g_parse_start, &g_parse_stop, &g_parse_acc);
       fprintf(stderr, "[II] Total parse time increased to %ld:%06ld\n", g_parse_acc.tv_sec, g_parse_acc.tv_usec);
    }
 }
@@ -406,7 +403,7 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    // property.
    DilloUrl *imgUrl = nullptr;
 
-   gettimeofday(&g_apply_do_start, NULL);
+   timer_start(&g_apply_do_start);
 
 #if 0
    fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: parent style attrs: %d, style attrs: %d\n", parentAttrs->c_style_attrs_ref, attrs->c_style_attrs_ref);
@@ -423,10 +420,7 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
 #endif
 
 
-   gettimeofday(&g_apply_do_stop, NULL);
-   struct timeval diff = {};
-   timersub(&g_apply_do_stop, &g_apply_do_start, &diff);
-   timeradd(&diff, &g_apply_do_acc, &g_apply_do_acc);
+   timer_stop(&g_apply_do_start, &g_apply_do_stop, &g_apply_do_acc);
    fprintf(stderr, "[II] Total apply-do time increased to %ld:%06ld\n", g_apply_do_acc.tv_sec, g_apply_do_acc.tv_usec);
 
    style_attrs_make_ui_objects(attrs, this->layout);
@@ -518,7 +512,7 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
    // merge style information
    int dtnNum = styleNodesStack[styleNodeIndex].doctreeNodeIdx;
 
-   gettimeofday(&g_apply_get_start, NULL);
+   timer_start(&g_apply_get_start);
 
    int merged_decl_set_ref = ffiCssContextApplyCssContext(this->css_context_ref,
                                                           this->doc_tree_ref, dtnNum,
@@ -526,10 +520,7 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
                                                           declLists->important_decl_set_ref,
                                                           declLists->non_css_decl_set_ref);
 
-   gettimeofday(&g_apply_get_stop, NULL);
-   struct timeval diff = {};
-   timersub(&g_apply_get_stop, &g_apply_get_start, &diff);
-   timeradd(&diff, &g_apply_get_acc, &g_apply_get_acc);
+   timer_stop(&g_apply_get_start, &g_apply_get_stop, &g_apply_get_acc);
    fprintf(stderr, "[II] Total apply-get time increased to %ld:%06ld\n", g_apply_get_acc.tv_sec, g_apply_get_acc.tv_usec);
 
    // apply style
@@ -602,15 +593,12 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
 
    importDepth++;
    {
-      gettimeofday(&g_parse_start, NULL);
+      timer_start(&g_parse_start);
 
       CssParser parser_(origin, url, buf, buflen);
       ffiParseCss(&parser_.m_parser, &parser_.m_token, this->css_context_ref);
 
-      gettimeofday(&g_parse_stop, NULL);
-      struct timeval diff = {};
-      timersub(&g_parse_stop, &g_parse_start, &diff);
-      timeradd(&diff, &g_parse_acc, &g_parse_acc);
+      struct timeval diff = timer_stop(&g_parse_start, &g_parse_stop, &g_parse_acc);
       fprintf(stderr, "[II] Total parse time increased by %ld:%06ld to %ld:%06ld (url = %s)\n",
               diff.tv_sec, diff.tv_usec,
               g_parse_acc.tv_sec, g_parse_acc.tv_usec,
@@ -629,15 +617,12 @@ void StyleEngine::buildUserStyle(int context_ref)
 
    if ((style = a_Misc_file2dstr(filename))) {
       {
-         gettimeofday(&g_parse_start, NULL);
+         timer_start(&g_parse_start);
 
          CssParser parser_(CSS_ORIGIN_USER, NULL, style->str, style->len);
          ffiParseCss(&parser_.m_parser, &parser_.m_token, context_ref);
 
-         gettimeofday(&g_parse_stop, NULL);
-         struct timeval diff = {};
-         timersub(&g_parse_stop, &g_parse_start, &diff);
-         timeradd(&diff, &g_parse_acc, &g_parse_acc);
+         struct timeval diff = timer_stop(&g_parse_start, &g_parse_stop, &g_parse_acc);
          fprintf(stderr, "[II] Total parse time increased by %ld:%06ld to %ld:%06ld\n",
                  diff.tv_sec, diff.tv_usec,
                  g_parse_acc.tv_sec, g_parse_acc.tv_usec);

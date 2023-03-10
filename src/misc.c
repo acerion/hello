@@ -477,3 +477,20 @@ Dstr *a_Misc_file2dstr(const char *filename)
    }
    return dstr;
 }
+
+void timer_start(struct timeval * start)
+{
+   gettimeofday(start, NULL);
+}
+
+struct timeval timer_stop(struct timeval * start, struct timeval * stop, struct timeval * acc)
+{
+   gettimeofday(stop, NULL);
+   struct timeval diff = {};
+   timersub(stop, start, &diff);
+   timeradd(&diff, acc, acc);
+
+   return diff; /* Yes, returning by value. */
+}
+
+

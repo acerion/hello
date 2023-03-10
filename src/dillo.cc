@@ -60,8 +60,6 @@
 #include "dw/fltkcore.hh"
 #include "dw/textblock.hh"
 
-#include <sys/time.h>
-
 struct timeval g_parse_acc = {};
 struct timeval g_parse_start = {};
 struct timeval g_parse_stop = {};

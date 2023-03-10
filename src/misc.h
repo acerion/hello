@@ -2,6 +2,7 @@
 #define __DILLO_MISC_H__
 
 #include <stddef.h>     /* for size_t */
+#include <sys/time.h>   /* struct timeval */
 
 
 #ifdef __cplusplus
@@ -20,6 +21,9 @@ int a_Misc_parse_geometry(char *geom, int *x, int *y, int *w, int *h);
 int a_Misc_parse_search_url(char *source, char **label, char **urlstr);
 char *a_Misc_encode_base64(const char *in);
 Dstr *a_Misc_file2dstr(const char *filename);
+
+void timer_start(struct timeval * start);
+struct timeval timer_stop(struct timeval * start, struct timeval * stop, struct timeval * acc);
 
 #ifdef __cplusplus
 }
