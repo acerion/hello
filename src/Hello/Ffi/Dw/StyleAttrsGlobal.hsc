@@ -158,6 +158,10 @@ foreign export ccall "ffiStyleAttrsSetColor" ffiStyleAttrsSetColor :: CInt -> CI
 foreign export ccall "ffiStyleAttrsBackgroundColor" ffiStyleAttrsBackgroundColor :: CInt -> IO CInt
 foreign export ccall "ffiStyleAttrsSetBackgroundColor" ffiStyleAttrsSetBackgroundColor :: CInt -> CInt -> IO ()
 
+foreign export ccall "ffiStyleAttrsBorderColor" ffiStyleAttrsBorderColor :: CInt -> Ptr FfiStyleBorderColor -> IO ()
+foreign export ccall "ffiStyleAttrsSetBorderColor" ffiStyleAttrsSetBorderColor :: CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleAttrsSetBorderColor2" ffiStyleAttrsSetBorderColor2 :: CInt -> Ptr FfiStyleBorderColor -> IO ()
+
 
 
 
@@ -842,4 +846,48 @@ ffiStyleAttrsSetBackgroundColor cRef cVal = do
   let sa' = old { styleBackgroundColor = val }
   globalStyleAttrsUpdate ref sa'
   return ()
+
+
+
+
+
+ffiStyleAttrsBorderColor :: CInt -> Ptr FfiStyleBorderColor -> IO ()
+ffiStyleAttrsBorderColor cRef ptrStruct = do
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
+  pokeStyleBorderColor (styleBorderColor attrs) ptrStruct
+  return ()
+
+
+
+
+ffiStyleAttrsSetBorderColor :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetBorderColor cRef cVal = do
+  let ref = fromIntegral cRef
+  let val = fromIntegral cVal
+  attrs <- globalStyleAttrsGet ref
+  let attrs' = attrs { styleBorderColor = StyleBorderColor
+                       {
+                         styleBorderColorTop    = val
+                       , styleBorderColorRight  = val
+                       , styleBorderColorBottom = val
+                       , styleBorderColorLeft   = val
+                       }
+                     }
+  globalStyleAttrsUpdate ref attrs'
+  return ()
+
+
+
+
+ffiStyleAttrsSetBorderColor2 :: CInt -> Ptr FfiStyleBorderColor -> IO ()
+ffiStyleAttrsSetBorderColor2 cRef ptrStruct = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  bcolor <- peekStyleBorderColor ptrStruct
+  let attrs' = attrs { styleBorderColor = bcolor }
+  globalStyleAttrsUpdate ref attrs'
+  return ()
+
+
+
 

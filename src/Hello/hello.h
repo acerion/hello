@@ -124,9 +124,7 @@ typedef struct c_font_attrs_t {
 
 typedef struct c_style_attrs_t {
         int c_style_attrs_ref; // Handle of Haskell object, to be used in C++ code.
-
         c_font_attrs_t * c_font_attrs;
-        c_border_color_t * c_border_color;
 } c_style_attrs_t;
 
 
@@ -230,6 +228,10 @@ void ffiStyleAttrsSetColor(int ref, int val);
 
 int ffiStyleAttrsBackgroundColor(int ref);
 void ffiStyleAttrsSetBackgroundColor(int ref, int val);
+
+void ffiStyleAttrsBorderColor(int ref, c_border_color_t * color);
+void ffiStyleAttrsSetBorderColor(int ref, int val);
+void ffiStyleAttrsSetBorderColor2(int ref, c_border_color_t * color);
 
 
 

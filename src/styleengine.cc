@@ -366,7 +366,6 @@ void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
 c_style_attrs_t * c_style_attrs_calloc(void)
 {
    c_style_attrs_t * style_attrs = (c_style_attrs_t *) calloc(1, sizeof (c_style_attrs_t));
-   style_attrs->c_border_color = (c_border_color_t *) calloc(1, sizeof (c_border_color_t));
    style_attrs->c_font_attrs   = (c_font_attrs_t *) calloc(1, sizeof (c_font_attrs_t));
 
    return style_attrs;
@@ -380,7 +379,6 @@ void c_style_attrs_dealloc(c_style_attrs_t ** style_attrs)
    if (nullptr == *style_attrs) {
       return;
    }
-   free((*style_attrs)->c_border_color);
 
    if ((*style_attrs)->c_font_attrs) {
       if ((*style_attrs)->c_font_attrs->name) {
@@ -392,27 +390,9 @@ void c_style_attrs_dealloc(c_style_attrs_t ** style_attrs)
    free((*style_attrs));
 }
 
-void c_style_attrs_init(c_style_attrs_t * style_attrs)
-{
-   // *(style_attrs->c_border_color)     = { -1, -1, -1, -1 }; TODO: uncommenting this line breaks block-quote markings in comments on SoylentNews
-}
-
 void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
 {
    ffiStyleAttrsCopy(style_attrs->c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
-
-   if (attrs->borderColor.top != nullptr && attrs->borderColor.top != (Color *) -1) {
-      style_attrs->c_border_color->top    = attrs->borderColor.top->color;
-   }
-   if (attrs->borderColor.right != nullptr && attrs->borderColor.right != (Color *) -1) {
-      style_attrs->c_border_color->right  = attrs->borderColor.right->color;
-   }
-   if (attrs->borderColor.left != nullptr && attrs->borderColor.left != (Color *) -1) {
-      style_attrs->c_border_color->left   = attrs->borderColor.left->color;
-   }
-   if (attrs->borderColor.bottom != nullptr && attrs->borderColor.bottom != (Color *) -1) {
-      style_attrs->c_border_color->bottom = attrs->borderColor.bottom->color;
-   }
 
    *(style_attrs->c_font_attrs) = attrs->font->font_attrs;
    if (attrs->font->font_attrs.name) {
@@ -424,20 +404,23 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
 {
    ffiStyleAttrsCopy(attrs->c_attrs.c_style_attrs_ref, style_attrs->c_style_attrs_ref);
 
-   attrs->borderColor.top    = style_attrs->c_border_color->top == -1    ? NULL : Color::create(layout, style_attrs->c_border_color->top);
-   attrs->borderColor.right  = style_attrs->c_border_color->right == -1  ? NULL : Color::create(layout, style_attrs->c_border_color->right);
-   attrs->borderColor.bottom = style_attrs->c_border_color->bottom == -1 ? NULL : Color::create(layout, style_attrs->c_border_color->bottom);
-   attrs->borderColor.left   = style_attrs->c_border_color->left == -1   ? NULL : Color::create(layout, style_attrs->c_border_color->left);
+   // Special initial value meaning "value of given attribute is not set".
+   const int not_set = -1;
 
+   c_border_color_t border_color = {};
+   ffiStyleAttrsBorderColor(style_attrs->c_style_attrs_ref, &border_color);
+   attrs->borderColor.top    = border_color.top == not_set    ? nullptr : Color::create(layout, border_color.top);
+   attrs->borderColor.right  = border_color.right == not_set  ? nullptr : Color::create(layout, border_color.right);
+   attrs->borderColor.bottom = border_color.bottom == not_set ? nullptr : Color::create(layout, border_color.bottom);
+   attrs->borderColor.left   = border_color.left == not_set   ? nullptr : Color::create(layout, border_color.left);
+
+   // Notice that we don't assign NULL if attrs->color is "not set". Some
+   // code relies on attrs->color always being non-NULL.
    int color = ffiStyleAttrsColor(style_attrs->c_style_attrs_ref);
-   if (-1 != color) {
-      // -1 is a special initial value set on top of this function
-      attrs->color = Color::create(layout, color);
-   }
+   attrs->color = color == not_set ? attrs->color : Color::create(layout, color);
+
    int bg_color = ffiStyleAttrsBackgroundColor(style_attrs->c_style_attrs_ref);
-   if (-1 != bg_color) {
-      // -1 is a special initial value set on top of this function
-      //
+   if (not_set != bg_color) {
       // TODO: check the logic in if(). Wouldn't it be more natural to write it this way?
       // if (color attribute == white && don't allow white bg
       //    then use white bg replacement
@@ -477,12 +460,10 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    DilloUrl *imgUrl = nullptr;
 
    c_style_attrs_t * style_attrs = c_style_attrs_calloc();
-   c_style_attrs_init(style_attrs);
    c_style_attrs_copy_from(style_attrs, attrs);
    style_attrs->c_style_attrs_ref = attrs->c_attrs.c_style_attrs_ref;
 
    c_style_attrs_t * parent_style_attrs = c_style_attrs_calloc();
-   c_style_attrs_init(parent_style_attrs);
    c_style_attrs_copy_from(parent_style_attrs, parentAttrs);
    parent_style_attrs->c_style_attrs_ref = parentAttrs->c_attrs.c_style_attrs_ref;
 
@@ -506,7 +487,7 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parentAttrs: %d, VALUE in attrs: %d\n", ffiStyleAttrsListStyleType(parentAttrs->c_attrs.c_style_attrs_ref), ffiStyleAttrsListStyleType(attrs->c_attrs.c_style_attrs_ref));
    fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parent_style_attrs: %d, VALUE in style_attrs: %d\n", ffiStyleAttrsListStyleType(parent_style_attrs->c_style_attrs_ref), ffiStyleAttrsListStyleType(style_attrs->c_style_attrs_ref));
 #endif
-   
+
 
    gettimeofday(&g_apply_do_stop, NULL);
    struct timeval diff = {};

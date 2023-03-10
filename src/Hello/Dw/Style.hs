@@ -291,6 +291,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleListStyleType  = 0    -- LIST_STYLE_TYPE_DISC == 0
                              , styleBorderCollapse = 0    -- BORDER_MODEL_SEPARATE == 0;
                              , styleBorderStyle    = defaultStyleBorderStyle
+                             , styleBorderColor    = defaultStyleBorderColor
                              , styleWidth          = createAutoDwLength
                              , styleHeight         = createAutoDwLength
                              , styleTextIndent     = createAutoDwLength
@@ -431,6 +432,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleMargin             = styleMargin from
                             , stylePadding            = stylePadding from
                             , styleBorderWidth        = styleBorderWidth from
+                            , styleBorderColor        = styleBorderColor from
                             , styleColor              = styleColor from
                             , styleBackgroundColor    = styleBackgroundColor from
                             }
