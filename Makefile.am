@@ -1,4 +1,4 @@
-SUBDIRS = lout dw dlib dpip src doc dpid dpi test
+SUBDIRS = src/Hello lout dw dlib dpip src doc dpid dpi test
 
 dist_bin_SCRIPTS = dillo-install-hyphenation
 
