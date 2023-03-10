@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 5);
 
    FontAttrs fontAttrs;
    fontAttrs.font_attrs.name = "Bitstream Charter";
@@ -104,26 +104,26 @@ int main(int argc, char **argv)
 
    widgetStyle->unref();
 
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
-   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 0);
-   ffiStyleAttrsSetPadding(styleAttrs.c_attrs.c_style_attrs_ref, 0);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 0);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_style_attrs_ref, 0);
+   ffiStyleAttrsSetPadding(styleAttrs.c_style_attrs_ref, 0);
    styleAttrs.backgroundColor = NULL;
 
    Style *wordStyle = Style::create (&styleAttrs);
 
-   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 1);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_style_attrs_ref, 1);
    styleAttrs.setBorderColor (Color::create (layout, 0x000080));
-   ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_SOLID);
-   ffiStyleAttrsSetPadding(styleAttrs.c_attrs.c_style_attrs_ref, 1);
+   ffiStyleAttrsSetBorderStyle(styleAttrs.c_style_attrs_ref, BORDER_SOLID);
+   ffiStyleAttrsSetPadding(styleAttrs.c_style_attrs_ref, 1);
    styleAttrs.backgroundColor = NULL;
    {
       DwLength aWidth = {};
       ffiCreatePercentageDwLength(&aWidth, 0.25);
-      ffiStyleAttrsSetWidth(styleAttrs.c_attrs.c_style_attrs_ref, &aWidth);
+      ffiStyleAttrsSetWidth(styleAttrs.c_style_attrs_ref, &aWidth);
 
       DwLength aHeight = {};
       ffiCreatePercentageDwLength(&aHeight, 0.25);
-      ffiStyleAttrsSetHeight(styleAttrs.c_attrs.c_style_attrs_ref, &aHeight);
+      ffiStyleAttrsSetHeight(styleAttrs.c_style_attrs_ref, &aHeight);
    }
 
    Style *imageStyle1 = Style::create (&styleAttrs);
@@ -136,11 +136,11 @@ int main(int argc, char **argv)
    {
       DwLength aWidth = {};
       ffiCreateAutoDwLength(&aWidth);
-      ffiStyleAttrsSetWidth(styleAttrs.c_attrs.c_style_attrs_ref, &aWidth);
+      ffiStyleAttrsSetWidth(styleAttrs.c_style_attrs_ref, &aWidth);
 
       DwLength aHeight = {};
       ffiCreateAutoDwLength(&aHeight);
-      ffiStyleAttrsSetHeight(styleAttrs.c_attrs.c_style_attrs_ref, &aHeight);
+      ffiStyleAttrsSetHeight(styleAttrs.c_style_attrs_ref, &aHeight);
    }
 
    Style *imageStyle2 = Style::create (&styleAttrs);

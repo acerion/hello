@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 5);
 
    FontAttrs fontAttrs;
    fontAttrs.font_attrs.name = "Bitstream Charter";
@@ -110,15 +110,15 @@ int main(int argc, char **argv)
 
    widgetStyle->unref();
 
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 0);
    styleAttrs.backgroundColor = NULL;
-   ffiStyleAttrsSetCursor(styleAttrs.c_attrs.c_style_attrs_ref, CURSOR_TEXT);
+   ffiStyleAttrsSetCursor(styleAttrs.c_style_attrs_ref, CURSOR_TEXT);
 
    Style *wordStyle = Style::create (&styleAttrs);
 
    styleAttrs.color = Color::create (layout, 0x0000ff);
-   ffiStyleAttrsSetTextDecoration(styleAttrs.c_attrs.c_style_attrs_ref, TEXT_DECORATION_UNDERLINE);
-   ffiStyleAttrsSetCursor(styleAttrs.c_attrs.c_style_attrs_ref, CURSOR_POINTER);
+   ffiStyleAttrsSetTextDecoration(styleAttrs.c_style_attrs_ref, TEXT_DECORATION_UNDERLINE);
+   ffiStyleAttrsSetCursor(styleAttrs.c_style_attrs_ref, CURSOR_POINTER);
 
    for(int i = 1; i <= 10; i++) {
       char buf[4];
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
          textblock->addSpace(wordStyle);
       }
 
-      ffiStyleAttrsSetXLink(ffiStyleAttrsXLink(styleAttrs.c_attrs.c_style_attrs_ref), i);
+      ffiStyleAttrsSetXLink(ffiStyleAttrsXLink(styleAttrs.c_style_attrs_ref), i);
       Style *linkStyle = Style::create (&styleAttrs);
 
       for(int j = 0; words2[j]; j++) {

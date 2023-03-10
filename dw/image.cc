@@ -173,9 +173,9 @@ void Image::sizeRequestImpl (core::Requisition *requisition)
 {
    if (buffer) {
       DwLength aHeight = {};
-      ffiStyleAttrsGetHeight(getStyle()->c_attrs.c_style_attrs_ref, &aHeight);
+      ffiStyleAttrsGetHeight(getStyle()->c_style_attrs_ref, &aHeight);
       DwLength aWidth = {};
-      ffiStyleAttrsGetWidth(getStyle()->c_attrs.c_style_attrs_ref, &aWidth);
+      ffiStyleAttrsGetWidth(getStyle()->c_style_attrs_ref, &aWidth);
 
       if (ffiIsAutoDwLength(&aHeight) &&
           ffiIsAbsoluteDwLength (&aWidth) &&
@@ -212,9 +212,9 @@ void Image::sizeRequestImpl (core::Requisition *requisition)
       }
    }
 
-   requisition->width += ffiStyleAttrsBoxDiffWidth (getStyle()->c_attrs.c_style_attrs_ref);
-   requisition->ascent += ffiStyleAttrsBoxOffsetY (getStyle()->c_attrs.c_style_attrs_ref);
-   requisition->descent += ffiStyleAttrsBoxRestHeight (getStyle()->c_attrs.c_style_attrs_ref);
+   requisition->width += ffiStyleAttrsBoxDiffWidth (getStyle()->c_style_attrs_ref);
+   requisition->ascent += ffiStyleAttrsBoxOffsetY (getStyle()->c_style_attrs_ref);
+   requisition->descent += ffiStyleAttrsBoxRestHeight (getStyle()->c_style_attrs_ref);
 }
 
 void Image::sizeAllocateImpl (core::Allocation *allocation)
@@ -227,18 +227,18 @@ void Image::sizeAllocateImpl (core::Allocation *allocation)
        allocation->ascent + allocation->descent == getHeight ())
       return;
 
-   dx = ffiStyleAttrsBoxDiffWidth (getStyle()->c_attrs.c_style_attrs_ref);
-   dy = ffiStyleAttrsBoxDiffHeight (getStyle()->c_attrs.c_style_attrs_ref);
+   dx = ffiStyleAttrsBoxDiffWidth (getStyle()->c_style_attrs_ref);
+   dy = ffiStyleAttrsBoxDiffHeight (getStyle()->c_style_attrs_ref);
 #if 0
    MSG("ffiStyleAttrsBoxDiffHeight = %d + %d, buffer=%p\n",
-       ffiStyleAttrsBoxOffsetY(getStyle()->c_attrs.c_style_attrs_ref), ffiStyleAttrsBoxRestHeight(getStyle()->c_attrs.c_style_attrs_ref), buffer);
-   MSG("getContentWidth() = allocation.width - ffiStyleAttrsBoxDiffWidth (style->c_attrs.c_style_attrs_ref)"
+       ffiStyleAttrsBoxOffsetY(getStyle()->c_style_attrs_ref), ffiStyleAttrsBoxRestHeight(getStyle()->c_style_attrs_ref), buffer);
+   MSG("getContentWidth() = allocation.width - ffiStyleAttrsBoxDiffWidth (style->c_style_attrs_ref)"
        " = %d - %d = %d\n",
-       this->allocation.width, ffiStyleAttrsBoxDiffWidth(getStyle()->c_attrs.c_style_attrs_ref),
-       this->allocation.width - ffiStyleAttrsBoxDiffWidth(getStyle()->c_attrs.c_style_attrs_ref));
+       this->allocation.width, ffiStyleAttrsBoxDiffWidth(getStyle()->c_style_attrs_ref),
+       this->allocation.width - ffiStyleAttrsBoxDiffWidth(getStyle()->c_style_attrs_ref));
    MSG("getContentHeight() = getHeight() - ffiStyleAttrsBoxDiffHeight ()"
-       " = %d - %d = %d\n", this->getHeight(), ffiStyleAttrsBoxDiffHeight(getStyle()->c_attrs.c_style_attrs_ref),
-       this->getHeight() - ffiStyleAttrsBoxDiffHeight(getStyle()->c_attrs.c_style_attrs_ref));
+       " = %d - %d = %d\n", this->getHeight(), ffiStyleAttrsBoxDiffHeight(getStyle()->c_style_attrs_ref),
+       this->getHeight() - ffiStyleAttrsBoxDiffHeight(getStyle()->c_style_attrs_ref));
 #endif
    if (buffer &&
        (allocation->width - dx > 0 ||
@@ -256,7 +256,7 @@ void Image::sizeAllocateImpl (core::Allocation *allocation)
 void Image::enterNotifyImpl (core::EventCrossing *event)
 {
    // BUG: this is wrong for image maps, but the cursor position is unknown.
-   currLink = ffiStyleAttrsXLink(getStyle()->c_attrs.c_style_attrs_ref);
+   currLink = ffiStyleAttrsXLink(getStyle()->c_style_attrs_ref);
 
    if (currLink != -1) {
       (void) layout->emitLinkEnter (this, currLink, -1, -1, -1);
@@ -282,7 +282,7 @@ void Image::leaveNotifyImpl (core::EventCrossing *event)
  */
 int Image::contentX (core::MousePositionEvent *event)
 {
-   int ret = event->xWidget - ffiStyleAttrsBoxOffsetX(getStyle()->c_attrs.c_style_attrs_ref);
+   int ret = event->xWidget - ffiStyleAttrsBoxOffsetX(getStyle()->c_style_attrs_ref);
 
    ret = misc::min(getContentWidth(), misc::max(ret, 0));
    return ret;
@@ -290,7 +290,7 @@ int Image::contentX (core::MousePositionEvent *event)
 
 int Image::contentY (core::MousePositionEvent *event)
 {
-   int ret = event->yWidget - ffiStyleAttrsBoxOffsetY(getStyle()->c_attrs.c_style_attrs_ref);
+   int ret = event->yWidget - ffiStyleAttrsBoxOffsetY(getStyle()->c_style_attrs_ref);
 
    ret = misc::min(getContentHeight(), misc::max(ret, 0));
    return ret;
@@ -309,7 +309,7 @@ bool Image::motionNotifyImpl (core::EventMotion *event)
             currLink = newLink;
             clicking = false;
             /* \todo Using MAP/AREA styles would probably be best */
-            setCursor(newLink == -1 ? ((dw::core::style::Cursor) ffiStyleAttrsCursor(getStyle()->c_attrs.c_style_attrs_ref)) : core::style::CURSOR_POINTER);
+            setCursor(newLink == -1 ? ((dw::core::style::Cursor) ffiStyleAttrsCursor(getStyle()->c_style_attrs_ref)) : core::style::CURSOR_POINTER);
             (void) layout->emitLinkEnter (this, newLink, -1, -1, -1);
          }
       } else if (isMap && currLink != -1) {
@@ -325,9 +325,9 @@ bool Image::buttonPressImpl (core::EventButton *event)
    bool ret = false;
 
    currLink = mapList ? mapList->link(mapKey,contentX(event),contentY(event)) :
-      ffiStyleAttrsXLink(getStyle()->c_attrs.c_style_attrs_ref);
+      ffiStyleAttrsXLink(getStyle()->c_style_attrs_ref);
    if (event->button == 3){
-      (void)layout->emitLinkPress(this, currLink, ffiStyleAttrsXImg(getStyle()->c_attrs.c_style_attrs_ref), -1, -1,
+      (void)layout->emitLinkPress(this, currLink, ffiStyleAttrsXImg(getStyle()->c_style_attrs_ref), -1, -1,
                                   event);
       ret = true;
    } else if (event->button == 1 || currLink != -1){
@@ -339,14 +339,14 @@ bool Image::buttonPressImpl (core::EventButton *event)
 
 bool Image::buttonReleaseImpl (core::EventButton *event)
 {
-   fprintf(stderr, "button release event for x_img = %d\n", ffiStyleAttrsXImg(getStyle()->c_attrs.c_style_attrs_ref));
+   fprintf(stderr, "button release event for x_img = %d\n", ffiStyleAttrsXImg(getStyle()->c_style_attrs_ref));
    currLink = mapList ? mapList->link(mapKey,contentX(event),contentY(event)) :
-      ffiStyleAttrsXLink(getStyle()->c_attrs.c_style_attrs_ref);
+      ffiStyleAttrsXLink(getStyle()->c_style_attrs_ref);
    if (clicking) {
       int x = isMap ? contentX(event) : -1;
       int y = isMap ? contentY(event) : -1;
       clicking = false;
-      layout->emitLinkClick (this, currLink, ffiStyleAttrsXImg(getStyle()->c_attrs.c_style_attrs_ref), x, y, event);
+      layout->emitLinkClick (this, currLink, ffiStyleAttrsXImg(getStyle()->c_style_attrs_ref), x, y, event);
       return true;
    }
    return false;
@@ -360,8 +360,8 @@ void Image::draw (core::View *view, core::Rectangle *area)
    drawWidgetBox (view, area, false);
 
    if (buffer) {
-      dx = ffiStyleAttrsBoxOffsetX (getStyle()->c_attrs.c_style_attrs_ref);
-      dy = ffiStyleAttrsBoxOffsetY (getStyle()->c_attrs.c_style_attrs_ref);
+      dx = ffiStyleAttrsBoxOffsetX (getStyle()->c_style_attrs_ref);
+      dy = ffiStyleAttrsBoxOffsetY (getStyle()->c_style_attrs_ref);
       content.x = dx;
       content.y = dy;
       content.width = getContentWidth ();
@@ -388,16 +388,16 @@ void Image::draw (core::View *view, core::Rectangle *area)
              (getContentHeight() <
               getStyle()->font->ascent + getStyle()->font->descent)) {
             clippingView = usedView =
-               view->getClippingView (allocation.x + ffiStyleAttrsBoxOffsetX (getStyle()->c_attrs.c_style_attrs_ref),
-                                      allocation.y + ffiStyleAttrsBoxOffsetY (getStyle()->c_attrs.c_style_attrs_ref),
+               view->getClippingView (allocation.x + ffiStyleAttrsBoxOffsetX (getStyle()->c_style_attrs_ref),
+                                      allocation.y + ffiStyleAttrsBoxOffsetY (getStyle()->c_style_attrs_ref),
                                       getContentWidth(),
                                       getContentHeight());
          }
 
          usedView->drawSimpleWrappedText (getStyle()->font, getStyle()->color,
                              core::style::Color::SHADING_NORMAL,
-                             allocation.x + ffiStyleAttrsBoxOffsetX (getStyle()->c_attrs.c_style_attrs_ref),
-                             allocation.y + ffiStyleAttrsBoxOffsetY (getStyle()->c_attrs.c_style_attrs_ref),
+                             allocation.x + ffiStyleAttrsBoxOffsetX (getStyle()->c_style_attrs_ref),
+                             allocation.y + ffiStyleAttrsBoxOffsetY (getStyle()->c_style_attrs_ref),
                              getContentWidth(), getContentHeight(), altText);
 
          if (clippingView)
@@ -405,14 +405,14 @@ void Image::draw (core::View *view, core::Rectangle *area)
       }
       if (mapKey) {
          clippingView = view->getClippingView (allocation.x +
-                                               ffiStyleAttrsBoxOffsetX (getStyle()->c_attrs.c_style_attrs_ref),
+                                               ffiStyleAttrsBoxOffsetX (getStyle()->c_style_attrs_ref),
                                                allocation.y +
-                                               ffiStyleAttrsBoxOffsetY (getStyle()->c_attrs.c_style_attrs_ref),
+                                               ffiStyleAttrsBoxOffsetY (getStyle()->c_style_attrs_ref),
                                                getContentWidth(),
                                                getContentHeight());
          mapList->drawMap(mapKey, clippingView, getStyle(),
-                          allocation.x + ffiStyleAttrsBoxOffsetX (getStyle()->c_attrs.c_style_attrs_ref),
-                          allocation.y + ffiStyleAttrsBoxOffsetY (getStyle()->c_attrs.c_style_attrs_ref));
+                          allocation.x + ffiStyleAttrsBoxOffsetX (getStyle()->c_style_attrs_ref),
+                          allocation.y + ffiStyleAttrsBoxOffsetY (getStyle()->c_style_attrs_ref));
          view->mergeClippingView (clippingView);
       }
    }
@@ -457,8 +457,8 @@ void Image::drawRow (int row)
 
    buffer->getRowArea (row, &area);
    if (area.width && area.height)
-      queueDrawArea (area.x + ffiStyleAttrsBoxOffsetX (getStyle()->c_attrs.c_style_attrs_ref),
-                     area.y + ffiStyleAttrsBoxOffsetY (getStyle()->c_attrs.c_style_attrs_ref),
+      queueDrawArea (area.x + ffiStyleAttrsBoxOffsetX (getStyle()->c_style_attrs_ref),
+                     area.y + ffiStyleAttrsBoxOffsetY (getStyle()->c_style_attrs_ref),
                      area.width, area.height);
 }
 

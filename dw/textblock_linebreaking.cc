@@ -758,7 +758,7 @@ int Textblock::considerHyphenation (int firstIndex, int breakPos)
 bool Textblock::isHyphenationCandidate (Word *word)
 {
    char lang[2 + 1] = {};
-   ffiStyleAttrsXLang(word->style->c_attrs.c_style_attrs_ref, lang, (int) sizeof (lang));
+   ffiStyleAttrsXLang(word->style->c_style_attrs_ref, lang, (int) sizeof (lang));
 
    //fprintf(stderr, "is hyphenation candidate: lang = '%s'\n", lang);
 
@@ -871,7 +871,7 @@ int Textblock::hyphenateWord (int wordIndex)
    Word *hyphenatedWord = words->getRef(wordIndex);
 
    char lang[2 + 1] = {};
-   ffiStyleAttrsXLang(hyphenatedWord->style->c_attrs.c_style_attrs_ref, lang, (int) sizeof (lang));
+   ffiStyleAttrsXLang(hyphenatedWord->style->c_style_attrs_ref, lang, (int) sizeof (lang));
 
    Hyphenator *hyphenator = Hyphenator::getHyphenator (lang);
    PRINTF ("[%p]    considering to hyphenate word %d, '%s', in language '%s'\n",
@@ -981,12 +981,12 @@ void Textblock::accumulateWordForLine (int lineIndex, int wordIndex)
    line->boxDescent = misc::max (line->boxDescent, word->size.descent);
 
    int len = word->style->font->ascent;
-   if (ffiStyleAttrsVerticalAlign(word->style->c_attrs.c_style_attrs_ref) == core::style::VALIGN_SUPER)
+   if (ffiStyleAttrsVerticalAlign(word->style->c_style_attrs_ref) == core::style::VALIGN_SUPER)
       len += len / 2;
    line->contentAscent = misc::max (line->contentAscent, len);
          
    len = word->style->font->descent;
-   if (ffiStyleAttrsVerticalAlign(word->style->c_attrs.c_style_attrs_ref) == core::style::VALIGN_SUB)
+   if (ffiStyleAttrsVerticalAlign(word->style->c_style_attrs_ref) == core::style::VALIGN_SUB)
       len += word->style->font->ascent / 3;
    line->contentDescent = misc::max (line->contentDescent, len);
 
@@ -994,16 +994,16 @@ void Textblock::accumulateWordForLine (int lineIndex, int wordIndex)
       int collapseMarginTop = 0;
 
       c_style_margin_t margin = {};
-      ffiStyleAttrsMargin(word->content.widget->getStyle()->c_attrs.c_style_attrs_ref, &margin);
+      ffiStyleAttrsMargin(word->content.widget->getStyle()->c_style_attrs_ref, &margin);
 
       line->marginDescent =
          misc::max (line->marginDescent, word->size.descent + margin.bottom);
 
       c_style_padding_t padding = {};
-      ffiStyleAttrsPadding(getStyle ()->c_attrs.c_style_attrs_ref, &padding);
+      ffiStyleAttrsPadding(getStyle ()->c_style_attrs_ref, &padding);
 
       c_border_width_t borderWidth = {};
-      ffiStyleAttrsBorderWidth(getStyle ()->c_attrs.c_style_attrs_ref, &borderWidth);
+      ffiStyleAttrsBorderWidth(getStyle ()->c_style_attrs_ref, &borderWidth);
 
       if (lines->size () == 1 &&
           word->content.widget->blockLevel () &&
@@ -1011,7 +1011,7 @@ void Textblock::accumulateWordForLine (int lineIndex, int wordIndex)
           padding.top == 0) {
 
          c_style_margin_t margin2 = {};
-         ffiStyleAttrsMargin(getStyle ()->c_attrs.c_style_attrs_ref, &margin2);
+         ffiStyleAttrsMargin(getStyle ()->c_style_attrs_ref, &margin2);
 
          // collapse top margins of parent element and its first child
          // see: http://www.w3.org/TR/CSS21/box.html#collapsing-margins
@@ -1100,7 +1100,7 @@ void Textblock::accumulateWordData (int wordIndex)
 int Textblock::calcAvailWidth (int lineIndex)
 {
    int availWidth =
-      this->availWidth - ffiStyleAttrsBoxDiffWidth(getStyle()->c_attrs.c_style_attrs_ref) - innerPadding;
+      this->availWidth - ffiStyleAttrsBoxDiffWidth(getStyle()->c_style_attrs_ref) - innerPadding;
    if (limitTextWidth &&
        layout->getUsesViewport () &&
        availWidth > layout->getWidthViewport () - 10)
@@ -1109,7 +1109,7 @@ int Textblock::calcAvailWidth (int lineIndex)
       availWidth -= line1OffsetEff;
 
    //PRINTF("[%p] CALC_AVAIL_WIDTH => %d - %d - %d = %d\n",
-   //       this, this->availWidth, ffiStyleAttrsBoxDiffWidth(getStyle()->c_attrs.c_style_attrs_ref), innerPadding,
+   //       this, this->availWidth, ffiStyleAttrsBoxDiffWidth(getStyle()->c_style_attrs_ref), innerPadding,
    //       availWidth);
 
    return availWidth;
@@ -1132,7 +1132,7 @@ void Textblock::initLine1Offset (int wordIndex)
             /* don't use text-indent when nesting blocks */
          } else {
             DwLength aTextIndent = {};
-            ffiStyleAttrsGetTextIndent(getStyle()->c_attrs.c_style_attrs_ref, &aTextIndent);
+            ffiStyleAttrsGetTextIndent(getStyle()->c_style_attrs_ref, &aTextIndent);
             if (ffiIsPercentageDwLength(&aTextIndent)) {
                indent = core::style::multiplyWithPercentageDwLengthRounded
                            (this->availWidth, aTextIndent);
@@ -1161,7 +1161,7 @@ void Textblock::alignLine (int lineIndex)
       words->getRef(i)->origSpace = words->getRef(i)->effSpace;
 
    if (firstWord->content.type != core::Content::BREAK) {
-      switch (ffiStyleAttrsTextAlign(firstWord->style->c_attrs.c_style_attrs_ref)) {
+      switch (ffiStyleAttrsTextAlign(firstWord->style->c_style_attrs_ref)) {
       case core::style::TEXT_ALIGN_LEFT:
       case core::style::TEXT_ALIGN_STRING:   /* handled elsewhere (in the
                                               * future)? */
@@ -1309,7 +1309,7 @@ void Textblock::removeTemporaryLines ()
 
 int Textblock::getSpaceShrinkability(struct Word *word)
 {
-   if (ffiStyleAttrsTextAlign(word->spaceStyle->c_attrs.c_style_attrs_ref) == core::style::TEXT_ALIGN_JUSTIFY)
+   if (ffiStyleAttrsTextAlign(word->spaceStyle->c_style_attrs_ref) == core::style::TEXT_ALIGN_JUSTIFY)
       return word->origSpace / 3;
    else
       return 0;
@@ -1317,7 +1317,7 @@ int Textblock::getSpaceShrinkability(struct Word *word)
 
 int Textblock::getSpaceStretchability(struct Word *word)
 {
-   if (ffiStyleAttrsTextAlign(word->spaceStyle->c_attrs.c_style_attrs_ref) == core::style::TEXT_ALIGN_JUSTIFY)
+   if (ffiStyleAttrsTextAlign(word->spaceStyle->c_style_attrs_ref) == core::style::TEXT_ALIGN_JUSTIFY)
       return word->origSpace / 2;
    else
       return 0;
@@ -1332,7 +1332,7 @@ int Textblock::getLineShrinkability(Word *lastWord)
 
 int Textblock::getLineStretchability(Word *lastWord)
 {
-   if (ffiStyleAttrsTextAlign(lastWord->spaceStyle->c_attrs.c_style_attrs_ref) == core::style::TEXT_ALIGN_JUSTIFY)
+   if (ffiStyleAttrsTextAlign(lastWord->spaceStyle->c_style_attrs_ref) == core::style::TEXT_ALIGN_JUSTIFY)
       return 0;
    else
       return stretchabilityFactor * (lastWord->maxAscent

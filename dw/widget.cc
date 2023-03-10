@@ -415,10 +415,10 @@ void Widget::drawBox (View *view, style::Style *style, Rectangle *area,
    // smoothly, the widget padding box is used.
 
    c_style_margin_t margin = {};
-   ffiStyleAttrsMargin(style->c_attrs.c_style_attrs_ref, &margin);
+   ffiStyleAttrsMargin(style->c_style_attrs_ref, &margin);
 
    c_border_width_t borderWidth = {};
-   ffiStyleAttrsBorderWidth(style->c_attrs.c_style_attrs_ref, &borderWidth);
+   ffiStyleAttrsBorderWidth(style->c_style_attrs_ref, &borderWidth);
 
    int xPad, yPad, widthPad, heightPad;
    getPaddingArea (&xPad, &yPad, &widthPad, &heightPad);
@@ -607,10 +607,10 @@ void Widget::getPaddingArea (int *xPad, int *yPad, int *widthPad,
                              int *heightPad)
 {
    c_style_margin_t margin = {};
-   ffiStyleAttrsMargin(style->c_attrs.c_style_attrs_ref, &margin);
+   ffiStyleAttrsMargin(style->c_style_attrs_ref, &margin);
 
    c_border_width_t borderWidth = {};
-   ffiStyleAttrsBorderWidth(style->c_attrs.c_style_attrs_ref, &borderWidth);
+   ffiStyleAttrsBorderWidth(style->c_style_attrs_ref, &borderWidth);
 
    *xPad = allocation.x + margin.left + borderWidth.left;
    *yPad = allocation.y + margin.top + borderWidth.top;
@@ -668,7 +668,7 @@ bool Widget::motionNotifyImpl (EventMotion *event)
 void Widget::enterNotifyImpl (EventCrossing *)
 {
    // FIXME: buf is allocated in Haskell, but is not freed anywhere.
-   char * buf = ffiStyleAttrsXTooltip(getStyle()->c_attrs.c_style_attrs_ref);
+   char * buf = ffiStyleAttrsXTooltip(getStyle()->c_style_attrs_ref);
    if (buf) {
       core::style::Tooltip *tooltip = core::style::Tooltip::create(layout, buf); // FIXME: 1. Creating tooltip on each call. 2. Leaking memory.
 
@@ -680,7 +680,7 @@ void Widget::enterNotifyImpl (EventCrossing *)
 void Widget::leaveNotifyImpl (EventCrossing *)
 {
    // FIXME: buf is allocated in Haskell, but is not freed anywhere.
-   char * buf = ffiStyleAttrsXTooltip(getStyle()->c_attrs.c_style_attrs_ref);
+   char * buf = ffiStyleAttrsXTooltip(getStyle()->c_style_attrs_ref);
    if (buf) {
       core::style::Tooltip *tooltip = core::style::Tooltip::create(layout, buf); // FIXME: 1. Creating tooltip on each call. 2. Leaking memory.
 

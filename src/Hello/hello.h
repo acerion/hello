@@ -475,7 +475,7 @@ void ffiStyleEngineSetElementPseudoClass(int doc_tree_ref, const char * element_
 
 
 
-void ffiStyleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * prefs, float dpiX, float dpiY, c_style_attrs_t * parent_style_attrs, c_style_attrs_t * style_attrs);
+void ffiStyleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * prefs, float dpiX, float dpiY, int parent_style_attrs_ref, int this_style_attrs_ref);
 
 
 void ffiStyleEngineMakeWordStyle(int refAttrs, int refBwAttrs);

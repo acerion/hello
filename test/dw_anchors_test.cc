@@ -127,18 +127,18 @@ int main(int argc, char **argv)
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
    styleAttrs.font = dw::core::style::Font::create (layout, &fontAttrs);
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 5);
    styleAttrs.color = Color::create (layout, 0x000000);
    styleAttrs.backgroundColor = Color::create (layout, 0xffffff);
    topWidgetStyle = Style::create (&styleAttrs);
 
    c_style_margin_t margin = { .top = 5, .right = 0, .bottom = 5, .left = 20 };
-   ffiStyleAttrsSetMargin2(styleAttrs.c_attrs.c_style_attrs_ref, &margin);
+   ffiStyleAttrsSetMargin2(styleAttrs.c_style_attrs_ref, &margin);
    styleAttrs.backgroundColor = NULL;
    widgetStyle = Style::create (&styleAttrs);
 
    margin.left = 0;
-   ffiStyleAttrsSetMargin2(styleAttrs.c_attrs.c_style_attrs_ref, &margin);
+   ffiStyleAttrsSetMargin2(styleAttrs.c_style_attrs_ref, &margin);
    wordStyle = Style::create (&styleAttrs);
 
    fontAttrs.font_attrs.size = 28;

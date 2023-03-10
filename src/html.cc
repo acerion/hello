@@ -935,7 +935,7 @@ static void Html_process_space(DilloHtml *html, const char *space,
    } else {
       if (SGML_SPCDEL) {
          /* SGML_SPCDEL ignores white space immediately after an open tag */
-      } else if (ffiStyleAttrsWhiteSpace(html->styleEngine->getWordStyle (html->bw)->c_attrs.c_style_attrs_ref) == WHITE_SPACE_PRE_LINE) {
+      } else if (ffiStyleAttrsWhiteSpace(html->styleEngine->getWordStyle (html->bw)->c_style_attrs_ref) == WHITE_SPACE_PRE_LINE) {
          Html_process_space_pre_line(html, space, spacesize);
       } else {
          Html2TextBlock(html)->addSpace(html->styleEngine->getWordStyle (html->bw));
@@ -1935,7 +1935,7 @@ static void Html_tag_content_img(DilloHtml *html, const char *tag, int tagsize)
    if (html_attribute_get_value(tag, tagsize, "ismap")) {
       dwi->setIsMap();
       _MSG("  Html_tag_open_img: server-side map (ISMAP)\n");
-   } else if (ffiStyleAttrsXLink(html->styleEngine->getStyle (html->bw)->c_attrs.c_style_attrs_ref) != -1 &&
+   } else if (ffiStyleAttrsXLink(html->styleEngine->getStyle (html->bw)->c_style_attrs_ref) != -1 &&
               usemap_url == NULL) {
       /* For simple links, we have to suppress the "image_pressed" signal.
        * This is overridden for USEMAP images. */
@@ -2559,7 +2559,7 @@ static void Html_tag_open_li(DilloHtml *html, const char *tag, int tagsize)
    /* Get our parent tag's variables (used as state storage) */
    list_number = &html->stack->getRef(html->stack->size()-2)->list_number;
 
-   if (ffiStyleAttrsListStyleType(style->c_attrs.c_style_attrs_ref) >= LIST_STYLE_TYPE_DECIMAL) {
+   if (ffiStyleAttrsListStyleType(style->c_style_attrs_ref) >= LIST_STYLE_TYPE_DECIMAL) {
       // ordered
       if ((attr_value = html_attribute_get_value(tag, tagsize, "value")) &&
           (*list_number = strtol(attr_value, NULL, 10)) < 0) {
@@ -3467,11 +3467,11 @@ static void Html_display_listitem(DilloHtml *html)
    *ref_list_item = list_item;
    TopOfParsingStack(html)->textblock = html->dw = list_item;
 
-   if (ffiStyleAttrsListStyleType(style->c_attrs.c_style_attrs_ref) == LIST_STYLE_TYPE_NONE) {
+   if (ffiStyleAttrsListStyleType(style->c_style_attrs_ref) == LIST_STYLE_TYPE_NONE) {
       // none
-   } else if (ffiStyleAttrsListStyleType(style->c_attrs.c_style_attrs_ref) >= LIST_STYLE_TYPE_DECIMAL) {
+   } else if (ffiStyleAttrsListStyleType(style->c_style_attrs_ref) >= LIST_STYLE_TYPE_DECIMAL) {
       // ordered
-      numtostr((*list_number)++, buf, 16, (dw::core::style::ListStyleType) ffiStyleAttrsListStyleType(style->c_attrs.c_style_attrs_ref));
+      numtostr((*list_number)++, buf, 16, (dw::core::style::ListStyleType) ffiStyleAttrsListStyleType(style->c_style_attrs_ref));
       list_item->initWithText (buf, wordStyle);
    } else {
       // unordered
@@ -3544,7 +3544,7 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       Tags[new_tag_idx].open (html, tag, tagsize);
 
       if (! TopOfParsingStack(html)->display_none) {
-         switch (ffiStyleAttrsDisplay(html->styleEngine->getStyle (html->bw)->c_attrs.c_style_attrs_ref)) {
+         switch (ffiStyleAttrsDisplay(html->styleEngine->getStyle (html->bw)->c_style_attrs_ref)) {
             case DISPLAY_BLOCK:
                Html_display_block(html);
                break;
@@ -3571,8 +3571,8 @@ static void Html_process_tag(DilloHtml *html, char *tag, int tagsize)
       if (TopOfParsingStack(html)->parse_mode == DILLO_HTML_PARSE_MODE_VERBATIM) {
          /* don't change anything */
       } else if (TopOfParsingStack(html)->parse_mode != DILLO_HTML_PARSE_MODE_PRE &&
-                 (ffiStyleAttrsWhiteSpace(html->styleEngine->getStyle (html->bw)->c_attrs.c_style_attrs_ref) == WHITE_SPACE_PRE ||
-                  ffiStyleAttrsWhiteSpace(html->styleEngine->getStyle (html->bw)->c_attrs.c_style_attrs_ref) == WHITE_SPACE_PRE_WRAP)) {
+                 (ffiStyleAttrsWhiteSpace(html->styleEngine->getStyle (html->bw)->c_style_attrs_ref) == WHITE_SPACE_PRE ||
+                  ffiStyleAttrsWhiteSpace(html->styleEngine->getStyle (html->bw)->c_style_attrs_ref) == WHITE_SPACE_PRE_WRAP)) {
          TopOfParsingStack(html)->parse_mode = DILLO_HTML_PARSE_MODE_PRE;
          html->pre_column = 0;
          html->PreFirstChar = true;

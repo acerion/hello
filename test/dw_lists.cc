@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 5);
 
    FontAttrs fontAttrs;
    fontAttrs.font_attrs.name = "Bitstream Charter";
@@ -69,18 +69,18 @@ int main(int argc, char **argv)
 
    widgetStyle->unref();
 
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 0);
    styleAttrs.backgroundColor = NULL;
-   ffiStyleAttrsSetCursor(styleAttrs.c_attrs.c_style_attrs_ref, CURSOR_TEXT);
+   ffiStyleAttrsSetCursor(styleAttrs.c_style_attrs_ref, CURSOR_TEXT);
 
    Style *wordStyle = Style::create (&styleAttrs);
 
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
-   ffiStyleAttrsSetPadding(styleAttrs.c_attrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetPadding(styleAttrs.c_style_attrs_ref, 5);
    styleAttrs.backgroundColor = Color::create (layout, 0xffff40);
    styleAttrs.setBorderColor (Color::create (layout, 0x000000));
-   ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_SOLID);
-   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 1);
+   ffiStyleAttrsSetBorderStyle(styleAttrs.c_style_attrs_ref, BORDER_SOLID);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_style_attrs_ref, 1);
 
    Style *itemStyle = Style::create (&styleAttrs);
 

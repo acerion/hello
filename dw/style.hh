@@ -409,12 +409,13 @@ class StyleAttrs : public lout::object::Object
 public:
    StyleAttrs()
    {
-      this->c_attrs.c_style_attrs_ref = ffiStyleAttrsCtor();
+      this->c_style_attrs_ref = ffiStyleAttrsCtor();
    }
 
    Font *font;
 
-   c_style_attrs_t c_attrs {};
+   /* Reference to Haskell object storing style attributes. */
+   int c_style_attrs_ref = 0;
 
    StyleImage *backgroundImage;
 

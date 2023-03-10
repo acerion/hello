@@ -718,10 +718,10 @@ void FltkComplexButtonResource::widgetCallback (Fl_Widget *widget,
       res->click_x = Fl::event_x() - widget->x();
       res->click_y = Fl::event_y() - widget->y();
       if (res->style) {
-         res->click_x -= ffiStyleAttrsBoxOffsetX(res->style->c_attrs.c_style_attrs_ref);
-         res->click_y -= ffiStyleAttrsBoxOffsetY(res->style->c_attrs.c_style_attrs_ref);
-         w -= ffiStyleAttrsBoxDiffWidth(res->style->c_attrs.c_style_attrs_ref);
-         h -= ffiStyleAttrsBoxDiffHeight(res->style->c_attrs.c_style_attrs_ref);
+         res->click_x -= ffiStyleAttrsBoxOffsetX(res->style->c_style_attrs_ref);
+         res->click_y -= ffiStyleAttrsBoxOffsetY(res->style->c_style_attrs_ref);
+         w -= ffiStyleAttrsBoxDiffWidth(res->style->c_style_attrs_ref);
+         h -= ffiStyleAttrsBoxDiffHeight(res->style->c_style_attrs_ref);
       }
       if (res->click_x >= 0 && res->click_y >= 0 &&
           res->click_x < w && res->click_y < h) {
@@ -734,8 +734,8 @@ void FltkComplexButtonResource::widgetCallback (Fl_Widget *widget,
       dw::core::EventButton event;
 
       res->click_x = res->click_y = 0;
-      event.xCanvas = widget->x() + ffiStyleAttrsBoxOffsetX(res->style->c_attrs.c_style_attrs_ref);
-      event.yCanvas = widget->y() + ffiStyleAttrsBoxOffsetY(res->style->c_attrs.c_style_attrs_ref);
+      event.xCanvas = widget->x() + ffiStyleAttrsBoxOffsetX(res->style->c_style_attrs_ref);
+      event.yCanvas = widget->y() + ffiStyleAttrsBoxOffsetY(res->style->c_style_attrs_ref);
       // ButtonState doesn't have mouse button values on a release.
       event.state = (core::ButtonState) 0;
       event.button = 1;

@@ -47,9 +47,9 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
-   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 1);
-   ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_OUTSET);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_style_attrs_ref, 1);
+   ffiStyleAttrsSetBorderStyle(styleAttrs.c_style_attrs_ref, BORDER_OUTSET);
    styleAttrs.setBorderColor (Color::create (layout, 0x808080));
 
    FontAttrs fontAttrs;
@@ -63,8 +63,8 @@ int main(int argc, char **argv)
 
    styleAttrs.color = Color::create (layout, 0x000000);
    styleAttrs.backgroundColor = Color::create (layout, 0xa0a0a0);
-   ffiStyleAttrsSetHorizBorderSpacing(styleAttrs.c_attrs.c_style_attrs_ref, 5);
-   ffiStyleAttrsSetVertBorderSpacing(styleAttrs.c_attrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetHorizBorderSpacing(styleAttrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetVertBorderSpacing(styleAttrs.c_style_attrs_ref, 5);
 
    Style *tableStyle = Style::create (&styleAttrs);
 
@@ -74,15 +74,15 @@ int main(int argc, char **argv)
 
    tableStyle->unref();
 
-   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 1);
-   ffiStyleAttrsSetBorderStyle(styleAttrs.c_attrs.c_style_attrs_ref, BORDER_INSET);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_style_attrs_ref, 1);
+   ffiStyleAttrsSetBorderStyle(styleAttrs.c_style_attrs_ref, BORDER_INSET);
 
    Style *cellStyle = Style::create (&styleAttrs);
 
-   ffiStyleAttrsSetBorderWidth(styleAttrs.c_attrs.c_style_attrs_ref, 0);
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
+   ffiStyleAttrsSetBorderWidth(styleAttrs.c_style_attrs_ref, 0);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 0);
    styleAttrs.backgroundColor = NULL;
-   ffiStyleAttrsSetCursor(styleAttrs.c_attrs.c_style_attrs_ref, CURSOR_TEXT);
+   ffiStyleAttrsSetCursor(styleAttrs.c_style_attrs_ref, CURSOR_TEXT);
 
    Style *wordStyle = Style::create (&styleAttrs);
 

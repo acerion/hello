@@ -58,7 +58,7 @@ static void calcBackgroundRelatedValues (StyleImage *backgroundImage,
 
 void StyleAttrs::initValues ()
 {
-   ffiStyleAttrsInitValues(this->c_attrs.c_style_attrs_ref);
+   ffiStyleAttrsInitValues(this->c_style_attrs_ref);
 
    backgroundColor = NULL;
    backgroundImage = NULL;
@@ -71,7 +71,7 @@ void StyleAttrs::initValues ()
  */
 void StyleAttrs::resetValues ()
 {
-   ffiStyleAttrsReset(this->c_attrs.c_style_attrs_ref);
+   ffiStyleAttrsReset(this->c_style_attrs_ref);
 
    backgroundColor = NULL;
    backgroundImage = NULL;
@@ -100,7 +100,7 @@ bool StyleAttrs::equals (object::Object *other) {
    StyleAttrs *otherAttrs = (StyleAttrs *) other;
 
    return this == otherAttrs ||
-      (ffiStyleAttrsEqual(this->c_attrs.c_style_attrs_ref, otherAttrs->c_attrs.c_style_attrs_ref) &&
+      (ffiStyleAttrsEqual(this->c_style_attrs_ref, otherAttrs->c_style_attrs_ref) &&
 
        font == otherAttrs->font &&
        color == otherAttrs->color &&
@@ -115,7 +115,7 @@ bool StyleAttrs::equals (object::Object *other) {
 }
 
 int StyleAttrs::hashValue () {
-   return ffiStyleAttrsHashValue(this->c_attrs.c_style_attrs_ref) +
+   return ffiStyleAttrsHashValue(this->c_style_attrs_ref) +
       (intptr_t) font +
       (intptr_t) color +
       (intptr_t) backgroundColor +
@@ -194,7 +194,7 @@ Style::~Style ()
 
 void Style::copyAttrs (StyleAttrs *attrs)
 {
-   ffiStyleAttrsCopy(this->c_attrs.c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
+   ffiStyleAttrsCopy(this->c_style_attrs_ref, attrs->c_style_attrs_ref);
    font = attrs->font;
    color = attrs->color;
    backgroundColor = attrs->backgroundColor;
@@ -533,14 +533,14 @@ StyleImage *StyleImage::ExternalWidgetImgRenderer::getBackgroundImage ()
 BackgroundRepeat StyleImage::ExternalWidgetImgRenderer::getBackgroundRepeat ()
 {
    Style *style = getStyle ();
-   return style ? (BackgroundRepeat) ffiStyleAttrsBgRepeat(style->c_attrs.c_style_attrs_ref) : BACKGROUND_REPEAT;
+   return style ? (BackgroundRepeat) ffiStyleAttrsBgRepeat(style->c_style_attrs_ref) : BACKGROUND_REPEAT;
 }
 
 BackgroundAttachment
    StyleImage::ExternalWidgetImgRenderer::getBackgroundAttachment ()
 {
    Style *style = getStyle ();
-   return style ? (BackgroundAttachment) ffiStyleAttrsBgAttachment(style->c_attrs.c_style_attrs_ref) : BACKGROUND_ATTACHMENT_SCROLL;
+   return style ? (BackgroundAttachment) ffiStyleAttrsBgAttachment(style->c_style_attrs_ref) : BACKGROUND_ATTACHMENT_SCROLL;
 }
 
 DwLength StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionX ()
@@ -548,7 +548,7 @@ DwLength StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionX ()
    Style *style = getStyle ();
    if (style) {
       DwLength bgX = {};
-      ffiStyleAttrsBgPositionX(style->c_attrs.c_style_attrs_ref, &bgX);
+      ffiStyleAttrsBgPositionX(style->c_style_attrs_ref, &bgX);
       return bgX;
    } else {
       DwLength len;
@@ -562,7 +562,7 @@ DwLength StyleImage::ExternalWidgetImgRenderer::getBackgroundPositionY ()
    Style *style = getStyle ();
    if (style) {
       DwLength bgY = {};
-      ffiStyleAttrsBgPositionY(style->c_attrs.c_style_attrs_ref, &bgY);
+      ffiStyleAttrsBgPositionY(style->c_style_attrs_ref, &bgY);
       return bgY;
    } else {
       DwLength len;
@@ -591,12 +591,12 @@ static void drawBorderTop(View *view, Style *style,
    Color::Shading shading = Color::SHADING_NORMAL;
 
    c_border_width_t borderWidth = {};
-   ffiStyleAttrsBorderWidth(style->c_attrs.c_style_attrs_ref, &borderWidth);
+   ffiStyleAttrsBorderWidth(style->c_style_attrs_ref, &borderWidth);
 
    if (!style->borderColor.top || borderWidth.top == 0)
       return;
 
-   switch (ffiStyleAttrsBorderStyleTop(style->c_attrs.c_style_attrs_ref)) {
+   switch (ffiStyleAttrsBorderStyleTop(style->c_style_attrs_ref)) {
    case BORDER_NONE:
    case BORDER_HIDDEN:
       break;
@@ -612,7 +612,7 @@ static void drawBorderTop(View *view, Style *style,
    case BORDER_INSET:
       inset = true;
    case BORDER_OUTSET:
-      if (ffiStyleAttrsBorderStyleTop(style->c_attrs.c_style_attrs_ref) != BORDER_SOLID)
+      if (ffiStyleAttrsBorderStyleTop(style->c_style_attrs_ref) != BORDER_SOLID)
          shading = (inset) ? Color::SHADING_DARK : Color::SHADING_LIGHT;
 
       if (borderWidth.top == 1) {
@@ -691,12 +691,12 @@ static void drawBorderBottom(View *view, Style *style,
    Color::Shading shading = Color::SHADING_NORMAL;
 
    c_border_width_t borderWidth = {};
-   ffiStyleAttrsBorderWidth(style->c_attrs.c_style_attrs_ref, &borderWidth);
+   ffiStyleAttrsBorderWidth(style->c_style_attrs_ref, &borderWidth);
 
    if (!style->borderColor.bottom || borderWidth.bottom == 0)
       return;
 
-   switch (ffiStyleAttrsBorderStyleBottom(style->c_attrs.c_style_attrs_ref)) {
+   switch (ffiStyleAttrsBorderStyleBottom(style->c_style_attrs_ref)) {
    case BORDER_NONE:
    case BORDER_HIDDEN:
       break;
@@ -712,7 +712,7 @@ static void drawBorderBottom(View *view, Style *style,
    case BORDER_INSET:
       inset = true;
    case BORDER_OUTSET:
-      if (ffiStyleAttrsBorderStyleBottom(style->c_attrs.c_style_attrs_ref) != BORDER_SOLID)
+      if (ffiStyleAttrsBorderStyleBottom(style->c_style_attrs_ref) != BORDER_SOLID)
          shading = (inset) ? Color::SHADING_LIGHT : Color::SHADING_DARK;
 
       if (borderWidth.bottom == 1) { /* 1 pixel line */
@@ -793,12 +793,12 @@ static void drawBorderLeft(View *view, Style *style,
    Color::Shading shading = Color::SHADING_NORMAL;
 
    c_border_width_t borderWidth = {};
-   ffiStyleAttrsBorderWidth(style->c_attrs.c_style_attrs_ref, &borderWidth);
+   ffiStyleAttrsBorderWidth(style->c_style_attrs_ref, &borderWidth);
 
    if (!style->borderColor.left || borderWidth.left == 0)
       return;
 
-   switch (ffiStyleAttrsBorderStyleLeft(style->c_attrs.c_style_attrs_ref)) {
+   switch (ffiStyleAttrsBorderStyleLeft(style->c_style_attrs_ref)) {
    case BORDER_NONE:
    case BORDER_HIDDEN:
       break;
@@ -814,7 +814,7 @@ static void drawBorderLeft(View *view, Style *style,
    case BORDER_INSET:
       inset = true;
    case BORDER_OUTSET:
-      if (ffiStyleAttrsBorderStyleLeft(style->c_attrs.c_style_attrs_ref) != BORDER_SOLID)
+      if (ffiStyleAttrsBorderStyleLeft(style->c_style_attrs_ref) != BORDER_SOLID)
          shading = (inset) ? Color::SHADING_DARK : Color::SHADING_LIGHT;
       if (borderWidth.left == 1) { /* 1 pixel line */
          view->drawLine(style->borderColor.left, shading, x1, y1, x2, y2);
@@ -893,12 +893,12 @@ static void drawBorderRight(View *view, Style *style,
    Color::Shading shading = Color::SHADING_NORMAL;
 
    c_border_width_t borderWidth = {};
-   ffiStyleAttrsBorderWidth(style->c_attrs.c_style_attrs_ref, &borderWidth);
+   ffiStyleAttrsBorderWidth(style->c_style_attrs_ref, &borderWidth);
 
    if (!style->borderColor.right || borderWidth.right == 0)
       return;
 
-   switch (ffiStyleAttrsBorderStyleRight(style->c_attrs.c_style_attrs_ref)) {
+   switch (ffiStyleAttrsBorderStyleRight(style->c_style_attrs_ref)) {
    case BORDER_NONE:
    case BORDER_HIDDEN:
       break;
@@ -914,7 +914,7 @@ static void drawBorderRight(View *view, Style *style,
    case BORDER_INSET:
       inset = true;
    case BORDER_OUTSET:
-      if (ffiStyleAttrsBorderStyleRight(style->c_attrs.c_style_attrs_ref) != BORDER_SOLID)
+      if (ffiStyleAttrsBorderStyleRight(style->c_style_attrs_ref) != BORDER_SOLID)
          shading = (inset) ? Color::SHADING_LIGHT : Color::SHADING_DARK;
       if (borderWidth.right == 1) { /* 1 pixel line */
          view->drawLine(style->borderColor.right, shading, x1, y1, x2, y2);
@@ -999,7 +999,7 @@ void drawBorder (View *view, Layout *layout, Rectangle *area,
 
    // top left and bottom right point of outer border boundary
    c_style_margin_t margin = {};
-   ffiStyleAttrsMargin(style->c_attrs.c_style_attrs_ref, &margin);
+   ffiStyleAttrsMargin(style->c_style_attrs_ref, &margin);
 
    xb1 = x + margin.left;
    yb1 = y + margin.top;
@@ -1092,11 +1092,11 @@ void drawBackground (View *view, Layout *layout, Rectangle *area,
          if (bgImage) {
             DwLength bgX = {};
             DwLength bgY = {};
-            ffiStyleAttrsBgPositionX(style->c_attrs.c_style_attrs_ref, &bgX);
-            ffiStyleAttrsBgPositionY(style->c_attrs.c_style_attrs_ref, &bgY);
+            ffiStyleAttrsBgPositionX(style->c_style_attrs_ref, &bgX);
+            ffiStyleAttrsBgPositionY(style->c_style_attrs_ref, &bgY);
             drawBackgroundImage (view, style->backgroundImage,
-                                 (BackgroundRepeat) ffiStyleAttrsBgRepeat(style->c_attrs.c_style_attrs_ref),
-                                 (BackgroundAttachment) ffiStyleAttrsBgAttachment(style->c_attrs.c_style_attrs_ref),
+                                 (BackgroundRepeat) ffiStyleAttrsBgRepeat(style->c_style_attrs_ref),
+                                 (BackgroundAttachment) ffiStyleAttrsBgAttachment(style->c_style_attrs_ref),
                                  bgX, bgY,
                                  intersection.x, intersection.y,
                                  intersection.width, intersection.height,

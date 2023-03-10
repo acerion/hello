@@ -55,7 +55,7 @@ import Hello.Dw.Style
 import Hello.Dw.StyleAttrsGlobal
 
 import Hello.Ffi.Css.Distance
-import Hello.Ffi.Dw.Style
+--import Hello.Ffi.Dw.Style
 import Hello.Ffi.Preferences
 
 
@@ -76,7 +76,7 @@ foreign export ccall "ffiStyleEngineSetXLangOfNode" ffiStyleEngineSetXLangOfNode
 foreign export ccall "ffiStyleEngineSetXLinkOfNode" ffiStyleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
 foreign export ccall "ffiStyleEngineSetXTooltipOfNode" ffiStyleEngineSetXTooltipOfNode :: CInt -> CString -> IO CInt
 
-foreign export ccall "ffiStyleEngineApplyStyleToGivenNode" ffiStyleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiStyleAttrs -> Ptr FfiStyleAttrs -> IO ()
+foreign export ccall "ffiStyleEngineApplyStyleToGivenNode" ffiStyleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> CInt -> CInt -> IO ()
 foreign export ccall "ffiInheritNonCssHints" ffiInheritNonCssHints :: CInt -> CInt -> IO CInt
 
 foreign export ccall "ffiStyleEnginePostprocessAttrs" ffiStyleEnginePostprocessAttrs :: CInt -> IO ()
@@ -335,11 +335,16 @@ ffiStyleEngineSetXTooltipOfNode cNonCssDeclSetRef cStringVal = do
 
 
 
-ffiStyleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> Ptr FfiStyleAttrs -> Ptr FfiStyleAttrs -> IO ()
-ffiStyleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiXArg dpiYArg ptrStructParentStyleAttrs ptrStructStyleAttrs = do
+ffiStyleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> CInt -> CInt -> IO ()
+ffiStyleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiXArg dpiYArg cParentRef cRef = do
+
+  let ref       = fromIntegral cRef
+  let parentRef = fromIntegral cParentRef
+
+  styleAttrs       <- globalStyleAttrsGet ref
+  parentStyleAttrs <- globalStyleAttrsGet parentRef
+
   prefs                        <- peekPreferences ptrStructPrefs
-  styleAttrs :: StyleAttrs     <- peekStyleAttrs ptrStructStyleAttrs
-  parentStyleAttrs :: StyleAttrs  <- peekStyleAttrs ptrStructParentStyleAttrs
   let display :: Display = defaultDisplay { dpiX = dpiXArg, dpiY = dpiYArg }
 
   let mergedDeclSetRef = fromIntegral cMergedDeclSetRef
@@ -348,10 +353,8 @@ ffiStyleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiXArg dpi
 
   let styleAttrs' = styleEngineApplyStyleToGivenNode declSet prefs display parentStyleAttrs styleAttrs
 
-  pokeStyleAttrs styleAttrs' ptrStructStyleAttrs
-
   -- We changed style attrs, let's update them in our global storage too.
-  globalStyleAttrsUpdate (styleAttrsRef styleAttrs') styleAttrs'
+  globalStyleAttrsUpdate ref styleAttrs'
 
   return ()
 

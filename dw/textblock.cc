@@ -358,11 +358,11 @@ void Textblock::sizeRequestImpl (core::Requisition *requisition)
    }
 
    PRINTF ("[%p] SIZE_REQUEST: inner padding = %d, ffiStyleAttrsBoxDiffWidth = %d\n",
-           this, innerPadding, ffiStyleAttrsBoxDiffWidth (getStyle()->c_attrs.c_style_attrs_ref));
+           this, innerPadding, ffiStyleAttrsBoxDiffWidth (getStyle()->c_style_attrs_ref));
 
-   requisition->width += innerPadding + ffiStyleAttrsBoxDiffWidth (getStyle()->c_attrs.c_style_attrs_ref);
-   requisition->ascent += ffiStyleAttrsBoxOffsetY (getStyle()->c_attrs.c_style_attrs_ref);
-   requisition->descent += ffiStyleAttrsBoxRestHeight (getStyle()->c_attrs.c_style_attrs_ref);
+   requisition->width += innerPadding + ffiStyleAttrsBoxDiffWidth (getStyle()->c_style_attrs_ref);
+   requisition->ascent += ffiStyleAttrsBoxOffsetY (getStyle()->c_style_attrs_ref);
+   requisition->descent += ffiStyleAttrsBoxRestHeight (getStyle()->c_style_attrs_ref);
 
    if (requisition->width < availWidth)
       requisition->width = availWidth;
@@ -381,7 +381,7 @@ void Textblock::getWordExtremes (Word *word, core::Extremes *extremes)
          word->content.widget->getExtremes (extremes);
       else {
          DwLength aWidth = {};
-         ffiStyleAttrsGetWidth(word->content.widget->getStyle()->c_attrs.c_style_attrs_ref, &aWidth);
+         ffiStyleAttrsGetWidth(word->content.widget->getStyle()->c_style_attrs_ref, &aWidth);
          if (ffiIsPercentageDwLength(&aWidth)) {
             extremes->minWidth = 0;
             if (word->content.widget->hasContents ())
@@ -393,7 +393,7 @@ void Textblock::getWordExtremes (Word *word, core::Extremes *extremes)
              * add padding, border and margin. */
             extremes->minWidth = extremes->maxWidth =
                ffiGetAbsoluteDwLengthValue(&aWidth)
-               + ffiStyleAttrsBoxDiffWidth (word->style->c_attrs.c_style_attrs_ref);
+               + ffiStyleAttrsBoxDiffWidth (word->style->c_style_attrs_ref);
          } else
             word->content.widget->getExtremes (extremes);
       }
@@ -419,7 +419,7 @@ void Textblock::getExtremesImpl (core::Extremes *extremes)
       extremes->maxWidth = lastPar->maxParMax;
    }
 
-   int diff = innerPadding + ffiStyleAttrsBoxDiffWidth (getStyle()->c_attrs.c_style_attrs_ref);
+   int diff = innerPadding + ffiStyleAttrsBoxDiffWidth (getStyle()->c_style_attrs_ref);
    extremes->minWidth += diff;
    extremes->maxWidth += diff;
 
@@ -467,7 +467,7 @@ void Textblock::sizeAllocateImpl (core::Allocation *allocation)
             */
 
             c_style_margin_t margin = {};
-            ffiStyleAttrsMargin(word->content.widget->getStyle()->c_attrs.c_style_attrs_ref, &margin);
+            ffiStyleAttrsMargin(word->content.widget->getStyle()->c_style_attrs_ref, &margin);
 
             /* align=bottom (base line) */
             /* Commented lines break the n2 and n3 test cases at
@@ -677,16 +677,16 @@ bool Textblock::motionNotifyImpl (core::EventMotion *event)
 
       // cursor from word or widget style
       if (word == NULL) {
-         setCursor ((dw::core::style::Cursor) ffiStyleAttrsCursor(getStyle()->c_attrs.c_style_attrs_ref));
+         setCursor ((dw::core::style::Cursor) ffiStyleAttrsCursor(getStyle()->c_style_attrs_ref));
          hoverLink = -1;
          hoverTooltip = NULL;
       } else {
          core::style::Style *style = inSpace ? word->spaceStyle : word->style;
-         setCursor ((dw::core::style::Cursor) ffiStyleAttrsCursor(style->c_attrs.c_style_attrs_ref));
-         hoverLink = ffiStyleAttrsXLink(style->c_attrs.c_style_attrs_ref);
+         setCursor ((dw::core::style::Cursor) ffiStyleAttrsCursor(style->c_style_attrs_ref));
+         hoverLink = ffiStyleAttrsXLink(style->c_style_attrs_ref);
 
          // FIXME: buf is allocated in Haskell, but is not freed anywhere.
-         char * buf = ffiStyleAttrsXTooltip(style->c_attrs.c_style_attrs_ref);
+         char * buf = ffiStyleAttrsXTooltip(style->c_style_attrs_ref);
          hoverTooltip = core::style::Tooltip::create(layout, buf); // FIXME: 1. Creating tooltip on each call. 2. Leaking memory.
       }
 
@@ -793,14 +793,14 @@ bool Textblock::sendSelectionEvent (core::SelectionState::EventType eventType,
                           yWidgetBase + word->spaceStyle->font->descent) &&
                          (event->yWidget >
                           yWidgetBase - word->spaceStyle->font->ascent)) {
-                        link = ffiStyleAttrsXLink(word->spaceStyle->c_attrs.c_style_attrs_ref);
-                        fprintf(stderr, "selection event for x_link %d\n", ffiStyleAttrsXLink(word->spaceStyle->c_attrs.c_style_attrs_ref));
+                        link = ffiStyleAttrsXLink(word->spaceStyle->c_style_attrs_ref);
+                        fprintf(stderr, "selection event for x_link %d\n", ffiStyleAttrsXLink(word->spaceStyle->c_style_attrs_ref));
                      }
                   } else {
                      if (event->yWidget <= yWidgetBase + word->size.descent &&
                          event->yWidget > yWidgetBase - word->size.ascent) {
-                        link = ffiStyleAttrsXLink(word->style->c_attrs.c_style_attrs_ref);
-                        fprintf(stderr, "selection event for x_link %d\n", ffiStyleAttrsXLink(word->style->c_attrs.c_style_attrs_ref));
+                        link = ffiStyleAttrsXLink(word->style->c_style_attrs_ref);
+                        fprintf(stderr, "selection event for x_link %d\n", ffiStyleAttrsXLink(word->style->c_style_attrs_ref));
                      }
                      if (word->content.type == core::Content::TEXT) {
                         int glyphX = wordStartX;
@@ -894,8 +894,8 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
    core::style::Style *wstyle = widget->getStyle();
 
    /* We ignore line1_offset[_eff]. */
-   int availWidth = this->availWidth - ffiStyleAttrsBoxDiffWidth (getStyle()->c_attrs.c_style_attrs_ref) - innerPadding;
-   int availAscent = this->availAscent - ffiStyleAttrsBoxDiffHeight (getStyle()->c_attrs.c_style_attrs_ref);
+   int availWidth = this->availWidth - ffiStyleAttrsBoxDiffWidth (getStyle()->c_style_attrs_ref) - innerPadding;
+   int availAscent = this->availAscent - ffiStyleAttrsBoxDiffHeight (getStyle()->c_style_attrs_ref);
    int availDescent = this->availDescent;
 
    if (widget->usesHints ()) {
@@ -905,10 +905,10 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
       widget->sizeRequest (size);
    } else {
       DwLength aWidth = {};
-      ffiStyleAttrsGetWidth(wstyle->c_attrs.c_style_attrs_ref, &aWidth);
+      ffiStyleAttrsGetWidth(wstyle->c_style_attrs_ref, &aWidth);
 
       DwLength aHeight = {};
-      ffiStyleAttrsGetHeight(wstyle->c_attrs.c_style_attrs_ref, &aHeight);
+      ffiStyleAttrsGetHeight(wstyle->c_style_attrs_ref, &aHeight);
 
       if (ffiIsAutoDwLength(&aWidth) || ffiIsAutoDwLength(&aHeight)) {
          widget->sizeRequest (&requisition);
@@ -919,7 +919,7 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
       } else if (ffiIsAbsoluteDwLength (&aWidth)) {
          /* Fixed lengths are only applied to the content, so we have to
           * add padding, border and margin. */
-         size->width = ffiGetAbsoluteDwLengthValue(&aWidth) + ffiStyleAttrsBoxDiffWidth (wstyle->c_attrs.c_style_attrs_ref);
+         size->width = ffiGetAbsoluteDwLengthValue(&aWidth) + ffiStyleAttrsBoxDiffWidth (wstyle->c_style_attrs_ref);
       } else {
          size->width = core::style::multiplyWithPercentageDwLength (availWidth, aWidth);
       }
@@ -930,7 +930,7 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
       } else if (ffiIsAbsoluteDwLength (&aHeight)) {
          /* Fixed lengths are only applied to the content, so we have to
           * add padding, border and margin. */
-         size->ascent = ffiGetAbsoluteDwLengthValue(&aHeight) + ffiStyleAttrsBoxDiffHeight (wstyle->c_attrs.c_style_attrs_ref);
+         size->ascent = ffiGetAbsoluteDwLengthValue(&aHeight) + ffiStyleAttrsBoxDiffHeight (wstyle->c_style_attrs_ref);
          size->descent = 0;
       } else {
          DwLength length;
@@ -942,7 +942,7 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
    }
 
    c_style_margin_t margin = {};
-   ffiStyleAttrsMargin(wstyle->c_attrs.c_style_attrs_ref, &margin);
+   ffiStyleAttrsMargin(wstyle->c_style_attrs_ref, &margin);
 
    /* ascent and descent in words do not contain margins. */
    size->ascent -= margin.top;
@@ -959,15 +959,15 @@ void Textblock::decorateText(core::View *view, core::style::Style *style,
    int y, height;
 
    height = 1 + style->font->font_attrs.xHeight / 12;
-   if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref) & core::style::TEXT_DECORATION_UNDERLINE) {
+   if (ffiStyleAttrsTextDecoration(style->c_style_attrs_ref) & core::style::TEXT_DECORATION_UNDERLINE) {
       y = yBase + style->font->descent / 3;
       view->drawRectangle (style->color, shading, true, x, y, width, height);
    }
-   if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref) & core::style::TEXT_DECORATION_OVERLINE) {
+   if (ffiStyleAttrsTextDecoration(style->c_style_attrs_ref) & core::style::TEXT_DECORATION_OVERLINE) {
       y = yBase - style->font->ascent;
       view->drawRectangle (style->color, shading, true, x, y, width, height);
    }
-   if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref) & core::style::TEXT_DECORATION_LINE_THROUGH) {
+   if (ffiStyleAttrsTextDecoration(style->c_style_attrs_ref) & core::style::TEXT_DECORATION_LINE_THROUGH) {
       y = yBase + (style->font->descent - style->font->ascent) / 2 +
           style->font->descent / 4;
       view->drawRectangle (style->color, shading, true, x, y, width, height);
@@ -990,7 +990,7 @@ void Textblock::drawText(core::View *view, core::style::Style *style,
    if (len > 0) {
       char *str = NULL;
 
-      switch (ffiStyleAttrsTextTransform(style->c_attrs.c_style_attrs_ref)) {
+      switch (ffiStyleAttrsTextTransform(style->c_style_attrs_ref)) {
          case core::style::TEXT_TRANSFORM_NONE:
          default:
             break;
@@ -1111,9 +1111,9 @@ void Textblock::drawWord0 (int wordIndex1, int wordIndex2,
    int yWorldBase;
 
    /* Adjust the text baseline if the word is <SUP>-ed or <SUB>-ed. */
-   if (ffiStyleAttrsVerticalAlign(style->c_attrs.c_style_attrs_ref) == core::style::VALIGN_SUB)
+   if (ffiStyleAttrsVerticalAlign(style->c_style_attrs_ref) == core::style::VALIGN_SUB)
       yWidgetBase += style->font->ascent / 3;
-   else if (ffiStyleAttrsVerticalAlign(style->c_attrs.c_style_attrs_ref) == core::style::VALIGN_SUPER) {
+   else if (ffiStyleAttrsVerticalAlign(style->c_style_attrs_ref) == core::style::VALIGN_SUPER) {
       yWidgetBase -= style->font->ascent / 2;
    }
    yWorldBase = yWidgetBase + allocation.y;
@@ -1123,7 +1123,7 @@ void Textblock::drawWord0 (int wordIndex1, int wordIndex2,
    drawText (view, style, core::style::Color::SHADING_NORMAL, xWorld,
              yWorldBase, text, 0, strlen (text), isStartTotal, isEndTotal);
 
-   if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref))
+   if (ffiStyleAttrsTextDecoration(style->c_style_attrs_ref))
       decorateText(view, style, core::style::Color::SHADING_NORMAL, xWorld,
                    yWorldBase, totalWidth);
 
@@ -1195,7 +1195,7 @@ void Textblock::drawWord0 (int wordIndex1, int wordIndex2,
                       isStartTotal && firstCharIdx == 0,
                       isEndTotal && lastCharIdx == wordLen);
 
-            if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref))
+            if (ffiStyleAttrsTextDecoration(style->c_style_attrs_ref))
                decorateText(view, style, core::style::Color::SHADING_INVERSE,
                             xStart, yWorldBase, width);
          }
@@ -1216,9 +1216,9 @@ void Textblock::drawSpace(int wordIndex, core::View *view,
    bool highlight = false;
 
    /* Adjust the space baseline if it is <SUP>-ed or <SUB>-ed */
-   if (ffiStyleAttrsVerticalAlign(style->c_attrs.c_style_attrs_ref) == core::style::VALIGN_SUB)
+   if (ffiStyleAttrsVerticalAlign(style->c_style_attrs_ref) == core::style::VALIGN_SUB)
       yWidgetBase += style->font->ascent / 3;
-   else if (ffiStyleAttrsVerticalAlign(style->c_attrs.c_style_attrs_ref) == core::style::VALIGN_SUPER) {
+   else if (ffiStyleAttrsVerticalAlign(style->c_style_attrs_ref) == core::style::VALIGN_SUPER) {
       yWidgetBase -= style->font->ascent / 2;
    }
    yWorldBase = allocation.y + yWidgetBase;
@@ -1241,7 +1241,7 @@ void Textblock::drawSpace(int wordIndex, core::View *view,
          yWorldBase - style->font->ascent, word->effSpace,
          style->font->ascent + style->font->descent);
    }
-   if (ffiStyleAttrsTextDecoration(style->c_attrs.c_style_attrs_ref)) {
+   if (ffiStyleAttrsTextDecoration(style->c_style_attrs_ref)) {
       core::style::Color::Shading shading = highlight ?
          core::style::Color::SHADING_INVERSE :
          core::style::Color::SHADING_NORMAL;
@@ -1577,7 +1577,7 @@ int Textblock::textWidth(const char *text, int start, int len,
    if (len > 0) {
       char *str = NULL;
 
-      switch (ffiStyleAttrsTextTransform(style->c_attrs.c_style_attrs_ref)) {
+      switch (ffiStyleAttrsTextTransform(style->c_style_attrs_ref)) {
          case core::style::TEXT_TRANSFORM_NONE:
          default:
             ret = layout->textWidth(style->font, text+start, len);
@@ -1645,7 +1645,7 @@ void Textblock::calcTextSize (const char *text, size_t len,
     * is (irritatingly) smaller than ascent+descent.
     */
    DwLength aLineHeight = {};
-   ffiStyleAttrsGetLineHeight(style->c_attrs.c_style_attrs_ref, &aLineHeight);
+   ffiStyleAttrsGetLineHeight(style->c_style_attrs_ref, &aLineHeight);
 
    if (!ffiIsAutoDwLength(&aLineHeight)) {
       int height, leading;
@@ -1675,10 +1675,10 @@ void Textblock::calcTextSize (const char *text, size_t len,
    /* In case of a sub or super script we increase the word's height and
     * potentially the line's height.
     */
-   if (ffiStyleAttrsVerticalAlign(style->c_attrs.c_style_attrs_ref) == core::style::VALIGN_SUB) {
+   if (ffiStyleAttrsVerticalAlign(style->c_style_attrs_ref) == core::style::VALIGN_SUB) {
       int requiredDescent = style->font->descent + style->font->ascent / 3;
       size->descent = misc::max (size->descent, requiredDescent);
-   } else if (ffiStyleAttrsVerticalAlign(style->c_attrs.c_style_attrs_ref) == core::style::VALIGN_SUPER) {
+   } else if (ffiStyleAttrsVerticalAlign(style->c_style_attrs_ref) == core::style::VALIGN_SUPER) {
       int requiredAscent = style->font->ascent + style->font->ascent / 2;
       size->ascent = misc::max (size->ascent, requiredAscent);
    }
@@ -2088,7 +2088,7 @@ void Textblock::fillSpace (int wordNo, core::style::Style *style)
 
       word->content.space = true;
       word->effSpace = word->origSpace = style->font->spaceWidth +
-         ffiStyleAttrsWordSpacing(style->c_attrs.c_style_attrs_ref);
+         ffiStyleAttrsWordSpacing(style->c_style_attrs_ref);
 
       //DBG_OBJ_ARRSET_NUM (this, "words.%d.origSpace", wordIndex,
       //                    word->origSpace);
@@ -2129,7 +2129,7 @@ void Textblock::setBreakOption (Word *word, core::style::Style *style,
 
 bool Textblock::isBreakAllowed (Word *word)
 {
-   switch (ffiStyleAttrsWhiteSpace(word->style->c_attrs.c_style_attrs_ref)) {
+   switch (ffiStyleAttrsWhiteSpace(word->style->c_style_attrs_ref)) {
    case core::style::WHITE_SPACE_NORMAL:
    case core::style::WHITE_SPACE_PRE_LINE:
    case core::style::WHITE_SPACE_PRE_WRAP:
@@ -2340,7 +2340,7 @@ void Textblock::changeLinkColor (int link, int newColor)
       for (wordIdx = line->firstWord; wordIdx <= line->lastWord; wordIdx++){
          Word *word = words->getRef(wordIdx);
 
-         if (ffiStyleAttrsXLink(word->style->c_attrs.c_style_attrs_ref) == link) {
+         if (ffiStyleAttrsXLink(word->style->c_style_attrs_ref) == link) {
             core::style::StyleAttrs styleAttrs;
 
             switch (word->content.type) {

@@ -127,8 +127,8 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
-   ffiStyleAttrsSetXLang(styleAttrs.c_attrs.c_style_attrs_ref, 'e', 'n');
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetXLang(styleAttrs.c_style_attrs_ref, 'e', 'n');
 
    FontAttrs fontAttrs;
    fontAttrs.font_attrs.name = "Bitstream Charter";
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 
    widgetStyle->unref();
 
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 0);
    styleAttrs.backgroundColor = NULL;
    styleAttrs.backgroundImage = NULL;
 
@@ -158,16 +158,16 @@ int main(int argc, char **argv)
 
    image2 = styleAttrs.backgroundImage = StyleImage::create ();
    image2->connectDeletion (&isdr);
-   ffiStyleAttrsSetBgRepeat(styleAttrs.c_attrs.c_style_attrs_ref, BACKGROUND_REPEAT);
+   ffiStyleAttrsSetBgRepeat(styleAttrs.c_style_attrs_ref, BACKGROUND_REPEAT);
 
    {
       DwLength bgX = {};
       ffiCreatePercentageDwLength(&bgX, 0);
-      ffiStyleAttrsSetBgPositionX(styleAttrs.c_attrs.c_style_attrs_ref, &bgX);
+      ffiStyleAttrsSetBgPositionX(styleAttrs.c_style_attrs_ref, &bgX);
 
       DwLength bgY = {};
       ffiCreatePercentageDwLength(&bgY, 0);
-      ffiStyleAttrsSetBgPositionY(styleAttrs.c_attrs.c_style_attrs_ref, &bgY);
+      ffiStyleAttrsSetBgPositionY(styleAttrs.c_style_attrs_ref, &bgY);
    }
 
    Style *wordStyleBg = Style::create (&styleAttrs);

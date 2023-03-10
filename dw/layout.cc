@@ -725,7 +725,7 @@ void Layout::setCursor (style::Cursor cursor)
 void Layout::updateCursor ()
 {
    if (widgetAtPoint && widgetAtPoint->style)
-      setCursor ((dw::core::style::Cursor) ffiStyleAttrsCursor(widgetAtPoint->style->c_attrs.c_style_attrs_ref));
+      setCursor ((dw::core::style::Cursor) ffiStyleAttrsCursor(widgetAtPoint->style->c_style_attrs_ref));
    else
       setCursor (style::CURSOR_DEFAULT);
 }

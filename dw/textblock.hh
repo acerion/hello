@@ -561,7 +561,7 @@ protected:
     */
    inline int lineXOffsetWidget (Line *line)
    {
-      return lineXOffsetContents (line) + ffiStyleAttrsBoxOffsetX (getStyle()->c_attrs.c_style_attrs_ref);
+      return lineXOffsetContents (line) + ffiStyleAttrsBoxOffsetX (getStyle()->c_style_attrs_ref);
    }
 
    inline int lineYOffsetWidgetAllocation (Line *line,

@@ -43,9 +43,11 @@ module Hello.Ffi.Dw.Style
   , peekStylePadding
   , pokeStylePadding
 
+{-
   , FfiStyleAttrs
   , peekStyleAttrs
   , pokeStyleAttrs
+-}
   )
 where
 
@@ -58,7 +60,6 @@ import Foreign.C.Types
 --import Debug.Trace
 
 import Hello.Dw.Style
-import Hello.Dw.StyleAttrsGlobal
 
 
 
@@ -320,7 +321,7 @@ pokeStylePadding style ptrStructStylePaddingArg = do
 
 
 
-
+{-
 data FfiStyleAttrs = FfiStyleAttrs
   {
     iStyleAttrsRef             :: CInt
@@ -407,6 +408,6 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   let cStyleAttrsRef :: CInt = fromIntegral . styleAttrsRef $ attrs
   poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef
 
-
+-}
 
 

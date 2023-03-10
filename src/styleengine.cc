@@ -93,7 +93,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout, const DilloUrl *pageUrl, con
    /* Create a dummy font, color and bg color for the bottom of the stack. */
    FontAttrs font_attrs = {};
    ffiFontAttrsMakeFontAttrsFromPrefs(&font_attrs.font_attrs, &prefs.preferences);
-   ffiStyleAttrsSetFontAttrs(style_attrs.c_attrs.c_style_attrs_ref, &font_attrs.font_attrs);
+   ffiStyleAttrsSetFontAttrs(style_attrs.c_style_attrs_ref, &font_attrs.font_attrs);
 
    style_attrs.font = Font::create (layout, &font_attrs);
    style_attrs.color = Color::create (layout, 0);
@@ -280,10 +280,10 @@ dw::core::style::StyleImage *StyleEngine::getBackgroundImage
       StyleNode *n = &styleNodesStack[i];
 
       if (n->style && n->style->backgroundImage) {
-         *bgRepeat     = (BackgroundRepeat) ffiStyleAttrsBgRepeat(n->style->c_attrs.c_style_attrs_ref);
-         *bgAttachment = (BackgroundAttachment) ffiStyleAttrsBgAttachment(n->style->c_attrs.c_style_attrs_ref);
-         ffiStyleAttrsBgPositionX(n->style->c_attrs.c_style_attrs_ref, bgPositionX);
-         ffiStyleAttrsBgPositionY(n->style->c_attrs.c_style_attrs_ref, bgPositionY);
+         *bgRepeat     = (BackgroundRepeat) ffiStyleAttrsBgRepeat(n->style->c_style_attrs_ref);
+         *bgAttachment = (BackgroundAttachment) ffiStyleAttrsBgAttachment(n->style->c_style_attrs_ref);
+         ffiStyleAttrsBgPositionX(n->style->c_style_attrs_ref, bgPositionX);
+         ffiStyleAttrsBgPositionY(n->style->c_style_attrs_ref, bgPositionY);
          return n->style->backgroundImage;
       }
    }
@@ -331,14 +331,14 @@ void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
       attrs->backgroundImage      = parentNode->style->backgroundImage;
 
       // NOTE: if parentNode->inheritBackgroundColor is false, parentNode->style is NULL.
-      ffiStyleEnginePreprocessAttrsInheritBackground(attrs->c_attrs.c_style_attrs_ref, parentNode->style->c_attrs.c_style_attrs_ref);
+      ffiStyleEnginePreprocessAttrsInheritBackground(attrs->c_style_attrs_ref, parentNode->style->c_style_attrs_ref);
    }
    attrs->borderColor.top = (Color *) -1;
    attrs->borderColor.bottom = (Color *) -1;
    attrs->borderColor.left = (Color *) -1;
    attrs->borderColor.right = (Color *) -1;
 
-   ffiStyleEnginePreprocessAttrs(attrs->c_attrs.c_style_attrs_ref);
+   ffiStyleEnginePreprocessAttrs(attrs->c_style_attrs_ref);
 }
 
 void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
@@ -352,26 +352,7 @@ void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
    if (attrs->borderColor.right == (Color *) -1)
       attrs->borderColor.right = attrs->color;
 
-   ffiStyleEnginePostprocessAttrs(attrs->c_attrs.c_style_attrs_ref);
-}
-
-c_style_attrs_t * c_style_attrs_calloc(void)
-{
-   c_style_attrs_t * style_attrs = (c_style_attrs_t *) calloc(1, sizeof (c_style_attrs_t));
-
-   return style_attrs;
-}
-
-void c_style_attrs_dealloc(c_style_attrs_t ** style_attrs)
-{
-   if (nullptr == style_attrs) {
-      return;
-   }
-   if (nullptr == *style_attrs) {
-      return;
-   }
-
-   free((*style_attrs));
+   ffiStyleEnginePostprocessAttrs(attrs->c_style_attrs_ref);
 }
 
 // Construct ui-related objects in @p attrs (objects that can't be accessed
@@ -382,7 +363,7 @@ static void style_attrs_make_ui_objects(StyleAttrs * attrs, dw::core::Layout * l
    const int not_set = -1;
 
    c_border_color_t border_color = {};
-   ffiStyleAttrsBorderColor(attrs->c_attrs.c_style_attrs_ref, &border_color);
+   ffiStyleAttrsBorderColor(attrs->c_style_attrs_ref, &border_color);
    attrs->borderColor.top    = border_color.top == not_set    ? nullptr : Color::create(layout, border_color.top);
    attrs->borderColor.right  = border_color.right == not_set  ? nullptr : Color::create(layout, border_color.right);
    attrs->borderColor.bottom = border_color.bottom == not_set ? nullptr : Color::create(layout, border_color.bottom);
@@ -390,10 +371,10 @@ static void style_attrs_make_ui_objects(StyleAttrs * attrs, dw::core::Layout * l
 
    // Notice that we don't assign NULL if attrs->color is "not set". Some
    // code relies on attrs->color always being non-NULL.
-   int color = ffiStyleAttrsColor(attrs->c_attrs.c_style_attrs_ref);
+   int color = ffiStyleAttrsColor(attrs->c_style_attrs_ref);
    attrs->color = color == not_set ? attrs->color : Color::create(layout, color);
 
-   int bg_color = ffiStyleAttrsBackgroundColor(attrs->c_attrs.c_style_attrs_ref);
+   int bg_color = ffiStyleAttrsBackgroundColor(attrs->c_style_attrs_ref);
    if (not_set != bg_color) {
       // TODO: check the logic in if(). Wouldn't it be more natural to write it this way?
       // if (color attribute == white && don't allow white bg
@@ -409,7 +390,7 @@ static void style_attrs_make_ui_objects(StyleAttrs * attrs, dw::core::Layout * l
 
    {
       FontAttrs fontAttrs = {};
-      ffiStyleAttrsFontAttrs(attrs->c_attrs.c_style_attrs_ref, &fontAttrs.font_attrs);
+      ffiStyleAttrsFontAttrs(attrs->c_style_attrs_ref, &fontAttrs.font_attrs);
       attrs->font = Font::create(layout, &fontAttrs);
    }
 }
@@ -425,33 +406,20 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    // property.
    DilloUrl *imgUrl = nullptr;
 
-   c_style_attrs_t * style_attrs = c_style_attrs_calloc();
-   ffiStyleAttrsCopy(style_attrs->c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
-   style_attrs->c_style_attrs_ref = attrs->c_attrs.c_style_attrs_ref;
-
-   c_style_attrs_t * parent_style_attrs = c_style_attrs_calloc();
-   ffiStyleAttrsCopy(parent_style_attrs->c_style_attrs_ref, parentAttrs->c_attrs.c_style_attrs_ref);
-   parent_style_attrs->c_style_attrs_ref = parentAttrs->c_attrs.c_style_attrs_ref;
-
    gettimeofday(&g_apply_do_start, NULL);
 
 #if 0
-   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: parentAttrs: %d, attrs: %d\n", parentAttrs->c_attrs.c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
-   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: parent_style_attrs: %d, style_attrs: %d\n", parent_style_attrs->c_style_attrs_ref, style_attrs->c_style_attrs_ref);
-   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parentAttrs: %d, VALUE in attrs: %d\n", ffiStyleAttrsListStyleType(parentAttrs->c_attrs.c_style_attrs_ref), ffiStyleAttrsListStyleType(attrs->c_attrs.c_style_attrs_ref));
-   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parent_style_attrs: %d, VALUE in style_attrs: %d\n", ffiStyleAttrsListStyleType(parent_style_attrs->c_style_attrs_ref), ffiStyleAttrsListStyleType(style_attrs->c_style_attrs_ref));
+   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: parent style attrs: %d, style attrs: %d\n", parentAttrs->c_style_attrs_ref, attrs->c_style_attrs_ref);
+   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parent styleattrs: %d, VALUE in style attrs: %d\n", ffiStyleAttrsListStyleType(parentAttrs->c_style_attrs_ref), ffiStyleAttrsListStyleType(attrs->c_style_attrs_ref));
 #endif
 
 
-   ffiStyleEngineApplyStyleToGivenNode(merged_decl_set_ref, &prefs.preferences, layout->dpiX(), layout->dpiY(), parent_style_attrs, style_attrs);
+   ffiStyleEngineApplyStyleToGivenNode(merged_decl_set_ref, &prefs.preferences, layout->dpiX(), layout->dpiY(), parentAttrs->c_style_attrs_ref, attrs->c_style_attrs_ref);
 
 
 #if 0
-   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: parentAttrs: %d, attrs: %d\n", parentAttrs->c_attrs.c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
-   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: parent_style_attrs: %d, style_attrs: %d\n", parent_style_attrs->c_style_attrs_ref, style_attrs->c_style_attrs_ref);
-
-   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parentAttrs: %d, VALUE in attrs: %d\n", ffiStyleAttrsListStyleType(parentAttrs->c_attrs.c_style_attrs_ref), ffiStyleAttrsListStyleType(attrs->c_attrs.c_style_attrs_ref));
-   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parent_style_attrs: %d, VALUE in style_attrs: %d\n", ffiStyleAttrsListStyleType(parent_style_attrs->c_style_attrs_ref), ffiStyleAttrsListStyleType(style_attrs->c_style_attrs_ref));
+   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: parent style attrs: %d, style attrs: %d\n", parentAttrs->c_style_attrs_ref, attrs->c_style_attrs_ref);
+   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parent style attrs: %d, VALUE in style attrs: %d\n", ffiStyleAttrsListStyleType(parentAttrs->c_style_attrs_ref), ffiStyleAttrsListStyleType(attrs->c_style_attrs_ref));
 #endif
 
 
@@ -461,14 +429,10 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    timeradd(&diff, &g_apply_do_acc, &g_apply_do_acc);
    fprintf(stderr, "[II] Total apply-do time increased to %ld:%06ld\n", g_apply_do_acc.tv_sec, g_apply_do_acc.tv_usec);
 
-   // Copy style attrs back.
-   ffiStyleAttrsCopy(attrs->c_attrs.c_style_attrs_ref, style_attrs->c_style_attrs_ref);
-   attrs->c_attrs.c_style_attrs_ref = style_attrs->c_style_attrs_ref;
-
    style_attrs_make_ui_objects(attrs, this->layout);
 
    /* Handle additional things that were not handled in Haskell. */
-   if (ffiStyleAttrsDisplay(style_attrs->c_style_attrs_ref) == DISPLAY_NONE) {
+   if (ffiStyleAttrsDisplay(attrs->c_style_attrs_ref) == DISPLAY_NONE) {
       styleNodesStack[styleNodeIndex].displayNone = true;
    }
 
@@ -493,8 +457,6 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
                   attrs->backgroundImage->connectDeletion(new StyleImageDeletionReceiver (clientKey));
       }
    }
-   c_style_attrs_dealloc(&style_attrs);
-   c_style_attrs_dealloc(&parent_style_attrs);
    a_Url_free (imgUrl);
 }
 
@@ -527,13 +489,16 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
 {
    StyleAttrs parentStyleAttrs = *styleNodesStack[styleNodeIndex - 1].style;
 
-   // Here "attrs" are the style attributes of previous/parent node, but
-   // after they are passed to applyStyleToGivenNode and processed in the
-   // function, they are then used to create new style of current node when
-   // the "attrs" are passed to "Style::create(&attrs)".
+   // Initially styleAttrs will be the same as style attributes of parent
+   // node, but after applyStyleToGivenNode is executed the styleAttrs will
+   // have their own set of style attributes (different than parent's).
+   //
+   // This assignment also copies parent's ui members (color, background
+   // color, etc.) which aren't copied/handled in Haskell code. They may be
+   // however overwritten in style_attrs_make_ui_objects().
    StyleAttrs styleAttrs = parentStyleAttrs;
-   styleAttrs.c_attrs.c_style_attrs_ref = ffiStyleAttrsCtor();
-   ffiStyleAttrsCopy(styleAttrs.c_attrs.c_style_attrs_ref, parentStyleAttrs.c_attrs.c_style_attrs_ref);
+   styleAttrs.c_style_attrs_ref = ffiStyleAttrsCtor();
+   ffiStyleAttrsCopy(styleAttrs.c_style_attrs_ref, parentStyleAttrs.c_style_attrs_ref);
 
    // Ensure that StyleEngine::style0() has not been called before for
    // this element.
@@ -544,7 +509,8 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
    assert (styleNodesStack[styleNodeIndex].style == NULL);
 
    // reset values that are not inherited according to CSS
-   styleAttrs.resetValues();
+   styleAttrs.resetValues(); // TODO: change this into call of ffi function.
+
    preprocessAttrs(&styleAttrs);
 
    c_css_declaration_lists_t * declLists = &styleNodesStack[styleNodeIndex].declLists;
@@ -585,10 +551,10 @@ Style * StyleEngine::makeWordStyle(BrowserWindow *bw) {
    if (node->inheritBackgroundColor) {
       attrs.backgroundColor      = getStyle (bw)->backgroundColor;
       attrs.backgroundImage      = getStyle (bw)->backgroundImage;
-      ffiStyleEngineMakeWordStyleInheritBackground(attrs.c_attrs.c_style_attrs_ref, getStyle(bw)->c_attrs.c_style_attrs_ref);
+      ffiStyleEngineMakeWordStyleInheritBackground(attrs.c_style_attrs_ref, getStyle(bw)->c_style_attrs_ref);
    }
 
-   ffiStyleEngineMakeWordStyle(attrs.c_attrs.c_style_attrs_ref, getStyle(bw)->c_attrs.c_style_attrs_ref);
+   ffiStyleEngineMakeWordStyle(attrs.c_style_attrs_ref, getStyle(bw)->c_style_attrs_ref);
 
    node->wordStyle = Style::create(&attrs);
    return node->wordStyle;

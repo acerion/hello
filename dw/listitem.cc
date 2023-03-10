@@ -46,7 +46,7 @@ void ListItem::initWithWidget (core::Widget *widget,
    hasListitemValue = true;
    addWidget (widget, style);
    addSpace (style);
-   if (ffiStyleAttrsListStylePosition(style->c_attrs.c_style_attrs_ref) == core::style::LIST_STYLE_POSITION_OUTSIDE)
+   if (ffiStyleAttrsListStylePosition(style->c_style_attrs_ref) == core::style::LIST_STYLE_POSITION_OUTSIDE)
       updateValue ();
 }
 
@@ -55,7 +55,7 @@ void ListItem::initWithText (const char *text, core::style::Style *style)
    hasListitemValue = true;
    addText (text, style);
    addSpace (style);
-   if (ffiStyleAttrsListStylePosition(style->c_attrs.c_style_attrs_ref) == core::style::LIST_STYLE_POSITION_OUTSIDE)
+   if (ffiStyleAttrsListStylePosition(style->c_style_attrs_ref) == core::style::LIST_STYLE_POSITION_OUTSIDE)
       updateValue ();
 }
 

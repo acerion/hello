@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 
    StyleAttrs styleAttrs;
    styleAttrs.initValues ();
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 5);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 5);
    styleAttrs.color = Color::create (layout, 0x000000);
    styleAttrs.backgroundColor = Color::create (layout, 0xffffff);
 
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
    tableStyle->unref();
 
    styleAttrs.backgroundColor = NULL;
-   ffiStyleAttrsSetMargin(styleAttrs.c_attrs.c_style_attrs_ref, 0);
+   ffiStyleAttrsSetMargin(styleAttrs.c_style_attrs_ref, 0);
 
    Style *cellStyle = Style::create (&styleAttrs);
 
