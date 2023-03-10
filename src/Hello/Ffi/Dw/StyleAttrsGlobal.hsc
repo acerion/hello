@@ -171,7 +171,7 @@ foreign export ccall "ffiStyleAttrsSetFontAttrs" ffiStyleAttrsSetFontAttrs :: CI
 
 ffiStyleAttrsCtor :: IO CInt
 ffiStyleAttrsCtor = do
-  ref <- fmap fromIntegral globalStyleAttrsCtor
+  ref :: Int <- fmap fromIntegral globalStyleAttrsCtor
   return . fromIntegral $ ref
 
 
