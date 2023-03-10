@@ -374,20 +374,15 @@ void c_style_attrs_dealloc(c_style_attrs_t ** style_attrs)
    free((*style_attrs));
 }
 
-void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
+// Construct ui-related objects in @p attrs (objects that can't be accessed
+// from Haskell's object and must be done in C++).
+static void style_attrs_make_ui_objects(StyleAttrs * attrs, dw::core::Layout * layout)
 {
-   ffiStyleAttrsCopy(style_attrs->c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
-}
-
-void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw::core::Layout * layout)
-{
-   ffiStyleAttrsCopy(attrs->c_attrs.c_style_attrs_ref, style_attrs->c_style_attrs_ref);
-
    // Special initial value meaning "value of given attribute is not set".
    const int not_set = -1;
 
    c_border_color_t border_color = {};
-   ffiStyleAttrsBorderColor(style_attrs->c_style_attrs_ref, &border_color);
+   ffiStyleAttrsBorderColor(attrs->c_attrs.c_style_attrs_ref, &border_color);
    attrs->borderColor.top    = border_color.top == not_set    ? nullptr : Color::create(layout, border_color.top);
    attrs->borderColor.right  = border_color.right == not_set  ? nullptr : Color::create(layout, border_color.right);
    attrs->borderColor.bottom = border_color.bottom == not_set ? nullptr : Color::create(layout, border_color.bottom);
@@ -395,10 +390,10 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
 
    // Notice that we don't assign NULL if attrs->color is "not set". Some
    // code relies on attrs->color always being non-NULL.
-   int color = ffiStyleAttrsColor(style_attrs->c_style_attrs_ref);
+   int color = ffiStyleAttrsColor(attrs->c_attrs.c_style_attrs_ref);
    attrs->color = color == not_set ? attrs->color : Color::create(layout, color);
 
-   int bg_color = ffiStyleAttrsBackgroundColor(style_attrs->c_style_attrs_ref);
+   int bg_color = ffiStyleAttrsBackgroundColor(attrs->c_attrs.c_style_attrs_ref);
    if (not_set != bg_color) {
       // TODO: check the logic in if(). Wouldn't it be more natural to write it this way?
       // if (color attribute == white && don't allow white bg
@@ -414,7 +409,7 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
 
    {
       FontAttrs fontAttrs = {};
-      ffiStyleAttrsFontAttrs(style_attrs->c_style_attrs_ref, &fontAttrs.font_attrs);
+      ffiStyleAttrsFontAttrs(attrs->c_attrs.c_style_attrs_ref, &fontAttrs.font_attrs);
       attrs->font = Font::create(layout, &fontAttrs);
    }
 }
@@ -431,11 +426,11 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    DilloUrl *imgUrl = nullptr;
 
    c_style_attrs_t * style_attrs = c_style_attrs_calloc();
-   c_style_attrs_copy_from(style_attrs, attrs);
+   ffiStyleAttrsCopy(style_attrs->c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
    style_attrs->c_style_attrs_ref = attrs->c_attrs.c_style_attrs_ref;
 
    c_style_attrs_t * parent_style_attrs = c_style_attrs_calloc();
-   c_style_attrs_copy_from(parent_style_attrs, parentAttrs);
+   ffiStyleAttrsCopy(parent_style_attrs->c_style_attrs_ref, parentAttrs->c_attrs.c_style_attrs_ref);
    parent_style_attrs->c_style_attrs_ref = parentAttrs->c_attrs.c_style_attrs_ref;
 
    gettimeofday(&g_apply_do_start, NULL);
@@ -466,8 +461,11 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    timeradd(&diff, &g_apply_do_acc, &g_apply_do_acc);
    fprintf(stderr, "[II] Total apply-do time increased to %ld:%06ld\n", g_apply_do_acc.tv_sec, g_apply_do_acc.tv_usec);
 
-   c_style_attrs_copy_to(attrs, style_attrs, this->layout);
+   // Copy style attrs back.
+   ffiStyleAttrsCopy(attrs->c_attrs.c_style_attrs_ref, style_attrs->c_style_attrs_ref);
    attrs->c_attrs.c_style_attrs_ref = style_attrs->c_style_attrs_ref;
+
+   style_attrs_make_ui_objects(attrs, this->layout);
 
    /* Handle additional things that were not handled in Haskell. */
    if (ffiStyleAttrsDisplay(style_attrs->c_style_attrs_ref) == DISPLAY_NONE) {
