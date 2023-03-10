@@ -395,8 +395,6 @@ void c_style_attrs_dealloc(c_style_attrs_t ** style_attrs)
 void c_style_attrs_init(c_style_attrs_t * style_attrs)
 {
    // *(style_attrs->c_border_color)     = { -1, -1, -1, -1 }; TODO: uncommenting this line breaks block-quote markings in comments on SoylentNews
-   style_attrs->c_color               = -1; // TODO: this probably should be moved to style_attrs' constructor
-   style_attrs->c_background_color    = -1; // TODO: this probably should be moved to style_attrs' constructor
 }
 
 void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
@@ -431,11 +429,13 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    attrs->borderColor.bottom = style_attrs->c_border_color->bottom == -1 ? NULL : Color::create(layout, style_attrs->c_border_color->bottom);
    attrs->borderColor.left   = style_attrs->c_border_color->left == -1   ? NULL : Color::create(layout, style_attrs->c_border_color->left);
 
-   if (style_attrs->c_color != -1) {
+   int color = ffiStyleAttrsColor(style_attrs->c_style_attrs_ref);
+   if (-1 != color) {
       // -1 is a special initial value set on top of this function
-      attrs->color = Color::create(layout, style_attrs->c_color);
+      attrs->color = Color::create(layout, color);
    }
-   if (style_attrs->c_background_color != -1) {
+   int bg_color = ffiStyleAttrsBackgroundColor(style_attrs->c_style_attrs_ref);
+   if (-1 != bg_color) {
       // -1 is a special initial value set on top of this function
       //
       // TODO: check the logic in if(). Wouldn't it be more natural to write it this way?
@@ -443,8 +443,8 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
       //    then use white bg replacement
       // else
       //    use given color attribute
-      if (prefs.allow_white_bg || style_attrs->c_background_color != 0xffffff) {
-         attrs->backgroundColor = Color::create(layout, style_attrs->c_background_color);
+      if (prefs.allow_white_bg || bg_color != 0xffffff) {
+         attrs->backgroundColor = Color::create(layout, bg_color);
       } else {
          attrs->backgroundColor = Color::create(layout, prefs.white_bg_replacement);
       }

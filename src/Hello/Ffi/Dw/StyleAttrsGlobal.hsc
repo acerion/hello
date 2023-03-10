@@ -152,6 +152,12 @@ foreign export ccall "ffiStyleAttrsBoxRestHeight" ffiStyleAttrsBoxRestHeight :: 
 foreign export ccall "ffiStyleAttrsBoxDiffWidth" ffiStyleAttrsBoxDiffWidth :: CInt -> IO CInt
 foreign export ccall "ffiStyleAttrsBoxDiffHeight" ffiStyleAttrsBoxDiffHeight :: CInt -> IO CInt
 
+foreign export ccall "ffiStyleAttrsColor" ffiStyleAttrsColor :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsSetColor" ffiStyleAttrsSetColor :: CInt -> CInt -> IO ()
+
+foreign export ccall "ffiStyleAttrsBackgroundColor" ffiStyleAttrsBackgroundColor :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsSetBackgroundColor" ffiStyleAttrsSetBackgroundColor :: CInt -> CInt -> IO ()
+
 
 
 
@@ -799,4 +805,41 @@ ffiStyleAttrsBoxDiffHeight cRef = do
 
 
 
+
+ffiStyleAttrsColor :: CInt -> IO CInt
+ffiStyleAttrsColor cRef = do
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
+  return . fromIntegral . styleColor $ sa
+
+
+
+
+ffiStyleAttrsSetColor :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetColor cRef cVal = do
+  let ref = fromIntegral cRef
+  let val = fromIntegral cVal
+  old <- globalStyleAttrsGet ref
+  let sa' = old { styleColor = val }
+  globalStyleAttrsUpdate ref sa'
+  return ()
+
+
+
+
+ffiStyleAttrsBackgroundColor :: CInt -> IO CInt
+ffiStyleAttrsBackgroundColor cRef = do
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
+  return . fromIntegral . styleBackgroundColor $ sa
+
+
+
+
+ffiStyleAttrsSetBackgroundColor :: CInt -> CInt -> IO ()
+ffiStyleAttrsSetBackgroundColor cRef cVal = do
+  let ref = fromIntegral cRef
+  let val = fromIntegral cVal
+  old <- globalStyleAttrsGet ref
+  let sa' = old { styleBackgroundColor = val }
+  globalStyleAttrsUpdate ref sa'
+  return ()
 

@@ -127,9 +127,6 @@ typedef struct c_style_attrs_t {
 
         c_font_attrs_t * c_font_attrs;
         c_border_color_t * c_border_color;
-
-        int c_color;
-        int c_background_color;
 } c_style_attrs_t;
 
 
@@ -227,6 +224,12 @@ int ffiStyleAttrsBoxRestHeight(int ref);
 
 int ffiStyleAttrsBoxDiffWidth(int ref);
 int ffiStyleAttrsBoxDiffHeight(int ref);
+
+int ffiStyleAttrsColor(int ref);
+void ffiStyleAttrsSetColor(int ref, int val);
+
+int ffiStyleAttrsBackgroundColor(int ref);
+void ffiStyleAttrsSetBackgroundColor(int ref, int val);
 
 
 

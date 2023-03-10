@@ -325,8 +325,6 @@ data FfiStyleAttrs = FfiStyleAttrs
     iStyleAttrsRef             :: CInt
   , ptrStructFontAttrs         :: Ptr FfiFontAttrs
   , ptrStructStyleBorderColor  :: Ptr FfiStyleBorderColor
-  , iColor                     :: CInt
-  , iBackgroundColor           :: CInt
   } deriving (Show)
 
 
@@ -340,21 +338,17 @@ instance Storable FfiStyleAttrs where
     ref              <- #{peek c_style_attrs_t, c_style_attrs_ref}   ptr
     fontAttrs        <- #{peek c_style_attrs_t, c_font_attrs}        ptr
     borderColor      <- #{peek c_style_attrs_t, c_border_color}      ptr
-    color              <- #{peek c_style_attrs_t, c_color}                ptr
-    backgroundColor    <- #{peek c_style_attrs_t, c_background_color}     ptr
 
-    return (FfiStyleAttrs ref fontAttrs borderColor color backgroundColor)
+    return (FfiStyleAttrs ref fontAttrs borderColor)
 
 
 
 
-  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderColor cColor cBackgroundColor) = do
+  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs cBorderColor) = do
 
     #{poke c_style_attrs_t, c_style_attrs_ref} ptr cStyleAttrsRef
     #{poke c_style_attrs_t, c_font_attrs}      ptr cFontAttrs
     #{poke c_style_attrs_t, c_border_color}    ptr cBorderColor
-    #{poke c_style_attrs_t, c_color}                ptr cColor
-    #{poke c_style_attrs_t, c_background_color}     ptr cBackgroundColor
 
 
 
@@ -397,8 +391,8 @@ peekStyleAttrs ptrStructStyleAttrs = do
     , styleListStyleType          = styleListStyleType gAttrs
 
     , styleDisplay                = styleDisplay gAttrs
-    , styleColor                  = fromIntegral . iColor $ ffiAttrs
-    , styleBackgroundColor        = fromIntegral . iBackgroundColor $ ffiAttrs
+    , styleColor                  = styleColor gAttrs
+    , styleBackgroundColor        = styleBackgroundColor gAttrs
     , styleCursor                 = styleCursor gAttrs
     , styleHorizBorderSpacing     = styleHorizBorderSpacing gAttrs
     , styleVertBorderSpacing      = styleVertBorderSpacing gAttrs
@@ -432,10 +426,7 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
 
   let cStyleAttrsRef :: CInt = fromIntegral . styleAttrsRef $ attrs
 
-  let cColor          :: CInt = fromIntegral . styleColor $ attrs
-  let cBackgroundColor :: CInt = fromIntegral . styleBackgroundColor $ attrs
-
-  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderColor cColor cBackgroundColor
+  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs pBorderColor
 
 
 
