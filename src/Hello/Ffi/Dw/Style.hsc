@@ -60,9 +60,6 @@ import Foreign.C.Types
 import Hello.Dw.Style
 import Hello.Dw.StyleAttrsGlobal
 
-import Hello.Ffi.Dw.FontAttrs
---import Hello.Ffi.Utils
-
 
 
 
@@ -327,7 +324,6 @@ pokeStylePadding style ptrStructStylePaddingArg = do
 data FfiStyleAttrs = FfiStyleAttrs
   {
     iStyleAttrsRef             :: CInt
-  , ptrStructFontAttrs         :: Ptr FfiFontAttrs
   } deriving (Show)
 
 
@@ -339,17 +335,13 @@ instance Storable FfiStyleAttrs where
 
   peek ptr = do
     ref              <- #{peek c_style_attrs_t, c_style_attrs_ref}   ptr
-    fontAttrs        <- #{peek c_style_attrs_t, c_font_attrs}        ptr
-
-    return (FfiStyleAttrs ref fontAttrs)
+    return (FfiStyleAttrs ref)
 
 
 
 
-  poke ptr (FfiStyleAttrs cStyleAttrsRef cFontAttrs) = do
-
+  poke ptr (FfiStyleAttrs cStyleAttrsRef) = do
     #{poke c_style_attrs_t, c_style_attrs_ref} ptr cStyleAttrsRef
-    #{poke c_style_attrs_t, c_font_attrs}      ptr cFontAttrs
 
 
 
@@ -357,12 +349,11 @@ instance Storable FfiStyleAttrs where
 peekStyleAttrs :: Ptr FfiStyleAttrs -> IO StyleAttrs
 peekStyleAttrs ptrStructStyleAttrs = do
   ffiAttrs  <- peek ptrStructStyleAttrs
-  fontAttrs <- peekFontAttrs . ptrStructFontAttrs $ ffiAttrs
   gAttrs    <- globalStyleAttrsGet . fromIntegral . iStyleAttrsRef $ ffiAttrs
 
   let attrs = defaultStyleAttrs {
       styleAttrsRef    = styleAttrsRef gAttrs
-    , styleFontAttrs   = fontAttrs
+    , styleFontAttrs   = styleFontAttrs gAttrs
     , styleBorderCollapse = styleBorderCollapse gAttrs
     , styleBorderStyle = styleBorderStyle gAttrs
     , styleBorderWidth = styleBorderWidth gAttrs
@@ -413,15 +404,8 @@ pokeStyleAttrs attrs ptrStructStyleAttrs = do
   -- pointer-members of ptrStructStyleAttrs. When I will have access to the
   -- pointer-members, I will be able to poke them with values passed through
   -- 'attrs'.
-  ffiStyleAttrs :: FfiStyleAttrs <- peek ptrStructStyleAttrs
-
-  -- getAccess to member-pointers, and then poke them
-  let pFontAttrs :: Ptr FfiFontAttrs = ptrStructFontAttrs ffiStyleAttrs
-  pokeFontAttrs (styleFontAttrs attrs) pFontAttrs
-
   let cStyleAttrsRef :: CInt = fromIntegral . styleAttrsRef $ attrs
-
-  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef pFontAttrs
+  poke ptrStructStyleAttrs $ FfiStyleAttrs cStyleAttrsRef
 
 
 

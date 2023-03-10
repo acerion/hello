@@ -47,11 +47,17 @@ import Foreign.C.Types
 import Hello.Dw.FontAttrs
 
 import Hello.Ffi.Utils
+import Hello.Ffi.Preferences
 
 
 
 
 #include "../../hello.h"
+
+
+
+
+foreign export ccall "ffiFontAttrsMakeFontAttrsFromPrefs" ffiFontAttrsMakeFontAttrsFromPrefs :: Ptr FfiFontAttrs -> Ptr FfiPreferences -> IO ()
 
 
 
@@ -131,5 +137,12 @@ pokeFontAttrs fontAttrs ptrStructFontAttrs = do
   poke ptrStructFontAttrs $ FfiFontAttrs size weight name variant style height spacing
 
 
+
+
+ffiFontAttrsMakeFontAttrsFromPrefs :: Ptr FfiFontAttrs -> Ptr FfiPreferences -> IO ()
+ffiFontAttrsMakeFontAttrsFromPrefs ptrStructFontAttrs ptrStructPreferences = do
+  preferences <- peekPreferences ptrStructPreferences
+  let fontAttrs = defaultFontAttrsFromPreferences preferences
+  pokeFontAttrs fontAttrs ptrStructFontAttrs
 
 

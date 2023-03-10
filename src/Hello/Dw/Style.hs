@@ -312,6 +312,7 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleBorderWidth         = defaultStyleBorderWidth
                              , styleColor               = -1
                              , styleBackgroundColor     = -1
+                             , styleFontAttrs           = defaultFontAttrs
                              }
 
 
@@ -349,6 +350,7 @@ styleAttrsEqual sa1 sa2 = and
                           , styleMargin sa1 == styleMargin sa2
                           , stylePadding sa1 == stylePadding sa2
                           , styleBorderWidth sa1 == styleBorderWidth sa2
+                          , styleFontAttrs sa1 == styleFontAttrs sa2
                           ]
 
 
@@ -435,6 +437,7 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
                             , styleBorderColor        = styleBorderColor from
                             , styleColor              = styleColor from
                             , styleBackgroundColor    = styleBackgroundColor from
+                            , styleFontAttrs          = styleFontAttrs from
                             }
 
 

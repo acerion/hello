@@ -70,11 +70,8 @@ void StyleImageDeletionReceiver::deleted (lout::signal::ObservedObject *object)
 
 // ----------------------------------------------------------------------
 
-StyleEngine::StyleEngine (dw::core::Layout *layout,
-                          const DilloUrl *pageUrl, const DilloUrl *baseUrl) {
-   StyleAttrs style_attrs;
-   FontAttrs font_attrs;
-
+StyleEngine::StyleEngine (dw::core::Layout *layout, const DilloUrl *pageUrl, const DilloUrl *baseUrl)
+{
    this->doc_tree_ptr = doctreeCtor();
    this->doc_tree_ref = ffiDoctreeCtor();
 
@@ -90,19 +87,14 @@ StyleEngine::StyleEngine (dw::core::Layout *layout,
    this->baseUrl = baseUrl ? a_Url_dup(baseUrl) : NULL;
    importDepth = 0;
 
-   /* Create a dummy font, attribute, and tag for the bottom of the stack. */
-   font_attrs.font_attrs.name = prefs.preferences.font_sans_serif;
-   font_attrs.font_attrs.size = roundInt(14 * prefs.preferences.font_factor);
-   if (font_attrs.font_attrs.size < prefs.preferences.font_min_size)
-      font_attrs.font_attrs.size = prefs.preferences.font_min_size;
-   if (font_attrs.font_attrs.size > prefs.preferences.font_max_size)
-      font_attrs.font_attrs.size = prefs.preferences.font_max_size;
-   font_attrs.font_attrs.weight = 400;
-   font_attrs.font_attrs.style = FONT_STYLE_NORMAL;
-   font_attrs.font_attrs.letterSpacing = 0;
-   font_attrs.font_attrs.fontVariant = FONT_VARIANT_NORMAL;
+   StyleAttrs style_attrs = {};
+   style_attrs.initValues(); // TODO: turn it into ffi call
 
-   style_attrs.initValues ();
+   /* Create a dummy font, color and bg color for the bottom of the stack. */
+   FontAttrs font_attrs = {};
+   ffiFontAttrsMakeFontAttrsFromPrefs(&font_attrs.font_attrs, &prefs.preferences);
+   ffiStyleAttrsSetFontAttrs(style_attrs.c_attrs.c_style_attrs_ref, &font_attrs.font_attrs);
+
    style_attrs.font = Font::create (layout, &font_attrs);
    style_attrs.color = Color::create (layout, 0);
    style_attrs.backgroundColor = Color::create (layout, prefs.bg_color);
@@ -366,7 +358,6 @@ void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
 c_style_attrs_t * c_style_attrs_calloc(void)
 {
    c_style_attrs_t * style_attrs = (c_style_attrs_t *) calloc(1, sizeof (c_style_attrs_t));
-   style_attrs->c_font_attrs   = (c_font_attrs_t *) calloc(1, sizeof (c_font_attrs_t));
 
    return style_attrs;
 }
@@ -380,24 +371,12 @@ void c_style_attrs_dealloc(c_style_attrs_t ** style_attrs)
       return;
    }
 
-   if ((*style_attrs)->c_font_attrs) {
-      if ((*style_attrs)->c_font_attrs->name) {
-         free((*style_attrs)->c_font_attrs->name);
-      }
-   }
-
-   free((*style_attrs)->c_font_attrs);
    free((*style_attrs));
 }
 
 void c_style_attrs_copy_from(c_style_attrs_t * style_attrs, StyleAttrs *attrs)
 {
    ffiStyleAttrsCopy(style_attrs->c_style_attrs_ref, attrs->c_attrs.c_style_attrs_ref);
-
-   *(style_attrs->c_font_attrs) = attrs->font->font_attrs;
-   if (attrs->font->font_attrs.name) {
-      style_attrs->c_font_attrs->name = strdup(attrs->font->font_attrs.name);
-   }
 }
 
 void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw::core::Layout * layout)
@@ -434,16 +413,8 @@ void c_style_attrs_copy_to(StyleAttrs * attrs, c_style_attrs_t * style_attrs, dw
    }
 
    {
-      FontAttrs fontAttrs = *attrs->font;
-      fontAttrs.font_attrs = *(style_attrs->c_font_attrs);
-      if (style_attrs->c_font_attrs->name) {
-         if (fontAttrs.font_attrs.name) {
-            // TODO: for some reason this crashes. Maybe because some default
-            // font name is made from string literal?
-            // free(fontAttrs.font_attrs.name);
-         }
-         fontAttrs.font_attrs.name = strdup(style_attrs->c_font_attrs->name);
-      }
+      FontAttrs fontAttrs = {};
+      ffiStyleAttrsFontAttrs(style_attrs->c_style_attrs_ref, &fontAttrs.font_attrs);
       attrs->font = Font::create(layout, &fontAttrs);
    }
 }

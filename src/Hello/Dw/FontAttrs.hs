@@ -29,10 +29,18 @@ Copyright assignments from the file:
 
 
 
+{-
+https://drafts.csswg.org/css-fonts-3/#propdef-font-style
+-}
+
+
+
+
 module Hello.Dw.FontAttrs
   (
     FontAttrs (..)
   , defaultFontAttrs
+  , defaultFontAttrsFromPreferences
   )
 where
 
@@ -42,6 +50,9 @@ where
 import Prelude
 import qualified Data.Text as T
 --import Debug.Trace
+
+import Hello.Preferences
+import Hello.Utils
 
 
 
@@ -64,16 +75,27 @@ data FontAttrs = FontAttrs
 defaultFontAttrs :: FontAttrs
 defaultFontAttrs = FontAttrs
   {
-    fontSize    = 0
-  , fontWeight  = 0
+    fontSize    = 14   -- In other places of dillo/hello this value appears (multiplied by font factor)
+  , fontWeight  = 400  -- A value corresponding to NORMAL.
   , fontName    = ""
-  , fontVariant = 0
-  , fontStyle   = 0
+  , fontVariant = 0  -- FONT_VARIANT_NORMAL == 0
+  , fontStyle   = 0  -- FONT_STYLE_NORMAL == 0
 
-  , fontXHeight       = 0
+  , fontXHeight       = 6     -- Value most often appearing in debugs.
   , fontLetterSpacing = 0
   }
 
 
 
+
+defaultFontAttrsFromPreferences :: Preferences -> FontAttrs
+defaultFontAttrsFromPreferences prefs = defaultFontAttrs
+  { fontSize = clipSize . roundInt $ (14 * (prefsFontFactor prefs))
+  , fontName = prefsFontSansSerif prefs
+  }
+
+  where
+    clipSize size | size < prefsFontMinSize prefs = prefsFontMinSize prefs
+                  | size > prefsFontMaxSize prefs = prefsFontMaxSize prefs
+                  | otherwise                     = size
 

@@ -13,6 +13,23 @@ extern "C" {
 
 
 
+
+typedef struct c_prefs_t {
+
+        // Font preferences.
+        char * font_serif;
+        char * font_sans_serif;
+        char * font_cursive;
+        char * font_fantasy;
+        char * font_monospace;
+        float font_factor;
+        int32_t font_min_size;
+        int32_t font_max_size;
+} c_prefs_t;
+
+
+
+
 /**
  * \brief Type for representing all lengths within dw::core::style.
  *
@@ -124,7 +141,6 @@ typedef struct c_font_attrs_t {
 
 typedef struct c_style_attrs_t {
         int c_style_attrs_ref; // Handle of Haskell object, to be used in C++ code.
-        c_font_attrs_t * c_font_attrs;
 } c_style_attrs_t;
 
 
@@ -233,21 +249,11 @@ void ffiStyleAttrsBorderColor(int ref, c_border_color_t * color);
 void ffiStyleAttrsSetBorderColor(int ref, int val);
 void ffiStyleAttrsSetBorderColor2(int ref, c_border_color_t * color);
 
+void ffiStyleAttrsFontAttrs(int ref, c_font_attrs_t * font_attrs);
+void ffiStyleAttrsSetFontAttrs(int ref, c_font_attrs_t * font_attrs);
 
+void ffiFontAttrsMakeFontAttrsFromPrefs(c_font_attrs_t * font_attrs,  c_prefs_t * prefs);
 
-
-typedef struct c_prefs_t {
-
-        // Font preferences.
-        char * font_serif;
-        char * font_sans_serif;
-        char * font_cursive;
-        char * font_fantasy;
-        char * font_monospace;
-        float font_factor;
-        int32_t font_min_size;
-        int32_t font_max_size;
-} c_prefs_t;
 
 
 

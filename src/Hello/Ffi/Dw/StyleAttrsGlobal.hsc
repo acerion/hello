@@ -45,6 +45,7 @@ import qualified Data.Text as T
 import Hello.Dw.Style
 import Hello.Dw.StyleAttrsGlobal
 import Hello.Ffi.Dw.DwLength
+import Hello.Ffi.Dw.FontAttrs
 import Hello.Ffi.Dw.Style
 import Hello.Ffi.Utils
 
@@ -161,6 +162,9 @@ foreign export ccall "ffiStyleAttrsSetBackgroundColor" ffiStyleAttrsSetBackgroun
 foreign export ccall "ffiStyleAttrsBorderColor" ffiStyleAttrsBorderColor :: CInt -> Ptr FfiStyleBorderColor -> IO ()
 foreign export ccall "ffiStyleAttrsSetBorderColor" ffiStyleAttrsSetBorderColor :: CInt -> CInt -> IO ()
 foreign export ccall "ffiStyleAttrsSetBorderColor2" ffiStyleAttrsSetBorderColor2 :: CInt -> Ptr FfiStyleBorderColor -> IO ()
+
+foreign export ccall "ffiStyleAttrsFontAttrs" ffiStyleAttrsFontAttrs :: CInt -> Ptr FfiFontAttrs -> IO ()
+foreign export ccall "ffiStyleAttrsSetFontAttrs" ffiStyleAttrsSetFontAttrs :: CInt -> Ptr FfiFontAttrs -> IO ()
 
 
 
@@ -890,4 +894,22 @@ ffiStyleAttrsSetBorderColor2 cRef ptrStruct = do
 
 
 
+
+ffiStyleAttrsFontAttrs :: CInt -> Ptr FfiFontAttrs -> IO ()
+ffiStyleAttrsFontAttrs cRef ptrStruct = do
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
+  pokeFontAttrs (styleFontAttrs attrs) ptrStruct
+  return ()
+
+
+
+
+ffiStyleAttrsSetFontAttrs :: CInt -> Ptr FfiFontAttrs -> IO ()
+ffiStyleAttrsSetFontAttrs cRef ptrStruct = do
+  let ref = fromIntegral cRef
+  attrs <- globalStyleAttrsGet ref
+  fa    <- peekFontAttrs ptrStruct
+  let attrs' = attrs { styleFontAttrs = fa }
+  globalStyleAttrsUpdate ref attrs'
+  return ()
 
