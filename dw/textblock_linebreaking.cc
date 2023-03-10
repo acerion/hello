@@ -1100,7 +1100,7 @@ void Textblock::accumulateWordData (int wordIndex)
 int Textblock::calcAvailWidth (int lineIndex)
 {
    int availWidth =
-      this->availWidth - getStyle()->boxDiffWidth() - innerPadding;
+      this->availWidth - ffiStyleAttrsBoxDiffWidth(getStyle()->c_attrs.c_style_attrs_ref) - innerPadding;
    if (limitTextWidth &&
        layout->getUsesViewport () &&
        availWidth > layout->getWidthViewport () - 10)
@@ -1109,7 +1109,7 @@ int Textblock::calcAvailWidth (int lineIndex)
       availWidth -= line1OffsetEff;
 
    //PRINTF("[%p] CALC_AVAIL_WIDTH => %d - %d - %d = %d\n",
-   //       this, this->availWidth, getStyle()->boxDiffWidth(), innerPadding,
+   //       this, this->availWidth, ffiStyleAttrsBoxDiffWidth(getStyle()->c_attrs.c_style_attrs_ref), innerPadding,
    //       availWidth);
 
    return availWidth;

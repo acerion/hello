@@ -67,22 +67,6 @@ typedef struct {
         int left;
 } c_border_width_t;
 
-inline void borderWidthSetVal(c_border_width_t * w, int val)
-{
-        w->top = w->right = w->bottom = w->left = val;
-}
-inline int borderWidthHashValue(c_border_width_t * w)
-{
-        return w->top + w->right + w->bottom + w->left;
-}
-inline bool borderWidthEquals(c_border_width_t * w, c_border_width_t * other)
-{
-        return w->top == other->top &&
-                w->right == other->right &&
-                w->bottom == other->bottom &&
-                w->left == other->left;
-}
-
 
 
 
@@ -107,19 +91,6 @@ typedef struct c_style_margin_t {
         int left;
 } c_style_margin_t;
 
-inline int styleMarginHashValue(c_style_margin_t * m)
-{
-        return m->top + m->right + m->bottom + m->left;
-}
-inline bool styleMarginEquals(c_style_margin_t * m, c_style_margin_t * other)
-{
-        return m->top == other->top &&
-                m->right == other->right &&
-                m->bottom == other->bottom &&
-                m->left == other->left;
-}
-
-
 
 
 // TODO: in dillo the padding variables were of type Box. The comment for
@@ -132,22 +103,6 @@ typedef struct c_style_padding_t {
         int bottom;
         int left;
 } c_style_padding_t;
-
-inline void stylePaddingSetVal(c_style_padding_t * p, int val)
-{
-        p->top = p->right = p->bottom = p->left = val;
-}
-inline int stylePaddingHashValue(c_style_padding_t * p)
-{
-        return p->top + p->right + p->bottom + p->left;
-}
-inline bool stylePaddingEquals(c_style_padding_t * p, c_style_padding_t * other)
-{
-        return p->top == other->top &&
-                p->right == other->right &&
-                p->bottom == other->bottom &&
-                p->left == other->left;
-}
 
 
 
@@ -263,6 +218,15 @@ void ffiStyleAttrsSetPadding(int ref, int val);
 
 void ffiStyleAttrsBorderWidth(int ref, c_border_width_t * border_width);
 void ffiStyleAttrsSetBorderWidth(int ref, int val);
+
+int ffiStyleAttrsBoxOffsetX(int ref);
+int ffiStyleAttrsBoxOffsetY(int ref);
+
+int ffiStyleAttrsBoxRestWidth(int ref);
+int ffiStyleAttrsBoxRestHeight(int ref);
+
+int ffiStyleAttrsBoxDiffWidth(int ref);
+int ffiStyleAttrsBoxDiffHeight(int ref);
 
 
 

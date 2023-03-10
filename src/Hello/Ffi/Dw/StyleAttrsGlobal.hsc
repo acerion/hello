@@ -143,6 +143,15 @@ foreign export ccall "ffiStyleAttrsSetPadding" ffiStyleAttrsSetPadding :: CInt -
 foreign export ccall "ffiStyleAttrsBorderWidth" ffiStyleAttrsBorderWidth :: CInt -> Ptr FfiStyleBorderWidth -> IO ()
 foreign export ccall "ffiStyleAttrsSetBorderWidth" ffiStyleAttrsSetBorderWidth :: CInt -> CInt -> IO ()
 
+foreign export ccall "ffiStyleAttrsBoxOffsetX" ffiStyleAttrsBoxOffsetX :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsBoxOffsetY" ffiStyleAttrsBoxOffsetY :: CInt -> IO CInt
+
+foreign export ccall "ffiStyleAttrsBoxRestWidth" ffiStyleAttrsBoxRestWidth :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsBoxRestHeight" ffiStyleAttrsBoxRestHeight :: CInt -> IO CInt
+
+foreign export ccall "ffiStyleAttrsBoxDiffWidth" ffiStyleAttrsBoxDiffWidth :: CInt -> IO CInt
+foreign export ccall "ffiStyleAttrsBoxDiffHeight" ffiStyleAttrsBoxDiffHeight :: CInt -> IO CInt
+
 
 
 
@@ -738,5 +747,56 @@ ffiStyleAttrsSetBorderWidth cRef cVal = do
                      }
   globalStyleAttrsUpdate ref attrs'
   return ()
+
+
+
+
+
+ffiStyleAttrsBoxOffsetX :: CInt -> IO CInt
+ffiStyleAttrsBoxOffsetX cRef = do
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
+  return . fromIntegral . styleAttrsBoxOffsetX $ sa
+
+
+
+
+ffiStyleAttrsBoxOffsetY :: CInt -> IO CInt
+ffiStyleAttrsBoxOffsetY cRef = do
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
+  return . fromIntegral . styleAttrsBoxOffsetY $ sa
+
+
+
+
+ffiStyleAttrsBoxRestWidth :: CInt -> IO CInt
+ffiStyleAttrsBoxRestWidth cRef = do
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
+  return . fromIntegral . styleAttrsBoxRestWidth $ sa
+
+
+
+
+ffiStyleAttrsBoxRestHeight :: CInt -> IO CInt
+ffiStyleAttrsBoxRestHeight cRef = do
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
+  return . fromIntegral . styleAttrsBoxRestHeight $ sa
+
+
+
+
+ffiStyleAttrsBoxDiffWidth :: CInt -> IO CInt
+ffiStyleAttrsBoxDiffWidth cRef = do
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
+  return . fromIntegral . styleAttrsBoxDiffWidth $ sa
+
+
+
+
+ffiStyleAttrsBoxDiffHeight :: CInt -> IO CInt
+ffiStyleAttrsBoxDiffHeight cRef = do
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
+  return . fromIntegral . styleAttrsBoxDiffHeight $ sa
+
+
 
 

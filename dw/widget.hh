@@ -152,9 +152,9 @@ protected:
 
    inline int getHeight () { return allocation.ascent + allocation.descent; }
    inline int getContentWidth() { return allocation.width
-                                     - style->boxDiffWidth (); }
+                                     - ffiStyleAttrsBoxDiffWidth (style->c_attrs.c_style_attrs_ref); }
    inline int getContentHeight() { return getHeight ()
-                                      - style->boxDiffHeight (); }
+                                      - ffiStyleAttrsBoxDiffHeight (style->c_attrs.c_style_attrs_ref); }
 
    Layout *layout;
 

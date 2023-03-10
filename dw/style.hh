@@ -427,55 +427,15 @@ public:
 
    bool sizeDiffs (StyleAttrs *otherStyleAttrs);
 
-   inline void setBorderColor(Color *val) {
-      borderColor.top = borderColor.right = borderColor.bottom
-         = borderColor.left = val; }
-
-   inline int boxOffsetX ()
+   inline void setBorderColor(Color *val)
    {
-      c_style_margin_t margin = {};
-      ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
-      c_style_padding_t padding = {};
-      ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
-      c_border_width_t borderWidth = {};
-      ffiStyleAttrsBorderWidth(this->c_attrs.c_style_attrs_ref, &borderWidth);
-      return margin.left + borderWidth.left + padding.left;
+      borderColor.top = borderColor.right = borderColor.bottom = borderColor.left = val;
    }
-   inline int boxRestWidth ()
-   {
-      c_style_margin_t margin = {};
-      ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
-      c_style_padding_t padding = {};
-      ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
-      c_border_width_t borderWidth = {};
-      ffiStyleAttrsBorderWidth(this->c_attrs.c_style_attrs_ref, &borderWidth);
-      return margin.right + borderWidth.right + padding.right;
-   }
-   inline int boxDiffWidth () { return boxOffsetX () + boxRestWidth (); }
-   inline int boxOffsetY ()
-   {
-      c_style_margin_t margin = {};
-      ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
-      c_style_padding_t padding = {};
-      ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
-      c_border_width_t borderWidth = {};
-      ffiStyleAttrsBorderWidth(this->c_attrs.c_style_attrs_ref, &borderWidth);
-      return margin.top + borderWidth.top + padding.top;
-   }
-   inline int boxRestHeight ()
-   {
-      c_style_margin_t margin = {};
-      ffiStyleAttrsMargin(this->c_attrs.c_style_attrs_ref, &margin);
-      c_style_padding_t padding = {};
-      ffiStyleAttrsPadding(this->c_attrs.c_style_attrs_ref, &padding);
-      c_border_width_t borderWidth = {};
-      ffiStyleAttrsBorderWidth(this->c_attrs.c_style_attrs_ref, &borderWidth);
-      return margin.bottom + borderWidth.bottom + padding.bottom;
-   }
-   inline int boxDiffHeight () { return boxOffsetY () + boxRestHeight (); }
 
    inline bool hasBackground ()
-   { return backgroundColor != NULL || backgroundImage != NULL; }
+   {
+      return backgroundColor != NULL || backgroundImage != NULL;
+   }
 
    bool equals (lout::object::Object *other);
    int hashValue ();

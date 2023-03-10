@@ -50,6 +50,13 @@ module Hello.Dw.Style
   , styleAttrsSetCollapseTableAttrs
   , styleAttrsSetCollapseCellAttrs
   , styleAttrsSetBorderStyle
+
+  , styleAttrsBoxOffsetX
+  , styleAttrsBoxOffsetY
+  , styleAttrsBoxRestWidth
+  , styleAttrsBoxRestHeight
+  , styleAttrsBoxDiffWidth
+  , styleAttrsBoxDiffHeight
   )
 where
 
@@ -499,4 +506,50 @@ styleAttrsSetBorderStyle sa val = sa
                                              , styleBorderStyleLeft   = val
                                              }
   }
+
+
+
+
+styleAttrsBoxOffsetX :: StyleAttrs -> Int
+styleAttrsBoxOffsetX sa = (styleMarginLeft . styleMargin $ sa)
+                          + (styleBorderWidthLeft . styleBorderWidth $ sa)
+                          + (stylePaddingLeft . stylePadding $ sa)
+
+
+
+
+styleAttrsBoxOffsetY :: StyleAttrs -> Int
+styleAttrsBoxOffsetY sa = (styleMarginTop . styleMargin $ sa)
+                          + (styleBorderWidthTop . styleBorderWidth $ sa)
+                          + (stylePaddingTop . stylePadding $ sa)
+
+
+
+
+styleAttrsBoxRestWidth :: StyleAttrs -> Int
+styleAttrsBoxRestWidth sa = (styleMarginRight . styleMargin $ sa)
+                            + (styleBorderWidthRight . styleBorderWidth $ sa)
+                            + (stylePaddingRight . stylePadding $ sa)
+
+
+
+
+styleAttrsBoxRestHeight :: StyleAttrs -> Int
+styleAttrsBoxRestHeight sa = (styleMarginBottom . styleMargin $ sa)
+                             + (styleBorderWidthBottom . styleBorderWidth $ sa)
+                             + (stylePaddingBottom . stylePadding $ sa)
+
+
+
+
+styleAttrsBoxDiffWidth :: StyleAttrs -> Int
+styleAttrsBoxDiffWidth sa = styleAttrsBoxOffsetX sa + styleAttrsBoxRestWidth sa
+
+
+
+
+styleAttrsBoxDiffHeight :: StyleAttrs -> Int
+styleAttrsBoxDiffHeight sa = styleAttrsBoxOffsetY sa + styleAttrsBoxRestHeight sa
+
+
 

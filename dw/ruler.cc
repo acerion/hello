@@ -34,9 +34,9 @@ Ruler::Ruler ()
 
 void Ruler::sizeRequestImpl (core::Requisition *requisition)
 {
-   requisition->width = getStyle()->boxDiffWidth ();
-   requisition->ascent = getStyle()->boxOffsetY ();
-   requisition->descent = getStyle()->boxRestHeight ();
+   requisition->width = ffiStyleAttrsBoxDiffWidth (getStyle()->c_attrs.c_style_attrs_ref);
+   requisition->ascent = ffiStyleAttrsBoxOffsetY (getStyle()->c_attrs.c_style_attrs_ref);
+   requisition->descent = ffiStyleAttrsBoxRestHeight (getStyle()->c_attrs.c_style_attrs_ref);
 }
 
 void Ruler::draw (core::View *view, core::Rectangle *area)

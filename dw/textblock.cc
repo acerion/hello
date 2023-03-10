@@ -357,12 +357,12 @@ void Textblock::sizeRequestImpl (core::Requisition *requisition)
       requisition->descent = 0;
    }
 
-   PRINTF ("[%p] SIZE_REQUEST: inner padding = %d, boxDiffWidth = %d\n",
-           this, innerPadding, getStyle()->boxDiffWidth ());
+   PRINTF ("[%p] SIZE_REQUEST: inner padding = %d, ffiStyleAttrsBoxDiffWidth = %d\n",
+           this, innerPadding, ffiStyleAttrsBoxDiffWidth (getStyle()->c_attrs.c_style_attrs_ref));
 
-   requisition->width += innerPadding + getStyle()->boxDiffWidth ();
-   requisition->ascent += getStyle()->boxOffsetY ();
-   requisition->descent += getStyle()->boxRestHeight ();
+   requisition->width += innerPadding + ffiStyleAttrsBoxDiffWidth (getStyle()->c_attrs.c_style_attrs_ref);
+   requisition->ascent += ffiStyleAttrsBoxOffsetY (getStyle()->c_attrs.c_style_attrs_ref);
+   requisition->descent += ffiStyleAttrsBoxRestHeight (getStyle()->c_attrs.c_style_attrs_ref);
 
    if (requisition->width < availWidth)
       requisition->width = availWidth;
@@ -393,7 +393,7 @@ void Textblock::getWordExtremes (Word *word, core::Extremes *extremes)
              * add padding, border and margin. */
             extremes->minWidth = extremes->maxWidth =
                ffiGetAbsoluteDwLengthValue(&aWidth)
-               + word->style->boxDiffWidth ();
+               + ffiStyleAttrsBoxDiffWidth (word->style->c_attrs.c_style_attrs_ref);
          } else
             word->content.widget->getExtremes (extremes);
       }
@@ -419,7 +419,7 @@ void Textblock::getExtremesImpl (core::Extremes *extremes)
       extremes->maxWidth = lastPar->maxParMax;
    }
 
-   int diff = innerPadding + getStyle()->boxDiffWidth ();
+   int diff = innerPadding + ffiStyleAttrsBoxDiffWidth (getStyle()->c_attrs.c_style_attrs_ref);
    extremes->minWidth += diff;
    extremes->maxWidth += diff;
 
@@ -894,8 +894,8 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
    core::style::Style *wstyle = widget->getStyle();
 
    /* We ignore line1_offset[_eff]. */
-   int availWidth = this->availWidth - getStyle()->boxDiffWidth () - innerPadding;
-   int availAscent = this->availAscent - getStyle()->boxDiffHeight ();
+   int availWidth = this->availWidth - ffiStyleAttrsBoxDiffWidth (getStyle()->c_attrs.c_style_attrs_ref) - innerPadding;
+   int availAscent = this->availAscent - ffiStyleAttrsBoxDiffHeight (getStyle()->c_attrs.c_style_attrs_ref);
    int availDescent = this->availDescent;
 
    if (widget->usesHints ()) {
@@ -919,7 +919,7 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
       } else if (ffiIsAbsoluteDwLength (&aWidth)) {
          /* Fixed lengths are only applied to the content, so we have to
           * add padding, border and margin. */
-         size->width = ffiGetAbsoluteDwLengthValue(&aWidth) + wstyle->boxDiffWidth ();
+         size->width = ffiGetAbsoluteDwLengthValue(&aWidth) + ffiStyleAttrsBoxDiffWidth (wstyle->c_attrs.c_style_attrs_ref);
       } else {
          size->width = core::style::multiplyWithPercentageDwLength (availWidth, aWidth);
       }
@@ -930,7 +930,7 @@ void Textblock::calcWidgetSize (core::Widget *widget, core::Requisition *size)
       } else if (ffiIsAbsoluteDwLength (&aHeight)) {
          /* Fixed lengths are only applied to the content, so we have to
           * add padding, border and margin. */
-         size->ascent = ffiGetAbsoluteDwLengthValue(&aHeight) + wstyle->boxDiffHeight ();
+         size->ascent = ffiGetAbsoluteDwLengthValue(&aHeight) + ffiStyleAttrsBoxDiffHeight (wstyle->c_attrs.c_style_attrs_ref);
          size->descent = 0;
       } else {
          DwLength length;
