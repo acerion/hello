@@ -260,8 +260,11 @@ defaultStyleAttrs = StyleAttrs
   , styleListStylePosition = 0
   , styleListStyleType     = 0
   , styleDisplay           = 1 -- DISPLAY_INLINE == 1
+
+    -- Notice the difference in initialization of color and backgroundColor.
   , styleColor             = 0
-  , styleBackgroundColor   = 0
+  , styleBackgroundColor   = -1
+
   , styleCursor            = 0
   , styleHorizBorderSpacing  = 0
   , styleVertBorderSpacing   = 0
@@ -310,8 +313,11 @@ styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
                              , styleMargin              = defaultStyleMargin
                              , stylePadding             = defaultStylePadding
                              , styleBorderWidth         = defaultStyleBorderWidth
-                             , styleColor               = -1
+
+                               -- Notice the difference in initialization of color and backgroundColor.
+                             , styleColor               = 0
                              , styleBackgroundColor     = -1
+
                              , styleFontAttrs           = defaultFontAttrs
                              }
 

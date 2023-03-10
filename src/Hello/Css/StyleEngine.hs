@@ -970,6 +970,7 @@ styleEnginePreprocessAttrs sa =
        , styleBorderWidthBottom = 2
        , styleBorderWidthLeft   = 2
        }
+     , styleBorderColor = StyleBorderColor (-1) (-1) (-1) (-1)
      }
 
 
@@ -1000,6 +1001,26 @@ styleEnginePostprocessAttrs sa =
                                 then 0
                                 else styleBorderWidthLeft . styleBorderWidth $ sa
        }
+
+       -- If border-color is not specified, use color as computed value.
+       -- Values of border color have been set to -1 in styleEnginePreprocessAttrs.
+     , styleBorderColor = StyleBorderColor
+                          { styleBorderColorTop = if (styleBorderColorTop . styleBorderColor $ sa) == (-1)
+                                                  then styleColor sa
+                                                  else styleBorderColorTop . styleBorderColor $ sa
+
+                          , styleBorderColorRight = if (styleBorderColorRight . styleBorderColor $ sa) == (-1)
+                                                    then styleColor sa
+                                                    else styleBorderColorRight . styleBorderColor $ sa
+
+                          , styleBorderColorBottom = if (styleBorderColorBottom . styleBorderColor $ sa) == (-1)
+                                                     then styleColor sa
+                                                     else styleBorderColorBottom . styleBorderColor $ sa
+
+                          , styleBorderColorLeft = if (styleBorderColorLeft . styleBorderColor $ sa) == (-1)
+                                                   then styleColor sa
+                                                   else styleBorderColorLeft . styleBorderColor $ sa
+                          }
      }
 
 

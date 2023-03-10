@@ -330,26 +330,8 @@ void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
       // NOTE: if parentNode->inheritBackgroundColor is false, parentNode->style is NULL.
       ffiStyleEnginePreprocessAttrsInheritBackground(attrs->c_style_attrs_ref, parentNode->style->c_style_attrs_ref);
    }
-   attrs->borderColor.top = (Color *) -1;
-   attrs->borderColor.bottom = (Color *) -1;
-   attrs->borderColor.left = (Color *) -1;
-   attrs->borderColor.right = (Color *) -1;
 
    ffiStyleEnginePreprocessAttrs(attrs->c_style_attrs_ref);
-}
-
-void StyleEngine::postprocessAttrs (dw::core::style::StyleAttrs *attrs) {
-   /* if border-color is not specified, use color as computed value */
-   if (attrs->borderColor.top == (Color *) -1)
-      attrs->borderColor.top = attrs->color;
-   if (attrs->borderColor.bottom == (Color *) -1)
-      attrs->borderColor.bottom = attrs->color;
-   if (attrs->borderColor.left == (Color *) -1)
-      attrs->borderColor.left = attrs->color;
-   if (attrs->borderColor.right == (Color *) -1)
-      attrs->borderColor.right = attrs->color;
-
-   ffiStyleEnginePostprocessAttrs(attrs->c_style_attrs_ref);
 }
 
 // Construct ui-related objects in @p attrs (objects that can't be accessed
@@ -422,8 +404,6 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
 
    timer_stop(&g_apply_do_start, &g_apply_do_stop, &g_apply_do_acc);
    fprintf(stderr, "[II] Total apply-do time increased to %ld:%06ld\n", g_apply_do_acc.tv_sec, g_apply_do_acc.tv_usec);
-
-   style_attrs_make_ui_objects(attrs, this->layout);
 
    /* Handle additional things that were not handled in Haskell. */
    if (ffiStyleAttrsDisplay(attrs->c_style_attrs_ref) == DISPLAY_NONE) {
@@ -526,7 +506,9 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
    // apply style
    applyStyleToGivenNode(styleNodeIndex, &parentStyleAttrs, &styleAttrs, merged_decl_set_ref, bw);
 
-   postprocessAttrs(&styleAttrs);
+   ffiStyleEnginePostprocessAttrs(styleAttrs.c_style_attrs_ref);
+
+   style_attrs_make_ui_objects(&styleAttrs, this->layout);
 
    styleNodesStack[styleNodeIndex].style = Style::create(&styleAttrs);
 

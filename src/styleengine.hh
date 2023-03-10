@@ -74,7 +74,6 @@ public:
       dw::core::style::Style * makeWordStyle(BrowserWindow *bw);
 
       void preprocessAttrs (dw::core::style::StyleAttrs *attrs);
-      void postprocessAttrs (dw::core::style::StyleAttrs *attrs);
       void applyStyleToGivenNode(int some_idx, dw::core::style::StyleAttrs * parentAttrs, dw::core::style::StyleAttrs * attrs, int merged_decl_set_ref, BrowserWindow *bw);
 
    public:
