@@ -501,8 +501,8 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
 
 Style * StyleEngine::makeWordStyle(BrowserWindow *bw) {
    StyleAttrs attrs = *getStyle (bw);
-   // TODO: original code called this function. Retore it?
-   //attrs.resetNonInheritedValues ();
+   attrs.c_style_attrs_ref = ffiStyleAttrsCtor();
+   attrs.resetNonInheritedValues();
 
    StyleNode * node = getCurrentNode(this);
    if (node->inheritBackgroundColor) {
