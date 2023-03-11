@@ -194,7 +194,7 @@ ffiStyleAttrsEqual cRef1 cRef2 = do
   let ref2 = fromIntegral cRef2
   attrs1 <- globalStyleAttrsGet ref1
   attrs2 <- globalStyleAttrsGet ref2
-  return $ styleAttrsEqual attrs1 attrs2
+  return $ attrs1 == attrs2
 
 
 
@@ -210,12 +210,8 @@ ffiStyleAttrsHashValue cRef = do
 
 ffiStyleAttrsCopy :: CInt -> CInt -> IO ()
 ffiStyleAttrsCopy cRefTo cRefFrom = do
-  let refTo   = fromIntegral cRefTo
-  let refFrom = fromIntegral cRefFrom
-  attrsTo   <- globalStyleAttrsGet refTo
-  attrsFrom <- globalStyleAttrsGet refFrom
-  let attrs = styleAttrsCopy attrsTo attrsFrom
-  globalStyleAttrsUpdate refTo attrs
+  attrsFrom <- globalStyleAttrsGet . fromIntegral $ cRefFrom
+  globalStyleAttrsUpdate (fromIntegral cRefTo) attrsFrom
   return ()
 
 

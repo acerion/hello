@@ -42,9 +42,7 @@ module Hello.Dw.Style
   , defaultStyleAttrs
 
   , styleAttrsInitValues
-  , styleAttrsEqual
   , styleAttrsHashValue
-  , styleAttrsCopy
   , styleAttrsResetNonInheritedValues
 
   , styleAttrsSetCollapseTableAttrs
@@ -123,7 +121,7 @@ data StyleBorderColor = StyleBorderColor
   , styleBorderColorRight  :: Int
   , styleBorderColorBottom :: Int
   , styleBorderColorLeft   :: Int
-  } deriving (Show)
+  } deriving (Eq, Show)
 
 defaultStyleBorderColor :: StyleBorderColor
 defaultStyleBorderColor = StyleBorderColor
@@ -186,40 +184,38 @@ defaultStylePadding = StylePadding
 
 
 data StyleAttrs = StyleAttrs
-  {
-    styleAttrsRef          :: Int
-  , styleFontAttrs         :: FontAttrs
-  , styleBorderCollapse    :: Int -- TODO: use BorderCollapse type
-  , styleBorderStyle       :: StyleBorderStyle
-  , styleBorderWidth       :: StyleBorderWidth
-  , styleBorderColor       :: StyleBorderColor
-  , styleMargin            :: StyleMargin
-  , stylePadding           :: StylePadding
-  , styleTextAlign         :: Int     -- TODO: use TextAlignType type
-  , styleTextDecoration    :: Word32  -- TODO: use proper type?
-  , styleTextIndent        :: DwLength
-  , styleTextTransform     :: Int -- TODO: use TextTransform type
-  , styleVerticalAlign     :: Int -- TODO: use VAlignType
-  , styleWhiteSpace        :: Int -- TODO: use WhiteSpace type
-  , styleWidth             :: DwLength
-  , styleHeight            :: DwLength
-  , styleLineHeight        :: DwLength
-  , styleListStylePosition :: Int  -- TODO: use ListStylePosition
-  , styleListStyleType     :: Int  -- TODO: use ListStyleType
-  , styleDisplay           :: Int  -- TODO: use DisplayType type
-  , styleColor             :: Int -- TODO: change the type to Color
-  , styleBackgroundColor   :: Int -- TODO: change the type to Color
-  , styleCursor            :: Int -- TODO: use Cursor type
+  { styleFontAttrs           :: FontAttrs
+  , styleBorderCollapse      :: Int -- TODO: use BorderCollapse type
+  , styleBorderStyle         :: StyleBorderStyle
+  , styleBorderWidth         :: StyleBorderWidth
+  , styleBorderColor         :: StyleBorderColor
+  , styleMargin              :: StyleMargin
+  , stylePadding             :: StylePadding
+  , styleTextAlign           :: Int     -- TODO: use TextAlignType type
+  , styleTextDecoration      :: Word32  -- TODO: use proper type?
+  , styleTextIndent          :: DwLength
+  , styleTextTransform       :: Int -- TODO: use TextTransform type
+  , styleVerticalAlign       :: Int -- TODO: use VAlignType
+  , styleWhiteSpace          :: Int -- TODO: use WhiteSpace type
+  , styleWidth               :: DwLength
+  , styleHeight              :: DwLength
+  , styleLineHeight          :: DwLength
+  , styleListStylePosition   :: Int  -- TODO: use ListStylePosition
+  , styleListStyleType       :: Int  -- TODO: use ListStyleType
+  , styleDisplay             :: Int  -- TODO: use DisplayType type
+  , styleColor               :: Int -- TODO: change the type to Color
+  , styleBackgroundColor     :: Int -- TODO: change the type to Color
+  , styleCursor              :: Int -- TODO: use Cursor type
   , styleHorizBorderSpacing  :: Int
   , styleVertBorderSpacing   :: Int
-  , styleWordSpacing       :: Int
+  , styleWordSpacing         :: Int
 
-  , styleBgPositionX       :: DwLength -- "left" defined by "0%" etc. (see CSS spec)
-  , styleBgPositionY       :: DwLength -- "top" defined by "0%" etc. (see CSS spec)
-  , styleBgRepeat          :: Int -- TODO: use BackgroundRepeat
-  , styleBgAttachment      :: Int -- TODO: use BackgroundAttachment
+  , styleBgPositionX         :: DwLength -- "left" defined by "0%" etc. (see CSS spec)
+  , styleBgPositionY         :: DwLength -- "top" defined by "0%" etc. (see CSS spec)
+  , styleBgRepeat            :: Int -- TODO: use BackgroundRepeat
+  , styleBgAttachment        :: Int -- TODO: use BackgroundAttachment
 
-  , styleXLink             :: Int
+  , styleXLink               :: Int
 
   -- Either x_lang[0] == x_lang[1] == 0 (no language set), or x_lang contains
   -- the RFC 1766 country code in lower case letters. (Only two letters
@@ -227,137 +223,62 @@ data StyleAttrs = StyleAttrs
   -- TODO: come up with better data type? Maybe a tuple?
   --
   -- See also "is hyphenation candidate" debug in ./dw/textblock_linebreaking.cc
-  , styleXLang             :: T.Text
+  , styleXLang               :: T.Text
 
-  , styleXImg              :: Int
-  , styleXTooltip          :: T.Text
+  , styleXImg                :: Int
+  , styleXTooltip            :: T.Text
 
-  } deriving (Show)
+  } deriving (Eq, Show)
 
 
 
 
 defaultStyleAttrs :: StyleAttrs
 defaultStyleAttrs = StyleAttrs
-  {
-    styleAttrsRef          = 0
-  , styleFontAttrs         = defaultFontAttrs
-  , styleBorderCollapse    = 0
-  , styleBorderStyle       = defaultStyleBorderStyle
-  , styleBorderWidth       = defaultStyleBorderWidth
-  , styleBorderColor       = defaultStyleBorderColor
-  , styleMargin            = defaultStyleMargin
-  , stylePadding           = defaultStylePadding
-  , styleTextAlign         = 0
-  , styleTextDecoration    = 0
-  , styleTextIndent        = createAutoDwLength
-  , styleTextTransform     = 0
-  , styleVerticalAlign     = 0
-  , styleWhiteSpace        = 0
-  , styleWidth             = createAutoDwLength
-  , styleHeight            = createAutoDwLength
-  , styleLineHeight        = createAutoDwLength
-  , styleListStylePosition = 0
-  , styleListStyleType     = 0
-  , styleDisplay           = 1 -- DISPLAY_INLINE == 1
+  { styleFontAttrs           = defaultFontAttrs              -- #
+  , styleBorderCollapse      = 0                             -- # BORDER_MODEL_SEPARATE == 0;
+  , styleBorderStyle         = defaultStyleBorderStyle       -- #
+  , styleBorderWidth         = defaultStyleBorderWidth       -- #
+  , styleBorderColor         = defaultStyleBorderColor       -- #
+  , styleMargin              = defaultStyleMargin            -- #
+  , stylePadding             = defaultStylePadding           -- #
+  , styleTextAlign           = 0                             -- # TEXT_ALIGN_LEFT == 0
+  , styleTextDecoration      = 0                             -- # TEXT_DECORATION_NONE == 0
+  , styleTextIndent          = createAutoDwLength            -- #
+  , styleTextTransform       = 0                             -- # TEXT_TRANSFORM_NONE == 0
+  , styleVerticalAlign       = 3                             -- # VALIGN_BASELINE == 3
+  , styleWhiteSpace          = 0                             -- # WHITE_SPACE_NORMAL = 0
+  , styleWidth               = createAutoDwLength            -- #
+  , styleHeight              = createAutoDwLength            -- #
+  , styleLineHeight          = createAutoDwLength            -- #
+  , styleListStylePosition   = 1                             -- # LIST_STYLE_POSITION_OUTSIDE == 1
+  , styleListStyleType       = 0                             -- # LIST_STYLE_TYPE_DISC == 0
+  , styleDisplay             = 1                             -- # DISPLAY_INLINE == 1
 
     -- Notice the difference in initialization of color and backgroundColor.
-  , styleColor             = 0
-  , styleBackgroundColor   = -1
+  , styleColor               = 0                             -- #
+  , styleBackgroundColor     = -1                            -- #
 
-  , styleCursor            = 0
-  , styleHorizBorderSpacing  = 0
-  , styleVertBorderSpacing   = 0
-  , styleWordSpacing       = 0
-  , styleBgPositionX       = createPercentageDwLength 0
-  , styleBgPositionY       = createPercentageDwLength 0
-  , styleBgRepeat          = 0 -- BACKGROUND_REPEAT == 0
-  , styleBgAttachment      = 0 -- BACKGROUND_ATTACHMENT_SCROLL == 0
+  , styleCursor              = 1                             -- # CURSOR_DEFAULT == 1
+  , styleHorizBorderSpacing  = 0                             -- #
+  , styleVertBorderSpacing   = 0                             -- #
+  , styleWordSpacing         = 0                             -- #
+  , styleBgPositionX         = createPercentageDwLength 0    -- #
+  , styleBgPositionY         = createPercentageDwLength 0    -- #
+  , styleBgRepeat            = 0                             -- # BACKGROUND_REPEAT == 0
+  , styleBgAttachment        = 0                             -- # BACKGROUND_ATTACHMENT_SCROLL == 0
 
-  , styleXLink             = -1
-  , styleXLang             = ""
-  , styleXImg              = -1
-  , styleXTooltip          = ""
+  , styleXLink               = -1                            -- #
+  , styleXLang               = ""                            -- #
+  , styleXImg                = -1                            -- #
+  , styleXTooltip            = ""                            -- #
   }
 
 
 
 
--- TODO: doesn't this duplicate defaultStyleAttrs?
 styleAttrsInitValues :: StyleAttrs -> StyleAttrs
-styleAttrsInitValues sa = sa { styleTextAlign      = 0  -- TEXT_ALIGN_LEFT == 0
-                             , styleTextDecoration = 0  -- TEXT_DECORATION_NONE == 0
-                             , styleTextTransform  = 0  -- TEXT_TRANSFORM_NONE == 0
-                             , styleCursor         = 1  -- CURSOR_DEFAULT == 1
-                             , styleWhiteSpace     = 0  -- WHITE_SPACE_NORMAL = 0
-                             , styleListStylePosition = 1 -- LIST_STYLE_POSITION_OUTSIDE == 1
-                             , styleListStyleType  = 0    -- LIST_STYLE_TYPE_DISC == 0
-                             , styleBorderCollapse = 0    -- BORDER_MODEL_SEPARATE == 0;
-                             , styleBorderStyle    = defaultStyleBorderStyle
-                             , styleBorderColor    = defaultStyleBorderColor
-                             , styleWidth          = createAutoDwLength
-                             , styleHeight         = createAutoDwLength
-                             , styleTextIndent     = createAutoDwLength
-                             , styleLineHeight     = createAutoDwLength
-                             , styleVerticalAlign  = 3 -- VALIGN_BASELINE == 3
-                             , styleBgPositionX    = createPercentageDwLength 0
-                             , styleBgPositionY    = createPercentageDwLength 0
-                             , styleBgRepeat       = 0 -- BACKGROUND_REPEAT == 0
-                             , styleBgAttachment   = 0 -- BACKGROUND_ATTACHMENT_SCROLL == 0
-                             , styleHorizBorderSpacing  = 0
-                             , styleVertBorderSpacing   = 0
-                             , styleDisplay             = 1 -- DISPLAY_INLINE == 1
-                             , styleWordSpacing         = 0
-                             , styleXTooltip            = ""
-                             , styleXLang               = ""
-                             , styleMargin              = defaultStyleMargin
-                             , stylePadding             = defaultStylePadding
-                             , styleBorderWidth         = defaultStyleBorderWidth
-
-                               -- Notice the difference in initialization of color and backgroundColor.
-                             , styleColor               = 0
-                             , styleBackgroundColor     = -1
-
-                             , styleFontAttrs           = defaultFontAttrs
-                             }
-
-
-
-
--- TODO: This all can be simplified through Eq class.
-styleAttrsEqual :: StyleAttrs -> StyleAttrs -> Bool
-styleAttrsEqual sa1 sa2 = and
-                          [ styleTextAlign sa1 == styleTextAlign sa2
-                          , styleTextDecoration sa1 == styleTextDecoration sa2
-                          , styleTextTransform sa1 == styleTextTransform sa2
-                          , styleCursor sa1 == styleCursor sa2
-                          , styleWhiteSpace sa1 == styleWhiteSpace sa2
-                          , styleListStylePosition sa1 == styleListStylePosition sa2
-                          , styleListStyleType sa1 == styleListStyleType sa2
-                          , styleXLink sa1 == styleXLink sa2
-                          , styleXImg sa1 == styleXImg sa2
-                          , styleBorderCollapse sa1 == styleBorderCollapse sa2
-                          , styleBorderStyle sa1 == styleBorderStyle sa2
-                          , styleWidth sa1 == styleWidth sa2
-                          , styleHeight sa1 == styleHeight sa2
-                          , styleTextIndent sa1 == styleTextIndent sa2
-                          , styleLineHeight sa1 == styleLineHeight sa2
-                          , styleVerticalAlign sa1 == styleVerticalAlign sa2
-                          , styleBgPositionX sa1 == styleBgPositionX sa2
-                          , styleBgPositionY sa1 == styleBgPositionY sa2
-                          , styleHorizBorderSpacing sa1 == styleHorizBorderSpacing sa2
-                          , styleVertBorderSpacing sa1 == styleVertBorderSpacing sa2
-                          , styleDisplay sa1 == styleDisplay sa2
-                          , styleWordSpacing sa1 == styleWordSpacing sa2
-                          , styleXTooltip sa1 == styleXTooltip sa2
-                          , styleXLang sa1 == styleXLang sa2
-                          , styleBgRepeat sa1 == styleBgRepeat sa2
-                          , styleBgAttachment sa1 == styleBgAttachment sa2
-                          , styleMargin sa1 == styleMargin sa2
-                          , stylePadding sa1 == stylePadding sa2
-                          , styleBorderWidth sa1 == styleBorderWidth sa2
-                          , styleFontAttrs sa1 == styleFontAttrs sa2
-                          ]
+styleAttrsInitValues _sa = defaultStyleAttrs
 
 
 
@@ -409,59 +330,19 @@ styleAttrsHashValue sa = styleTextAlign sa
 
 
 
--- TODO: this can be replaced by simple assignment
-styleAttrsCopy :: StyleAttrs -> StyleAttrs -> StyleAttrs
-styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
-                            , styleTextDecoration = styleTextDecoration from
-                            , styleTextTransform  = styleTextTransform from
-                            , styleCursor         = styleCursor from
-                            , styleWhiteSpace     = styleWhiteSpace from
-                            , styleListStylePosition = styleListStylePosition from
-                            , styleListStyleType  = styleListStyleType from
-                            , styleXLink          = styleXLink from
-                            , styleXImg           = styleXImg from
-                            , styleBorderCollapse = styleBorderCollapse from
-                            , styleBorderStyle    = styleBorderStyle from
-                            , styleWidth          = styleWidth from
-                            , styleHeight         = styleHeight from
-                            , styleTextIndent     = styleTextIndent from
-                            , styleLineHeight     = styleLineHeight from
-                            , styleVerticalAlign  = styleVerticalAlign from
-                            , styleBgPositionX    = styleBgPositionX from
-                            , styleBgPositionY    = styleBgPositionY from
-                            , styleBgRepeat       = styleBgRepeat from
-                            , styleHorizBorderSpacing = styleHorizBorderSpacing from
-                            , styleVertBorderSpacing  = styleVertBorderSpacing from
-                            , styleDisplay            = styleDisplay from
-                            , styleWordSpacing        = styleWordSpacing from
-                            , styleXTooltip           = styleXTooltip from
-                            , styleXLang              = styleXLang from
-                            , styleBgAttachment       = styleBgAttachment from
-                            , styleMargin             = styleMargin from
-                            , stylePadding            = stylePadding from
-                            , styleBorderWidth        = styleBorderWidth from
-                            , styleBorderColor        = styleBorderColor from
-                            , styleColor              = styleColor from
-                            , styleBackgroundColor    = styleBackgroundColor from
-                            , styleFontAttrs          = styleFontAttrs from
-                            }
-
-
-
-
 -- Reset to default values those fields of style attribute that are not
 -- inherited according to CSS.
 styleAttrsResetNonInheritedValues :: StyleAttrs -> StyleAttrs
 styleAttrsResetNonInheritedValues attrs = attrs
-  { styleXImg           = -1
-  , styleBorderStyle    = defaultStyleBorderStyle
-  , styleWidth          = createAutoDwLength
-  , styleHeight         = createAutoDwLength
-  , styleVerticalAlign  = 3 -- VALIGN_BASELINE == 3
-  , styleBgPositionX    = createPercentageDwLength 0
-  , styleBgPositionY    = createPercentageDwLength 0
-  , styleBgRepeat       = 0 -- BACKGROUND_REPEAT == 0
-  , styleBgAttachment   = 0 -- BACKGROUND_ATTACHMENT_SCROLL == 0
+  { styleXImg                = -1
+  , styleBorderStyle         = defaultStyleBorderStyle
+  , styleWidth               = createAutoDwLength
+  , styleHeight              = createAutoDwLength
+  , styleVerticalAlign       = 3 -- VALIGN_BASELINE == 3
+  , styleBgPositionX         = createPercentageDwLength 0
+  , styleBgPositionY         = createPercentageDwLength 0
+  , styleBgRepeat            = 0 -- BACKGROUND_REPEAT == 0
+  , styleBgAttachment        = 0 -- BACKGROUND_ATTACHMENT_SCROLL == 0
   , styleHorizBorderSpacing  = 0
   , styleVertBorderSpacing   = 0
   , styleDisplay             = 1 -- DISPLAY_INLINE == 1
@@ -478,21 +359,9 @@ styleAttrsSetCollapseTableAttrs collapseTableAttrs attrsCell borderWidthTop =
   collapseTableAttrs { styleBorderStyle = styleBorderStyle attrsCell
                      , styleHorizBorderSpacing  = 0
                      , styleVertBorderSpacing   = 0
-
                      -- /* CSS2 17.6.2: table does not have padding (in collapsing mode) */
-                     , stylePadding = StylePadding
-                       { stylePaddingTop    = 0
-                       , stylePaddingRight  = 0
-                       , stylePaddingBottom = 0
-                       , stylePaddingLeft   = 0
-                       }
-
-                     , styleBorderWidth = StyleBorderWidth
-                       { styleBorderWidthTop    = borderWidthTop
-                       , styleBorderWidthRight  = 0
-                       , styleBorderWidthBottom = 0
-                       , styleBorderWidthLeft   = borderWidthTop
-                       }
+                     , stylePadding = StylePadding 0 0 0 0
+                     , styleBorderWidth = StyleBorderWidth borderWidthTop 0 0 borderWidthTop
                      }
 
 
@@ -503,13 +372,7 @@ styleAttrsSetCollapseCellAttrs :: StyleAttrs -> Int -> StyleAttrs
 styleAttrsSetCollapseCellAttrs collapseCellAttrs borderWidthTop =
   collapseCellAttrs { styleHorizBorderSpacing  = 0
                     , styleVertBorderSpacing   = 0
-
-                    , styleBorderWidth = StyleBorderWidth
-                      { styleBorderWidthTop    = 0
-                      , styleBorderWidthRight  = borderWidthTop
-                      , styleBorderWidthBottom = borderWidthTop
-                      , styleBorderWidthLeft   = 0
-                      }
+                    , styleBorderWidth = StyleBorderWidth 0 borderWidthTop borderWidthTop 0
                     }
 
 
@@ -517,11 +380,7 @@ styleAttrsSetCollapseCellAttrs collapseCellAttrs borderWidthTop =
 
 styleAttrsSetBorderStyle :: StyleAttrs -> Int -> StyleAttrs
 styleAttrsSetBorderStyle sa val = sa
-  { styleBorderStyle = (styleBorderStyle sa) { styleBorderStyleTop    = val
-                                             , styleBorderStyleRight  = val
-                                             , styleBorderStyleBottom = val
-                                             , styleBorderStyleLeft   = val
-                                             }
+  { styleBorderStyle = StyleBorderStyle val val val val
   }
 
 
