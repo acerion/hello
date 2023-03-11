@@ -190,10 +190,8 @@ ffiStyleAttrsInitValues cRef = do
 
 ffiStyleAttrsEqual :: CInt -> CInt -> IO Bool
 ffiStyleAttrsEqual cRef1 cRef2 = do
-  let ref1 = fromIntegral cRef1
-  let ref2 = fromIntegral cRef2
-  attrs1 <- globalStyleAttrsGet ref1
-  attrs2 <- globalStyleAttrsGet ref2
+  attrs1 <- globalStyleAttrsGet . fromIntegral $ cRef1
+  attrs2 <- globalStyleAttrsGet . fromIntegral $ cRef2
   return $ attrs1 == attrs2
 
 
@@ -201,8 +199,7 @@ ffiStyleAttrsEqual cRef1 cRef2 = do
 
 ffiStyleAttrsHashValue :: CInt -> IO CInt
 ffiStyleAttrsHashValue cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleAttrsHashValue $ attrs
 
 
@@ -219,8 +216,7 @@ ffiStyleAttrsCopy cRefTo cRefFrom = do
 
 ffiStyleAttrsTextAlign :: CInt -> IO CInt
 ffiStyleAttrsTextAlign cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleTextAlign $ attrs
 
 
@@ -228,8 +224,7 @@ ffiStyleAttrsTextAlign cRef = do
 
 ffiStyleAttrsTextDecoration :: CInt -> IO Word32
 ffiStyleAttrsTextDecoration cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleTextDecoration $ attrs
 
 
@@ -238,7 +233,6 @@ ffiStyleAttrsTextDecoration cRef = do
 ffiStyleAttrsSetTextDecoration :: CInt -> Word32 -> IO ()
 ffiStyleAttrsSetTextDecoration cRef val = do
   let ref = fromIntegral cRef
-  --let val = fromIntegral cVal
   old <- globalStyleAttrsGet ref
   let sa' = old { styleTextDecoration = val }
   globalStyleAttrsUpdate ref sa'
@@ -249,8 +243,7 @@ ffiStyleAttrsSetTextDecoration cRef val = do
 
 ffiStyleAttrsTextTransform :: CInt -> IO CInt
 ffiStyleAttrsTextTransform cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleTextTransform $ attrs
 
 
@@ -258,8 +251,7 @@ ffiStyleAttrsTextTransform cRef = do
 
 ffiStyleAttrsCursor :: CInt -> IO CInt
 ffiStyleAttrsCursor cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleCursor $ attrs
 
 
@@ -279,8 +271,7 @@ ffiStyleAttrsSetCursor cRef cVal = do
 
 ffiStyleAttrsWhiteSpace :: CInt -> IO CInt
 ffiStyleAttrsWhiteSpace cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleWhiteSpace $ attrs
 
 
@@ -288,8 +279,7 @@ ffiStyleAttrsWhiteSpace cRef = do
 
 ffiStyleAttrsListStylePosition :: CInt -> IO CInt
 ffiStyleAttrsListStylePosition cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleListStylePosition $ attrs
 
 
@@ -297,8 +287,7 @@ ffiStyleAttrsListStylePosition cRef = do
 
 ffiStyleAttrsListStyleType :: CInt -> IO CInt
 ffiStyleAttrsListStyleType cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleListStyleType $ attrs
 
 
@@ -306,8 +295,7 @@ ffiStyleAttrsListStyleType cRef = do
 
 ffiStyleAttrsXLink :: CInt -> IO CInt
 ffiStyleAttrsXLink cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleXLink $ attrs
 
 
@@ -327,8 +315,7 @@ ffiStyleAttrsSetXLink cRef cVal = do
 
 ffiStyleAttrsXImg :: CInt -> IO CInt
 ffiStyleAttrsXImg cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleXImg $ attrs
 
 
@@ -336,8 +323,7 @@ ffiStyleAttrsXImg cRef = do
 
 ffiStyleAttrsBorderCollapse :: CInt -> IO CInt
 ffiStyleAttrsBorderCollapse cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleBorderCollapse $ attrs
 
 
@@ -371,8 +357,7 @@ ffiStyleAttrsSetCollapseCellAttrs cRef cBorderWidthTop = do
 
 ffiStyleAttrsBorderStyleTop :: CInt -> IO CInt
 ffiStyleAttrsBorderStyleTop cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleBorderStyleTop . styleBorderStyle $ attrs
 
 
@@ -380,8 +365,7 @@ ffiStyleAttrsBorderStyleTop cRef = do
 
 ffiStyleAttrsBorderStyleRight :: CInt -> IO CInt
 ffiStyleAttrsBorderStyleRight cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleBorderStyleRight . styleBorderStyle $ attrs
 
 
@@ -389,8 +373,7 @@ ffiStyleAttrsBorderStyleRight cRef = do
 
 ffiStyleAttrsBorderStyleBottom :: CInt -> IO CInt
 ffiStyleAttrsBorderStyleBottom cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleBorderStyleBottom . styleBorderStyle $ attrs
 
 
@@ -398,8 +381,7 @@ ffiStyleAttrsBorderStyleBottom cRef = do
 
 ffiStyleAttrsBorderStyleLeft :: CInt -> IO CInt
 ffiStyleAttrsBorderStyleLeft cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleBorderStyleLeft . styleBorderStyle $ attrs
 
 
@@ -430,8 +412,7 @@ ffiStyleAttrsResetNonInheritedValues cRef = do
 
 ffiStyleAttrsGetWidth :: CInt -> Ptr FfiDwLength -> IO ()
 ffiStyleAttrsGetWidth cRef ptrStructDwLength = do
-  let ref = fromIntegral cRef
-  sa <- globalStyleAttrsGet ref
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
   pokeDwLength (styleWidth sa) ptrStructDwLength
   return ()
 
@@ -440,8 +421,7 @@ ffiStyleAttrsGetWidth cRef ptrStructDwLength = do
 
 ffiStyleAttrsGetHeight :: CInt -> Ptr FfiDwLength -> IO ()
 ffiStyleAttrsGetHeight cRef ptrStructDwLength = do
-  let ref = fromIntegral cRef
-  sa <- globalStyleAttrsGet ref
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
   pokeDwLength (styleHeight sa) ptrStructDwLength
   return ()
 
@@ -474,8 +454,7 @@ ffiStyleAttrsSetHeight cRef ptrStructDwLength = do
 
 ffiStyleAttrsGetTextIndent :: CInt -> Ptr FfiDwLength -> IO ()
 ffiStyleAttrsGetTextIndent cRef ptrStructDwLength = do
-  let ref = fromIntegral cRef
-  sa <- globalStyleAttrsGet ref
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
   pokeDwLength (styleTextIndent sa) ptrStructDwLength
   return ()
 
@@ -484,8 +463,7 @@ ffiStyleAttrsGetTextIndent cRef ptrStructDwLength = do
 
 ffiStyleAttrsGetLineHeight :: CInt -> Ptr FfiDwLength -> IO ()
 ffiStyleAttrsGetLineHeight cRef ptrStructDwLength = do
-  let ref = fromIntegral cRef
-  sa <- globalStyleAttrsGet ref
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
   pokeDwLength (styleLineHeight sa) ptrStructDwLength
   return ()
 
@@ -494,8 +472,7 @@ ffiStyleAttrsGetLineHeight cRef ptrStructDwLength = do
 
 ffiStyleAttrsVerticalAlign :: CInt -> IO CInt
 ffiStyleAttrsVerticalAlign cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleVerticalAlign $ attrs
 
 
@@ -503,8 +480,7 @@ ffiStyleAttrsVerticalAlign cRef = do
 
 ffiStyleAttrsBgPositionX :: CInt -> Ptr FfiDwLength -> IO ()
 ffiStyleAttrsBgPositionX cRef ptrStructDwLength = do
-  let ref = fromIntegral cRef
-  sa <- globalStyleAttrsGet ref
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
   pokeDwLength (styleBgPositionX sa) ptrStructDwLength
   return ()
 
@@ -513,8 +489,7 @@ ffiStyleAttrsBgPositionX cRef ptrStructDwLength = do
 
 ffiStyleAttrsBgPositionY :: CInt -> Ptr FfiDwLength -> IO ()
 ffiStyleAttrsBgPositionY cRef ptrStructDwLength = do
-  let ref = fromIntegral cRef
-  sa <- globalStyleAttrsGet ref
+  sa <- globalStyleAttrsGet . fromIntegral $ cRef
   pokeDwLength (styleBgPositionY sa) ptrStructDwLength
   return ()
 
@@ -547,8 +522,7 @@ ffiStyleAttrsSetBgPositionY cRef ptrStructDwLength = do
 
 ffiStyleAttrsHorizBorderSpacing :: CInt -> IO CInt
 ffiStyleAttrsHorizBorderSpacing cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleHorizBorderSpacing $ attrs
 
 
@@ -556,8 +530,7 @@ ffiStyleAttrsHorizBorderSpacing cRef = do
 
 ffiStyleAttrsVertBorderSpacing :: CInt -> IO CInt
 ffiStyleAttrsVertBorderSpacing cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleVertBorderSpacing $ attrs
 
 
@@ -589,8 +562,7 @@ ffiStyleAttrsSetVertBorderSpacing cRef cVal = do
 
 ffiStyleAttrsDisplay :: CInt -> IO CInt
 ffiStyleAttrsDisplay cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleDisplay $ attrs
 
 
@@ -598,8 +570,7 @@ ffiStyleAttrsDisplay cRef = do
 
 ffiStyleAttrsWordSpacing :: CInt -> IO CInt
 ffiStyleAttrsWordSpacing cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleWordSpacing $ attrs
 
 
@@ -607,8 +578,7 @@ ffiStyleAttrsWordSpacing cRef = do
 -- Returns a pointer to string allocated on heap.
 ffiStyleAttrsXTooltip :: CInt -> IO (Ptr CChar)
 ffiStyleAttrsXTooltip cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   allocAndPokeCString . styleXTooltip $ attrs
 
 
@@ -616,9 +586,8 @@ ffiStyleAttrsXTooltip cRef = do
 
 ffiStyleAttrsXLang :: CInt -> Ptr CChar -> CInt -> IO ()
 ffiStyleAttrsXLang cRef ptrBufLang cBufSize = do
-  let ref     = fromIntegral cRef
   let bufSize = fromIntegral cBufSize
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   pokeCharBuffer ptrBufLang bufSize (styleXLang attrs)
 
 
@@ -637,8 +606,7 @@ ffiStyleAttrsSetXLang cRef cChar1 cChar2 = do
 
 ffiStyleAttrsBgRepeat :: CInt -> IO CInt
 ffiStyleAttrsBgRepeat cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleBgRepeat $ attrs
 
 
@@ -658,8 +626,7 @@ ffiStyleAttrsSetBgRepeat cRef cVal = do
 
 ffiStyleAttrsBgAttachment :: CInt -> IO CInt
 ffiStyleAttrsBgAttachment cRef = do
-  let ref = fromIntegral cRef
-  attrs <- globalStyleAttrsGet ref
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
   return . fromIntegral . styleBgAttachment $ attrs
 
 
