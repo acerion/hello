@@ -423,8 +423,8 @@ public:
    Color * color = nullptr;
    Color * backgroundColor = nullptr;
 
-   void initValues ();
-   void resetValues ();
+   void initValues();
+   void resetNonInheritedValues();
 
    bool sizeDiffs (StyleAttrs *otherStyleAttrs);
 

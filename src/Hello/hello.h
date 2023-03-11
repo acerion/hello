@@ -151,7 +151,7 @@ void ffiStyleAttrsInitValues(int ref);
 bool ffiStyleAttrsEqual(int ref1, int ref2);
 int ffiStyleAttrsHashValue(int ref);
 void ffiStyleAttrsCopy(int refTo, int refFrom);
-void ffiStyleAttrsReset(int ref);
+void ffiStyleAttrsResetNonInheritedValues(int ref);
 
 int ffiStyleAttrsTextAlign(int ref);
 

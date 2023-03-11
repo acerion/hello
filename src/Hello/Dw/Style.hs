@@ -45,7 +45,7 @@ module Hello.Dw.Style
   , styleAttrsEqual
   , styleAttrsHashValue
   , styleAttrsCopy
-  , styleAttrsReset
+  , styleAttrsResetNonInheritedValues
 
   , styleAttrsSetCollapseTableAttrs
   , styleAttrsSetCollapseCellAttrs
@@ -449,8 +449,10 @@ styleAttrsCopy to from = to { styleTextAlign      = styleTextAlign from
 
 
 
-styleAttrsReset :: StyleAttrs -> StyleAttrs
-styleAttrsReset attrs = attrs
+-- Reset to default values those fields of style attribute that are not
+-- inherited according to CSS.
+styleAttrsResetNonInheritedValues :: StyleAttrs -> StyleAttrs
+styleAttrsResetNonInheritedValues attrs = attrs
   { styleXImg           = -1
   , styleBorderStyle    = defaultStyleBorderStyle
   , styleWidth          = createAutoDwLength

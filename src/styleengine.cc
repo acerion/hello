@@ -88,7 +88,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout, const DilloUrl *pageUrl, con
    importDepth = 0;
 
    StyleAttrs style_attrs = {};
-   style_attrs.initValues(); // TODO: turn it into ffi call
+   style_attrs.initValues();
 
    /* Create a dummy font, color and bg color for the bottom of the stack. */
    FontAttrs font_attrs = {};
@@ -386,22 +386,7 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
    DilloUrl *imgUrl = nullptr;
 
    timer_start(&g_apply_do_start);
-
-#if 0
-   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: parent style attrs: %d, style attrs: %d\n", parentAttrs->c_style_attrs_ref, attrs->c_style_attrs_ref);
-   fprintf(stderr, "before calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parent styleattrs: %d, VALUE in style attrs: %d\n", ffiStyleAttrsListStyleType(parentAttrs->c_style_attrs_ref), ffiStyleAttrsListStyleType(attrs->c_style_attrs_ref));
-#endif
-
-
    ffiStyleEngineApplyStyleToGivenNode(merged_decl_set_ref, &prefs.preferences, layout->dpiX(), layout->dpiY(), parentAttrs->c_style_attrs_ref, attrs->c_style_attrs_ref);
-
-
-#if 0
-   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: parent style attrs: %d, style attrs: %d\n", parentAttrs->c_style_attrs_ref, attrs->c_style_attrs_ref);
-   fprintf(stderr, "after calling ffiStyleEngineApplyStyleToGivenNode: VALUE in parent style attrs: %d, VALUE in style attrs: %d\n", ffiStyleAttrsListStyleType(parentAttrs->c_style_attrs_ref), ffiStyleAttrsListStyleType(attrs->c_style_attrs_ref));
-#endif
-
-
    timer_stop(&g_apply_do_start, &g_apply_do_stop, &g_apply_do_acc);
    fprintf(stderr, "[II] Total apply-do time increased to %ld:%06ld\n", g_apply_do_acc.tv_sec, g_apply_do_acc.tv_usec);
 
@@ -482,8 +467,7 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
    // style() or wordStyle() for each new element.
    assert (styleNodesStack[styleNodeIndex].style == NULL);
 
-   // reset values that are not inherited according to CSS
-   styleAttrs.resetValues(); // TODO: change this into call of ffi function.
+   styleAttrs.resetNonInheritedValues();
 
    preprocessAttrs(&styleAttrs);
 
@@ -518,7 +502,7 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
 Style * StyleEngine::makeWordStyle(BrowserWindow *bw) {
    StyleAttrs attrs = *getStyle (bw);
    // TODO: original code called this function. Retore it?
-   //attrs.resetValues ();
+   //attrs.resetNonInheritedValues ();
 
    StyleNode * node = getCurrentNode(this);
    if (node->inheritBackgroundColor) {

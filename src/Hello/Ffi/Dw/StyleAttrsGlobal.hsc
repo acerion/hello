@@ -65,7 +65,7 @@ foreign export ccall "ffiStyleAttrsEqual" ffiStyleAttrsEqual :: CInt -> CInt -> 
 foreign export ccall "ffiStyleAttrsHashValue" ffiStyleAttrsHashValue :: CInt -> IO CInt
 foreign export ccall "ffiStyleAttrsCopy" ffiStyleAttrsCopy :: CInt -> CInt -> IO ()
 
-foreign export ccall "ffiStyleAttrsReset" ffiStyleAttrsReset :: CInt -> IO ()
+foreign export ccall "ffiStyleAttrsResetNonInheritedValues" ffiStyleAttrsResetNonInheritedValues :: CInt -> IO ()
 
 foreign export ccall "ffiStyleAttrsTextAlign" ffiStyleAttrsTextAlign :: CInt -> IO CInt
 
@@ -421,11 +421,11 @@ ffiStyleAttrsSetBorderStyle cRef cVal = do
 
 
 
-ffiStyleAttrsReset :: CInt -> IO ()
-ffiStyleAttrsReset cRef = do
+ffiStyleAttrsResetNonInheritedValues :: CInt -> IO ()
+ffiStyleAttrsResetNonInheritedValues cRef = do
   let ref = fromIntegral cRef
   old <- globalStyleAttrsGet ref
-  let sa' = styleAttrsReset old
+  let sa' = styleAttrsResetNonInheritedValues old
   globalStyleAttrsUpdate ref sa'
   return ()
 

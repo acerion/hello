@@ -56,26 +56,26 @@ static void calcBackgroundRelatedValues (StyleImage *backgroundImage,
                                          int *tileX1, int *tileX2, int *tileY1,
                                          int *tileY2, bool *doDraw);
 
-void StyleAttrs::initValues ()
+void StyleAttrs::initValues()
 {
    ffiStyleAttrsInitValues(this->c_style_attrs_ref);
 
-   backgroundColor = NULL;
-   backgroundImage = NULL;
-   setBorderColor (NULL);
+   backgroundColor = nullptr;
+   backgroundImage = nullptr;
+   setBorderColor(nullptr);
 }
 
 /**
- * \brief Reset those style attributes to their standard values, which are
- *    not inherited, according to CSS.
- */
-void StyleAttrs::resetValues ()
+   \brief Reset to default values those fields of style attribute that are
+   not inherited according to CSS.
+*/
+void StyleAttrs::resetNonInheritedValues()
 {
-   ffiStyleAttrsReset(this->c_style_attrs_ref);
+   ffiStyleAttrsResetNonInheritedValues(this->c_style_attrs_ref);
 
-   backgroundColor = NULL;
-   backgroundImage = NULL;
-   setBorderColor (NULL);
+   backgroundColor = nullptr;
+   backgroundImage = nullptr;
+   setBorderColor(nullptr);
 }
 
 /**
