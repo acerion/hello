@@ -368,6 +368,18 @@ static void style_attrs_make_ui_objects(StyleAttrs * attrs, dw::core::Layout * l
    }
 
    {
+      char * tooltip = ffiStyleAttrsXTooltip(attrs->c_style_attrs_ref);
+      if (tooltip) {
+         attrs->x_tooltip = Tooltip::create(layout, tooltip);
+         // FIXME: Here we should free() style_attrs->c_x_tooltip, but it has
+         // been allocated in Haskell so I don't want to dig into freeing of
+         // such pointers. As in other cases where FFI code is leaking
+         // memory: this is only temporary, until all code is moved to
+         // Haskell.
+      }
+   }
+
+   {
       FontAttrs fontAttrs = {};
       ffiStyleAttrsFontAttrs(attrs->c_style_attrs_ref, &fontAttrs.font_attrs);
       attrs->font = Font::create(layout, &fontAttrs);

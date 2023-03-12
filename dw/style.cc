@@ -63,6 +63,7 @@ void StyleAttrs::initValues()
    backgroundColor = nullptr;
    backgroundImage = nullptr;
    setBorderColor(nullptr);
+   x_tooltip = nullptr;
 }
 
 /**
@@ -110,7 +111,8 @@ bool StyleAttrs::equals (object::Object *other) {
        borderColor.top == otherAttrs->borderColor.top &&
        borderColor.right == otherAttrs->borderColor.right &&
        borderColor.bottom == otherAttrs->borderColor.bottom &&
-       borderColor.left == otherAttrs->borderColor.left
+       borderColor.left == otherAttrs->borderColor.left &&
+       x_tooltip == otherAttrs->x_tooltip
        );
 }
 
@@ -123,7 +125,8 @@ int StyleAttrs::hashValue () {
       (intptr_t) borderColor.top +
       (intptr_t) borderColor.right +
       (intptr_t) borderColor.bottom +
-      (intptr_t) borderColor.left;
+      (intptr_t) borderColor.left +
+      (intptr_t) x_tooltip;
 }
 
 int Style::totalRef = 0;
@@ -163,6 +166,8 @@ Style::Style (StyleAttrs *attrs)
       borderColor.left->ref();
    if (borderColor.right)
       borderColor.right->ref();
+   if (x_tooltip)
+      x_tooltip->ref();
 
    totalRef++;
 }
@@ -185,6 +190,8 @@ Style::~Style ()
       borderColor.left->unref();
    if (borderColor.right)
       borderColor.right->unref();
+   if (x_tooltip)
+      x_tooltip->unref();
 
    styleTable->remove (this);
    totalRef--;
@@ -200,6 +207,7 @@ void Style::copyAttrs (StyleAttrs *attrs)
    backgroundColor = attrs->backgroundColor;
    backgroundImage = attrs->backgroundImage;
    borderColor = attrs->borderColor;
+   x_tooltip = attrs->x_tooltip;
 }
 
 // ----------------------------------------------------------------------

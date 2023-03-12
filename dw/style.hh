@@ -412,16 +412,26 @@ public:
       this->c_style_attrs_ref = ffiStyleAttrsCtor();
    }
 
-   Font *font;
-
    /* Reference to Haskell object storing style attributes. */
    int c_style_attrs_ref = 0;
 
-   StyleImage *backgroundImage;
+   /*
+     A group of C++ objects that are somehow related to UI framework and
+     cannot be directly created and stored in Haskell.
 
-   struct { Color *top = nullptr, *right = nullptr, *bottom = nullptr, *left = nullptr; } borderColor;
+     Data used to create these objects is available through FFI (using
+     c_style_attrs_ref), but the objects themselves are members of
+     StyleAttrs.
+
+     It would be possible to keep these pointers in Haskell, but for now they
+     are in C++.
+   */
+   StyleImage * backgroundImage = nullptr;
+   struct { Color * top = nullptr, * right = nullptr, * bottom = nullptr, * left = nullptr; } borderColor;
    Color * color = nullptr;
    Color * backgroundColor = nullptr;
+   Tooltip * x_tooltip = nullptr;
+   Font * font = nullptr;
 
    void initValues();
    void resetNonInheritedValues();
