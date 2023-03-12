@@ -48,7 +48,8 @@ void cpp_styleEngineSetXTooltipOfNode(StyleNode * styleNode, const char * string
 class StyleEngine {
 public:
    StyleNode styleNodesStack[64] = {};
-   int styleNodesStackSize = 0;
+
+   int style_engine_ref = 0;
 
    private:
 
@@ -117,7 +118,7 @@ public:
          if (s)
             return s;
          else
-            return makeStyle(styleNodesStackSize - 1, bw);
+            return makeStyle(ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) - 1, bw);
       };
 
       inline dw::core::style::Style *getWordStyle (BrowserWindow *bw) {
@@ -132,13 +133,13 @@ public:
 
 inline StyleNode * getCurrentNode(StyleEngine * styleEngine)
 {
-   int idx = styleEngine->styleNodesStackSize - 1;
+   int idx = ffiStyleEngineStyleNodesStackSize(styleEngine->style_engine_ref) - 1;
    return &styleEngine->styleNodesStack[idx];
 }
 
 inline StyleNode * getParentNode(StyleEngine * styleEngine)
 {
-   int idx = styleEngine->styleNodesStackSize - 2;
+   int idx = ffiStyleEngineStyleNodesStackSize(styleEngine->style_engine_ref) - 2;
    return &styleEngine->styleNodesStack[idx];
 }
 

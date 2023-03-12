@@ -74,6 +74,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout, const DilloUrl *pageUrl, con
 {
    this->doc_tree_ptr = doctreeCtor();
    this->doc_tree_ref = ffiDoctreeCtor();
+   this->style_engine_ref = ffiStyleEngineCtor();
 
    //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
 
@@ -100,7 +101,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout, const DilloUrl *pageUrl, con
    style_attrs.backgroundColor = Color::create (layout, prefs.bg_color);
 
    stackPushEmptyNode();
-   styleNodesStack[styleNodesStackSize - 1].style = Style::create (&style_attrs);
+   styleNodesStack[ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) - 1].style = Style::create (&style_attrs);
 }
 
 StyleEngine::~StyleEngine () {
@@ -108,7 +109,7 @@ StyleEngine::~StyleEngine () {
       endElement (doctreeGetTopNode(this->doc_tree_ptr)->c_html_element_idx);
 
    stackPop (); // dummy node on the bottom of the stack
-   assert (styleNodesStackSize == 0);
+   assert (ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) == 0);
 
    a_Url_free(pageUrl);
    a_Url_free(baseUrl);
@@ -127,8 +128,8 @@ void StyleEngine::stackPushEmptyNode () {
       .doctreeNodeIdx = 0
    };
 
-   memcpy(&styleNodesStack[styleNodesStackSize], &emptyNode, sizeof (emptyNode));
-   styleNodesStackSize++;
+   memcpy(&styleNodesStack[ffiStyleEngineStyleNodesStackSize(this->style_engine_ref)], &emptyNode, sizeof (emptyNode));
+   ffiStyleEngineStyleNodesStackPush(this->style_engine_ref);
 }
 
 void StyleEngine::stackPop () {
@@ -143,7 +144,7 @@ void StyleEngine::stackPop () {
       currentNode->wordStyle->unref ();
    if (currentNode->backgroundStyle)
       currentNode->backgroundStyle->unref ();
-   styleNodesStackSize--;
+   ffiStyleEngineStyleNodesStackPop(this->style_engine_ref);
 }
 
 /**
@@ -159,7 +160,7 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    //n->doctreeNodeIdx = ffiDoctreePushNode(this->doc_tree_ref, html_element_idx);
    ffiDoctreePushNode(this->doc_tree_ref, html_element_idx);
 
-   if (styleNodesStackSize > 1) {
+   if (ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) > 1) {
       StyleNode * parentNode = getParentNode(this);
       n->displayNone = parentNode->displayNone;
    }
@@ -258,7 +259,7 @@ void StyleEngine::inheritBackgroundColor () {
 }
 
 dw::core::style::Color *StyleEngine::getBackgroundColor () {
-   for (int i = 1; i < styleNodesStackSize; i++) {
+   for (int i = 1; i < ffiStyleEngineStyleNodesStackSize(this->style_engine_ref); i++) {
       StyleNode *n = &styleNodesStack[i];
 
       if (n->style && n->style->backgroundColor)
@@ -273,7 +274,7 @@ dw::core::style::StyleImage *StyleEngine::getBackgroundImage
     dw::core::style::BackgroundAttachment *bgAttachment,
     DwLength *bgPositionX,
     DwLength *bgPositionY) {
-   for (int i = 1; i < styleNodesStackSize; i++) {
+   for (int i = 1; i < ffiStyleEngineStyleNodesStackSize(this->style_engine_ref); i++) {
       StyleNode *n = &styleNodesStack[i];
 
       if (n->style && n->style->backgroundImage) {
@@ -441,7 +442,7 @@ Style * StyleEngine::getBackgroundStyle (BrowserWindow *bw) {
    if (!currentNode->backgroundStyle) {
       StyleAttrs attrs = *getStyle (bw);
 
-      for (int i = styleNodesStackSize - 1; i >= 0 && ! attrs.backgroundColor; i--) {
+      for (int i = ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) - 1; i >= 0 && ! attrs.backgroundColor; i--) {
          attrs.backgroundColor = styleNodesStack[i].style->backgroundColor;
       }
 
@@ -539,7 +540,7 @@ Style * StyleEngine::makeWordStyle(BrowserWindow *bw) {
  * Note that restyle() does not change any styles in the widget tree.
  */
 void StyleEngine::restyle (BrowserWindow *bw) {
-   for (int styleNodeIndex = 1; styleNodeIndex < styleNodesStackSize; styleNodeIndex++) {
+   for (int styleNodeIndex = 1; styleNodeIndex < ffiStyleEngineStyleNodesStackSize(this->style_engine_ref); styleNodeIndex++) {
       StyleNode *n = &styleNodesStack[styleNodeIndex];
       if (n->style) {
          n->style->unref ();

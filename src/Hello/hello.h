@@ -456,6 +456,10 @@ int ffiIsTokenComma(c_css_token_t * token);
 int ffiIsTokenSemicolon(c_css_token_t * token);
 
 
+int ffiStyleEngineCtor(void);
+int ffiStyleEngineStyleNodesStackSize(int ref);
+void ffiStyleEngineStyleNodesStackPush(int ref);
+void ffiStyleEngineStyleNodesStackPop(int ref);
 
 int ffiStyleEngineSetNonCssHintOfNodeLength(int non_css_decl_set_ref, int property, float lengthValue, int lengthType);
 int ffiStyleEngineSetNonCssHintOfNodeEnum(int non_css_decl_set_ref, int property, int enumVal);

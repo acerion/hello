@@ -12,6 +12,7 @@ all:
 	hsc2hs ./Ffi/Css/MatchCache.hsc
 	hsc2hs ./Ffi/Css/Parser.hsc
 	hsc2hs ./Ffi/Css/StyleEngine.hsc
+	hsc2hs ./Ffi/Css/StyleEngineGlobal.hsc
 	hsc2hs ./Ffi/Css/StyleSheet.hsc
 	hsc2hs ./Ffi/Dw/DwLength.hsc
 	hsc2hs ./Ffi/Dw/FontAttrs.hsc
@@ -60,6 +61,7 @@ clean:
 	rm -f ./Ffi/Css/MatchCache.hs
 	rm -f ./Ffi/Css/Parser.hs
 	rm -f ./Ffi/Css/StyleEngine.hs
+	rm -f ./Ffi/Css/StyleEngineGlobal.hs
 	rm -f ./Ffi/Css/StyleSheet.hs
 	rm -f ./Ffi/Dw/DwLength.hs
 	rm -f ./Ffi/Dw/FontAttrs.hs
