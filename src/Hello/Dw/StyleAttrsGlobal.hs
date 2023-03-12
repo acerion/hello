@@ -35,6 +35,7 @@ Store global variables with StyleAttrs objects.
 module Hello.Dw.StyleAttrsGlobal
   (
     globalStyleAttrsCtor
+  , globalStyleAttrsCopyCtor
   , globalStyleAttrsUpdate
   , globalStyleAttrsPut
   , globalStyleAttrsGet
@@ -68,6 +69,14 @@ myGlobalStyleAttrs = unsafePerformIO (newIORef [])
 -- Second argument is a constructor of default element.
 globalStyleAttrsCtor :: IO Int
 globalStyleAttrsCtor = globalContainerCtor myGlobalStyleAttrs defaultStyleAttrs
+
+
+
+
+-- A copy constructor.
+-- Construct a new item from given item.
+globalStyleAttrsCopyCtor :: Int -> IO Int
+globalStyleAttrsCopyCtor = globalContainerCopyCtor myGlobalStyleAttrs
 
 
 

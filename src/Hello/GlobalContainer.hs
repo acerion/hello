@@ -34,6 +34,7 @@ module Hello.GlobalContainer
   (
     globalContainerPut
   , globalContainerCtor
+  , globalContainerCopyCtor
   , globalContainerGet
   , globalContainerUpdate
   )
@@ -71,6 +72,19 @@ globalContainerCtor globalContainer defaultMaker = do
   let new = old ++ [ defaultMaker ]
   writeIORef globalContainer new
   return (length new - 1)
+
+
+
+
+-- Copy given item, add it to container as new item. Return reference to new
+-- item.
+globalContainerCopyCtor :: IORef [a] -> Int -> IO Int
+globalContainerCopyCtor globalContainer itemRef = do
+  container <- readIORef globalContainer
+  let item = container !! itemRef
+      container' = container ++ [ item ] -- New item is being added as copy of existing item.
+  writeIORef globalContainer container'
+  return (length container' - 1)
 
 
 

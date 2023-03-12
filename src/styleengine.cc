@@ -469,6 +469,8 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
    // however overwritten in style_attrs_make_ui_objects().
    StyleAttrs styleAttrs = parentStyleAttrs;
    styleAttrs.c_style_attrs_ref = ffiStyleAttrsCtor();
+   /* TODO: check if we could use ffiStyleAttrsCopyCtor() above and remove
+      the call to ffiStyleAttrsCopy(). */
    ffiStyleAttrsCopy(styleAttrs.c_style_attrs_ref, parentStyleAttrs.c_style_attrs_ref);
 
    // Ensure that StyleEngine::style0() has not been called before for
@@ -513,7 +515,7 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
 
 Style * StyleEngine::makeWordStyle(BrowserWindow *bw) {
    StyleAttrs attrs = *getStyle (bw);
-   attrs.c_style_attrs_ref = ffiStyleAttrsCtor();
+   attrs.c_style_attrs_ref = ffiStyleAttrsCopyCtor(attrs.c_style_attrs_ref);
    attrs.resetNonInheritedValues();
 
    StyleNode * node = getCurrentNode(this);

@@ -58,6 +58,7 @@ import Hello.Ffi.Utils
 
 
 foreign export ccall "ffiStyleAttrsCtor" ffiStyleAttrsCtor :: IO CInt
+foreign export ccall "ffiStyleAttrsCopyCtor" ffiStyleAttrsCopyCtor :: CInt -> IO CInt
 
 
 foreign export ccall "ffiStyleAttrsInitValues" ffiStyleAttrsInitValues :: CInt -> IO ()
@@ -173,6 +174,15 @@ ffiStyleAttrsCtor :: IO CInt
 ffiStyleAttrsCtor = do
   ref :: Int <- fmap fromIntegral globalStyleAttrsCtor
   return . fromIntegral $ ref
+
+
+
+
+-- A copy constructor.
+-- Construct a new style attribute from given style attribute.
+ffiStyleAttrsCopyCtor :: CInt -> IO CInt
+ffiStyleAttrsCopyCtor cExistingRef = do
+  fmap fromIntegral $ globalStyleAttrsCopyCtor . fromIntegral $ cExistingRef
 
 
 

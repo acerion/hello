@@ -147,6 +147,7 @@ typedef struct c_style_attrs_t {
 
 
 int ffiStyleAttrsCtor(void);
+int ffiStyleAttrsCopyCtor(int ref);
 void ffiStyleAttrsInitValues(int ref);
 bool ffiStyleAttrsEqual(int ref1, int ref2);
 int ffiStyleAttrsHashValue(int ref);
