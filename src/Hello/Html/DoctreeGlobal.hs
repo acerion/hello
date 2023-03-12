@@ -44,9 +44,9 @@ import Hello.Html.Doctree
 
 
 
-myGlobalDoctrees :: IORef [Doctree]
+myGlobalDoctrees :: IORef (GlobalContainer Doctree)
 {-# NOINLINE myGlobalDoctrees #-}
-myGlobalDoctrees = unsafePerformIO (newIORef [])
+myGlobalDoctrees = unsafePerformIO (newIORef mkGlobalContainer)
 
 
 

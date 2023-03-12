@@ -37,6 +37,9 @@ module Hello.GlobalContainer
   , globalContainerCopyCtor
   , globalContainerGet
   , globalContainerUpdate
+
+  , GlobalContainer
+  , mkGlobalContainer
   )
 where
 
@@ -51,59 +54,66 @@ import Data.IORef
 import Hello.Utils
 
 
+data GlobalContainer a = GlobalContainer
+  { items :: [a]
+  }
+
+mkGlobalContainer :: GlobalContainer a
+mkGlobalContainer = GlobalContainer { items = [] }
+
 
 
 -- Add given element. Return reference to it.
-globalContainerPut :: IORef [a] -> a -> IO Int
+globalContainerPut :: IORef (GlobalContainer a) -> a -> IO Int
 globalContainerPut globalContainer item = do
-  old <- readIORef globalContainer
-  let new = old ++ [ item ]
-  writeIORef globalContainer new
-  return (length new - 1)
+  container <- readIORef globalContainer
+  let container' = GlobalContainer $ items container ++ [ item ]
+  writeIORef globalContainer container'
+  return ((length . items $ container') - 1)
 
 
 
 
 -- Add new default element. Return reference to it.
 -- Second argument is a constructor of default element.
-globalContainerCtor :: IORef [a] -> a -> IO Int
+globalContainerCtor :: IORef (GlobalContainer a) -> a -> IO Int
 globalContainerCtor globalContainer defaultMaker = do
-  old <- readIORef globalContainer
-  let new = old ++ [ defaultMaker ]
-  writeIORef globalContainer new
-  return (length new - 1)
+  container <- readIORef globalContainer
+  let container' = GlobalContainer $ items container ++ [ defaultMaker ]
+  writeIORef globalContainer container'
+  return ((length . items $ container') - 1)
 
 
 
 
 -- Copy given item, add it to container as new item. Return reference to new
 -- item.
-globalContainerCopyCtor :: IORef [a] -> Int -> IO Int
+globalContainerCopyCtor :: IORef (GlobalContainer a) -> Int -> IO Int
 globalContainerCopyCtor globalContainer itemRef = do
   container <- readIORef globalContainer
-  let item = container !! itemRef
-      container' = container ++ [ item ] -- New item is being added as copy of existing item.
+  let item = items container !! itemRef
+      container' = GlobalContainer $ items container ++ [ item ] -- New item is being added as copy of existing item.
   writeIORef globalContainer container'
-  return (length container' - 1)
+  return ((length . items $ container') - 1)
 
 
 
 
 -- Get an element indicated by given reference.
-globalContainerGet :: IORef [a] -> Int -> IO a
+globalContainerGet :: IORef (GlobalContainer a) -> Int -> IO a
 globalContainerGet globalContainer ref = do
-  list <- readIORef globalContainer
-  return $ list !! ref
+  container <- readIORef globalContainer
+  return $ (items container) !! ref
 
 
 
 
 -- Update existing entry indicated by a reference with given element.
-globalContainerUpdate :: IORef [a] -> Int -> a -> IO ()
+globalContainerUpdate :: IORef (GlobalContainer a) -> Int -> a -> IO ()
 globalContainerUpdate globalContainer ref item = do
-  old <- readIORef globalContainer
-  let new = listReplaceElem old item ref
-  writeIORef globalContainer new
+  container <- readIORef globalContainer
+  let container' = GlobalContainer $ listReplaceElem (items container) item ref
+  writeIORef globalContainer container'
 
 
 

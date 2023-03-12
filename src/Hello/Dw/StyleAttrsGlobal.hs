@@ -58,9 +58,9 @@ import Hello.GlobalContainer
 
 
 
-myGlobalStyleAttrs :: IORef [StyleAttrs]
+myGlobalStyleAttrs :: IORef (GlobalContainer StyleAttrs)
 {-# NOINLINE myGlobalStyleAttrs #-}
-myGlobalStyleAttrs = unsafePerformIO (newIORef [])
+myGlobalStyleAttrs = unsafePerformIO (newIORef mkGlobalContainer)
 
 
 

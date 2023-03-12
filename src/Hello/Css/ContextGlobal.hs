@@ -61,9 +61,9 @@ import Hello.GlobalContainer
 
 
 
-myGlobalContexts :: IORef [CssContext]
+myGlobalContexts :: IORef (GlobalContainer CssContext)
 {-# NOINLINE myGlobalContexts #-}
-myGlobalContexts = unsafePerformIO (newIORef [])
+myGlobalContexts = unsafePerformIO (newIORef mkGlobalContainer)
 
 
 

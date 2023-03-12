@@ -50,9 +50,9 @@ import Hello.GlobalContainer
 
 
 -- This is only temporary, until more C++ code is moved to Haskell.
-globalDeclSets :: IORef [CssDeclarationSet]
+globalDeclSets :: IORef (GlobalContainer CssDeclarationSet)
 {-# NOINLINE globalDeclSets #-}
-globalDeclSets = unsafePerformIO (newIORef [])
+globalDeclSets = unsafePerformIO (newIORef mkGlobalContainer)
 
 
 
