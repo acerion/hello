@@ -50,38 +50,51 @@ import Prelude
 --import Debug.Trace
 
 import Data.IORef
+import qualified Data.Vector as V
 
-import Hello.Utils
 
 
+
+-- Vector is noticeable faster than a list. For small sets of global items
+-- (e.g. StyleEngines) it doesn't matter, but when we deal with hundreds or
+-- even thousands of StyleAttr objects, the speed of operations on a global
+-- container suddently starts to matter.
+--
+-- Perhaps in future I will also add incrementing the size of vector not by
+-- one (as needed on each 'put' operation) but perhaps by e.g. 10
+-- (preallocate vector cells every time 'put' detects lack of free space in
+-- the vector). This would also require adding an explicit 'count' field to
+-- the type, because with such approach the count of real items in container
+-- != length of container.
 data GlobalContainer a = GlobalContainer
-  { items :: [a]
+  { items :: V.Vector a
   }
 
 mkGlobalContainer :: GlobalContainer a
-mkGlobalContainer = GlobalContainer { items = [] }
+mkGlobalContainer = GlobalContainer { items = V.empty }
 
 
 
--- Add given element. Return reference to it.
+
+-- Add given item. Return reference to it.
 globalContainerPut :: IORef (GlobalContainer a) -> a -> IO Int
 globalContainerPut globalContainer item = do
   container <- readIORef globalContainer
-  let container' = GlobalContainer $ items container ++ [ item ]
+  let container' = GlobalContainer { items = V.snoc (items container) item }
   writeIORef globalContainer container'
-  return ((length . items $ container') - 1)
+  return $ (length . items $ container') - 1
 
 
 
 
--- Add new default element. Return reference to it.
--- Second argument is a constructor of default element.
+-- Add new default item. Return reference to it.
+-- Second argument is a constructor of default item.
 globalContainerCtor :: IORef (GlobalContainer a) -> a -> IO Int
 globalContainerCtor globalContainer defaultMaker = do
   container <- readIORef globalContainer
-  let container' = GlobalContainer $ items container ++ [ defaultMaker ]
+  let container' = GlobalContainer { items = V.snoc (items container) defaultMaker }
   writeIORef globalContainer container'
-  return ((length . items $ container') - 1)
+  return $ (length . items $ container') - 1
 
 
 
@@ -91,28 +104,28 @@ globalContainerCtor globalContainer defaultMaker = do
 globalContainerCopyCtor :: IORef (GlobalContainer a) -> Int -> IO Int
 globalContainerCopyCtor globalContainer itemRef = do
   container <- readIORef globalContainer
-  let item = items container !! itemRef
-      container' = GlobalContainer $ items container ++ [ item ] -- New item is being added as copy of existing item.
+  let item = items container V.! itemRef
+      container' = GlobalContainer { items = V.snoc (items container) item } -- New item is being added as copy of existing item.
   writeIORef globalContainer container'
-  return ((length . items $ container') - 1)
+  return $ (length . items $ container') - 1
 
 
 
 
--- Get an element indicated by given reference.
+-- Get an item indicated by given reference.
 globalContainerGet :: IORef (GlobalContainer a) -> Int -> IO a
 globalContainerGet globalContainer ref = do
   container <- readIORef globalContainer
-  return $ (items container) !! ref
+  return $ (items container) V.! ref
 
 
 
 
--- Update existing entry indicated by a reference with given element.
+-- Update existing entry indicated by a reference with given item.
 globalContainerUpdate :: IORef (GlobalContainer a) -> Int -> a -> IO ()
 globalContainerUpdate globalContainer ref item = do
   container <- readIORef globalContainer
-  let container' = GlobalContainer $ listReplaceElem (items container) item ref
+  let container' = GlobalContainer { items = (items container) V.// [(ref, item)] } -- V.// is an update with a list of items
   writeIORef globalContainer container'
 
 
