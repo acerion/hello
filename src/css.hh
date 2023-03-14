@@ -6,12 +6,6 @@
 #include "css.h"
 #include "Hello/hello.h"
 
-typedef struct c_css_declaration_lists_t {
-   int main_decl_set_ref;
-   int important_decl_set_ref;
-   int non_css_decl_set_ref;
-} c_css_declaration_lists_t;
-
 enum CssDeclarationValueType {
    // CssDeclarationValueTypeINTEGER                  =  0,  /* This type is only used internally, for x-* properties. */
    // CssDeclarationValueTypeENUM                     =  1,  /* Value is i, if represented by enum_symbols[i]. */

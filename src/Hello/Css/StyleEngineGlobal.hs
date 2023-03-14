@@ -31,8 +31,6 @@ module Hello.Css.StyleEngineGlobal
   , globalStyleEngineCtor
   , globalStyleEngineGet
   , globalStyleEngineUpdate
-
-  , CssStyleEngine (..)
   )
 where
 
@@ -46,18 +44,7 @@ import Data.IORef
 import System.IO.Unsafe
 
 import Hello.GlobalContainer
-
-
-
-
-data CssStyleEngine = CssStyleEngine
-  { styleNodesStackSize :: Int
-  } deriving (Show)
-
-defaultCssStyleEngine :: CssStyleEngine
-defaultCssStyleEngine = CssStyleEngine
-  { styleNodesStackSize = 0
-  }
+import Hello.Css.StyleEngine
 
 
 

@@ -32,7 +32,7 @@ Copyright assignments from the file:
 module Hello.Css.StyleNode
   (
     StyleNode (..)
-  , defaultCssStyleNodesStack
+  , defaultStyleNode
   )
 where
 
@@ -45,17 +45,14 @@ import Hello.Css.Declaration
 
 
 data StyleNode = StyleNode
-  {
-    mainDeclSet      :: CssDeclarationSet
+  { mainDeclSet      :: CssDeclarationSet
   , importantDeclSet :: CssDeclarationSet
   , nonCssDeclSet    :: CssDeclarationSet
-  }
+  } deriving (Show)
 
+defaultStyleNode :: StyleNode
+defaultStyleNode = StyleNode defaultCssDeclarationSet defaultCssDeclarationSet defaultCssDeclarationSet
 
-
-
-defaultCssStyleNodesStack :: [StyleNode]
-defaultCssStyleNodesStack = []
 
 
 

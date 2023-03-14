@@ -424,7 +424,7 @@ int ffiIgnoreStatement(c_css_parser_t * parser, c_css_token_t * token);
 
 
 
-void ffiCssParseElementStyleAttribute(const void /* DilloUrl */ *baseUrl, const char * cssStyleAttribute, int buflen, int main_decl_set_ref, int important_decl_set_ref);
+void ffiCssParseElementStyleAttribute(int style_engine_ref, const void /* DilloUrl */ *baseUrl, const char * cssStyleAttribute, int buflen);
 
 
 
@@ -437,11 +437,10 @@ void ffiHtmlParseAttributeWidthOrHeight(const char * attribute_value, c_css_leng
 
 
 
-int ffiCssContextApplyCssContext(int context_ref,
-                                 int doc_tree_ref, int dtn_num,
-                                 int main_decl_set_ref,
-                                 int important_decl_set_ref,
-                                 int non_css_decl_set_ref);
+int ffiCssContextApplyCssContext(int style_engine_ref,
+                                 int context_ref,
+                                 int doc_tree_ref,
+                                 int dtn_num);
 
 void ffiCssContextPrint(const char * path, int css_context_ref);
 
@@ -458,8 +457,9 @@ int ffiIsTokenSemicolon(c_css_token_t * token);
 
 int ffiStyleEngineCtor(void);
 int ffiStyleEngineStyleNodesStackSize(int ref);
-void ffiStyleEngineStyleNodesStackPush(int ref);
+void ffiStyleEngineStyleNodesStackPushEmptyNode(int ref);
 void ffiStyleEngineStyleNodesStackPop(int ref);
+void ffiStyleEngineStyleNodesClearNonCssHints(int ref);
 
 int ffiStyleEngineSetNonCssHintOfNodeLength(int non_css_decl_set_ref, int property, float lengthValue, int lengthType);
 int ffiStyleEngineSetNonCssHintOfNodeEnum(int non_css_decl_set_ref, int property, int enumVal);
@@ -493,7 +493,7 @@ void ffiStyleEnginePostprocessAttrs(int ref);
 
 int ffiDeclarationSetCtor(void);
 
-int ffiInheritNonCssHints(int parent_non_css_decl_set_ref, int non_css_decl_set_ref);
+void ffiInheritNonCssHints(int style_engine_ref);
 
 void ffiCreatePercentageDwLength(DwLength * length, double v);
 void ffiCreateAbsoluteDwLength(DwLength * length, int v);

@@ -21,8 +21,6 @@ class StyleEngine;
 
 
 struct StyleNode {
-   c_css_declaration_lists_t declLists;
-
    dw::core::style::Style *style;
    dw::core::style::Style *wordStyle;
    dw::core::style::Style *backgroundStyle;
@@ -35,15 +33,15 @@ class StyleEngine;
 StyleNode * getCurrentNode(StyleEngine * styleEngine);
 
 
-void cpp_styleEngineSetNonCssHintOfNodeLength(StyleNode * styleNode, CssDeclarationProperty property, CssLength length);
-void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property, int enumVal);
-void cpp_styleEngineSetNonCssHintOfNodeColor(StyleNode * styleNode, int property, int color);
-void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, const char * stringVal);
+void cpp_styleEngineSetNonCssHintOfNodeLength(StyleEngine * styleEngine, CssDeclarationProperty property, CssLength length);
+void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleEngine * styleEngine, int property, int enumVal);
+void cpp_styleEngineSetNonCssHintOfNodeColor(StyleEngine * styleEngine, int property, int color);
+void cpp_styleEngineSetNonCssHintOfNodeString(StyleEngine * styleEngine, int property, const char * stringVal);
 
-void cpp_styleEngineSetXImgOfNode(StyleNode * styleNode, int intVal);
-void cpp_styleEngineSetXLangOfNode(StyleNode * styleNode, const char * stringVal);
-void cpp_styleEngineSetXLinkOfNode(StyleNode * styleNode, int intVal);
-void cpp_styleEngineSetXTooltipOfNode(StyleNode * styleNode, const char * stringVal);
+void cpp_styleEngineSetXImgOfNode(StyleEngine * styleEngine, int intVal);
+void cpp_styleEngineSetXLangOfNode(StyleEngine * styleEngine, const char * stringVal);
+void cpp_styleEngineSetXLinkOfNode(StyleEngine * styleEngine, int intVal);
+void cpp_styleEngineSetXTooltipOfNode(StyleEngine * styleEngine, const char * stringVal);
 
 class StyleEngine {
 public:

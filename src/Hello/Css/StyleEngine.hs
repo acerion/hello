@@ -56,6 +56,16 @@ module Hello.Css.StyleEngine
   , styleEnginePreprocessAttrs
   , styleEnginePostprocessAttrs
   , styleEngineMakeWordStyleInheritBackground
+
+  , styleEngineNodesStackPushEmptyNode
+  , styleEngineNodesStackPop
+  , styleEngineNodesStackPeek
+  , styleEngineNodesStackPeekParent
+  , styleEngineNodesStackUpdateTop
+  , styleEngineNodesStackClearNonCssHints
+
+  , CssStyleEngine (..)
+  , defaultCssStyleEngine
   )
 where
 
@@ -73,6 +83,7 @@ import Data.Word
 import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Parser.Property
+import Hello.Css.StyleNode
 
 import Hello.Display
 
@@ -82,6 +93,20 @@ import Hello.Dw.Style
 
 import Hello.Preferences
 import Hello.Utils
+
+
+
+
+data CssStyleEngine = CssStyleEngine
+  { styleNodesStackSize :: Int
+  , styleNodesStack     :: [ StyleNode ]  -- Top of stack is a list's head.
+  } deriving (Show)
+
+defaultCssStyleEngine :: CssStyleEngine
+defaultCssStyleEngine = CssStyleEngine
+  { styleNodesStackSize = 0
+  , styleNodesStack     = []
+  }
 
 
 
@@ -1035,3 +1060,54 @@ styleEngineMakeWordStyleInheritBackground to from =
      }
 
 
+
+
+-- Top of stack is at the head of stack/list, so just prepend new item to
+-- front of the list.
+styleEngineNodesStackPushEmptyNode :: CssStyleEngine -> CssStyleEngine
+styleEngineNodesStackPushEmptyNode engine = engine
+  { styleNodesStackSize = styleNodesStackSize engine + 1
+  , styleNodesStack     = defaultStyleNode : (styleNodesStack engine)
+  }
+
+
+
+
+-- Topmost element is at head of stack/list, so remove head from the stack/list.
+styleEngineNodesStackPop :: CssStyleEngine -> CssStyleEngine
+styleEngineNodesStackPop engine = engine
+  { styleNodesStackSize = styleNodesStackSize engine - 1
+  , styleNodesStack     = tail . styleNodesStack $ engine
+  }
+
+
+
+
+-- TODO: return Maybe StyleNode
+styleEngineNodesStackPeek :: CssStyleEngine -> StyleNode
+styleEngineNodesStackPeek engine = head . styleNodesStack $ engine
+
+
+
+
+-- TODO: return Maybe StyleNode
+styleEngineNodesStackPeekParent :: CssStyleEngine -> StyleNode
+styleEngineNodesStackPeekParent engine = styleNodesStack engine !! 1
+
+
+
+
+
+-- Topmost element is at head of stack/list, so replace it with combo of tail and cons.
+styleEngineNodesStackUpdateTop :: CssStyleEngine -> StyleNode -> CssStyleEngine
+styleEngineNodesStackUpdateTop engine node = engine
+  { styleNodesStack = node : (tail . styleNodesStack $ engine) -- listReplaceElem (styleNodesStack engine) node 0
+  }
+
+
+
+
+styleEngineNodesStackClearNonCssHints :: CssStyleEngine -> CssStyleEngine
+styleEngineNodesStackClearNonCssHints engine = styleEngineNodesStackUpdateTop engine node'
+  where
+    node' = (styleEngineNodesStackPeek engine) { nonCssDeclSet = defaultCssDeclarationSet }

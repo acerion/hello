@@ -36,6 +36,7 @@ where
 import Prelude
 import Foreign.C.Types
 
+import Hello.Css.StyleEngine
 import Hello.Css.StyleEngineGlobal
 
 
@@ -48,8 +49,9 @@ import Hello.Css.StyleEngineGlobal
 
 foreign export ccall "ffiStyleEngineCtor" ffiStyleEngineCtor :: IO CInt
 foreign export ccall "ffiStyleEngineStyleNodesStackSize" ffiStyleEngineStyleNodesStackSize :: CInt -> IO CInt
-foreign export ccall "ffiStyleEngineStyleNodesStackPush" ffiStyleEngineStyleNodesStackPush :: CInt -> IO ()
+foreign export ccall "ffiStyleEngineStyleNodesStackPushEmptyNode" ffiStyleEngineStyleNodesStackPushEmptyNode :: CInt -> IO ()
 foreign export ccall "ffiStyleEngineStyleNodesStackPop" ffiStyleEngineStyleNodesStackPop :: CInt -> IO ()
+foreign export ccall "ffiStyleEngineStyleNodesClearNonCssHints" ffiStyleEngineStyleNodesClearNonCssHints :: CInt -> IO ()
 
 
 
@@ -68,11 +70,11 @@ ffiStyleEngineStyleNodesStackSize cRef = do
 
 
 
-ffiStyleEngineStyleNodesStackPush :: CInt -> IO ()
-ffiStyleEngineStyleNodesStackPush cRef = do
+ffiStyleEngineStyleNodesStackPushEmptyNode :: CInt -> IO ()
+ffiStyleEngineStyleNodesStackPushEmptyNode cRef = do
   let ref = fromIntegral cRef
   engine <- globalStyleEngineGet ref
-  let engine' = engine { styleNodesStackSize = styleNodesStackSize engine + 1 }
+  let engine' = styleEngineNodesStackPushEmptyNode engine
   globalStyleEngineUpdate ref engine'
   return ()
 
@@ -83,8 +85,19 @@ ffiStyleEngineStyleNodesStackPop :: CInt -> IO ()
 ffiStyleEngineStyleNodesStackPop cRef = do
   let ref = fromIntegral cRef
   engine <- globalStyleEngineGet ref
-  let engine' = engine { styleNodesStackSize = styleNodesStackSize engine - 1 }
+  let engine' = styleEngineNodesStackPop engine
   globalStyleEngineUpdate ref engine'
   return ()
 
+
+
+
+
+ffiStyleEngineStyleNodesClearNonCssHints :: CInt -> IO ()
+ffiStyleEngineStyleNodesClearNonCssHints cRef = do
+  let ref = fromIntegral cRef
+  engine <- globalStyleEngineGet ref
+  let engine' = styleEngineNodesStackClearNonCssHints engine
+  globalStyleEngineUpdate ref engine'
+  return ()
 

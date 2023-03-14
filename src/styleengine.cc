@@ -119,7 +119,6 @@ StyleEngine::~StyleEngine () {
 
 void StyleEngine::stackPushEmptyNode () {
    static const StyleNode emptyNode = {
-      .declLists = { -1, -1, -1 },
       .style = NULL,
       .wordStyle = NULL,
       .backgroundStyle = NULL,
@@ -129,7 +128,7 @@ void StyleEngine::stackPushEmptyNode () {
    };
 
    memcpy(&styleNodesStack[ffiStyleEngineStyleNodesStackSize(this->style_engine_ref)], &emptyNode, sizeof (emptyNode));
-   ffiStyleEngineStyleNodesStackPush(this->style_engine_ref);
+   ffiStyleEngineStyleNodesStackPushEmptyNode(this->style_engine_ref);
 }
 
 void StyleEngine::stackPop () {
@@ -210,14 +209,10 @@ void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
    //assert (currentNode->declLists.main == NULL);
    // parse style information from style="" attribute, if it exists
    if (cssStyleAttribute && prefs.parse_embedded_css) {
-      currentNode->declLists.main_decl_set_ref      = ffiDeclarationSetCtor();
-      currentNode->declLists.important_decl_set_ref = ffiDeclarationSetCtor();
 
       timer_start(&g_parse_start);
 
-      ffiCssParseElementStyleAttribute(baseUrl, cssStyleAttribute, strlen (cssStyleAttribute),
-                                       currentNode->declLists.main_decl_set_ref,
-                                       currentNode->declLists.important_decl_set_ref);
+      ffiCssParseElementStyleAttribute(this->style_engine_ref, baseUrl, cssStyleAttribute, strlen (cssStyleAttribute));
 
       timer_stop(&g_parse_start, &g_parse_stop, &g_parse_acc);
       fprintf(stderr, "[II] Total parse time increased to %ld:%06ld\n", g_parse_acc.tv_sec, g_parse_acc.tv_usec);
@@ -231,20 +226,12 @@ void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
  */
 void StyleEngine::inheritNonCssHints()
 {
-   StyleNode * currentNode = getCurrentNode(this);
-   StyleNode * parentNode  = getParentNode(this);
-
-   int ref = currentNode->declLists.non_css_decl_set_ref;
-   currentNode->declLists.non_css_decl_set_ref = ffiInheritNonCssHints(parentNode->declLists.non_css_decl_set_ref, ref);
+   ffiInheritNonCssHints(this->style_engine_ref);
 }
 
 void StyleEngine::clearNonCssHints()
 {
-   StyleNode * currentNode = getCurrentNode(this);
-
-   // TODO: how to delete this in Haskell?
-   //delete currentNode->declLists.nonCss;
-   currentNode->declLists.non_css_decl_set_ref = -1;
+   ffiStyleEngineStyleNodesClearNonCssHints(this->style_engine_ref);
 }
 
 /**
@@ -486,18 +473,16 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
 
    preprocessAttrs(&styleAttrs);
 
-   c_css_declaration_lists_t * declLists = &styleNodesStack[styleNodeIndex].declLists;
-
-   // merge style information
-   int dtnNum = styleNodesStack[styleNodeIndex].doctreeNodeIdx;
+   const int dtnNum = styleNodesStack[styleNodeIndex].doctreeNodeIdx;
 
    timer_start(&g_apply_get_start);
 
-   int merged_decl_set_ref = ffiCssContextApplyCssContext(this->css_context_ref,
-                                                          this->doc_tree_ref, dtnNum,
-                                                          declLists->main_decl_set_ref,
-                                                          declLists->important_decl_set_ref,
-                                                          declLists->non_css_decl_set_ref);
+   // Merge style information from main (non-important) declarations,
+   // important declarations, and non-CSS hints.
+   int merged_decl_set_ref = ffiCssContextApplyCssContext(this->style_engine_ref,
+                                                          this->css_context_ref,
+                                                          this->doc_tree_ref,
+                                                          dtnNum);
 
    timer_stop(&g_apply_get_start, &g_apply_get_stop, &g_apply_get_acc);
    fprintf(stderr, "[II] Total apply-get time increased to %ld:%06ld\n", g_apply_get_acc.tv_sec, g_apply_get_acc.tv_usec);
@@ -613,56 +598,56 @@ void StyleEngine::buildUserStyle(int context_ref)
    dFree (filename);
 }
 
-void cpp_styleEngineSetNonCssHintOfNodeLength(StyleNode * styleNode, CssDeclarationProperty property, CssLength cssLength)
+void cpp_styleEngineSetNonCssHintOfNodeLength(StyleEngine * styleEngine, CssDeclarationProperty property, CssLength cssLength)
 {
    float lengthValue = cpp_cssLengthValue(cssLength);
    int lengthType  = (int) cpp_cssLengthType(cssLength);
-   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetNonCssHintOfNodeLength(styleNode->declLists.non_css_decl_set_ref, property, lengthValue, lengthType);
+   ffiStyleEngineSetNonCssHintOfNodeLength(styleEngine->style_engine_ref, property, lengthValue, lengthType);
    return;
 }
 
-void cpp_styleEngineSetNonCssHintOfNodeColor(StyleNode * styleNode, int property, int color)
+void cpp_styleEngineSetNonCssHintOfNodeColor(StyleEngine * styleEngine, int property, int color)
 {
-   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetNonCssHintOfNodeColor(styleNode->declLists.non_css_decl_set_ref, property, color);
+   ffiStyleEngineSetNonCssHintOfNodeColor(styleEngine->style_engine_ref, property, color);
    return;
 }
 
-void cpp_styleEngineSetNonCssHintOfNodeString(StyleNode * styleNode, int property, const char * stringVal)
+void cpp_styleEngineSetNonCssHintOfNodeString(StyleEngine * styleEngine, int property, const char * stringVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetNonCssHintOfNodeString(styleNode->declLists.non_css_decl_set_ref, property, stringVal);
+   ffiStyleEngineSetNonCssHintOfNodeString(styleEngine->style_engine_ref, property, stringVal);
    return;
 }
 
-void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleNode * styleNode, int property, int enumVal)
+void cpp_styleEngineSetNonCssHintOfNodeEnum(StyleEngine * styleEngine, int property, int enumVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetNonCssHintOfNodeEnum(styleNode->declLists.non_css_decl_set_ref, property, enumVal);
+   ffiStyleEngineSetNonCssHintOfNodeEnum(styleEngine->style_engine_ref, property, enumVal);
    return;
 }
 
 
 
 
-void cpp_styleEngineSetXImgOfNode(StyleNode * styleNode, int intVal)
+void cpp_styleEngineSetXImgOfNode(StyleEngine * styleEngine, int intVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetXImgOfNode(styleNode->declLists.non_css_decl_set_ref, intVal);
+   ffiStyleEngineSetXImgOfNode(styleEngine->style_engine_ref, intVal);
    return;
 }
 
-void cpp_styleEngineSetXLangOfNode(StyleNode * styleNode, const char * stringVal)
+void cpp_styleEngineSetXLangOfNode(StyleEngine * styleEngine, const char * stringVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetXLangOfNode(styleNode->declLists.non_css_decl_set_ref, stringVal);
+   ffiStyleEngineSetXLangOfNode(styleEngine->style_engine_ref, stringVal);
    return;
 }
 
-void cpp_styleEngineSetXLinkOfNode(StyleNode * styleNode, int intVal)
+void cpp_styleEngineSetXLinkOfNode(StyleEngine * styleEngine, int intVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetXLinkOfNode(styleNode->declLists.non_css_decl_set_ref, intVal);
+   ffiStyleEngineSetXLinkOfNode(styleEngine->style_engine_ref, intVal);
    return;
 }
 
-void cpp_styleEngineSetXTooltipOfNode(StyleNode * styleNode, const char * stringVal)
+void cpp_styleEngineSetXTooltipOfNode(StyleEngine * styleEngine, const char * stringVal)
 {
-   styleNode->declLists.non_css_decl_set_ref = ffiStyleEngineSetXTooltipOfNode(styleNode->declLists.non_css_decl_set_ref, stringVal);
+   ffiStyleEngineSetXTooltipOfNode(styleEngine->style_engine_ref, stringVal);
    return;
 }
 

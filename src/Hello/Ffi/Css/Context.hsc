@@ -48,9 +48,9 @@ import System.IO
 import Hello.Html.Doctree
 import Hello.Css.Cascade
 import Hello.Css.ContextGlobal
-import Hello.Css.Declaration
 import Hello.Css.DeclarationSetsGlobal
-import Hello.Css.StyleNode
+import Hello.Css.StyleEngine
+import Hello.Css.StyleEngineGlobal
 import Hello.Css.StyleSheet
 import Hello.Css.UserAgentStyle
 import Hello.Ffi.Css.Doctree
@@ -64,7 +64,7 @@ import Hello.Ffi.Css.Parser
 
 
 foreign export ccall "ffiCssContextCtor" ffiCssContextCtor :: IO CInt
-foreign export ccall "ffiCssContextApplyCssContext" ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO CInt
+foreign export ccall "ffiCssContextApplyCssContext" ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "ffiParseCss" ffiParseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
 
 foreign export ccall "ffiCssContextPrint" ffiCssContextPrint :: CString -> CInt -> IO ()
@@ -181,47 +181,33 @@ ffiCssContextPut ptrStructCssContext = do
 
 
 
-
+{-
 getSomeDeclSet2 :: Int -> IO CssDeclarationSet
 getSomeDeclSet2 ref = if (-1) == ref
                       then return defaultCssDeclarationSet
                       else globalDeclarationSetGet ref
+-}
 
 
 
-ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO CInt
-ffiCssContextApplyCssContext cRef cDoctreeRef cDtnNum cMainDeclSetRef cImportantDeclSetRef cNonCssDeclSetRef = do
+ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> IO CInt
+ffiCssContextApplyCssContext cStyleEngineRef cRef cDoctreeRef cDtnNum = do
 
+  -- FFI and debugging.
   fHandle <- openFile "/tmp/hello_browser_matching_rules_debug.txt" AppendMode
-
-  let ref  = fromIntegral cRef
-  context <- globalContextGet ref
-
+  context <- globalContextGet . fromIntegral $ cRef
   doctree <- globalDoctreeGet . fromIntegral $ cDoctreeRef
-  let dtn  = getDtnUnsafe doctree (fromIntegral cDtnNum)
+  engine  <- globalStyleEngineGet . fromIntegral $ cStyleEngineRef
 
-  let mainDeclSetRef = fromIntegral cMainDeclSetRef
-  mainDeclSetIn :: CssDeclarationSet <- getSomeDeclSet2 mainDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
-
-  let importantDeclSetRef = fromIntegral cImportantDeclSetRef
-  importantDeclSetIn :: CssDeclarationSet <- getSomeDeclSet2 importantDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
-
-  let nonCssDeclSetRef = fromIntegral cNonCssDeclSetRef
-  nonCssDeclSetIn :: CssDeclarationSet <- getSomeDeclSet2 nonCssDeclSetRef -- TODO: we should not be using getSomeDeclSet2 - it may return a new decl set for uninitialzed decl set reference
-
-  let styleNode :: StyleNode = StyleNode
-                               { mainDeclSet      = mainDeclSetIn
-                               , importantDeclSet = importantDeclSetIn
-                               , nonCssDeclSet    = nonCssDeclSetIn
-                               }
-
+  -- The main part.
+  let styleNode = styleEngineNodesStackPeek engine
+      dtn = getDtnUnsafe doctree (fromIntegral cDtnNum)
   mergedDeclSet <- cssContextApplyCssContext fHandle context doctree dtn styleNode
 
-  declSetRef <- globalDeclarationSetPut mergedDeclSet
-
+  -- FFI and debugging.
+  mergedDeclSetRef <- globalDeclarationSetPut mergedDeclSet
   hClose fHandle
-
-  return . fromIntegral $ declSetRef
+  return . fromIntegral $ mergedDeclSetRef
 
 
 

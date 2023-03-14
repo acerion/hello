@@ -566,8 +566,7 @@ void Html_tag_open_input(DilloHtml *html, const char *tag, int tagsize)
          }
       }
       if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
-         StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         cpp_styleEngineSetXTooltipOfNode(currentNode, attr_value);
+         cpp_styleEngineSetXTooltipOfNode(html->styleEngine, attr_value);
       }
       Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle(html->bw));
    }
@@ -767,8 +766,7 @@ void Html_tag_open_select(DilloHtml *html, const char *tag, int tagsize)
    Embed *embed = new Embed(res);
 
    if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
-      StyleNode * currentNode = getCurrentNode(html->styleEngine);
-      cpp_styleEngineSetXTooltipOfNode(currentNode, attr_value);
+      cpp_styleEngineSetXTooltipOfNode(html->styleEngine, attr_value);
    }
    Html2TextBlock(html)->addWidget (embed, html->styleEngine->getBackgroundStyle (html->bw));
 
@@ -933,8 +931,7 @@ void Html_tag_open_button(DilloHtml *html, const char *tag, int tagsize)
       char *name, *value;
 
       if (prefs.show_tooltip && (attr_value = html_attribute_get_value(tag, tagsize, "title"))) {
-         StyleNode * currentNode = getCurrentNode(html->styleEngine);
-         cpp_styleEngineSetXTooltipOfNode(currentNode, attr_value);
+         cpp_styleEngineSetXTooltipOfNode(html->styleEngine, attr_value);
       }
       /* We used to have Textblock (prefs.limit_text_width, ...) here,
        * but it caused 100% CPU usage.

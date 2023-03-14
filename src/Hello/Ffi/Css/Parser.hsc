@@ -51,9 +51,10 @@ import qualified Data.Text.Encoding as T.E
 import qualified Data.ByteString.Unsafe as BSU
 import Debug.Trace
 
-import Hello.Css.Declaration
-import Hello.Css.DeclarationSetsGlobal
 import Hello.Css.Parser.Rule
+import Hello.Css.StyleEngine
+import Hello.Css.StyleEngineGlobal
+import Hello.Css.StyleNode
 import Hello.Css.Tokenizer
 
 import Hello.Ffi.Utils
@@ -68,7 +69,7 @@ foreign export ccall "ffiIgnoreStatement" ffiIgnoreStatement :: Ptr FfiCssParser
 
 
 --foreign export ccall "ffiDeclarationListAppend" ffiDeclarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
-foreign export ccall "ffiCssParseElementStyleAttribute" ffiCssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> CInt -> CInt -> IO ()
+foreign export ccall "ffiCssParseElementStyleAttribute" ffiCssParseElementStyleAttribute :: CInt -> Ptr () -> CString -> CInt -> IO ()
 
 foreign export ccall "ffiIsTokenComma" ffiIsTokenComma :: Ptr FfiCssToken -> IO Int
 foreign export ccall "ffiIsTokenSemicolon" ffiIsTokenSemicolon :: Ptr FfiCssToken -> IO Int
@@ -916,22 +917,22 @@ peekCssValue ffiCssValue = do
 
 
 
-ffiCssParseElementStyleAttribute :: Ptr () -> CString -> CInt -> CInt -> CInt -> IO ()
-ffiCssParseElementStyleAttribute _ptrBaseUrl ptrStringCssStyleAttribute buflen cMainDeclSetRef cImportantDeclSetRef = do
+ffiCssParseElementStyleAttribute :: CInt -> Ptr () -> CString -> CInt -> IO ()
+ffiCssParseElementStyleAttribute cStyleEngineRef _ptrBaseUrl ptrStringCssStyleAttribute buflen = do
 
+  -- FFI part.
+  let refEngine = fromIntegral cStyleEngineRef
+  engine <- globalStyleEngineGet refEngine
   cssStyleAttribute <- BSU.unsafePackCStringLen (ptrStringCssStyleAttribute, fromIntegral buflen)
 
-  let mainDeclSetRef = fromIntegral cMainDeclSetRef
-  mainDeclSet :: CssDeclarationSet <- globalDeclarationSetGet mainDeclSetRef
+  -- The main part.
+  let styleNode  = styleEngineNodesStackPeek engine
+      (m, i)     = parseElementStyleAttribute "" (T.E.decodeLatin1 cssStyleAttribute) (mainDeclSet styleNode, importantDeclSet styleNode)
+      styleNode' = styleNode { mainDeclSet = m, importantDeclSet = i }
+      engine'    = styleEngineNodesStackUpdateTop engine styleNode'
 
-  let importantDeclSetRef = fromIntegral cImportantDeclSetRef
-  importantDeclSet :: CssDeclarationSet <- globalDeclarationSetGet importantDeclSetRef
-
-  let (mainDeclSet', importantDeclSet') = parseElementStyleAttribute "" (T.E.decodeLatin1 cssStyleAttribute) (mainDeclSet, importantDeclSet)
-
-  globalDeclarationSetUpdate mainDeclSetRef mainDeclSet'
-  globalDeclarationSetUpdate importantDeclSetRef importantDeclSet'
-
+  -- FFI part.
+  globalStyleEngineUpdate refEngine engine'
   return ()
 
 
