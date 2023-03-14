@@ -42,7 +42,6 @@ import Foreign.C.String
 import Foreign.C.Types
 import qualified Data.ByteString.Unsafe as BSU
 import Debug.Trace
-import qualified Data.Sequence as S
 import qualified Data.Text.Encoding as T.E
 
 import Hello.Css.Declaration
@@ -398,19 +397,14 @@ ffiInheritNonCssHints cEngineRef = do
   engine <- globalStyleEngineGet engineRef
 
   let currentNode = styleEngineNodesStackPeek engine
-      parent = SN.nonCssDeclSet . styleEngineNodesStackPeekParent $ engine
-      current = SN.nonCssDeclSet currentNode
+      parentNode  = styleEngineNodesStackPeekParent $ engine
 
-  if (S.length . items $ parent) > 0
+  if SN.hintsSize parentNode > 0
     then
     -- Parent has some non-CSS hints. Either use parent's hints entirely or
     -- (if current node has some hints) merge current's and parent's hints.
     do
-      let mCurrent = if (S.length . items $ current) > 0
-                     then Just current
-                     else Nothing
-      let inheritedAndCurrent = styleEngineInheritNonCssHints parent mCurrent
-      let engine' = styleEngineNodesStackUpdateTop engine currentNode { SN.nonCssDeclSet = inheritedAndCurrent }
+      let engine' = styleEngineNodesStackUpdateTop engine (SN.inheritHints parentNode currentNode)
       globalStyleEngineUpdate engineRef engine'
       return ()
     else

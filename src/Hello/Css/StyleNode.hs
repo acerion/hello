@@ -35,11 +35,15 @@ module Hello.Css.StyleNode
   , defaultStyleNode
 
   , updateOrAddHint
+  , inheritHints
+  , hintsSize
   )
 where
 
 
 
+
+import qualified Data.Sequence as S
 
 import Hello.Css.Declaration
 import Hello.Css.Parser.Property
@@ -64,7 +68,43 @@ defaultStyleNode = StyleNode defaultCssDeclarationSet defaultCssDeclarationSet d
 
 -- Update or add a non-Css hint in given style node.
 updateOrAddHint :: StyleNode -> CssProperty -> StyleNode
-updateOrAddHint node property = node
-  { nonCssDeclSet = declarationsSetUpdateOrAdd (nonCssDeclSet node) (CssDeclaration property False) }
+updateOrAddHint node prop = node
+  { nonCssDeclSet = declarationsSetUpdateOrAdd (nonCssDeclSet node) (CssDeclaration prop False) }
+
+
+
+
+-- Inherit non-CSS hints from current element's parent to current element.
+--
+-- TODO: check order of arguments to 'append' function. Comment in C++ says
+-- "original declListNonCss have precedence", which suggests that current
+-- element's hints should have precenence.
+--
+-- The order is most probably correct because 'current' will overwrite
+-- (update) any existing declarations in 'inherited', so 'current' will have
+-- precedence.
+--
+-- TODO: consider just calling 'declarationsSetAppend parent this'. It will
+-- work well if current is empty or non-empty, and if parent is empty or
+-- non-empty.
+--
+-- Test the function with
+-- test_data/html/attribute/cellpadding/table_cellpadding.html
+inheritHints :: StyleNode -> StyleNode -> StyleNode
+inheritHints parentNode currentNode = inheritedAndCurrent
+  where
+    inheritedAndCurrent = currentNode { nonCssDeclSet = if (S.length . items $ currentHints) > 0
+                                                        then declarationsSetAppend inheritedHints currentHints
+                                                        else inheritedHints
+                                      }
+    inheritedHints = nonCssDeclSet parentNode -- "copy constructor"
+    currentHints   = nonCssDeclSet currentNode
+
+
+
+
+-- Get size of non-CSS declaration set (non-CSS hints) in given node.
+hintsSize :: StyleNode -> Int
+hintsSize node = S.length . items . nonCssDeclSet $ node
 
 
