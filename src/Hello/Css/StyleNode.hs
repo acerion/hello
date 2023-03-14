@@ -33,6 +33,8 @@ module Hello.Css.StyleNode
   (
     StyleNode (..)
   , defaultStyleNode
+
+  , updateOrAddHint
   )
 where
 
@@ -40,6 +42,7 @@ where
 
 
 import Hello.Css.Declaration
+import Hello.Css.Parser.Property
 
 
 
@@ -47,6 +50,9 @@ import Hello.Css.Declaration
 data StyleNode = StyleNode
   { mainDeclSet      :: CssDeclarationSet
   , importantDeclSet :: CssDeclarationSet
+
+   -- Non-CSS hint for styling a node. "non-css" because it comes from HTML
+   -- tags and attributes instead of CSS style info.
   , nonCssDeclSet    :: CssDeclarationSet
   } deriving (Show)
 
@@ -54,5 +60,11 @@ defaultStyleNode :: StyleNode
 defaultStyleNode = StyleNode defaultCssDeclarationSet defaultCssDeclarationSet defaultCssDeclarationSet
 
 
+
+
+-- Update or add a non-Css hint in given style node.
+updateOrAddHint :: StyleNode -> CssProperty -> StyleNode
+updateOrAddHint node property = node
+  { nonCssDeclSet = declarationsSetUpdateOrAdd (nonCssDeclSet node) (CssDeclaration property False) }
 
 

@@ -51,7 +51,7 @@ import Hello.Css.Distance
 import Hello.Css.Parser.Property
 import Hello.Css.StyleEngine
 import Hello.Css.StyleEngineGlobal
-import Hello.Css.StyleNode
+import qualified Hello.Css.StyleNode as SN
 
 import Hello.Display
 import Hello.Dw.Style
@@ -69,15 +69,15 @@ import Hello.Ffi.Preferences
 
 
 
-foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeLength" ffiStyleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> Float -> CInt -> IO CInt
-foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeEnum" ffiStyleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
-foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeString" ffiStyleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
-foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeColor" ffiStyleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
+foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeLength" ffiStyleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> Float -> CInt -> IO ()
+foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeEnum" ffiStyleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeString" ffiStyleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO ()
+foreign export ccall "ffiStyleEngineSetNonCssHintOfNodeColor" ffiStyleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO ()
 
-foreign export ccall "ffiStyleEngineSetXImgOfNode" ffiStyleEngineSetXImgOfNode :: CInt -> CInt -> IO CInt
-foreign export ccall "ffiStyleEngineSetXLangOfNode" ffiStyleEngineSetXLangOfNode :: CInt -> CString -> IO CInt
-foreign export ccall "ffiStyleEngineSetXLinkOfNode" ffiStyleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
-foreign export ccall "ffiStyleEngineSetXTooltipOfNode" ffiStyleEngineSetXTooltipOfNode :: CInt -> CString -> IO CInt
+foreign export ccall "ffiStyleEngineSetXImgOfNode" ffiStyleEngineSetXImgOfNode :: CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleEngineSetXLangOfNode" ffiStyleEngineSetXLangOfNode :: CInt -> CString -> IO ()
+foreign export ccall "ffiStyleEngineSetXLinkOfNode" ffiStyleEngineSetXLinkOfNode :: CInt -> CInt -> IO ()
+foreign export ccall "ffiStyleEngineSetXTooltipOfNode" ffiStyleEngineSetXTooltipOfNode :: CInt -> CString -> IO ()
 
 foreign export ccall "ffiStyleEngineApplyStyleToGivenNode" ffiStyleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> CInt -> CInt -> IO ()
 foreign export ccall "ffiInheritNonCssHints" ffiInheritNonCssHints :: CInt -> IO ()
@@ -110,55 +110,55 @@ getSomeDeclSet3 nonCssDeclSetRef = if (-1) == nonCssDeclSetRef
 
 
 
-ffiStyleEngineSetXImgOfNode :: CInt -> CInt -> IO CInt
+ffiStyleEngineSetXImgOfNode :: CInt -> CInt -> IO ()
 ffiStyleEngineSetXImgOfNode cEngineRef cIntVal = do
 
   let engineRef = fromIntegral cEngineRef
+      val       = fromIntegral cIntVal
+
   engine <- globalStyleEngineGet engineRef
   let styleNode = styleEngineNodesStackPeek engine
 
-  let intVal     = fromIntegral cIntVal
-  let styleNode' = styleNode { nonCssDeclSet = declarationsSetUpdateOrAdd (nonCssDeclSet styleNode) (CssDeclaration (CssPropertyXImg $ CssValueXImg intVal) False) }
+  let styleNode' = SN.updateOrAddHint styleNode (CssPropertyXImg $ CssValueXImg val)
+      engine'    = styleEngineNodesStackUpdateTop engine styleNode'
 
-  let engine' = styleEngineNodesStackUpdateTop engine styleNode'
   globalStyleEngineUpdate engineRef engine'
-
-  return 0
-
+  return ()
 
 
 
-ffiStyleEngineSetXLinkOfNode :: CInt -> CInt -> IO CInt
-ffiStyleEngineSetXLinkOfNode cEngineRef cIntVal = do
+
+ffiStyleEngineSetXLinkOfNode :: CInt -> CInt -> IO ()
+ffiStyleEngineSetXLinkOfNode cEngineRef cVal = do
 
   let engineRef = fromIntegral cEngineRef
+      val       = fromIntegral cVal
+
   engine <- globalStyleEngineGet engineRef
   let styleNode = styleEngineNodesStackPeek engine
 
-  let intVal     = fromIntegral cIntVal
-  let styleNode' = styleNode { nonCssDeclSet = declarationsSetUpdateOrAdd (nonCssDeclSet styleNode) (CssDeclaration (CssPropertyXLink $ CssValueXLink intVal) False) }
+  let styleNode' = SN.updateOrAddHint styleNode (CssPropertyXLink $ CssValueXLink val)
+  let engine'    = styleEngineNodesStackUpdateTop engine styleNode'
 
-  let engine' = styleEngineNodesStackUpdateTop engine styleNode'
   globalStyleEngineUpdate engineRef engine'
-
-  return 0
-
+  return ()
 
 
 
-ffiStyleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> Float -> CInt -> IO CInt
+
+ffiStyleEngineSetNonCssHintOfNodeLength :: CInt -> CInt -> Float -> CInt -> IO ()
 ffiStyleEngineSetNonCssHintOfNodeLength cEngineRef cProperty cLengthValue cLengthType  = do
 
   let engineRef = fromIntegral cEngineRef
+      propertyArg :: Int = fromIntegral cProperty
+      lengthValue = cLengthValue
+      lengthType  = fromIntegral cLengthType
+
   engine <- globalStyleEngineGet engineRef
   let styleNode = styleEngineNodesStackPeek engine
+  let distance  = cssLengthToDistance lengthValue lengthType
 
-  let lengthValue = cLengthValue
-  let lengthType  = fromIntegral cLengthType
-  let propertyArg :: Int = fromIntegral cProperty
-  let distance    = cssLengthToDistance lengthValue lengthType
-
-  let decl | propertyArg ==  7 = CssPropertyBorderBottomWidth $ CssValueBorderWidthDistance distance
+  let prop | propertyArg ==  7 = CssPropertyBorderBottomWidth $ CssValueBorderWidthDistance distance
            | propertyArg == 11 = CssPropertyBorderLeftWidth   $ CssValueBorderWidthDistance distance
            | propertyArg == 14 = CssPropertyBorderRightWidth  $ CssValueBorderWidthDistance distance
            | propertyArg == 15 = CssPropertyBorderSpacing     $ CssValueBorderSpacingDistance distance
@@ -177,12 +177,11 @@ ffiStyleEngineSetNonCssHintOfNodeLength cEngineRef cProperty cLengthValue cLengt
            | propertyArg == 77 = CssPropertyWidth             $ CssValueWidthDistance distance
            | otherwise         = trace ("[EE] Unhandled length propertyArg " ++ show propertyArg) undefined
 
-  let styleNode' = styleNode { nonCssDeclSet = declarationsSetUpdateOrAdd (nonCssDeclSet styleNode) (CssDeclaration decl False) }
-
-  let engine' = styleEngineNodesStackUpdateTop engine styleNode'
+  let styleNode' = SN.updateOrAddHint styleNode prop
+  let engine'    = styleEngineNodesStackUpdateTop engine styleNode'
   globalStyleEngineUpdate engineRef engine'
 
-  return 0
+  return ()
 
 
 
@@ -251,16 +250,16 @@ getTextAlign i | i > fromEnum (maxBound @CssValueTextAlign) = CssValueTextAlignL
 
 
 
-ffiStyleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO CInt
+ffiStyleEngineSetNonCssHintOfNodeEnum :: CInt -> CInt -> CInt -> IO ()
 ffiStyleEngineSetNonCssHintOfNodeEnum cEngineRef cProperty cEnumVal = do
 
-  let engineRef = fromIntegral cEngineRef
+  let engineRef   = fromIntegral cEngineRef
+      propertyArg :: Int = fromIntegral cProperty
+      enumVal     = fromIntegral cEnumVal
   engine <- globalStyleEngineGet engineRef
   let styleNode = styleEngineNodesStackPeek engine
 
-  let propertyArg :: Int = fromIntegral cProperty
-  let enumVal   = fromIntegral cEnumVal
-  let decl | propertyArg ==  6 = CssPropertyBorderBottomStyle $ getBorderStyle enumVal
+  let prop | propertyArg ==  6 = CssPropertyBorderBottomStyle $ getBorderStyle enumVal
            | propertyArg == 10 = CssPropertyBorderLeftStyle   $ getBorderStyle enumVal
            | propertyArg == 13 = CssPropertyBorderRightStyle  $ getBorderStyle enumVal
            | propertyArg == 17 = CssPropertyBorderTopStyle    $ getBorderStyle enumVal
@@ -271,96 +270,95 @@ ffiStyleEngineSetNonCssHintOfNodeEnum cEngineRef cProperty cEnumVal = do
            | propertyArg == 76 = CssPropertyWhitespace        $ getWhitespace enumVal
            | otherwise         = trace ("[EE] Unhandled enum propertyArg " ++ show propertyArg) undefined
 
-  let styleNode' = styleNode { nonCssDeclSet = declarationsSetUpdateOrAdd (nonCssDeclSet styleNode) (CssDeclaration decl False) }
-
-  let engine' = styleEngineNodesStackUpdateTop engine styleNode'
+  let styleNode' = SN.updateOrAddHint styleNode prop
+  let engine'    = styleEngineNodesStackUpdateTop engine styleNode'
   globalStyleEngineUpdate engineRef engine'
 
-  return 0
+  return ()
 
 
 
 
-ffiStyleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO CInt
-ffiStyleEngineSetNonCssHintOfNodeColor cEngineRef cProperty cColor  = do
+ffiStyleEngineSetNonCssHintOfNodeColor :: CInt -> CInt -> CInt -> IO ()
+ffiStyleEngineSetNonCssHintOfNodeColor cEngineRef cProperty cColor = do
 
   let engineRef = fromIntegral cEngineRef
+  let propertyArg :: Int = fromIntegral cProperty
+  let color    = fromIntegral cColor
+
   engine <- globalStyleEngineGet engineRef
   let styleNode = styleEngineNodesStackPeek engine
 
-  let propertyArg :: Int = fromIntegral cProperty
-  let color    = fromIntegral cColor
-  let decl | propertyArg ==  1 = CssPropertyBackgroundColor $ CssValueBackgroundColorColor color
+  let prop | propertyArg ==  1 = CssPropertyBackgroundColor $ CssValueBackgroundColorColor color
            | propertyArg == 23 = CssPropertyColor $ CssValueColor color
            | otherwise          = trace ("[EE] Unhandled color propertyArg " ++ show propertyArg) undefined
 
-  let styleNode' = styleNode { nonCssDeclSet = declarationsSetUpdateOrAdd (nonCssDeclSet styleNode) (CssDeclaration decl False) }
-
-  let engine' = styleEngineNodesStackUpdateTop engine styleNode'
+  let styleNode' = SN.updateOrAddHint styleNode prop
+  let engine'    = styleEngineNodesStackUpdateTop engine styleNode'
   globalStyleEngineUpdate engineRef engine'
 
-  return 0
+  return ()
 
 
 
 
-ffiStyleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO CInt
+ffiStyleEngineSetNonCssHintOfNodeString :: CInt -> CInt -> CString -> IO ()
 ffiStyleEngineSetNonCssHintOfNodeString cEngineRef cProperty cStringVal = do
 
-  let engineRef = fromIntegral cEngineRef
+  let engineRef   = fromIntegral cEngineRef
+      propertyArg :: Int = fromIntegral cProperty
+  textVal <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
+
   engine <- globalStyleEngineGet engineRef
   let styleNode = styleEngineNodesStackPeek engine
 
-  textVal     <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
-  let propertyArg :: Int = fromIntegral cProperty
-
-  let decl | propertyArg == 32 = CssPropertyFontFamily $ CssValueFontFamilyList [textVal]
+  let prop | propertyArg == 32 = CssPropertyFontFamily $ CssValueFontFamilyList [textVal]
            | otherwise         = trace ("[EE] Unhandled string propertyArg " ++ show propertyArg) undefined
 
-  let styleNode' = styleNode { nonCssDeclSet = declarationsSetUpdateOrAdd (nonCssDeclSet styleNode) (CssDeclaration decl False) }
+  let styleNode' = SN.updateOrAddHint styleNode prop
+  let engine'    = styleEngineNodesStackUpdateTop engine styleNode'
 
-  let engine' = styleEngineNodesStackUpdateTop engine styleNode'
   globalStyleEngineUpdate engineRef engine'
-
-  return 0
-
+  return ()
 
 
 
-ffiStyleEngineSetXLangOfNode :: CInt -> CString -> IO CInt
+
+ffiStyleEngineSetXLangOfNode :: CInt -> CString -> IO ()
 ffiStyleEngineSetXLangOfNode cEngineRef cStringVal = do
 
   let engineRef = fromIntegral cEngineRef
+  textVal <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
+
   engine <- globalStyleEngineGet engineRef
   let styleNode = styleEngineNodesStackPeek engine
 
-  textVal <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
-  let decl = CssPropertyXLang $ CssValueXLang textVal
-  let styleNode' = styleNode { nonCssDeclSet = declarationsSetUpdateOrAdd (nonCssDeclSet styleNode) (CssDeclaration decl False) }
+  let prop = CssPropertyXLang $ CssValueXLang textVal
+  let styleNode' = SN.updateOrAddHint styleNode prop
+  let engine'    = styleEngineNodesStackUpdateTop engine styleNode'
 
-  let engine' = styleEngineNodesStackUpdateTop engine styleNode'
   globalStyleEngineUpdate engineRef engine'
-
-  return 0
-
+  return ()
 
 
 
-ffiStyleEngineSetXTooltipOfNode :: CInt -> CString -> IO CInt
+
+ffiStyleEngineSetXTooltipOfNode :: CInt -> CString -> IO ()
 ffiStyleEngineSetXTooltipOfNode cEngineRef cStringVal = do
 
   let engineRef = fromIntegral cEngineRef
+  textVal <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
+
   engine <- globalStyleEngineGet engineRef
   let styleNode = styleEngineNodesStackPeek engine
 
-  textVal <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
-  let decl = CssPropertyXTooltip $ CssValueXTooltip textVal
-  let styleNode' = styleNode { nonCssDeclSet = declarationsSetUpdateOrAdd (nonCssDeclSet styleNode) (CssDeclaration decl False) }
+  let prop = CssPropertyXTooltip $ CssValueXTooltip textVal
+  let styleNode' = SN.updateOrAddHint styleNode prop
+  let engine'    = styleEngineNodesStackUpdateTop engine styleNode'
 
-  let engine' = styleEngineNodesStackUpdateTop engine styleNode'
   globalStyleEngineUpdate engineRef engine'
 
-  return 0
+  return ()
 
 
 
@@ -400,8 +398,8 @@ ffiInheritNonCssHints cEngineRef = do
   engine <- globalStyleEngineGet engineRef
 
   let currentNode = styleEngineNodesStackPeek engine
-      parent = nonCssDeclSet . styleEngineNodesStackPeekParent $ engine
-      current = nonCssDeclSet currentNode
+      parent = SN.nonCssDeclSet . styleEngineNodesStackPeekParent $ engine
+      current = SN.nonCssDeclSet currentNode
 
   if (S.length . items $ parent) > 0
     then
@@ -412,7 +410,7 @@ ffiInheritNonCssHints cEngineRef = do
                      then Just current
                      else Nothing
       let inheritedAndCurrent = styleEngineInheritNonCssHints parent mCurrent
-      let engine' = styleEngineNodesStackUpdateTop engine currentNode { nonCssDeclSet = inheritedAndCurrent }
+      let engine' = styleEngineNodesStackUpdateTop engine currentNode { SN.nonCssDeclSet = inheritedAndCurrent }
       globalStyleEngineUpdate engineRef engine'
       return ()
     else

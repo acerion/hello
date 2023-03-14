@@ -1101,7 +1101,7 @@ styleEngineNodesStackPeekParent engine = styleNodesStack engine !! 1
 -- Topmost element is at head of stack/list, so replace it with combo of tail and cons.
 styleEngineNodesStackUpdateTop :: CssStyleEngine -> StyleNode -> CssStyleEngine
 styleEngineNodesStackUpdateTop engine node = engine
-  { styleNodesStack = node : (tail . styleNodesStack $ engine) -- listReplaceElem (styleNodesStack engine) node 0
+  { styleNodesStack = node : (tail . styleNodesStack $ engine)
   }
 
 
@@ -1111,3 +1111,5 @@ styleEngineNodesStackClearNonCssHints :: CssStyleEngine -> CssStyleEngine
 styleEngineNodesStackClearNonCssHints engine = styleEngineNodesStackUpdateTop engine node'
   where
     node' = (styleEngineNodesStackPeek engine) { nonCssDeclSet = defaultCssDeclarationSet }
+
+

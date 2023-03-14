@@ -461,16 +461,16 @@ void ffiStyleEngineStyleNodesStackPushEmptyNode(int ref);
 void ffiStyleEngineStyleNodesStackPop(int ref);
 void ffiStyleEngineStyleNodesClearNonCssHints(int ref);
 
-int ffiStyleEngineSetNonCssHintOfNodeLength(int non_css_decl_set_ref, int property, float lengthValue, int lengthType);
-int ffiStyleEngineSetNonCssHintOfNodeEnum(int non_css_decl_set_ref, int property, int enumVal);
-int ffiStyleEngineSetNonCssHintOfNodeColor(int non_css_decl_set_ref, int property, int color);
-int ffiStyleEngineSetNonCssHintOfNodeString(int non_css_decl_set_ref, int property, const char * stringVal);
+void ffiStyleEngineSetNonCssHintOfNodeLength(int non_css_decl_set_ref, int property, float lengthValue, int lengthType);
+void ffiStyleEngineSetNonCssHintOfNodeEnum(int non_css_decl_set_ref, int property, int enumVal);
+void ffiStyleEngineSetNonCssHintOfNodeColor(int non_css_decl_set_ref, int property, int color);
+void ffiStyleEngineSetNonCssHintOfNodeString(int non_css_decl_set_ref, int property, const char * stringVal);
 
 /* For setting pseudo-css-properties. */
-int ffiStyleEngineSetXImgOfNode(int non_css_decl_set_ref, int intVal);
-int ffiStyleEngineSetXLangOfNode(int non_css_decl_set_ref, const char * stringVal);
-int ffiStyleEngineSetXLinkOfNode(int non_css_decl_set_ref, int intVal);
-int ffiStyleEngineSetXTooltipOfNode(int non_css_decl_set_ref, const char * stringVal);
+void ffiStyleEngineSetXImgOfNode(int non_css_decl_set_ref, int intVal);
+void ffiStyleEngineSetXLangOfNode(int non_css_decl_set_ref, const char * stringVal);
+void ffiStyleEngineSetXLinkOfNode(int non_css_decl_set_ref, int intVal);
+void ffiStyleEngineSetXTooltipOfNode(int non_css_decl_set_ref, const char * stringVal);
 
 
 void ffiStyleEngineSetElementId(int doc_tree_ref, const char * element_id);
