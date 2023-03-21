@@ -4,7 +4,6 @@
 class StyleEngine;
 
 #include "dw/core.hh"
-#include "doctree.hh"
 #include "css.hh"
 #include "cssparser.hh"
 
@@ -57,7 +56,6 @@ public:
          is (are) stored in src/Hello/Css/ContextGlobal.hs. */
       int css_context_ref = 0;
 
-      c_doctree_t * doc_tree_ptr = NULL;
       int doc_tree_ref = 0;
 
       int importDepth;
@@ -89,7 +87,7 @@ public:
       void endElement (int tag);
 
       void setElementId(const char *id);
-      const char * getElementId() { return doctreeGetTopNode(this->doc_tree_ptr)->c_element_selector_id; };
+      const char * getElementId() { return ffiDoctreeGetTopNodeElementSelectorId(this->doc_tree_ref); }; // FIXME: pointer returned by this function is not freed anywhere.
 
       void setElementClass(const char * element_class);
 

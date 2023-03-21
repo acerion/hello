@@ -29,6 +29,27 @@ Copyright 2008-2014 Johannes Hofmann <Johannes.Hofmann@gmx.de>
 
 
 
+-- \brief HTML document tree interface.
+--
+-- The Doctree class defines the interface to the parsed HTML document tree
+-- as it is used for CSS selector matching.
+
+{-
+
+  Root node is not placed in doctree::c_nodes_array[], it exists as a
+  separate member of doctree.
+
+  At the same time c_top_node_num functions (most of the time) as an index to
+  doctree::c_nodes_array[]. So when a top node is a root node, the value of
+  c_top_node_num must be special.
+
+  This constant is the special value of c_top_node_num.
+-- #define ROOT_NODE_NUM (-1)
+-}
+
+
+
+
 module Hello.Html.Doctree
   (
     Doctree (..)

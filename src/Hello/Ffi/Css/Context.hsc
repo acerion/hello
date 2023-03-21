@@ -46,6 +46,7 @@ import System.IO
 --import Debug.Trace
 
 import Hello.Html.Doctree
+import Hello.Html.DoctreeGlobal
 import Hello.Css.Cascade
 import Hello.Css.ContextGlobal
 import Hello.Css.DeclarationSetsGlobal
@@ -53,7 +54,6 @@ import Hello.Css.StyleEngine
 import Hello.Css.StyleEngineGlobal
 import Hello.Css.StyleSheet
 import Hello.Css.UserAgentStyle
-import Hello.Ffi.Css.Doctree
 import Hello.Ffi.Css.Parser
 
 

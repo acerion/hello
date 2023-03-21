@@ -27,9 +27,6 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 module Hello.Ffi.Css.Doctree
   (
-    FfiDoctree (..)
-  , peekDoctree
-  , globalDoctreeGet
   )
 where
 
@@ -53,18 +50,12 @@ import Hello.Html.DoctreeGlobal
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
 
-import Hello.Ffi.Utils
-import Hello.Ffi.Css.DoctreeNode
 
 
 
-
-#include "../../hello.h"
-
+-- #include "../../hello.h"
 
 
-
-foreign export ccall "ffiDoctreePrint" ffiDoctreePrint :: Ptr FfiDoctree -> IO ()
 
 
 foreign export ccall "ffiDoctreeCtor" ffiDoctreeCtor :: IO CInt
@@ -72,6 +63,8 @@ foreign export ccall "ffiDoctreeUpdate" ffiDoctreeUpdate :: CInt -> CInt -> IO (
 foreign export ccall "ffiDoctreePushNode" ffiDoctreePushNode :: CInt -> CInt -> IO CInt
 foreign export ccall "ffiDoctreePopNode" ffiDoctreePopNode :: CInt -> IO ()
 foreign export ccall "ffiDoctreeGetTopNodeElementSelectorId" ffiDoctreeGetTopNodeElementSelectorId :: CInt -> IO CString
+foreign export ccall "ffiDoctreeGetTopNode" ffiDoctreeGetTopNode :: CInt -> IO CInt
+foreign export ccall "ffiDoctreeGetTopNodeHtmlElementIdx" ffiDoctreeGetTopNodeHtmlElementIdx :: CInt -> IO CInt
 
 foreign export ccall "ffiStyleEngineSetElementId" ffiStyleEngineSetElementId :: CInt -> CString -> IO ()
 foreign export ccall "ffiStyleEngineSetElementClass" ffiStyleEngineSetElementClass :: CInt -> CString -> IO ()
@@ -79,7 +72,7 @@ foreign export ccall "ffiStyleEngineSetElementPseudoClass" ffiStyleEngineSetElem
 
 
 
-
+{-
 data FfiDoctree = FfiDoctree {
     topNodeNumC :: CInt
   , rootNode2C  :: Ptr FfiDoctreeNode
@@ -129,14 +122,14 @@ peekDoctree ptrStructDoctree = do
 
 
 
-{-
+
 pokeDoctreeNode :: Doctree -> Ptr FfiDoctree -> IO (Ptr FfiDoctree)
 pokeDoctreeNode dtn ptrDoctreeNodeRoot = do
   ptrStructDoctreeNode <- callocBytes #{size c_doctree_node_t}
   pokeByteOff ptrStructDoctreeNode #{offset c_doctree_node_t, c_root_node} ptrDoctreeNodeRoot
 
   return ptrStructDoctreeNode
--}
+
 
 
 
@@ -144,7 +137,7 @@ ffiDoctreePrint :: Ptr FfiDoctree -> IO ()
 ffiDoctreePrint ptrStructDoctree = do
   doctree <- peekDoctree ptrStructDoctree
   putStr ("ffiDoctreePrint: " ++ show doctree ++ "\n")
-
+-}
 
 
 
@@ -189,14 +182,14 @@ ffiDoctreePopNode cRef = do
 
 
 
-{-
+
 ffiDoctreeGetTopNodeHtmlElementIdx :: CInt -> IO CInt
 ffiDoctreeGetTopNodeHtmlElementIdx cRef = do
   mDtn <- doctreeGetTopNode . fromIntegral $ cRef
   case mDtn of
     Just dtn -> return . fromIntegral . htmlElementIdx $ dtn
     Nothing  -> return 0
--}
+
 
 
 
@@ -206,6 +199,16 @@ ffiDoctreeGetTopNodeElementSelectorId cRef = do
   case mDtn of
     Just dtn -> newCString . T.unpack . selId $ dtn
     Nothing  -> return nullPtr
+
+
+
+
+ffiDoctreeGetTopNode :: CInt -> IO CInt
+ffiDoctreeGetTopNode cRef = do
+  mDtn <- doctreeGetTopNode . fromIntegral $ cRef
+  case mDtn of
+    Just dtn -> return . fromIntegral . uniqueNum $ dtn
+    Nothing  -> return (-1)
 
 
 

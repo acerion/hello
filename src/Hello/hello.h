@@ -279,45 +279,14 @@ typedef struct c_gif_t {
 
 
 
-// FIXME: en.wikipedia.org has a class selector for <body> that has 23 elements. So 10 is too little.
-#define SELECTOR_CLASS_MAX 10
-struct c_doctree_node_t;
-/* From doctree.h */
-typedef struct c_doctree_node_t {
-   int c_unique_num; // unique ascending id
-   int c_html_element_idx; /* Index to html.cc::Tags */
 
-   /* Css Selectors. */
-   char * c_element_selector_pseudo_class;
-   char * c_element_selector_id;
-   char * c_element_selector_class[SELECTOR_CLASS_MAX];
-   int c_element_selector_class_size;
-
-   int c_parent_num;
-   int c_sibling_num;
-   int c_last_child_num;
-} c_doctree_node_t;
-
-
-/**
- * \brief HTML document tree interface.
- *
- * The Doctree class defines the interface to the parsed HTML document tree
- * as it is used for CSS selector matching.
- */
-typedef struct c_doctree_t {
-        int c_top_node_num;
-        c_doctree_node_t * c_root_node;
-        int c_num_nodes;
-        c_doctree_node_t * c_nodes_array[2048];
-} c_doctree_t;
-
-c_doctree_node_t * ffiDoctreeNodeNew(void);
-void ffiDoctreePrint(c_doctree_t * doctree);
 int ffiDoctreeCtor(void);
 int ffiDoctreePushNode(int doctree_ref, int element_idx);
 void ffiDoctreePopNode(int doctree_ref);
 const char * ffiDoctreeGetTopNodeElementSelectorId(int doctree_ref);
+int ffiDoctreeGetTopNode(int doctree_ref);
+int ffiDoctreeGetTopNodeHtmlElementIdx(int doctree_ref);
+
 
 
 

@@ -2,7 +2,6 @@
 #define __CSS_HH__
 
 #include "dw/core.hh"
-#include "doctree.hh"
 #include "css.h"
 #include "Hello/hello.h"
 

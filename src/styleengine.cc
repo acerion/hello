@@ -72,7 +72,6 @@ void StyleImageDeletionReceiver::deleted (lout::signal::ObservedObject *object)
 
 StyleEngine::StyleEngine (dw::core::Layout *layout, const DilloUrl *pageUrl, const DilloUrl *baseUrl)
 {
-   this->doc_tree_ptr = doctreeCtor();
    this->doc_tree_ref = ffiDoctreeCtor();
    this->style_engine_ref = ffiStyleEngineCtor();
 
@@ -105,16 +104,17 @@ StyleEngine::StyleEngine (dw::core::Layout *layout, const DilloUrl *pageUrl, con
 }
 
 StyleEngine::~StyleEngine () {
-   while (doctreeGetTopNode(this->doc_tree_ptr))
-      endElement (doctreeGetTopNode(this->doc_tree_ptr)->c_html_element_idx);
+   int nodeIdx = ffiDoctreeGetTopNode(this->doc_tree_ref);
+   while (-1 != nodeIdx) {
+      endElement(ffiDoctreeGetTopNodeHtmlElementIdx(this->doc_tree_ref));
+      nodeIdx = ffiDoctreeGetTopNode(this->doc_tree_ref);
+   }
 
    stackPop (); // dummy node on the bottom of the stack
    assert (ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) == 0);
 
    a_Url_free(pageUrl);
    a_Url_free(baseUrl);
-
-   delete doc_tree_ptr;
 }
 
 void StyleEngine::stackPushEmptyNode () {
@@ -155,9 +155,7 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    stackPushEmptyNode();
    StyleNode *n = getCurrentNode(this);
 
-   n->doctreeNodeIdx = doctreePushNode(this->doc_tree_ptr, html_element_idx);
-   //n->doctreeNodeIdx = ffiDoctreePushNode(this->doc_tree_ref, html_element_idx);
-   ffiDoctreePushNode(this->doc_tree_ref, html_element_idx);
+   n->doctreeNodeIdx = ffiDoctreePushNode(this->doc_tree_ref, html_element_idx);
 
    if (ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) > 1) {
       StyleNode * parentNode = getParentNode(this);
@@ -170,34 +168,10 @@ void StyleEngine::startElement (const char *tagname, BrowserWindow *bw) {
 }
 
 void StyleEngine::setElementId (const char *id) {
-   c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree_ptr);
-   assert (dtn->c_element_selector_id == NULL);
-   dtn->c_element_selector_id = strdup (id);
-
    ffiStyleEngineSetElementId(this->doc_tree_ref, id);
 }
 
 void StyleEngine::setElementClass(const char * element_class_tokens) {
-   c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree_ptr);
-   assert (dtn->c_element_selector_class_size == 0);
-
-   char * saveptr = NULL;
-   const char * sep = " ";
-   char * in = strdup(element_class_tokens);
-   int i = 0;
-   for (char * tok = strtok_r(in, sep, &saveptr); tok; tok = strtok_r(NULL, sep, &saveptr)) {
-      dtn->c_element_selector_class[i] = strdup(tok);
-      i++;
-
-      if (i == SELECTOR_CLASS_MAX) {
-         fprintf(stderr, "[WW] 'class' selector string has more tokens than limit==%d\n", SELECTOR_CLASS_MAX);
-         fprintf(stderr, "[WW] the 'class' selector is '%s'\n", element_class_tokens);
-         break;
-      }
-   }
-   dtn->c_element_selector_class_size = i;
-   free(in);
-
    ffiStyleEngineSetElementClass(this->doc_tree_ref, element_class_tokens);
 }
 
@@ -280,9 +254,6 @@ dw::core::style::StyleImage *StyleEngine::getBackgroundImage
  * \brief set the CSS pseudo class :link.
  */
 void StyleEngine::setPseudoLink () {
-   c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree_ptr);
-   dtn->c_element_selector_pseudo_class = "link";
-
    ffiStyleEngineSetElementPseudoClass(this->doc_tree_ref, "link");
 }
 
@@ -290,9 +261,6 @@ void StyleEngine::setPseudoLink () {
  * \brief set the CSS pseudo class :visited.
  */
 void StyleEngine::setPseudoVisited () {
-   c_doctree_node_t * dtn = doctreeGetTopNode(this->doc_tree_ptr);
-   dtn->c_element_selector_pseudo_class = "visited";
-
    ffiStyleEngineSetElementPseudoClass(this->doc_tree_ref, "visited");
 }
 
@@ -300,10 +268,9 @@ void StyleEngine::setPseudoVisited () {
  * \brief tell the styleEngine that a html element has ended.
  */
 void StyleEngine::endElement (int element) {
-   assert (element == doctreeGetTopNode(this->doc_tree_ptr)->c_html_element_idx);
+   assert (element == ffiDoctreeGetTopNodeHtmlElementIdx(this->doc_tree_ref));
 
    stackPop ();
-   doctreePopNode(this->doc_tree_ptr);
    ffiDoctreePopNode(this->doc_tree_ref);
 }
 
