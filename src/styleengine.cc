@@ -72,7 +72,6 @@ void StyleImageDeletionReceiver::deleted (lout::signal::ObservedObject *object)
 
 StyleEngine::StyleEngine (dw::core::Layout *layout, const DilloUrl *pageUrl, const DilloUrl *baseUrl)
 {
-   this->doc_tree_ref = ffiDoctreeCtor();
    this->style_engine_ref = ffiStyleEngineCtor();
 
    //styleNodesStack = new lout::misc::SimpleVector <StyleNode> (1);
@@ -104,10 +103,10 @@ StyleEngine::StyleEngine (dw::core::Layout *layout, const DilloUrl *pageUrl, con
 }
 
 StyleEngine::~StyleEngine () {
-   int nodeIdx = ffiDoctreeGetTopNode(this->doc_tree_ref);
+   int nodeIdx = ffiDoctreeGetTopNode(this->style_engine_ref);
    while (-1 != nodeIdx) {
-      endElement(ffiDoctreeGetTopNodeHtmlElementIdx(this->doc_tree_ref));
-      nodeIdx = ffiDoctreeGetTopNode(this->doc_tree_ref);
+      endElement(ffiDoctreeGetTopNodeHtmlElementIdx(this->style_engine_ref));
+      nodeIdx = ffiDoctreeGetTopNode(this->style_engine_ref);
    }
 
    stackPop (); // dummy node on the bottom of the stack
@@ -155,7 +154,7 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    stackPushEmptyNode();
    StyleNode *n = getCurrentNode(this);
 
-   n->doctreeNodeIdx = ffiDoctreePushNode(this->doc_tree_ref, html_element_idx);
+   n->doctreeNodeIdx = ffiDoctreePushNode(this->style_engine_ref, html_element_idx);
 
    if (ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) > 1) {
       StyleNode * parentNode = getParentNode(this);
@@ -168,11 +167,11 @@ void StyleEngine::startElement (const char *tagname, BrowserWindow *bw) {
 }
 
 void StyleEngine::setElementId (const char *id) {
-   ffiStyleEngineSetElementId(this->doc_tree_ref, id);
+   ffiStyleEngineSetElementId(this->style_engine_ref, id);
 }
 
 void StyleEngine::setElementClass(const char * element_class_tokens) {
-   ffiStyleEngineSetElementClass(this->doc_tree_ref, element_class_tokens);
+   ffiStyleEngineSetElementClass(this->style_engine_ref, element_class_tokens);
 }
 
 // 'cssStyleAttribute' is contents of element's "style" attribute, describing CSS
@@ -254,24 +253,24 @@ dw::core::style::StyleImage *StyleEngine::getBackgroundImage
  * \brief set the CSS pseudo class :link.
  */
 void StyleEngine::setPseudoLink () {
-   ffiStyleEngineSetElementPseudoClass(this->doc_tree_ref, "link");
+   ffiStyleEngineSetElementPseudoClass(this->style_engine_ref, "link");
 }
 
 /**
  * \brief set the CSS pseudo class :visited.
  */
 void StyleEngine::setPseudoVisited () {
-   ffiStyleEngineSetElementPseudoClass(this->doc_tree_ref, "visited");
+   ffiStyleEngineSetElementPseudoClass(this->style_engine_ref, "visited");
 }
 
 /**
  * \brief tell the styleEngine that a html element has ended.
  */
 void StyleEngine::endElement (int element) {
-   assert (element == ffiDoctreeGetTopNodeHtmlElementIdx(this->doc_tree_ref));
+   assert (element == ffiDoctreeGetTopNodeHtmlElementIdx(this->style_engine_ref));
 
    stackPop ();
-   ffiDoctreePopNode(this->doc_tree_ref);
+   ffiDoctreePopNode(this->style_engine_ref);
 }
 
 void StyleEngine::preprocessAttrs (dw::core::style::StyleAttrs *attrs) {
@@ -448,7 +447,6 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
    // important declarations, and non-CSS hints.
    int merged_decl_set_ref = ffiCssContextApplyCssContext(this->style_engine_ref,
                                                           this->css_context_ref,
-                                                          this->doc_tree_ref,
                                                           dtnNum);
 
    timer_stop(&g_apply_get_start, &g_apply_get_stop, &g_apply_get_acc);

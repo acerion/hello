@@ -83,6 +83,9 @@ import Hello.Css.Distance
 import Hello.Css.Parser.Property
 import Hello.Css.StyleNode
 
+import Hello.Html.Doctree
+import Hello.Html.DoctreeNode
+
 import Hello.Display
 
 import Hello.Dw.DwLength
@@ -98,12 +101,14 @@ import Hello.Utils
 data CssStyleEngine = CssStyleEngine
   { styleNodesStackSize :: Int
   , styleNodesStack     :: [ StyleNode ]  -- Top of stack is a list's head.
+  , doctree             :: Doctree
   } deriving (Show)
 
 defaultCssStyleEngine :: CssStyleEngine
 defaultCssStyleEngine = CssStyleEngine
   { styleNodesStackSize = 0
   , styleNodesStack     = []
+  , doctree             = defaultDoctree
   }
 
 

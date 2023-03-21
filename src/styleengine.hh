@@ -46,6 +46,8 @@ class StyleEngine {
 public:
    StyleNode styleNodesStack[64] = {};
 
+   /* Reference to CSS Style Engine variable stored in Haskell. The variable(s)
+      is (are) stored in src/Hello/Css/StyleEngineGlobal.hs. */
    int style_engine_ref = 0;
 
    private:
@@ -55,8 +57,6 @@ public:
       /* Reference to CSS context variable stored in Haskell. The variable(s)
          is (are) stored in src/Hello/Css/ContextGlobal.hs. */
       int css_context_ref = 0;
-
-      int doc_tree_ref = 0;
 
       int importDepth;
       DilloUrl *pageUrl, *baseUrl;
@@ -87,7 +87,7 @@ public:
       void endElement (int tag);
 
       void setElementId(const char *id);
-      const char * getElementId() { return ffiDoctreeGetTopNodeElementSelectorId(this->doc_tree_ref); }; // FIXME: pointer returned by this function is not freed anywhere.
+      const char * getElementId() { return ffiDoctreeGetTopNodeElementSelectorId(this->style_engine_ref); }; // FIXME: pointer returned by this function is not freed anywhere.
 
       void setElementClass(const char * element_class);
 

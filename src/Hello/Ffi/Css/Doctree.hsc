@@ -46,6 +46,8 @@ import qualified Data.Text.Encoding as T.E
 
 --import Debug.Trace
 
+import Hello.Css.StyleEngine
+import Hello.Css.StyleEngineGlobal
 import Hello.Html.DoctreeGlobal
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
@@ -160,32 +162,40 @@ ffiDoctreeUpdate cRef cSomeVal = do
 
 
 ffiDoctreePushNode :: CInt -> CInt -> IO CInt
-ffiDoctreePushNode cRef cElementIdx = do
-  let ref        = fromIntegral cRef
+ffiDoctreePushNode cEngineRef cElementIdx = do
+  let engineRef = fromIntegral cEngineRef
+  engine <- globalStyleEngineGet engineRef
   let elementIdx = fromIntegral cElementIdx
 
-  doctree <- globalDoctreeGet ref
-  let doctree' = doctreePushNode doctree elementIdx
-  globalDoctreeUpdate ref doctree'
+  let engine' = engine { doctree = doctreePushNode (doctree engine) elementIdx }
+  globalStyleEngineUpdate engineRef engine'
 
-  return $ fromIntegral (topNodeNum doctree')
+  let mDtn = M.lookup (topNodeNum . doctree $ engine') (nodes . doctree $ engine')
+  case mDtn of
+    Just dtn -> return . fromIntegral . uniqueNum $ dtn
+    Nothing  -> return (-1)
 
 
 
 
 ffiDoctreePopNode :: CInt -> IO ()
-ffiDoctreePopNode cRef = do
-  let ref = fromIntegral cRef
-  doctree <- globalDoctreeGet ref
-  let doctree' = doctreePopNode doctree
-  globalDoctreeUpdate ref doctree'
+ffiDoctreePopNode cEngineRef = do
+  let engineRef = fromIntegral cEngineRef
+  engine <- globalStyleEngineGet engineRef
+
+  let engine' = engine { doctree = doctreePopNode (doctree engine) }
+  globalStyleEngineUpdate engineRef engine'
+
 
 
 
 
 ffiDoctreeGetTopNodeHtmlElementIdx :: CInt -> IO CInt
-ffiDoctreeGetTopNodeHtmlElementIdx cRef = do
-  mDtn <- doctreeGetTopNode . fromIntegral $ cRef
+ffiDoctreeGetTopNodeHtmlElementIdx cEngineRef = do
+  let engineRef = fromIntegral cEngineRef
+  engine <- globalStyleEngineGet engineRef
+
+  let mDtn = M.lookup (topNodeNum . doctree $ engine) (nodes . doctree $ engine)
   case mDtn of
     Just dtn -> return . fromIntegral . htmlElementIdx $ dtn
     Nothing  -> return 0
@@ -194,8 +204,11 @@ ffiDoctreeGetTopNodeHtmlElementIdx cRef = do
 
 
 ffiDoctreeGetTopNodeElementSelectorId :: CInt -> IO CString
-ffiDoctreeGetTopNodeElementSelectorId cRef = do
-  mDtn <- doctreeGetTopNode . fromIntegral $ cRef
+ffiDoctreeGetTopNodeElementSelectorId cEngineRef = do
+  let engineRef = fromIntegral cEngineRef
+  engine <- globalStyleEngineGet engineRef
+
+  let mDtn = M.lookup (topNodeNum . doctree $ engine) (nodes . doctree $ engine)
   case mDtn of
     Just dtn -> newCString . T.unpack . selId $ dtn
     Nothing  -> return nullPtr
@@ -204,15 +217,18 @@ ffiDoctreeGetTopNodeElementSelectorId cRef = do
 
 
 ffiDoctreeGetTopNode :: CInt -> IO CInt
-ffiDoctreeGetTopNode cRef = do
-  mDtn <- doctreeGetTopNode . fromIntegral $ cRef
+ffiDoctreeGetTopNode cEngineRef = do
+  let engineRef = fromIntegral cEngineRef
+  engine <- globalStyleEngineGet engineRef
+
+  let mDtn = M.lookup (topNodeNum . doctree $ engine) (nodes . doctree $ engine)
   case mDtn of
     Just dtn -> return . fromIntegral . uniqueNum $ dtn
     Nothing  -> return (-1)
 
 
 
-
+{-
 doctreeGetTopNode :: Int -> IO (Maybe DoctreeNode)
 doctreeGetTopNode ref = do
   doctree <- globalDoctreeGet ref
@@ -232,40 +248,50 @@ updateTopNodeInTrees ref f = do
     doctree <- globalDoctreeGet ref
     let doctree' = adjustTopNode doctree f
     globalDoctreeUpdate ref doctree'
-
+-}
 
 
 
 ffiStyleEngineSetElementId :: CInt -> CString -> IO ()
-ffiStyleEngineSetElementId cDoctreeRef cElementId = do
-    let doctreeRef = fromIntegral cDoctreeRef
-    stringVal     <- BSU.unsafePackCString cElementId
-    let elementId  = T.E.decodeLatin1 stringVal
+ffiStyleEngineSetElementId cEngineRef cElementId = do
+  let engineRef = fromIntegral cEngineRef
+  engine <- globalStyleEngineGet engineRef
 
-    updateTopNodeInTrees doctreeRef (\x -> x { selId = elementId })
+  stringVal     <- BSU.unsafePackCString cElementId
+  let elementId  = T.E.decodeLatin1 stringVal
+
+  let engine' = engine { doctree = adjustTopNode (doctree engine) (\x -> x { selId = elementId }) }
+  globalStyleEngineUpdate engineRef engine'
 
 
 
 
 ffiStyleEngineSetElementClass :: CInt -> CString -> IO ()
-ffiStyleEngineSetElementClass cDoctreeRef cElementClassTokens = do
-    let doctreeRef = fromIntegral cDoctreeRef
-    tokens        <- BSU.unsafePackCString cElementClassTokens
-    -- With ' ' character as separator of selectors, we can use 'words' to
-    -- get the list of selectors.
-    let ws = words . Char8.unpack $ tokens
-    let classSelectors = fmap T.pack ws
+ffiStyleEngineSetElementClass cEngineRef cElementClassTokens = do
+  let engineRef = fromIntegral cEngineRef
+  engine <- globalStyleEngineGet engineRef
 
-    updateTopNodeInTrees doctreeRef (\x -> x { selClass = classSelectors })
+  tokens        <- BSU.unsafePackCString cElementClassTokens
+  -- With ' ' character as separator of selectors, we can use 'words' to
+  -- get the list of selectors.
+  let ws = words . Char8.unpack $ tokens
+  let classSelectors = fmap T.pack ws
+
+  let engine' = engine { doctree = adjustTopNode (doctree engine) (\x -> x { selClass = classSelectors }) }
+  globalStyleEngineUpdate engineRef engine'
 
 
 
 
 ffiStyleEngineSetElementPseudoClass :: CInt -> CString -> IO ()
-ffiStyleEngineSetElementPseudoClass cDoctreeRef cElementPseudoClass = do
-    let doctreeRef         = fromIntegral cDoctreeRef
-    stringVal             <- BSU.unsafePackCString cElementPseudoClass
-    let elementPseudoClass = T.E.decodeLatin1 stringVal
+ffiStyleEngineSetElementPseudoClass cEngineRef cElementPseudoClass = do
+  let engineRef = fromIntegral cEngineRef
+  engine <- globalStyleEngineGet engineRef
 
-    updateTopNodeInTrees doctreeRef (\x -> x { selPseudoClass = elementPseudoClass })
+  stringVal             <- BSU.unsafePackCString cElementPseudoClass
+  let elementPseudoClass = T.E.decodeLatin1 stringVal
+
+  let engine' = engine { doctree = adjustTopNode (doctree engine) (\x -> x { selPseudoClass = elementPseudoClass }) }
+  globalStyleEngineUpdate engineRef engine'
+
 

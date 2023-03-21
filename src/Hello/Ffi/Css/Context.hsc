@@ -64,7 +64,7 @@ import Hello.Ffi.Css.Parser
 
 
 foreign export ccall "ffiCssContextCtor" ffiCssContextCtor :: IO CInt
-foreign export ccall "ffiCssContextApplyCssContext" ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> IO CInt
+foreign export ccall "ffiCssContextApplyCssContext" ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "ffiParseCss" ffiParseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
 
 foreign export ccall "ffiCssContextPrint" ffiCssContextPrint :: CString -> CInt -> IO ()
@@ -190,19 +190,18 @@ getSomeDeclSet2 ref = if (-1) == ref
 
 
 
-ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> CInt -> IO CInt
-ffiCssContextApplyCssContext cStyleEngineRef cRef cDoctreeRef cDtnNum = do
+ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
+ffiCssContextApplyCssContext cStyleEngineRef cRef cDtnNum = do
 
   -- FFI and debugging.
   fHandle <- openFile "/tmp/hello_browser_matching_rules_debug.txt" AppendMode
   context <- globalContextGet . fromIntegral $ cRef
-  doctree <- globalDoctreeGet . fromIntegral $ cDoctreeRef
   engine  <- globalStyleEngineGet . fromIntegral $ cStyleEngineRef
 
   -- The main part.
   let styleNode = styleEngineNodesStackPeek engine
-      dtn = getDtnUnsafe doctree (fromIntegral cDtnNum)
-  mergedDeclSet <- cssContextApplyCssContext fHandle context doctree dtn styleNode
+      dtn = getDtnUnsafe (doctree engine) (fromIntegral cDtnNum)
+  mergedDeclSet <- cssContextApplyCssContext fHandle context (doctree engine) dtn styleNode
 
   -- FFI and debugging.
   mergedDeclSetRef <- globalDeclarationSetPut mergedDeclSet
