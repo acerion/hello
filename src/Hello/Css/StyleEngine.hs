@@ -64,6 +64,13 @@ module Hello.Css.StyleEngine
 
   , CssStyleEngine (..)
   , defaultCssStyleEngine
+
+  , pushNodeToDoctree
+  , popNodeFromDoctree
+  , peekTopNodeFromDoctree
+  , setElementIdOnTopNode
+  , setClassOnTopNode
+  , setPseudoClassOnTopNode
   )
 where
 
@@ -73,6 +80,7 @@ where
 import Prelude
 import Data.Bits
 import Data.Maybe
+import qualified Data.Map as M
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 import Data.Word
@@ -84,7 +92,7 @@ import Hello.Css.Parser.Property
 import Hello.Css.StyleNode
 
 import Hello.Html.Doctree
---import Hello.Html.DoctreeNode
+import Hello.Html.DoctreeNode
 
 import Hello.Display
 
@@ -1086,4 +1094,44 @@ styleEngineNodesStackClearNonCssHints engine = styleEngineNodesStackUpdateTop en
   where
     node' = (styleEngineNodesStackPeek engine) { nonCssDeclSet = defaultCssDeclarationSet }
 
+
+
+
+
+pushNodeToDoctree :: CssStyleEngine -> Int -> CssStyleEngine
+pushNodeToDoctree engine elementIdx = engine { doctree = doctreePushNode (doctree engine) elementIdx }
+
+
+
+
+popNodeFromDoctree :: CssStyleEngine -> CssStyleEngine
+popNodeFromDoctree engine = engine { doctree = doctreePopNode (doctree engine) }
+
+
+
+
+peekTopNodeFromDoctree :: CssStyleEngine -> Maybe DoctreeNode
+peekTopNodeFromDoctree engine = M.lookup (topNodeNum . doctree $ engine) (nodes . doctree $ engine)
+
+
+
+
+setElementIdOnTopNode :: CssStyleEngine -> T.Text -> CssStyleEngine
+setElementIdOnTopNode engine elementId =
+  engine { doctree = adjustTopNode (doctree engine) (\x -> x { selId = elementId }) }
+
+
+
+
+
+setClassOnTopNode :: CssStyleEngine -> [T.Text] -> CssStyleEngine
+setClassOnTopNode engine classSelectors =
+  engine { doctree = adjustTopNode (doctree engine) (\x -> x { selClass = classSelectors }) }
+
+
+
+
+setPseudoClassOnTopNode :: CssStyleEngine -> T.Text -> CssStyleEngine
+setPseudoClassOnTopNode engine pseudoClass =
+  engine { doctree = adjustTopNode (doctree engine) (\x -> x { selPseudoClass = pseudoClass }) }
 
