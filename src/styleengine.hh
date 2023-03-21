@@ -87,7 +87,7 @@ public:
       void endElement (int tag);
 
       void setElementId(const char *id);
-      const char * getElementId() { return ffiDoctreeGetTopNodeElementSelectorId(this->style_engine_ref); }; // FIXME: pointer returned by this function is not freed anywhere.
+      const char * getElementId() { return ffiStyleEngineDoctreeGetTopNodeElementSelectorId(this->style_engine_ref); }; // FIXME: pointer returned by this function is not freed anywhere.
 
       void setElementClass(const char * element_class);
 

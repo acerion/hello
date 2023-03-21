@@ -280,11 +280,11 @@ typedef struct c_gif_t {
 
 
 
-int ffiDoctreePushNode(int style_engine_ref, int element_idx);
-void ffiDoctreePopNode(int style_engine_ref);
-const char * ffiDoctreeGetTopNodeElementSelectorId(int style_engine_ref);
-int ffiDoctreeGetTopNode(int style_engine_ref);
-int ffiDoctreeGetTopNodeHtmlElementIdx(int style_engine_ref);
+int ffiStyleEngineDoctreePushNode(int style_engine_ref, int element_idx);
+void ffiStyleEngineDoctreePopNode(int style_engine_ref);
+const char * ffiStyleEngineDoctreeGetTopNodeElementSelectorId(int style_engine_ref);
+int ffiStyleEngineDoctreeGetTopNode(int style_engine_ref);
+int ffiStyleEngineDoctreeGetTopNodeHtmlElementIdx(int style_engine_ref);
 
 
 
@@ -440,9 +440,9 @@ void ffiStyleEngineSetXLinkOfNode(int non_css_decl_set_ref, int intVal);
 void ffiStyleEngineSetXTooltipOfNode(int non_css_decl_set_ref, const char * stringVal);
 
 
-void ffiStyleEngineSetElementId(int style_engine_ref, const char * element_id);
-void ffiStyleEngineSetElementClass(int style_engine_ref, const char * element_class_tokens);
-void ffiStyleEngineSetElementPseudoClass(int style_engine_ref, const char * element_pseudo_class);
+void ffiStyleEngineDoctreeSetElementId(int style_engine_ref, const char * element_id);
+void ffiStyleEngineDoctreeSetElementClass(int style_engine_ref, const char * element_class_tokens);
+void ffiStyleEngineDoctreeSetElementPseudoClass(int style_engine_ref, const char * element_pseudo_class);
 
 
 
