@@ -280,7 +280,6 @@ typedef struct c_gif_t {
 
 
 
-int ffiDoctreeCtor(void);
 int ffiDoctreePushNode(int style_engine_ref, int element_idx);
 void ffiDoctreePopNode(int style_engine_ref);
 const char * ffiDoctreeGetTopNodeElementSelectorId(int style_engine_ref);

@@ -48,7 +48,6 @@ import qualified Data.Text.Encoding as T.E
 
 import Hello.Css.StyleEngine
 import Hello.Css.StyleEngineGlobal
-import Hello.Html.DoctreeGlobal
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
 
@@ -60,8 +59,8 @@ import Hello.Html.DoctreeNode
 
 
 
-foreign export ccall "ffiDoctreeCtor" ffiDoctreeCtor :: IO CInt
-foreign export ccall "ffiDoctreeUpdate" ffiDoctreeUpdate :: CInt -> CInt -> IO ()
+--foreign export ccall "ffiDoctreeCtor" ffiDoctreeCtor :: IO CInt
+--foreign export ccall "ffiDoctreeUpdate" ffiDoctreeUpdate :: CInt -> CInt -> IO ()
 foreign export ccall "ffiDoctreePushNode" ffiDoctreePushNode :: CInt -> CInt -> IO CInt
 foreign export ccall "ffiDoctreePopNode" ffiDoctreePopNode :: CInt -> IO ()
 foreign export ccall "ffiDoctreeGetTopNodeElementSelectorId" ffiDoctreeGetTopNodeElementSelectorId :: CInt -> IO CString
@@ -139,7 +138,7 @@ ffiDoctreePrint :: Ptr FfiDoctree -> IO ()
 ffiDoctreePrint ptrStructDoctree = do
   doctree <- peekDoctree ptrStructDoctree
   putStr ("ffiDoctreePrint: " ++ show doctree ++ "\n")
--}
+
 
 
 
@@ -157,7 +156,7 @@ ffiDoctreeUpdate cRef cSomeVal = do
   oldDoctree <- globalDoctreeGet ref
   let newDoctree = oldDoctree { rootNode = rootNode oldDoctree + someVal }
   globalDoctreeUpdate ref newDoctree
-
+-}
 
 
 

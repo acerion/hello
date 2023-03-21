@@ -46,7 +46,6 @@ import System.IO
 --import Debug.Trace
 
 import Hello.Html.Doctree
-import Hello.Html.DoctreeGlobal
 import Hello.Css.Cascade
 import Hello.Css.ContextGlobal
 import Hello.Css.DeclarationSetsGlobal
