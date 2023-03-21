@@ -545,7 +545,9 @@ ffiStyleEngineDoctreeGetTopNodeElementSelectorId cEngineRef = do
   let engineRef = fromIntegral cEngineRef
   engine <- globalStyleEngineGet engineRef
   case SE.peekTopNodeFromDoctree engine of
-    Just dtn -> newCString . T.unpack . selId $ dtn
+    Just dtn -> if T.null . selId $ dtn
+                then return nullPtr -- Returning empty string ("") would confuse C++ code.
+                else newCString . T.unpack . selId $ dtn
     Nothing  -> return nullPtr
 
 
