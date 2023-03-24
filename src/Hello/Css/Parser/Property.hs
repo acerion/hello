@@ -561,13 +561,13 @@ parserValueBackgroundColor = mkParserEnum cssValueBackgroundColorDict
 
 
 data CssValueBackgroundImage
- = CssValueBackgroundImageUri T.Text -- TODO: change from T.Text to URI abstract type
+ = CssValueBackgroundImageUri ParsedUri -- TODO: change from T.Text to URI abstract type
  deriving (Data, Eq, Show)
 
 
 -- TODO: according to https://www.w3.org/TR/css-backgrounds-3/#background-image we need here a "none" value.
 initialValueBackgroundImage :: CssValueBackgroundImage
-initialValueBackgroundImage = CssValueBackgroundImageUri ""
+initialValueBackgroundImage = CssValueBackgroundImageUri $ ParsedUri "" ""
 
 
 

@@ -210,6 +210,7 @@ data StyleAttrs = StyleAttrs
   , styleVertBorderSpacing   :: Int
   , styleWordSpacing         :: Int
 
+  , styleBgImage             :: T.Text
   , styleBgPositionX         :: DwLength -- "left" defined by "0%" etc. (see CSS spec)
   , styleBgPositionY         :: DwLength -- "top" defined by "0%" etc. (see CSS spec)
   , styleBgRepeat            :: Int -- TODO: use BackgroundRepeat
@@ -263,6 +264,7 @@ defaultStyleAttrs = StyleAttrs
   , styleHorizBorderSpacing  = 0                             -- #
   , styleVertBorderSpacing   = 0                             -- #
   , styleWordSpacing         = 0                             -- #
+  , styleBgImage             = ""
   , styleBgPositionX         = createPercentageDwLength 0    -- #
   , styleBgPositionY         = createPercentageDwLength 0    -- #
   , styleBgRepeat            = 0                             -- # BACKGROUND_REPEAT == 0
@@ -339,6 +341,7 @@ styleAttrsResetNonInheritedValues attrs = attrs
   , styleWidth               = createAutoDwLength
   , styleHeight              = createAutoDwLength
   , styleVerticalAlign       = 3 -- VALIGN_BASELINE == 3
+  , styleBgImage             = ""
   , styleBgPositionX         = createPercentageDwLength 0
   , styleBgPositionY         = createPercentageDwLength 0
   , styleBgRepeat            = 0 -- BACKGROUND_REPEAT == 0

@@ -93,6 +93,7 @@ import Data.Word
 import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Parser.Property
+import Hello.Css.ParserHelpers
 import Hello.Css.StyleNode
 
 import qualified Hello.Html.Doctree as DT
@@ -453,6 +454,7 @@ yet because a full support for them in dillo seems to be missing or broken.
                                                               ]
 
     CssPropertyBackgroundColor declValue     -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs declValue }
+    CssPropertyBackgroundImage declValue     -> styleAttrs { styleBgImage = getBgImage declValue }
     CssPropertyBorderCollapse declValue      -> styleAttrs { styleBorderCollapse  = getBorderCollapse declValue }
 
     CssPropertyBorder declValue              -> foldr f styleAttrs [ CssPropertyBorderTopWidth   . borderTRBLWidth $ declValue
@@ -873,6 +875,12 @@ getBackgroundColor :: StyleAttrs -> CssValueBackgroundColor -> Int
 getBackgroundColor parentStyleAttrs declValue = case declValue of
                                                   CssValueBackgroundColorInherit -> styleBackgroundColor parentStyleAttrs
                                                   CssValueBackgroundColorColor i -> i
+
+
+
+
+getBgImage :: CssValueBackgroundImage -> T.Text
+getBgImage (CssValueBackgroundImageUri parsedUri) = parsedUrl parsedUri
 
 
 

@@ -27,6 +27,7 @@ import Test.HUnit
 import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
+import Hello.Css.ParserHelpers
 import Hello.Css.Parser.Declaration
 import Hello.Css.Parser.Property
 
@@ -235,8 +236,8 @@ parseSingleDeclarationTestData =
   -- TODO: decide what should be the value of CssValueBackgroundImageUri.
   -- Should it be just a verbatim stream, or some information about tokens that build the URI.
   -- TODO: write more tests
-  , ( "background-image: url(\"background.png\")",     Just CssDeclaration { property = CssPropertyBackgroundImage (
-                                                                               CssValueBackgroundImageUri "[CssTokStr \"background.png\",CssTokParenClose]"),         important = False } )
+  , ( "background-image: url(\"background.png\")",     Just CssDeclaration { property = CssPropertyBackgroundImage
+                                                                             (CssValueBackgroundImageUri $ ParsedUri "background.png" "[CssTokStr \"background.png\",CssTokParenClose]"), important = False } )
 
 
 

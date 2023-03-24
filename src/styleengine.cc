@@ -19,6 +19,8 @@
 #include "capi.h"
 #include "Hello/hello.h"
 
+#include <unistd.h>
+
 #include <sys/time.h>
 extern struct timeval g_parse_acc;
 extern struct timeval g_parse_start;
@@ -344,11 +346,6 @@ static void style_attrs_make_ui_objects(StyleAttrs * attrs, dw::core::Layout * l
  */
 void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentAttrs, StyleAttrs * attrs, int merged_decl_set_ref, BrowserWindow *bw)
 {
-   // TODO: this should be set from style_attrs calculated by
-   // ffiStyleEngineApplyStyleToGivenNode for CSS_PROPERTY_BACKGROUND_IMAGE
-   // property.
-   DilloUrl *imgUrl = nullptr;
-
    timer_start(&g_apply_do_start);
    ffiStyleEngineApplyStyleToGivenNode(merged_decl_set_ref, &prefs.preferences, layout->dpiX(), layout->dpiY(), parentAttrs->c_style_attrs_ref, attrs->c_style_attrs_ref);
    timer_stop(&g_apply_do_start, &g_apply_do_stop, &g_apply_do_acc);
@@ -359,7 +356,24 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
       styleNodesStack[styleNodeIndex].displayNone = true;
    }
 
-   if (imgUrl && prefs.load_background_images &&
+   this->downloadBgImage(bw, attrs, styleNodeIndex);
+}
+
+void StyleEngine::downloadBgImage(BrowserWindow * bw, StyleAttrs * attrs, int styleNodeIndex)
+{
+   char * url = ffiStyleAttrsBgImage(attrs->c_style_attrs_ref);
+   if (nullptr == url) {
+      return;
+   }
+
+   DilloUrl * bgImgUrl = nullptr;
+   if (access(url, F_OK) == 0) {
+      // FIXME: this works only for bg image paths with full (non-relative) path.
+      bgImgUrl = a_Url_new(url + 1, "file:/");
+   } else {
+      bgImgUrl = a_Url_new(url, nullptr);
+   }
+   if (bgImgUrl && prefs.load_background_images &&
        !styleNodesStack[styleNodeIndex].displayNone &&
        !(URL_FLAGS(pageUrl) & URL_SpamSafe))
    {
@@ -368,7 +382,7 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
 
       // we use the pageUrl as requester to prevent cross
       // domain requests as specified in domainrc
-      DilloWeb *web = a_Web_new(bw, imgUrl, pageUrl);
+      DilloWeb *web = a_Web_new(bw, bgImgUrl, pageUrl);
       web->Image = image;
       a_Image_ref(image);
       web->flags |= WEB_Image;
@@ -376,12 +390,13 @@ void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentA
       int clientKey;
       if ((clientKey = a_Capi_open_url(web, NULL, NULL)) != 0) {
                   a_Bw_add_client(bw, clientKey, 0);
-                  a_Bw_add_url(bw, imgUrl);
+                  a_Bw_add_url(bw, bgImgUrl);
                   attrs->backgroundImage->connectDeletion(new StyleImageDeletionReceiver (clientKey));
       }
    }
-   a_Url_free (imgUrl);
+   a_Url_free (bgImgUrl);
 }
+
 
 /**
  * \brief Similar to StyleEngine::style(), but with backgroundColor set.
@@ -526,10 +541,12 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
       ffiParseCss(&parser_.m_parser, &parser_.m_token, this->css_context_ref);
 
       struct timeval diff = timer_stop(&g_parse_start, &g_parse_stop, &g_parse_acc);
-      fprintf(stderr, "[II] Total parse time increased by %ld:%06ld to %ld:%06ld (url = %s)\n",
+      fprintf(stderr, "[II] Total parse time increased by %ld:%06ld to %ld:%06ld (url = %s, %s)\n",
               diff.tv_sec, diff.tv_usec,
               g_parse_acc.tv_sec, g_parse_acc.tv_usec,
-              dStr_printable(url->url_string, 130));
+              dStr_printable(url->url_string, 130),
+              html->base_url->scheme
+              );
    }
    importDepth--;
 

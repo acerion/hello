@@ -253,6 +253,8 @@ void ffiStyleAttrsSetBorderColor2(int ref, c_border_color_t * color);
 void ffiStyleAttrsFontAttrs(int ref, c_font_attrs_t * font_attrs);
 void ffiStyleAttrsSetFontAttrs(int ref, c_font_attrs_t * font_attrs);
 
+char * ffiStyleAttrsBgImage(int ref);
+
 void ffiFontAttrsMakeFontAttrsFromPrefs(c_font_attrs_t * font_attrs,  c_prefs_t * prefs);
 
 

@@ -29,6 +29,7 @@ module Hello.Ffi.Utils
   (
     ptrCCharToText
   , allocAndPokeCString
+  , allocAndPokeCStringIfNonEmpty
 
   , peekArrayOfPointers
   , pokeArrayOfPointersWithAlloc
@@ -75,6 +76,20 @@ ptrCCharToText ptr = do
 allocAndPokeCString :: T.Text -> IO CString
 allocAndPokeCString = newCString . T.unpack
 
+
+
+
+
+-- If given text is non-empty, get pointer to newly allocated C string
+-- representing given text. Otherwise return NULL.
+--
+-- This function allocates memory, but since the goal of this project is to
+-- replace C/C++ code with Haskell code, the allocation will be eventually
+-- removed. So I don't care about deallocating the memory.
+allocAndPokeCStringIfNonEmpty :: T.Text -> IO CString
+allocAndPokeCStringIfNonEmpty text = if T.null text
+                                     then return nullPtr
+                                     else newCString . T.unpack $ text
 
 
 

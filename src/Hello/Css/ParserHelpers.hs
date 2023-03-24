@@ -31,6 +31,7 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DeriveDataTypeable #-} -- For 'Data'.
 
 
 
@@ -53,6 +54,8 @@ module Hello.Css.ParserHelpers
   , interpretTokensAsBgPosition
   , interpretTokensAsURI
   , parserDistanceAuto
+
+  , ParsedUri (..)
   )
 where
 
@@ -61,6 +64,7 @@ where
 
 import Control.Applicative (Alternative(..), many)
 import Data.Bits
+import Data.Data
 import Data.List as L
 import Data.Map as M
 import Data.Maybe
@@ -477,8 +481,15 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
 
 
-interpretTokensAsURI :: (Text -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
-interpretTokensAsURI uriValueCtor pat = case parseUrl pat of
+data ParsedUri = ParsedUri
+  { parsedUrl  :: T.Text
+  , parsedFull :: T.Text
+  } deriving (Data, Eq, Show)
+
+
+
+interpretTokensAsURI :: (ParsedUri -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
+interpretTokensAsURI uriValueCtor pat = case parseUrl pat (ParsedUri "" "") of
                                           (pat', Just url) -> Just (pat', uriValueCtor url)
                                           -- TODO: should we assign here pat' or pat?
                                           -- A token that is not an URI should be
@@ -488,12 +499,16 @@ interpretTokensAsURI uriValueCtor pat = case parseUrl pat of
 
 
 
-parseUrl :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe T.Text)
-parseUrl (p1, CssTokUrl url)    = (nextToken p1, Just url)
-parseUrl (p1, CssTokFunc "url") = ((p2, t2), Just $ T.pack (show body))
+parseUrl :: (CssParser, CssToken) -> ParsedUri -> ((CssParser, CssToken), Maybe ParsedUri)
+parseUrl (p1, CssTokUrl url) puri    = (nextToken p1, Just $ puri { parsedUrl = url })
+parseUrl (p1, CssTokFunc "url") puri = ((p2, t2), Just $ puri { parsedUrl  = case body of
+                                                                               [(CssTokStr url), _] -> url
+                                                                               _                    -> parsedUrl puri
+                                                              , parsedFull = T.pack (show body)
+                                                              })
   where
     ((p2, t2), body) = consumeFunctionBody p1 []
-parseUrl (p1, token)            = ((p1, token), Nothing)
+parseUrl (p1, token) _               = ((p1, token), Nothing)
 
 
 

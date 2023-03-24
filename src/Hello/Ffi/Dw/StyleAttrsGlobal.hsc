@@ -167,6 +167,8 @@ foreign export ccall "ffiStyleAttrsSetBorderColor2" ffiStyleAttrsSetBorderColor2
 foreign export ccall "ffiStyleAttrsFontAttrs" ffiStyleAttrsFontAttrs :: CInt -> Ptr FfiFontAttrs -> IO ()
 foreign export ccall "ffiStyleAttrsSetFontAttrs" ffiStyleAttrsSetFontAttrs :: CInt -> Ptr FfiFontAttrs -> IO ()
 
+foreign export ccall "ffiStyleAttrsBgImage" ffiStyleAttrsBgImage :: CInt -> IO (Ptr CChar)
+
 
 
 
@@ -586,6 +588,11 @@ ffiStyleAttrsWordSpacing cRef = do
 
 
 -- Returns a pointer to string allocated on heap.
+--
+-- TODO: the function probably should return NULL pointer if attribute is an
+-- empty string.
+--
+-- FIXME: returned pointer is probably not deallocated anywhere.
 ffiStyleAttrsXTooltip :: CInt -> IO (Ptr CChar)
 ffiStyleAttrsXTooltip cRef = do
   attrs <- globalStyleAttrsGet . fromIntegral $ cRef
@@ -885,4 +892,16 @@ ffiStyleAttrsSetFontAttrs cRef ptrStruct = do
   let attrs' = attrs { styleFontAttrs = fa }
   globalStyleAttrsUpdate ref attrs'
   return ()
+
+
+
+
+-- Returns a pointer to string allocated on heap.
+-- Pointer is NULL if given attribute is an empty string.
+--
+-- FIXME: returned pointer is probably not deallocated anywhere.
+ffiStyleAttrsBgImage :: CInt -> IO (Ptr CChar)
+ffiStyleAttrsBgImage cRef = do
+  attrs <- globalStyleAttrsGet . fromIntegral $ cRef
+  allocAndPokeCStringIfNonEmpty . styleBgImage $ attrs
 
