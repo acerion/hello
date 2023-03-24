@@ -36,7 +36,7 @@ where
 import Prelude
 import Foreign.C.Types
 
-import Hello.Css.StyleEngine
+import qualified Hello.Css.StyleEngine as SE
 import Hello.Css.StyleEngineGlobal
 
 
@@ -65,7 +65,7 @@ ffiStyleEngineCtor = fmap fromIntegral globalStyleEngineCtor
 ffiStyleEngineStyleNodesStackSize :: CInt -> IO CInt
 ffiStyleEngineStyleNodesStackSize cRef = do
   engine <- globalStyleEngineGet . fromIntegral $ cRef
-  return . fromIntegral . styleNodesStackSize $ engine
+  return . fromIntegral . SE.styleNodesStackSize $ engine
 
 
 
@@ -74,7 +74,7 @@ ffiStyleEngineStyleNodesStackPushEmptyNode :: CInt -> IO ()
 ffiStyleEngineStyleNodesStackPushEmptyNode cRef = do
   let ref = fromIntegral cRef
   engine <- globalStyleEngineGet ref
-  let engine' = styleEngineNodesStackPushEmptyNode engine
+  let engine' = SE.styleNodesStackPushEmptyNode engine
   globalStyleEngineUpdate ref engine'
   return ()
 
@@ -85,7 +85,7 @@ ffiStyleEngineStyleNodesStackPop :: CInt -> IO ()
 ffiStyleEngineStyleNodesStackPop cRef = do
   let ref = fromIntegral cRef
   engine <- globalStyleEngineGet ref
-  let engine' = styleEngineNodesStackPop engine
+  let engine' = SE.styleNodesStackPop engine
   globalStyleEngineUpdate ref engine'
   return ()
 
@@ -97,7 +97,7 @@ ffiStyleEngineStyleNodesClearNonCssHints :: CInt -> IO ()
 ffiStyleEngineStyleNodesClearNonCssHints cRef = do
   let ref = fromIntegral cRef
   engine <- globalStyleEngineGet ref
-  let engine' = styleEngineNodesStackClearNonCssHints engine
+  let engine' = SE.styleNodesStackClearNonCssHints engine
   globalStyleEngineUpdate ref engine'
   return ()
 

@@ -49,7 +49,7 @@ import Hello.Html.Doctree
 import Hello.Css.Cascade
 import Hello.Css.ContextGlobal
 import Hello.Css.DeclarationSetsGlobal
-import Hello.Css.StyleEngine
+import qualified Hello.Css.StyleEngine as SE
 import Hello.Css.StyleEngineGlobal
 import Hello.Css.StyleSheet
 import Hello.Css.UserAgentStyle
@@ -198,9 +198,9 @@ ffiCssContextApplyCssContext cStyleEngineRef cRef cDtnNum = do
   engine  <- globalStyleEngineGet . fromIntegral $ cStyleEngineRef
 
   -- The main part.
-  let styleNode = styleEngineNodesStackPeek engine
-      dtn = getDtnUnsafe (doctree engine) (fromIntegral cDtnNum)
-  mergedDeclSet <- cssContextApplyCssContext fHandle context (doctree engine) dtn styleNode
+  let styleNode = SE.styleNodesStackPeek engine
+      dtn = getDtnUnsafe (SE.doctree engine) (fromIntegral cDtnNum)
+  mergedDeclSet <- cssContextApplyCssContext fHandle context (SE.doctree engine) dtn styleNode
 
   -- FFI and debugging.
   mergedDeclSetRef <- globalDeclarationSetPut mergedDeclSet

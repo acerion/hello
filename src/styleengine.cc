@@ -98,7 +98,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout, const DilloUrl *pageUrl, con
    style_attrs.color = Color::create (layout, 0);
    style_attrs.backgroundColor = Color::create (layout, prefs.bg_color);
 
-   stackPushEmptyNode();
+   styleNodesStackPushEmptyNode();
    styleNodesStack[ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) - 1].style = Style::create (&style_attrs);
 }
 
@@ -109,14 +109,14 @@ StyleEngine::~StyleEngine () {
       nodeIdx = ffiStyleEngineDoctreeGetTopNode(this->style_engine_ref);
    }
 
-   stackPop (); // dummy node on the bottom of the stack
+   styleNodesStackPop (); // dummy node on the bottom of the stack
    assert (ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) == 0);
 
    a_Url_free(pageUrl);
    a_Url_free(baseUrl);
 }
 
-void StyleEngine::stackPushEmptyNode () {
+void StyleEngine::styleNodesStackPushEmptyNode () {
    static const StyleNode emptyNode = {
       .style = NULL,
       .wordStyle = NULL,
@@ -130,7 +130,7 @@ void StyleEngine::stackPushEmptyNode () {
    ffiStyleEngineStyleNodesStackPushEmptyNode(this->style_engine_ref);
 }
 
-void StyleEngine::stackPop () {
+void StyleEngine::styleNodesStackPop () {
    StyleNode * currentNode = getCurrentNode(this);
 
    //delete currentNode->declLists.main;
@@ -151,7 +151,7 @@ void StyleEngine::stackPop () {
 void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    getStyle (bw); // ensure that style of current node is computed
 
-   stackPushEmptyNode();
+   styleNodesStackPushEmptyNode();
    StyleNode *n = getCurrentNode(this);
 
    n->doctreeNodeIdx = ffiStyleEngineDoctreePushNode(this->style_engine_ref, html_element_idx);
@@ -269,7 +269,7 @@ void StyleEngine::setPseudoVisited () {
 void StyleEngine::endElement (int element) {
    assert (element == ffiStyleEngineDoctreeGetTopNodeHtmlElementIdx(this->style_engine_ref));
 
-   stackPop ();
+   styleNodesStackPop ();
    ffiStyleEngineDoctreePopNode(this->style_engine_ref);
 }
 

@@ -61,8 +61,8 @@ public:
       int importDepth;
       DilloUrl *pageUrl, *baseUrl;
 
-      void stackPushEmptyNode ();
-      void stackPop ();
+      void styleNodesStackPushEmptyNode ();
+      void styleNodesStackPop ();
 
       void buildUserStyle(int context_ref);
 

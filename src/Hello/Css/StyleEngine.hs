@@ -55,22 +55,23 @@ module Hello.Css.StyleEngine
   , styleEnginePostprocessAttrs
   , styleEngineMakeWordStyleInheritBackground
 
-  , styleEngineNodesStackPushEmptyNode
-  , styleEngineNodesStackPop
-  , styleEngineNodesStackPeek
-  , styleEngineNodesStackPeekParent
-  , styleEngineNodesStackUpdateTop
-  , styleEngineNodesStackClearNonCssHints
+  , styleNodesStackSize
+  , styleNodesStackPushEmptyNode
+  , styleNodesStackPop
+  , styleNodesStackPeek
+  , styleNodesStackPeekParent
+  , styleNodesStackUpdateTop
+  , styleNodesStackClearNonCssHints
 
   , CssStyleEngine (..)
   , defaultCssStyleEngine
 
-  , pushNodeToDoctree
-  , popNodeFromDoctree
-  , peekTopNodeFromDoctree
-  , setElementIdOnTopNode
-  , setClassOnTopNode
-  , setPseudoClassOnTopNode
+  , doctreePushNode
+  , doctreePopNode
+  , doctreePeekNode
+  , doctreeSetElementIdOnTopNode
+  , doctreeSetClassOnTopNode
+  , doctreeSetPseudoClassOnTopNode
   )
 where
 
@@ -91,7 +92,7 @@ import Hello.Css.Distance
 import Hello.Css.Parser.Property
 import Hello.Css.StyleNode
 
-import Hello.Html.Doctree
+import qualified Hello.Html.Doctree as DT
 import Hello.Html.DoctreeNode
 
 import Hello.Display
@@ -107,16 +108,14 @@ import Hello.Utils
 
 
 data CssStyleEngine = CssStyleEngine
-  { styleNodesStackSize :: Int
-  , styleNodesStack     :: [ StyleNode ]  -- Top of stack is a list's head.
-  , doctree             :: Doctree
+  { styleNodesStack     :: [ StyleNode ]  -- Top of stack is a list's head.
+  , doctree             :: DT.Doctree
   } deriving (Show)
 
 defaultCssStyleEngine :: CssStyleEngine
 defaultCssStyleEngine = CssStyleEngine
-  { styleNodesStackSize = 0
-  , styleNodesStack     = []
-  , doctree             = defaultDoctree
+  { styleNodesStack     = []
+  , doctree             = DT.defaultDoctree
   }
 
 
@@ -1046,92 +1045,96 @@ styleEngineMakeWordStyleInheritBackground to from =
 
 -- Top of stack is at the head of stack/list, so just prepend new item to
 -- front of the list.
-styleEngineNodesStackPushEmptyNode :: CssStyleEngine -> CssStyleEngine
-styleEngineNodesStackPushEmptyNode engine = engine
-  { styleNodesStackSize = styleNodesStackSize engine + 1
-  , styleNodesStack     = defaultStyleNode : (styleNodesStack engine)
+styleNodesStackPushEmptyNode :: CssStyleEngine -> CssStyleEngine
+styleNodesStackPushEmptyNode engine = engine
+  { styleNodesStack     = defaultStyleNode : (styleNodesStack engine)
   }
+
+
+
+
+styleNodesStackSize :: CssStyleEngine -> Int
+styleNodesStackSize = length . styleNodesStack
 
 
 
 
 -- Topmost element is at head of stack/list, so remove head from the stack/list.
-styleEngineNodesStackPop :: CssStyleEngine -> CssStyleEngine
-styleEngineNodesStackPop engine = engine
-  { styleNodesStackSize = styleNodesStackSize engine - 1
-  , styleNodesStack     = tail . styleNodesStack $ engine
+styleNodesStackPop :: CssStyleEngine -> CssStyleEngine
+styleNodesStackPop engine = engine
+  { styleNodesStack     = tail . styleNodesStack $ engine
   }
 
 
 
 
 -- TODO: return Maybe StyleNode
-styleEngineNodesStackPeek :: CssStyleEngine -> StyleNode
-styleEngineNodesStackPeek engine = head . styleNodesStack $ engine
+styleNodesStackPeek :: CssStyleEngine -> StyleNode
+styleNodesStackPeek engine = head . styleNodesStack $ engine
 
 
 
 
 -- TODO: return Maybe StyleNode
-styleEngineNodesStackPeekParent :: CssStyleEngine -> StyleNode
-styleEngineNodesStackPeekParent engine = styleNodesStack engine !! 1
+styleNodesStackPeekParent :: CssStyleEngine -> StyleNode
+styleNodesStackPeekParent engine = styleNodesStack engine !! 1
 
 
 
 
 
 -- Topmost element is at head of stack/list, so replace it with combo of tail and cons.
-styleEngineNodesStackUpdateTop :: CssStyleEngine -> StyleNode -> CssStyleEngine
-styleEngineNodesStackUpdateTop engine node = engine
+styleNodesStackUpdateTop :: CssStyleEngine -> StyleNode -> CssStyleEngine
+styleNodesStackUpdateTop engine node = engine
   { styleNodesStack = node : (tail . styleNodesStack $ engine)
   }
 
 
 
 
-styleEngineNodesStackClearNonCssHints :: CssStyleEngine -> CssStyleEngine
-styleEngineNodesStackClearNonCssHints engine = styleEngineNodesStackUpdateTop engine node'
+styleNodesStackClearNonCssHints :: CssStyleEngine -> CssStyleEngine
+styleNodesStackClearNonCssHints engine = styleNodesStackUpdateTop engine node'
   where
-    node' = (styleEngineNodesStackPeek engine) { nonCssDeclSet = defaultCssDeclarationSet }
+    node' = (styleNodesStackPeek engine) { nonCssDeclSet = defaultCssDeclarationSet }
 
 
 
 
 
-pushNodeToDoctree :: CssStyleEngine -> Int -> CssStyleEngine
-pushNodeToDoctree engine elementIdx = engine { doctree = doctreePushNode (doctree engine) elementIdx }
+doctreePushNode :: CssStyleEngine -> Int -> CssStyleEngine
+doctreePushNode engine elementIdx = engine { doctree = DT.doctreePushNode (doctree engine) elementIdx }
 
 
 
 
-popNodeFromDoctree :: CssStyleEngine -> CssStyleEngine
-popNodeFromDoctree engine = engine { doctree = doctreePopNode (doctree engine) }
+doctreePopNode :: CssStyleEngine -> CssStyleEngine
+doctreePopNode engine = engine { doctree = DT.doctreePopNode (doctree engine) }
 
 
 
 
-peekTopNodeFromDoctree :: CssStyleEngine -> Maybe DoctreeNode
-peekTopNodeFromDoctree engine = M.lookup (topNodeNum . doctree $ engine) (nodes . doctree $ engine)
+doctreePeekNode :: CssStyleEngine -> Maybe DoctreeNode
+doctreePeekNode engine = M.lookup (DT.topNodeNum . doctree $ engine) (DT.nodes . doctree $ engine)
 
 
 
 
-setElementIdOnTopNode :: CssStyleEngine -> T.Text -> CssStyleEngine
-setElementIdOnTopNode engine elementId =
-  engine { doctree = adjustTopNode (doctree engine) (\x -> x { selId = elementId }) }
+doctreeSetElementIdOnTopNode :: CssStyleEngine -> T.Text -> CssStyleEngine
+doctreeSetElementIdOnTopNode engine elementId =
+  engine { doctree = DT.adjustTopNode (doctree engine) (\x -> x { selId = elementId }) }
 
 
 
 
 
-setClassOnTopNode :: CssStyleEngine -> [T.Text] -> CssStyleEngine
-setClassOnTopNode engine classSelectors =
-  engine { doctree = adjustTopNode (doctree engine) (\x -> x { selClass = classSelectors }) }
+doctreeSetClassOnTopNode :: CssStyleEngine -> [T.Text] -> CssStyleEngine
+doctreeSetClassOnTopNode engine classSelectors =
+  engine { doctree = DT.adjustTopNode (doctree engine) (\x -> x { selClass = classSelectors }) }
 
 
 
 
-setPseudoClassOnTopNode :: CssStyleEngine -> T.Text -> CssStyleEngine
-setPseudoClassOnTopNode engine pseudoClass =
-  engine { doctree = adjustTopNode (doctree engine) (\x -> x { selPseudoClass = pseudoClass }) }
+doctreeSetPseudoClassOnTopNode :: CssStyleEngine -> T.Text -> CssStyleEngine
+doctreeSetPseudoClassOnTopNode engine pseudoClass =
+  engine { doctree = DT.adjustTopNode (doctree engine) (\x -> x { selPseudoClass = pseudoClass }) }
 

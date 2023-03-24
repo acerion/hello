@@ -926,10 +926,10 @@ ffiCssParseElementStyleAttribute cStyleEngineRef _ptrBaseUrl ptrStringCssStyleAt
   cssStyleAttribute <- BSU.unsafePackCStringLen (ptrStringCssStyleAttribute, fromIntegral buflen)
 
   -- The main part.
-  let styleNode  = styleEngineNodesStackPeek engine
+  let styleNode  = styleNodesStackPeek engine
       (m, i)     = parseElementStyleAttribute "" (T.E.decodeLatin1 cssStyleAttribute) (mainDeclSet styleNode, importantDeclSet styleNode)
       styleNode' = styleNode { mainDeclSet = m, importantDeclSet = i }
-      engine'    = styleEngineNodesStackUpdateTop engine styleNode'
+      engine'    = styleNodesStackUpdateTop engine styleNode'
 
   -- FFI part.
   globalStyleEngineUpdate refEngine engine'

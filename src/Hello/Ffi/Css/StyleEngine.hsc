@@ -130,10 +130,10 @@ ffiStyleEngineSetXImgOfNode cEngineRef cIntVal = do
       val       = fromIntegral cIntVal
 
   engine <- globalStyleEngineGet engineRef
-  let styleNode = SE.styleEngineNodesStackPeek engine
+  let styleNode = SE.styleNodesStackPeek engine
 
   let styleNode' = SN.updateOrAddHint styleNode (CssPropertyXImg $ CssValueXImg val)
-      engine'    = SE.styleEngineNodesStackUpdateTop engine styleNode'
+      engine'    = SE.styleNodesStackUpdateTop engine styleNode'
 
   globalStyleEngineUpdate engineRef engine'
   return ()
@@ -148,10 +148,10 @@ ffiStyleEngineSetXLinkOfNode cEngineRef cVal = do
       val       = fromIntegral cVal
 
   engine <- globalStyleEngineGet engineRef
-  let styleNode = SE.styleEngineNodesStackPeek engine
+  let styleNode = SE.styleNodesStackPeek engine
 
   let styleNode' = SN.updateOrAddHint styleNode (CssPropertyXLink $ CssValueXLink val)
-  let engine'    = SE.styleEngineNodesStackUpdateTop engine styleNode'
+  let engine'    = SE.styleNodesStackUpdateTop engine styleNode'
 
   globalStyleEngineUpdate engineRef engine'
   return ()
@@ -168,7 +168,7 @@ ffiStyleEngineSetNonCssHintOfNodeLength cEngineRef cProperty cLengthValue cLengt
       lengthType  = fromIntegral cLengthType
 
   engine <- globalStyleEngineGet engineRef
-  let styleNode = SE.styleEngineNodesStackPeek engine
+  let styleNode = SE.styleNodesStackPeek engine
   let distance  = cssLengthToDistance lengthValue lengthType
 
   let prop | propertyArg ==  7 = CssPropertyBorderBottomWidth $ CssValueBorderWidthDistance distance
@@ -191,7 +191,7 @@ ffiStyleEngineSetNonCssHintOfNodeLength cEngineRef cProperty cLengthValue cLengt
            | otherwise         = trace ("[EE] Unhandled length propertyArg " ++ show propertyArg) undefined
 
   let styleNode' = SN.updateOrAddHint styleNode prop
-  let engine'    = SE.styleEngineNodesStackUpdateTop engine styleNode'
+  let engine'    = SE.styleNodesStackUpdateTop engine styleNode'
   globalStyleEngineUpdate engineRef engine'
 
   return ()
@@ -270,7 +270,7 @@ ffiStyleEngineSetNonCssHintOfNodeEnum cEngineRef cProperty cEnumVal = do
       propertyArg :: Int = fromIntegral cProperty
       enumVal     = fromIntegral cEnumVal
   engine <- globalStyleEngineGet engineRef
-  let styleNode = SE.styleEngineNodesStackPeek engine
+  let styleNode = SE.styleNodesStackPeek engine
 
   let prop | propertyArg ==  6 = CssPropertyBorderBottomStyle $ getBorderStyle enumVal
            | propertyArg == 10 = CssPropertyBorderLeftStyle   $ getBorderStyle enumVal
@@ -284,7 +284,7 @@ ffiStyleEngineSetNonCssHintOfNodeEnum cEngineRef cProperty cEnumVal = do
            | otherwise         = trace ("[EE] Unhandled enum propertyArg " ++ show propertyArg) undefined
 
   let styleNode' = SN.updateOrAddHint styleNode prop
-  let engine'    = SE.styleEngineNodesStackUpdateTop engine styleNode'
+  let engine'    = SE.styleNodesStackUpdateTop engine styleNode'
   globalStyleEngineUpdate engineRef engine'
 
   return ()
@@ -300,14 +300,14 @@ ffiStyleEngineSetNonCssHintOfNodeColor cEngineRef cProperty cColor = do
   let color    = fromIntegral cColor
 
   engine <- globalStyleEngineGet engineRef
-  let styleNode = SE.styleEngineNodesStackPeek engine
+  let styleNode = SE.styleNodesStackPeek engine
 
   let prop | propertyArg ==  1 = CssPropertyBackgroundColor $ CssValueBackgroundColorColor color
            | propertyArg == 23 = CssPropertyColor $ CssValueColor color
            | otherwise          = trace ("[EE] Unhandled color propertyArg " ++ show propertyArg) undefined
 
   let styleNode' = SN.updateOrAddHint styleNode prop
-  let engine'    = SE.styleEngineNodesStackUpdateTop engine styleNode'
+  let engine'    = SE.styleNodesStackUpdateTop engine styleNode'
   globalStyleEngineUpdate engineRef engine'
 
   return ()
@@ -323,13 +323,13 @@ ffiStyleEngineSetNonCssHintOfNodeString cEngineRef cProperty cStringVal = do
   textVal <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
 
   engine <- globalStyleEngineGet engineRef
-  let styleNode = SE.styleEngineNodesStackPeek engine
+  let styleNode = SE.styleNodesStackPeek engine
 
   let prop | propertyArg == 32 = CssPropertyFontFamily $ CssValueFontFamilyList [textVal]
            | otherwise         = trace ("[EE] Unhandled string propertyArg " ++ show propertyArg) undefined
 
   let styleNode' = SN.updateOrAddHint styleNode prop
-  let engine'    = SE.styleEngineNodesStackUpdateTop engine styleNode'
+  let engine'    = SE.styleNodesStackUpdateTop engine styleNode'
 
   globalStyleEngineUpdate engineRef engine'
   return ()
@@ -344,11 +344,11 @@ ffiStyleEngineSetXLangOfNode cEngineRef cStringVal = do
   textVal <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
 
   engine <- globalStyleEngineGet engineRef
-  let styleNode = SE.styleEngineNodesStackPeek engine
+  let styleNode = SE.styleNodesStackPeek engine
 
   let prop = CssPropertyXLang $ CssValueXLang textVal
   let styleNode' = SN.updateOrAddHint styleNode prop
-  let engine'    = SE.styleEngineNodesStackUpdateTop engine styleNode'
+  let engine'    = SE.styleNodesStackUpdateTop engine styleNode'
 
   globalStyleEngineUpdate engineRef engine'
   return ()
@@ -363,11 +363,11 @@ ffiStyleEngineSetXTooltipOfNode cEngineRef cStringVal = do
   textVal <- fmap T.E.decodeLatin1 (BSU.unsafePackCString cStringVal)
 
   engine <- globalStyleEngineGet engineRef
-  let styleNode = SE.styleEngineNodesStackPeek engine
+  let styleNode = SE.styleNodesStackPeek engine
 
   let prop = CssPropertyXTooltip $ CssValueXTooltip textVal
   let styleNode' = SN.updateOrAddHint styleNode prop
-  let engine'    = SE.styleEngineNodesStackUpdateTop engine styleNode'
+  let engine'    = SE.styleNodesStackUpdateTop engine styleNode'
 
   globalStyleEngineUpdate engineRef engine'
 
@@ -410,15 +410,15 @@ ffiInheritNonCssHints cEngineRef = do
   let engineRef = fromIntegral cEngineRef
   engine <- globalStyleEngineGet engineRef
 
-  let currentNode = SE.styleEngineNodesStackPeek engine
-      parentNode  = SE.styleEngineNodesStackPeekParent $ engine
+  let currentNode = SE.styleNodesStackPeek engine
+      parentNode  = SE.styleNodesStackPeekParent $ engine
 
   if SN.hintsSize parentNode > 0
     then
     -- Parent has some non-CSS hints. Either use parent's hints entirely or
     -- (if current node has some hints) merge current's and parent's hints.
     do
-      let engine' = SE.styleEngineNodesStackUpdateTop engine (SN.inheritHints parentNode currentNode)
+      let engine' = SE.styleNodesStackUpdateTop engine (SN.inheritHints parentNode currentNode)
       globalStyleEngineUpdate engineRef engine'
       return ()
     else
@@ -509,10 +509,10 @@ ffiStyleEngineDoctreePushNode cEngineRef cElementIdx = do
   engine <- globalStyleEngineGet engineRef
   let elementIdx = fromIntegral cElementIdx
 
-  let engine' = SE.pushNodeToDoctree engine elementIdx
+  let engine' = SE.doctreePushNode engine elementIdx
   globalStyleEngineUpdate engineRef engine'
 
-  case SE.peekTopNodeFromDoctree engine' of
+  case SE.doctreePeekNode engine' of
     Just dtn -> return . fromIntegral . uniqueNum $ dtn
     Nothing  -> return (-1)
 
@@ -523,7 +523,7 @@ ffiStyleEngineDoctreePopNode :: CInt -> IO ()
 ffiStyleEngineDoctreePopNode cEngineRef = do
   let engineRef = fromIntegral cEngineRef
   engine <- globalStyleEngineGet engineRef
-  let engine' = SE.popNodeFromDoctree engine
+  let engine' = SE.doctreePopNode engine
   globalStyleEngineUpdate engineRef engine'
 
 
@@ -533,7 +533,7 @@ ffiStyleEngineDoctreeGetTopNodeHtmlElementIdx :: CInt -> IO CInt
 ffiStyleEngineDoctreeGetTopNodeHtmlElementIdx cEngineRef = do
   let engineRef = fromIntegral cEngineRef
   engine <- globalStyleEngineGet engineRef
-  case SE.peekTopNodeFromDoctree engine of
+  case SE.doctreePeekNode engine of
     Just dtn -> return . fromIntegral . htmlElementIdx $ dtn
     Nothing  -> return 0
 
@@ -544,7 +544,7 @@ ffiStyleEngineDoctreeGetTopNodeElementSelectorId :: CInt -> IO CString
 ffiStyleEngineDoctreeGetTopNodeElementSelectorId cEngineRef = do
   let engineRef = fromIntegral cEngineRef
   engine <- globalStyleEngineGet engineRef
-  case SE.peekTopNodeFromDoctree engine of
+  case SE.doctreePeekNode engine of
     Just dtn -> if T.null . selId $ dtn
                 then return nullPtr -- Returning empty string ("") would confuse C++ code.
                 else newCString . T.unpack . selId $ dtn
@@ -557,7 +557,7 @@ ffiStyleEngineDoctreeGetTopNode :: CInt -> IO CInt
 ffiStyleEngineDoctreeGetTopNode cEngineRef = do
   let engineRef = fromIntegral cEngineRef
   engine <- globalStyleEngineGet engineRef
-  case SE.peekTopNodeFromDoctree engine of
+  case SE.doctreePeekNode engine of
     Just dtn -> return . fromIntegral . uniqueNum $ dtn
     Nothing  -> return (-1)
 
@@ -573,7 +573,7 @@ ffiStyleEngineDoctreeSetElementId cEngineRef cElementId = do
   stringVal     <- BSU.unsafePackCString cElementId
   let elementId  = T.E.decodeLatin1 stringVal
 
-  let engine' = SE.setElementIdOnTopNode engine elementId
+  let engine' = SE.doctreeSetElementIdOnTopNode engine elementId
   globalStyleEngineUpdate engineRef engine'
 
 
@@ -590,7 +590,7 @@ ffiStyleEngineDoctreeSetElementClass cEngineRef cElementClassTokens = do
   let ws = words . Char8.unpack $ tokens
   let classSelectors = fmap T.pack ws
 
-  let engine' = SE.setClassOnTopNode engine classSelectors
+  let engine' = SE.doctreeSetClassOnTopNode engine classSelectors
   globalStyleEngineUpdate engineRef engine'
 
 
@@ -604,7 +604,7 @@ ffiStyleEngineDoctreeSetElementPseudoClass cEngineRef cElementPseudoClass = do
   stringVal             <- BSU.unsafePackCString cElementPseudoClass
   let elementPseudoClass = T.E.decodeLatin1 stringVal
 
-  let engine' = SE.setPseudoClassOnTopNode engine elementPseudoClass
+  let engine' = SE.doctreeSetPseudoClassOnTopNode engine elementPseudoClass
   globalStyleEngineUpdate engineRef engine'
 
 
