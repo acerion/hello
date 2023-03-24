@@ -62,6 +62,7 @@ module Hello.Css.StyleEngine
   , styleNodesStackPeekParent
   , styleNodesStackUpdateTop
   , styleNodesStackClearNonCssHints
+  , styleNodesStackGet
 
   , CssStyleEngine (..)
   , defaultCssStyleEngine
@@ -72,6 +73,8 @@ module Hello.Css.StyleEngine
   , doctreeSetElementIdOnTopNode
   , doctreeSetClassOnTopNode
   , doctreeSetPseudoClassOnTopNode
+
+  , startElement
   )
 where
 
@@ -1082,6 +1085,14 @@ styleNodesStackPeekParent engine = styleNodesStack engine !! 1
 
 
 
+-- Get style node at specific index. 
+--
+-- TODO: return Maybe StyleNode
+styleNodesStackGet :: CssStyleEngine -> Int -> StyleNode
+styleNodesStackGet engine idx = (styleNodesStack engine) !! ((length . styleNodesStack $ engine) - idx - 1)
+
+
+
 
 -- Topmost element is at head of stack/list, so replace it with combo of tail and cons.
 styleNodesStackUpdateTop :: CssStyleEngine -> StyleNode -> CssStyleEngine
@@ -1137,4 +1148,18 @@ doctreeSetClassOnTopNode engine classSelectors =
 doctreeSetPseudoClassOnTopNode :: CssStyleEngine -> T.Text -> CssStyleEngine
 doctreeSetPseudoClassOnTopNode engine pseudoClass =
   engine { doctree = DT.adjustTopNode (doctree engine) (\x -> x { selPseudoClass = pseudoClass }) }
+
+
+
+
+-- Function called when new HTML element (tag) is being opened.
+startElement :: CssStyleEngine -> Int -> CssStyleEngine
+startElement engine htmlElemIdx = engine'''
+  where
+    engine'   = styleNodesStackPushEmptyNode engine
+    engine''  = doctreePushNode engine' htmlElemIdx
+    engine''' = styleNodesStackUpdateTop engine'' styleNode
+
+    styleNode = (styleNodesStackPeek engine'') { doctreeNodeIdx = uniqueNum . DT.peekTopNodeUnsafe . doctree $ engine'' }
+
 

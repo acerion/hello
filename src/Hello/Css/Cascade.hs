@@ -217,6 +217,14 @@ buildMatchingRulesForDtn styleSheet dtn = concat rulesLists
 -- ordering defined by CSS 2.1. Stylesheets that are applied later can
 -- overwrite properties set by previous stylesheets. This allows e.g. user
 -- styles to overwrite author styles.
+--
+-- Remember that styleNode and dtn aren't necessarily the top/current
+-- elements of style node stack or doctree. This function may be called for
+-- any element of style node stack and doctree during restyling of entire
+-- tree. The restyling is done by C++ code when <body> is opened, see
+-- "html->styleEngine->restyle (html->bw);" in Html_tag_open_body(). Caller
+-- of this function should always use some styleNodeIndex as a starting point
+-- to get a proper styleNode and dtn.
 cssContextApplyCssContext :: Handle -> CssContext -> Doctree -> DoctreeNode -> StyleNode -> IO CssDeclarationSet
 cssContextApplyCssContext fHandle context doctree dtn styleNode = do
 

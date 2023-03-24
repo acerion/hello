@@ -58,10 +58,11 @@ data StyleNode = StyleNode
    -- Non-CSS hint for styling a node. "non-css" because it comes from HTML
    -- tags and attributes instead of CSS style info.
   , nonCssDeclSet    :: CssDeclarationSet
+  , doctreeNodeIdx   :: Int
   } deriving (Show)
 
 defaultStyleNode :: StyleNode
-defaultStyleNode = StyleNode defaultCssDeclarationSet defaultCssDeclarationSet defaultCssDeclarationSet
+defaultStyleNode = StyleNode defaultCssDeclarationSet defaultCssDeclarationSet defaultCssDeclarationSet (-1)
 
 
 

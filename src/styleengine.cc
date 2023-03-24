@@ -99,6 +99,7 @@ StyleEngine::StyleEngine (dw::core::Layout *layout, const DilloUrl *pageUrl, con
    style_attrs.backgroundColor = Color::create (layout, prefs.bg_color);
 
    styleNodesStackPushEmptyNode();
+   ffiStyleEngineStyleNodesStackPushEmptyNode(this->style_engine_ref);
    styleNodesStack[ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) - 1].style = Style::create (&style_attrs);
 }
 
@@ -123,11 +124,9 @@ void StyleEngine::styleNodesStackPushEmptyNode () {
       .backgroundStyle = NULL,
       .inheritBackgroundColor = false,
       .displayNone = false,
-      .doctreeNodeIdx = 0
    };
 
    memcpy(&styleNodesStack[ffiStyleEngineStyleNodesStackSize(this->style_engine_ref)], &emptyNode, sizeof (emptyNode));
-   ffiStyleEngineStyleNodesStackPushEmptyNode(this->style_engine_ref);
 }
 
 void StyleEngine::styleNodesStackPop () {
@@ -152,11 +151,10 @@ void StyleEngine::startElement (int html_element_idx, BrowserWindow *bw) {
    getStyle (bw); // ensure that style of current node is computed
 
    styleNodesStackPushEmptyNode();
-   StyleNode *n = getCurrentNode(this);
-
-   n->doctreeNodeIdx = ffiStyleEngineDoctreePushNode(this->style_engine_ref, html_element_idx);
+   ffiStyleEngineStartElement(this->style_engine_ref, html_element_idx);
 
    if (ffiStyleEngineStyleNodesStackSize(this->style_engine_ref) > 1) {
+      StyleNode *n = getCurrentNode(this);
       StyleNode * parentNode = getParentNode(this);
       n->displayNone = parentNode->displayNone;
    }
@@ -439,15 +437,13 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
 
    preprocessAttrs(&styleAttrs);
 
-   const int dtnNum = styleNodesStack[styleNodeIndex].doctreeNodeIdx;
-
    timer_start(&g_apply_get_start);
 
    // Merge style information from main (non-important) declarations,
    // important declarations, and non-CSS hints.
    int merged_decl_set_ref = ffiCssContextApplyCssContext(this->style_engine_ref,
                                                           this->css_context_ref,
-                                                          dtnNum);
+                                                          styleNodeIndex);
 
    timer_stop(&g_apply_get_start, &g_apply_get_stop, &g_apply_get_acc);
    fprintf(stderr, "[II] Total apply-get time increased to %ld:%06ld\n", g_apply_get_acc.tv_sec, g_apply_get_acc.tv_usec);

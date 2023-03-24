@@ -93,7 +93,7 @@ foreign export ccall "ffiStyleEnginePreprocessAttrsInheritBackground" ffiStyleEn
 foreign export ccall "ffiStyleEnginePreprocessAttrs" ffiStyleEnginePreprocessAttrs :: CInt -> IO ()
 foreign export ccall "ffiStyleEngineMakeWordStyleInheritBackground" ffiStyleEngineMakeWordStyleInheritBackground :: CInt -> CInt -> IO ()
 
-foreign export ccall "ffiStyleEngineDoctreePushNode" ffiStyleEngineDoctreePushNode :: CInt -> CInt -> IO CInt
+--foreign export ccall "ffiStyleEngineDoctreePushNode" ffiStyleEngineDoctreePushNode :: CInt -> CInt -> IO CInt
 foreign export ccall "ffiStyleEngineDoctreePopNode" ffiStyleEngineDoctreePopNode :: CInt -> IO ()
 foreign export ccall "ffiStyleEngineDoctreeGetTopNodeElementSelectorId" ffiStyleEngineDoctreeGetTopNodeElementSelectorId :: CInt -> IO CString
 foreign export ccall "ffiStyleEngineDoctreeGetTopNode" ffiStyleEngineDoctreeGetTopNode :: CInt -> IO CInt
@@ -102,6 +102,8 @@ foreign export ccall "ffiStyleEngineDoctreeGetTopNodeHtmlElementIdx" ffiStyleEng
 foreign export ccall "ffiStyleEngineDoctreeSetElementId" ffiStyleEngineDoctreeSetElementId :: CInt -> CString -> IO ()
 foreign export ccall "ffiStyleEngineDoctreeSetElementClass" ffiStyleEngineDoctreeSetElementClass :: CInt -> CString -> IO ()
 foreign export ccall "ffiStyleEngineDoctreeSetElementPseudoClass" ffiStyleEngineDoctreeSetElementPseudoClass :: CInt -> CString -> IO ()
+
+foreign export ccall "ffiStyleEngineStartElement" ffiStyleEngineStartElement :: CInt -> CInt -> IO ()
 
 
 
@@ -502,7 +504,7 @@ ffiStyleEngineMakeWordStyleInheritBackground cRefTo cRefFrom = do
 
 
 
-
+{-
 ffiStyleEngineDoctreePushNode :: CInt -> CInt -> IO CInt
 ffiStyleEngineDoctreePushNode cEngineRef cElementIdx = do
   let engineRef = fromIntegral cEngineRef
@@ -515,7 +517,7 @@ ffiStyleEngineDoctreePushNode cEngineRef cElementIdx = do
   case SE.doctreePeekNode engine' of
     Just dtn -> return . fromIntegral . uniqueNum $ dtn
     Nothing  -> return (-1)
-
+-}
 
 
 
@@ -609,6 +611,14 @@ ffiStyleEngineDoctreeSetElementPseudoClass cEngineRef cElementPseudoClass = do
 
 
 
+
+ffiStyleEngineStartElement :: CInt -> CInt -> IO ()
+ffiStyleEngineStartElement cEngineRef cHtmlElementIdx = do
+  let engineRef = fromIntegral cEngineRef
+  engine <- globalStyleEngineGet engineRef
+  let htmlElemIdx = fromIntegral cHtmlElementIdx
+  let engine' = SE.startElement engine htmlElemIdx
+  globalStyleEngineUpdate engineRef engine'
 
 {-
 

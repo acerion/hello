@@ -58,6 +58,7 @@ module Hello.Html.Doctree
 
   , doctreePushNode
   , doctreePopNode
+  , peekTopNodeUnsafe
 
   , getDtnUnsafe
   , getDtnParent
@@ -190,6 +191,12 @@ doctreePopNode doctree = if uniqueNum dtn == 0 -- We are popping the element of 
    }
 
 -}
+
+
+
+
+peekTopNodeUnsafe :: Doctree -> DoctreeNode
+peekTopNodeUnsafe doctree = nodes doctree M.! topNodeNum doctree
 
 
 

@@ -280,7 +280,6 @@ typedef struct c_gif_t {
 
 
 
-int ffiStyleEngineDoctreePushNode(int style_engine_ref, int element_idx);
 void ffiStyleEngineDoctreePopNode(int style_engine_ref);
 const char * ffiStyleEngineDoctreeGetTopNodeElementSelectorId(int style_engine_ref);
 int ffiStyleEngineDoctreeGetTopNode(int style_engine_ref);
@@ -407,7 +406,7 @@ void ffiHtmlParseAttributeWidthOrHeight(const char * attribute_value, c_css_leng
 
 int ffiCssContextApplyCssContext(int style_engine_ref,
                                  int context_ref,
-                                 int dtn_num);
+                                 int styleNodeIndex);
 
 void ffiCssContextPrint(const char * path, int css_context_ref);
 
@@ -456,6 +455,7 @@ void ffiStyleEnginePreprocessAttrs(int refTo);
 void ffiStyleEngineMakeWordStyleInheritBackground(int refTo, int refFrom);
 void ffiStyleEnginePostprocessAttrs(int ref);
 
+void ffiStyleEngineStartElement(int style_engin_ref, int html_element_idx);
 
 
 int ffiDeclarationSetCtor(void);

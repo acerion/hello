@@ -25,7 +25,6 @@ struct StyleNode {
    dw::core::style::Style *backgroundStyle;
    bool inheritBackgroundColor;
    bool displayNone;
-   int doctreeNodeIdx;
 };
 
 class StyleEngine;

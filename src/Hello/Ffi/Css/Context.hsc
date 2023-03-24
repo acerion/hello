@@ -51,6 +51,7 @@ import Hello.Css.ContextGlobal
 import Hello.Css.DeclarationSetsGlobal
 import qualified Hello.Css.StyleEngine as SE
 import Hello.Css.StyleEngineGlobal
+import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
 import Hello.Css.UserAgentStyle
 import Hello.Ffi.Css.Parser
@@ -189,18 +190,29 @@ getSomeDeclSet2 ref = if (-1) == ref
 
 
 
+
 ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
-ffiCssContextApplyCssContext cStyleEngineRef cRef cDtnNum = do
+ffiCssContextApplyCssContext cStyleEngineRef cRef cStyleNodeIndex = do
 
   -- FFI and debugging.
   fHandle <- openFile "/tmp/hello_browser_matching_rules_debug.txt" AppendMode
   context <- globalContextGet . fromIntegral $ cRef
   engine  <- globalStyleEngineGet . fromIntegral $ cStyleEngineRef
+  let styleNodeIndex = fromIntegral cStyleNodeIndex
 
   -- The main part.
-  let styleNode = SE.styleNodesStackPeek engine
-      dtn = getDtnUnsafe (SE.doctree engine) (fromIntegral cDtnNum)
-  mergedDeclSet <- cssContextApplyCssContext fHandle context (SE.doctree engine) dtn styleNode
+  --
+  -- Remember that styleNode and dtn aren't necessarily the top/current
+  -- elements of style node stack or doctree. This function may be called for
+  -- any element of style node stack and doctree during restyling of entire
+  -- tree. The restyling is done by C++ code when <body> is opened, see
+  -- "html->styleEngine->restyle (html->bw);" in Html_tag_open_body(). Always
+  -- use styleNodeIndex as a starting point to get a proper styleNode and
+  -- dtn.
+  let doctree   = SE.doctree engine
+      styleNode = SE.styleNodesStackGet engine styleNodeIndex
+      dtn       = getDtnUnsafe doctree (doctreeNodeIdx styleNode)
+  mergedDeclSet <- cssContextApplyCssContext fHandle context doctree dtn styleNode
 
   -- FFI and debugging.
   mergedDeclSetRef <- globalDeclarationSetPut mergedDeclSet
