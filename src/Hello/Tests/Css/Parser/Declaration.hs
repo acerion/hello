@@ -236,19 +236,16 @@ parseSingleDeclarationTestData =
     -- TODO: write more tests for background-image.
 
     -- Quoted URL.
-  , ( "background-image: url(\"background.png\")",           Just CssDeclaration { property = CssPropertyBackgroundImage
-                                                                                   (CssValueBackgroundImageImage (ImageUrl (ParsedUrl "background.png"))), important = False } )
+  , ( "background-image: url(\"background.png\")",           Just CssDeclaration { property = CssPropertyBgImage (CssValueBgImageImage (ImageUrl (ParsedUrl "background.png"))), important = False } )
+
     -- Unquoted URL.
-  , ( "background-image: url(background.png) !important",    Just CssDeclaration { property = CssPropertyBackgroundImage
-                                                                                   (CssValueBackgroundImageImage (ImageUrl (ParsedUrl "background.png"))), important = True } )
+  , ( "background-image: url(background.png) !important",    Just CssDeclaration { property = CssPropertyBgImage (CssValueBgImageImage (ImageUrl (ParsedUrl "background.png"))), important = True } )
 
     -- URL as quoted http URL.
-  , ( "background-image: url(\"http://www.a.com/bg.png\")",  Just CssDeclaration { property = CssPropertyBackgroundImage
-                                                                                   (CssValueBackgroundImageImage (ImageUrl (ParsedUrl "http://www.a.com/bg.png"))), important = False } )
+  , ( "background-image: url(\"http://www.a.com/bg.png\")",  Just CssDeclaration { property = CssPropertyBgImage (CssValueBgImageImage (ImageUrl (ParsedUrl "http://www.a.com/bg.png"))), important = False } )
 
       -- URL as unquoted http URL.
-  , ( "background-image: url(https://www.a.com/bg.png)",     Just CssDeclaration { property = CssPropertyBackgroundImage
-                                                                                   (CssValueBackgroundImageImage (ImageUrl (ParsedUrl "https://www.a.com/bg.png"))), important = False } )
+  , ( "background-image: url(https://www.a.com/bg.png)",     Just CssDeclaration { property = CssPropertyBgImage (CssValueBgImageImage (ImageUrl (ParsedUrl "https://www.a.com/bg.png"))), important = False } )
 
     -- Failure case: anything other than url is not supported
   , ( "background-image: linear-gradient(black, white)",     Nothing )

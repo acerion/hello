@@ -448,7 +448,7 @@ yet because a full support for them in dillo seems to be missing or broken.
   -- Probably because of code like this someone invented lenses.
   case declaration of
     CssPropertyBackground declValue     -> foldr f styleAttrs [ CssPropertyBackgroundColor . backgroundColor $ declValue
-                                                              , CssPropertyBackgroundImage . backgroundImage $ declValue
+                                                              , CssPropertyBgImage . bgImage $ declValue
                                                               , CssPropertyBackgroundPosition . backgroundPosition $ declValue
                                                               , CssPropertyBackgroundRepeat . backgroundRepeatStyle $ declValue
                                                               , CssPropertyBackgroundAttachment . backgroundAttachment $ declValue
@@ -459,7 +459,7 @@ yet because a full support for them in dillo seems to be missing or broken.
                                                               ]
 
     CssPropertyBackgroundColor declValue     -> styleAttrs { styleBackgroundColor = getBackgroundColor parentStyleAttrs declValue }
-    CssPropertyBackgroundImage declValue     -> styleAttrs { styleBgImage = getBgImage declValue }
+    CssPropertyBgImage declValue             -> styleAttrs { styleBgImage = getBgImage declValue }
     CssPropertyBorderCollapse declValue      -> styleAttrs { styleBorderCollapse  = getBorderCollapse declValue }
 
     CssPropertyBorder declValue              -> foldr f styleAttrs [ CssPropertyBorderTopWidth   . borderTRBLWidth $ declValue
@@ -884,9 +884,9 @@ getBackgroundColor parentStyleAttrs declValue = case declValue of
 
 
 
-getBgImage :: CssValueBackgroundImage -> T.Text
-getBgImage (CssValueBackgroundImageImage (ImageUrl (ParsedUrl url))) = url
-getBgImage _                                                         = ""
+getBgImage :: CssValueBgImage -> T.Text
+getBgImage (CssValueBgImageImage (ImageUrl (ParsedUrl url))) = url
+getBgImage _                                                 = ""
 
 
 

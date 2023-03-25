@@ -38,7 +38,7 @@ module Hello.Css.Parser.Property
   , CssValueBackground (..)
   , CssValueBackgroundAttachment (..)
   , CssValueBackgroundColor (..)
-  , CssValueBackgroundImage (..)
+  , CssValueBgImage (..)
   , CssValueBackgroundPosition (..)
   , CssValueBackgroundRepeat (..)
 
@@ -91,7 +91,7 @@ module Hello.Css.Parser.Property
   , parserPropertyBackground
   , parserPropertyBackgroundAttachment
   , parserPropertyBackgroundColor
-  , parserPropertyBackgroundImage
+  , parserPropertyBgImage
   , parserPropertyBackgroundPosition
   , parserPropertyBackgroundRepeat
 
@@ -249,7 +249,7 @@ data CssProperty
   = CssPropertyBackground CssValueBackground
   | CssPropertyBackgroundAttachment CssValueBackgroundAttachment      -- 0    parsing is unit-tested
   | CssPropertyBackgroundColor CssValueBackgroundColor                -- 1    parsing is unit-tested
-  | CssPropertyBackgroundImage CssValueBackgroundImage                -- 2
+  | CssPropertyBgImage CssValueBgImage                -- 2
   | CssPropertyBackgroundPosition CssValueBackgroundPosition          -- 3    There are some unit tests, but they don't really test much.
   | CssPropertyBackgroundRepeat CssValueBackgroundRepeat              -- 4
 
@@ -393,7 +393,7 @@ insertClosure updateAccWithValue parser = updateAccWithValue <$> parser
 
 data CssValueBackground = CssValueBackground
   { backgroundColor       :: CssValueBackgroundColor
-  , backgroundImage       :: CssValueBackgroundImage
+  , bgImage       :: CssValueBgImage
   , backgroundPosition    :: CssValueBackgroundPosition
   , backgroundRepeatStyle :: CssValueBackgroundRepeat
   , backgroundAttachment  :: CssValueBackgroundAttachment
@@ -407,7 +407,7 @@ data CssValueBackground = CssValueBackground
 initialValueBackground :: CssValueBackground
 initialValueBackground = CssValueBackground
                          initialValueBackgroundColor
-                         initialValueBackgroundImage
+                         initialValueBgImage
                          initialValueBackgroundPosition
                          initialValueBackgroundRepeatStyle
                          initialValueBackgroundAttachment
@@ -433,7 +433,7 @@ parserPropertyBackground = CssPropertyBackground <$> parserValue
 
     -- TODO: sooner or later we will need to add here "many parserTokenWhitespace *>" in front of "parserValueBackground*".
     parserBgColor       = insertClosure (\ value acc -> acc { backgroundColor = value }) parserValueBackgroundColor
-    parserBgImage       = insertClosure (\ value acc -> acc { backgroundImage = value }) parserValueBackgroundImage
+    parserBgImage       = insertClosure (\ value acc -> acc { bgImage = value }) parserValueBgImage
     parserBgPosition    = insertClosure (\ value acc -> acc { backgroundPosition = value }) parserValueBackgroundPosition
     parserBgRepeatStyle = insertClosure (\ value acc -> acc { backgroundRepeatStyle = value }) parserValueBackgroundStyle
     parserBgAttachment  = insertClosure (\ value acc -> acc { backgroundAttachment = value }) parserValueBackgroundAttachment
@@ -567,28 +567,28 @@ parserValueBackgroundColor = mkParserEnum cssValueBackgroundColorDict
 
 
 
-data CssValueBackgroundImage
- = CssValueBackgroundImageImage Image
- | CssValueBackgroundImageNone         -- TODO: parsing of "none" keyword is not handled yet.
+data CssValueBgImage
+ = CssValueBgImageImage Image
+ | CssValueBgImageNone         -- TODO: parsing of "none" keyword is not handled yet.
  deriving (Data, Eq, Show)
 
 
 
 
-initialValueBackgroundImage :: CssValueBackgroundImage
-initialValueBackgroundImage = CssValueBackgroundImageNone
+initialValueBgImage :: CssValueBgImage
+initialValueBgImage = CssValueBgImageNone
 
 
 
 
-parserPropertyBackgroundImage :: Parser (CssParser, CssToken) CssProperty
-parserPropertyBackgroundImage = CssPropertyBackgroundImage <$> parserValueBackgroundImage
+parserPropertyBgImage :: Parser (CssParser, CssToken) CssProperty
+parserPropertyBgImage = CssPropertyBgImage <$> parserValueBgImage
 
 
 
 
-parserValueBackgroundImage :: Parser (CssParser, CssToken) CssValueBackgroundImage
-parserValueBackgroundImage = CssValueBackgroundImageImage <$> (parserImageUrl <|> parserImageGradient)
+parserValueBgImage :: Parser (CssParser, CssToken) CssValueBgImage
+parserValueBgImage = CssValueBgImageImage <$> (parserImageUrl <|> parserImageGradient)
 
 
 

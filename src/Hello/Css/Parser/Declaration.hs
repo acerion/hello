@@ -78,7 +78,7 @@ cssPropertyParsers = M.fromList [
      ("background",             parserPropertyBackground)
    , ("background-attachment",  parserPropertyBackgroundAttachment)
    , ("background-color",       parserPropertyBackgroundColor)
-   , ("background-image",       parserPropertyBackgroundImage)
+   , ("background-image",       parserPropertyBgImage)
    , ("background-position",    parserPropertyBackgroundPosition)
    , ("background-repeat",      parserPropertyBackgroundRepeat)
 

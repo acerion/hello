@@ -119,9 +119,9 @@ declarationsSetUpdateOrAdd declSet decl =
     -- too.
     newSafe :: CssDeclarationSet -> CssDeclaration -> Bool
     newSafe declSet' decl' = isSafe declSet' && case property decl' of
-                                                  CssPropertyDisplay _         -> False
-                                                  CssPropertyBackgroundImage _ -> False
-                                                  _                            -> True
+                                                  CssPropertyDisplay _ -> False
+                                                  CssPropertyBgImage _ -> False
+                                                  _                    -> True
 
 
 
