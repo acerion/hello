@@ -45,13 +45,7 @@ import System.IO
 
 --import Debug.Trace
 
-import Hello.Html.Doctree
-import Hello.Css.Cascade
 import Hello.Css.ContextGlobal
-import Hello.Css.DeclarationSetsGlobal
-import qualified Hello.Css.StyleEngine as SE
-import Hello.Css.StyleEngineGlobal
-import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
 import Hello.Css.UserAgentStyle
 import Hello.Ffi.Css.Parser
@@ -64,7 +58,7 @@ import Hello.Ffi.Css.Parser
 
 
 foreign export ccall "ffiCssContextCtor" ffiCssContextCtor :: IO CInt
-foreign export ccall "ffiCssContextApplyCssContext" ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
+--foreign export ccall "ffiCssContextApplyCssContext" ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "ffiParseCss" ffiParseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
 
 foreign export ccall "ffiCssContextPrint" ffiCssContextPrint :: CString -> CInt -> IO ()
@@ -191,6 +185,7 @@ getSomeDeclSet2 ref = if (-1) == ref
 
 
 
+{-
 ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
 ffiCssContextApplyCssContext cStyleEngineRef cRef cStyleNodeIndex = do
 
@@ -218,6 +213,7 @@ ffiCssContextApplyCssContext cStyleEngineRef cRef cStyleNodeIndex = do
   mergedDeclSetRef <- globalDeclarationSetPut mergedDeclSet
   hClose fHandle
   return . fromIntegral $ mergedDeclSetRef
+-}
 
 
 

@@ -5,7 +5,6 @@
 all:
 	hsc2hs ./Ffi/Css/Css.hsc
 	hsc2hs ./Ffi/Css/Context.hsc
-	hsc2hs ./Ffi/Css/DeclarationSetsGlobal.hsc
 	hsc2hs ./Ffi/Css/Distance.hsc
 	hsc2hs ./Ffi/Css/MatchCache.hsc
 	hsc2hs ./Ffi/Css/Parser.hsc
@@ -52,7 +51,6 @@ clean:
 
 	rm -f ./Ffi/Css/Css.hs
 	rm -f ./Ffi/Css/Context.hs
-	rm -f ./Ffi/Css/DeclarationSetsGlobal.hs
 	rm -f ./Ffi/Css/Distance.hs
 	rm -f ./Ffi/Css/MatchCache.hs
 	rm -f ./Ffi/Css/Parser.hs

@@ -63,12 +63,9 @@
 struct timeval g_parse_acc = {};
 struct timeval g_parse_start = {};
 struct timeval g_parse_stop = {};
-struct timeval g_apply_get_acc = {};
-struct timeval g_apply_get_start = {};
-struct timeval g_apply_get_stop = {};
-struct timeval g_apply_do_acc = {};
-struct timeval g_apply_do_start = {};
-struct timeval g_apply_do_stop = {};
+struct timeval g_apply_acc = {};
+struct timeval g_apply_start = {};
+struct timeval g_apply_stop = {};
 
 /*
  * Command line options structure

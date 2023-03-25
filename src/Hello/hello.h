@@ -406,10 +406,6 @@ void ffiHtmlParseAttributeWidthOrHeight(const char * attribute_value, c_css_leng
 
 
 
-int ffiCssContextApplyCssContext(int style_engine_ref,
-                                 int context_ref,
-                                 int styleNodeIndex);
-
 void ffiCssContextPrint(const char * path, int css_context_ref);
 
 
@@ -448,7 +444,7 @@ void ffiStyleEngineDoctreeSetElementPseudoClass(int style_engine_ref, const char
 
 
 
-void ffiStyleEngineApplyStyleToGivenNode(int merged_decl_set_ref, c_prefs_t * prefs, float dpiX, float dpiY, int parent_style_attrs_ref, int this_style_attrs_ref);
+void ffiStyleEngineMakeStyleAttrs(int style_engine_ref, int context_ref, int style_node_idx, c_prefs_t * prefs, float dpiX, float dpiY, int parent_style_attrs_ref, int this_style_attrs_ref);
 
 
 void ffiStyleEngineMakeWordStyle(int refAttrs, int refBwAttrs);

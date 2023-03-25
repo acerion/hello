@@ -45,10 +45,11 @@ import qualified Data.ByteString.Unsafe as BSU
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T.E
 
+import System.IO
+
 import Debug.Trace
 
-import Hello.Css.Declaration
-import Hello.Css.DeclarationSetsGlobal
+import Hello.Css.ContextGlobal
 import Hello.Css.Distance
 import Hello.Css.Parser.Property
 import qualified Hello.Css.StyleEngine as SE
@@ -82,8 +83,10 @@ foreign export ccall "ffiStyleEngineSetXLangOfNode" ffiStyleEngineSetXLangOfNode
 foreign export ccall "ffiStyleEngineSetXLinkOfNode" ffiStyleEngineSetXLinkOfNode :: CInt -> CInt -> IO ()
 foreign export ccall "ffiStyleEngineSetXTooltipOfNode" ffiStyleEngineSetXTooltipOfNode :: CInt -> CString -> IO ()
 
-foreign export ccall "ffiStyleEngineApplyStyleToGivenNode" ffiStyleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> CInt -> CInt -> IO ()
+--foreign export ccall "ffiStyleEngineApplyStyleToGivenNode" ffiStyleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> CInt -> CInt -> IO ()
 foreign export ccall "ffiInheritNonCssHints" ffiInheritNonCssHints :: CInt -> IO ()
+
+foreign export ccall "ffiStyleEngineMakeStyleAttrs" ffiStyleEngineMakeStyleAttrs :: CInt -> CInt -> CInt -> Ptr FfiPreferences -> Float -> Float -> CInt -> CInt -> IO ()
 
 foreign export ccall "ffiStyleEnginePostprocessAttrs" ffiStyleEnginePostprocessAttrs :: CInt -> IO ()
 
@@ -377,7 +380,7 @@ ffiStyleEngineSetXTooltipOfNode cEngineRef cStringVal = do
 
 
 
-
+{-
 ffiStyleEngineApplyStyleToGivenNode :: CInt -> Ptr FfiPreferences -> Float -> Float -> CInt -> CInt -> IO ()
 ffiStyleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiXArg dpiYArg cParentRef cRef = do
 
@@ -400,7 +403,7 @@ ffiStyleEngineApplyStyleToGivenNode cMergedDeclSetRef ptrStructPrefs dpiXArg dpi
   globalStyleAttrsUpdate ref styleAttrs'
 
   return ()
-
+-}
 
 
 
@@ -426,6 +429,34 @@ ffiInheritNonCssHints cEngineRef = do
     else
     do
       return ()
+
+
+
+
+ffiStyleEngineMakeStyleAttrs :: CInt -> CInt -> CInt -> Ptr FfiPreferences -> Float -> Float -> CInt -> CInt -> IO ()
+ffiStyleEngineMakeStyleAttrs cEngineRef cContextRef cStyleNodeIndex ptrStructPrefs dpiXArg dpiYArg cParentStyleRef cStyleRef = do
+
+  -- FFI, globals and debug
+  engine  <- globalStyleEngineGet . fromIntegral $ cEngineRef
+  context <- globalContextGet . fromIntegral $ cContextRef
+  let styleNodeIndex = fromIntegral cStyleNodeIndex
+  prefs <- peekPreferences ptrStructPrefs
+  let display :: Display = defaultDisplay { dpiX = dpiXArg, dpiY = dpiYArg }
+
+  let styleRef = fromIntegral cStyleRef
+  styleAttrs       <- globalStyleAttrsGet styleRef
+  parentStyleAttrs <- globalStyleAttrsGet . fromIntegral $ cParentStyleRef
+
+  fDebugHandle <- openFile "/tmp/hello_browser_matching_rules_debug.txt" AppendMode
+
+  -- The main part. Generate style attributes for node of document specified
+  -- by styleNodeIndex.
+  styleAttrs' <- SE.makeStyleAttrs engine context styleNodeIndex prefs display parentStyleAttrs styleAttrs fDebugHandle
+
+  -- We changed style attrs, let's update them in our global storage too.
+  globalStyleAttrsUpdate styleRef styleAttrs'
+
+  hClose fDebugHandle
 
 
 

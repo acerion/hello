@@ -25,12 +25,9 @@
 extern struct timeval g_parse_acc;
 extern struct timeval g_parse_start;
 extern struct timeval g_parse_stop;
-extern struct timeval g_apply_get_acc;
-extern struct timeval g_apply_get_start;
-extern struct timeval g_apply_get_stop;
-extern struct timeval g_apply_do_acc;
-extern struct timeval g_apply_do_start;
-extern struct timeval g_apply_do_stop;
+extern struct timeval g_apply_acc;
+extern struct timeval g_apply_start;
+extern struct timeval g_apply_stop;
 
 using namespace lout::misc;
 using namespace dw::core::style;
@@ -340,25 +337,6 @@ static void style_attrs_make_ui_objects(StyleAttrs * attrs, dw::core::Layout * l
    }
 }
 
-
-/**
- * \brief Make changes to StyleAttrs attrs according to element's declarations set (referenced by merged_decl_set_ref)
- */
-void StyleEngine::applyStyleToGivenNode(int styleNodeIndex, StyleAttrs * parentAttrs, StyleAttrs * attrs, int merged_decl_set_ref, BrowserWindow *bw)
-{
-   timer_start(&g_apply_do_start);
-   ffiStyleEngineApplyStyleToGivenNode(merged_decl_set_ref, &prefs.preferences, layout->dpiX(), layout->dpiY(), parentAttrs->c_style_attrs_ref, attrs->c_style_attrs_ref);
-   timer_stop(&g_apply_do_start, &g_apply_do_stop, &g_apply_do_acc);
-   fprintf(stderr, "[II] Total apply-do time increased to %ld:%06ld\n", g_apply_do_acc.tv_sec, g_apply_do_acc.tv_usec);
-
-   /* Handle additional things that were not handled in Haskell. */
-   if (ffiStyleAttrsDisplay(attrs->c_style_attrs_ref) == DISPLAY_NONE) {
-      styleNodesStack[styleNodeIndex].displayNone = true;
-   }
-
-   this->downloadBgImage(bw, attrs, styleNodeIndex);
-}
-
 void StyleEngine::downloadBgImage(BrowserWindow * bw, StyleAttrs * attrs, int styleNodeIndex)
 {
    char * url = ffiStyleAttrsBgImage(attrs->c_style_attrs_ref);
@@ -452,19 +430,22 @@ Style * StyleEngine::makeStyle(int styleNodeIndex, BrowserWindow *bw)
 
    preprocessAttrs(&styleAttrs);
 
-   timer_start(&g_apply_get_start);
+   {
+      timer_start(&g_apply_start);
+      ffiStyleEngineMakeStyleAttrs(this->style_engine_ref, this->css_context_ref,
+                                   styleNodeIndex,
+                                   &prefs.preferences, layout->dpiX(), layout->dpiY(),
+                                   parentStyleAttrs.c_style_attrs_ref, styleAttrs.c_style_attrs_ref);
 
-   // Merge style information from main (non-important) declarations,
-   // important declarations, and non-CSS hints.
-   int merged_decl_set_ref = ffiCssContextApplyCssContext(this->style_engine_ref,
-                                                          this->css_context_ref,
-                                                          styleNodeIndex);
+      timer_stop(&g_apply_start, &g_apply_stop, &g_apply_acc);
+      fprintf(stderr, "[II] Total apply time increased to %ld:%06ld\n", g_apply_acc.tv_sec, g_apply_acc.tv_usec);
 
-   timer_stop(&g_apply_get_start, &g_apply_get_stop, &g_apply_get_acc);
-   fprintf(stderr, "[II] Total apply-get time increased to %ld:%06ld\n", g_apply_get_acc.tv_sec, g_apply_get_acc.tv_usec);
-
-   // apply style
-   applyStyleToGivenNode(styleNodeIndex, &parentStyleAttrs, &styleAttrs, merged_decl_set_ref, bw);
+      /* Handle additional things that were not handled in Haskell. */
+      if (ffiStyleAttrsDisplay(styleAttrs.c_style_attrs_ref) == DISPLAY_NONE) {
+         styleNodesStack[styleNodeIndex].displayNone = true;
+      }
+      this->downloadBgImage(bw, &styleAttrs, styleNodeIndex);
+   }
 
    ffiStyleEnginePostprocessAttrs(styleAttrs.c_style_attrs_ref);
 
