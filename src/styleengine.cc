@@ -343,6 +343,7 @@ void StyleEngine::downloadBgImage(BrowserWindow * bw, StyleAttrs * attrs, int st
    if (nullptr == url) {
       return;
    }
+   // fprintf(stderr, "background image url = [%s]\n", url);
 
    DilloUrl * bgImgUrl = nullptr;
    if (access(url, F_OK) == 0) {

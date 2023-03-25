@@ -40,7 +40,6 @@ module Hello.Css.ParserHelpers
   (
     interpretRgbFunctionTokens
   , rgbFunctionToColor
-  , parseUrl
   , consumeFunctionBody
 
   , takeLengthTokens
@@ -52,10 +51,12 @@ module Hello.Css.ParserHelpers
   , mkParserRangeInteger
   , parserColor
   , interpretTokensAsBgPosition
-  , interpretTokensAsURI
   , parserDistanceAuto
 
-  , ParsedUri (..)
+  , ParsedUrl (..)
+  , Image (..)
+  , parserImageUrl
+  , parserImageGradient
   )
 where
 
@@ -481,34 +482,29 @@ takeBgTokens' (parser, token) tokens = ((outParser, outToken), outTokens)
 
 
 
-data ParsedUri = ParsedUri
+data ParsedUrl = ParsedUrl
   { parsedUrl  :: T.Text
-  , parsedFull :: T.Text
   } deriving (Data, Eq, Show)
 
 
 
-interpretTokensAsURI :: (ParsedUri -> value) -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), value)
-interpretTokensAsURI uriValueCtor pat = case parseUrl pat (ParsedUri "" "") of
-                                          (pat', Just url) -> Just (pat', uriValueCtor url)
-                                          -- TODO: should we assign here pat' or pat?
-                                          -- A token that is not an URI should be
-                                          -- re-parsed by another function, not skipped.
-                                          (_, Nothing)     -> Nothing
+
+parserUrl :: Parser (CssParser, CssToken) ParsedUrl
+parserUrl = Parser parseUrl
 
 
 
-
-parseUrl :: (CssParser, CssToken) -> ParsedUri -> ((CssParser, CssToken), Maybe ParsedUri)
-parseUrl (p1, CssTokUrl url) puri    = (nextToken p1, Just $ puri { parsedUrl = url })
-parseUrl (p1, CssTokFunc "url") puri = ((p2, t2), Just $ puri { parsedUrl  = case body of
-                                                                               [(CssTokStr url), _] -> url
-                                                                               _                    -> parsedUrl puri
-                                                              , parsedFull = T.pack (show body)
-                                                              })
+-- https://www.w3.org/TR/css-syntax-3/#consume-url-token
+-- Unquoted URL is parsed into url-token (CssTokUrl).
+-- Quoted URL is parsed into function-token (CssTokFunc).
+parseUrl :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), ParsedUrl)
+parseUrl (p1, CssTokUrl url)    = Just (nextToken p1, ParsedUrl url)
+parseUrl (p1, CssTokFunc "url") = case body of
+                                    [(CssTokStr url), _] -> Just ((p2, t2), ParsedUrl url)
+                                    _                    -> Nothing
   where
     ((p2, t2), body) = consumeFunctionBody p1 []
-parseUrl (p1, token) _               = ((p1, token), Nothing)
+parseUrl _                      = Nothing
 
 
 
@@ -535,4 +531,22 @@ parserDistanceAuto = fmap (const CssDistanceAuto) (parserTokenIdent "auto")
 
 
 
+
+data Image
+  = ImageUrl ParsedUrl
+  | ImageGradient
+  deriving (Data, Eq, Show)
+
+
+
+
+parserImageUrl :: Parser (CssParser, CssToken) Image
+parserImageUrl = ImageUrl <$> parserUrl
+
+
+
+
+-- TODO: implement
+parserImageGradient :: Parser (CssParser, CssToken) Image
+parserImageGradient = Parser (const Nothing)
 

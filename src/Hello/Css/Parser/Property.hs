@@ -249,7 +249,7 @@ data CssProperty
   = CssPropertyBackground CssValueBackground
   | CssPropertyBackgroundAttachment CssValueBackgroundAttachment      -- 0    parsing is unit-tested
   | CssPropertyBackgroundColor CssValueBackgroundColor                -- 1    parsing is unit-tested
-  | CssPropertyBackgroundImage CssValueBackgroundImage                -- 2    This property is barely unit-tested because some decisions need to be made first.
+  | CssPropertyBackgroundImage CssValueBackgroundImage                -- 2
   | CssPropertyBackgroundPosition CssValueBackgroundPosition          -- 3    There are some unit tests, but they don't really test much.
   | CssPropertyBackgroundRepeat CssValueBackgroundRepeat              -- 4
 
@@ -554,20 +554,29 @@ parserValueBackgroundColor = mkParserEnum cssValueBackgroundColorDict
 
 
 -- ------------------------------------------------
--- Background image (background-image)
+-- Background image
+-- "background-image"
+--
+-- unit-tested: yes (and there is a note for making more tests in future)
+--
+-- https://drafts.csswg.org/css2/#valdef-background-image-uri
+-- https://www.w3.org/TR/CSS22/colors.html#propdef-background-image
+-- https://drafts.csswg.org/css-backgrounds-3/#background-image
 -- ------------------------------------------------
 
 
 
 
 data CssValueBackgroundImage
- = CssValueBackgroundImageUri ParsedUri -- TODO: change from T.Text to URI abstract type
+ = CssValueBackgroundImageImage Image
+ | CssValueBackgroundImageNone         -- TODO: parsing of "none" keyword is not handled yet.
  deriving (Data, Eq, Show)
 
 
--- TODO: according to https://www.w3.org/TR/css-backgrounds-3/#background-image we need here a "none" value.
+
+
 initialValueBackgroundImage :: CssValueBackgroundImage
-initialValueBackgroundImage = CssValueBackgroundImageUri $ ParsedUri "" ""
+initialValueBackgroundImage = CssValueBackgroundImageNone
 
 
 
@@ -579,7 +588,7 @@ parserPropertyBackgroundImage = CssPropertyBackgroundImage <$> parserValueBackgr
 
 
 parserValueBackgroundImage :: Parser (CssParser, CssToken) CssValueBackgroundImage
-parserValueBackgroundImage = Parser $ interpretTokensAsURI CssValueBackgroundImageUri
+parserValueBackgroundImage = CssValueBackgroundImageImage <$> (parserImageUrl <|> parserImageGradient)
 
 
 

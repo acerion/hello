@@ -885,7 +885,8 @@ getBackgroundColor parentStyleAttrs declValue = case declValue of
 
 
 getBgImage :: CssValueBackgroundImage -> T.Text
-getBgImage (CssValueBackgroundImageUri parsedUri) = parsedUrl parsedUri
+getBgImage (CssValueBackgroundImageImage (ImageUrl (ParsedUrl url))) = url
+getBgImage _                                                         = ""
 
 
 

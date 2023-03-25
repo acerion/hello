@@ -233,11 +233,31 @@ parseSingleDeclarationTestData =
 
 
 
-  -- TODO: decide what should be the value of CssValueBackgroundImageUri.
-  -- Should it be just a verbatim stream, or some information about tokens that build the URI.
-  -- TODO: write more tests
-  , ( "background-image: url(\"background.png\")",     Just CssDeclaration { property = CssPropertyBackgroundImage
-                                                                             (CssValueBackgroundImageUri $ ParsedUri "background.png" "[CssTokStr \"background.png\",CssTokParenClose]"), important = False } )
+    -- TODO: write more tests for background-image.
+
+    -- Quoted URL.
+  , ( "background-image: url(\"background.png\")",           Just CssDeclaration { property = CssPropertyBackgroundImage
+                                                                                   (CssValueBackgroundImageImage (ImageUrl (ParsedUrl "background.png"))), important = False } )
+    -- Unquoted URL.
+  , ( "background-image: url(background.png) !important",    Just CssDeclaration { property = CssPropertyBackgroundImage
+                                                                                   (CssValueBackgroundImageImage (ImageUrl (ParsedUrl "background.png"))), important = True } )
+
+    -- URL as quoted http URL.
+  , ( "background-image: url(\"http://www.a.com/bg.png\")",  Just CssDeclaration { property = CssPropertyBackgroundImage
+                                                                                   (CssValueBackgroundImageImage (ImageUrl (ParsedUrl "http://www.a.com/bg.png"))), important = False } )
+
+      -- URL as unquoted http URL.
+  , ( "background-image: url(https://www.a.com/bg.png)",     Just CssDeclaration { property = CssPropertyBackgroundImage
+                                                                                   (CssValueBackgroundImageImage (ImageUrl (ParsedUrl "https://www.a.com/bg.png"))), important = False } )
+
+    -- Failure case: anything other than url is not supported
+  , ( "background-image: linear-gradient(black, white)",     Nothing )
+
+    -- Failure case: invalid url string
+  , ( "background-image: url",                               Nothing )
+
+    -- Failure case: invalid url string
+  , ( "background-image: url(;",                             Nothing )
 
 
 
