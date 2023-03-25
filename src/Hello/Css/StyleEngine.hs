@@ -97,7 +97,7 @@ import Hello.Css.Cascade
 import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Parser.Property
-import Hello.Css.ParserHelpers
+import Hello.Css.Parser.Value
 import Hello.Css.StyleNode
 import Hello.Css.StyleSheet
 

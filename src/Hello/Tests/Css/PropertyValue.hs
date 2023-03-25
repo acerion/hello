@@ -30,7 +30,7 @@ import Test.HUnit
 
 import Hello.Colors
 import Hello.Css.Distance
-import Hello.Css.ParserHelpers
+import Hello.Css.Parser.Value
 import Hello.Css.Tokenizer
 import Hello.Utils.Parser
 

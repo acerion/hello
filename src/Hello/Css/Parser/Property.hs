@@ -222,7 +222,7 @@ import Data.Text as T
 
 import Hello.Css.Distance
 import Hello.Css.Parser.Combinators
-import Hello.Css.ParserHelpers
+import Hello.Css.Parser.Value
 import Hello.Css.Tokenizer
 import Hello.Css.Value
 
@@ -1516,7 +1516,7 @@ cssValueFontDict = [ ("caption",          CssValueFontCaption)
 :m +Hello.Css.Tokenizer
 :m +Hello.Css.Parser.Property
 :m +Hello.Utils.Parser
-:m +Hello.Css.ParserHelpers
+:m +Hello.Css.Parser.Value
 :set prompt >
 parserPropertyFont ((startTokenizer . defaultParser $ "8px serif"))
 -}
@@ -1589,7 +1589,7 @@ data CssValueFontFamily
 :m +Hello.Css.Tokenizer
 :m +Hello.Css.Parser.Property
 :m +Hello.Utils.Parser
-:m +Hello.Css.ParserHelpers
+:m +Hello.Css.Parser.Value
 :set prompt >
 parserPropertyFontFamily ((startTokenizer . defaultParser $ "serif"))
 parserPropertyFontFamily ((startTokenizer . defaultParser $ "\"serif\""))

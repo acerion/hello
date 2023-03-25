@@ -27,9 +27,9 @@ import Test.HUnit
 import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Tokenizer
-import Hello.Css.ParserHelpers
 import Hello.Css.Parser.Declaration
 import Hello.Css.Parser.Property
+import Hello.Css.Parser.Value
 
 
 

@@ -36,7 +36,14 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 
 
 
-module Hello.Css.ParserHelpers
+{-
+Parsing of various values (colors, urls, distances, etc).
+-}
+
+
+
+
+module Hello.Css.Parser.Value
   (
     interpretRgbFunctionTokens
   , rgbFunctionToColor
@@ -89,7 +96,7 @@ Closing paren is consumed, but not added to output list.
 -- https://www.w3.org/TR/css-syntax-3/#consume-function:
 :m +Hello.Css.Tokenizer
 :m +Hello.Utils.Parser
-:m +Hello.Css.ParserHelpers
+:m +Hello.Css.Parser.Value
 :set prompt >
 consumeRgbFunctionTokens ((startTokenizer . defaultParser $ "100, 100, 100 )"))
 -}
