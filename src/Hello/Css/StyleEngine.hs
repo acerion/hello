@@ -92,7 +92,7 @@ import Data.Word
 
 -- import Debug.Trace
 
-import Hello.Css.Cascade
+import qualified Hello.Css.Cascade as Cascade
 import Hello.Css.Declaration
 import Hello.Css.Distance
 import Hello.Css.Parser.Property
@@ -1201,7 +1201,7 @@ makeStyleAttrs engine context styleNodeIndex prefs display parentStyleAttrs styl
 
     -- Merge style information from main (non-important) declarations,
     -- important declarations, and non-CSS hints.
-    (mergedDeclSet, logs') = cssContextApplyCssContext logs context dt dtn styleNode
+    (mergedDeclSet, logs') = Cascade.applyCssStyleSheets logs context dt dtn styleNode
 
     -- Apply style.
     --

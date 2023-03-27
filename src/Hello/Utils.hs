@@ -40,6 +40,8 @@ module Hello.Utils
 
   , (>>?)
   , (>>!)
+
+  , compose
   )
 where
 
@@ -119,6 +121,13 @@ roundInt f = if f > 0
 Nothing  >>! _ = Nothing
 (Just b) >>! f  = f b
 
+
+
+
+-- Compose given array of functions, apply result to given value.
+compose :: [a -> a] -> a -> a
+compose (f:fs) a = compose fs (f a)
+compose _      a = a
 
 
 

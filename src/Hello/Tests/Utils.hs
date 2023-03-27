@@ -20,11 +20,19 @@ where
 
 
 
+import Data.Char
 import qualified Data.Text as T
 import Test.HUnit
 --import Debug.Trace
 
 import Hello.Utils
+
+import qualified Hello.Tests.Utils.Hunit as H.H
+
+
+
+
+{- -------------------------------------------------------------------------- -}
 
 
 
@@ -68,12 +76,58 @@ roundIntTest (x:xs) = if expected /= roundInt f
 
 
 
+{- -------------------------------------------------------------------------- -}
+
+
+
+
+composeTestData :: [([String -> String], String, String)]
+composeTestData =
+  [
+    ( [ (\ x -> '1':x), (\ x -> '2':x), (\ x -> '3':x) ]
+    , ""
+    , "321" )
+
+  , ( [ (\ x -> '1':x), (\ x -> '2':x), (\ x -> '3':x) ]
+    , "XYZ"
+    , "321XYZ" )
+
+    , ( [ (\ x -> fmap toUpper x), (\ x -> filter (\ c -> isUpper c) x) ]
+    , "abc"
+    , "ABC" )
+  ]
+
+
+
+
+-- On success return empty string. On failure return string representation of
+-- remainder string in a row, for which test failed.
+composeTestFunction :: [([String -> String], String, String)] -> [T.Text]
+composeTestFunction []     = []
+composeTestFunction (x:xs) = if expectedOutput /= compose fs input
+                             then [errMsg]
+                             else composeTestFunction xs
+  where
+    fs             = triplet1st x
+    input          = triplet2nd x
+    expectedOutput = triplet3rd x
+    errMsg         = T.pack $ "Expected: " ++ show expectedOutput ++ "\nGot: " ++ show (compose fs input)
+
+
+
+
+{- -------------------------------------------------------------------------- -}
+
+
+
+
 testCases :: [Test]
-testCases = [
-  -- If some error is found, test function returns some data (e.g. non-empty
-  -- string or test index) which can help identify which test failed.
-     TestCase (do
-                 assertEqual "manual tests of roundInt" "" (roundIntTest roundIntTestData))
+testCases =
+  [
+    -- If some error is found, test function returns some data (e.g. non-empty
+    -- string or test index) which can help identify which test failed.
+    TestCase (do assertEqual "manual tests of roundInt" ""        (roundIntTest roundIntTestData))
+  , TestCase (do H.H.assertSuccess "manual tests of compose"      (composeTestFunction composeTestData))
   ]
 
 

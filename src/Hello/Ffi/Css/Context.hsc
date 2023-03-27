@@ -58,7 +58,7 @@ import Hello.Ffi.Css.Parser
 
 
 foreign export ccall "ffiCssContextCtor" ffiCssContextCtor :: IO CInt
---foreign export ccall "ffiCssContextApplyCssContext" ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
+--foreign export ccall "ffiCssCascadeApplyCssContext" ffiCssCascadeApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
 foreign export ccall "ffiParseCss" ffiParseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> IO ()
 
 foreign export ccall "ffiCssContextPrint" ffiCssContextPrint :: CString -> CInt -> IO ()
@@ -186,8 +186,8 @@ getSomeDeclSet2 ref = if (-1) == ref
 
 
 {-
-ffiCssContextApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
-ffiCssContextApplyCssContext cStyleEngineRef cRef cStyleNodeIndex = do
+ffiCssCascadeApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
+ffiCssCascadeApplyCssContext cStyleEngineRef cRef cStyleNodeIndex = do
 
   -- FFI and debugging.
   fHandle <- openFile "/tmp/hello_browser_matching_rules_debug.txt" AppendMode
@@ -207,7 +207,7 @@ ffiCssContextApplyCssContext cStyleEngineRef cRef cStyleNodeIndex = do
   let doctree   = SE.doctree engine
       styleNode = SE.styleNodesStackGet engine styleNodeIndex
       dtn       = getDtnUnsafe doctree (doctreeNodeIdx styleNode)
-  mergedDeclSet <- cssContextApplyCssContext fHandle context doctree dtn styleNode
+  mergedDeclSet <- cssCascadeApplyCssContext fHandle context doctree dtn styleNode
 
   -- FFI and debugging.
   mergedDeclSetRef <- globalDeclarationSetPut mergedDeclSet
