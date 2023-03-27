@@ -90,7 +90,6 @@ import qualified Data.Sequence as S
 import qualified Data.Text as T
 import Data.Word
 
-import System.IO
 -- import Debug.Trace
 
 import Hello.Css.Cascade
@@ -1186,32 +1185,31 @@ startElement engine htmlElemIdx = engine'''
 -- code.
 --
 -- fDebugHandle is used only for debugging.
-makeStyleAttrs :: CssStyleEngine -> CssContext -> Int -> Preferences -> Display -> StyleAttrs -> StyleAttrs -> Handle -> IO StyleAttrs
-makeStyleAttrs engine context styleNodeIndex prefs display parentStyleAttrs styleAttrs fDebugHandle = do
+makeStyleAttrs :: CssStyleEngine -> CssContext -> Int -> Preferences -> Display -> StyleAttrs -> StyleAttrs -> [String] -> (StyleAttrs, [String])
+makeStyleAttrs engine context styleNodeIndex prefs display parentStyleAttrs styleAttrs logs = (styleAttrs', logs')
+  where
+    -- Remember that styleNode and dtn aren't necessarily the top/current
+    -- elements of style node stack or doctree. This function may be called for
+    -- any element of style node stack and doctree during restyling of entire
+    -- tree. The restyling is done by C++ code when <body> is opened, see
+    -- "html->styleEngine->restyle (html->bw);" in Html_tag_open_body(). Always
+    -- use styleNodeIndex as a starting point to get a proper styleNode and
+    -- dtn.
+    dt        = doctree engine
+    styleNode = styleNodesStackGet engine styleNodeIndex
+    dtn       = DT.getDtnUnsafe dt (doctreeNodeIdx styleNode)
 
-  -- Remember that styleNode and dtn aren't necessarily the top/current
-  -- elements of style node stack or doctree. This function may be called for
-  -- any element of style node stack and doctree during restyling of entire
-  -- tree. The restyling is done by C++ code when <body> is opened, see
-  -- "html->styleEngine->restyle (html->bw);" in Html_tag_open_body(). Always
-  -- use styleNodeIndex as a starting point to get a proper styleNode and
-  -- dtn.
-  let dt        = doctree engine
-      styleNode = styleNodesStackGet engine styleNodeIndex
-      dtn       = DT.getDtnUnsafe dt (doctreeNodeIdx styleNode)
+    -- Merge style information from main (non-important) declarations,
+    -- important declarations, and non-CSS hints.
+    (mergedDeclSet, logs') = cssContextApplyCssContext logs context dt dtn styleNode
 
-  -- Merge style information from main (non-important) declarations,
-  -- important declarations, and non-CSS hints.
-  mergedDeclSet <- cssContextApplyCssContext fDebugHandle context dt dtn styleNode
+    -- Apply style.
+    --
+    -- Make changes to StyleAttrs attrs according to element's declarations set
+    -- (referenced by merged_decl_set_ref).
+    --
+    -- let mergedDeclSetRef = fromIntegral cMergedDeclSetRef
+    -- declSet :: CssDeclarationSet <- globalDeclarationSetGet mergedDeclSetRef
+    styleAttrs' = styleEngineApplyStyleToGivenNode mergedDeclSet prefs display parentStyleAttrs styleAttrs
 
-  -- Apply style.
-  --
-  -- Make changes to StyleAttrs attrs according to element's declarations set
-  -- (referenced by merged_decl_set_ref).
-  --
-  -- let mergedDeclSetRef = fromIntegral cMergedDeclSetRef
-  -- declSet :: CssDeclarationSet <- globalDeclarationSetGet mergedDeclSetRef
-  let styleAttrs' = styleEngineApplyStyleToGivenNode mergedDeclSet prefs display parentStyleAttrs styleAttrs
-
-  return styleAttrs'
 

@@ -55,8 +55,6 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 --import Debug.Trace
 
-import System.IO
-
 import Hello.Css.Declaration
 import Hello.Css.Rule
 import Hello.Css.StyleNode
@@ -85,9 +83,9 @@ applyCssRule declSet doctree dtn rule =
 -- Apply potentially matching rules from matchingRules with ascending
 -- specificity. If specificity is equal, rules are applied in order of
 -- appearance. Each matchingRules is sorted already.
-applyMatchingRules :: Handle -> MatchingRules -> Doctree -> DoctreeNode -> CssDeclarationSet -> IO CssDeclarationSet
-applyMatchingRules fHandle matchingRules doctree dtn declSet = do
-
+applyMatchingRules :: [String] -> MatchingRules -> Doctree -> DoctreeNode -> CssDeclarationSet -> (CssDeclarationSet, [String])
+applyMatchingRules logs matchingRules doctree dtn declSet = (declSet', logs')
+  where
   -- TODO: uncomment this line and observe value of tree's top node num. It's
   -- constantly increasing, as if the function was called with constantly
   -- updated doctree, each time a new element is added to the doctree. This
@@ -95,18 +93,14 @@ applyMatchingRules fHandle matchingRules doctree dtn declSet = do
   -- constantly updated doctree.
   --putStrLn ("Is topNodeNum increasing? " ++ (show . topNodeNum $ doctree))
 
-  let sortedRules = L.sortBy compareRules matchingRules
+  sortedRules = L.sortBy compareRules matchingRules
 
-  let declSet' = foldr (\ rule ds -> applyCssRule ds doctree dtn rule) declSet sortedRules
+  declSet' = foldr (\ rule ds -> applyCssRule ds doctree dtn rule) declSet sortedRules
 
-  let debugString1 = "dtn = " ++ (show dtn) ++ "\n\n"
-  hPutStr fHandle debugString1
-  let debugString2 = "sorted rules = " ++ (show sortedRules) ++ "\n\n"
-  hPutStr fHandle debugString2
-  let debugString3 = "updated declSet = " ++ (show declSet') ++ "\n\n\n\n\n"
-  hPutStr fHandle debugString3
-
-  return declSet'
+  debugString1 = "dtn = " ++ (show dtn) ++ "\n\n"
+  debugString2 = "sorted rules = " ++ (show sortedRules) ++ "\n\n"
+  debugString3 = "updated declSet = " ++ (show declSet') ++ "\n\n\n\n\n"
+  logs' = debugString3:debugString2:debugString1:logs
 
 
 
@@ -127,10 +121,10 @@ compareRules r1 r2 | (specificity r1) < (specificity r2) = GT
 --
 -- The declarations (list property+value) are set as defined by the rules in
 -- the stylesheet that match at the given node in the document tree.
-cssStyleSheetApplyStyleSheet :: Handle -> CssStyleSheet -> CssDeclarationSet -> Doctree -> DoctreeNode -> IO CssDeclarationSet
-cssStyleSheetApplyStyleSheet fHandle styleSheet declSet doctree dtn = do
+cssStyleSheetApplyStyleSheet :: [String] -> CssStyleSheet -> CssDeclarationSet -> Doctree -> DoctreeNode -> (CssDeclarationSet, [String])
+cssStyleSheetApplyStyleSheet logs styleSheet declSet doctree dtn = do
   let matchingRules = buildMatchingRulesForDtn styleSheet dtn
-  applyMatchingRules fHandle matchingRules doctree dtn declSet
+  applyMatchingRules logs matchingRules doctree dtn declSet
 
 
 
@@ -225,26 +219,26 @@ buildMatchingRulesForDtn styleSheet dtn = concat rulesLists
 -- "html->styleEngine->restyle (html->bw);" in Html_tag_open_body(). Caller
 -- of this function should always use some styleNodeIndex as a starting point
 -- to get a proper styleNode and dtn.
-cssContextApplyCssContext :: Handle -> CssContext -> Doctree -> DoctreeNode -> StyleNode -> IO CssDeclarationSet
-cssContextApplyCssContext fHandle context doctree dtn styleNode = do
+cssContextApplyCssContext :: [String] -> CssContext -> Doctree -> DoctreeNode -> StyleNode -> (CssDeclarationSet, [String])
+cssContextApplyCssContext logs context doctree dtn styleNode = do
 
   let declSet1 = defaultCssDeclarationSet
 
-  declSet2 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserAgent) declSet1 doctree dtn
+      (declSet2, logs2) = cssStyleSheetApplyStyleSheet logs (getSheet context CssPrimaryUserAgent) declSet1 doctree dtn
 
-  declSet3 <- cssStyleSheetApplyStyleSheet fHandle(getSheet context CssPrimaryUser) declSet2 doctree dtn
+      (declSet3, logs3) = cssStyleSheetApplyStyleSheet logs2 (getSheet context CssPrimaryUser) declSet2 doctree dtn
 
-  let declSet4 = declarationsSetAppend declSet3 (nonCssDeclSet styleNode)
+      declSet4 = declarationsSetAppend declSet3 (nonCssDeclSet styleNode)
 
-  declSet5 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryAuthor) declSet4 doctree dtn
+      (declSet5, logs5) = cssStyleSheetApplyStyleSheet logs3 (getSheet context CssPrimaryAuthor) declSet4 doctree dtn
 
-  let declSet6 = declarationsSetAppend declSet5 (mainDeclSet styleNode)
+      declSet6 = declarationsSetAppend declSet5 (mainDeclSet styleNode)
 
-  declSet7 <- cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryAuthorImportant) declSet6 doctree dtn
+      (declSet7, logs7) = cssStyleSheetApplyStyleSheet logs5 (getSheet context CssPrimaryAuthorImportant) declSet6 doctree dtn
 
-  let declSet8 = declarationsSetAppend declSet7 (importantDeclSet styleNode)
+      declSet8 = declarationsSetAppend declSet7 (importantDeclSet styleNode)
 
-  cssStyleSheetApplyStyleSheet fHandle (getSheet context CssPrimaryUserImportant) declSet8 doctree dtn
+  cssStyleSheetApplyStyleSheet logs7 (getSheet context CssPrimaryUserImportant) declSet8 doctree dtn
 
 
 

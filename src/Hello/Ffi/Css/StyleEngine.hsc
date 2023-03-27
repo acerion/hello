@@ -447,16 +447,19 @@ ffiStyleEngineMakeStyleAttrs cEngineRef cContextRef cStyleNodeIndex ptrStructPre
   styleAttrs       <- globalStyleAttrsGet styleRef
   parentStyleAttrs <- globalStyleAttrsGet . fromIntegral $ cParentStyleRef
 
-  fDebugHandle <- openFile "/tmp/hello_browser_matching_rules_debug.txt" AppendMode
-
   -- The main part. Generate style attributes for node of document specified
   -- by styleNodeIndex.
-  styleAttrs' <- SE.makeStyleAttrs engine context styleNodeIndex prefs display parentStyleAttrs styleAttrs fDebugHandle
+  let logs :: [String] = []
+      (styleAttrs', logs') = SE.makeStyleAttrs engine context styleNodeIndex prefs display parentStyleAttrs styleAttrs logs
 
   -- We changed style attrs, let's update them in our global storage too.
   globalStyleAttrsUpdate styleRef styleAttrs'
 
+  fDebugHandle <- openFile "/tmp/hello_browser_matching_rules_debug.txt" AppendMode
+  _ <- sequence (fmap (hPutStr fDebugHandle) (reverse logs'))
   hClose fDebugHandle
+
+  return ()
 
 
 
