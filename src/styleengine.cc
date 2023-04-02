@@ -519,8 +519,8 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
    {
       timer_start(&g_parse_start);
 
-      CssParser parser_(origin, url, buf, buflen);
-      ffiParseCss(&parser_.m_parser, &parser_.m_token, this->css_context_ref);
+      CssParser parser_(url, buf, buflen);
+      ffiParseCss(&parser_.m_parser, &parser_.m_token, this->css_context_ref, origin);
 
       struct timeval diff = timer_stop(&g_parse_start, &g_parse_stop, &g_parse_acc);
       fprintf(stderr, "[II] Total parse time increased by %ld:%06ld to %ld:%06ld (url = %s, %s)\n",
@@ -545,8 +545,8 @@ void StyleEngine::buildUserStyle(int context_ref)
       {
          timer_start(&g_parse_start);
 
-         CssParser parser_(CSS_ORIGIN_USER, NULL, style->str, style->len);
-         ffiParseCss(&parser_.m_parser, &parser_.m_token, context_ref);
+         CssParser parser_(NULL, style->str, style->len);
+         ffiParseCss(&parser_.m_parser, &parser_.m_token, context_ref, CSS_ORIGIN_USER);
 
          struct timeval diff = timer_stop(&g_parse_start, &g_parse_stop, &g_parse_acc);
          fprintf(stderr, "[II] Total parse time increased by %ld:%06ld to %ld:%06ld\n",

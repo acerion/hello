@@ -193,7 +193,6 @@ data CssParser = CssParser {
   , spaceSeparated :: Bool
   , inBlock        :: Bool
   , bufOffset      :: Int
-  , cssOrigin      :: CssOrigin -- TODO: rethink wheter origin should be a member of parser or not.
   } deriving (Show, Eq)
 
 
@@ -206,7 +205,6 @@ defaultParserEmpty = CssParser {
   , inBlock        = False
   , spaceSeparated = False
   , bufOffset      = 0
-  , cssOrigin      = CssOriginUserAgent
   }
 
 

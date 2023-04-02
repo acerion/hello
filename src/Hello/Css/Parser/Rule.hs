@@ -157,7 +157,6 @@ parseElementStyleAttribute _baseUrl cssStyleAttribute declSets = declSets'
                       , spaceSeparated = False
                       , inBlock        = True -- There is no block enclosed in {}. but parser needs to behave as if we were in the block.
                       , bufOffset      = 0
-                      , cssOrigin      = CssOriginAuthor
                       }
 
 

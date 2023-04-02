@@ -28,7 +28,7 @@ class CssParser {
    c_css_parser_t m_parser;
    c_css_token_t m_token;
 
-   CssParser(CssOrigin origin, const DilloUrl * baseUrl, const char * buf, int buflen);
+   CssParser(const DilloUrl * baseUrl, const char * buf, int buflen);
 };
 
 

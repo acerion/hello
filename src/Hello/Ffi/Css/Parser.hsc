@@ -88,7 +88,6 @@ data FfiCssParser = FfiCssParser {
 
   , cParserBuf      :: Ptr CChar
   , cParserBuflen   :: CInt
-  , cCssOrigin      :: CInt
   } deriving (Show)
 
 
@@ -104,16 +103,14 @@ instance Storable FfiCssParser where
     c <- #{peek c_css_parser_t, c_in_block}        ptr
     d <- #{peek c_css_parser_t, c_parser_buf}      ptr
     e <- #{peek c_css_parser_t, c_parser_buflen}   ptr
-    f <- #{peek c_css_parser_t, c_origin}          ptr
-    return (FfiCssParser a b c d e f)
+    return (FfiCssParser a b c d e)
 
-  poke ptr (FfiCssParser argSpaceSeparated argBufOffset argInBlock _argBuf _argBuflen argOrigin) = do
+  poke ptr (FfiCssParser argSpaceSeparated argBufOffset argInBlock _argBuf _argBuflen) = do
     #{poke c_css_parser_t, c_space_separated} ptr argSpaceSeparated
     #{poke c_css_parser_t, c_buf_offset}      ptr argBufOffset
     #{poke c_css_parser_t, c_in_block}        ptr argInBlock
     -- #{poke c_css_parser_t, c_parser_buf}      ptr argBuf
     -- #{poke c_css_parser_t, c_parser_buflen}   ptr argBuflen
-    #{poke c_css_parser_t, c_origin}          ptr argOrigin
 
 
 
@@ -133,7 +130,6 @@ peekCssParser ptrStructCssParser = do
                                   , inBlock        = inBlockInt /= 0
                                   , bufOffset      = offset
                                   , spaceSeparated = spaceSeparatedInt /= 0
-                                  , cssOrigin      = getCssOrigin . fromIntegral . cCssOrigin $ ffiParser
                                   }
   return parser
 
@@ -147,9 +143,8 @@ pokeCssParser ptrStructCssParser parser = do
 
   let doesntMatter = 0
   let len = doesntMatter
-  let origin = fromIntegral . getIntOrigin . cssOrigin $ parser
 
-  poke ptrStructCssParser $ FfiCssParser sep off blk nullPtr len origin
+  poke ptrStructCssParser $ FfiCssParser sep off blk nullPtr len
 
 
 
@@ -982,12 +977,13 @@ getCssOrigin o = case o of
 
 
 
-
+{-
 getIntOrigin :: CssOrigin -> Int
 getIntOrigin origin = case origin of
                         CssOriginUserAgent -> 0
                         CssOriginUser      -> 1
                         CssOriginAuthor    -> 2
+-}
 
 
 

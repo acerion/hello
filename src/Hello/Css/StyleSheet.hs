@@ -54,7 +54,7 @@ module Hello.Css.StyleSheet
   , setSheet
 
   , parseRuleset
-  , rulesetToRulesWithOrigin
+  , rulesetToRulesWithImportance
 
   , CssSheetSelector (..)
 
@@ -222,6 +222,7 @@ defaultStyleSheets = CssStyleSheets
 data CssContext = CssContext {
     sheets       :: CssStyleSheets
   , rulePosition :: Int
+  , cssOrigin    :: CssOrigin
   } deriving (Show)
 
 
@@ -230,6 +231,7 @@ data CssContext = CssContext {
 defaultCssContext :: CssContext
 defaultCssContext = CssContext { sheets       = defaultStyleSheets
                                , rulePosition = 0
+                               , cssOrigin    = CssOriginUserAgent
                                }
 
 
@@ -273,39 +275,44 @@ cssComplexSelectorHasPseudoClass complex = chainAnyDatum (not . null . selectorP
 
 
 
-cssContextAddRules :: CssContext -> [(CssRule, CssSheetSelector)] -> CssContext
-cssContextAddRules context []                         = context
-cssContextAddRules context ((rule, sheetSelector):xs) = cssContextAddRules (cssContextAddRule context sheetSelector rule) xs
+cssContextAddRules :: CssContext -> [(CssRule, Bool)] -> CssContext
+cssContextAddRules context []     = context
+cssContextAddRules context ((rule, isImportant):xs) = cssContextAddRules (cssContextAddRule context (rule, sheetSelector)) xs
+  where
+    sheetSelector = case cssOrigin context of
+                      CssOriginAuthor    -> if isImportant then CssPrimaryAuthorImportant else CssPrimaryAuthor
+                      CssOriginUser      -> if isImportant then CssPrimaryUserImportant else CssPrimaryUser
+                      CssOriginUserAgent -> CssPrimaryUserAgent
 
 
 
 
-cssContextAddRule :: CssContext -> CssSheetSelector -> CssRule -> CssContext
-cssContextAddRule context sheetSelector rule  =
+cssContextAddRule :: CssContext -> (CssRule, CssSheetSelector) -> CssContext
+cssContextAddRule context (rule, sheetSelector)  =
   -- TODO: should we increment rulePosition in a context, to which a rule
   -- is not being added (in "then" branch)?
-  if (sheetSelector == CssPrimaryAuthor || sheetSelector == CssPrimaryAuthorImportant) && (not . cssRuleIsSafe $ rule)
+  if (cssOrigin context == CssOriginAuthor) && (not . cssRuleIsSafe $ rule)
   then trace "[WW] Ignoring unsafe author style that might reveal browsing history" (context{rulePosition = rulePosition context + 1})
-  else cssContextAddRule' . ruleSetPosition $ (context, sheetSelector, rule)
+  else cssContextAddRule' . ruleSetPosition $ (context, (rule, sheetSelector))
 
 
 
 
-ruleSetPosition :: (CssContext, CssSheetSelector, CssRule) -> (CssContext, CssSheetSelector, CssRule)
-ruleSetPosition (context, ss, rule) = (context, ss, rule { position = rulePosition context })
+ruleSetPosition :: (CssContext, (CssRule, CssSheetSelector)) -> (CssContext, (CssRule, CssSheetSelector))
+ruleSetPosition (context, (rule, sheetSelector)) = (context, (rule { position = rulePosition context }, sheetSelector))
+
 
 
 
 
 -- Add given rule to a style sheet in given context. The style sheet is
 -- selected by 'sheetSelector' argument.
-cssContextAddRule' :: (CssContext, CssSheetSelector, CssRule) -> CssContext
-cssContextAddRule' (context, sheetSelector, rule) = context { sheets       = updateSheet (sheets context) sheetSelector updatedSheet
-                                                            , rulePosition = rulePosition context + 1
-                                                            }
+cssContextAddRule' :: (CssContext, (CssRule, CssSheetSelector)) -> CssContext
+cssContextAddRule' (context, (rule, sheetSelector)) = context { sheets       = updateSheet (sheets context) sheetSelector updatedSheet
+                                                              , rulePosition = rulePosition context + 1
+                                                              }
   where
     updatedSheet = insertRuleToStyleSheet (getSheet context sheetSelector) rule
-
 
 
 
@@ -332,23 +339,12 @@ setSheet selector sheet context = case selector of
 
 
 
-makeRulePairs :: [CssComplexSelector] -> CssDeclarationSets -> CssOrigin -> [(CssRule, CssSheetSelector)] -> [(CssRule, CssSheetSelector)]
-makeRulePairs []     _        _      acc = reverse acc
-makeRulePairs (x:xs) declSets origin acc =
-  -- The case expression is now very complicated, but at least I'm avoiding
-  -- the bizarre (Maybe CssRule, CssSheetSelector) type in accumulator and
-  -- result.
-  case origin of
-    CssOriginUserAgent | addRegular   -> makeRulePairs xs declSets origin ((rule, CssPrimaryUserAgent) : acc)
-                       | otherwise    -> makeRulePairs xs declSets origin acc
-    CssOriginUser      | addBoth      -> makeRulePairs xs declSets origin ((ruleImp, CssPrimaryUserImportant) : (rule, CssPrimaryUser) : acc)
-                       | addRegular   -> makeRulePairs xs declSets origin ((rule, CssPrimaryUser) : acc)
-                       | addImportant -> makeRulePairs xs declSets origin ((ruleImp, CssPrimaryUserImportant) : acc)
-                       | otherwise    -> makeRulePairs xs declSets origin acc
-    CssOriginAuthor    | addBoth      -> makeRulePairs xs declSets origin ((ruleImp, CssPrimaryAuthorImportant) : (rule, CssPrimaryAuthor) : acc)
-                       | addRegular   -> makeRulePairs xs declSets origin ((rule, CssPrimaryAuthor) : acc)
-                       | addImportant -> makeRulePairs xs declSets origin ((ruleImp, CssPrimaryAuthorImportant) : acc)
-                       | otherwise    -> makeRulePairs xs declSets origin acc
+makeRulePairs :: [CssComplexSelector] -> CssDeclarationSets -> [(CssRule, Bool)] -> [(CssRule, Bool)]
+makeRulePairs []     _        acc = reverse acc
+makeRulePairs (x:xs) declSets acc | addBoth      = makeRulePairs xs declSets ((ruleImp, True) : (rule, False) : acc)
+                                  | addRegular   = makeRulePairs xs declSets ((rule, False) : acc)
+                                  | addImportant = makeRulePairs xs declSets ((ruleImp, True) : acc)
+                                  | otherwise    = makeRulePairs xs declSets acc
 
   where rule    = ruleCtor x (fst declSets)
         ruleImp = ruleCtor x (snd declSets)
@@ -367,17 +363,17 @@ makeRulePairs (x:xs) declSets origin acc =
 
 
 
-rulesetToRulesWithOrigin :: (CssParser, CssToken) -> ((CssParser, CssToken), [(CssRule, CssSheetSelector)])
-rulesetToRulesWithOrigin (parser, token) = case parseStyleRule (parser, token) of
-                                             (pat', Nothing)        -> (pat', [])
-                                             (pat', Just parsedStyleRule) -> (pat', rulesWithOrigin)
-                                               where
-                                                 rulesWithOrigin = makeRulePairs selectors (content parsedStyleRule) (cssOrigin parser) []
+rulesetToRulesWithImportance :: (CssParser, CssToken) -> ((CssParser, CssToken), [(CssRule, Bool)])
+rulesetToRulesWithImportance (parser, token) = case parseStyleRule (parser, token) of
+                                                 (pat', Nothing)        -> (pat', [])
+                                                 (pat', Just parsedStyleRule) -> (pat', rulesWithImportance)
+                                                   where
+                                                     rulesWithImportance = makeRulePairs selectors (content parsedStyleRule) []
 
-                                                 -- Notice that only at this stage of parsing we turn lists of
-                                                 -- compound-selectors+combinators into lists of true
-                                                 -- complex selectors.
-                                                 selectors = fmap mkComplexSelector (prelude parsedStyleRule)
+                                                     -- Notice that only at this stage of parsing we turn lists of
+                                                     -- compound-selectors+combinators into lists of true
+                                                     -- complex selectors.
+                                                     selectors = fmap mkComplexSelector (prelude parsedStyleRule)
 
 
 
@@ -386,8 +382,8 @@ rulesetToRulesWithOrigin (parser, token) = case parseStyleRule (parser, token) o
 parseRuleset :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
 parseRuleset (pat, context) = ((p2, t2), updatedContext)
   where
-    updatedContext = cssContextAddRules context rulesWithOrigin
-    ((p2, t2), rulesWithOrigin) = rulesetToRulesWithOrigin pat
+    updatedContext = cssContextAddRules context rulesWithImportance
+    ((p2, t2), rulesWithImportance) = rulesetToRulesWithImportance pat
 
 
 
