@@ -31,29 +31,13 @@ Copyright assignments from the file:
 
 module Hello.Css.StyleEngine
   (
-    styleEngineApplyStyleToFont
+    CssStyleEngine (..)
+  , defaultCssStyleEngine
 
-  , styleEngineSetFontFamily
-  , styleEngineSetFontWeight
-  , styleEngineSetFontSize
-  -- , styleEngineSetFontSize'
-  , styleEngineSetFontStyle
-  , styleEngineSetLetterSpacing
-  , styleEngineSetFontVariant
-
-  , styleEngineComputeBorderWidth
-
-  , styleEngineApplyStyleToGivenNode
-
-  , styleEngineCalculateDwLength
-
-  -- Exported only for tests
-  , computeAbsoluteLengthValue
-
-  , styleEnginePreprocessAttrsInheritBackground
-  , styleEnginePreprocessAttrs
-  , styleEnginePostprocessAttrs
-  , styleEngineMakeWordStyleInheritBackground
+  , preprocessAttrsInheritBackground
+  , preprocessAttrs
+  , postprocessAttrs
+  , makeWordStyleInheritBackground
 
   , styleNodesStackSize
   , styleNodesStackPushEmptyNode
@@ -62,20 +46,19 @@ module Hello.Css.StyleEngine
   , styleNodesStackPeekParent
   , styleNodesStackUpdateTop
   , styleNodesStackClearNonCssHints
-  , styleNodesStackGet
 
-  , CssStyleEngine (..)
-  , defaultCssStyleEngine
-
-  , doctreePushNode
-  , doctreePopNode
-  , doctreePeekNode
-  , doctreeSetElementIdOnTopNode
-  , doctreeSetClassOnTopNode
-  , doctreeSetPseudoClassOnTopNode
+  , popDoctreeNode
+  , peekDoctreeNode
+  , setElementIdOnTopDoctreeNode
+  , setClassOnTopDoctreeNode
+  , setPseudoClassOnTopDoctreeNode
 
   , startElement
   , makeStyleAttrs
+
+  -- Exported only for unit tests.
+  , styleEngineApplyStyleToFont
+  , computeAbsoluteLengthValue
   )
 where
 
@@ -970,8 +953,8 @@ getXTooltip (CssValueXTooltip t) = t
 
 
 
-styleEnginePreprocessAttrsInheritBackground :: StyleAttrs -> StyleAttrs -> StyleAttrs
-styleEnginePreprocessAttrsInheritBackground to from =
+preprocessAttrsInheritBackground :: StyleAttrs -> StyleAttrs -> StyleAttrs
+preprocessAttrsInheritBackground to from =
   to { styleVerticalAlign = styleVerticalAlign from
      , styleBgPositionX   = styleBgPositionX from
      , styleBgPositionY   = styleBgPositionY from
@@ -982,8 +965,8 @@ styleEnginePreprocessAttrsInheritBackground to from =
 
 
 
-styleEnginePreprocessAttrs :: StyleAttrs -> StyleAttrs
-styleEnginePreprocessAttrs sa =
+preprocessAttrs :: StyleAttrs -> StyleAttrs
+preprocessAttrs sa =
   sa { styleBorderWidth = StyleBorderWidth
        -- Initial value of border-width is 'medium'; TODO: this is
        -- inconsistent with defaultStyleBorderWidth which uses '0'.
@@ -1004,8 +987,8 @@ borderNone = 0 -- BORDER_NONE
 borderHidden :: Int
 borderHidden = 1 -- BORDER_HIDDEN
 
-styleEnginePostprocessAttrs :: StyleAttrs -> StyleAttrs
-styleEnginePostprocessAttrs sa =
+postprocessAttrs :: StyleAttrs -> StyleAttrs
+postprocessAttrs sa =
   sa { styleBorderWidth = StyleBorderWidth
 
        -- Computed value of border-width is 0 if border-style is 'none' or
@@ -1048,8 +1031,8 @@ styleEnginePostprocessAttrs sa =
 
 
 
-styleEngineMakeWordStyleInheritBackground :: StyleAttrs -> StyleAttrs -> StyleAttrs
-styleEngineMakeWordStyleInheritBackground to from =
+makeWordStyleInheritBackground :: StyleAttrs -> StyleAttrs -> StyleAttrs
+makeWordStyleInheritBackground to from =
   to { styleBgPositionX   = styleBgPositionX from
      , styleBgPositionY   = styleBgPositionY from
      , styleBgRepeat      = styleBgRepeat from
@@ -1125,41 +1108,41 @@ styleNodesStackClearNonCssHints engine = styleNodesStackUpdateTop engine node'
 
 
 
-doctreePushNode :: CssStyleEngine -> Int -> CssStyleEngine
-doctreePushNode engine elementIdx = engine { doctree = DT.doctreePushNode (doctree engine) elementIdx }
+pushDoctreeNode :: CssStyleEngine -> Int -> CssStyleEngine
+pushDoctreeNode engine elementIdx = engine { doctree = DT.doctreePushNode (doctree engine) elementIdx }
 
 
 
 
-doctreePopNode :: CssStyleEngine -> CssStyleEngine
-doctreePopNode engine = engine { doctree = DT.doctreePopNode (doctree engine) }
+popDoctreeNode :: CssStyleEngine -> CssStyleEngine
+popDoctreeNode engine = engine { doctree = DT.doctreePopNode (doctree engine) }
 
 
 
 
-doctreePeekNode :: CssStyleEngine -> Maybe DoctreeNode
-doctreePeekNode engine = M.lookup (DT.topNodeNum . doctree $ engine) (DT.nodes . doctree $ engine)
+peekDoctreeNode :: CssStyleEngine -> Maybe DoctreeNode
+peekDoctreeNode engine = M.lookup (DT.topNodeNum . doctree $ engine) (DT.nodes . doctree $ engine)
 
 
 
 
-doctreeSetElementIdOnTopNode :: CssStyleEngine -> T.Text -> CssStyleEngine
-doctreeSetElementIdOnTopNode engine elementId =
+setElementIdOnTopDoctreeNode :: CssStyleEngine -> T.Text -> CssStyleEngine
+setElementIdOnTopDoctreeNode engine elementId =
   engine { doctree = DT.adjustTopNode (doctree engine) (\x -> x { selId = elementId }) }
 
 
 
 
 
-doctreeSetClassOnTopNode :: CssStyleEngine -> [T.Text] -> CssStyleEngine
-doctreeSetClassOnTopNode engine classSelectors =
+setClassOnTopDoctreeNode :: CssStyleEngine -> [T.Text] -> CssStyleEngine
+setClassOnTopDoctreeNode engine classSelectors =
   engine { doctree = DT.adjustTopNode (doctree engine) (\x -> x { selClass = classSelectors }) }
 
 
 
 
-doctreeSetPseudoClassOnTopNode :: CssStyleEngine -> T.Text -> CssStyleEngine
-doctreeSetPseudoClassOnTopNode engine pseudoClass =
+setPseudoClassOnTopDoctreeNode :: CssStyleEngine -> T.Text -> CssStyleEngine
+setPseudoClassOnTopDoctreeNode engine pseudoClass =
   engine { doctree = DT.adjustTopNode (doctree engine) (\x -> x { selPseudoClass = pseudoClass }) }
 
 
@@ -1170,7 +1153,7 @@ startElement :: CssStyleEngine -> Int -> CssStyleEngine
 startElement engine htmlElemIdx = engine'''
   where
     engine'   = styleNodesStackPushEmptyNode engine
-    engine''  = doctreePushNode engine' htmlElemIdx
+    engine''  = pushDoctreeNode engine' htmlElemIdx
     engine''' = styleNodesStackUpdateTop engine'' styleNode
 
     styleNode = (styleNodesStackPeek engine'') { doctreeNodeIdx = uniqueNum . DT.peekTopNodeUnsafe . doctree $ engine'' }

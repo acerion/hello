@@ -482,7 +482,7 @@ ffiStyleEnginePostprocessAttrs :: CInt -> IO ()
 ffiStyleEnginePostprocessAttrs cRef = do
   let ref = fromIntegral cRef
   sa <- globalStyleAttrsGet ref
-  let sa' = SE.styleEnginePostprocessAttrs sa
+  let sa' = SE.postprocessAttrs sa
   globalStyleAttrsUpdate ref sa'
   return ()
 
@@ -508,7 +508,7 @@ ffiStyleEnginePreprocessAttrsInheritBackground cRefTo cRefFrom = do
     let refFrom = fromIntegral cRefFrom
     to   <- globalStyleAttrsGet refTo
     from <- globalStyleAttrsGet refFrom
-    let to' = SE.styleEnginePreprocessAttrsInheritBackground to from
+    let to' = SE.preprocessAttrsInheritBackground to from
     globalStyleAttrsUpdate refTo to'
     return ()
 
@@ -519,7 +519,7 @@ ffiStyleEnginePreprocessAttrs :: CInt -> IO ()
 ffiStyleEnginePreprocessAttrs cRef = do
     let ref   = fromIntegral cRef
     sa   <- globalStyleAttrsGet ref
-    let sa' = SE.styleEnginePreprocessAttrs sa
+    let sa' = SE.preprocessAttrs sa
     globalStyleAttrsUpdate ref sa'
     return ()
 
@@ -532,7 +532,7 @@ ffiStyleEngineMakeWordStyleInheritBackground cRefTo cRefFrom = do
     let refFrom = fromIntegral cRefFrom
     to   <- globalStyleAttrsGet refTo
     from <- globalStyleAttrsGet refFrom
-    let to' = SE.styleEngineMakeWordStyleInheritBackground to from
+    let to' = SE.makeWordStyleInheritBackground to from
     globalStyleAttrsUpdate refTo to'
     return ()
 
@@ -548,7 +548,7 @@ ffiStyleEngineDoctreePushNode cEngineRef cElementIdx = do
   let engine' = SE.doctreePushNode engine elementIdx
   globalStyleEngineUpdate engineRef engine'
 
-  case SE.doctreePeekNode engine' of
+  case SE.peekDoctreeNode engine' of
     Just dtn -> return . fromIntegral . uniqueNum $ dtn
     Nothing  -> return (-1)
 -}
@@ -559,7 +559,7 @@ ffiStyleEngineDoctreePopNode :: CInt -> IO ()
 ffiStyleEngineDoctreePopNode cEngineRef = do
   let engineRef = fromIntegral cEngineRef
   engine <- globalStyleEngineGet engineRef
-  let engine' = SE.doctreePopNode engine
+  let engine' = SE.popDoctreeNode engine
   globalStyleEngineUpdate engineRef engine'
 
 
@@ -569,7 +569,7 @@ ffiStyleEngineDoctreeGetTopNodeHtmlElementIdx :: CInt -> IO CInt
 ffiStyleEngineDoctreeGetTopNodeHtmlElementIdx cEngineRef = do
   let engineRef = fromIntegral cEngineRef
   engine <- globalStyleEngineGet engineRef
-  case SE.doctreePeekNode engine of
+  case SE.peekDoctreeNode engine of
     Just dtn -> return . fromIntegral . htmlElementIdx $ dtn
     Nothing  -> return 0
 
@@ -580,7 +580,7 @@ ffiStyleEngineDoctreeGetTopNodeElementSelectorId :: CInt -> IO CString
 ffiStyleEngineDoctreeGetTopNodeElementSelectorId cEngineRef = do
   let engineRef = fromIntegral cEngineRef
   engine <- globalStyleEngineGet engineRef
-  case SE.doctreePeekNode engine of
+  case SE.peekDoctreeNode engine of
     Just dtn -> if T.null . selId $ dtn
                 then return nullPtr -- Returning empty string ("") would confuse C++ code.
                 else newCString . T.unpack . selId $ dtn
@@ -593,7 +593,7 @@ ffiStyleEngineDoctreeGetTopNode :: CInt -> IO CInt
 ffiStyleEngineDoctreeGetTopNode cEngineRef = do
   let engineRef = fromIntegral cEngineRef
   engine <- globalStyleEngineGet engineRef
-  case SE.doctreePeekNode engine of
+  case SE.peekDoctreeNode engine of
     Just dtn -> return . fromIntegral . uniqueNum $ dtn
     Nothing  -> return (-1)
 
@@ -609,7 +609,7 @@ ffiStyleEngineDoctreeSetElementId cEngineRef cElementId = do
   stringVal     <- BSU.unsafePackCString cElementId
   let elementId  = T.E.decodeLatin1 stringVal
 
-  let engine' = SE.doctreeSetElementIdOnTopNode engine elementId
+  let engine' = SE.setElementIdOnTopDoctreeNode engine elementId
   globalStyleEngineUpdate engineRef engine'
 
 
@@ -626,7 +626,7 @@ ffiStyleEngineDoctreeSetElementClass cEngineRef cElementClassTokens = do
   let ws = words . Char8.unpack $ tokens
   let classSelectors = fmap T.pack ws
 
-  let engine' = SE.doctreeSetClassOnTopNode engine classSelectors
+  let engine' = SE.setClassOnTopDoctreeNode engine classSelectors
   globalStyleEngineUpdate engineRef engine'
 
 
@@ -640,7 +640,7 @@ ffiStyleEngineDoctreeSetElementPseudoClass cEngineRef cElementPseudoClass = do
   stringVal             <- BSU.unsafePackCString cElementPseudoClass
   let elementPseudoClass = T.E.decodeLatin1 stringVal
 
-  let engine' = SE.doctreeSetPseudoClassOnTopNode engine elementPseudoClass
+  let engine' = SE.setPseudoClassOnTopDoctreeNode engine elementPseudoClass
   globalStyleEngineUpdate engineRef engine'
 
 
