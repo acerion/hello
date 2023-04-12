@@ -434,11 +434,10 @@ void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * conte
 Parse style rules and add them to context.
 "p.sth > h1.other { color: red; width: 10px !important; }"      ->     [(CssRule, Bool)]
 -}
-parseCss :: (CssParser, CssContext) -> (CssParser, CssContext)
-parseCss (parser, context) = (parser', context')
+parseCss :: (CssParser, CssContext) -> CssContext
+parseCss (parser, context) = cssContextAddRules context rules
   where
-    ((parser', _), rules) = parseCssRules . nextToken $ parser -- 'nextToken' kick-starts parsing.
-    context' = cssContextAddRules context rules
+    (_pat, rules) = parseCssRules . startTokenizer $ parser
 
 
 

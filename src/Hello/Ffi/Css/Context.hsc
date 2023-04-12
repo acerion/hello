@@ -34,7 +34,6 @@ where
 
 
 import Prelude
-import Foreign
 import Foreign.C.String
 import Foreign.C.Types
 import qualified Data.ByteString.Unsafe as BSU
@@ -47,6 +46,7 @@ import System.IO
 
 import Hello.Css.ContextGlobal
 import Hello.Css.StyleSheet
+import Hello.Css.Tokenizer
 import Hello.Css.UserAgentStyle
 import Hello.Ffi.Css.Parser
 
@@ -59,7 +59,7 @@ import Hello.Ffi.Css.Parser
 
 foreign export ccall "ffiCssContextCtor" ffiCssContextCtor :: IO CInt
 --foreign export ccall "ffiCssCascadeApplyCssContext" ffiCssCascadeApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
-foreign export ccall "ffiParseCss" ffiParseCss :: Ptr FfiCssParser -> CInt -> CInt -> IO ()
+foreign export ccall "ffiParseCss" ffiParseCss :: CInt -> CInt -> CString -> CInt -> CString -> IO ()
 
 foreign export ccall "ffiCssContextPrint" ffiCssContextPrint :: CString -> CInt -> IO ()
 
@@ -218,20 +218,28 @@ ffiCssCascadeApplyCssContext cStyleEngineRef cRef cStyleNodeIndex = do
 
 
 
-ffiParseCss :: Ptr FfiCssParser -> CInt -> CInt -> IO ()
-ffiParseCss ptrStructCssParser cRef cOrigin = do
-  parser  <- peekCssParser ptrStructCssParser
+-- Parse contents of given buffer as set of CSS rules. Add result of parsing
+-- to given CSS context.
+--
+-- TODO: make use of cBaseUrl argument. Notice that this argument is NULL
+-- when function is called to parse User's stylesheet.
+--
+-- TODO: synchronize this function with ffiCssParseElementStyleAttribute
+ffiParseCss :: CInt -> CInt -> CString -> CInt -> CString -> IO ()
+ffiParseCss cContextRef cOrigin ptrStringBuf cBufLen _cBaseUrl = do
 
-  let ref  = fromIntegral cRef
-  context <- globalContextGet ref
+  let contextRef = fromIntegral cContextRef
+  context <- globalContextGet contextRef
 
   let origin = getCssOrigin . fromIntegral $ cOrigin
 
-  let (parser', context') = parseCss (parser, context { cssOrigin = origin })
+  buf <- BSU.unsafePackCStringLen (ptrStringBuf, fromIntegral cBufLen)
 
-  pokeCssParser ptrStructCssParser parser'
+  let parser = defaultParser . T.E.decodeLatin1 $ (seq buf buf) -- TODO: do we decode the string correctly?
 
-  globalContextUpdate ref context'
+  let context' = parseCss (parser, context { cssOrigin = origin })
+
+  globalContextUpdate contextRef context'
 
   return ()
 

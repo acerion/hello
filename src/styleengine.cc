@@ -184,8 +184,10 @@ void StyleEngine::setCssStyleForCurrentNode(const char * cssStyleAttribute)
 
       ffiCssParseElementStyleAttribute(this->style_engine_ref, baseUrl, cssStyleAttribute, strlen (cssStyleAttribute));
 
-      timer_stop(&g_parse_start, &g_parse_stop, &g_parse_acc);
-      fprintf(stderr, "[II] Total parse time increased to %ld:%06ld\n", g_parse_acc.tv_sec, g_parse_acc.tv_usec);
+      struct timeval diff = timer_stop(&g_parse_start, &g_parse_stop, &g_parse_acc);
+      fprintf(stderr, "[II] Total parse time increased to %ld:%06ld by %ld:%06ld (parsing 'style' attribute)\n",
+              g_parse_acc.tv_sec, g_parse_acc.tv_usec,
+              diff.tv_sec, diff.tv_usec);
    }
 }
 
@@ -519,13 +521,12 @@ void StyleEngine::parseCssWithOrigin(DilloHtml *html, DilloUrl *url, const char 
    {
       timer_start(&g_parse_start);
 
-      CssParser parser_(url, buf, buflen);
-      ffiParseCss(&parser_.m_parser, this->css_context_ref, origin);
+      ffiParseCss(this->css_context_ref, origin, buf, buflen, a_Url_str(url));
 
       struct timeval diff = timer_stop(&g_parse_start, &g_parse_stop, &g_parse_acc);
-      fprintf(stderr, "[II] Total parse time increased by %ld:%06ld to %ld:%06ld (url = %s, %s)\n",
-              diff.tv_sec, diff.tv_usec,
+      fprintf(stderr, "[II] Total parse time increased to %ld:%06ld by %ld:%06ld (parsing url [%s], %s)\n",
               g_parse_acc.tv_sec, g_parse_acc.tv_usec,
+              diff.tv_sec, diff.tv_usec,
               dStr_printable(url->url_string, 130),
               html->base_url->scheme
               );
@@ -545,13 +546,12 @@ void StyleEngine::buildUserStyle(int context_ref)
       {
          timer_start(&g_parse_start);
 
-         CssParser parser_(NULL, style->str, style->len);
-         ffiParseCss(&parser_.m_parser, context_ref, CSS_ORIGIN_USER);
+         ffiParseCss(context_ref, CSS_ORIGIN_USER, style->str, style->len, nullptr);
 
          struct timeval diff = timer_stop(&g_parse_start, &g_parse_stop, &g_parse_acc);
-         fprintf(stderr, "[II] Total parse time increased by %ld:%06ld to %ld:%06ld\n",
-                 diff.tv_sec, diff.tv_usec,
-                 g_parse_acc.tv_sec, g_parse_acc.tv_usec);
+         fprintf(stderr, "[II] Total parse time increased to %ld:%06ld by %ld:%06ld (parsing 'user' style)\n",
+                 g_parse_acc.tv_sec, g_parse_acc.tv_usec,
+                 diff.tv_sec, diff.tv_usec);
       }
       dStr_free (style, 1);
    }

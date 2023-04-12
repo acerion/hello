@@ -21,15 +21,5 @@ typedef enum {
 } CssTokenType;
 
 
-class CssParser {
-   public:
-   const DilloUrl * m_base_url;
-
-   c_css_parser_t m_parser;
-
-   CssParser(const DilloUrl * baseUrl, const char * buf, int buflen);
-};
-
-
 
 #endif

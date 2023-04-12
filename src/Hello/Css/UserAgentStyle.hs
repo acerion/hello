@@ -125,9 +125,8 @@ userAgentStyleString = T.unlines
 -- style was parsed once (in the static method) and inserted into each page's
 -- style sheet. TO DO: recreate this in Haskell.
 styleEngineBuildUserAgentStyle :: CssContext
-styleEngineBuildUserAgentStyle = context
+styleEngineBuildUserAgentStyle = parseCss (parser, defaultCssContext { cssOrigin = CssOriginUserAgent })
   where
-    (_, context) = parseCss (parser, defaultCssContext { cssOrigin = CssOriginUserAgent })
     parser = defaultParser userAgentStyleString
 
 
