@@ -29,8 +29,9 @@ Code in this file is implementing CSS cascading.
 
 References:
 
-CSS 2.2 spec
 https://www.w3.org/TR/CSS22/cascade.html#cascade
+https://www.w3.org/TR/css-cascade-3/
+https://www.w3.org/TR/css-cascade-4/
 -}
 
 

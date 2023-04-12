@@ -31,6 +31,8 @@ a dillo1 based CSS prototype written by Sebastian Geerken."
 {-
 Handling of media query tokens that are between "@media" and rules block.
 Handling of media query values themselves.
+
+https://www.w3.org/TR/mediaqueries-3/
 -}
 
 

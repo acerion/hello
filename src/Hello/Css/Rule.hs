@@ -43,6 +43,9 @@ Code related to CSS rule.
 module Hello.Css.Rule
   (
     CssRule (..)
+  , defaultCssRule
+
+  , CssRule2 (..)
   , CssParsedStyleRule (..)
 
   , getTopCompound
@@ -51,11 +54,24 @@ where
 
 
 
+import qualified Data.Text as T
 -- import Debug.Trace
 
 import Hello.Chain
 import Hello.Css.Declaration
 import Hello.Css.Selector
+import Hello.Css.Tokenizer
+
+
+
+
+data CssRule2
+  = CssStyleRule CssRule Bool
+  | CssMediaRule [CssToken]
+  | CssImportRule [CssToken]
+  | CssInvalidRule T.Text
+  deriving (Eq, Show)
+
 
 
 
@@ -66,6 +82,13 @@ data CssRule = CssRule {
   , specificity     :: Int
   , position        :: Int
   } deriving (Eq)
+
+defaultCssRule = CssRule
+  { complexSelector = mkComplexSelector [WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelectorUnknown }]
+  , declarationSet  = defaultCssDeclarationSet
+  , specificity     = -1
+  , position        = -1
+  }
 
 
 instance Show CssRule where

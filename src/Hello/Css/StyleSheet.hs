@@ -53,9 +53,6 @@ module Hello.Css.StyleSheet
   , getSheet
   , setSheet
 
-  , parseRuleset
-  , rulesetToRulesWithImportance
-
   , CssSheetSelector (..)
 
   , parseCss
@@ -69,7 +66,6 @@ import Prelude
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.List as L
-import qualified Data.Sequence as S
 import Debug.Trace
 
 import Hello.Chain
@@ -78,7 +74,6 @@ import Hello.Css.Tokenizer
 import Hello.Css.Parser.Rule
 import Hello.Css.Rule
 import Hello.Css.Selector
-import Hello.Css.MediaQuery
 import Hello.Utils
 
 
@@ -95,16 +90,18 @@ data CssStyleSheet = CssStyleSheet {
   -- TODO: list of lists to be replaced with vector indexed by element.
   , rulesByType        :: [[CssRule]] -- CSS rules, in which topmost compound selector is characterized by its "specific html element".
   , rulesByAnyElement  :: [CssRule]   -- CSS rules, in which topmost compound selector is characterized by its "any html element".
+  , rulesInvalid       :: [CssRule]   -- Rules that aren't valid style rules
   }
 
 
 instance Show CssStyleSheet where
-  show (CssStyleSheet i c t a) = "CssStyleSheet {\n" ++
-                                 "rulesById { "     ++ show i ++ " }\n\n" ++
-                                 "rulesByClass { "  ++ show c ++ " }\n\n" ++
-                                 "rulesByType  { "  ++ show t ++ " }\n\n" ++
-                                 "rulesByAny { "    ++ show a ++ " }\n" ++
-                                 "}\n\n\n"
+  show (CssStyleSheet i c t a inv) = "CssStyleSheet {\n" ++
+                                     "rulesById { "     ++ show i ++ " }\n\n" ++
+                                     "rulesByClass { "  ++ show c ++ " }\n\n" ++
+                                     "rulesByType  { "  ++ show t ++ " }\n\n" ++
+                                     "rulesByAny { "    ++ show a ++ " }\n" ++
+                                     "rulesInvalid { "  ++ show inv ++ " }\n" ++
+                                     "}\n\n\n"
 
 
 
@@ -113,6 +110,7 @@ defaultStyleSheet = CssStyleSheet { rulesById         = M.empty
                                   , rulesByClass      = M.empty
                                   , rulesByType       = replicate styleSheetElementCount []
                                   , rulesByAnyElement = []
+                                  , rulesInvalid      = []
                                   }
 
 
@@ -132,7 +130,7 @@ insertRuleToStyleSheet sheet rule
   | compoundHasClass compound          = sheet { rulesByClass      = updatedRulesByClass }
   | compoundHasSpecificType compound   = sheet { rulesByType       = updatedRulesByType }
   | compoundHasUniversalType compound  = sheet { rulesByAnyElement = updatedRulesByAnyElement }
-  | compoundHasUnexpectedType compound = trace ("[NN] insert rule to stylesheet: unexpected element: " ++ (show . selectorTagName $ compound)) sheet
+  | compoundHasUnexpectedType compound = trace ("[NN] insert rule to stylesheet: unexpected element: " ++ (show . selectorTagName $ compound)) sheet { rulesInvalid = updatedRulesInvalid }
   | otherwise                          = sheet
 
   where
@@ -145,6 +143,8 @@ insertRuleToStyleSheet sheet rule
     updatedRulesByType = listReplaceElem (rulesByType sheet) updatedThisElementRules (unCssTypeSelector . selectorTagName $ compound)
 
     updatedRulesByAnyElement = insertRuleInListOfRules (rulesByAnyElement sheet) rule
+
+    updatedRulesInvalid = rule:(rulesInvalid sheet)
 
     thisElementRules sheetArg (Just t) = rulesByType sheetArg !! t
     thisElementRules _        Nothing  = []
@@ -338,7 +338,7 @@ setSheet selector sheet context = case selector of
 
 
 
-
+{-
 makeRulePairs :: [CssComplexSelector] -> CssDeclarationSets -> [(CssRule, Bool)] -> [(CssRule, Bool)]
 makeRulePairs []     _        acc = reverse acc
 makeRulePairs (x:xs) declSets acc | addBoth      = makeRulePairs xs declSets ((ruleImp, True) : (rule, False) : acc)
@@ -384,6 +384,7 @@ parseRuleset (pat, context) = ((p2, t2), updatedContext)
   where
     updatedContext = cssContextAddRules context rulesWithImportance
     ((p2, t2), rulesWithImportance) = rulesetToRulesWithImportance pat
+-}
 
 
 
@@ -432,18 +433,13 @@ void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * conte
 parseCss :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
 parseCss ((parser, token), context) =
   case token of
-    -- TODO: check whether string comparison of "import" or "media" should be
-    -- case-sensitive or not.
-    -- TODO: handle CssTokAtKeyword tokens with values other than "media"/"import".
-    CssTokAtKeyword "import" -> parseCss . parseImportRule $ ((parser, token), context)
-    CssTokAtKeyword "media"  -> parseCss . parseMediaRule $ ((parser, token), context)
     CssTokNone               -> parseCss (nextToken parser, context) -- Kick-start parsing of tokens stream.
     CssTokEnd                -> ((parser, token), context)
-    _                        -> parseCss . parseRuleset $ ((parser, token), context) -- TODO: set flag "let importsAreAllowed = False"
+    _                        -> parseCss . parseStyleRules $ ((parser, token), context) -- TODO: set flag "let importsAreAllowed = False"
 
 
 
-
+{-
 -- TODO: reimplement "void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)"
 parseImportRule :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
 parseImportRule ((parser, _token), context) = trace "[DD] @import detected" (ignoreStatement parser, context)
@@ -471,6 +467,21 @@ parseMediaBlock ((parser, token), context) = case parseRuleset ((parser, token),
                                                ((p2, CssTokEnd), c2)             -> ((p2, CssTokEnd), c2)
                                                ((p2, CssTokBraceCurlyClose), c2) -> (nextToken p2, c2) -- Consume closing brace of media block
                                                ((p2, t2), c2)                    -> parseRuleset ((p2, t2), c2)
+-}
+
+
+
+
+{-
+Parse style rules and add them to context.
+"p.sth > h1.other { color: red; width: 10px !important; }"      ->     [(CssRule, Bool)]
+-}
+parseStyleRules :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
+parseStyleRules (pat, context) = (pat', cssContextAddRules context rules)
+  where
+    (pat', rules) = parseCssRules pat
+
+
 
 
 

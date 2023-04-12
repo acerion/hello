@@ -101,7 +101,10 @@ module Hello.Css.Tokenizer
   , parserTokenString
   , parserTokenStringValue
   , parserTokenWhitespace
+  , parserTokenAtKeyword
   , parserTokenEnd
+
+  , unsatisfy
   )
 where
 
@@ -828,6 +831,14 @@ satisfy (parser, token) needed = if token == needed
 
 
 
+unsatisfy :: (CssParser, CssToken) -> CssToken -> Maybe ((CssParser, CssToken), CssToken)
+unsatisfy (parser, token) needed = if token /= needed
+                                   then Just (nextToken parser, token)
+                                   else Nothing
+
+
+
+
 parserTokenNum :: Parser (CssParser, CssToken) CssToken
 parserTokenNum = Parser $ \ (parser, token) -> case token of
                                                  CssTokNum _ -> Just (nextToken parser, token)
@@ -950,6 +961,15 @@ parserTokenWhitespace :: Parser (CssParser, CssToken) CssToken
 parserTokenWhitespace = Parser $ \ (parser, token) -> case token of
                                                         CssTokWS -> Just (nextToken parser, token)
                                                         _        -> Nothing
+
+
+
+
+parserTokenAtKeyword :: T.Text -> Parser (CssParser, CssToken) CssToken
+parserTokenAtKeyword keyword = Parser $ \ (parser, token) -> case token of
+                                                               CssTokAtKeyword x | x == keyword -> Just (nextToken parser, token)
+                                                                                 | otherwise    -> Nothing
+                                                               _ -> Nothing
 
 
 

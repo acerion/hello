@@ -46,11 +46,17 @@ module Hello.Css.Parser.Rule
     ignoreBlock
   , ignoreStatement
 
-  , parseStyleRule
   , parseElementStyleAttribute
 
   -- These are exported only for tests
   , parseAllDeclarations
+
+  , parserCssRules
+  , parserStyleRule2
+  , parserInvalidRule
+  , parserEnd
+  , parserImportRule
+  , parseCssRules
   )
 where
 
@@ -58,13 +64,17 @@ where
 
 
 import Control.Applicative (Alternative(..))
+import Data.Maybe
+import qualified Data.Sequence as S
 import qualified Data.Text as T
 -- import Debug.Trace
 
 import Hello.Css.Declaration
 import Hello.Css.Parser.Declaration
+import Hello.Css.Parser.Property
 import Hello.Css.Parser.Selector
 import Hello.Css.Rule
+import Hello.Css.Selector
 import Hello.Css.Tokenizer
 import Hello.Utils.Parser
 
@@ -113,7 +123,7 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
 
 
 
-
+{-
 -- Consume input until end of {} block is encountered.
 -- To be called when handling errors during parsing of {} block.
 consumeRestOfCurlyBlock :: (CssParser, CssToken) -> (CssParser, CssToken)
@@ -126,6 +136,7 @@ consumeRestOfCurlyBlock (parser, CssTokBraceCurlyClose) =
     consumeFinalSpaces (p, CssTokWS) = consumeFinalSpaces . nextToken $ p
     consumeFinalSpaces pat = pat
 consumeRestOfCurlyBlock (parser, _)                     = consumeRestOfCurlyBlock . nextToken $ parser
+-}
 
 
 
@@ -206,16 +217,31 @@ parseAllDeclarations input                                 = parseAllDeclaration
 -- parseStyleRule (startTokenizer $ defaultParser "body {color:red ; background-color: #ffff00;line-height: normal h1{color:blue} h2{color: #001122} h3 {color : #998877;}")
 --
 -- Unit-tested: yes
+{-
 parseStyleRule :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssParsedStyleRule)
 parseStyleRule pat = case runParser parserStyleRule pat of
                         Nothing -> (consumeRestOfCurlyBlock pat, Nothing) -- Error recovery, skip invalid rule.
                         Just (pat', parsedStyleRule) -> (pat', Just parsedStyleRule)
+-}
 
 
 
 
 -- Parser of style rule: a list of complex selectors followed by {} block
 -- with declarations.
+{-
+:m +Hello.Css.Parser.Declaration
+:m +Hello.Css.Tokenizer
+:m +Hello.Css.Parser.Property
+:m +Hello.Css.Parser.Rule
+:m +Hello.Utils.Parser
+:set prompt >
+
+runParser parserStyleRule  (startTokenizer $ defaultParser "body {color:red ; background-color: #ffff00;line-height: normal h1{color:blue} h2{color: #001122} h3 {color : #998877;}")
+
+
+runParser parserStyleRule  (startTokenizer $ defaultParser "span.sd-info-block, span[class^=sd-key-] {display: none !important;}")
+-}
 parserStyleRule :: Parser (CssParser, CssToken) CssParsedStyleRule
 parserStyleRule = Parser $ \ pat -> do
   (pat', selectorList) <- runParser parserSelectorList pat
@@ -268,4 +294,202 @@ parserDeclarationBlock = parserOpeningBrace *> parserDeclarations <* parserClosi
     parserDeclarations = Parser $ \ pat ->
       case parseAllDeclarations (pat, (defaultCssDeclarationSet, defaultCssDeclarationSet)) of
         (pat', declSets) -> Just (pat', declSets)
+
+
+
+
+{-
+:m +Hello.Css.Parser.Declaration
+:m +Hello.Css.Tokenizer
+:m +Hello.Css.Parser.Property
+:m +Hello.Utils.Parser
+:m +Hello.Css.Parser.Rule
+:set prompt >
+
+
+-- Notice that one of declarations in this line is invalid.
+-- FIXME; the invalid declaration doesn't seem to be handled properly: color and background-color are attached to list of declarations of the rule.
+runParser parserListOfStyleRules (startTokenizer $ defaultParser "body {color:red ; background-color: #ffff00;line-height: normal h1{color:blue} h2{color: #001122} h3 {color : #998877;}")
+
+-- Notice that one of declarations in this line is invalid
+runParser parserListOfStyleRules (startTokenizer $ defaultParser "body {color:red ; background-color: #ffff00;line-height: normal h1{color:blue} h2{color: #001122}@media print {}")
+
+runParser parserListOfStyleRules (startTokenizer $ defaultParser "body {color:red ; background-color: #ffff00;line-height: normal !important} h1{color:blue} h2{color: #001122}@media print {}")
+
+-- Notice that this is an invalid input for parser.
+runParser parserListOfStyleRules (startTokenizer $ defaultParser "body {color:red ; background-color: #ffff00;line-")
+-}
+{-
+parserListOfStyleRules :: Parser (CssParser, CssToken) [CssParsedStyleRule]
+parserListOfStyleRules = many ((many parserTokenWhitespace) *> parserStyleRule <* (many parserTokenWhitespace))
+-}
+
+
+
+{-
+Main parser for any supported CSS rule types.
+
+It returns a list of rules because for each complex selector in selectors
+list of a style rule the function will return separate rule.
+
+TODO: handle CssTokAtKeyword tokens with values other than "media"/"import".
+-}
+parserCssRule2 :: Parser (CssParser, CssToken) [CssRule2]
+parserCssRule2 = parserStyleRule2 <|> fmap (:[]) parserMediaRule <|> fmap (:[]) parserImportRule <|> fmap (:[]) parserInvalidRule <|> fmap (:[]) parserEnd
+
+
+
+
+{-
+Main parser for style rule.
+
+It returns a list of style rules because for each complex selector in
+selectors list the function will return separate style rule.
+-}
+parserStyleRule2 :: Parser (CssParser, CssToken) [CssRule2]
+parserStyleRule2 = fmap parsedRuleToRule2 parserStyleRule
+  where
+    parsedRuleToRule2 parsedStyleRule = buildRules complexSelectors declSets []
+      where
+        complexSelectors = fmap mkComplexSelector (prelude parsedStyleRule)
+        declSets         = content parsedStyleRule
+
+
+
+
+{-
+Main parser for media rule.
+
+TODO: write better implementation, even if this implementation will just
+consume rules' tokens.
+
+TODO: check whether string comparison of "media" should be case-sensitive or
+not.
+-}
+parserMediaRule :: Parser (CssParser, CssToken) CssRule2
+parserMediaRule = fmap CssMediaRule (parserTokenAtKeyword "media" *> many (Parser $ \ pat -> unsatisfy pat CssTokBraceCurlyClose)) <* parserTokenBraceCurlyClose
+
+
+
+
+{-
+Main parser for import rule.
+
+TODO: write better implementation, even if this implementation will just
+consume rules' tokens.
+
+TODO: check whether string comparison of "import" should be case-sensitive or
+not.
+-}
+parserImportRule :: Parser (CssParser, CssToken) CssRule2
+parserImportRule = fmap CssImportRule (parserTokenAtKeyword "import" *> many (Parser $ \ pat -> unsatisfy pat CssTokSemicolon)) <* parserTokenSemicolon
+
+
+
+
+{-
+Main parser that consumes a rule that appears to be invalid: it's neither
+style rule, nor media rule nor import rule.
+
+TODO: write better implementation.
+-}
+parserInvalidRule :: Parser (CssParser, CssToken) CssRule2
+parserInvalidRule = Parser $ \ (parser, token) -> case runParser ((many restOfCurlyBlock) <* parserTokenBraceCurlyClose) (parser, token) of
+                                                    Just (pat', _) -> Just (pat', CssInvalidRule (T.take 100 (remainder parser)))
+                                                    Nothing        -> Nothing
+
+
+
+
+restOfCurlyBlock :: Parser (CssParser, CssToken) CssToken
+restOfCurlyBlock = Parser $ \ (parser, token) -> case token of
+                                                   CssTokBraceCurlyClose -> Nothing -- TODO: maybe this should be (Just ((parser, token), token))?
+                                                   CssTokEnd             -> Nothing
+                                                   t                     -> Just (nextToken parser, t)
+
+
+
+
+{-
+Parser needed to correctly handle end of input and terminate parsing. Or
+maybe it's not so needed after all.
+
+TODO: check if this parser is needed at all.
+-}
+parserEnd :: Parser (CssParser, CssToken) CssRule2
+parserEnd = fmap CssImportRule (some (Parser $ \ (parser, token) -> if (token == CssTokEnd) then Nothing else Just ((parser, token), token)))
+
+
+
+
+{-
+Build rules from basic ingredients: from list of complex selectors and from a
+set of declarations.
+
+The two ingredients come from parsing a style rule that may have a list of
+complex selectors, like this:
+
+h1.x > h2.y, p.z div.x { color: blue; width: 10px; }
+
+In this example we have a list of two complex selectors and one set of
+declarations.
+-}
+buildRules :: [CssComplexSelector] -> CssDeclarationSets -> [CssRule2] -> [CssRule2]
+buildRules []     _        acc = reverse acc
+buildRules (x:xs) declSets acc | addBoth      = buildRules xs declSets ((CssStyleRule ruleImp True) : (CssStyleRule rule False) : acc)
+                               | addRegular   = buildRules xs declSets ((CssStyleRule rule False) : acc)
+                               | addImportant = buildRules xs declSets ((CssStyleRule ruleImp True) : acc)
+                               | otherwise    = buildRules xs declSets acc
+
+  where rule    = ruleCtor x (fst declSets)
+        ruleImp = ruleCtor x (snd declSets)
+        ruleCtor cplxSel decls = CssRule { complexSelector = cplxSel
+                                         , declarationSet  = decls
+                                         , specificity     = selectorSpecificity cplxSel
+                                         , position        = 0 -- Position of a rule will be set at the moment of inserting the rule to CSS context
+                                         }
+        addRegular   = not . S.null . items . fst $ declSets  -- Should add a regular rule to accumulator?
+        addImportant = not . S.null . items . snd $ declSets  -- Should add an important rule to accumulator?
+        addBoth      = addRegular && addImportant             -- Should add both regular and imporant rules to accumulator?
+
+
+
+
+{-
+:m +Hello.Css.Parser.Declaration
+:m +Hello.Css.Tokenizer
+:m +Hello.Css.Parser.Property
+:m +Hello.Utils.Parser
+:m +Hello.Css.Parser.Rule
+:set prompt >
+
+-- Notice that one of declarations in this line is invalid.
+-- FIXME; the invalid declaration doesn't seem to be handled properly: color and background-color are attached to list of declarations of the rule.
+runParser parserCssRules (startTokenizer $ defaultParser "body {color:red ; background-color: #ffff00;line-height: normal h1{color:blue} h2{color: #001122} h3 {color : #998877;}")
+-}
+parserCssRules :: Parser (CssParser, CssToken) [CssRule2]
+parserCssRules = fmap concat (some ((many parserTokenWhitespace) *> parserCssRule2 <* (many parserTokenWhitespace)))
+
+
+
+
+parseCssRules :: (CssParser, CssToken) -> ((CssParser, CssToken), [(CssRule, Bool)])
+parseCssRules pat = (fmap . fmap) rule2ToRule (fromMaybe (pat, []) (runParser parserCssRules pat))
+  where
+    rule2ToRule :: CssRule2 -> (CssRule, Bool)
+    rule2ToRule rule = case rule of
+                         CssStyleRule r imp -> (r, imp)
+                         CssMediaRule x     -> wrapInvalidRule (T.pack ("MEDIA RULE" ++ (show x)))
+                         CssImportRule x    -> wrapInvalidRule (T.pack ("IMPORT RULE" ++ (show x)))
+                         CssInvalidRule x   -> wrapInvalidRule (T.append "INVALID RULE: " x)
+
+    -- Wrap info about invalid rule in a default Css Style Rule.
+    --
+    -- I want to keep track of invalid rules in output of parser, and storing
+    -- them like this allows me to do it.
+    wrapInvalidRule text = ( defaultCssRule { declarationSet = declarationsSetUpdateOrAdd defaultCssDeclarationSet
+                                              (CssDeclaration (CssPropertyXTooltip $ CssValueXTooltip text) False)
+                                            }
+                           , False)
+
 
