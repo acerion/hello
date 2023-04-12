@@ -430,12 +430,16 @@ void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * conte
 #endif
 }
 -}
-parseCss :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
-parseCss ((parser, token), context) =
-  case token of
-    CssTokNone               -> parseCss (nextToken parser, context) -- Kick-start parsing of tokens stream.
-    CssTokEnd                -> ((parser, token), context)
-    _                        -> parseCss . parseStyleRules $ ((parser, token), context) -- TODO: set flag "let importsAreAllowed = False"
+{-
+Parse style rules and add them to context.
+"p.sth > h1.other { color: red; width: 10px !important; }"      ->     [(CssRule, Bool)]
+-}
+parseCss :: (CssParser, CssContext) -> (CssParser, CssContext)
+parseCss (parser, context) = (parser', context')
+  where
+    ((parser', _), rules) = parseCssRules . nextToken $ parser -- 'nextToken' kick-starts parsing.
+    context' = cssContextAddRules context rules
+
 
 
 
@@ -468,19 +472,6 @@ parseMediaBlock ((parser, token), context) = case parseRuleset ((parser, token),
                                                ((p2, CssTokBraceCurlyClose), c2) -> (nextToken p2, c2) -- Consume closing brace of media block
                                                ((p2, t2), c2)                    -> parseRuleset ((p2, t2), c2)
 -}
-
-
-
-
-{-
-Parse style rules and add them to context.
-"p.sth > h1.other { color: red; width: 10px !important; }"      ->     [(CssRule, Bool)]
--}
-parseStyleRules :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
-parseStyleRules (pat, context) = (pat', cssContextAddRules context rules)
-  where
-    (pat', rules) = parseCssRules pat
-
 
 
 

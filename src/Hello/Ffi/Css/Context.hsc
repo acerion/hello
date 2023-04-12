@@ -59,7 +59,7 @@ import Hello.Ffi.Css.Parser
 
 foreign export ccall "ffiCssContextCtor" ffiCssContextCtor :: IO CInt
 --foreign export ccall "ffiCssCascadeApplyCssContext" ffiCssCascadeApplyCssContext :: CInt -> CInt -> CInt -> IO CInt
-foreign export ccall "ffiParseCss" ffiParseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> CInt -> IO ()
+foreign export ccall "ffiParseCss" ffiParseCss :: Ptr FfiCssParser -> CInt -> CInt -> IO ()
 
 foreign export ccall "ffiCssContextPrint" ffiCssContextPrint :: CString -> CInt -> IO ()
 
@@ -218,22 +218,20 @@ ffiCssCascadeApplyCssContext cStyleEngineRef cRef cStyleNodeIndex = do
 
 
 
-ffiParseCss :: Ptr FfiCssParser -> Ptr FfiCssToken -> CInt -> CInt -> IO ()
-ffiParseCss ptrStructCssParser ptrStructCssToken cRef cOrigin = do
+ffiParseCss :: Ptr FfiCssParser -> CInt -> CInt -> IO ()
+ffiParseCss ptrStructCssParser cRef cOrigin = do
   parser  <- peekCssParser ptrStructCssParser
-  token   <- peekCssToken ptrStructCssToken
 
   let ref  = fromIntegral cRef
   context <- globalContextGet ref
 
   let origin = getCssOrigin . fromIntegral $ cOrigin
 
-  let ((p2, t2), c2) = parseCss ((parser, token), context { cssOrigin = origin })
+  let (parser', context') = parseCss (parser, context { cssOrigin = origin })
 
-  pokeCssParser ptrStructCssParser p2
-  pokeCssToken ptrStructCssToken t2
+  pokeCssParser ptrStructCssParser parser'
 
-  globalContextUpdate ref c2
+  globalContextUpdate ref context'
 
   return ()
 

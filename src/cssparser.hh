@@ -26,7 +26,6 @@ class CssParser {
    const DilloUrl * m_base_url;
 
    c_css_parser_t m_parser;
-   c_css_token_t m_token;
 
    CssParser(const DilloUrl * baseUrl, const char * buf, int buflen);
 };

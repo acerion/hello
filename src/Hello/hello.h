@@ -407,7 +407,7 @@ void ffiHtmlParseAttributeWidthOrHeight(const char * attribute_value, c_css_leng
 void ffiCssContextPrint(const char * path, int css_context_ref);
 
 
-void ffiParseCss(c_css_parser_t * parser, c_css_token_t * token, int context_ref, int origin);
+void ffiParseCss(c_css_parser_t * parser, int context_ref, int origin);
 
 
 int ffiCssContextCtor(void);

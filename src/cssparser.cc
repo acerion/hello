@@ -53,8 +53,6 @@ CssParser::CssParser(const DilloUrl * baseUrl, const char * buf, int buflen)
    this->m_parser.c_space_separated = false;
    this->m_parser.c_buf_offset = 0;
    this->m_base_url = baseUrl;
-
-   nextToken(&this->m_parser, &this->m_token);
 }
 
 void nextToken(c_css_parser_t * parser, c_css_token_t * token)
