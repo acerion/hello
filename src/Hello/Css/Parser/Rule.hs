@@ -73,6 +73,7 @@ import Hello.Css.Declaration
 import Hello.Css.Parser.Declaration
 import Hello.Css.Parser.Property
 import Hello.Css.Parser.Selector
+import Hello.Css.Parser.Value
 import Hello.Css.Rule
 import Hello.Css.Selector
 import Hello.Css.Tokenizer
@@ -382,8 +383,15 @@ TODO: check whether string comparison of "import" should be case-sensitive or
 not.
 -}
 parserImportRule :: Parser (CssParser, CssToken) CssRule2
-parserImportRule = fmap CssImportRule (parserTokenAtKeyword "import" *> many (Parser $ \ pat -> unsatisfy pat CssTokSemicolon)) <* parserTokenSemicolon
-
+parserImportRule = Parser $ \ pat -> fn pat
+  where
+    fn :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssRule2)
+    fn pat =
+      do
+        (pat', _)     <- runParser (parserTokenAtKeyword "import") pat
+        (pat'', url)  <- runParser (many parserTokenWhitespace *> (parserUrl <|> (fmap ParsedUrl parserTokenStringValue)) <* many parserTokenWhitespace) pat'
+        (pat''', _)   <- runParser parserTokenSemicolon pat''
+        pure (pat''', CssImportRule url)
 
 
 
@@ -415,9 +423,11 @@ Parser needed to correctly handle end of input and terminate parsing. Or
 maybe it's not so needed after all.
 
 TODO: check if this parser is needed at all.
+
+TODO: use better value constructor than CssMediaRule.
 -}
 parserEnd :: Parser (CssParser, CssToken) CssRule2
-parserEnd = fmap CssImportRule (some (Parser $ \ (parser, token) -> if (token == CssTokEnd) then Nothing else Just ((parser, token), token)))
+parserEnd = fmap CssMediaRule (some (Parser $ \ (parser, token) -> if (token == CssTokEnd) then Nothing else Just ((parser, token), token)))
 
 
 
@@ -479,8 +489,13 @@ parseCssRules pat = (fmap . fmap) rule2ToRule (fromMaybe (pat, []) (runParser pa
     rule2ToRule :: CssRule2 -> (CssRule, Bool)
     rule2ToRule rule = case rule of
                          CssStyleRule r imp -> (r, imp)
+
+                         -- These are treated as invalid rules because they aren't style rules.
+                         --
+                         -- TODO: figure out better way of handling Media and Import rules.
                          CssMediaRule x     -> wrapInvalidRule (T.pack ("MEDIA RULE" ++ (show x)))
                          CssImportRule x    -> wrapInvalidRule (T.pack ("IMPORT RULE" ++ (show x)))
+
                          CssInvalidRule x   -> wrapInvalidRule (T.append "INVALID RULE: " x)
 
     -- Wrap info about invalid rule in a default Css Style Rule.

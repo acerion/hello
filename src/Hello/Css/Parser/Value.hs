@@ -64,6 +64,8 @@ module Hello.Css.Parser.Value
   , Image (..)
   , parserImageUrl
   , parserImageGradient
+
+  , parserUrl
   )
 where
 

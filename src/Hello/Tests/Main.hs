@@ -29,6 +29,7 @@ import Hello.Tests.Css.DeclarationSet
 import Hello.Tests.Css.Parser
 import Hello.Tests.Css.Parser.Combinators
 import Hello.Tests.Css.Parser.Declaration
+import Hello.Tests.Css.Parser.ImportRule
 import Hello.Tests.Css.Parser.QuickCheck
 import Hello.Tests.Css.Parser.Selector
 import Hello.Tests.Css.Parser.Rule
@@ -62,6 +63,7 @@ testFunctions = [ testsChain
                 , testsCssParser
                 , testsCssParserCombinators
                 , testsCssParserDeclaration
+                , testsCssParserImportRule
                 , testsCssParserQuickCheck
                 , testsCssParserRule
                 , testsCssParserSelector

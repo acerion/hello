@@ -61,6 +61,7 @@ import Hello.Chain
 import Hello.Css.Declaration
 import Hello.Css.Selector
 import Hello.Css.Tokenizer
+import Hello.Css.Parser.Value
 
 
 
@@ -68,7 +69,7 @@ import Hello.Css.Tokenizer
 data CssRule2
   = CssStyleRule CssRule Bool
   | CssMediaRule [CssToken]
-  | CssImportRule [CssToken]
+  | CssImportRule ParsedUrl
   | CssInvalidRule T.Text
   deriving (Eq, Show)
 
