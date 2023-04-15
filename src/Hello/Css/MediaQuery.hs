@@ -48,6 +48,7 @@ module Hello.Css.MediaQuery
     CssMediaQuery
 
   , parseMediaQuery
+  , parserMediaQuery
   , mediaMatchesParser
   )
 where
@@ -56,6 +57,7 @@ where
 
 
 import Hello.Css.Tokenizer
+import Hello.Utils.Parser
 
 
 
@@ -84,6 +86,14 @@ parseMediaQuery (parser, token) = ((p2, t2), Just media)
     ((p2, t2), tokens) = consumeMediaQueryTokens (parser, token) []
     media = splitAtCommaToken tokens []
     -- syntaxValid = True -- TODO: implement syntax validation
+
+
+
+
+parserMediaQuery :: Parser (CssParser, CssToken) CssMediaQuery
+parserMediaQuery = Parser $ \ pat -> case parseMediaQuery pat of
+                                       (pat', Just mq) -> Just (pat', mq)
+                                       (_, Nothing)    -> Nothing
 
 
 

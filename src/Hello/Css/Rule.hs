@@ -59,6 +59,7 @@ import qualified Data.Text as T
 
 import Hello.Chain
 import Hello.Css.Declaration
+import Hello.Css.MediaQuery
 import Hello.Css.Selector
 import Hello.Css.Tokenizer
 import Hello.Css.Parser.Value
@@ -68,9 +69,10 @@ import Hello.Css.Parser.Value
 
 data CssRule2
   = CssStyleRule CssRule Bool
-  | CssMediaRule [CssToken]
+  | CssMediaRule CssMediaQuery [CssRule2]
   | CssImportRule ParsedUrl
   | CssInvalidRule T.Text
+  | CssInvalidRule2 [CssToken] -- TODO: this value constructor is just a temporary solution. Remove it in the future.
   deriving (Eq, Show)
 
 

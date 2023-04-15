@@ -52,11 +52,15 @@ module Hello.Css.Parser.Rule
   , parseAllDeclarations
 
   , parserCssRules
+  , parserImportRule
   , parserStyleRule2
+  , parserMediaRule
   , parserInvalidRule
   , parserEnd
-  , parserImportRule
   , parseCssRules
+
+  , parserStyleSheet
+  , parserBody
   )
 where
 
@@ -70,6 +74,7 @@ import qualified Data.Text as T
 -- import Debug.Trace
 
 import Hello.Css.Declaration
+import Hello.Css.MediaQuery
 import Hello.Css.Parser.Declaration
 import Hello.Css.Parser.Property
 import Hello.Css.Parser.Selector
@@ -340,6 +345,11 @@ parserCssRule2 = parserStyleRule2 <|> fmap (:[]) parserMediaRule <|> fmap (:[]) 
 
 
 
+-- TODO: this is only temporary, until all parts of parserCssRule2 will be tested independently.
+parserCssRule3 :: Parser (CssParser, CssToken) [CssRule2]
+parserCssRule3 = parserStyleRule2 <|> fmap (:[]) parserMediaRule <|> fmap (:[]) parserImportRule
+
+
 
 {-
 Main parser for style rule.
@@ -368,7 +378,40 @@ TODO: check whether string comparison of "media" should be case-sensitive or
 not.
 -}
 parserMediaRule :: Parser (CssParser, CssToken) CssRule2
-parserMediaRule = fmap CssMediaRule (parserTokenAtKeyword "media" *> many (Parser $ \ pat -> unsatisfy pat CssTokBraceCurlyClose)) <* parserTokenBraceCurlyClose
+parserMediaRule = Parser $ \ pat -> do
+  (pat', _)           <- runParser (parserTokenAtKeyword "media") pat
+  (pat'', mediaQuery) <- runParser parserMediaQuery pat'
+  (pat''', ss)        <- runParser parserBody pat''
+  pure (pat''', CssMediaRule mediaQuery ss)
+
+
+
+
+{-
+:m +Hello.Css.Parser.Declaration
+:m +Hello.Css.Tokenizer
+:m +Hello.Css.Parser.Property
+:m +Hello.Utils.Parser
+:m +Hello.Css.Parser.Rule
+:set prompt >
+
+runParser parserBody (startTokenizer $ defaultParser "{body {color:red;}}")
+-}
+parserBody :: Parser (CssParser, CssToken) [CssRule2]
+parserBody = (many parserTokenWhitespace) *> parserTokenBraceCurlyOpen *> parserStyleSheet <* parserTokenBraceCurlyClose <* (many parserTokenWhitespace)
+
+
+
+
+
+-- TODO: this is only a temporary approach to parsing a style sheet
+parserStyleSheet :: Parser (CssParser, CssToken) [CssRule2]
+parserStyleSheet = parserCssRules3
+
+
+
+
+
 
 
 
@@ -424,10 +467,10 @@ maybe it's not so needed after all.
 
 TODO: check if this parser is needed at all.
 
-TODO: use better value constructor than CssMediaRule.
+TODO: use better value constructor than CssInvalidRule2.
 -}
 parserEnd :: Parser (CssParser, CssToken) CssRule2
-parserEnd = fmap CssMediaRule (some (Parser $ \ (parser, token) -> if (token == CssTokEnd) then Nothing else Just ((parser, token), token)))
+parserEnd = fmap CssInvalidRule2 (some (Parser $ \ (parser, token) -> if (token == CssTokEnd) then Nothing else Just ((parser, token), token)))
 
 
 
@@ -483,6 +526,12 @@ parserCssRules = fmap concat (some ((many parserTokenWhitespace) *> parserCssRul
 
 
 
+parserCssRules3 :: Parser (CssParser, CssToken) [CssRule2]
+parserCssRules3 = fmap concat (some ((many parserTokenWhitespace) *> parserCssRule3 <* (many parserTokenWhitespace)))
+
+
+
+
 parseCssRules :: (CssParser, CssToken) -> ((CssParser, CssToken), [(CssRule, Bool)])
 parseCssRules pat = (fmap . fmap) rule2ToRule (fromMaybe (pat, []) (runParser parserCssRules pat))
   where
@@ -493,10 +542,11 @@ parseCssRules pat = (fmap . fmap) rule2ToRule (fromMaybe (pat, []) (runParser pa
                          -- These are treated as invalid rules because they aren't style rules.
                          --
                          -- TODO: figure out better way of handling Media and Import rules.
-                         CssMediaRule x     -> wrapInvalidRule (T.pack ("MEDIA RULE" ++ (show x)))
-                         CssImportRule x    -> wrapInvalidRule (T.pack ("IMPORT RULE" ++ (show x)))
+                         CssMediaRule sel ss -> wrapInvalidRule (T.pack ("MEDIA RULE: media selector = " ++ (show sel) ++ ", stylesheet = " ++ (show ss)))
+                         CssImportRule x     -> wrapInvalidRule (T.pack ("IMPORT RULE" ++ (show x)))
 
-                         CssInvalidRule x   -> wrapInvalidRule (T.append "INVALID RULE: " x)
+                         CssInvalidRule x    -> wrapInvalidRule (T.append "INVALID RULE: " x)
+                         CssInvalidRule2 x   -> wrapInvalidRule (T.pack ("INVALID RULE 2: " ++ (show x)))
 
     -- Wrap info about invalid rule in a default Css Style Rule.
     --
