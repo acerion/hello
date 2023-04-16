@@ -360,16 +360,6 @@ int ffiHtmlTagIndex(const char * tagName);
 
 
 
-/* CssParser */
-/* Token value is returned through return statement. */
-/* Function returns color through return statement. */
-//int ffiParseRgbFunction(c_css_parser_t * parser, const char * remainder);
-
-//char * ffiDeclarationValueAsString(c_css_parser_t * parser, c_css_token_t * token, int valueType);
-
-
-
-
 void ffiCssParseElementStyleAttribute(int style_engine_ref, const void /* DilloUrl */ *baseUrl, const char * cssStyleAttribute, int buflen);
 
 

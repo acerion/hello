@@ -48,7 +48,6 @@ import Hello.Css.ContextGlobal
 import Hello.Css.StyleSheet
 import Hello.Css.Tokenizer
 import Hello.Css.UserAgentStyle
-import Hello.Ffi.Css.Parser
 
 
 
@@ -259,4 +258,24 @@ ffiCssContextPrint cPath cRef = do
   hClose h
 
   return ()
+
+
+
+
+getCssOrigin :: Int -> CssOrigin
+getCssOrigin o = case o of
+                   0 -> CssOriginUserAgent
+                   1 -> CssOriginUser
+                   2 -> CssOriginAuthor
+                   _ -> CssOriginAuthor
+
+
+
+{-
+getIntOrigin :: CssOrigin -> Int
+getIntOrigin origin = case origin of
+                        CssOriginUserAgent -> 0
+                        CssOriginUser      -> 1
+                        CssOriginAuthor    -> 2
+-}
 

@@ -3,14 +3,11 @@
 
 
 all:
-	hsc2hs ./Ffi/Css/Css.hsc
 	hsc2hs ./Ffi/Css/Context.hsc
 	hsc2hs ./Ffi/Css/Distance.hsc
-	hsc2hs ./Ffi/Css/MatchCache.hsc
 	hsc2hs ./Ffi/Css/Parser.hsc
 	hsc2hs ./Ffi/Css/StyleEngine.hsc
 	hsc2hs ./Ffi/Css/StyleEngineGlobal.hsc
-	hsc2hs ./Ffi/Css/StyleSheet.hsc
 	hsc2hs ./Ffi/Dw/DwLength.hsc
 	hsc2hs ./Ffi/Dw/FontAttrs.hsc
 	hsc2hs ./Ffi/Dw/Style.hsc
@@ -49,14 +46,11 @@ clean:
 	find ./ -name "*_stub.h"  | xargs rm -f
 	find ./Ffi/ -name "*.h"   | xargs rm -f
 
-	rm -f ./Ffi/Css/Css.hs
 	rm -f ./Ffi/Css/Context.hs
 	rm -f ./Ffi/Css/Distance.hs
-	rm -f ./Ffi/Css/MatchCache.hs
 	rm -f ./Ffi/Css/Parser.hs
 	rm -f ./Ffi/Css/StyleEngine.hs
 	rm -f ./Ffi/Css/StyleEngineGlobal.hs
-	rm -f ./Ffi/Css/StyleSheet.hs
 	rm -f ./Ffi/Dw/DwLength.hs
 	rm -f ./Ffi/Dw/FontAttrs.hs
 	rm -f ./Ffi/Dw/Style.hs
