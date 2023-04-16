@@ -5,34 +5,6 @@
 #include "css.h"
 #include "Hello/hello.h"
 
-enum CssDeclarationValueType {
-   // CssDeclarationValueTypeINTEGER                  =  0,  /* This type is only used internally, for x-* properties. */
-   // CssDeclarationValueTypeENUM                     =  1,  /* Value is i, if represented by enum_symbols[i]. */
-   // CssDeclarationValueTypeMULTI_ENUM               =  2,  /* For all enum_symbols[i], 1 << i are combined. */
-   CssDeclarationValueTypeLENGTH_PERCENTAGE        =  3,  /* <length> or <percentage>. Represented by CssLength. */
-   CssDeclarationValueTypeLENGTH                   =  4,  /* <length>, represented as CssLength. Note: In some
-                                                             cases, CSS_TYPE_LENGTH is used instead of
-                                                             CSS_TYPE_LENGTH_PERCENTAGE, only because Dw cannot
-                                                             handle percentages in this particular case (e.g.
-                                                             'margin-*-width'). */
-   CssDeclarationValueTypeSIGNED_LENGTH            =  5,  /* As CSS_TYPE_LENGTH but may be negative. */
-   CssDeclarationValueTypeLENGTH_PERCENTAGE_NUMBER =  6,  /* <length> or <percentage>, or <number> */
-   // CssDeclarationValueTypeAUTO                     =  7,  /* Represented as CssLength of type CSS_LENGTH_TYPE_AUTO */
-   // CssDeclarationValueTypeCOLOR                    =  8,  /* Represented as integer. */
-   // CssDeclarationValueTypeFONT_WEIGHT              =  9,  /* this very special and only used by 'font-weight' */
-   CssDeclarationValueTypeSTRING                   = 10,  /* <string> */
-   //CssDeclarationValueTypeSYMBOL                   = 11,  /* Symbols, which are directly copied (as opposed to
-   //                                                          CSS_PROPERTY_DATA_TYPE_ENUM and
-   //                                                          CSS_PROPERTY_DATA_TYPE_MULTI_ENUM). Used for
-   //                                                         'font-family'. */
-   CssDeclarationValueTypeURI                      = 12,  /* <uri> */
-   // CssDeclarationValueTypeBACKGROUND_POSITION      = 13,
-   // CssDeclarationValueTypeUNUSED                   = 14   /* Not yet used. Will itself get unused some day. */
-};
-
-
-
-
 typedef enum {
    CSS_PROPERTY_END = -1, // used as terminator in CssShorthandInfo
    CSS_PROPERTY_BACKGROUND_ATTACHMENT,
