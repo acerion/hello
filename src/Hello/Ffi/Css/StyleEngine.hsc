@@ -69,6 +69,7 @@ import Hello.Html.DoctreeNode
 
 
 #include "../../hello.h"
+#include "../../../css.hh"
 
 
 
@@ -107,6 +108,44 @@ foreign export ccall "ffiStyleEngineDoctreeSetElementClass" ffiStyleEngineDoctre
 foreign export ccall "ffiStyleEngineDoctreeSetElementPseudoClass" ffiStyleEngineDoctreeSetElementPseudoClass :: CInt -> CString -> IO ()
 
 foreign export ccall "ffiStyleEngineStartElement" ffiStyleEngineStartElement :: CInt -> CInt -> IO ()
+
+
+
+
+-- https://book.realworldhaskell.org/read/interfacing-with-c-the-ffi.html
+-- https://www.mail-archive.com/search?l=haskell-cafe@haskell.org&q=subject:%22Re%5C%3A+%5C%5BHaskell%5C-cafe%5C%5D+Suggestions+for+%23defines+with+FFI%22&o=newest&f=1
+-- https://ghc.gitlab.haskell.org/ghc/doc/users_guide/utils.html#input-syntax
+
+newtype Property = Property { getProperty :: Int }
+
+#enum Property, Property, \
+  CSS_PROPERTY_BACKGROUND_COLOR, \
+  CSS_PROPERTY_BORDER_BOTTOM_STYLE, \
+  CSS_PROPERTY_BORDER_BOTTOM_WIDTH, \
+  CSS_PROPERTY_BORDER_LEFT_STYLE, \
+  CSS_PROPERTY_BORDER_LEFT_WIDTH, \
+  CSS_PROPERTY_BORDER_RIGHT_STYLE, \
+  CSS_PROPERTY_BORDER_RIGHT_WIDTH, \
+  CSS_PROPERTY_BORDER_SPACING, \
+  CSS_PROPERTY_BORDER_TOP_STYLE, \
+  CSS_PROPERTY_BORDER_TOP_WIDTH, \
+  CSS_PROPERTY_COLOR, \
+  CSS_PROPERTY_FONT_FAMILY, \
+  CSS_PROPERTY_HEIGHT, \
+  CSS_PROPERTY_LIST_STYLE_POSITION, \
+  CSS_PROPERTY_LIST_STYLE_TYPE, \
+  CSS_PROPERTY_MARGIN_BOTTOM, \
+  CSS_PROPERTY_MARGIN_LEFT, \
+  CSS_PROPERTY_MARGIN_RIGHT, \
+  CSS_PROPERTY_MARGIN_TOP, \
+  CSS_PROPERTY_PADDING_BOTTOM, \
+  CSS_PROPERTY_PADDING_LEFT, \
+  CSS_PROPERTY_PADDING_RIGHT, \
+  CSS_PROPERTY_PADDING_TOP, \
+  CSS_PROPERTY_TEXT_ALIGN, \
+  CSS_PROPERTY_VERTICAL_ALIGN, \
+  CSS_PROPERTY_WHITE_SPACE, \
+  CSS_PROPERTY_WIDTH
 
 
 
@@ -176,24 +215,24 @@ ffiStyleEngineSetNonCssHintOfNodeLength cEngineRef cProperty cLengthValue cLengt
   let styleNode = SE.styleNodesStackPeek engine
   let distance  = cssLengthToDistance lengthValue lengthType
 
-  let prop | propertyArg ==  7 = CssPropertyBorderBottomWidth $ CssValueBorderWidthDistance distance
-           | propertyArg == 11 = CssPropertyBorderLeftWidth   $ CssValueBorderWidthDistance distance
-           | propertyArg == 14 = CssPropertyBorderRightWidth  $ CssValueBorderWidthDistance distance
-           | propertyArg == 15 = CssPropertyBorderSpacing     $ CssValueBorderSpacingDistance distance
-           | propertyArg == 18 = CssPropertyBorderTopWidth    $ CssValueBorderWidthDistance distance
-           | propertyArg == 39 = CssPropertyHeight            $ CssValueHeightDistance distance
+  let prop | propertyArg == getProperty cssPropertyBorderBottomWidth = CssPropertyBorderBottomWidth $ CssValueBorderWidthDistance distance
+           | propertyArg == getProperty cssPropertyBorderLeftWidth   = CssPropertyBorderLeftWidth   $ CssValueBorderWidthDistance distance
+           | propertyArg == getProperty cssPropertyBorderRightWidth  = CssPropertyBorderRightWidth  $ CssValueBorderWidthDistance distance
+           | propertyArg == getProperty cssPropertyBorderSpacing     = CssPropertyBorderSpacing     $ CssValueBorderSpacingDistance distance
+           | propertyArg == getProperty cssPropertyBorderTopWidth    = CssPropertyBorderTopWidth    $ CssValueBorderWidthDistance distance
+           | propertyArg == getProperty cssPropertyHeight            = CssPropertyHeight            $ CssValueHeightDistance distance
 
-           | propertyArg == 49 = CssPropertyMarginTop         $ CssValueMarginXDistance distance
-           | propertyArg == 48 = CssPropertyMarginRight       $ CssValueMarginXDistance distance
-           | propertyArg == 46 = CssPropertyMarginBottom      $ CssValueMarginXDistance distance
-           | propertyArg == 47 = CssPropertyMarginLeft        $ CssValueMarginXDistance distance
+           | propertyArg == getProperty cssPropertyMarginTop     = CssPropertyMarginTop         $ CssValueMarginXDistance distance
+           | propertyArg == getProperty cssPropertyMarginRight   = CssPropertyMarginRight       $ CssValueMarginXDistance distance
+           | propertyArg == getProperty cssPropertyMarginBottom  = CssPropertyMarginBottom      $ CssValueMarginXDistance distance
+           | propertyArg == getProperty cssPropertyMarginLeft    = CssPropertyMarginLeft        $ CssValueMarginXDistance distance
 
-           | propertyArg == 60 = CssPropertyPaddingBottom     $ CssValuePaddingX distance
-           | propertyArg == 61 = CssPropertyPaddingLeft       $ CssValuePaddingX distance
-           | propertyArg == 62 = CssPropertyPaddingRight      $ CssValuePaddingX distance
-           | propertyArg == 63 = CssPropertyPaddingTop        $ CssValuePaddingX distance
-           | propertyArg == 77 = CssPropertyWidth             $ CssValueWidthDistance distance
-           | otherwise         = trace ("[EE] Unhandled length propertyArg " ++ show propertyArg) undefined
+           | propertyArg == getProperty cssPropertyPaddingBottom = CssPropertyPaddingBottom     $ CssValuePaddingX distance
+           | propertyArg == getProperty cssPropertyPaddingLeft   = CssPropertyPaddingLeft       $ CssValuePaddingX distance
+           | propertyArg == getProperty cssPropertyPaddingRight  = CssPropertyPaddingRight      $ CssValuePaddingX distance
+           | propertyArg == getProperty cssPropertyPaddingTop    = CssPropertyPaddingTop        $ CssValuePaddingX distance
+           | propertyArg == getProperty cssPropertyWidth         = CssPropertyWidth             $ CssValueWidthDistance distance
+           | otherwise = trace ("[EE] Unhandled length propertyArg " ++ show propertyArg) undefined
 
   let styleNode' = SN.updateOrAddHint styleNode prop
   let engine'    = SE.styleNodesStackUpdateTop engine styleNode'
@@ -277,16 +316,16 @@ ffiStyleEngineSetNonCssHintOfNodeEnum cEngineRef cProperty cEnumVal = do
   engine <- globalStyleEngineGet engineRef
   let styleNode = SE.styleNodesStackPeek engine
 
-  let prop | propertyArg ==  6 = CssPropertyBorderBottomStyle $ getBorderStyle enumVal
-           | propertyArg == 10 = CssPropertyBorderLeftStyle   $ getBorderStyle enumVal
-           | propertyArg == 13 = CssPropertyBorderRightStyle  $ getBorderStyle enumVal
-           | propertyArg == 17 = CssPropertyBorderTopStyle    $ getBorderStyle enumVal
-           | propertyArg == 44 = CssPropertyListStylePosition $ getListStylePosition enumVal
-           | propertyArg == 45 = CssPropertyListStyleType     $ getListStyleType enumVal
-           | propertyArg == 67 = CssPropertyTextAlign         $ getTextAlign enumVal
-           | propertyArg == 74 = CssPropertyVerticalAlign     $ getVerticalAlign enumVal
-           | propertyArg == 76 = CssPropertyWhitespace        $ getWhitespace enumVal
-           | otherwise         = trace ("[EE] Unhandled enum propertyArg " ++ show propertyArg) undefined
+  let prop | propertyArg == getProperty cssPropertyBorderBottomStyle = CssPropertyBorderBottomStyle $ getBorderStyle enumVal
+           | propertyArg == getProperty cssPropertyBorderLeftStyle   = CssPropertyBorderLeftStyle   $ getBorderStyle enumVal
+           | propertyArg == getProperty cssPropertyBorderRightStyle  = CssPropertyBorderRightStyle  $ getBorderStyle enumVal
+           | propertyArg == getProperty cssPropertyBorderTopStyle    = CssPropertyBorderTopStyle    $ getBorderStyle enumVal
+           | propertyArg == getProperty cssPropertyListStylePosition = CssPropertyListStylePosition $ getListStylePosition enumVal
+           | propertyArg == getProperty cssPropertyListStyleType     = CssPropertyListStyleType     $ getListStyleType enumVal
+           | propertyArg == getProperty cssPropertyTextAlign         = CssPropertyTextAlign         $ getTextAlign enumVal
+           | propertyArg == getProperty cssPropertyVerticalAlign     = CssPropertyVerticalAlign     $ getVerticalAlign enumVal
+           | propertyArg == getProperty cssPropertyWhiteSpace        = CssPropertyWhitespace        $ getWhitespace enumVal
+           | otherwise = trace ("[EE] Unhandled enum propertyArg " ++ show propertyArg) undefined
 
   let styleNode' = SN.updateOrAddHint styleNode prop
   let engine'    = SE.styleNodesStackUpdateTop engine styleNode'
@@ -307,9 +346,9 @@ ffiStyleEngineSetNonCssHintOfNodeColor cEngineRef cProperty cColor = do
   engine <- globalStyleEngineGet engineRef
   let styleNode = SE.styleNodesStackPeek engine
 
-  let prop | propertyArg ==  1 = CssPropertyBackgroundColor $ CssValueBackgroundColorColor color
-           | propertyArg == 23 = CssPropertyColor $ CssValueColor color
-           | otherwise          = trace ("[EE] Unhandled color propertyArg " ++ show propertyArg) undefined
+  let prop | propertyArg == getProperty cssPropertyBackgroundColor = CssPropertyBackgroundColor $ CssValueBackgroundColorColor color
+           | propertyArg == getProperty cssPropertyColor           = CssPropertyColor $ CssValueColor color
+           | otherwise = trace ("[EE] Unhandled color propertyArg " ++ show propertyArg) undefined
 
   let styleNode' = SN.updateOrAddHint styleNode prop
   let engine'    = SE.styleNodesStackUpdateTop engine styleNode'
@@ -330,7 +369,7 @@ ffiStyleEngineSetNonCssHintOfNodeString cEngineRef cProperty cStringVal = do
   engine <- globalStyleEngineGet engineRef
   let styleNode = SE.styleNodesStackPeek engine
 
-  let prop | propertyArg == 32 = CssPropertyFontFamily $ CssValueFontFamilyList [textVal]
+  let prop | propertyArg == getProperty cssPropertyFontFamily = CssPropertyFontFamily $ CssValueFontFamilyList [textVal]
            | otherwise         = trace ("[EE] Unhandled string propertyArg " ++ show propertyArg) undefined
 
   let styleNode' = SN.updateOrAddHint styleNode prop
