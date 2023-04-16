@@ -10,7 +10,6 @@
  */
 
 #include "css.hh"
-#include "css.h"
 
 CssLengthType cpp_cssLengthType(CssLength len)
 {

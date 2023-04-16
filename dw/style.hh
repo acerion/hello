@@ -9,7 +9,7 @@
 
 #include "../lout/signal.hh"
 #include "../lout/debug.hh"
-#include "../src/css.h"
+#include "../src/css.hh"
 #include "../src/Hello/hello.h"
 
 namespace dw {
