@@ -360,9 +360,6 @@ makeRulePairs (x:xs) declSets acc | addBoth      = makeRulePairs xs declSets ((r
 
 
 
-
-
-
 rulesetToRulesWithImportance :: (CssParser, CssToken) -> ((CssParser, CssToken), [(CssRule, Bool)])
 rulesetToRulesWithImportance (parser, token) = case parseStyleRule (parser, token) of
                                                  (pat', Nothing)        -> (pat', [])
@@ -378,7 +375,6 @@ rulesetToRulesWithImportance (parser, token) = case parseStyleRule (parser, toke
 
 
 
-
 parseRuleset :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
 parseRuleset (pat, context) = ((p2, t2), updatedContext)
   where
@@ -390,47 +386,6 @@ parseRuleset (pat, context) = ((p2, t2), updatedContext)
 
 
 {-
-TODO: look how much is still to be implemented in the parser. Only the part
-in first branch of #if is implemented.
-
-void parseCss(DilloHtml *html, const DilloUrl * baseUrl, c_css_context_t * context, const char * buf, int buflen, CssOrigin origin)
-{
-#if 1
-   CssParser parser_(origin, baseUrl, buf, buflen);
-   ffiParseCss(&parser_.m_parser, &parser_.m_token, context);
-#else
-   CssParser parser_(origin, baseUrl, buf, buflen);
-   bool importsAreAllowed = true;
-   c_css_token_t * token = &parser_.m_token;
-   c_css_parser_t * parser = &parser_.m_parser;
-   while (token->c_type != CSS_TOKEN_TYPE_END) {
-      if (token->c_type == CSS_TOKEN_TYPE_CHAR &&
-          token->c_value[0] == '@') {
-         nextToken(parser, token);
-         if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
-            if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
-                html != NULL &&
-                importsAreAllowed) {
-               //fprintf(stderr, "MEAS: PARSE IMPORT\n");
-               parseImport(html, parser, token, parser_.m_base_url);
-            } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
-               //fprintf(stderr, "MEAS: PARSE MEDIA\n");
-               parseMedia(parser, token, context);
-            } else {
-               ffiIgnoreStatement(parser, token);
-            }
-         } else {
-            ffiIgnoreStatement(parser, token);
-         }
-      } else {
-         importsAreAllowed = false;
-         ffiCssParseRuleset(parser, token, context);
-      }
-   }
-#endif
-}
--}
-{-
 Parse style rules and add them to context.
 "p.sth > h1.other { color: red; width: 10px !important; }"      ->     [(CssRule, Bool)]
 -}
@@ -439,57 +394,5 @@ parseCss (parser, context) = cssContextAddRules context rules
   where
     (_pat, rules) = parseCssRules . startTokenizer $ parser
 
-
-
-
-{-
--- TODO: reimplement "void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)"
-parseImportRule :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
-parseImportRule ((parser, _token), context) = trace "[DD] @import detected" (ignoreStatement parser, context)
-
-
-
-
-parseMediaRule :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
-parseMediaRule ((parser, token), context) = ((p3, t3), c3)
-  where
-    ((p2, _t2), media) = parseMediaQuery (parser, token)
-    (_syntaxOk, mediaMatch) = case media of
-                                Just m  -> (True, mediaMatchesParser parser m)
-                                Nothing -> (False, False)
-
-    ((p3, t3), c3) = if mediaMatch
-                     then parseMediaBlock (nextToken p2, context) -- nextToken skips opening brace of a block
-                     else (ignoreBlock p2, context)
-
-
-
-
-parseMediaBlock :: ((CssParser, CssToken), CssContext) -> ((CssParser, CssToken), CssContext)
-parseMediaBlock ((parser, token), context) = case parseRuleset ((parser, token), context) of
-                                               ((p2, CssTokEnd), c2)             -> ((p2, CssTokEnd), c2)
-                                               ((p2, CssTokBraceCurlyClose), c2) -> (nextToken p2, c2) -- Consume closing brace of media block
-                                               ((p2, t2), c2)                    -> parseRuleset ((p2, t2), c2)
--}
-
-
-
-
-{-
-         nextToken(parser, token);
-         if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
-            if (dStrAsciiCasecmp(token->c_value, "import") == 0 &&
-                html != NULL &&
-                importsAreAllowed) {
-               parseImport(html, parser, token, parser_.m_base_url);
-            } else if (dStrAsciiCasecmp(token->c_value, "media") == 0) {
-               parseMedia(parser, token, context);
-            } else {
-               ffiIgnoreStatement(parser, token);
-            }
-         } else {
-            ffiIgnoreStatement(parser, token);
-         }
--}
 
 

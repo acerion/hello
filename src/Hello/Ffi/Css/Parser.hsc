@@ -71,8 +71,6 @@ foreign export ccall "ffiIgnoreStatement" ffiIgnoreStatement :: Ptr FfiCssParser
 --foreign export ccall "ffiDeclarationListAppend" ffiDeclarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
 foreign export ccall "ffiCssParseElementStyleAttribute" ffiCssParseElementStyleAttribute :: CInt -> Ptr () -> CString -> CInt -> IO ()
 
-foreign export ccall "ffiIsTokenComma" ffiIsTokenComma :: Ptr FfiCssToken -> IO Int
-foreign export ccall "ffiIsTokenSemicolon" ffiIsTokenSemicolon :: Ptr FfiCssToken -> IO Int
 
 
 
@@ -985,22 +983,6 @@ getIntOrigin origin = case origin of
                         CssOriginAuthor    -> 2
 -}
 
-
-
-
-ffiIsTokenComma :: Ptr FfiCssToken -> IO Int
-ffiIsTokenComma ptrStructCssToken = do
-  token <- peekCssToken ptrStructCssToken
-  case token of
-    CssTokComma -> return 1
-    _           -> return 0
-
-ffiIsTokenSemicolon :: Ptr FfiCssToken -> IO Int
-ffiIsTokenSemicolon ptrStructCssToken = do
-  token <- peekCssToken ptrStructCssToken
-  case token of
-    CssTokSemicolon -> return 1
-    _               -> return 0
 
 
 

@@ -47,7 +47,6 @@ module Hello.Css.MediaQuery
   (
     CssMediaQuery
 
-  , parseMediaQuery
   , parserMediaQuery
   , mediaMatchesParser
   )

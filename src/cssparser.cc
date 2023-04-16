@@ -37,9 +37,6 @@ using namespace dw::core::style;
 #define DEBUG_LEVEL 10
 
 void nextToken(c_css_parser_t * parser, c_css_token_t * token);
-void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url);
-//void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context);
-static void parse_media_query(c_css_parser_t * parser, c_css_token_t * token, int * mediaSyntaxIsOk, int * mediaIsSelected);
 
 /* ----------------------------------------------------------------------
  *    Parsing
@@ -53,34 +50,9 @@ void nextToken(c_css_parser_t * parser, c_css_token_t * token)
 #if 0
 void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)
 {
-   char *urlStr = NULL;
-   bool importSyntaxIsOK = false;
-   int mediaSyntaxIsOK = true;
-   int mediaIsSelected = true;
-
-   nextToken(parser, token);
-
-   if (token->c_type == CSS_TOKEN_TYPE_IDENT &&
-       dStrAsciiCasecmp(token->c_value, "url") == 0)
-      urlStr = ffiDeclarationValueAsString(parser, token, 0);
-   else if (token->c_type == CSS_TOKEN_TYPE_STRING)
-      urlStr = dStrdup (token->c_value);
-
-   nextToken(parser, token);
-
-   /* parse a comma-separated list of media */
-   if (token->c_type == CSS_TOKEN_TYPE_IDENT) {
-      mediaSyntaxIsOK = false;
-      mediaIsSelected = false;
-      parse_media_query(parser, token, &mediaSyntaxIsOK, &mediaIsSelected);
-   }
-
-   if (mediaSyntaxIsOK && ffiIsTokenSemicolon(token)) {
-      importSyntaxIsOK = true;
-      nextToken(parser, token);
-   } else
-      ffiIgnoreStatement(parser, token);
-
+   // This is the code that downloads stylesheet specified by @import.
+   //
+   // TODO: use it in the future.
    if (urlStr) {
       if (importSyntaxIsOK && mediaIsSelected) {
          MSG("CssParser::parseImport(): @import %s\n", urlStr);
@@ -93,54 +65,4 @@ void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token
    }
 }
 #endif
-#if 0
-void parseMedia(c_css_parser_t * parser, c_css_token_t * token, c_css_context_t * context)
-{
-   nextToken(parser, token);
-
-   int mediaSyntaxIsOK = false;
-   int mediaIsSelected = false;
-   parse_media_query(parser, token, &mediaSyntaxIsOK, &mediaIsSelected);
-
-   /* check that the syntax is OK so far */
-   if (!(mediaSyntaxIsOK && ffiIsTokenBraceCurlyOpen(token))) {
-      ffiIgnoreStatement(parser, token);
-      return;
-   }
-
-   /* parse/ignore the block as required */
-   if (mediaIsSelected) {
-      nextToken(parser, token);
-      while (token->c_type != CSS_TOKEN_TYPE_END) {
-         ffiCssParseRuleset(parser, token, context);
-         if (ffiIsTokenBraceCurlyClose(token)) {
-            nextToken(parser, token);
-            break;
-         }
-      }
-   } else {
-      ffiIgnoreBlock(parser, token);
-   }
-}
-#endif
-
-static void parse_media_query(c_css_parser_t * parser, c_css_token_t * token, int * mediaSyntaxIsOK, int * mediaIsSelected)
-{
-   while (token->c_type == CSS_TOKEN_TYPE_IDENT) {
-      if (dStrAsciiCasecmp(token->c_value, "all") == 0 || dStrAsciiCasecmp(token->c_value, "screen") == 0) {
-         *mediaIsSelected = true;
-      }
-
-      fprintf(stderr, "MEDIA = '%s'\n", token->c_value);
-
-      nextToken(parser, token);
-
-      if (ffiIsTokenComma(token)) {
-         nextToken(parser, token);
-      } else {
-         *mediaSyntaxIsOK = true;
-         break;
-      }
-   }
-}
 

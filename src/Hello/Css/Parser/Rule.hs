@@ -44,7 +44,6 @@ declaration
 module Hello.Css.Parser.Rule
   (
     ignoreBlock
-  , ignoreStatement
 
   , parseElementStyleAttribute
 
@@ -119,6 +118,7 @@ _consumeBlock pat = consumeBlock' pat [] []
 
 
 
+{-
 ignoreStatement :: CssParser -> (CssParser, CssToken)
 ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
   where
@@ -126,6 +126,7 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
     ignoreStatement' (par, CssTokSemicolon)      = nextToken par
     ignoreStatement' (par, CssTokBraceCurlyOpen) = ignoreBlock par
     ignoreStatement' (par, _)                    = ignoreStatement' (nextToken par)
+-}
 
 
 

@@ -413,9 +413,6 @@ void ffiParseCss(int context_ref, int origin, const char * buf, int buflen, cons
 int ffiCssContextCtor(void);
 
 
-int ffiIsTokenComma(c_css_token_t * token);
-int ffiIsTokenSemicolon(c_css_token_t * token);
-
 
 int ffiStyleEngineCtor(void);
 int ffiStyleEngineStyleNodesStackSize(int ref);
