@@ -5,7 +5,8 @@ class StyleEngine;
 
 #include "dw/core.hh"
 #include "css.hh"
-#include "cssparser.hh"
+
+class DilloHtml;
 
 /**
  * \brief This class provides the glue between HTML parser and CSS subsystem.

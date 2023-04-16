@@ -87,8 +87,6 @@ hello_SOURCES = \
 	domain.h \
 	css.cc \
 	css.hh \
-	cssparser.cc \
-	cssparser.hh \
 	styleengine.cc \
 	styleengine.hh \
 	plain.cc \

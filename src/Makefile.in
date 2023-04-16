@@ -112,11 +112,10 @@ am_hello_OBJECTS = dillo.$(OBJEXT) paths.$(OBJEXT) tipwin.$(OBJEXT) \
 	chain.$(OBJEXT) utf8.$(OBJEXT) timeout.$(OBJEXT) \
 	dialog.$(OBJEXT) web.$(OBJEXT) nav.$(OBJEXT) cache.$(OBJEXT) \
 	decode.$(OBJEXT) dicache.$(OBJEXT) capi.$(OBJEXT) \
-	domain.$(OBJEXT) css.$(OBJEXT) cssparser.$(OBJEXT) \
-	styleengine.$(OBJEXT) plain.$(OBJEXT) html.$(OBJEXT) \
-	form.$(OBJEXT) table.$(OBJEXT) bookmark.$(OBJEXT) \
-	dns.$(OBJEXT) gif.$(OBJEXT) jpeg.$(OBJEXT) png.$(OBJEXT) \
-	imgbuf.$(OBJEXT) image.$(OBJEXT) menu.$(OBJEXT) \
+	domain.$(OBJEXT) css.$(OBJEXT) styleengine.$(OBJEXT) \
+	plain.$(OBJEXT) html.$(OBJEXT) form.$(OBJEXT) table.$(OBJEXT) \
+	bookmark.$(OBJEXT) dns.$(OBJEXT) gif.$(OBJEXT) jpeg.$(OBJEXT) \
+	png.$(OBJEXT) imgbuf.$(OBJEXT) image.$(OBJEXT) menu.$(OBJEXT) \
 	dpiapi.$(OBJEXT) findbar.$(OBJEXT) xembed.$(OBJEXT)
 hello_OBJECTS = $(am_hello_OBJECTS)
 hello_DEPENDENCIES = $(top_builddir)/dlib/libDlib.a \
@@ -143,21 +142,21 @@ am__depfiles_remade = ./$(DEPDIR)/auth.Po ./$(DEPDIR)/bitvec.Po \
 	./$(DEPDIR)/bookmark.Po ./$(DEPDIR)/bw.Po ./$(DEPDIR)/cache.Po \
 	./$(DEPDIR)/capi.Po ./$(DEPDIR)/chain.Po \
 	./$(DEPDIR)/cookies.Po ./$(DEPDIR)/css.Po \
-	./$(DEPDIR)/cssparser.Po ./$(DEPDIR)/decode.Po \
-	./$(DEPDIR)/dialog.Po ./$(DEPDIR)/dicache.Po \
-	./$(DEPDIR)/digest.Po ./$(DEPDIR)/dillo.Po ./$(DEPDIR)/dns.Po \
-	./$(DEPDIR)/domain.Po ./$(DEPDIR)/dpiapi.Po \
-	./$(DEPDIR)/findbar.Po ./$(DEPDIR)/form.Po ./$(DEPDIR)/gif.Po \
-	./$(DEPDIR)/history.Po ./$(DEPDIR)/html.Po \
-	./$(DEPDIR)/image.Po ./$(DEPDIR)/imgbuf.Po ./$(DEPDIR)/jpeg.Po \
-	./$(DEPDIR)/keys.Po ./$(DEPDIR)/klist.Po ./$(DEPDIR)/md5.Po \
-	./$(DEPDIR)/menu.Po ./$(DEPDIR)/misc.Po ./$(DEPDIR)/nav.Po \
-	./$(DEPDIR)/paths.Po ./$(DEPDIR)/plain.Po ./$(DEPDIR)/png.Po \
-	./$(DEPDIR)/prefs.Po ./$(DEPDIR)/prefsparser.Po \
-	./$(DEPDIR)/styleengine.Po ./$(DEPDIR)/table.Po \
-	./$(DEPDIR)/timeout.Po ./$(DEPDIR)/tipwin.Po ./$(DEPDIR)/ui.Po \
-	./$(DEPDIR)/uicmd.Po ./$(DEPDIR)/url.Po ./$(DEPDIR)/utf8.Po \
-	./$(DEPDIR)/web.Po ./$(DEPDIR)/xembed.Po
+	./$(DEPDIR)/decode.Po ./$(DEPDIR)/dialog.Po \
+	./$(DEPDIR)/dicache.Po ./$(DEPDIR)/digest.Po \
+	./$(DEPDIR)/dillo.Po ./$(DEPDIR)/dns.Po ./$(DEPDIR)/domain.Po \
+	./$(DEPDIR)/dpiapi.Po ./$(DEPDIR)/findbar.Po \
+	./$(DEPDIR)/form.Po ./$(DEPDIR)/gif.Po ./$(DEPDIR)/history.Po \
+	./$(DEPDIR)/html.Po ./$(DEPDIR)/image.Po ./$(DEPDIR)/imgbuf.Po \
+	./$(DEPDIR)/jpeg.Po ./$(DEPDIR)/keys.Po ./$(DEPDIR)/klist.Po \
+	./$(DEPDIR)/md5.Po ./$(DEPDIR)/menu.Po ./$(DEPDIR)/misc.Po \
+	./$(DEPDIR)/nav.Po ./$(DEPDIR)/paths.Po ./$(DEPDIR)/plain.Po \
+	./$(DEPDIR)/png.Po ./$(DEPDIR)/prefs.Po \
+	./$(DEPDIR)/prefsparser.Po ./$(DEPDIR)/styleengine.Po \
+	./$(DEPDIR)/table.Po ./$(DEPDIR)/timeout.Po \
+	./$(DEPDIR)/tipwin.Po ./$(DEPDIR)/ui.Po ./$(DEPDIR)/uicmd.Po \
+	./$(DEPDIR)/url.Po ./$(DEPDIR)/utf8.Po ./$(DEPDIR)/web.Po \
+	./$(DEPDIR)/xembed.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -488,8 +487,6 @@ hello_SOURCES = \
 	domain.h \
 	css.cc \
 	css.hh \
-	cssparser.cc \
-	cssparser.hh \
 	styleengine.cc \
 	styleengine.hh \
 	plain.cc \
@@ -621,7 +618,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chain.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cookies.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/css.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cssparser.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dialog.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dicache.Po@am__quote@ # am--include-marker
@@ -924,7 +920,6 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/chain.Po
 	-rm -f ./$(DEPDIR)/cookies.Po
 	-rm -f ./$(DEPDIR)/css.Po
-	-rm -f ./$(DEPDIR)/cssparser.Po
 	-rm -f ./$(DEPDIR)/decode.Po
 	-rm -f ./$(DEPDIR)/dialog.Po
 	-rm -f ./$(DEPDIR)/dicache.Po
@@ -1016,7 +1011,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/chain.Po
 	-rm -f ./$(DEPDIR)/cookies.Po
 	-rm -f ./$(DEPDIR)/css.Po
-	-rm -f ./$(DEPDIR)/cssparser.Po
 	-rm -f ./$(DEPDIR)/decode.Po
 	-rm -f ./$(DEPDIR)/dialog.Po
 	-rm -f ./$(DEPDIR)/dicache.Po

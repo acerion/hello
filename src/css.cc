@@ -27,3 +27,29 @@ CssLength cpp_cssCreateLength(float v, CssLengthType t)
    return retv;
 }
 
+
+
+
+/*
+ Parsing code, moved from cssparser.cc.
+
+ This is the code that downloads stylesheet specified by @import.
+
+ TODO: use it in the future.
+*/
+#if 0
+void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)
+{
+   if (urlStr) {
+      if (importSyntaxIsOK && mediaIsSelected) {
+         MSG("CssParser::parseImport(): @import %s\n", urlStr);
+         DilloUrl *url = a_Html_url_new (html, urlStr, a_Url_str(base_url),
+                                         base_url ? 1 : 0);
+         a_Html_load_stylesheet(html, url);
+         a_Url_free(url);
+      }
+      dFree (urlStr);
+   }
+}
+#endif
+
