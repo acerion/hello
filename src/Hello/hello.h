@@ -290,24 +290,6 @@ int ffiStyleEngineDoctreeGetTopNodeHtmlElementIdx(int style_engine_ref);
 
 
 
-typedef struct c_css_parser_t {
-   int c_space_separated;
-   int c_buf_offset;
-   int c_in_block;
-
-   const char * c_parser_buf;
-   int c_parser_buflen;
-} c_css_parser_t;
-
-
-
-
-typedef struct c_css_token_t {
-   int c_type;
-   char * c_value;
-} c_css_token_t;
-
-
 /*
   TODO: don't hardcode the value.
 
@@ -380,13 +362,10 @@ int ffiHtmlTagIndex(const char * tagName);
 
 /* CssParser */
 /* Token value is returned through return statement. */
-char * ffiNextToken(c_css_parser_t * parser, c_css_token_t * token);
 /* Function returns color through return statement. */
 //int ffiParseRgbFunction(c_css_parser_t * parser, const char * remainder);
 
 //char * ffiDeclarationValueAsString(c_css_parser_t * parser, c_css_token_t * token, int valueType);
-int ffiIgnoreBlock(c_css_parser_t * parser, c_css_token_t * token);
-int ffiIgnoreStatement(c_css_parser_t * parser, c_css_token_t * token);
 
 
 

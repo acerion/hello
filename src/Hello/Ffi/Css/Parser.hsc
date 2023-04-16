@@ -27,15 +27,7 @@ along with "hello".  If not, see <https://www.gnu.org/licenses/>.
 
 module Hello.Ffi.Css.Parser
   (
-    FfiCssParser (..)
-  , peekCssParser
-  , pokeCssParser
-
-  , FfiCssToken (..)
-  , peekCssToken
-  , pokeCssToken
-
-  , getCssOrigin
+    getCssOrigin
   )
 where
 
@@ -62,10 +54,7 @@ import Hello.Ffi.Utils
 
 
 
-foreign export ccall "ffiNextToken" ffiNextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO CString
 --foreign export ccall "ffiDeclarationValueAsString" ffiDeclarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> IO CString
-foreign export ccall "ffiIgnoreBlock" ffiIgnoreBlock :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
-foreign export ccall "ffiIgnoreStatement" ffiIgnoreStatement :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO Int
 
 
 --foreign export ccall "ffiDeclarationListAppend" ffiDeclarationListAppend :: Ptr FfiCssDeclarationSet -> Ptr FfiCssDeclarationSet -> IO ()
@@ -78,7 +67,7 @@ foreign export ccall "ffiCssParseElementStyleAttribute" ffiCssParseElementStyleA
 
 
 
-
+{-
 data FfiCssParser = FfiCssParser {
     spaceSeparatedC :: CInt
   , bufOffsetC      :: CInt
@@ -233,19 +222,6 @@ getTokenADT tokType tokValue | tokType ==  0 = CssTokIdent tokValue
 
 
 
-ffiNextToken :: Ptr FfiCssParser -> Ptr FfiCssToken -> IO CString
-ffiNextToken ptrStructCssParser ptrStructCssToken = do
-  parser <- peekCssParser ptrStructCssParser
-
-  let (newParser, newToken) = nextToken parser
-
-  pokeCssParser ptrStructCssParser newParser
-  pokeCssToken ptrStructCssToken newToken
-
-  cstr newToken
-
-
-
 
 cstr :: CssToken -> IO CString
 cstr token = case token of
@@ -261,7 +237,7 @@ cstr token = case token of
 
 
 
-{-
+
 ffiDeclarationValueAsString :: Ptr FfiCssParser -> Ptr FfiCssToken -> Int -> IO CString
 ffiDeclarationValueAsString ptrStructCssParser ptrStructCssToken valueType = do
   parser <- peekCssParser ptrStructCssParser
@@ -275,7 +251,7 @@ ffiDeclarationValueAsString ptrStructCssParser ptrStructCssToken valueType = do
   case textVal of
     Just t -> newCString . T.unpack $ t
     _      -> return nullPtr
--}
+
 
 
 
@@ -303,7 +279,7 @@ ffiIgnoreStatement ptrStructCssParser ptrStructCssToken = do
 
 
 
-{-
+
 typedef struct c_css_complex_selector_link_t {
    /* It's possible that more than one of these is set in a single
       CssComplexSelectorLink struct. */

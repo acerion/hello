@@ -36,16 +36,9 @@ using namespace dw::core::style;
 
 #define DEBUG_LEVEL 10
 
-void nextToken(c_css_parser_t * parser, c_css_token_t * token);
-
 /* ----------------------------------------------------------------------
  *    Parsing
  * ---------------------------------------------------------------------- */
-
-void nextToken(c_css_parser_t * parser, c_css_token_t * token)
-{
-   char * tokenValue = ffiNextToken(parser, token);
-}
 
 #if 0
 void parseImport(DilloHtml *html, c_css_parser_t * parser, c_css_token_t * token, const DilloUrl * base_url)
