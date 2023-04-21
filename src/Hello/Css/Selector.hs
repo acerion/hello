@@ -60,7 +60,6 @@ module Hello.Css.Selector
 
   , CssComplexSelector
   , ComplexItem (..)
-  , CssParsedComplexSelector
 
   , CssCombinator (..)
 
@@ -265,7 +264,6 @@ data ComplexItem
 
 
 
-type CssParsedComplexSelector = [ComplexItem]
 type CssComplexSelector = [ComplexItem]
 
 
@@ -330,6 +328,6 @@ chainToList (Chain compound combinator remd) acc = chainToList remd (acc ++ [Com
 
 
 
-mkComplexSelector :: CssParsedComplexSelector -> CssLegacyComplexSelector
+mkComplexSelector :: CssComplexSelector -> CssLegacyComplexSelector
 mkComplexSelector parsed = listToChain . reverse $ parsed
 

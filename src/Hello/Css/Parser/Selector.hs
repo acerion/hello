@@ -88,14 +88,14 @@ setSubclassSelector compound subSel =
 -- runParser parserComplexSelector (startTokenizer . defaultParser $ "a    >   head + a")
 --
 -- HASKELL FEATURE: APPLICATIVE FUNCTOR
-parserComplexSelector :: Parser (CssParser, CssToken) CssParsedComplexSelector
+parserComplexSelector :: Parser (CssParser, CssToken) CssComplexSelector
 parserComplexSelector = ((:) <$> parserFirstCompound <*> fmap concat (many parserCombinatorAndCompound))
   where
     -- A first compound selector in a complex selector may be preceded with spaces.
     parserFirstCompound :: Parser (CssParser, CssToken) ComplexItem
     parserFirstCompound = many parserTokenWhitespace *> ((fmap) CompoundItem (parserCompoundSelector))
 
-    parserCombinatorAndCompound :: Parser (CssParser, CssToken) CssParsedComplexSelector
+    parserCombinatorAndCompound :: Parser (CssParser, CssToken) CssComplexSelector
     parserCombinatorAndCompound = (( \ a b -> [a, b]) <$> parserCombinator <*> ((fmap) CompoundItem (parserCompoundSelector)))
 
 
@@ -207,7 +207,7 @@ finalizeCompound ss pat = Just (pat, compound)
 -- however make sure we don't dump it if only dillo fails to parse valid CSS.
 --
 -- Unit-tested: yes, but with issues
-parserSelectorList :: Parser (CssParser, CssToken) [CssParsedComplexSelector]
+parserSelectorList :: Parser (CssParser, CssToken) [CssComplexSelector]
 parserSelectorList = parserSeparatedList parserComplexSelector parserSeparator
   where
     parserSeparator = (many parserTokenWhitespace) *> parserTokenComma <* (many parserTokenWhitespace)

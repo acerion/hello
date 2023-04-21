@@ -120,7 +120,7 @@ getTopCompound rule = case head . complexSelector $ rule of
 data CssParsedStyleRule = CssParsedStyleRule
   { -- "The prelude of the qualified rule is parsed as a <selector-list>. If
     -- this returns failure, the entire style rule is invalid."
-    prelude :: [CssParsedComplexSelector]
+    prelude :: [CssComplexSelector]
 
     -- "The content of the qualified rule’s block is parsed as a style
     -- block’s contents."
