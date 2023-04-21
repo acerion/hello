@@ -25,9 +25,13 @@ import qualified Data.Text as T
 import Test.HUnit
 -- import Debug.Trace
 
+import Hello.Css.Parser.Selector
 import Hello.Css.Selector
 import Hello.Css.SelectorMatch
+import Hello.Css.Tokenizer
 import Hello.Html.DoctreeNode
+import Hello.Utils.Parser
+
 
 import Hello.Tests.Css.Data
 import Hello.Tests.Css.Match.Data
@@ -38,15 +42,18 @@ import Hello.Tests.Css.Match.Data
 
 -- On success return empty string. On failure return string representation of
 -- selector, for which test failed.
-specificityTest :: [(Int, CssLegacyComplexSelector)] -> T.Text
+specificityTest :: [(Int, T.Text)] -> T.Text
 specificityTest []     = ""
-specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity list)
-                         then T.pack . show $ complex
+specificityTest (x:xs) = if expectedSpecificity /= specificity
+                         then T.pack . show $ inputRemainder
                          else  (specificityTest xs)
   where
     expectedSpecificity = fst x
-    complex = snd x
-    list =  chainToList complex []
+    inputRemainder = snd x
+
+    specificity = case runParser parserComplexSelector (startTokenizer $ defaultParser inputRemainder) of
+                    Just (pat', selector) -> selectorSpecificity selector
+                    Nothing               -> 0xffffffff
 
 
 
