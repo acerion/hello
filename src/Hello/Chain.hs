@@ -108,3 +108,33 @@ chainGetFirstDatum (Last datum)      = datum
 chainGetFirstDatum (Chain datum _ _) = datum
 
 
+
+
+{-
+
+-- TODO: this function has missing cases for pattern matching.
+listToChain :: CssComplexSelector -> Chain CssCompoundSelector CssCombinator
+listToChain [CompoundItem compound] = Last compound
+listToChain (CompoundItem compound:CombinatorItem combi:xs) = Chain compound combi (listToChain xs)
+--listToChain [] = (Last defaultCssCompoundSelector)
+
+
+
+
+{-
+:m +Hello.Css.Parser.Declaration
+:m +Hello.Css.Tokenizer
+:m +Hello.Css.Parser.Property
+
+:m +Hello.Css.Selector
+:m +Hello.Chain
+:set prompt >
+
+chainToList (Last (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 0})) []
+chainToList (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Last (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85}))))) []
+-}
+chainToList :: Chain CssCompoundSelector CssCombinator -> CssComplexSelector -> CssComplexSelector
+chainToList (Last compound)                  acc = acc ++ [CompoundItem compound]
+chainToList (Chain compound combinator remd) acc = chainToList remd (acc ++ [CompoundItem compound] ++ [CombinatorItem combinator])
+-}
+

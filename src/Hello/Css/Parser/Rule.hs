@@ -82,7 +82,6 @@ import Hello.Css.Parser.Value
 import Hello.Css.Rule
 import Hello.Css.Selector
 import Hello.Css.Tokenizer
-import Hello.Chain
 import Hello.Utils.Parser
 
 
@@ -361,17 +360,11 @@ selectors list the function will return separate style rule.
 parserStyleRule2 :: Parser (CssParser, CssToken) [CssRule2]
 parserStyleRule2 = fmap parsedRuleToRule2 parserStyleRule
   where
-    parsedRuleToRule2 parsedStyleRule = buildRules complexSelectors2 declSets []
+    parsedRuleToRule2 parsedStyleRule = buildRules complexSelectors declSets []
       where
-        complexSelectors = fmap mkComplexSelector (prelude parsedStyleRule)
-        complexSelectors2 = fmap (chainToLinks []) complexSelectors -- prelude parsedStyleRule
+        complexSelectors = fmap reverse (prelude parsedStyleRule) -- Each complex rule in list of complex rules is reversed to make CSS rule matching faster.
         declSets         = content parsedStyleRule
 
-
-
-chainToLinks :: CssComplexSelector -> CssLegacyComplexSelector -> CssComplexSelector
-chainToLinks acc (Chain compo combi remd) = chainToLinks (acc ++ [CompoundItem compo] ++ [CombinatorItem combi] ) remd
-chainToLinks acc (Last compo)             = (acc ++ [CompoundItem compo])
 
 
 

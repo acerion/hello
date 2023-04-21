@@ -56,8 +56,6 @@ module Hello.Css.Selector
 
   , CssSubclassSelector (..)
 
-  , CssLegacyComplexSelector
-
   , CssComplexSelector
   , ComplexItem (..)
 
@@ -66,10 +64,6 @@ module Hello.Css.Selector
   , styleSheetElementCount -- TODO: this constant doesn't belong to this module
 
   , selectorSpecificity
-
-  , listToChain
-  , mkComplexSelector
-  , chainToList
   )
 where
 
@@ -81,7 +75,6 @@ import qualified Data.Text as T
 import Data.Bits
 --import Debug.Trace
 
-import Hello.Chain
 
 
 
@@ -247,13 +240,6 @@ defaultCssCompoundSelector = CssCompoundSelector
 
 
 
--- https://www.w3.org/TR/selectors-4/#structure: "A complex selector is a
--- sequence of one or more compound selectors separated by combinators."
-type CssLegacyComplexSelector = Chain CssCompoundSelector CssCombinator
-
-
-
-
 -- Simple type allowing me to put compound selectors and the combinators in
 -- the same list.
 data ComplexItem
@@ -264,6 +250,8 @@ data ComplexItem
 
 
 
+-- https://www.w3.org/TR/selectors-4/#structure: "A complex selector is a
+-- sequence of one or more compound selectors separated by combinators."
 type CssComplexSelector = [ComplexItem]
 
 
@@ -297,37 +285,4 @@ compoundSelectorSpecificity compound = fromId compound + fromClass compound + fr
     fromPseudoClass cpd = if not . null . selectorPseudoClass $ cpd then 1 `shiftL` 10 else 0 -- Remember that C/C++ code can use only first pseudo code.
     fromElement cpd     = if compoundHasUniversalType cpd then 0 else 1
 
-
-
-
--- TODO: this function has missing cases for pattern matching.
-listToChain :: CssComplexSelector -> Chain CssCompoundSelector CssCombinator
-listToChain [CompoundItem compound] = Last compound
-listToChain (CompoundItem compound:CombinatorItem combi:xs) = Chain compound combi (listToChain xs)
---listToChain [] = (Last defaultCssCompoundSelector)
-
-
-
-
-{-
-:m +Hello.Css.Parser.Declaration
-:m +Hello.Css.Tokenizer
-:m +Hello.Css.Parser.Property
-
-:m +Hello.Css.Selector
-:m +Hello.Chain
-:set prompt >
-
-chainToList (Last (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 0})) []
-chainToList (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Last (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85}))))) []
--}
-chainToList :: Chain CssCompoundSelector CssCombinator -> CssComplexSelector -> CssComplexSelector
-chainToList (Last compound)                  acc = acc ++ [CompoundItem compound]
-chainToList (Chain compound combinator remd) acc = chainToList remd (acc ++ [CompoundItem compound] ++ [CombinatorItem combinator])
-
-
-
-
-mkComplexSelector :: CssComplexSelector -> CssLegacyComplexSelector
-mkComplexSelector parsed = listToChain . reverse $ parsed
 

@@ -57,7 +57,6 @@ where
 import qualified Data.Text as T
 -- import Debug.Trace
 
---import Hello.Chain
 import Hello.Css.Declaration
 import Hello.Css.MediaQuery
 import Hello.Css.Selector
@@ -97,7 +96,7 @@ defaultCssRule = CssRule
 
 instance Show CssRule where
   show (CssRule cs ds s p) = "Rule { " ++
-                             "complexSelector = " ++ (show . listToChain $ cs) ++ "\n" ++
+                             "complexSelector = " ++ show cs ++ "\n" ++
                              "declSet = "         ++ show ds ++ "\n" ++
                              "spec = " ++ show s  ++ "\n" ++
                              "pos = "  ++ show p  ++ "}\n"
