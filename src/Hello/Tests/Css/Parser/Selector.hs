@@ -39,7 +39,7 @@ import qualified Hello.Tests.Utils.Hunit as H.H
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
-parserCompoundSelectorTestData :: [(T.Text, Maybe ((CssParser, CssToken), ComplexItem))]
+parserCompoundSelectorTestData :: [(T.Text, Maybe ((CssParser, CssToken), CssCompoundSelector))]
 parserCompoundSelectorTestData = [
   -- parser's remainder before/after      expected selector
 
@@ -50,11 +50,11 @@ parserCompoundSelectorTestData = [
   -- Recognition of most basic case: just "id" selector.
   , ( "#some_id",
       Just (((defaultParser "") { bufOffset = 8 }, CssTokEnd)
-           , CompoundItem $ CssCompoundSelector { selectorPseudoClass = []
-                                                , selectorId = "some_id"
-                                                , selectorClass = []
-                                                , selectorTagName = CssTypeSelectorUniversal
-                                                }
+           , CssCompoundSelector { selectorPseudoClass = []
+                                 , selectorId = "some_id"
+                                 , selectorClass = []
+                                 , selectorTagName = CssTypeSelectorUniversal
+                                 }
            )
     )
 
@@ -62,22 +62,22 @@ parserCompoundSelectorTestData = [
   -- Recognition of most basic case: just "class" selector.
   , ( ".some_class",
       Just (((defaultParser "") { bufOffset = 11 }, CssTokEnd)
-           , CompoundItem $ CssCompoundSelector { selectorPseudoClass = []
-                                                , selectorId = ""
-                                                , selectorClass = ["some_class"]
-                                                , selectorTagName = CssTypeSelectorUniversal
-                                                }
+           , CssCompoundSelector { selectorPseudoClass = []
+                                 , selectorId = ""
+                                 , selectorClass = ["some_class"]
+                                 , selectorTagName = CssTypeSelectorUniversal
+                                 }
            )
     )
 
   -- Recognition of most basic case: just "pseudo class" selector.
   , ( ":link",
       Just (((defaultParser "") { bufOffset = 5 }, CssTokEnd)
-           , CompoundItem $ CssCompoundSelector { selectorPseudoClass = ["link"]
-                                                , selectorId = ""
-                                                , selectorClass = []
-                                                , selectorTagName = CssTypeSelectorUniversal
-                                                }
+           , CssCompoundSelector { selectorPseudoClass = ["link"]
+                                 , selectorId = ""
+                                 , selectorClass = []
+                                 , selectorTagName = CssTypeSelectorUniversal
+                                 }
            )
     )
   ]
@@ -87,7 +87,7 @@ parserCompoundSelectorTestData = [
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-parserCompoundSelectorTest :: [(T.Text, Maybe ((CssParser, CssToken), ComplexItem))] -> [T.Text]
+parserCompoundSelectorTest :: [(T.Text, Maybe ((CssParser, CssToken), CssCompoundSelector))] -> [T.Text]
 parserCompoundSelectorTest xs = foldr f [] xs
   where
     f x acc = if expected /= result

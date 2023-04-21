@@ -93,10 +93,10 @@ parserComplexSelector = ((:) <$> parserFirstCompound <*> fmap concat (many parse
   where
     -- A first compound selector in a complex selector may be preceded with spaces.
     parserFirstCompound :: Parser (CssParser, CssToken) ComplexItem
-    parserFirstCompound = many parserTokenWhitespace *> parserCompoundSelector
+    parserFirstCompound = many parserTokenWhitespace *> ((fmap) CompoundItem (parserCompoundSelector))
 
     parserCombinatorAndCompound :: Parser (CssParser, CssToken) CssParsedComplexSelector
-    parserCombinatorAndCompound = (( \ a b -> [a, b]) <$> parserCombinator <*> parserCompoundSelector)
+    parserCombinatorAndCompound = (( \ a b -> [a, b]) <$> parserCombinator <*> ((fmap) CompoundItem (parserCompoundSelector)))
 
 
 
@@ -127,7 +127,7 @@ parseCombinator pat = case runParser parser pat of
 
 
 -- Unit-tested: yes
-parserCompoundSelector :: Parser (CssParser, CssToken) ComplexItem
+parserCompoundSelector :: Parser (CssParser, CssToken) CssCompoundSelector
 parserCompoundSelector = Parser $ \ pat -> parseCompound [] pat
 
 
@@ -141,7 +141,7 @@ parserCompoundSelector = Parser $ \ pat -> parseCompound [] pat
 -- https://www.w3.org/TR/selectors-4/#compound: "If it contains a type
 -- selector or universal selector, that selector must come first in the
 -- sequence.".
-parseCompound :: [CssSimpleSelector] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), ComplexItem)
+parseCompound :: [CssSimpleSelector] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssCompoundSelector)
 parseCompound acc (parser, CssTokDelim '*') = parseCompound (CssSimpleSelectorType CssTypeSelectorUniversal:acc) (nextToken parser)
 parseCompound acc (parser, CssTokIdent sym) = case htmlTagIndex2 sym of
                                                 Just idx -> parseCompound (CssSimpleSelectorType (CssTypeSelector idx):acc) (nextToken parser)
@@ -171,9 +171,9 @@ parseCompound acc pat = finalizeCompound acc pat
 --
 -- Utility function to be used in few places of parseCompound to nicely
 -- check, wrap and return a value of desided type.
-finalizeCompound :: [CssSimpleSelector] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), ComplexItem)
+finalizeCompound :: [CssSimpleSelector] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), CssCompoundSelector)
 finalizeCompound []   _ = Nothing
-finalizeCompound ss pat = Just (pat, CompoundItem compound)
+finalizeCompound ss pat = Just (pat, compound)
   where
     compound = foldr f defaultCssCompoundSelector ss
     f (CssSimpleSelectorType CssTypeSelectorUniversal) cpd = cpd { selectorTagName = CssTypeSelectorUniversal }
