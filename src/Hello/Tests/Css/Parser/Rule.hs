@@ -515,8 +515,6 @@ parseStyleRuleTestData =
 
 
 
--- TODO: restore the function
-{-
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
 parseStyleRuleTestFunction :: [ParseStyleRuleData] -> [T.Text]
@@ -536,7 +534,7 @@ parseStyleRuleTestFunction (x:xs) = if resultExpected x /= result || tokenExpect
       , "\n*** remainderExpected = " ++ (show . remainderExpected $ x)
       , "\n*** remainder         = " ++ (show . remainder $ parser')
       ]
--}
+
 
 
 
@@ -546,7 +544,7 @@ testCases =
     -- If some error is found, test function returns some data (e.g. non-empty
     -- string or test index) which can help identify which test failed.
     TestCase (do assertEqual "manual tests of parseAllDeclarations"    "" (parseAllDeclarationsTestFunction parseAllDeclarationsTestData))
-  --, TestCase (do H.H.assertSuccess "manual tests of parseStyleRule"      (parseStyleRuleTestFunction parseStyleRuleTestData))
+  , TestCase (do H.H.assertSuccess "manual tests of parseStyleRule"      (parseStyleRuleTestFunction parseStyleRuleTestData))
   ]
 
 

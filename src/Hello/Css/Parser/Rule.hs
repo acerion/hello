@@ -49,6 +49,7 @@ module Hello.Css.Parser.Rule
 
   -- These are exported only for tests
   , parseAllDeclarations
+  , parseStyleRule
 
   , parserCssRules
   , parserImportRule
@@ -130,7 +131,7 @@ ignoreStatement parser = ignoreStatement' (parser, CssTokNone)
 
 
 
-{-
+
 -- Consume input until end of {} block is encountered.
 -- To be called when handling errors during parsing of {} block.
 consumeRestOfCurlyBlock :: (CssParser, CssToken) -> (CssParser, CssToken)
@@ -143,7 +144,7 @@ consumeRestOfCurlyBlock (parser, CssTokBraceCurlyClose) =
     consumeFinalSpaces (p, CssTokWS) = consumeFinalSpaces . nextToken $ p
     consumeFinalSpaces pat = pat
 consumeRestOfCurlyBlock (parser, _)                     = consumeRestOfCurlyBlock . nextToken $ parser
--}
+
 
 
 
@@ -224,12 +225,10 @@ parseAllDeclarations input                                 = parseAllDeclaration
 -- parseStyleRule (startTokenizer $ defaultParser "body {color:red ; background-color: #ffff00;line-height: normal h1{color:blue} h2{color: #001122} h3 {color : #998877;}")
 --
 -- Unit-tested: yes
-{-
 parseStyleRule :: (CssParser, CssToken) -> ((CssParser, CssToken), Maybe CssParsedStyleRule)
 parseStyleRule pat = case runParser parserStyleRule pat of
                         Nothing -> (consumeRestOfCurlyBlock pat, Nothing) -- Error recovery, skip invalid rule.
                         Just (pat', parsedStyleRule) -> (pat', Just parsedStyleRule)
--}
 
 
 
