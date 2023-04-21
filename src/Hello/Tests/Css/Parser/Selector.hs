@@ -39,7 +39,7 @@ import qualified Hello.Tests.Utils.Hunit as H.H
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
-parserCompoundSelectorTestData :: [(T.Text, Maybe ((CssParser, CssToken), SelectorWrapper))]
+parserCompoundSelectorTestData :: [(T.Text, Maybe ((CssParser, CssToken), ComplexItem))]
 parserCompoundSelectorTestData = [
   -- parser's remainder before/after      expected selector
 
@@ -50,7 +50,7 @@ parserCompoundSelectorTestData = [
   -- Recognition of most basic case: just "id" selector.
   , ( "#some_id",
       Just (((defaultParser "") { bufOffset = 8 }, CssTokEnd)
-           , WrapCompound $ CssCompoundSelector { selectorPseudoClass = []
+           , CompoundItem $ CssCompoundSelector { selectorPseudoClass = []
                                                 , selectorId = "some_id"
                                                 , selectorClass = []
                                                 , selectorTagName = CssTypeSelectorUniversal
@@ -62,7 +62,7 @@ parserCompoundSelectorTestData = [
   -- Recognition of most basic case: just "class" selector.
   , ( ".some_class",
       Just (((defaultParser "") { bufOffset = 11 }, CssTokEnd)
-           , WrapCompound $ CssCompoundSelector { selectorPseudoClass = []
+           , CompoundItem $ CssCompoundSelector { selectorPseudoClass = []
                                                 , selectorId = ""
                                                 , selectorClass = ["some_class"]
                                                 , selectorTagName = CssTypeSelectorUniversal
@@ -73,7 +73,7 @@ parserCompoundSelectorTestData = [
   -- Recognition of most basic case: just "pseudo class" selector.
   , ( ":link",
       Just (((defaultParser "") { bufOffset = 5 }, CssTokEnd)
-           , WrapCompound $ CssCompoundSelector { selectorPseudoClass = ["link"]
+           , CompoundItem $ CssCompoundSelector { selectorPseudoClass = ["link"]
                                                 , selectorId = ""
                                                 , selectorClass = []
                                                 , selectorTagName = CssTypeSelectorUniversal
@@ -87,7 +87,7 @@ parserCompoundSelectorTestData = [
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-parserCompoundSelectorTest :: [(T.Text, Maybe ((CssParser, CssToken), SelectorWrapper))] -> [T.Text]
+parserCompoundSelectorTest :: [(T.Text, Maybe ((CssParser, CssToken), ComplexItem))] -> [T.Text]
 parserCompoundSelectorTest xs = foldr f [] xs
   where
     f x acc = if expected /= result
@@ -116,18 +116,18 @@ parserComplexSelectorTestManualDataBasic =
   [
     -- Success case: an example from https://www.w3.org/TR/selectors-4/#descendant-combinators
     ( "div * p",             Just (((defaultParser "") { bufOffset = 7 }, CssTokEnd)
-                                  , [ WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "div" }
-                                    , WrapCombinator CssCombinatorDescendant
-                                    , WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelectorUniversal }
-                                    , WrapCombinator CssCombinatorDescendant
-                                    , WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "p" }
+                                  , [ CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "div" }
+                                    , CombinatorItem CssCombinatorDescendant
+                                    , CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelectorUniversal }
+                                    , CombinatorItem CssCombinatorDescendant
+                                    , CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "p" }
                                     ]
                                   )
     )
 
     -- Success case: recognition of most basic case: just "id" selector.
   , ( "#some_id",            Just (((defaultParser "") { bufOffset = 8 }, CssTokEnd)
-                                  , [ WrapCompound defaultCssCompoundSelector { selectorId = "some_id" }
+                                  , [ CompoundItem defaultCssCompoundSelector { selectorId = "some_id" }
                                     ]
                                   )
     )
@@ -136,7 +136,7 @@ parserComplexSelectorTestManualDataBasic =
     -- next '#' is treated as belonging to something after the complex
     -- selector, to be parsed by other parser.
   , ( "#some_id #",          Just (((defaultParser "#") { bufOffset = 9, spaceSeparated = True }, CssTokWS)
-                                  , [ WrapCompound defaultCssCompoundSelector { selectorId = "some_id" }
+                                  , [ CompoundItem defaultCssCompoundSelector { selectorId = "some_id" }
                                     ]
                                   )
     )
@@ -186,7 +186,7 @@ parseListOfSelectorsTestManualData =
     -- Success case: one-element list
     ( "body",
       Just (((defaultParser "") { bufOffset = 4 }, CssTokEnd)
-           , [ [ WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "body" }]
+           , [ [ CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "body" }]
              ]
            )
     )
@@ -194,8 +194,8 @@ parseListOfSelectorsTestManualData =
     -- Success case: a list of two non-complicated compound selectors.
   , ( "div, p",
       Just (((defaultParser "") { bufOffset = 6 }, CssTokEnd)
-           , [ [ WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "div" }]
-             , [ WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "p" }]
+           , [ [ CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "div" }]
+             , [ CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "p" }]
              ]
            )
     )
@@ -203,8 +203,8 @@ parseListOfSelectorsTestManualData =
     -- Success case: The same as above, but with some spaces.
   ,  ( " div , p ",
        Just (((defaultParser "") { bufOffset = 9, spaceSeparated = True }, CssTokEnd)
-            , [ [ WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "div" }]
-              , [ WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "p" }]
+            , [ [ CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "div" }]
+              , [ CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "p" }]
               ]
             )
     )
@@ -212,14 +212,14 @@ parseListOfSelectorsTestManualData =
     -- Success case: compound selectors are a bit more complicated.
   ,  ( " div#some_id , p > h1.some_class h2 ",
        Just (((defaultParser "") { bufOffset = 36, spaceSeparated = True }, CssTokEnd)
-            , [ [ WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "div"
+            , [ [ CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "div"
                                                           , selectorId      = "some_id" }]
-              , [ WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "p" }
-                , WrapCombinator CssCombinatorChild
-                , WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "h1"
+              , [ CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "p" }
+                , CombinatorItem CssCombinatorChild
+                , CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "h1"
                                                           , selectorClass   = ["some_class"] }
-                , WrapCombinator CssCombinatorDescendant
-                , WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "h2" }
+                , CombinatorItem CssCombinatorDescendant
+                , CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelector . htmlTagIndex $ "h2" }
                 ]
               ]
             )

@@ -92,7 +92,7 @@ parserComplexSelector :: Parser (CssParser, CssToken) CssParsedComplexSelector
 parserComplexSelector = ((:) <$> parserFirstCompound <*> fmap concat (many parserCombinatorAndCompound))
   where
     -- A first compound selector in a complex selector may be preceded with spaces.
-    parserFirstCompound :: Parser (CssParser, CssToken) SelectorWrapper
+    parserFirstCompound :: Parser (CssParser, CssToken) ComplexItem
     parserFirstCompound = many parserTokenWhitespace *> parserCompoundSelector
 
     parserCombinatorAndCompound :: Parser (CssParser, CssToken) CssParsedComplexSelector
@@ -106,17 +106,17 @@ parserComplexSelector = ((:) <$> parserFirstCompound <*> fmap concat (many parse
 -- :m +Hello.Css.Parser.Selector
 --
 -- runParser parserCombinator  (startTokenizer . defaultParser $ "    >   head")
-parserCombinator :: Parser (CssParser, CssToken) SelectorWrapper
+parserCombinator :: Parser (CssParser, CssToken) ComplexItem
 parserCombinator = Parser $ \ pat -> parseCombinator pat
 
 
 
 
-parseCombinator :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), SelectorWrapper)
+parseCombinator :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), ComplexItem)
 parseCombinator pat = case runParser parser pat of
-                        Just (pat', CssTokWS)        -> Just (pat', WrapCombinator CssCombinatorDescendant)
-                        Just (pat', CssTokDelim '>') -> Just (pat', WrapCombinator CssCombinatorChild)
-                        Just (pat', CssTokDelim '+') -> Just (pat', WrapCombinator CssCombinatorAdjacentSibling)
+                        Just (pat', CssTokWS)        -> Just (pat', CombinatorItem CssCombinatorDescendant)
+                        Just (pat', CssTokDelim '>') -> Just (pat', CombinatorItem CssCombinatorChild)
+                        Just (pat', CssTokDelim '+') -> Just (pat', CombinatorItem CssCombinatorAdjacentSibling)
                         _                            -> Nothing
   where
     parser = many parserTokenWhitespace *> parserTokenDelim '>'  <* many parserTokenWhitespace
@@ -127,7 +127,7 @@ parseCombinator pat = case runParser parser pat of
 
 
 -- Unit-tested: yes
-parserCompoundSelector :: Parser (CssParser, CssToken) SelectorWrapper
+parserCompoundSelector :: Parser (CssParser, CssToken) ComplexItem
 parserCompoundSelector = Parser $ \ pat -> parseCompound [] pat
 
 
@@ -141,7 +141,7 @@ parserCompoundSelector = Parser $ \ pat -> parseCompound [] pat
 -- https://www.w3.org/TR/selectors-4/#compound: "If it contains a type
 -- selector or universal selector, that selector must come first in the
 -- sequence.".
-parseCompound :: [CssSimpleSelector] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), SelectorWrapper)
+parseCompound :: [CssSimpleSelector] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), ComplexItem)
 parseCompound acc (parser, CssTokDelim '*') = parseCompound (CssSimpleSelectorType CssTypeSelectorUniversal:acc) (nextToken parser)
 parseCompound acc (parser, CssTokIdent sym) = case htmlTagIndex2 sym of
                                                 Just idx -> parseCompound (CssSimpleSelectorType (CssTypeSelector idx):acc) (nextToken parser)
@@ -171,9 +171,9 @@ parseCompound acc pat = finalizeCompound acc pat
 --
 -- Utility function to be used in few places of parseCompound to nicely
 -- check, wrap and return a value of desided type.
-finalizeCompound :: [CssSimpleSelector] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), SelectorWrapper)
+finalizeCompound :: [CssSimpleSelector] -> (CssParser, CssToken) -> Maybe ((CssParser, CssToken), ComplexItem)
 finalizeCompound []   _ = Nothing
-finalizeCompound ss pat = Just (pat, WrapCompound compound)
+finalizeCompound ss pat = Just (pat, CompoundItem compound)
   where
     compound = foldr f defaultCssCompoundSelector ss
     f (CssSimpleSelectorType CssTypeSelectorUniversal) cpd = cpd { selectorTagName = CssTypeSelectorUniversal }

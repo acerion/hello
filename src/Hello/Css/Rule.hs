@@ -88,7 +88,7 @@ data CssRule = CssRule
 
 defaultCssRule :: CssRule
 defaultCssRule = CssRule
-  { complexSelector = [WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelectorUnknown }]
+  { complexSelector = [CompoundItem defaultCssCompoundSelector { selectorTagName = CssTypeSelectorUnknown }]
   , declarationSet  = defaultCssDeclarationSet
   , specificity     = -1
   , position        = -1
@@ -108,7 +108,7 @@ instance Show CssRule where
 -- Get top compound selector
 getTopCompound :: CssRule -> CssCompoundSelector
 getTopCompound rule = case head . complexSelector $ rule of
-                        WrapCompound c -> c
+                        CompoundItem c -> c
 
 
 -- A helper data type

@@ -56,7 +56,7 @@ data TestData = TestData
 -- Definitions of expected parsed rules are in top level to avoid too much
 -- nesting of code.
 styleRule1 :: CssRule2
-styleRule1 = CssStyleRule CssRule { complexSelector = [WrapCompound $ CssCompoundSelector { selectorPseudoClass = []
+styleRule1 = CssStyleRule CssRule { complexSelector = [CompoundItem $ CssCompoundSelector { selectorPseudoClass = []
                                                                                           , selectorId = ""
                                                                                           , selectorClass = []
                                                                                           , selectorTagName = CssTypeSelector 33}]

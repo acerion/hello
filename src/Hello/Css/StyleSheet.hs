@@ -273,7 +273,7 @@ cssComplexSelectorHasPseudoClass :: CssComplexSelector -> Bool
 cssComplexSelectorHasPseudoClass complex = any f complex
   where
     f x = case x of
-            WrapCompound c -> not . null . selectorPseudoClass $ c
+            CompoundItem c -> not . null . selectorPseudoClass $ c
             _ -> False
 
 

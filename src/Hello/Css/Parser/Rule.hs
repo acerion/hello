@@ -370,8 +370,8 @@ parserStyleRule2 = fmap parsedRuleToRule2 parserStyleRule
 
 
 chainToLinks :: CssComplexSelector -> CssLegacyComplexSelector -> CssComplexSelector
-chainToLinks acc (Chain compo combi remd) = chainToLinks (acc ++ [WrapCompound compo] ++ [WrapCombinator combi] ) remd
-chainToLinks acc (Last compo)             = (acc ++ [WrapCompound compo])
+chainToLinks acc (Chain compo combi remd) = chainToLinks (acc ++ [CompoundItem compo] ++ [CombinatorItem combi] ) remd
+chainToLinks acc (Last compo)             = (acc ++ [CompoundItem compo])
 
 
 

@@ -287,7 +287,7 @@ parseStyleRuleTestData =
                        , remainderExpected = ""
                        , tokenExpected     = CssTokEnd
                        , resultExpected    = Just CssParsedStyleRule
-                         { prelude = [[WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"}]]
+                         { prelude = [[CompoundItem defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"}]]
                          , content = ( defaultCssDeclarationSet { items =
                                                                     S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0x003412),                          important = False }
                                                                                , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
@@ -303,7 +303,7 @@ parseStyleRuleTestData =
                        , remainderExpected = ""
                        , tokenExpected     = CssTokEnd
                        , resultExpected    = Just CssParsedStyleRule
-                         { prelude = [[ WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
+                         { prelude = [[ CompoundItem defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
                          , content = ( defaultCssDeclarationSet { items =
                                                                   S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0x34128c),                          important = False }
                                                                              , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
@@ -321,7 +321,7 @@ parseStyleRuleTestData =
                        , remainderExpected = ""
                        , tokenExpected     = CssTokEnd
                        , resultExpected    = Just CssParsedStyleRule
-                         { prelude = [[ WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
+                         { prelude = [[ CompoundItem defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
                          , content = ( defaultCssDeclarationSet { items =
                                                                   S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0xff0000),                          important = False }
                                                                              , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
@@ -339,7 +339,7 @@ parseStyleRuleTestData =
                        , remainderExpected = "{color:blue}"
                        , tokenExpected     = CssTokIdent "h1"
                        , resultExpected    = Just CssParsedStyleRule
-                         { prelude = [[ WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
+                         { prelude = [[ CompoundItem defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
                          , content = ( defaultCssDeclarationSet { items =
                                                                   S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0x4c4c4c),                          important = False }
                                                                              , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
@@ -355,7 +355,7 @@ parseStyleRuleTestData =
                        , remainderExpected = "{color:blue}"
                        , tokenExpected     = CssTokIdent "h1"
                        , resultExpected    = Just CssParsedStyleRule
-                         { prelude = [[ WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
+                         { prelude = [[ CompoundItem defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
                          , content = ( defaultCssDeclarationSet { items =
                                                                   S.fromList [ CssDeclaration { property = CssPropertyColor (CssValueColor 0x22aa22),                          important = False }
                                                                              , CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
@@ -372,7 +372,7 @@ parseStyleRuleTestData =
                        , remainderExpected = "{color:blue}"
                        , tokenExpected     = CssTokIdent "h1"
                        , resultExpected    = Just CssParsedStyleRule
-                         { prelude = [[ WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
+                         { prelude = [[ CompoundItem defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
                          , content = ( defaultCssDeclarationSet { items =
                                                                   S.fromList [ CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
                                                                              , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
@@ -392,7 +392,7 @@ parseStyleRuleTestData =
                        , remainderExpected = "{color:blue}"
                        , tokenExpected     = CssTokIdent "h1"
                        , resultExpected    = Just CssParsedStyleRule
-                         { prelude = [[ WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
+                         { prelude = [[ CompoundItem defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
                          , content = ( defaultCssDeclarationSet { items =
                                                                   S.fromList [ CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
                                                                              , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
@@ -413,7 +413,7 @@ parseStyleRuleTestData =
                        , remainderExpected = "{color:blue}"
                        , tokenExpected     = CssTokIdent "h1"
                        , resultExpected    = Just CssParsedStyleRule
-                         { prelude = [[ WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
+                         { prelude = [[ CompoundItem defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
                          , content = ( defaultCssDeclarationSet { items =
                                                                   S.fromList [ CssDeclaration { property = CssPropertyBackgroundColor (CssValueBackgroundColorColor 0xffff00), important = False }
                                                                              , CssDeclaration { property = CssPropertyLineHeight CssValueLineHeightNormal,                     important = False }
@@ -438,7 +438,7 @@ parseStyleRuleTestData =
                        , remainderExpected = " {margin: 0.5em 0}"
                        , tokenExpected     = CssTokIdent "p"
                        , resultExpected    = Just CssParsedStyleRule
-                         { prelude = [[ WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "a"} ]]
+                         { prelude = [[ CompoundItem defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "a"} ]]
                          , content = ( defaultCssDeclarationSet { items =
                                                                     S.fromList [ CssDeclaration { property = CssPropertyTextDecoration [ CssValueTextDecorationOverline ], important = False }
                                                                                ]
@@ -483,7 +483,7 @@ parseStyleRuleTestData =
                        , remainderExpected = ""
                        , tokenExpected     = CssTokEnd
                        , resultExpected    = Just CssParsedStyleRule
-                         { prelude = [[ WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
+                         { prelude = [[ CompoundItem defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "body"} ]]
                          , content = ( defaultCssDeclarationSet
                                      , defaultCssDeclarationSet )
                          }
@@ -497,7 +497,7 @@ parseStyleRuleTestData =
                        , remainderExpected = ""
                        , tokenExpected     = CssTokEnd
                        , resultExpected    = Just CssParsedStyleRule
-                         { prelude = [[ WrapCompound defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "head"} ]]
+                         { prelude = [[ CompoundItem defaultCssCompoundSelector{selectorTagName = CssTypeSelector . htmlTagIndex $ "head"} ]]
                          , content = ( defaultCssDeclarationSet
                                      , defaultCssDeclarationSet )
                          }

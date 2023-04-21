@@ -60,7 +60,6 @@ module Hello.Css.Selector
 
   , CssComplexSelector
   , ComplexItem (..)
-  , SelectorWrapper (..)
   , CssParsedComplexSelector
 
   , CssCombinator (..)
@@ -258,15 +257,6 @@ type CssLegacyComplexSelector = Chain CssCompoundSelector CssCombinator
 
 -- Simple type allowing me to put compound selectors and the combinators in
 -- the same list.
-data SelectorWrapper
-  = WrapCompound CssCompoundSelector
-  | WrapCombinator CssCombinator
-  deriving (Show, Eq)
-
-
-
-
-
 data ComplexItem
   = CompoundItem CssCompoundSelector
   | CombinatorItem CssCombinator
@@ -275,8 +265,8 @@ data ComplexItem
 
 
 
-type CssParsedComplexSelector = [SelectorWrapper]
-type CssComplexSelector = [SelectorWrapper]
+type CssParsedComplexSelector = [ComplexItem]
+type CssComplexSelector = [ComplexItem]
 
 
 
@@ -291,10 +281,10 @@ selectorSpecificity :: CssComplexSelector -> Int
 selectorSpecificity complex = selectorSpecificity' complex 0
   where
     selectorSpecificity' :: CssComplexSelector -> Int -> Int
-    selectorSpecificity' (WrapCompound compound : _ : remainder)       acc = selectorSpecificity' remainder (acc + compoundSelectorSpecificity compound)
-    selectorSpecificity' (WrapCompound compound : _)                   acc = acc + compoundSelectorSpecificity compound
-    selectorSpecificity' [WrapCompound compound]                       acc = acc + compoundSelectorSpecificity compound
-    selectorSpecificity' (WrapCombinator _:WrapCompound compound:remd) acc = selectorSpecificity' remd (acc + compoundSelectorSpecificity compound)
+    selectorSpecificity' (CompoundItem compound : _ : remainder)       acc = selectorSpecificity' remainder (acc + compoundSelectorSpecificity compound)
+    selectorSpecificity' (CompoundItem compound : _)                   acc = acc + compoundSelectorSpecificity compound
+    selectorSpecificity' [CompoundItem compound]                       acc = acc + compoundSelectorSpecificity compound
+    selectorSpecificity' (CombinatorItem _:CompoundItem compound:remd) acc = selectorSpecificity' remd (acc + compoundSelectorSpecificity compound)
     selectorSpecificity' []                                            acc = acc
 
 
@@ -314,8 +304,8 @@ compoundSelectorSpecificity compound = fromId compound + fromClass compound + fr
 
 -- TODO: this function has missing cases for pattern matching.
 listToChain :: CssComplexSelector -> Chain CssCompoundSelector CssCombinator
-listToChain [WrapCompound compound] = Last compound
-listToChain (WrapCompound compound:WrapCombinator combi:xs) = Chain compound combi (listToChain xs)
+listToChain [CompoundItem compound] = Last compound
+listToChain (CompoundItem compound:CombinatorItem combi:xs) = Chain compound combi (listToChain xs)
 --listToChain [] = (Last defaultCssCompoundSelector)
 
 
@@ -334,8 +324,8 @@ chainToList (Last (CssCompoundSelector {selectorPseudoClass = [], selectorId = "
 chainToList (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Last (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85}))))) []
 -}
 chainToList :: Chain CssCompoundSelector CssCombinator -> CssComplexSelector -> CssComplexSelector
-chainToList (Last compound)                  acc = acc ++ [WrapCompound compound]
-chainToList (Chain compound combinator remd) acc = chainToList remd (acc ++ [WrapCompound compound] ++ [WrapCombinator combinator])
+chainToList (Last compound)                  acc = acc ++ [CompoundItem compound]
+chainToList (Chain compound combinator remd) acc = chainToList remd (acc ++ [CompoundItem compound] ++ [CombinatorItem combinator])
 
 
 

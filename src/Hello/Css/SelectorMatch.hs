@@ -70,8 +70,8 @@ complexSelectorMatches complexSelector doctree dtn = complexSelectorMatches2 com
 
 complexSelectorMatches2 :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> Bool
 complexSelectorMatches2 _                                     Nothing    _       = False
-complexSelectorMatches2 [WrapCompound compound]                       (Just dtn) _       = compoundSelectorMatches compound dtn
-complexSelectorMatches2 (WrapCompound compound : WrapCombinator combinator : remainder) (Just dtn) doctree =
+complexSelectorMatches2 [CompoundItem compound]                       (Just dtn) _       = compoundSelectorMatches compound dtn
+complexSelectorMatches2 (CompoundItem compound : CombinatorItem combinator : remainder) (Just dtn) doctree =
   if compoundSelectorMatches compound dtn
   then matchCombinatorAndRemainder combinator remainder dtn doctree
   else False
