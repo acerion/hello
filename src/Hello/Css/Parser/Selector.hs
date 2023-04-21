@@ -93,10 +93,10 @@ parserComplexSelector = ((:) <$> parserFirstCompound <*> fmap concat (many parse
   where
     -- A first compound selector in a complex selector may be preceded with spaces.
     parserFirstCompound :: Parser (CssParser, CssToken) ComplexItem
-    parserFirstCompound = many parserTokenWhitespace *> ((fmap) CompoundItem (parserCompoundSelector))
+    parserFirstCompound = many parserTokenWhitespace *> (fmap CompoundItem parserCompoundSelector)
 
     parserCombinatorAndCompound :: Parser (CssParser, CssToken) CssComplexSelector
-    parserCombinatorAndCompound = (( \ a b -> [a, b]) <$> parserCombinator <*> ((fmap) CompoundItem (parserCompoundSelector)))
+    parserCombinatorAndCompound = (( \ a b -> [a, b]) <$> (fmap CombinatorItem parserCombinator) <*> (fmap CompoundItem (parserCompoundSelector)))
 
 
 
@@ -106,19 +106,14 @@ parserComplexSelector = ((:) <$> parserFirstCompound <*> fmap concat (many parse
 -- :m +Hello.Css.Parser.Selector
 --
 -- runParser parserCombinator  (startTokenizer . defaultParser $ "    >   head")
-parserCombinator :: Parser (CssParser, CssToken) ComplexItem
-parserCombinator = Parser $ \ pat -> parseCombinator pat
-
-
-
-
-parseCombinator :: (CssParser, CssToken) -> Maybe ((CssParser, CssToken), ComplexItem)
-parseCombinator pat = case runParser parser pat of
-                        Just (pat', CssTokWS)        -> Just (pat', CombinatorItem CssCombinatorDescendant)
-                        Just (pat', CssTokDelim '>') -> Just (pat', CombinatorItem CssCombinatorChild)
-                        Just (pat', CssTokDelim '+') -> Just (pat', CombinatorItem CssCombinatorAdjacentSibling)
-                        _                            -> Nothing
+parserCombinator :: Parser (CssParser, CssToken) CssCombinator
+parserCombinator = Parser $ \ pat -> case runParser parser pat of
+                                       Just (pat', CssTokWS)        -> Just (pat', CssCombinatorDescendant)
+                                       Just (pat', CssTokDelim '>') -> Just (pat', CssCombinatorChild)
+                                       Just (pat', CssTokDelim '+') -> Just (pat', CssCombinatorAdjacentSibling)
+                                       _                            -> Nothing
   where
+    parser :: Parser (CssParser, CssToken) CssToken
     parser = many parserTokenWhitespace *> parserTokenDelim '>'  <* many parserTokenWhitespace
              <|> many parserTokenWhitespace *> parserTokenDelim '+'  <* many parserTokenWhitespace
              <|> parserTokenWhitespace <* many parserTokenWhitespace
