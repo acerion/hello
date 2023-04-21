@@ -68,7 +68,7 @@ import qualified Data.Map as M
 import qualified Data.List as L
 import Debug.Trace
 
-import Hello.Chain
+--import Hello.Chain
 import Hello.Css.Declaration
 import Hello.Css.Tokenizer
 import Hello.Css.Parser.Rule
@@ -270,7 +270,11 @@ cssRuleIsSafe rule = (not . cssComplexSelectorHasPseudoClass . complexSelector $
 -- of pseudo class simple selectors? Remember that C/C++ code can use only
 -- first pseudo class.
 cssComplexSelectorHasPseudoClass :: CssComplexSelector -> Bool
-cssComplexSelectorHasPseudoClass complex = chainAnyDatum (not . null . selectorPseudoClass) complex
+cssComplexSelectorHasPseudoClass complex = any f complex
+  where
+    f x = case x of
+            WrapCompound c -> not . null . selectorPseudoClass $ c
+            _ -> False
 
 
 

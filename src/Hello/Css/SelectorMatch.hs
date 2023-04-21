@@ -56,27 +56,28 @@ where
 import qualified Data.Text as T
 --import Debug.Trace
 
-import Hello.Chain
+--import Hello.Chain
 import Hello.Css.Selector
 import Hello.Html.Doctree
 import Hello.Html.DoctreeNode
 
 
 
-
 complexSelectorMatches :: CssComplexSelector -> Doctree -> DoctreeNode -> Bool
-complexSelectorMatches complexSelector doctree dtn = complexSelectorMatches' complexSelector (Just dtn) doctree
+complexSelectorMatches complexSelector doctree dtn = complexSelectorMatches2 complexSelector (Just dtn) doctree
 
 
 
-
-complexSelectorMatches' :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> Bool
-complexSelectorMatches' _                                     Nothing    _       = False
-complexSelectorMatches' (Last compound)                       (Just dtn) _       = compoundSelectorMatches compound dtn
-complexSelectorMatches' (Chain compound combinator remainder) (Just dtn) doctree =
+complexSelectorMatches2 :: CssComplexSelector -> Maybe DoctreeNode -> Doctree -> Bool
+complexSelectorMatches2 _                                     Nothing    _       = False
+complexSelectorMatches2 [WrapCompound compound]                       (Just dtn) _       = compoundSelectorMatches compound dtn
+complexSelectorMatches2 (WrapCompound compound : WrapCombinator combinator : remainder) (Just dtn) doctree =
   if compoundSelectorMatches compound dtn
   then matchCombinatorAndRemainder combinator remainder dtn doctree
   else False
+complexSelectorMatches2 []                                     _    _       = False
+complexSelectorMatches2 _                                     _    _       = True
+
 
 
 
@@ -85,8 +86,8 @@ complexSelectorMatches' (Chain compound combinator remainder) (Just dtn) doctree
 -- matches a doctree.
 matchCombinatorAndRemainder :: CssCombinator -> CssComplexSelector -> DoctreeNode -> Doctree -> Bool
 matchCombinatorAndRemainder CssCombinatorDescendant      complex dtn doctree = matchDescendant         complex (getDtnParent doctree dtn)  doctree
-matchCombinatorAndRemainder CssCombinatorChild           complex dtn doctree = complexSelectorMatches' complex (getDtnParent doctree dtn)  doctree
-matchCombinatorAndRemainder CssCombinatorAdjacentSibling complex dtn doctree = complexSelectorMatches' complex (getDtnSibling doctree dtn) doctree
+matchCombinatorAndRemainder CssCombinatorChild           complex dtn doctree = complexSelectorMatches2 complex (getDtnParent doctree dtn)  doctree
+matchCombinatorAndRemainder CssCombinatorAdjacentSibling complex dtn doctree = complexSelectorMatches2 complex (getDtnSibling doctree dtn) doctree
 
 
 
@@ -97,7 +98,7 @@ findMatchingParentAndFollowers  :: CssComplexSelector -> Maybe DoctreeNode -> Do
 findMatchingParentAndFollowers _       Nothing    _       = False
 findMatchingParentAndFollowers complex (Just dtn) doctree =
   if True -- uniqueNum dtn > dtnNumForCompound -- TODO: restore?
-  then case complexSelectorMatches' complex (Just dtn) doctree of
+  then case complexSelectorMatches2 complex (Just dtn) doctree of
          -- This dtn node matched innermost Compound of Complex, and the rest
          -- of tree matched remainder of Complex.
          True  -> True

@@ -56,10 +56,10 @@ data TestData = TestData
 -- Definitions of expected parsed rules are in top level to avoid too much
 -- nesting of code.
 styleRule1 :: CssRule2
-styleRule1 = CssStyleRule CssRule { complexSelector = Last (CssCompoundSelector { selectorPseudoClass = []
-                                                                                , selectorId = ""
-                                                                                , selectorClass = []
-                                                                                , selectorTagName = CssTypeSelector 33})
+styleRule1 = CssStyleRule CssRule { complexSelector = [WrapCompound $ CssCompoundSelector { selectorPseudoClass = []
+                                                                                          , selectorId = ""
+                                                                                          , selectorClass = []
+                                                                                          , selectorTagName = CssTypeSelector 33}]
                                   , declarationSet = CssDeclarationSet { isSafe = True
                                                                        , items = S.fromList [CssDeclaration { property = CssPropertyColor (CssValueColor 0), important = False}]}
                                   , specificity = 1

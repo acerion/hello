@@ -82,6 +82,7 @@ import Hello.Css.Parser.Value
 import Hello.Css.Rule
 import Hello.Css.Selector
 import Hello.Css.Tokenizer
+import Hello.Chain
 import Hello.Utils.Parser
 
 
@@ -360,11 +361,17 @@ selectors list the function will return separate style rule.
 parserStyleRule2 :: Parser (CssParser, CssToken) [CssRule2]
 parserStyleRule2 = fmap parsedRuleToRule2 parserStyleRule
   where
-    parsedRuleToRule2 parsedStyleRule = buildRules complexSelectors declSets []
+    parsedRuleToRule2 parsedStyleRule = buildRules complexSelectors2 declSets []
       where
         complexSelectors = fmap mkComplexSelector (prelude parsedStyleRule)
+        complexSelectors2 = fmap (chainToLinks []) complexSelectors -- prelude parsedStyleRule
         declSets         = content parsedStyleRule
 
+
+
+chainToLinks :: CssComplexSelector -> CssLegacyComplexSelector -> CssComplexSelector
+chainToLinks acc (Chain compo combi remd) = chainToLinks (acc ++ [WrapCompound compo] ++ [WrapCombinator combi] ) remd
+chainToLinks acc (Last compo)             = (acc ++ [WrapCompound compo])
 
 
 
@@ -488,7 +495,7 @@ In this example we have a list of two complex selectors and one set of
 declarations.
 -}
 buildRules :: [CssComplexSelector] -> CssDeclarationSets -> [CssRule2] -> [CssRule2]
-buildRules []     _        acc = reverse acc
+buildRules [] _        acc = reverse acc
 buildRules (x:xs) declSets acc | addBoth      = buildRules xs declSets ((CssStyleRule ruleImp True) : (CssStyleRule rule False) : acc)
                                | addRegular   = buildRules xs declSets ((CssStyleRule rule False) : acc)
                                | addImportant = buildRules xs declSets ((CssStyleRule ruleImp True) : acc)

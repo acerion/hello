@@ -23,6 +23,7 @@ where
 
 import qualified Data.Text as T
 import Test.HUnit
+-- import Debug.Trace
 
 import Hello.Css.Selector
 import Hello.Css.SelectorMatch
@@ -37,14 +38,16 @@ import Hello.Tests.Css.Match.Data
 
 -- On success return empty string. On failure return string representation of
 -- selector, for which test failed.
-specificityTest :: [(Int, CssComplexSelector)] -> T.Text
+specificityTest :: [(Int, CssLegacyComplexSelector)] -> T.Text
 specificityTest []     = ""
-specificityTest (x:xs) = if expectedSpecificity /= selectorSpecificity complex
+specificityTest (x:xs) = if expectedSpecificity /= (selectorSpecificity list)
                          then T.pack . show $ complex
-                         else specificityTest xs
+                         else  (specificityTest xs)
   where
     expectedSpecificity = fst x
     complex = snd x
+    list =  chainToList complex []
+
 
 
 

@@ -111,7 +111,7 @@ parserCompoundSelectorTest xs = foldr f [] xs
 --
 -- This array is called "Manual" because these tests were written manually.
 -- Perhaps in the future I will write some generator of test data.
-parserComplexSelectorTestManualDataBasic :: [(T.Text, Maybe ((CssParser, CssToken), [SelectorWrapper]))]
+parserComplexSelectorTestManualDataBasic :: [(T.Text, Maybe ((CssParser, CssToken), CssComplexSelector))]
 parserComplexSelectorTestManualDataBasic =
   [
     -- Success case: an example from https://www.w3.org/TR/selectors-4/#descendant-combinators
@@ -153,7 +153,7 @@ parserComplexSelectorTestManualDataBasic =
 
 -- On success return empty string. On failure return string representation of
 -- remainder string in a row, for which test failed.
-parserComplexSelectorTest :: [(T.Text, Maybe ((CssParser, CssToken), [SelectorWrapper]))] -> T.Text
+parserComplexSelectorTest :: [(T.Text, Maybe ((CssParser, CssToken), CssComplexSelector))] -> T.Text
 parserComplexSelectorTest []     = ""
 parserComplexSelectorTest (x:xs) = if expectedResult /= result
                                    then T.pack ("remainder before = " ++ T.unpack remainderBefore ++ ", result = " ++ show result)

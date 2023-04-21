@@ -56,8 +56,10 @@ module Hello.Css.Selector
 
   , CssSubclassSelector (..)
 
-  , CssComplexSelector
+  , CssLegacyComplexSelector
 
+  , CssComplexSelector
+  , ComplexItem (..)
   , SelectorWrapper (..)
   , CssParsedComplexSelector
 
@@ -69,6 +71,7 @@ module Hello.Css.Selector
 
   , listToChain
   , mkComplexSelector
+  , chainToList
   )
 where
 
@@ -248,7 +251,7 @@ defaultCssCompoundSelector = CssCompoundSelector
 
 -- https://www.w3.org/TR/selectors-4/#structure: "A complex selector is a
 -- sequence of one or more compound selectors separated by combinators."
-type CssComplexSelector = Chain CssCompoundSelector CssCombinator
+type CssLegacyComplexSelector = Chain CssCompoundSelector CssCombinator
 
 
 
@@ -263,7 +266,17 @@ data SelectorWrapper
 
 
 
+
+data ComplexItem
+  = CompoundItem CssCompoundSelector
+  | CombinatorItem CssCombinator
+  deriving (Show, Eq)
+
+
+
+
 type CssParsedComplexSelector = [SelectorWrapper]
+type CssComplexSelector = [SelectorWrapper]
 
 
 
@@ -278,8 +291,11 @@ selectorSpecificity :: CssComplexSelector -> Int
 selectorSpecificity complex = selectorSpecificity' complex 0
   where
     selectorSpecificity' :: CssComplexSelector -> Int -> Int
-    selectorSpecificity' (Chain c1 _ remainder) acc = selectorSpecificity' remainder (acc + compoundSelectorSpecificity c1)
-    selectorSpecificity' (Last c1)              acc =                                 acc + compoundSelectorSpecificity c1
+    selectorSpecificity' (WrapCompound compound : _ : remainder)       acc = selectorSpecificity' remainder (acc + compoundSelectorSpecificity compound)
+    selectorSpecificity' (WrapCompound compound : _)                   acc = acc + compoundSelectorSpecificity compound
+    selectorSpecificity' [WrapCompound compound]                       acc = acc + compoundSelectorSpecificity compound
+    selectorSpecificity' (WrapCombinator _:WrapCompound compound:remd) acc = selectorSpecificity' remd (acc + compoundSelectorSpecificity compound)
+    selectorSpecificity' []                                            acc = acc
 
 
 
@@ -297,7 +313,7 @@ compoundSelectorSpecificity compound = fromId compound + fromClass compound + fr
 
 
 -- TODO: this function has missing cases for pattern matching.
-listToChain :: [SelectorWrapper] -> Chain CssCompoundSelector CssCombinator
+listToChain :: CssComplexSelector -> Chain CssCompoundSelector CssCombinator
 listToChain [WrapCompound compound] = Last compound
 listToChain (WrapCompound compound:WrapCombinator combi:xs) = Chain compound combi (listToChain xs)
 --listToChain [] = (Last defaultCssCompoundSelector)
@@ -305,6 +321,25 @@ listToChain (WrapCompound compound:WrapCombinator combi:xs) = Chain compound com
 
 
 
-mkComplexSelector :: [SelectorWrapper] -> CssComplexSelector
+{-
+:m +Hello.Css.Parser.Declaration
+:m +Hello.Css.Tokenizer
+:m +Hello.Css.Parser.Property
+
+:m +Hello.Css.Selector
+:m +Hello.Chain
+:set prompt >
+
+chainToList (Last (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 0})) []
+chainToList (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Chain ( (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85})) CssCombinatorDescendant (Last (CssCompoundSelector {selectorPseudoClass = [], selectorId = "", selectorClass = [], selectorTagName = CssTypeSelector 85}))))) []
+-}
+chainToList :: Chain CssCompoundSelector CssCombinator -> CssComplexSelector -> CssComplexSelector
+chainToList (Last compound)                  acc = acc ++ [WrapCompound compound]
+chainToList (Chain compound combinator remd) acc = chainToList remd (acc ++ [WrapCompound compound] ++ [WrapCombinator combinator])
+
+
+
+
+mkComplexSelector :: CssParsedComplexSelector -> CssLegacyComplexSelector
 mkComplexSelector parsed = listToChain . reverse $ parsed
 

@@ -57,7 +57,7 @@ where
 import qualified Data.Text as T
 -- import Debug.Trace
 
-import Hello.Chain
+--import Hello.Chain
 import Hello.Css.Declaration
 import Hello.Css.MediaQuery
 import Hello.Css.Selector
@@ -79,15 +79,16 @@ data CssRule2
 
 
 
-data CssRule = CssRule {
-    complexSelector :: CssComplexSelector
+data CssRule = CssRule
+  { complexSelector :: CssComplexSelector
   , declarationSet  :: CssDeclarationSet
   , specificity     :: Int
   , position        :: Int
   } deriving (Eq)
 
+defaultCssRule :: CssRule
 defaultCssRule = CssRule
-  { complexSelector = mkComplexSelector [WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelectorUnknown }]
+  { complexSelector = [WrapCompound defaultCssCompoundSelector { selectorTagName = CssTypeSelectorUnknown }]
   , declarationSet  = defaultCssDeclarationSet
   , specificity     = -1
   , position        = -1
@@ -96,7 +97,7 @@ defaultCssRule = CssRule
 
 instance Show CssRule where
   show (CssRule cs ds s p) = "Rule { " ++
-                             "complexSelector = " ++ show cs ++ "\n" ++
+                             "complexSelector = " ++ (show . listToChain $ cs) ++ "\n" ++
                              "declSet = "         ++ show ds ++ "\n" ++
                              "spec = " ++ show s  ++ "\n" ++
                              "pos = "  ++ show p  ++ "}\n"
@@ -106,9 +107,8 @@ instance Show CssRule where
 
 -- Get top compound selector
 getTopCompound :: CssRule -> CssCompoundSelector
-getTopCompound rule = chainGetFirstDatum . complexSelector $ rule
-
-
+getTopCompound rule = case head . complexSelector $ rule of
+                        WrapCompound c -> c
 
 
 -- A helper data type

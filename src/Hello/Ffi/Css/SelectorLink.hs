@@ -80,20 +80,20 @@ defaultComplexSelectorLink = CssComplexSelectorLink
 
 
 
-chainToLinks :: CssComplexSelector -> [CssComplexSelectorLink] -> [CssComplexSelectorLink]
+chainToLinks :: CssLegacyComplexSelector -> [CssComplexSelectorLink] -> [CssComplexSelectorLink]
 chainToLinks (Chain compo combi remainder) acc = chainToLinks remainder (defaultComplexSelectorLink { compound = compo, combinator = Just combi } : acc)
 chainToLinks (Last compo) acc                  = defaultComplexSelectorLink { compound = compo, combinator = Nothing } : acc
 
 
 
 
-linksToChain :: [CssComplexSelectorLink] -> CssComplexSelector
+linksToChain :: [CssComplexSelectorLink] -> CssLegacyComplexSelector
 linksToChain = linksToChain' . reverse
 
 
 
 
-linksToChain' :: [CssComplexSelectorLink] -> CssComplexSelector
+linksToChain' :: [CssComplexSelectorLink] -> CssLegacyComplexSelector
 linksToChain' (x:xs) = case combinator x of
                          Nothing    -> Last . compound $ x -- no combinator
                          Just combi -> Chain (compound x) combi (linksToChain' xs)

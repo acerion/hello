@@ -89,7 +89,7 @@ getTopCompoundTest (x:xs) = if expectedCompound /= cpd
 
     result = runParser parserSelectorList (startTokenizer . defaultParser $ remainderIn)
     cpd = case result of
-            Just (_, l) -> getTopCompound CssRule { complexSelector = mkComplexSelector . head $ l
+            Just (_, l) -> getTopCompound CssRule { complexSelector = head l
                                                   , declarationSet  = defaultCssDeclarationSet
                                                   , specificity     = 0
                                                   , position        = 0
