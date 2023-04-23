@@ -47,6 +47,8 @@ module Hello.Css.SelectorMatch
     -- Only for tests.
   , compoundSelectorMatches'
   , CssCompoundSelectorMatch (..)
+
+  , matchOnPseudoClass
   )
 where
 
@@ -168,11 +170,6 @@ compoundSelectorMatches' compound dtnArg | not $ matchOnElement compound dtnArg 
                                 CssTypeSelectorUniversal -> True
                                 CssTypeSelectorUnknown   -> False
 
-    matchOnPseudoClass :: CssCompoundSelector -> DoctreeNode -> Bool
-    matchOnPseudoClass csel dtn = all (`elem` pseudos) (compoundPseudoClass csel)
-      where
-        pseudos = fmap CssPseudoClassSelector (selPseudoClass dtn)
-
     mismatchOnId :: CssCompoundSelector -> DoctreeNode -> Bool
     mismatchOnId csel dtn = (not . null . compoundId $ csel) && ((T.null . selId $ dtn) || (compoundId csel /= [CssIdSelector . selId $ dtn]))
     -- if (selector->c_selector_id != NULL && (dtn->c_element_selector_id == NULL || dStrAsciiCasecmp (selector->c_selector_id, dtn->c_element_selector_id) != 0))
@@ -198,4 +195,9 @@ compoundSelectorMatches' compound dtnArg | not $ matchOnElement compound dtnArg 
 
 
 
+
+matchOnPseudoClass :: CssCompoundSelector -> DoctreeNode -> Bool
+matchOnPseudoClass compound dtn = all (`elem` pseudos) (compoundPseudoClass compound)
+  where
+    pseudos = fmap CssPseudoClassSelector (selPseudoClass dtn)
 

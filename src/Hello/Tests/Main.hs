@@ -37,6 +37,7 @@ import Hello.Tests.Css.Parser.Rule
 import Hello.Tests.Css.PropertyValue
 import Hello.Tests.Css.Rule
 import Hello.Tests.Css.Selector
+import Hello.Tests.Css.SelectorMatch
 import Hello.Tests.Css.StyleEngine
 import Hello.Tests.Css.Tokenizer
 
@@ -72,6 +73,7 @@ testFunctions = [ testsChain
                 , testsCssPropertyValue
                 , testsCssRule
                 , testsCssStyleEngine
+                , testsCssSelectorMatch
                 , testsCssTokenizer
 
                 , testsHtmlAttribute
