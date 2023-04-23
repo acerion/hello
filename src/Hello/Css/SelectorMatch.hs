@@ -157,7 +157,7 @@ data CssCompoundSelectorMatch
 -- compound selector."
 compoundSelectorMatches' :: CssCompoundSelector -> DoctreeNode -> CssCompoundSelectorMatch
 compoundSelectorMatches' compound dtnArg | not $ matchOnElement compound dtnArg     = CssCompoundSelectorMismatchElement
-                                         | mismatchOnPseudoClass compound dtnArg = CssCompoundSelectorMismatchPseudoClass
+                                         | not $ matchOnPseudoClass compound dtnArg = CssCompoundSelectorMismatchPseudoClass
                                          | mismatchOnId compound dtnArg          = CssCompoundSelectorMismatchId
                                          | mismatchOnClass compound dtnArg       = CssCompoundSelectorMismatchClass
                                          | otherwise                             = CssCompoundSelectorMatch
@@ -168,13 +168,10 @@ compoundSelectorMatches' compound dtnArg | not $ matchOnElement compound dtnArg 
                                 CssTypeSelectorUniversal -> True
                                 CssTypeSelectorUnknown   -> False
 
-    -- C/C++ code can use only first pseudo class
-    mismatchOnPseudoClass :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnPseudoClass csel dtn = (length . compoundPseudoClass $ csel) > 0
-                                     && ((T.null . selPseudoClass $ dtn) || ((head . compoundPseudoClass $ csel) /= (CssPseudoClassSelector . selPseudoClass $ dtn)))
-    -- if (selector->c_selector_pseudo_class_size > 0 &&
-    --     (dtn->c_element_selector_pseudo_class == NULL || dStrAsciiCasecmp (selector->c_selector_pseudo_class[0], dtn->c_element_selector_pseudo_class) != 0))
-    --     return false;
+    matchOnPseudoClass :: CssCompoundSelector -> DoctreeNode -> Bool
+    matchOnPseudoClass csel dtn = all (`elem` pseudos) (compoundPseudoClass csel)
+      where
+        pseudos = fmap CssPseudoClassSelector (selPseudoClass dtn)
 
     mismatchOnId :: CssCompoundSelector -> DoctreeNode -> Bool
     mismatchOnId csel dtn = (not . null . compoundId $ csel) && ((T.null . selId $ dtn) || (compoundId csel /= [CssIdSelector . selId $ dtn]))

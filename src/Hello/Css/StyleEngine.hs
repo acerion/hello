@@ -1143,7 +1143,7 @@ setClassOnTopDoctreeNode engine classSelectors =
 
 setPseudoClassOnTopDoctreeNode :: CssStyleEngine -> T.Text -> CssStyleEngine
 setPseudoClassOnTopDoctreeNode engine pseudoClass =
-  engine { doctree = DT.adjustTopNode (doctree engine) (\x -> x { selPseudoClass = pseudoClass }) }
+  engine { doctree = DT.adjustTopNode (doctree engine) (\x -> x { selPseudoClass = (selPseudoClass x) ++ [pseudoClass] }) }
 
 
 

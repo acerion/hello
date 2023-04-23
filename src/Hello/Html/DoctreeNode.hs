@@ -49,7 +49,7 @@ data DoctreeNode = DoctreeNode {
     uniqueNum      :: Int -- unique ascending id
   , htmlElementIdx :: Int -- Index to html.cc::Tags
 
-  , selPseudoClass  :: T.Text
+  , selPseudoClass  :: [T.Text] -- "a:visited:hover"
   , selId           :: T.Text
   , selClass        :: [T.Text]
 
@@ -66,7 +66,7 @@ defaultDoctreeNode = DoctreeNode
   { uniqueNum      = -1
   , htmlElementIdx = -1
 
-  , selPseudoClass = ""
+  , selPseudoClass = []
   , selId = ""
   , selClass = []
 
