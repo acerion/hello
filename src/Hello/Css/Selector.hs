@@ -37,7 +37,6 @@ module Hello.Css.Selector
   (
     CssTypeSelector (..) -- TODO: don't export value constructors
   , unCssTypeSelector
-  , mkCssTypeSelector
 
   , CssSimpleSelector (..)
 
@@ -124,13 +123,6 @@ unCssTypeSelector (CssTypeSelector t)      = t
 unCssTypeSelector CssTypeSelectorUniversal = -2
 unCssTypeSelector CssTypeSelectorUnknown   = -1
 
-
-
-
-mkCssTypeSelector :: Int -> CssTypeSelector
-mkCssTypeSelector t | t >= 0 && t < styleSheetElementCount = CssTypeSelector t
-                    | t == (-2)                            = CssTypeSelectorUniversal
-                    | otherwise                            = CssTypeSelectorUnknown
 
 
 

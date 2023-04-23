@@ -152,17 +152,21 @@ data CssCompoundSelectorMatch
 
 
 
+-- https://www.w3.org/TR/selectors-4/#structure: "A given element is said to
+-- match a compound selector when it matches all simple selectors in the
+-- compound selector."
 compoundSelectorMatches' :: CssCompoundSelector -> DoctreeNode -> CssCompoundSelectorMatch
-compoundSelectorMatches' compound dtnArg | mismatchOnElement compound dtnArg     = CssCompoundSelectorMismatchElement
+compoundSelectorMatches' compound dtnArg | not $ matchOnElement compound dtnArg     = CssCompoundSelectorMismatchElement
                                          | mismatchOnPseudoClass compound dtnArg = CssCompoundSelectorMismatchPseudoClass
                                          | mismatchOnId compound dtnArg          = CssCompoundSelectorMismatchId
                                          | mismatchOnClass compound dtnArg       = CssCompoundSelectorMismatchClass
                                          | otherwise                             = CssCompoundSelectorMatch
   where
-    mismatchOnElement :: CssCompoundSelector -> DoctreeNode -> Bool
-    mismatchOnElement csel dtn = compoundTagName csel /= CssTypeSelectorUniversal && (unCssTypeSelector . compoundTagName $ csel) /= htmlElementIdx dtn
-    -- if (selector->c_selector_element != CssSimpleSelectorElementAny && selector->c_selector_element != dtn->c_html_element_idx)
-    --     return false;
+    matchOnElement :: CssCompoundSelector -> DoctreeNode -> Bool
+    matchOnElement csel dtn = case compoundTagName csel of
+                                CssTypeSelector t        -> t == htmlElementIdx dtn
+                                CssTypeSelectorUniversal -> True
+                                CssTypeSelectorUnknown   -> False
 
     -- C/C++ code can use only first pseudo class
     mismatchOnPseudoClass :: CssCompoundSelector -> DoctreeNode -> Bool
